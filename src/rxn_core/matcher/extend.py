@@ -21,7 +21,11 @@ from typing import Any
 
 from .dedupe import _dedup_sym_cands, _p_relation_signature
 from .policy import DEFAULT_NODE_POLICY, as_node_match_policy
-from .primitives import _edge_wbo, _growth_edge_supported
+from .primitives import (
+    SYM_SUPPORT_MAX_STATES,
+    _edge_wbo,
+    _growth_edge_supported,
+)
 from .state import _SymCand, _sym_block_indexes
 from .support import (
     _force_sym_value,
@@ -59,6 +63,8 @@ def _extend_sym_cands(
     dedupe_edges: Iterable[EdgeKey] | None = None,
     node_policy=None,
     defer_boundary_dedupe: bool = False,
+    shadow_oracle=None,
+    shadow_max_states: int = 50000,
 ) -> list[_SymCand]:
     """Symmetry-compressed incremental extension.
 
@@ -125,21 +131,330 @@ def _extend_sym_cands(
         Each returned `_SymCand` may represent many concrete injective
         assignments through symmetry blocks and exact automorphism domains.
     """
+    # Strictly opt-in: None leaves the production path untouched.
+    if shadow_oracle is not None and not isinstance(shadow_oracle, dict):
+        raise TypeError("shadow_oracle must be a dict result sink or None")
+    if shadow_oracle is not None:
+        # Inputs may be generators; retain them for the post-production oracle.
+        cands = tuple(cands)
     node_policy = as_node_match_policy(node_policy)
     ctx = _make_extension_context(
         fragment_old, n, g_R, g_P, mapping, iso_tol, islands_R,
         p_orbits, r_orbits, deferred_edges, anchor_u, anchor_wbo,
         dedupe_edges, node_policy)
     if ctx is None:
+        if shadow_oracle is not None:
+            shadow_oracle.update(_empty_shadow_result())
         return []
 
     children: list[_SymCand] = []
     for raw_cand in cands:
         cand = raw_cand if isinstance(raw_cand, _SymCand) else _SymCand(raw_cand)
         children.extend(_extend_one_candidate(cand, ctx))
-    if defer_boundary_dedupe:
-        return _dedupe_children_exact(children)
-    return _dedupe_children(children, ctx)
+    result = (_dedupe_children_exact(children) if defer_boundary_dedupe
+              else _dedupe_children(children, ctx))
+    if shadow_oracle is not None:
+        shadow_oracle.update(_run_concrete_quotient_diagnostic(
+            cands, ctx, result, shadow_max_states))
+    return result
+
+
+_SHADOW_SCOPE = (
+    "concrete quotient diagnostic — not a full production-certificate "
+    "losslessness oracle"
+)
+
+
+def _empty_shadow_result():
+    return {
+        "diagnostic": _SHADOW_SCOPE,
+        "status": "inconclusive",
+        "comparison": None,
+        "production_support_cap_hit": None,
+        "production_support_cap_limit": SYM_SUPPORT_MAX_STATES,
+        "production_support_inconclusive": True,
+        "production_support_cap_status": "unknown",
+        "oracle_enumeration_cap_hit": False,
+        "oracle_enumeration_inconclusive": False,
+        "upstream_truncation_status": "unknown",
+        "losslessness_conclusion": "not_claimed",
+    }
+
+
+def _mapping_assignments(cand, max_states):
+    """Enumerate live-block injections, excluding completed-family metadata."""
+    from itertools import permutations
+    block_rs = {r for block in cand.blocks for r in block.r_atoms}
+    assignments = [{r: p for r, p in cand.mapping.items() if r not in block_rs}]
+    for block in cand.blocks:
+        next_assignments = []
+        for partial in assignments:
+            available = [p for p in block.p_atoms if p not in partial.values()]
+            for chosen in permutations(available, len(block.r_atoms)):
+                extended = dict(partial)
+                extended.update(zip(block.r_atoms, chosen))
+                next_assignments.append(extended)
+                if len(next_assignments) > max_states:
+                    return None
+        assignments = next_assignments
+    return assignments
+
+
+def _concrete_children(cand, ctx, max_states):
+    """Enumerate supported concrete children from live-block assignments."""
+    mappings = _mapping_assignments(cand, max_states)
+    if mappings is None:
+        return None
+    result = []
+    for old in mappings:
+        used = set(old.values())
+        if ctx.is_merge:
+            merge_image = ctx.mapping[ctx.n]
+            if _supported_value(_SymCand(old), ctx, merge_image, None) is None:
+                continue
+            proposed = dict(old)
+            valid = True
+            for r in ctx.island_atoms:
+                p = ctx.mapping[r]
+                if ((r in proposed and proposed[r] != p)
+                        or (p in proposed.values() and proposed.get(r) != p)):
+                    valid = False
+                    break
+                proposed[r] = p
+            if valid and _island_merge_wbo_consistent(_SymCand(proposed), ctx):
+                result.append(proposed)
+            continue
+        if not all(u in old for u in ctx.bonded_in_frag):
+            continue
+        for v in ctx.g_P.nodes():
+            if v in used or v in ctx.locked_p_atoms:
+                continue
+            if not ctx.node_policy.compatible(ctx.g_R, ctx.n, ctx.g_P, v):
+                continue
+            # This uses the same support/WBO predicate on a concrete state;
+            # candidate generation and quotient construction remain independent.
+            if _supported_value(_SymCand(old), ctx, v, None) is None:
+                continue
+            child = dict(old)
+            child[ctx.n] = v
+            result.append(child)
+            if len(result) > max_states:
+                return None
+    return result
+
+
+def _concrete_certificate(mapping, ctx):
+    """Independent colored product-graph certificate for a finished mapping."""
+    import pynauty
+
+    nodes = tuple(ctx.g_P.nodes())
+    index = {p: i for i, p in enumerate(nodes)}
+    adjacency = defaultdict(set)
+    edge_colors = defaultdict(set)
+    next_vertex = len(nodes)
+    tolerance = float(getattr(ctx.p_orbits, "wbo_tol", 0.2) or 0.2)
+    pair_values = []
+    for i, a in enumerate(nodes):
+        for b in nodes[i + 1:]:
+            w = (round(_edge_wbo(ctx.g_P, a, b), 12)
+                 if ctx.g_P.has_edge(a, b) else 0.0)
+            pair_values.append(((a, b), w))
+    representatives = []
+    value_buckets = {0.0: 0}
+    for value in sorted({value for _, value in pair_values if value > 0.0}):
+        for bucket, representative in enumerate(representatives, 1):
+            if abs(value - representative) <= tolerance + 1e-12:
+                value_buckets[value] = bucket
+                break
+        else:
+            representatives.append(value)
+            value_buckets[value] = len(representatives)
+    pair_buckets = {pair: value_buckets[value]
+                    for pair, value in pair_values}
+    for (a, b), bucket in sorted(pair_buckets.items()):
+        if bucket == 0:
+            continue
+        edge = next_vertex
+        next_vertex += 1
+        adjacency[index[a]].add(edge)
+        adjacency[index[b]].add(edge)
+        adjacency[edge].update((index[a], index[b]))
+        edge_colors[bucket].add(edge)
+    mapped_roles = defaultdict(list)
+    for r, p in mapping.items():
+        mapped_roles[p].append(("mapped", int(r)))
+    locked_roles = defaultdict(list)
+    for r, p in ctx.mapping.items():
+        locked_roles[p].append(("locked", int(r)))
+    colors = defaultdict(set)
+    for p in nodes:
+        role = (ctx.node_policy.key(ctx.g_P, p),
+                tuple(sorted(mapped_roles[p])), tuple(sorted(locked_roles[p])))
+        colors[("atom", role)].add(index[p])
+    for bucket, vertices in edge_colors.items():
+        colors[("edge", bucket)].update(vertices)
+    color_cells = sorted(colors.items(), key=lambda item: repr(item[0]))
+    graph = pynauty.Graph(
+        next_vertex, directed=False,
+        adjacency_dict={v: sorted(adjacency.get(v, ()))
+                        for v in range(next_vertex)},
+        vertex_coloring=[set(v) for _, v in color_cells],
+    )
+    # Nauty treats partition cells as unnamed. Preserve their semantic labels
+    # alongside the certificate, as required for role-sensitive equivalence.
+    profile = tuple((color, len(vertices)) for color, vertices in color_cells)
+    return pynauty.certificate(graph), profile
+
+
+def _concrete_boundary(mapping, ctx):
+    """Rebuild deferred-boundary discrimination for concrete assignments."""
+    from collections import Counter
+    boundary = defaultdict(list)
+    for a, b in ctx.boundary_edges:
+        if (a in ctx.sig_fragment) != (b in ctx.sig_fragment):
+            inside, outside = (a, b) if a in ctx.sig_fragment else (b, a)
+            boundary[outside].append(inside)
+    if not boundary:
+        return ()
+    used = set(mapping.values()) | set(ctx.locked_p_atoms)
+    result = []
+    def orbit_id(orbits, atom):
+        return atom if orbits is None else orbits.get(atom, atom)
+
+    def pair_bucket(orbits, a, b):
+        if hasattr(orbits, "wbo_buckets"):
+            pair = (a, b) if a <= b else (b, a)
+            if pair in orbits.wbo_buckets:
+                return orbits.wbo_buckets[pair]
+            if orbits.zero_bucket is not None:
+                return orbits.zero_bucket
+        return int(round(_edge_wbo(ctx.g_P, a, b) * 5))
+
+    for x in sorted(boundary):
+        pool = []
+        for p in ctx.g_P.nodes():
+            if p in used or not ctx.node_policy.compatible(ctx.g_R, x, ctx.g_P, p):
+                continue
+            rel = tuple(sorted(
+                (r, pair_bucket(ctx.p_orbits, p, q))
+                for r, q in mapping.items()))
+            pool.append((ctx.node_policy.key(ctx.g_P, p),
+                         orbit_id(ctx.p_orbits, p), rel))
+        r_vec = tuple(sorted(
+            (r, orbit_id(ctx.r_orbits, r),
+             int(round(_edge_wbo(ctx.g_R, x, r) * 5)))
+            for r in ctx.sig_fragment if r in mapping))
+        deferred = tuple(sorted(
+            (r, orbit_id(ctx.r_orbits, r),
+             int(round(_edge_wbo(ctx.g_R, x, r) * 5)))
+            for r in boundary[x]))
+        result.append((orbit_id(ctx.r_orbits, x),
+                       ctx.node_policy.key(ctx.g_R, x), r_vec, deferred,
+                       frozenset(Counter(pool).items())))
+    return tuple(result)
+
+
+def _run_concrete_quotient_diagnostic(cands, ctx, retained, max_states):
+    """Concrete quotient diagnostic; not a full provenance losslessness oracle.
+
+    A full production-certificate oracle would independently reconstruct the
+    open live-block provenance of each completed mapping; that is out of scope.
+    """
+    output = _empty_shadow_result()
+    support_status = (
+        "unknown" if any(isinstance(c, _SymCand) and c.blocks for c in cands)
+        else "not_applicable_no_live_blocks"
+    )
+    output["production_support_cap_status"] = support_status
+    output["production_support_inconclusive"] = support_status == "unknown"
+    output["inconclusive_flags"] = (
+        ["production_support_cap_status_unknown"]
+        if support_status == "unknown" else []
+    )
+    if max_states <= 0:
+        output.update(oracle_enumeration_cap_hit=True,
+                      oracle_enumeration_inconclusive=True,
+                      inconclusive_flags=output.get("inconclusive_flags", [])
+                      + ["oracle_enumeration_cap_hit"])
+        return output
+    concrete = []
+    for raw in cands:
+        cand = raw if isinstance(raw, _SymCand) else _SymCand(raw)
+        expanded = _concrete_children(cand, ctx, max_states - len(concrete))
+        if expanded is None or len(concrete) + len(expanded) > max_states:
+            output.update(oracle_enumeration_cap_hit=True,
+                          oracle_enumeration_inconclusive=True,
+                          inconclusive_flags=output.get("inconclusive_flags", [])
+                          + ["oracle_enumeration_cap_hit"])
+            return output
+        concrete.extend(expanded)
+    try:
+        certs = [_concrete_certificate(m, ctx) for m in concrete]
+        bounds = [_concrete_boundary(m, ctx) for m in concrete]
+    except ImportError:
+        output["status"] = "inconclusive: pynauty unavailable"
+        return output
+    classes = defaultdict(set)
+    for mapping, cert, boundary in zip(concrete, certs, bounds):
+        classes[(cert, boundary)].add(tuple(sorted(mapping.items())))
+    class_for = {}
+    for class_id, members in enumerate(classes.values()):
+        for member in members:
+            class_for[member] = class_id
+    production_groups = []
+    for child in retained:
+        members = _mapping_assignments(child, max_states)
+        if members is None:
+            output.update(oracle_enumeration_cap_hit=True,
+                          oracle_enumeration_inconclusive=True,
+                          inconclusive_flags=output.get("inconclusive_flags", [])
+                          + ["oracle_enumeration_cap_hit"])
+            return output
+        production_groups.append({tuple(sorted(m.items())) for m in members})
+    owners = defaultdict(set)
+    over_split = under_split = False
+    over_split_children = []
+    for child_id, members in enumerate(production_groups):
+        ids = {class_for[m] for m in members if m in class_for}
+        under_split |= len(ids) > 1
+        for class_id in ids:
+            owners[class_id].add(child_id)
+    for child_ids in owners.values():
+        if len(child_ids) > 1:
+            over_split = True
+            over_split_children.append(sorted(child_ids))
+    shadow_members = set(class_for)
+    production_members = set().union(*production_groups) if production_groups else set()
+    production_extra = production_members - shadow_members
+    shadow_missing = shadow_members - production_members
+    output.update({
+        "status": ("inconclusive" if support_status == "unknown"
+                   else "compared"),
+        "concrete_mappings": len(concrete),
+        "concrete_equivalence_classes": len(classes),
+        "production_children": len(retained),
+        "over_split": over_split,
+        "under_split": under_split,
+        "over_split_child_groups": over_split_children,
+        "production_extra_mappings": sorted(production_extra),
+        "shadow_missing_mappings": sorted(shadow_missing),
+        "comparison": (
+            "inconclusive" if support_status == "unknown" else
+            ("mismatch" if over_split or under_split
+             or production_extra or shadow_missing else "match")),
+        "observed_partition_mismatch": bool(over_split or under_split),
+        "mapping_set_mismatch": bool(production_extra or shadow_missing),
+        # Existing support search returns None for both no support and cap hit;
+        # no caller-visible cap signal exists, so expose that uncertainty.
+        "production_support_cap_hit": (
+            None if support_status == "unknown" else False),
+        "production_support_cap_limit": SYM_SUPPORT_MAX_STATES,
+        "production_support_inconclusive": support_status == "unknown",
+        "production_support_cap_status": support_status,
+        "oracle_enumeration_cap_hit": False,
+        "oracle_enumeration_inconclusive": False,
+    })
+    return output
 
 
 

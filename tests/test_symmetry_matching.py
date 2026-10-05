@@ -306,6 +306,40 @@ def test_extension_collapses_correlated_orbit_duplicate_without_boundary():
     assert mappings == {((0, 1), (1, 3))}
 
 
+def test_shadow_quotient_detects_over_split_of_symmetric_hydrogens(monkeypatch):
+    pytest.importorskip("pynauty")
+    import rxn_core.matcher.extend as extend_module
+
+    wbo_r = np.zeros((2, 2))
+    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
+    g_r = build_graph(["C", "H"], wbo_r, bond_cut=0.2)
+    wbo_p = np.zeros((3, 3))
+    wbo_p[0, 1] = wbo_p[1, 0] = 1.0
+    wbo_p[0, 2] = wbo_p[2, 0] = 1.0
+    g_p = build_graph(["C", "H", "H"], wbo_p, bond_cut=0.2)
+
+    # Simulate a production over-split: keep the two concrete mappings as
+    # separate children even though they have one independently derived class.
+    monkeypatch.setattr(
+        extend_module, "_dedupe_children",
+        lambda _children, _ctx: [
+            _SymCand({0: 0, 1: 1}), _SymCand({0: 0, 1: 2})])
+    oracle = {}
+    out = extend_module._extend_sym_cands(
+        [_SymCand({0: 0})], {0}, 1, g_r, g_p, {}, 0.1, None,
+        shadow_oracle=oracle,
+    )
+
+    assert len(out) == 2
+    assert oracle["concrete_equivalence_classes"] == 1
+    assert oracle["over_split"] is True
+    assert oracle["under_split"] is False
+    assert oracle["comparison"] == "mismatch"
+    assert oracle["diagnostic"] == (
+        "concrete quotient diagnostic — not a full production-certificate "
+        "losslessness oracle")
+
+
 def test_extension_ignores_inactive_r_pairs():
     wbo_r = np.zeros((3, 3))
     wbo_r[1, 2] = wbo_r[2, 1] = 1.0
