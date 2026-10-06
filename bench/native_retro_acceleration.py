@@ -14,10 +14,10 @@ TARGET = "CC(C)C1=CC=CC(C(C)C)=C1/N=C2/C(C3=C4C(C=CC=C42)=CC=C3)=N/C5=C(C(C)C)C=
 
 
 def run_case(source_id, output):
-    from graft.fragment_matching import (
+    from mappa.fragment_matching import (
         detect_fragments, prepare_fragment_target, FragmentDetectionConfig)
-    from graft.fragment_matching.serialization import fragment_detection_to_record
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.fragment_matching.serialization import fragment_detection_to_record
+    from mappa.smiles import smiles_to_weighted_graph
     with gzip.open("data/inventory/processed/inventory_structure_bank.csv.gz", "rt") as stream:
         row = next(r for r in csv.DictReader(stream) if r["Inventory ID"] == source_id)
     config = FragmentDetectionConfig(branch_limit=100, seed_mode="orbit_representatives")

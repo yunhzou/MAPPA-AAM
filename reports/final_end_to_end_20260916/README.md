@@ -1,4 +1,4 @@
-# Final GRAFT end-to-end timing
+# Final MAPPA end-to-end timing
 
 Fresh attempts: 140/140; completed within the five-minute watchdog: 138.
 
@@ -10,7 +10,7 @@ Observed process CPU spent across all 140 attempts was approximately **25.33 CPU
 
 The ten costliest attempts account for **80.6%** of observed CPU spending. Among the 138 completed pipelines, event decoding accounts for **86.4%** of CPU time; 99 decodes take less than one CPU second.
 
-![Final GRAFT timing: all attempts, decoding distribution, and stage costs](timing-overview.png)
+![Final MAPPA timing: all attempts, decoding distribution, and stage costs](timing-overview.png)
 
 [Vector plot](timing-overview.svg) · [Plot data and definitions](plot-metrics.json)
 

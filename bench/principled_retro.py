@@ -12,9 +12,9 @@ import subprocess
 import sys
 import time
 
-from graft.fragment_matching import detect_fragments, FragmentDetectionConfig
-from graft.fragment_matching.serialization import fragment_detection_to_record, FRAGMENT_DETECTION_SCHEMA
-from graft.smiles import smiles_to_weighted_graph
+from mappa.fragment_matching import detect_fragments, FragmentDetectionConfig
+from mappa.fragment_matching.serialization import fragment_detection_to_record, FRAGMENT_DETECTION_SCHEMA
+from mappa.smiles import smiles_to_weighted_graph
 
 
 def main():

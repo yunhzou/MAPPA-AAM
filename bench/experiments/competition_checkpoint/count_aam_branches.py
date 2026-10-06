@@ -11,8 +11,8 @@ sys.path[:0]=[str(CODE/'src'),str(CODE/'bench')]
 from fragment_competition_optimized import save
 
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.search_graph import frozen_value
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.search_graph import frozen_value
  start=time.perf_counter();interner={};base=set();repairs=set();counts=collections.Counter()
  def collect(file,keys,label):
   a=read_aam_checkpoint(file);graph=a.graph;edgekeys={};local=set()

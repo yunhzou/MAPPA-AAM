@@ -9,8 +9,8 @@ import numpy as np
 
 from adaptive_fragment_pilot import save
 from compare_elementary_outputs import event_counts
-from graft.artifacts import read_aam_checkpoint
-from graft.family_scoring import minimize_events
+from mappa.artifacts import read_aam_checkpoint
+from mappa.family_scoring import minimize_events
 
 
 def audit(args):

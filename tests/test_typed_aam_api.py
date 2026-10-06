@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
-import graft
+import mappa
 
-from graft.aam import search_aam
-from graft.analytical import compile_mechanism_families
-from graft.mechanisms import group_mechanisms
-from graft.rp import select_rp_mappings
-from graft.ts import analyze_transition_state
-from graft.domain import (
+from mappa.aam import search_aam
+from mappa.analytical import compile_mechanism_families
+from mappa.mechanisms import group_mechanisms
+from mappa.rp import select_rp_mappings
+from mappa.ts import analyze_transition_state
+from mappa.domain import (
     AAMProblem,
     AAMSearchConfig,
     MolecularEndpoint,
@@ -38,9 +38,9 @@ def test_endpoint_owns_immutable_validated_arrays():
 
 
 def test_package_root_exposes_only_typed_workflows():
-    assert not hasattr(graft, "run_rp_stage")
-    assert not hasattr(graft, "run_ts_stage")
-    assert not hasattr(graft, "cut_sweep")
+    assert not hasattr(mappa, "run_rp_stage")
+    assert not hasattr(mappa, "run_ts_stage")
+    assert not hasattr(mappa, "cut_sweep")
 
 
 def test_aam_problem_accepts_composition_mismatch():
@@ -60,7 +60,7 @@ def test_aam_problem_accepts_composition_mismatch():
 
 def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
     import json
-    from graft.artifacts import aam_record, aam_from_record
+    from mappa.artifacts import aam_record, aam_from_record
     source = MolecularEndpoint(('C','Cl'), np.zeros((2,3)), [[0,1],[1,0]])
     target = MolecularEndpoint(('C',), np.zeros((1,3)), [[0]])
     result = search_aam(AAMProblem(source,target), AAMSearchConfig(seed_count=1),intermediate_dir=tmp_path)
@@ -79,7 +79,7 @@ def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
 
 def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, monkeypatch):
     import importlib,json
-    module=importlib.import_module('graft.aam')
+    module=importlib.import_module('mappa.aam')
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)
     original=search_aam(problem,config,intermediate_dir=tmp_path)
@@ -129,7 +129,7 @@ def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,m
 
 def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
     import json
-    from graft.artifacts import aam_record,read_aam_checkpoint
+    from mappa.artifacts import aam_record,read_aam_checkpoint
     result=search_aam(AAMProblem(_endpoint('R'),_endpoint('P')),AAMSearchConfig(seed_count=1),
         intermediate_dir=tmp_path,archive_format='checkpoint')
     restored=read_aam_checkpoint(tmp_path/'aam.pkl.gz')
@@ -141,8 +141,8 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
 
 
 def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
-    from graft import aam
-    from graft.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
+    from mappa import aam
+    from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)
     original=search_aam(problem,config,intermediate_dir=tmp_path)

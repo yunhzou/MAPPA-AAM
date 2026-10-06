@@ -1,7 +1,7 @@
 # Repository branches and preserved baselines
 
 Updated on 16 September 2026. `main` is the default branch and now contains the
-finalized GRAFT implementation, manuscript, results, notebook examples, and
+finalized MAPPA implementation, manuscript, results, notebook examples, and
 research animation originally promoted from `paper/continuous-fragment-growth`
 (through `1b750a0`), plus the final decoder and self-contained notebook updates.
 Fragment competition remains experimental, optional, and off by default.
@@ -11,7 +11,7 @@ The merge preserves both histories and leaves the stable baseline branches uncha
 
 | Branch | Purpose | Preserved implementation / starting point |
 | --- | --- | --- |
-| `main` | Published GRAFT implementation, manuscript, results, examples, and animation | Publication branch; includes final decoder, executed notebook, and publication cleanup |
+| `main` | Published MAPPA implementation, manuscript, results, examples, and animation | Publication branch; includes final decoder, executed notebook, and publication cleanup |
 | `paper/continuous-fragment-growth` | Preserved paper development branch | Promoted to `main` through `1b750a0` |
 | `stable/pre-acceleration` | Mature sequential pipeline before the September 9–10 cut-replay, dependency-repair and conditioned-reuse work | **`3e9a70a2ab23b2a9e9a0a8d374d951531e1fb0b0`** |
 | `stable/benchmark-baseline` | Frozen native-reuse engine used by the current seed ablation, before adaptive-policy acceleration | **`98b01b175eeed31f70d13e7cbf178b80bf07c9e0`** |

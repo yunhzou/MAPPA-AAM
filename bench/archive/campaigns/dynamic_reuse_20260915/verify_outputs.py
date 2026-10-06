@@ -1,8 +1,8 @@
 from pathlib import Path
 import sys,json,hashlib,time,os
-S=Path(os.environ['GRAFT_EXPERIMENT_WORK']).resolve();sys.path.insert(0,str(S/'engine/src'))
-BEFORE=Path(os.environ['GRAFT_REFERENCE_WORK']).resolve()
-from graft.artifacts import read_aam_checkpoint
+S=Path(os.environ['MAPPA_EXPERIMENT_WORK']).resolve();sys.path.insert(0,str(S/'engine/src'))
+BEFORE=Path(os.environ['MAPPA_REFERENCE_WORK']).resolve()
+from mappa.artifacts import read_aam_checkpoint
 
 def digest(graph):return hashlib.sha256(json.dumps(graph.to_record(copy=False),sort_keys=True,separators=(',',':')).encode()).hexdigest()
 def reference(case,mode):return BEFORE/f'runs/{case}/{mode}'

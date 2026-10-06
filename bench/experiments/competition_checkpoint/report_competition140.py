@@ -3,14 +3,14 @@ import sys,json,time,hashlib,collections,shutil,statistics
 from pathlib import Path
 ROOT=Path('/Users/yunhengz/Documents/Codex/2026-09-11/aa');OUT=ROOT/'outputs/competition140_budget128';CODE=ROOT/'work/aam-event-improved'
 sys.path[:0]=[str(CODE/'src'),str(CODE/'bench')]
-from graft.artifacts import read_aam_checkpoint
-from graft.event_patterns import SignedEventIndex
-from graft.family_scoring import validate_representative
-from graft.family_query import query_path
-from graft.frag import build_graph
-from graft.matcher import _nauty_orbits
-from graft.fragment import match_fragment,FragmentMatchConfig,FragmentMatchContext
-from graft import viewers
+from mappa.artifacts import read_aam_checkpoint
+from mappa.event_patterns import SignedEventIndex
+from mappa.family_scoring import validate_representative
+from mappa.family_query import query_path
+from mappa.frag import build_graph
+from mappa.matcher import _nauty_orbits
+from mappa.fragment import match_fragment,FragmentMatchConfig,FragmentMatchContext
+from mappa import viewers
 from fragment_competition_optimized import save
 read=lambda p:json.loads(Path(p).read_text());hashes={}
 def load(p):

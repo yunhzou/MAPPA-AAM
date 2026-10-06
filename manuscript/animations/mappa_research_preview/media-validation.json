@@ -2,7 +2,7 @@
   "status": "passed",
   "media": [
     {
-      "file": "graft-grow-branch-decode.mp4",
+      "file": "mappa-grow-branch-decode.mp4",
       "frames": 528,
       "duration": 22.0,
       "size": [
@@ -10,17 +10,17 @@
         900
       ],
       "fps": 24.0,
-      "sha256": "c07b14964e41a6be70a62ccf3b165bd81867ad158ab41906f017c882bd490a3c"
+      "sha256": "059789511e9d29e8de8af1db8f1c8b8773b81c74dba7c8baa04bd913c5550315"
     },
     {
-      "file": "graft-grow-branch-decode.gif",
+      "file": "mappa-grow-branch-decode.gif",
       "frames": 264,
       "size": [
         960,
         600
       ],
       "duration": 22.0,
-      "sha256": "36a13f2d0d327c5eadbe7ee9184b74708d2e595209abda5919f53e3046b1e3d6"
+      "sha256": "5cdfb9739d8058eb05e8da4fe58860f8517e8ad990d5ea5ea7d071d24964c8c7"
     },
     {
       "file": "poster.png",
@@ -28,7 +28,7 @@
         1440,
         900
       ],
-      "sha256": "c343323ce81b9a68cb0032b31de4fb8804bd1924eb9c17fd6eb6ebdb08f839e8"
+      "sha256": "3eb895ac9d1c18c3d13429bbc19a76d528aa59ab0c722fb9450c35dfc6dc4445"
     }
   ]
 }

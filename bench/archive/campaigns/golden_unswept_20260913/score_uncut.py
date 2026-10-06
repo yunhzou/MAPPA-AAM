@@ -10,9 +10,9 @@ sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 def expired(*args):raise TimeoutError('300-second uncut evaluation watchdog')
 def score(c):
  from score_checkpoints import inputs,finalized
- from graft.artifacts import read_raw_cut
- from graft.aam import checkpoint_manifest
- from graft.domain import AAMResult,AAMSearchMetrics
+ from mappa.artifacts import read_raw_cut
+ from mappa.aam import checkpoint_manifest
+ from mappa.domain import AAMResult,AAMSearchMetrics
  from golden_evaluation import evaluate_planned
  signal.signal(signal.SIGALRM,expired)
  dest=OUT/f'{c}.json'

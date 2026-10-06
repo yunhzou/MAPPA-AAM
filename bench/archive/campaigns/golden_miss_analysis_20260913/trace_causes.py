@@ -4,13 +4,13 @@ from pathlib import Path
 ROOT=Path(sys.argv[1]);OUT=Path(sys.argv[2]);CASE=int(sys.argv[3])
 sys.path[:0]=[str(ROOT/'engine/src'),str(ROOT/'engine/bench')]
 import pynauty
-from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig,AAMSearchPlan
-from graft.alignment.branch import find_islands,_generate_seed_orders
-from graft.matcher.policy import AttributeNodeMatchPolicy
-from graft.frag import build_graph
-from graft.aam import _initialize_search,_search_cut
-from graft.search_symmetry import finalize_graph_symmetry
-from graft.domain import AAMResult,AAMSearchMetrics
+from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig,AAMSearchPlan
+from mappa.alignment.branch import find_islands,_generate_seed_orders
+from mappa.matcher.policy import AttributeNodeMatchPolicy
+from mappa.frag import build_graph
+from mappa.aam import _initialize_search,_search_cut
+from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.domain import AAMResult,AAMSearchMetrics
 from golden_evaluation import colored_graph,project,evaluate_planned
 raw=json.loads((ROOT/f'golden-inputs/{CASE}/input.json').read_text());ref=json.loads((ROOT/f'golden-inputs/{CASE}/reference.json').read_text())
 p=AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant','product')),raw.get('name',''));reverse=CASE==1285

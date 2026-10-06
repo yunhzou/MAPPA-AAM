@@ -21,9 +21,9 @@ import numpy as np
 import pynauty
 from golden_evaluation import colored_graph
 from compare_elementary_outputs import event_counts
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.artifacts import read_aam_checkpoint
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.artifacts import read_aam_checkpoint
 
 DATA = Path('/project/yunhengzou/coordinate_alignment/aam_benchmarks')
 AAM = DATA/'holdout_cap1000_seed1_20260910'

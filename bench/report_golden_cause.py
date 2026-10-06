@@ -7,7 +7,7 @@ import pynauty
 from golden_policy_campaign import load_case,save
 from golden_evaluation import colored_graph,project
 from prepare_golden_benchmark import audit_block
-from graft.artifacts import read_graph_checkpoint
+from mappa.artifacts import read_graph_checkpoint
 
 
 def main(args):

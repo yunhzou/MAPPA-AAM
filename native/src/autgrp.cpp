@@ -1,5 +1,5 @@
 // Native replacement for ``pynauty.autgrp(graph)[0]`` on a fixed graph that is
-// recoloured per call (graft.matcher.canonical.atom_generators).
+// recoloured per call (mappa.matcher.canonical.atom_generators).
 //
 // The generators nauty emits -- and their order -- are a function of the
 // graph, the initial ``lab``/``ptn`` (cell order and vertex order inside each

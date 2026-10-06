@@ -135,7 +135,7 @@ def case(args):
                            if line.startswith('model name')}), phases={})
     save(status, record)
     bench = args.run/'engine/bench'
-    env = dict(os.environ, PYTHONPATH=f'{args.run}/original/src:{bench}', GRAFT_NATIVE='1',
+    env = dict(os.environ, PYTHONPATH=f'{args.run}/original/src:{bench}', MAPPA_NATIVE='1',
         PYTHONHASHSEED='0', PYTHONDONTWRITEBYTECODE='1', OMP_NUM_THREADS='1',
         OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1', CUDA_VISIBLE_DEVICES='')
     commands = [('slap', 300, [SLAP_PYTHON, str(bench/'elementary_feasibility.py'), 'slap_xyz',

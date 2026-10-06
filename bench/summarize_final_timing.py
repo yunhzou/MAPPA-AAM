@@ -3,7 +3,7 @@ from pathlib import Path
 import hashlib,json,gzip,statistics
 import numpy as np
 import argparse
-parser=argparse.ArgumentParser(description='Summarize fresh final GRAFT end-to-end timings, retaining censored attempts.')
+parser=argparse.ArgumentParser(description='Summarize fresh final MAPPA end-to-end timings, retaining censored attempts.')
 parser.add_argument('run',type=Path)
 args=parser.parse_args()
 W=args.run
@@ -45,7 +45,7 @@ summary=dict(attempted=len(rows),requested=140,completed=len(complete),complete_
 summary['manifest']=read(W/'manifest.json')
 summary['campaign']=read(W/'campaign.json')
 (W/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
-lines=['# Final GRAFT end-to-end timing', '', f"Fresh attempts: {len(rows)}/140; completed within the five-minute watchdog: {len(complete)}.", '', 'One seed, single-edge cut sweep, cap 2,000, R-to-P, competition off. Event windows match the published 140-case comparison. No candidate-count cap. Four processes, each using one numerical thread.', '', '**The following distributions cover only completed reactions. They are not full-dataset completed-runtime estimates when any reaction is interrupted.**', '', '| Stage | Mean CPU s | Median CPU s | 95th percentile CPU s | Median wall s |', '|---|---:|---:|---:|---:|']
+lines=['# Final MAPPA end-to-end timing', '', f"Fresh attempts: {len(rows)}/140; completed within the five-minute watchdog: {len(complete)}.", '', 'One seed, single-edge cut sweep, cap 2,000, R-to-P, competition off. Event windows match the published 140-case comparison. No candidate-count cap. Four processes, each using one numerical thread.', '', '**The following distributions cover only completed reactions. They are not full-dataset completed-runtime estimates when any reaction is interrupted.**', '', '| Stage | Mean CPU s | Median CPU s | 95th percentile CPU s | Median wall s |', '|---|---:|---:|---:|---:|']
 for key,label in [('search','Search'),('catalogue','Final-family catalogue'),('decode','Event decoding'),('serialize','Output serialization'),('end_to_end','End to end')]:
  d=summary['complete_cohort'][key];c=d['cpu_seconds'];w=d['wall_seconds']
  if c:lines.append(f"| {label} | {c['mean']:.3f} | {c['median']:.3f} | {c['p95']:.3f} | {w['median']:.3f} |")

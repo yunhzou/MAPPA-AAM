@@ -2,8 +2,8 @@
 import numpy as np
 import pytest
 
-from graft import AAMProblem, AAMSearchConfig, search_aam
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem, AAMSearchConfig, search_aam
+from mappa.domain import MolecularEndpoint
 
 
 def problem(n=6, m=6):
@@ -36,7 +36,7 @@ def test_partial_composition_anchors_and_distinct_cut_floor(sizes):
 
 @pytest.mark.parametrize('workers',[1,2])
 def test_cross_backend_checkpoint_resume_requires_no_mapping_rerun(tmp_path,monkeypatch,workers):
-    import graft.aam as module
+    import mappa.aam as module
     case=problem();config=AAMSearchConfig(seed_count=2)
     original=search_aam(case,config,workers=workers,execution='reused_native',
         intermediate_dir=tmp_path,archive_format='checkpoint')
@@ -48,7 +48,7 @@ def test_cross_backend_checkpoint_resume_requires_no_mapping_rerun(tmp_path,monk
 
 
 def test_native_requirement_is_checked_before_starting_worker_pool(monkeypatch):
-    monkeypatch.setenv('GRAFT_NATIVE','0')
+    monkeypatch.setenv('MAPPA_NATIVE','0')
     with pytest.raises(ValueError,match='requires the built native engine'):
         search_aam(problem(),workers=2,execution='reused_native')
     with pytest.raises(ValueError,match='unknown AAM execution'):

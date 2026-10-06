@@ -43,8 +43,8 @@ class SearchProfiler:
         setattr(owner,name,value)
 
     def __enter__(self):
-        from graft import aam, artifacts
-        from graft.search_graph import AAMSearchGraph
+        from mappa import aam, artifacts
+        from mappa.search_graph import AAMSearchGraph
         for name in ('write_raw_cut','write_graph_checkpoint','write_aam_checkpoint'):
             self.patch(artifacts,name,self.wrapper(getattr(artifacts,name),'persistence'))
         for name in ('read_raw_cut','read_graph_checkpoint','read_aam_checkpoint'):

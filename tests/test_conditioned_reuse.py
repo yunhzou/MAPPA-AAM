@@ -2,12 +2,12 @@
 import numpy as np
 import pytest
 
-from graft.alignment.branch import find_islands
-from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
-from graft.cut_replay import FragmentRepair
-from graft.matcher import _nauty_orbits
-from graft.matcher.state import candidate_from_record
-from graft.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
+from mappa.alignment.branch import find_islands
+from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
+from mappa.cut_replay import FragmentRepair
+from mappa.matcher import _nauty_orbits
+from mappa.matcher.state import candidate_from_record
+from mappa.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
 from test_cut_replay import graph, raw
 
 

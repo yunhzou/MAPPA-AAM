@@ -1,11 +1,11 @@
-"""Plot recorded final GRAFT timings; no searches or decoding are run."""
+"""Plot recorded final MAPPA timings; no searches or decoding are run."""
 import argparse
 import hashlib
 import json
 import os
 from pathlib import Path
 
-os.environ.setdefault('MPLCONFIGDIR', '/tmp/graft-timing-matplotlib')
+os.environ.setdefault('MPLCONFIGDIR', '/tmp/mappa-timing-matplotlib')
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -40,7 +40,7 @@ plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11,
 fig = plt.figure(figsize=(14.8, 10.6), facecolor='white')
 grid = fig.add_gridspec(2, 2, left=.073, right=.968, top=.80, bottom=.125,
                        height_ratios=[1.05, 1], hspace=.55, wspace=.42)
-fig.text(.073, .953, 'Where GRAFT spends its time', fontsize=25, weight='bold')
+fig.text(.073, .953, 'Where MAPPA spends its time', fontsize=25, weight='bold')
 fig.text(.073, .916, 'Final version · 140 coordinate reactions · one-seed cut sweep · cap 2,000 · competition off',
          fontsize=11.5, color=muted)
 fig.text(.073, .866, f'ALL ATTEMPTS   ≈{cpu.sum()/60:.1f} CPU min', fontsize=15, weight='bold', color=blue)

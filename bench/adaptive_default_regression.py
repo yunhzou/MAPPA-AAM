@@ -13,12 +13,12 @@ from adaptive_fragment_pilot import save
 
 
 def worker(args):
-    from graft import AAMProblem, AAMSearchConfig
-    from graft.domain import MolecularEndpoint
-    import graft.aam as aam
-    from graft.artifacts import write_graph_checkpoint
-    from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
-    from graft.search_symmetry import finalize_graph_symmetry
+    from mappa import AAMProblem, AAMSearchConfig
+    from mappa.domain import MolecularEndpoint
+    import mappa.aam as aam
+    from mappa.artifacts import write_graph_checkpoint
+    from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
+    from mappa.search_symmetry import finalize_graph_symmetry
 
     rows=[]
     for repeat in range(3):

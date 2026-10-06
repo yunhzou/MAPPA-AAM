@@ -17,7 +17,7 @@ import pynauty
 
 from golden_evaluation import colored_graph,project,evaluate,endpoint_generators
 from investigate_golden_mapping import save
-from graft.artifacts import read_aam,read_aam_checkpoint
+from mappa.artifacts import read_aam,read_aam_checkpoint
 
 
 def source_orbit_key(mapping, orbits):

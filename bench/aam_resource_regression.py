@@ -34,8 +34,8 @@ def tree_rss(pid):
 
 def init(args):
     from cases import CASES
-    from graft import AAMProblem,AAMSearchConfig,MolecularEndpoint
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa import AAMProblem,AAMSearchConfig,MolecularEndpoint
+    from mappa.smiles import smiles_to_weighted_graph
     import numpy as np
     args.run.mkdir(parents=True,exist_ok=False)
     for folder in ('src','bench'):
@@ -43,7 +43,7 @@ def init(args):
     problems={name:AAMProblem(*factory(),name) for name,factory in CASES.items()}
     def endpoint(smiles):
         graph=smiles_to_weighted_graph(smiles,expand_hydrogens=True)
-        from graft.subgraph import _coerce_graph
+        from mappa.subgraph import _coerce_graph
         graph=_coerce_graph(graph,.2)
         atoms=list(graph);weights=np.zeros((len(atoms),len(atoms)))
         for a,b,d in graph.edges(data=True):weights[a,b]=weights[b,a]=d['wbo']
@@ -75,8 +75,8 @@ def init(args):
 def replay(args):
     m=json.loads((args.run/'manifest.json').read_text());task=m['tasks'][args.slot]
     sys.path.insert(0,str(Path(m[args.version])/'src'))
-    from graft import AAMProblem,AAMSearchConfig,MolecularEndpoint,search_aam
-    from graft.artifacts import write_aam_checkpoint,read_aam_checkpoint,aam_json,read_aam,write_graph_checkpoint
+    from mappa import AAMProblem,AAMSearchConfig,MolecularEndpoint,search_aam
+    from mappa.artifacts import write_aam_checkpoint,read_aam_checkpoint,aam_json,read_aam,write_graph_checkpoint
     out=args.run/str(args.slot)/f'{args.repeat}.{args.version}'
     out.mkdir(parents=True,exist_ok=False);times={};details={}
     def measure(name,fn):
@@ -87,7 +87,7 @@ def replay(args):
         return result
     def canonical(graph):return json.dumps(graph.to_record(copy=False),sort_keys=True)
     if task['kind']=='core':
-        from graft.alignment.branch import find_islands
+        from mappa.alignment.branch import find_islands
         data=(Path(m['inputs'])/f"{task['family']}.input.pkl").read_bytes()
         positional,keywords=pickle.loads(data)
         graph=measure('core',lambda:find_islands(*positional,**keywords))

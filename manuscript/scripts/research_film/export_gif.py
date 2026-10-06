@@ -11,7 +11,7 @@ encoder = os.environ.get('FFMPEG')
 if not encoder:
     import imageio_ffmpeg
     encoder = imageio_ffmpeg.get_ffmpeg_exe()
-movie = a.directory / 'graft-grow-branch-decode.mp4'
+movie = a.directory / 'mappa-grow-branch-decode.mp4'
 palette = a.directory / 'palette.png'
 subprocess.run([encoder, '-y', '-threads', '4', '-i', str(movie), '-vf',
                 'fps=12,scale=960:-1:flags=lanczos,palettegen=max_colors=192',
@@ -19,5 +19,5 @@ subprocess.run([encoder, '-y', '-threads', '4', '-i', str(movie), '-vf',
 subprocess.run([encoder, '-y', '-threads', '4', '-i', str(movie), '-i', str(palette),
                 '-filter_complex_threads', '2', '-lavfi',
                 'fps=12,scale=960:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3',
-                '-loop', '0', str(a.directory / 'graft-grow-branch-decode.gif')], check=True)
+                '-loop', '0', str(a.directory / 'mappa-grow-branch-decode.gif')], check=True)
 palette.unlink()

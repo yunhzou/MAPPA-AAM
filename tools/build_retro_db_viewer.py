@@ -2,7 +2,7 @@
 """Build an interactive 3D viewer from merged blind catalog-search results."""
 from __future__ import annotations
 
-from graft.viewers import viewer_style
+from mappa.viewers import viewer_style
 
 import argparse
 from collections import Counter
@@ -307,9 +307,9 @@ def _payload(
 
 @viewer_style('catalog', 'catalog')
 def _html(payload):
-    score_plot = (Path(__file__).parents[1] / 'src/graft/static/retro_score_plot.js').read_text()
-    fragment_colors = (Path(__file__).parents[1] / 'src/graft/static/retro_fragment_colors.js').read_text()
-    library = (Path(__file__).parents[1] / "src" / "graft" / "static" /
+    score_plot = (Path(__file__).parents[1] / 'src/mappa/static/retro_score_plot.js').read_text()
+    fragment_colors = (Path(__file__).parents[1] / 'src/mappa/static/retro_fragment_colors.js').read_text()
+    library = (Path(__file__).parents[1] / "src" / "mappa" / "static" /
                "3Dmol-min.js").read_text()
     data = json.dumps(payload, separators=(",", ":"))
     reactants = payload["summary"]["ground_truth_reactants"]

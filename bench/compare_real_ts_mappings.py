@@ -58,7 +58,7 @@ def load_slap(run, method):
 
 
 def prepare(args):
-    from graft.chemistry_computations.xtb import load_cached_xtb
+    from mappa.chemistry_computations.xtb import load_cached_xtb
     args.run.mkdir(parents=True, exist_ok=False)
     cases = ('pr1.tempo_ts1', 'pr16.carbocation_ts5', 'pr7.V.dodh_ts910')
     inputs, references = [], []
@@ -109,7 +109,7 @@ def prepare(args):
         reference_role='Historical algorithm-generated TS core assignments; evaluation only, not curated truth.',
         git_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         driver_sha256=sha(Path(__file__)), slap_sha256=sha(args.slap_core),
-        native_sha256=sha(next((root/'src/graft').glob('_engine*.so')))))
+        native_sha256=sha(next((root/'src/mappa').glob('_engine*.so')))))
     print(args.run)
 
 
@@ -117,7 +117,7 @@ def submit(args):
     (args.run/'status').mkdir()
     driver=args.run/'engine/bench/compare_real_ts_mappings.py'
     env=['env','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1',
-         'PYTHONHASHSEED=0','GRAFT_NATIVE=1',
+         'PYTHONHASHSEED=0','MAPPA_NATIVE=1',
          f'PYTHONPATH={args.dependencies}:{args.run}/engine/src:{args.run}/engine/bench']
     cmd=env+['timeout','--kill-after=5s','300',sys.executable,str(driver),'task','--run',str(args.run),'--slot']
     options=['sbatch','--parsable','--partition=cpunodes','--nodelist=bosque7',
@@ -130,13 +130,13 @@ def submit(args):
 
 
 def task(args):
-    from graft import AAMProblem, AAMSearchConfig
-    from graft.domain import MolecularEndpoint
-    from graft.frag import build_graph
-    from graft.aam import _initialize_search, _search_cut
-    from graft.alignment.sweep import cut_sweep_items
-    from graft.search_symmetry import finalize_graph_symmetry
-    from graft.artifacts import write_graph_checkpoint
+    from mappa import AAMProblem, AAMSearchConfig
+    from mappa.domain import MolecularEndpoint
+    from mappa.frag import build_graph
+    from mappa.aam import _initialize_search, _search_cut
+    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from mappa.artifacts import write_graph_checkpoint
     from rdkit import Chem
     spec=json.loads((args.run/'tasks.json').read_text())[args.slot]
     raw=json.loads((args.run/f"inputs/{spec['index']}.json").read_text())
@@ -300,11 +300,11 @@ def relocate(args):
 
 
 def membership(args):
-    from graft import AAMProblem
-    from graft.domain import MolecularEndpoint
-    from graft.artifacts import read_graph_checkpoint
-    from graft.family_query import query_path
-    from graft.search_graph import frozen_value
+    from mappa import AAMProblem
+    from mappa.domain import MolecularEndpoint
+    from mappa.artifacts import read_graph_checkpoint
+    from mappa.family_query import query_path
+    from mappa.search_graph import frozen_value
     refs=json.loads((args.run/'references.json').read_text())
     reports=json.loads((args.run/'analysis.json').read_text())
     results=[]
@@ -361,11 +361,11 @@ def core_equivalence(args):
     import z3
     from compare_elementary_outputs import features
     from golden_evaluation import colored_graph
-    from graft.family_query import SymbolicActions, query_path
-    from graft import AAMProblem
-    from graft.domain import MolecularEndpoint
-    from graft.artifacts import read_graph_checkpoint
-    from graft.search_graph import frozen_value
+    from mappa.family_query import SymbolicActions, query_path
+    from mappa import AAMProblem
+    from mappa.domain import MolecularEndpoint
+    from mappa.artifacts import read_graph_checkpoint
+    from mappa.search_graph import frozen_value
     reports=json.loads((args.run/'analysis.json').read_text())
     refs=json.loads((args.run/'references.json').read_text()); results=[]
     for row in reports['cases']:

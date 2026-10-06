@@ -33,8 +33,8 @@
     {
       "snapshot": "unswept.json",
       "source": "reports/golden_unswept_20260913/unswept.json",
-      "scope": "Paired final-campaign uncut controls; one-seed GRAFT and binary/weighted SLAP, both directions.",
-      "sha256": "1cdfbb43cda0e695460fc1f380bf20389322f98202588f785ef215a9905e4774"
+      "scope": "Paired final-campaign uncut controls; one-seed MAPPA and binary/weighted SLAP, both directions.",
+      "sha256": "4f97f64d4d2e0dbdaf43def1331fce21f51cb7c9559af30a1cea31f38e8633f1"
     },
     {
       "snapshot": "checkpoint_verdict_audit.json",
@@ -57,8 +57,8 @@
     {
       "snapshot": "timing_comparison.json",
       "source": "reports/golden_timing_detail_20260914/timing_comparison.json",
-      "scope": "Same1821Mac cohort: size-ordered GRAFT and SLAP CPU distributions, plus separately scoped separately recorded default-mapper CPU call times. Saved scalar timer audit; no searches rerun.",
-      "sha256": "62785210df89b07ba9472d077bef02fafffaee2d502a7960f486dbee3141a61e",
+      "scope": "Same1821Mac cohort: size-ordered MAPPA and SLAP CPU distributions, plus separately scoped separately recorded default-mapper CPU call times. Saved scalar timer audit; no searches rerun.",
+      "sha256": "91f0297f394cda890af3ae081e2f6a2fa9bb1f957824027053c1514214b8d11d",
       "source_sha256": "19aac7ee35e0d72459cce5a2d120d3c8e5fc1715f5149986de374885974ff2a5",
       "publication_projection": "Execution identifiers and obsolete combined coordinate decoder timings omitted; Golden numerical results and cohort membership unchanged."
     },
@@ -66,7 +66,7 @@
       "snapshot": "coordinate_minima.json",
       "source": "reports/published_baseline_20260915/coordinate_minima.json",
       "scope": "Baseline-only saved output, competition excluded",
-      "sha256": "758634ed55bf93625d810c3f661c6395f747e344c33731ae2955933ab7825e8b"
+      "sha256": "85a6b46f36f0134936dad1d079928531e08354013cea8ef38ba231a493d6fe27"
     },
     {
       "snapshot": "multicandidate_example.json",
@@ -83,7 +83,7 @@
     {
       "snapshot": "coordinate_case127.json",
       "source": "reports/colored_alternatives_20260914/coordinate_case127.json",
-      "scope": "Three saved four-event GRAFT candidates and source fragment partitions for coordinate case127; read-only family and WBO verification. No search or decoder rerun.",
+      "scope": "Three saved four-event MAPPA candidates and source fragment partitions for coordinate case127; read-only family and WBO verification. No search or decoder rerun.",
       "sha256": "8991c096bc9c7a440f3862de0615f95740ad4911a5d1b59196791c5f7deb3b18"
     },
     {

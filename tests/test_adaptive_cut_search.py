@@ -2,9 +2,9 @@ from dataclasses import replace
 
 import networkx as nx
 
-from graft import AAMSearchConfig
-from graft.adaptive_cut_search import AdaptiveCutSearch
-from graft.adaptive_seed_search import AdaptiveSeedSearch
+from mappa import AAMSearchConfig
+from mappa.adaptive_cut_search import AdaptiveCutSearch
+from mappa.adaptive_seed_search import AdaptiveSeedSearch
 from test_fragment_choices import problem
 
 

@@ -6,7 +6,7 @@
   "competition": false,
   "algorithm_commit": "3a9ef9a8aec3e129ea5f4ee67df47ce2c25ade3c",
   "methods": {
-    "graft": {
+    "mappa": {
       "counts": {
         "not_recovered": 362,
         "recovered": 1489
@@ -3664,11 +3664,11 @@
       ]
     }
   },
-  "scope": "Paired uncut controls taken from the final campaign; GRAFT saved families freshly finalized and evaluated. SLAP unions uncut binary/weighted outputs in both directions; incomplete sweep records are rechecked only at ordinal zero. No search reruns.",
+  "scope": "Paired uncut controls taken from the final campaign; MAPPA saved families freshly finalized and evaluated. SLAP unions uncut binary/weighted outputs in both directions; incomplete sweep records are rechecked only at ordinal zero. No search reruns.",
   "sources": {
     "slap_evaluations_sha256": "56e6945fccfb50bedf5d2dd8df6731de9c21baefc8fc15f43bde0df69d81e61d",
     "audit_sha256": "d7c0f678b2a8112a0d96036e5553f0ea9d28959217d082b05772c1213199bd0e",
-    "graft_driver_sha256": "75f50ca06ca8d1e6716df91e9cfee91f998a53aa4db3294ecceac242ecaf973b"
+    "mappa_driver_sha256": "75f50ca06ca8d1e6716df91e9cfee91f998a53aa4db3294ecceac242ecaf973b"
   },
-  "graft_rescore_wall_seconds": 50.87213141703978
+  "mappa_rescore_wall_seconds": 50.87213141703978
 }

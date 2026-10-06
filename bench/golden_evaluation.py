@@ -13,9 +13,9 @@ import pynauty
 from rdkit import Chem
 from sympy.combinatorics import Permutation, PermutationGroup
 
-from graft.domain import AAMProblem, MolecularEndpoint
-from graft.family_query import query_path
-from graft.search_graph import frozen_value
+from mappa.domain import AAMProblem, MolecularEndpoint
+from mappa.family_query import query_path
+from mappa.search_graph import frozen_value
 
 
 def prepare(mapped_reaction):

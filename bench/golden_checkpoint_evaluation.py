@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 import time
 
-from graft.aam import checkpoint_manifest
-from graft.alignment.sweep import cut_sweep_items
-from graft.artifacts import raw_cut_paths, read_raw_cut
-from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
-from graft.domain import AAMResult, AAMSearchMetrics
-from graft.frag import build_graph
-from graft.search_symmetry import finalize_graph_symmetry
+from mappa.aam import checkpoint_manifest
+from mappa.alignment.sweep import cut_sweep_items
+from mappa.artifacts import raw_cut_paths, read_raw_cut
+from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
+from mappa.domain import AAMResult, AAMSearchMetrics
+from mappa.frag import build_graph
+from mappa.search_symmetry import finalize_graph_symmetry
 from golden_evaluation import evaluate_planned
 
 

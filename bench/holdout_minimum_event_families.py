@@ -21,9 +21,9 @@ import z3
 from holdout_minimum_events import (AAM,SWEEP,PYTHON,KINDS,EventPatterns,read,save,sha,
     compare_sets,AAMProblem,MolecularEndpoint,read_aam_checkpoint)
 from golden_evaluation import colored_graph,exact_action
-from graft.family_query import compile_path,SymbolicActions
-from graft.family_scoring import event_objective
-from graft.search_graph import frozen_value
+from mappa.family_query import compile_path,SymbolicActions
+from mappa.family_scoring import event_objective
+from mappa.search_graph import frozen_value
 
 
 def slap_model(raw,candidate):

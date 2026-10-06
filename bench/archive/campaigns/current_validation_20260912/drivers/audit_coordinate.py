@@ -15,9 +15,9 @@ def child(case):
     if case == 0:
         import subprocess
         subprocess.run([sys.executable,str(ROOT/'score_checkpoints.py'),'test'],check=True)
-    from graft.artifacts import read_aam_checkpoint
-    from graft.final_branches import FinalBranchCatalogue
-    from graft.search_graph import frozen_value
+    from mappa.artifacts import read_aam_checkpoint
+    from mappa.final_branches import FinalBranchCatalogue
+    from mappa.search_graph import frozen_value
     started = time.perf_counter()
     decoded = read(ROOT/'decoded-optimized'/f'case{case}'/'result.json')
     assert decoded['complete_saved_window']

@@ -19,17 +19,17 @@ import time
 from types import SimpleNamespace
 
 import numpy as np
-from graft.domain import AAMProblem, MolecularEndpoint
-from graft.aam import cut_seed
-from graft.alignment.branch import _generate_seed_orders, find_islands
-from graft.alignment.sweep import cut_sweep_items
-from graft.artifacts import write_graph_checkpoint
-from graft.cut_replay import CutReplay, FragmentRepair
-from graft.frag import build_graph
-from graft.matcher import _nauty_orbits
-from graft.search_graph import AAMSearchGraph
-from graft.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
-from graft.native_search import find_islands_native
+from mappa.domain import AAMProblem, MolecularEndpoint
+from mappa.aam import cut_seed
+from mappa.alignment.branch import _generate_seed_orders, find_islands
+from mappa.alignment.sweep import cut_sweep_items
+from mappa.artifacts import write_graph_checkpoint
+from mappa.cut_replay import CutReplay, FragmentRepair
+from mappa.frag import build_graph
+from mappa.matcher import _nauty_orbits
+from mappa.search_graph import AAMSearchGraph
+from mappa.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
+from mappa.native_search import find_islands_native
 from compare_elementary_outputs import event_counts
 
 SOURCE=Path('/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909')
@@ -158,7 +158,7 @@ def prepare(args):
     shutil.copytree(root/'native',args.run/'engine/native')
     save(args.run/'manifest.json',dict(parent_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source=str(SOURCE),tasks=len(tasks),seeds=args.seeds,policies=args.policies,
-        native_sha256=hashlib.sha256(next((args.run/'engine/src/graft').glob('_engine*.so')).read_bytes()).hexdigest()))
+        native_sha256=hashlib.sha256(next((args.run/'engine/src/mappa').glob('_engine*.so')).read_bytes()).hexdigest()))
     print(len(tasks),'tasks prepared')
 
 
@@ -166,7 +166,7 @@ def submit(args):
     tasks=json.loads((args.run/'tasks.json').read_text())
     workers=max(t['seeds'] for t in tasks)
     cmd=['env','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1',
-         'PYTHONHASHSEED=0','GRAFT_NATIVE=1',
+         'PYTHONHASHSEED=0','MAPPA_NATIVE=1',
          f'PYTHONPATH={args.run}/engine/src:{args.run}/engine/bench',
          'timeout','--kill-after=5s','300',sys.executable,str(args.run/'engine/bench/cut_replay_pilot.py'),
          'task','--run',str(args.run),'--slot']
@@ -267,7 +267,7 @@ def submit_paired(args):
             shift=len(pairs)%len(slots);slots=slots[shift:]+slots[:shift]
             pairs.append(dict(index=i,direction=d,slots=slots))
     save(args.run/'pairs.json',pairs)
-    cmd=['env','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1','PYTHONHASHSEED=0','GRAFT_NATIVE=1',
+    cmd=['env','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1','PYTHONHASHSEED=0','MAPPA_NATIVE=1',
          f'PYTHONPATH={args.run}/engine/src:{args.run}/engine/bench',sys.executable,
          str(args.run/'engine/bench/cut_replay_pilot.py'),'paired','--run',str(args.run),'--slot']
     options=['sbatch','--parsable','--partition=cpunodes','--exclude=bosque5,bosque6,bosque8,bosque10',
@@ -333,9 +333,9 @@ def archive(args):
         for pattern in ('*.json','*.log','*.txt','status/*','results/*/*/*/summary.json',
                         'results/*/*/*/seed_*/summary.json','results/114/*/*/seed_*/witnesses.json',
                         'engine/bench/cut_replay*.py','engine/native/src/*.h','engine/native/src/*.cpp',
-                        'engine/bench/profile_fragment_pipeline.py','engine/src/graft/native_search.py',
-                        'engine/src/graft/cut_replay.py','engine/src/graft/search_symmetry.py',
-                        'engine/src/graft/alignment/branch.py','engine/src/graft/growth/native.py',
+                        'engine/bench/profile_fragment_pipeline.py','engine/src/mappa/native_search.py',
+                        'engine/src/mappa/cut_replay.py','engine/src/mappa/search_symmetry.py',
+                        'engine/src/mappa/alignment/branch.py','engine/src/mappa/growth/native.py',
                         'profiles/*/*/*/summary.json','profiles/*/*/*/*.pstats',
                         'profiles_native/*/*/*/summary.json','profiles_native/*/*/*/*.pstats',
                         'profile_retry/driver/*','profile_retry/status/*',

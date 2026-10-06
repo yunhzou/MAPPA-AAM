@@ -3,11 +3,11 @@ import inspect
 from pathlib import Path
 import sys
 
-from graft.fragment import FragmentMatchConfig
-from graft.fragment_matching import FragmentDetectionConfig
-from graft.retrosynthesis import assemble_fragment_cover
-from graft.retrosynthesis.catalog_index import CandidateIndexConfig
-from graft.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
+from mappa.fragment import FragmentMatchConfig
+from mappa.fragment_matching import FragmentDetectionConfig
+from mappa.retrosynthesis import assemble_fragment_cover
+from mappa.retrosynthesis.catalog_index import CandidateIndexConfig
+from mappa.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
 
 
 def test_retro_tolerance_is_separate_from_core_matching():

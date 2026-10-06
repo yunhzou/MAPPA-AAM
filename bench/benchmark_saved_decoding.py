@@ -21,9 +21,9 @@ from final_end_to_end import REPO, read, save
 
 
 def child(args):
-    from graft.artifacts import read_aam_checkpoint
-    from graft.final_branches import FinalBranchCatalogue
-    import graft.postprocessing as pp
+    from mappa.artifacts import read_aam_checkpoint
+    from mappa.final_branches import FinalBranchCatalogue
+    import mappa.postprocessing as pp
     folder = args.output / f'case{args.child}'
     reference = next(row for row in read(REPO / 'reports/published_baseline_20260915/baseline-windows.json.gz')
                      if row['case'] == args.child)
@@ -63,7 +63,7 @@ def campaign(args):
     import psutil
     cases = list(range(140)) if args.cases == 'all' else [int(x) for x in args.cases.split(',')]
     workers = min(args.workers, 8, max(1, (os.cpu_count() or 2)-1))
-    sources = list((REPO/'src/graft').glob('*.py')) + [Path(__file__).resolve()]
+    sources = list((REPO/'src/mappa').glob('*.py')) + [Path(__file__).resolve()]
     manifest = dict(cases=cases, workers=workers, watchdog_seconds=300,
         source_sha256={str(p.relative_to(REPO)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
         scope='Public decoder only, saved final search checkpoints; catalogue/read excluded. '

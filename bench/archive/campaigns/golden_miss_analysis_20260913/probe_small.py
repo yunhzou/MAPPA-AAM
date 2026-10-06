@@ -4,8 +4,8 @@ from dataclasses import asdict
 from pathlib import Path
 ROOT=Path(sys.argv[1]);OUT=Path(sys.argv[2]);CASE=int(sys.argv[3]);DIRECTION=sys.argv[4];VARIANT=sys.argv[5]
 sys.path[:0]=[str(ROOT/'engine/src'),str(ROOT/'engine/bench')]
-from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig,search_aam
-from graft.search_orientation import AAMSearchPlan
+from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig,search_aam
+from mappa.search_orientation import AAMSearchPlan
 from golden_evaluation import evaluate_planned
 raw=json.loads((ROOT/f'golden-inputs/{CASE}/input.json').read_text())
 problem=AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant','product')),raw.get('name',''))

@@ -6,9 +6,9 @@ ROOT=Path(__file__).resolve().parent;sys.path[:0]=[str(ROOT/'optimized/src'),str
 from run_event_campaign import MemoryGuard,bounded_process,save,read,sha
 REPO=Path('/Users/yunhengz/Desktop/AAM Writing')
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.final_branches import FinalBranchCatalogue
- from graft.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.final_branches import FinalBranchCatalogue
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
  from validate_event_examples import compare_saved_slap
  start=time.perf_counter();cpu=time.process_time();folder=ROOT/'decoded-optimized'/f'case{case}';folder.mkdir(parents=True,exist_ok=True)
  base=ROOT/'runs/coordinate/seed1'/f'case{case}'/'R_to_P/cuts/aam.pkl.gz'

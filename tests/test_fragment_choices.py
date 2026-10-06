@@ -4,11 +4,11 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from graft import AAMProblem, AAMSearchConfig
-from graft.adaptive_search import AdaptiveFragmentSearch
-from graft.domain import MolecularEndpoint
-from graft.fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext
-from graft.fragment_choices import FragmentChoices
+from mappa import AAMProblem, AAMSearchConfig
+from mappa.adaptive_search import AdaptiveFragmentSearch
+from mappa.domain import MolecularEndpoint
+from mappa.fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext
+from mappa.fragment_choices import FragmentChoices
 from test_cut_replay import graph
 
 
@@ -97,7 +97,7 @@ def test_event_feedback_only_reorders_pending_choices():
 
 
 def test_fair_agenda_does_not_starve_deeper_choices():
-    from graft.adaptive_search import _ChoiceAgenda
+    from mappa.adaptive_search import _ChoiceAgenda
     agenda=_ChoiceAgenda(fair=True)
     for i in range(100):agenda.push((1,0,i),i)
     assert agenda.pop()[2]==0

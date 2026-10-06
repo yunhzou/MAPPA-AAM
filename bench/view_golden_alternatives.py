@@ -1,6 +1,6 @@
 """Browse every chemical class of saved representative mappings, without search."""
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 from collections import Counter
 from dataclasses import asdict
@@ -16,8 +16,8 @@ from rdkit import Chem
 from golden_evaluation import colored_graph,project,rank_key
 from golden_policy_campaign import load_case,save
 from view_golden_mapping import molecules,render_viewer
-from graft.artifacts import read_aam_checkpoint
-from graft.search_graph import SearchPath
+from mappa.artifacts import read_aam_checkpoint
+from mappa.search_graph import SearchPath
 from collect_golden_patterns import collect,first_paths,equivalence_from_molecules
 
 

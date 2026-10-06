@@ -1,7 +1,7 @@
 """Experimental symmetry closure; can add admissible mappings. Not pure deduplication."""
 from collections import defaultdict
 from itertools import combinations
-from graft.final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
+from mappa.final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
 
 class _TargetPartitionCanonicalizer:
     """Align equivalent final product partitions using exact target symmetry."""

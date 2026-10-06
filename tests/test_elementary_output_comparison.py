@@ -4,9 +4,9 @@ import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'bench'))
 from compare_elementary_outputs import event_counts, features, certificate
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
 import json
 from types import SimpleNamespace
 from compare_elementary_outputs import refine

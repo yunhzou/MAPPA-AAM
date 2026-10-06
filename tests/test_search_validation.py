@@ -1,16 +1,16 @@
 from dataclasses import replace
 import numpy as np
 import pytest
-from graft import AAMProblem, MolecularEndpoint
-from graft.search_graph import (
+from mappa import AAMProblem, MolecularEndpoint
+from mappa.search_graph import (
     AAMSearchGraph,
     SearchContext,
     SearchState,
     FragmentTransition,
     SearchStop,
 )
-from graft.search_validation import RepresentativeValidationWorkspace
-from graft.family_scoring import validate_representative
+from mappa.search_validation import RepresentativeValidationWorkspace
+from mappa.family_scoring import validate_representative
 
 
 def example(target_weight=1.0, cuts=(), deferred=()):

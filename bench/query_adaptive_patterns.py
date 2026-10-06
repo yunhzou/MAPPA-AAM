@@ -13,10 +13,10 @@ from adaptive_fragment_pilot import save
 from compare_elementary_outputs import features, certificate
 from score_equivalence import element_pair_features
 from golden_evaluation import colored_graph, exact_action
-from graft.artifacts import read_aam_checkpoint
-from graft.family_query import compile_path, SymbolicActions
-from graft.family_scoring import event_objective, bond_events
-from graft.search_graph import frozen_value
+from mappa.artifacts import read_aam_checkpoint
+from mappa.family_query import compile_path, SymbolicActions
+from mappa.family_scoring import event_objective, bond_events
+from mappa.search_graph import frozen_value
 
 
 def main(args):

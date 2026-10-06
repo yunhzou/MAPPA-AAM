@@ -24,7 +24,7 @@ Route c also matches **Candidate 2**. It proceeds through an allene and converge
 
 ## Reading the comparison
 
-The original schemes use **L = PH₃** and include literature energies. The animation uses the supplied **AuPPh₃ complexes 2 → 9**, with all 65 atoms included in the search. The energies shown above are from the paper, not GRAFT calculations. GRAFT recovers endpoint correspondences compatible with these hypotheses; it does not establish the intermediate steps or their kinetic feasibility.
+The original schemes use **L = PH₃** and include literature energies. The animation uses the supplied **AuPPh₃ complexes 2 → 9**, with all 65 atoms included in the search. The energies shown above are from the paper, not MAPPA calculations. MAPPA recovers endpoint correspondences compatible with these hypotheses; it does not establish the intermediate steps or their kinetic feasibility.
 
 The images are direct crops of Schemes 2, 4 and 5 on journal pages 2985–2987. Original structures, captions and footnotes are retained. These third-party figures remain attributable to the original publication and are not covered by this repository's code license. The complete PDF is not redistributed.
 

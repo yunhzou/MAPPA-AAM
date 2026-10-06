@@ -10,7 +10,7 @@
         900
       ],
       "fps": 24.0,
-      "sha256": "dca2de172dc6dd8e92524591fc0cc0edde1f16ed35ece2bf844c131514d2c795"
+      "sha256": "dd40feda85de715bbafa3de6ff8c4c304fa62540121872755bbc1365f301d841"
     },
     {
       "file": "broken-molecule-verification-preview.gif",
@@ -20,7 +20,7 @@
         600
       ],
       "duration": 30.0,
-      "sha256": "c94298d9939986558f12506534714ee97aa2e0f75cd7e3ed4d504bdee6375cee"
+      "sha256": "9864c46fcf9b6f3cae0c081ab6d64ff23b462ae00e41f2dc0f3c1e07fb9a80a0"
     },
     {
       "file": "poster.png",
@@ -28,7 +28,7 @@
         1440,
         900
       ],
-      "sha256": "be98c71de3fb246ce4f050b219fa8f464960040946c1f42fa21bcc24acf677dd"
+      "sha256": "ecbeed2909e02af0a556626c74943d62072130405224cca5b976de405b30b55b"
     }
   ]
 }

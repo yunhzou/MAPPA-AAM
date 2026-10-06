@@ -1,4 +1,4 @@
-"""Command-line composition of the typed graft API."""
+"""Command-line composition of the typed mappa API."""
 from __future__ import annotations
 
 import argparse
@@ -53,7 +53,7 @@ def _config(args):
 
 
 def _parser():
-    parser = argparse.ArgumentParser(prog="graft")
+    parser = argparse.ArgumentParser(prog="mappa")
     parser.add_argument("--reactant-npz")
     parser.add_argument("--product-npz")
     parser.add_argument("--reactant-cache")
@@ -64,7 +64,7 @@ def _parser():
     parser.add_argument("--reaction-json",
                         help="resolved reaction.json produced by the RP stage")
     parser.add_argument("--name", default="reaction")
-    parser.add_argument("--output", default="graft_output")
+    parser.add_argument("--output", default="mappa_output")
     parser.add_argument("--workers", type=int, default=1,
                         help="CPU processes used by the cut sweep")
     parser.add_argument("--post-workers", type=int, default=None,

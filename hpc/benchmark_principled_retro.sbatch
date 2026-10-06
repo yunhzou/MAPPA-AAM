@@ -16,7 +16,7 @@ run_root=$1
 target_smiles='CC(C)C1=CC=CC(C(C)C)=C1/N=C2/C(C3=C4C(C=CC=C42)=CC=C3)=N/C5=C(C(C)C)C=CC=C5C(C)C'
 cd "$repo_root"
 export PYTHONPATH="$repo_root/src"
-export GRAFT_NATIVE=1
+export MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 
 # Same target, bank, sharding, workers and seeds as the previous full-AAM scan.

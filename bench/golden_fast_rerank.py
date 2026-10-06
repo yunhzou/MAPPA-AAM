@@ -14,7 +14,7 @@ import time
 import numpy as np
 
 from golden_policy_campaign import load_case,save,guarded
-from graft.artifacts import read_aam_checkpoint
+from mappa.artifacts import read_aam_checkpoint
 
 # Common average bond energies from CDK 2.8 BondEnergies documentation, kJ/mol.
 # These are generic bond-type costs, not molecule-specific BDEs or barriers.

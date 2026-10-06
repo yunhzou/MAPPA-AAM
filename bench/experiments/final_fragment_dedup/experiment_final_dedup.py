@@ -15,11 +15,11 @@ DECODE=os.environ.get('FINAL_DEDUP_DECODE','1')=='1'
 WORKERS=int(os.environ.get('FINAL_DEDUP_WORKERS','2'))
 
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.final_branches import FinalBranchCatalogue
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.final_branches import FinalBranchCatalogue
  from rebuild_intrinsic import rebuild_intrinsic_catalogue
- from graft.event_patterns import SignedEventIndex,extract_path_events
- from graft.family_scoring import validate_representative
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.family_scoring import validate_representative
  start=time.perf_counter();cpu=time.process_time();folder=OUT/f'case{case}';folder.mkdir(parents=True,exist_ok=True)
  row=next(r for r in json.loads((BASE/'summary.json').read_text())['cases'] if r['case']==case)
  previous=next(r for r in json.loads((BASE/'branch_counts/summary.json').read_text())['cases'] if r['case']==case)
@@ -58,7 +58,7 @@ def child(case):
  base=json.loads(Path(original['source']).read_text());old=set(base['patterns'])|set(json.loads((BASE/f'case{case}/full_decode.json').read_text())['patterns'])
  old={k for k in old if (base['patterns'].get(k) or json.loads((BASE/f'case{case}/full_decode.json').read_text())['patterns'][k])['total']<=window}
  complete=DECODE and done==len(rebuilt.families) and not unfinished
- metrics.update(decode_requested=DECODE,complete_saved_window=complete,decoded_families=done,decode_reasons=dict(reasons),unfinished=unfinished,window=window,patterns=patterns,previous_window_classes=len(old),retained_previous_classes=len(old&patterns.keys()),unrecovered_previous_classes=sorted(old-patterns.keys()) if DECODE else None,additional_window_classes=sorted(patterns.keys()-old),wall_seconds=time.perf_counter()-start,cpu_seconds=time.process_time()-cpu,source_sha256=hashlib.sha256((CODE/'src/graft/final_branches.py').read_bytes()).hexdigest())
+ metrics.update(decode_requested=DECODE,complete_saved_window=complete,decoded_families=done,decode_reasons=dict(reasons),unfinished=unfinished,window=window,patterns=patterns,previous_window_classes=len(old),retained_previous_classes=len(old&patterns.keys()),unrecovered_previous_classes=sorted(old-patterns.keys()) if DECODE else None,additional_window_classes=sorted(patterns.keys()-old),wall_seconds=time.perf_counter()-start,cpu_seconds=time.process_time()-cpu,source_sha256=hashlib.sha256((CODE/'src/mappa/final_branches.py').read_bytes()).hexdigest())
  save(folder/'result.json',metrics);print(json.dumps({k:v for k,v in metrics.items() if k not in ('patterns','unrecovered_previous_classes','additional_window_classes','unfinished')}),flush=True)
 
 def main():

@@ -12,8 +12,8 @@ sys.path[:0]=[str(ROOT/'engine/src'),str(ROOT/'engine/bench')]
 from run import read,save,sha
 
 def inputs(seed,case,direction):
-    from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig
-    from graft.search_orientation import AAMSearchPlan
+    from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig
+    from mappa.search_orientation import AAMSearchPlan
     raw=read(ROOT/'golden-inputs'/str(case)/'input.json')
     problem=AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant','product')),raw.get('name',''))
     config=AAMSearchConfig(seed_count=seed,branch_limit=100)
@@ -22,17 +22,17 @@ def inputs(seed,case,direction):
     return plan,config,ROOT/'runs/golden'/f'seed{seed}'/f'case{case}'/direction
 
 def finalized(graph,problem,config):
-    from graft.frag import build_graph
-    from graft.search_symmetry import finalize_graph_symmetry
-    from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
+    from mappa.frag import build_graph
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
     target=build_graph(problem.product.elements,problem.product.wbo,bond_cut=config.graph_floor)
     workspace=ConditionedSymmetryWorkspace(target,config.iso_tolerance)
     return finalize_graph_symmetry(graph,target,iso_tolerance=config.iso_tolerance,workspace=workspace)[0]
 
 def selftest():
-    from graft.artifacts import read_raw_cut,raw_cut_paths
-    from graft.search_graph import AAMSearchGraph
-    from graft.aam import checkpoint_manifest
+    from mappa.artifacts import read_raw_cut,raw_cut_paths
+    from mappa.search_graph import AAMSearchGraph
+    from mappa.aam import checkpoint_manifest
     rows=[]
     for case in (0,1):
         plan,config,folder=inputs(2,case,'R_to_P')
@@ -48,9 +48,9 @@ def selftest():
          rows=rows,scope='Exact equality of combined-then-finalized and separately-finalized-then-combined graphs, including states, contexts, transition actions, constraints and stops. No atom-mapping or permutation enumeration.'))
 
 def child(seed,case,direction):
-    from graft.artifacts import read_raw_cut,raw_cut_paths
-    from graft.aam import checkpoint_manifest
-    from graft.domain import AAMResult,AAMSearchMetrics
+    from mappa.artifacts import read_raw_cut,raw_cut_paths
+    from mappa.aam import checkpoint_manifest
+    from mappa.domain import AAMResult,AAMSearchMetrics
     from golden_evaluation import evaluate_planned
     proof=read(ROOT/'checkpoint-verification-tests.json')
     assert proof['status']=='passed' and proof['driver_sha256']==sha(Path(__file__))

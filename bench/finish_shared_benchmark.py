@@ -32,8 +32,8 @@ def prepare(args):
 
 
 def finish(args):
-    from graft import search_aam
-    from graft.artifacts import read_aam_checkpoint
+    from mappa import search_aam
+    from mappa.artifacts import read_aam_checkpoint
     from dataclasses import asdict
     args.slot = read(args.run/'continuation_tasks.json')[args.ordinal]
     args.method = 'adaptive'
@@ -118,7 +118,7 @@ def _evaluate_classes(args,spec,folder,plan,row,classes_path,target,start):
     reference = read(args.run/f"inputs/golden/{spec['index']}/reference.json")
     result = check_ranked_reference(classes,plan,reference,row)
     if result is None:
-        from graft.artifacts import read_aam_checkpoint
+        from mappa.artifacts import read_aam_checkpoint
         from golden_evaluation import evaluate_planned
         aam = read_aam_checkpoint(folder/row['archive'])
         result = evaluate_planned(aam,plan,reference['features'],reference['mapping'],seconds=60,query_timeout_ms=1500)

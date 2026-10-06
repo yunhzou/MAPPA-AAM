@@ -31,7 +31,7 @@ def normalized(states):
 
 def replay(args):
     sys.path.insert(0, str(args.package_root / 'src'))
-    from graft.alignment.branch import find_islands
+    from mappa.alignment.branch import find_islands
     data = (args.inputs / f'{args.family}.input.pkl').read_bytes()
     positional, keywords = pickle.loads(data)
     profiler = cProfile.Profile() if args.profile else None

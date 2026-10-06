@@ -13,10 +13,10 @@ import pynauty
 
 from adaptive_full_benchmark import read, save, problem_plan
 from golden_evaluation import colored_graph, endpoint_generators, project
-from graft.alignment.sweep import cut_sweep_items
-from graft.artifacts import read_aam_checkpoint, read_graph_checkpoint
-from graft.family_query import query_path
-from graft.search_graph import SearchPath
+from mappa.alignment.sweep import cut_sweep_items
+from mappa.artifacts import read_aam_checkpoint, read_graph_checkpoint
+from mappa.family_query import query_path
+from mappa.search_graph import SearchPath
 
 
 def state_key(state):

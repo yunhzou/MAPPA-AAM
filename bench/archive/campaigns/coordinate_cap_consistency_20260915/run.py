@@ -9,19 +9,19 @@ def save(p,d):
  p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);q=p.with_suffix(p.suffix+'.tmp');q.write_text(json.dumps(d)+'\n');q.replace(p)
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def problem(case):
- from graft import AAMProblem,MolecularEndpoint
+ from mappa import AAMProblem,MolecularEndpoint
  r=read(S/'inputs'/str(case)/'input.json')
  return AAMProblem(*(MolecularEndpoint(**r[k]) for k in ['reactant','product']),r.get('name',''))
 def search(case,cap,out):
- from graft import search_aam,AAMSearchConfig
+ from mappa import search_aam,AAMSearchConfig
  p=problem(case);cfg=AAMSearchConfig(seed_count=1,branch_limit=cap,iso_tolerance=1.0,graph_floor=.2,cut_floor=.2,sweep_cuts=True,random_seed=42,event_threshold=.5,metal_event_threshold=.3)
  c=time.process_time();w=time.perf_counter()
  a=search_aam(p,cfg,execution='reused_native',workers=1,intermediate_dir=out/'cuts',archive_format='checkpoint',resume=False)
  full=sum(len(a.graph.states[t].mapping)==p.source_atom_count for t in a.graph.terminals)
  save(out/'search.json',dict(config=asdict(cfg),cpu_seconds=time.process_time()-c,wall_seconds=time.perf_counter()-w,full_terminals=full,terminals=len(a.graph.terminals),capped=a.graph.capped,archive_sha256=sha(out/'cuts/aam.pkl.gz')))
 def competition(case,cap,out):
- from graft.artifacts import read_aam_checkpoint,write_aam_checkpoint
- from graft.competition import compete_fragments,CompetitionConfig
+ from mappa.artifacts import read_aam_checkpoint,write_aam_checkpoint
+ from mappa.competition import compete_fragments,CompetitionConfig
  c=time.process_time();w=time.perf_counter()
  a=read_aam_checkpoint(out/'cuts/aam.pkl.gz');assert a.config.branch_limit==cap
  cfg=CompetitionConfig(operation_budget=128,seconds=270,parent_limit=8,depth_limit=2,queue_limit=512,dependent_component_limit=8)
@@ -30,9 +30,9 @@ def competition(case,cap,out):
  for i,a in enumerate(r.repairs):write_aam_checkpoint(a,out/f'repairs/repair{i:05d}.pkl.gz')
  save(out/'competition.json',dict(config=asdict(cfg),repairs=len(r.repairs),counts=r.counts,pending=r.pending,offers=r.offers,cpu_seconds=time.process_time()-c,wall_seconds=time.perf_counter()-w))
 def decode(case,cap,out,passno):
- from graft.artifacts import read_aam_checkpoint
- from graft.final_branches import FinalBranchCatalogue
- from graft.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.final_branches import FinalBranchCatalogue
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
  c=time.process_time();w=time.perf_counter();deadline=w+275
  a=read_aam_checkpoint(out/'cuts/aam.pkl.gz');p=a.problem;idx=SignedEventIndex(p,threshold=.5,metal_threshold=.3)
  cat=FinalBranchCatalogue(p).add_aam(a,'baseline');del a

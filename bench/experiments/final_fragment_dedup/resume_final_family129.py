@@ -9,9 +9,9 @@ def save(path, value):
  temporary.replace(path)
 
 def child():
- from graft.artifacts import read_aam_checkpoint
- from graft.final_branches import FinalFamily
- from graft.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.final_branches import FinalFamily
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
  start=time.perf_counter();cpu=time.process_time();r=json.loads((OUT/'result.json').read_text())
  with gzip.open(OUT/'final_branches.json.gz','rt') as f:d=json.load(f)
  archive=ROOT/'outputs/holdout140_cap2000_seed1/case129/cuts/aam.pkl.gz';problem=read_aam_checkpoint(archive).problem;idx=SignedEventIndex(problem);results=[]

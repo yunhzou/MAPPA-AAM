@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from graft.viewers import growth_trace_html
+from mappa.viewers import growth_trace_html
 
 
 if __name__=='__main__':

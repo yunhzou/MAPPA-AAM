@@ -10,7 +10,7 @@ from golden_tolerance_benchmark import read, save, sha, result_folder
 def query(args):
     from adaptive_full_benchmark import problem_plan
     from golden_evaluation import evaluate_planned
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     variant = args.run / 'runs' / args.variant
     task = dict(dataset='golden', index=args.index, direction=args.direction)
     _, plan = problem_plan(SimpleNamespace(run=variant, method='original'), task)

@@ -11,9 +11,9 @@ import time
 
 import numpy as np
 from rdkit import Chem
-from graft import AAMProblem, AAMSearchConfig, search_aam
-from graft.artifacts import aam_record
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem, AAMSearchConfig, search_aam
+from mappa.artifacts import aam_record
+from mappa.domain import MolecularEndpoint
 
 
 def endpoint(smiles, label):
@@ -64,7 +64,7 @@ def main():
         with (args.output/f'{index}.log').open('w') as stream:
             try:
                 completed = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT,
-                    timeout=300, env=dict(os.environ, GRAFT_NATIVE='1',
+                    timeout=300, env=dict(os.environ, MAPPA_NATIVE='1',
                         OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1'))
                 record = (json.loads((args.output/f'{index}.json').read_text())
                           if completed.returncode == 0 else

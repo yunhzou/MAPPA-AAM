@@ -15,9 +15,9 @@ from holdout_slap_sweep import DIRECTIONS, PAIRED, label_key, read, records, sha
 
 
 def publish(run,destination):
-    from graft import AAMProblem
-    from graft.domain import MolecularEndpoint
-    from graft.family_scoring import bond_events
+    from mappa import AAMProblem
+    from mappa.domain import MolecularEndpoint
+    from mappa.family_scoring import bond_events
     manifest = read(run/'manifest.json')
     baseline = read(PAIRED/'case_metrics.json')
     source = Path(manifest['source'])

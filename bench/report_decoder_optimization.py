@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-os.environ.setdefault('MPLCONFIGDIR', '/tmp/graft-decoder-matplotlib')
+os.environ.setdefault('MPLCONFIGDIR', '/tmp/mappa-decoder-matplotlib')
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -62,7 +62,7 @@ with gzip.open(args.output/'family-journals.jsonl.gz','wt') as out:
         for line in (args.run/f"case{r['case']}/families.jsonl").read_text().splitlines():
             out.write(json.dumps(dict(case=r['case'],**json.loads(line)),separators=(',',':'))+'\n')
 a,b=summary['before_paired'],summary['after_paired']
-text=f'''# GRAFT decoder optimization
+text=f'''# MAPPA decoder optimization
 
 All 140 saved searches decode completely with the same 300 reaction-local event classes.
 All {summary['compared_family_supports']:,} previously completed per-family class-support records match.
@@ -106,7 +106,7 @@ Source hashes, per-reaction class IDs, timings, and validation flags are in `sum
 plt.rcParams.update({'font.family':'DejaVu Sans','font.size':11,'axes.spines.top':False,'axes.spines.right':False,'svg.fonttype':'none'})
 fig,(ax,bx)=plt.subplots(1,2,figsize=(11.8,5.0),gridspec_kw={'width_ratios':[1.45,1]})
 fig.subplots_adjust(left=.085,right=.975,top=.77,bottom=.23,wspace=.37)
-fig.text(.085,.93,'GRAFT decoding: less repeated work, same candidates',fontsize=19,weight='bold',color='#183747')
+fig.text(.085,.93,'MAPPA decoding: less repeated work, same candidates',fontsize=19,weight='bold',color='#183747')
 fig.text(.085,.855,f"140/140 complete · 300 event classes preserved · {summary['compared_family_supports']:,} family-support checks agree",fontsize=11,color='#506772')
 x=np.array([previous[c] for c in paired]);y=np.array([new[c] for c in paired])
 ax.scatter(x,y,s=25,color='#20858B',alpha=.75)

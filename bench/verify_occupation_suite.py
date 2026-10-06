@@ -9,7 +9,7 @@ import pickle
 import sys
 import time
 
-from graft._group_ops import occupation_orbit
+from mappa._group_ops import occupation_orbit
 from verify_observed_occupations import relation
 
 

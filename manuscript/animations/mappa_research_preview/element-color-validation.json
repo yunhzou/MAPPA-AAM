@@ -1,5 +1,5 @@
 {
-  "film": "graft_research_preview",
+  "film": "mappa_research_preview",
   "status": "passed",
   "checks": [
     {
@@ -30,7 +30,7 @@
   "html_sha256": "ac53743bb681e42753fc1afaf51379b6893fdb2882d24b3a2cd93e8dcd721a27",
   "scope": "Unassigned atoms use Jmol element colors; matched fragments and reaction highlights retain their palettes.",
   "render": {
-    "film": "graft_research_preview",
+    "film": "mappa_research_preview",
     "seconds": 65.77,
     "encoder_threads": 2
   }

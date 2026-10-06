@@ -8,7 +8,7 @@ to their preserved Git revision after publication cleanup.
 
 ## Current published method
 
-[Baseline GRAFT, competition disabled](published_baseline_20260915/README.md) is the current coordinate evidence and film provenance. Golden scores are unchanged. Older reports below retain their original protocols and may include experimental extensions; do not use them as the current published pipeline.
+[Baseline MAPPA, competition disabled](published_baseline_20260915/README.md) is the current coordinate evidence and film provenance. Golden scores are unchanged. Older reports below retain their original protocols and may include experimental extensions; do not use them as the current published pipeline.
 
 [Final end-to-end timing](final_end_to_end_20260916/README.md) and
 [decoder optimization](decoder_optimization_20260916/README.md) describe the

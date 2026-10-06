@@ -1,8 +1,8 @@
 from dataclasses import replace
-from graft.action_reduction import absorb_subgroups
-from graft.final_branches import FinalFamily
-from graft.family_query import query_path
-from graft.event_patterns import SignedEventIndex,extract_path_events
+from mappa.action_reduction import absorb_subgroups
+from mappa.final_branches import FinalFamily
+from mappa.family_query import query_path
+from mappa.event_patterns import SignedEventIndex,extract_path_events
 from test_event_patterns import problem
 
 S3=('group',((1,0,2),(1,2,0)))
@@ -36,7 +36,7 @@ def test_constraints_and_event_alternatives_survive_reduction(monkeypatch):
     f=FinalFamily(((0,0),(1,1),(2,2)),((0,1),),(C3,T01,S3),(.2,1.))
     simplified=replace(f,actions=(S3,))
     with monkeypatch.context() as patch:
-        patch.setattr("graft.action_reduction.absorb_subgroups",lambda actions,degree:actions)
+        patch.setattr("mappa.action_reduction.absorb_subgroups",lambda actions,degree:actions)
         original=f.as_path(p)
     for mapping,expected in [({0:0,1:1,2:2},'recovered'),({0:1,1:0,2:2},'recovered'),({0:1,1:2,2:0},'not_recovered')]:
         assert query_path(original,p,mapping,source_atoms=(0,1,2))[0]==expected

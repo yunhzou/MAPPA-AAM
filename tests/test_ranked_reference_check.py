@@ -6,8 +6,8 @@ import pytest
 from golden_evaluation import prepare, evaluate_planned
 from publication_analysis import rank_archive
 from ranked_reference_check import check_ranked_reference
-from graft import AAMProblem, AAMSearchConfig
-from graft.search_orientation import AAMSearchPlan
+from mappa import AAMProblem, AAMSearchConfig
+from mappa.search_orientation import AAMSearchPlan
 
 
 @pytest.mark.parametrize('reverse', [False, True])

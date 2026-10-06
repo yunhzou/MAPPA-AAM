@@ -1,5 +1,5 @@
 import numpy as np
-from graft import AAMProblem,MolecularEndpoint
+from mappa import AAMProblem,MolecularEndpoint
 from golden_anchor_policy import proposals
 
 

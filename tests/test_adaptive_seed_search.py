@@ -1,8 +1,8 @@
 import itertools
 import networkx as nx
 
-from graft import AAMProblem, AAMSearchConfig
-from graft.adaptive_seed_search import AdaptiveSeedSearch
+from mappa import AAMProblem, AAMSearchConfig
+from mappa.adaptive_seed_search import AdaptiveSeedSearch
 from test_fragment_choices import problem
 
 
@@ -35,7 +35,7 @@ def test_partial_composition_eventually_stops_without_repeating_empty_growth():
 
 
 def test_complete_normal_path_before_fairly_serving_deeper_seed_alternatives():
-    from graft.adaptive_seed_search import _SeedAgenda
+    from mappa.adaptive_seed_search import _SeedAgenda
     agenda=_SeedAgenda()
     agenda.push((1,1,0),'first alternative')
     agenda.push((0,0,0),'normal')
@@ -49,7 +49,7 @@ def test_complete_normal_path_before_fairly_serving_deeper_seed_alternatives():
 
 
 def test_unexplored_regions_precede_redundant_region_seeds_without_dropping_them():
-    from graft.adaptive_seed_search import _SeedAgenda
+    from mappa.adaptive_seed_search import _SeedAgenda
     agenda=_SeedAgenda()
     agenda.push((1,1,1,0),'covered region')
     agenda.push((2,1,0,10),'new region')
@@ -58,7 +58,7 @@ def test_unexplored_regions_precede_redundant_region_seeds_without_dropping_them
 
 
 def test_completed_route_yields_before_all_normal_siblings_are_expanded():
-    from graft.adaptive_seed_search import _SeedAgenda
+    from mappa.adaptive_seed_search import _SeedAgenda
     agenda=_SeedAgenda()
     agenda.push((1,1,0,0),'alternative')
     for i in range(100):agenda.push((0,0,0,0),i)
@@ -69,7 +69,7 @@ def test_completed_route_yields_before_all_normal_siblings_are_expanded():
 
 
 def test_known_region_seeds_are_not_starved_by_new_regions():
-    from graft.adaptive_seed_search import _SeedAgenda
+    from mappa.adaptive_seed_search import _SeedAgenda
     agenda=_SeedAgenda()
     for i in range(100):agenda.push((1,1,0,i),i)
     agenda.push((1,1,1,0),'known region')

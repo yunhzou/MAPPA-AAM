@@ -3,8 +3,8 @@ import copy
 from dataclasses import replace
 import random
 
-from graft.event_certificates import EventFamilyCertificates
-from graft.event_patterns import SignedEventIndex, extract_path_events
+from mappa.event_certificates import EventFamilyCertificates
+from mappa.event_patterns import SignedEventIndex, extract_path_events
 from test_event_patterns import problem, saved_path
 
 
@@ -16,7 +16,7 @@ def test_source_symmetry_merges_events_without_entering_solver(monkeypatch):
     assert not index.invariant_path(path)
     def forbidden(*args, **kwargs):
         raise AssertionError('source-equivalent shuffles need no solver')
-    monkeypatch.setattr('graft.family_query.compile_path', forbidden)
+    monkeypatch.setattr('mappa.family_query.compile_path', forbidden)
     result = extract_path_events(path, value, index, max_patterns=None)
     assert result['complete'] and len(result['patterns']) == 1
     assert result['solver_queries'] == 0 and result['reason'] == 'source_target_class_invariance'
@@ -83,8 +83,8 @@ def test_edge_cache_respects_pool_locks_and_graph_identity():
 def test_factored_event_tables_equal_reference_for_all_symbolic_assignments():
     import time
     import z3
-    from graft.family_query import compile_path
-    from graft.event_patterns import _event_model
+    from mappa.family_query import compile_path
+    from mappa.event_patterns import _event_model
     from reference_event_model import _event_model as reference
     value = problem('COOO', [(0,1,1),(0,2,1.4),(0,3,1.8)], [(0,1,1.8),(0,2,1),(0,3,1.4)])
     path = saved_path(value, [(0,2,1,3),(0,1,3,2)])

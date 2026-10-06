@@ -7,14 +7,14 @@
 
 set -euo pipefail
 
-: "${GRAFT_ROOT:?set GRAFT_ROOT to an immutable source snapshot}"
-: "${GRAFT_PYTHON:?set GRAFT_PYTHON to the project interpreter}"
+: "${MAPPA_ROOT:?set MAPPA_ROOT to an immutable source snapshot}"
+: "${MAPPA_PYTHON:?set MAPPA_PYTHON to the project interpreter}"
 : "${TS_MANIFEST:?set TS_MANIFEST to one tier manifest}"
 : "${TS_OUTPUT_ROOT:?set TS_OUTPUT_ROOT}"
 : "${TS_WORK_ROOT:?set TS_WORK_ROOT}"
 : "${TS_BENCHMARK_ROOT:?set TS_BENCHMARK_ROOT}"
 
-export PYTHONPATH="$GRAFT_ROOT/src"
+export PYTHONPATH="$MAPPA_ROOT/src"
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
@@ -25,8 +25,8 @@ if [[ -n "${TS_RESOLVED_RP_ROOT:-}" ]]; then
   extra_args+=(--resolved-rp-root "$TS_RESOLVED_RP_ROOT")
 fi
 
-"$GRAFT_PYTHON" \
-  "$GRAFT_ROOT/tools/run_typed_ts_case.py" \
+"$MAPPA_PYTHON" \
+  "$MAPPA_ROOT/tools/run_typed_ts_case.py" \
   --manifest "$TS_MANIFEST" \
   --work-root "$TS_WORK_ROOT" \
   --benchmark-root "$TS_BENCHMARK_ROOT" \

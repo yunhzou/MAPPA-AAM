@@ -1409,10 +1409,10 @@
   ],
   "rows": [
     {
-      "key": "graft_c100_s1_uncut",
+      "key": "mappa_c100_s1_uncut",
       "config": {
-        "key": "graft_c100_s1_uncut",
-        "method": "graft",
+        "key": "mappa_c100_s1_uncut",
+        "method": "mappa",
         "cap": 100,
         "seed": 1,
         "sweep": false
@@ -6538,10 +6538,10 @@
       "recovery_percent": 80.4430037817396
     },
     {
-      "key": "graft_c100_s1_sweep",
+      "key": "mappa_c100_s1_sweep",
       "config": {
-        "key": "graft_c100_s1_sweep",
-        "method": "graft",
+        "key": "mappa_c100_s1_sweep",
+        "method": "mappa",
         "cap": 100,
         "seed": 1,
         "sweep": true
@@ -11667,10 +11667,10 @@
       "recovery_percent": 99.0815775256618
     },
     {
-      "key": "graft_c100_s2_sweep",
+      "key": "mappa_c100_s2_sweep",
       "config": {
-        "key": "graft_c100_s2_sweep",
-        "method": "graft",
+        "key": "mappa_c100_s2_sweep",
+        "method": "mappa",
         "cap": 100,
         "seed": 2,
         "sweep": true
@@ -16796,10 +16796,10 @@
       "recovery_percent": 99.0815775256618
     },
     {
-      "key": "graft_c100_s3_sweep",
+      "key": "mappa_c100_s3_sweep",
       "config": {
-        "key": "graft_c100_s3_sweep",
-        "method": "graft",
+        "key": "mappa_c100_s3_sweep",
+        "method": "mappa",
         "cap": 100,
         "seed": 3,
         "sweep": true
@@ -21925,10 +21925,10 @@
       "recovery_percent": 99.24365207995677
     },
     {
-      "key": "graft_c100_s10_sweep",
+      "key": "mappa_c100_s10_sweep",
       "config": {
-        "key": "graft_c100_s10_sweep",
-        "method": "graft",
+        "key": "mappa_c100_s10_sweep",
+        "method": "mappa",
         "cap": 100,
         "seed": 10,
         "sweep": true
@@ -27054,10 +27054,10 @@
       "recovery_percent": 99.40572663425175
     },
     {
-      "key": "graft_c2000_s1_uncut",
+      "key": "mappa_c2000_s1_uncut",
       "config": {
-        "key": "graft_c2000_s1_uncut",
-        "method": "graft",
+        "key": "mappa_c2000_s1_uncut",
+        "method": "mappa",
         "cap": 2000,
         "seed": 1,
         "sweep": false
@@ -32184,10 +32184,10 @@
       "recovery_percent": 81.46947595894112
     },
     {
-      "key": "graft_c2000_s1_sweep",
+      "key": "mappa_c2000_s1_sweep",
       "config": {
-        "key": "graft_c2000_s1_sweep",
-        "method": "graft",
+        "key": "mappa_c2000_s1_sweep",
+        "method": "mappa",
         "cap": 2000,
         "seed": 1,
         "sweep": true
@@ -37314,10 +37314,10 @@
       "recovery_percent": 99.0815775256618
     },
     {
-      "key": "graft_c2000_s2_sweep",
+      "key": "mappa_c2000_s2_sweep",
       "config": {
-        "key": "graft_c2000_s2_sweep",
-        "method": "graft",
+        "key": "mappa_c2000_s2_sweep",
+        "method": "mappa",
         "cap": 2000,
         "seed": 2,
         "sweep": true
@@ -42444,10 +42444,10 @@
       "recovery_percent": 99.0815775256618
     },
     {
-      "key": "graft_c2000_s3_sweep",
+      "key": "mappa_c2000_s3_sweep",
       "config": {
-        "key": "graft_c2000_s3_sweep",
-        "method": "graft",
+        "key": "mappa_c2000_s3_sweep",
+        "method": "mappa",
         "cap": 2000,
         "seed": 3,
         "sweep": true
@@ -47574,10 +47574,10 @@
       "recovery_percent": 99.24365207995677
     },
     {
-      "key": "graft_c2000_s10_sweep",
+      "key": "mappa_c2000_s10_sweep",
       "config": {
-        "key": "graft_c2000_s10_sweep",
-        "method": "graft",
+        "key": "mappa_c2000_s10_sweep",
+        "method": "mappa",
         "cap": 2000,
         "seed": 10,
         "sweep": true
@@ -63042,5 +63042,5 @@
   ],
   "source_results_sha256": "fae46d4a31c70cb199dc2a584ff0b149d3cd8e4e0e0c13e345c6a3f4d56e25a4",
   "source_manifest_sha256": "b93a881cb616721f37380eae0f7f8bc5cfd2c637e7cace3025b48a7500725fbc",
-  "scope": "Same-CPU bidirectional search before GRAFT competition. Confirmed reference recovery with unresolved cases shown. Selected-attempt search CPU includes interrupted calls; replaced attempts and initial pilot are excluded from table costs. No original Mac and new CPU timings are pooled."
+  "scope": "Same-CPU bidirectional search before MAPPA competition. Confirmed reference recovery with unresolved cases shown. Selected-attempt search CPU includes interrupted calls; replaced attempts and initial pilot are excluded from table costs. No original Mac and new CPU timings are pooled."
 }

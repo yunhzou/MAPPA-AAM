@@ -13,8 +13,8 @@ import time
 from dataclasses import replace
 from types import SimpleNamespace
 
-from graft.fragment_matching.models import FragmentDetectionResult
-from graft.fragment_matching.serialization import fragment_detection_to_record
+from mappa.fragment_matching.models import FragmentDetectionResult
+from mappa.fragment_matching.serialization import fragment_detection_to_record
 
 
 def memory():
@@ -38,8 +38,8 @@ def main():
     with args.input.open('rb') as stream:
         candidates, capped, maximum, graphs = pickle.load(stream)
     if args.merge_only:
-        from graft.fragment_matching.detection import _candidate_identity, _detect_fragments_from_initial
-        from graft.fragment_matching.models import FragmentDetectionConfig
+        from mappa.fragment_matching.detection import _candidate_identity, _detect_fragments_from_initial
+        from mappa.fragment_matching.models import FragmentDetectionConfig
         started = time.perf_counter()
         old, seen = [], {}
         for raw in candidates:

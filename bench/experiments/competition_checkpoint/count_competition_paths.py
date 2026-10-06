@@ -7,8 +7,8 @@ sys.path[:0]=[str(CODE/'src'),str(CODE/'bench')]
 from fragment_competition_optimized import save
 
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.event_patterns import SignedEventIndex
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.event_patterns import SignedEventIndex
  start=time.perf_counter();row=next(r for r in json.loads((RUN/'summary.json').read_text())['cases'] if r['case']==case);minimum=row['union_best']
  hist=collections.Counter();unique=collections.Counter();seen=set();idx=None;batch=[];archive_count=0
  def flush():

@@ -1,6 +1,6 @@
 """Reproduce the endpoint-only 65-atom gold example and verify two oxygen fates.
 
-Run from an installed GRAFT checkout. The default 300-second watchdog wraps
+Run from an installed MAPPA checkout. The default 300-second watchdog wraps
 search, catalogue construction and the two selected-witness checks together.
 No intermediate geometry, atom correspondence or pathway is a search input.
 """
@@ -19,11 +19,11 @@ DATA = Path(__file__).resolve().parent / 'data'
 
 
 def run(output, workers=4):
-    from graft import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-    from graft.artifacts import write_aam_checkpoint
-    from graft.event_patterns import SignedEventIndex
-    from graft.family_query import query_path
-    from graft.growth.native import available
+    from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
+    from mappa.artifacts import write_aam_checkpoint
+    from mappa.event_patterns import SignedEventIndex
+    from mappa.family_query import query_path
+    from mappa.growth.native import available
 
     raw = [json.loads((DATA / name).read_text()) for name in ('reactant.json', 'product.json')]
     problem = AAMProblem(*(MolecularEndpoint(d['elements'], d['coordinates'], d['wbo']) for d in raw),

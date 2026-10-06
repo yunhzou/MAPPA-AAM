@@ -266,7 +266,7 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
     return dict(schema='rxn_core.search_trajectory/v1',name=title or raw['name'] or 'AAM search trajectory',
         input=raw,runs=runs,key_atoms=default_keys if key_atoms is None else key_atoms,
         watch_targets=[] if watch_targets is None else watch_targets,
-        capture_source={('graft/search_trajectory.py' if p == Path(__file__) else str(p.relative_to(Path(growth.__file__).parents[2]))):hashlib.sha256(p.read_bytes()).hexdigest()
+        capture_source={('mappa/search_trajectory.py' if p == Path(__file__) else str(p.relative_to(Path(growth.__file__).parents[2]))):hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(set(Path(growth.__file__).parents[1].rglob('*.py'))|{Path(__file__)})},
         scope='Diagnostic replay of selected saved fragment calls; one recorded history per terminal. '
               'All live compressed candidates are included, each with an actual representative and symmetry blocks. '

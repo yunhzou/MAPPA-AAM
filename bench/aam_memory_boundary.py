@@ -27,11 +27,11 @@ def emit(stage, **data):
 
 
 def prepare(args):
-    from graft.smiles import smiles_to_weighted_graph
-    from graft.fragment_matching import FragmentDetectionConfig
-    from graft.subgraph import _coerce_graph
-    from graft.fragment_matching.detection import _initial_fragment_placements, _augment_initial_family
-    import graft.fragment_matching.augmentation as augmentation
+    from mappa.smiles import smiles_to_weighted_graph
+    from mappa.fragment_matching import FragmentDetectionConfig
+    from mappa.subgraph import _coerce_graph
+    from mappa.fragment_matching.detection import _initial_fragment_placements, _augment_initial_family
+    import mappa.fragment_matching.augmentation as augmentation
     with gzip.open('data/inventory/processed/inventory_structure_bank.csv.gz', 'rt') as stream:
         row = next(r for r in csv.DictReader(stream) if r['Inventory ID'] == args.source_id)
     summary = json.loads(Path('data/retro_runs/native_exact_20260905/full_bank/parts/part_0.jsonl.gz.summary.json').read_text())
@@ -68,7 +68,7 @@ def prepare(args):
 
 
 def core(args):
-    from graft.alignment.branch import find_islands
+    from mappa.alignment.branch import find_islands
     data = (args.directory / f'{args.family}.input.pkl').read_bytes()
     positional, keywords = pickle.loads(data)
     emit('core_start', family=args.family, version=args.version,
@@ -99,9 +99,9 @@ def core(args):
 
 
 def post(args):
-    import graft.fragment_matching.augmentation as augmentation
-    import graft.fragment_matching.symmetry as symmetry
-    from graft.fragment_matching.detection import _augment_initial_family
+    import mappa.fragment_matching.augmentation as augmentation
+    import mappa.fragment_matching.symmetry as symmetry
+    from mappa.fragment_matching.detection import _augment_initial_family
     with (args.directory / f'{args.family}.family.pkl').open('rb') as stream:
         source, target, placement, config = pickle.load(stream)
     with (args.directory / f'{args.family}.graph.pkl').open('rb') as stream:
@@ -225,7 +225,7 @@ def compare_post(args):
     records, but need not have their unused exact groups eagerly calculated.
     """
     from dataclasses import fields
-    from graft.search_graph import frozen_value
+    from mappa.search_graph import frozen_value
     def fingerprint(directory):
         with (directory / f'{args.family}.post.pkl').open('rb') as stream:
             candidates, capped, maximum, graphs = pickle.load(stream)

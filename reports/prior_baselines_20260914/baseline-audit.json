@@ -10,12 +10,12 @@
   "measured_localmapper_recovery": 0.86709886547812,
   "paired_prior_baseline": "SLAP binary+weighted bidirectional sweep, our evaluation wrapper",
   "mean_cpu_ratios": {
-    "graft1_smaller_first": 0.3428586943541171,
-    "graft1_larger_first": 0.9240179074979962,
-    "graft1_bidirectional": 0.5225186334475154,
-    "graft2_smaller_first": 0.6704166241868218,
-    "graft2_larger_first": 1.8265876766229605,
-    "graft2_bidirectional": 1.0278360992021853
+    "mappa1_smaller_first": 0.3428586943541171,
+    "mappa1_larger_first": 0.9240179074979962,
+    "mappa1_bidirectional": 0.5225186334475154,
+    "mappa2_smaller_first": 0.6704166241868218,
+    "mappa2_larger_first": 1.8265876766229605,
+    "mappa2_bidirectional": 1.0278360992021853
   },
   "lowest_default_mean_time": "rxnmapper",
   "experiments_rerun": 0

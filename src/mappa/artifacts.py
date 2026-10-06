@@ -26,8 +26,10 @@ class _CheckpointUnpickler(pickle.Unpickler):
     """
 
     def find_class(self, module, name):
-        if module == "rxn_core" or module.startswith("rxn_core."):
-            module = "graft" + module[len("rxn_core"):]
+        for legacy in ("rxn_core", "graft"):
+            if module == legacy or module.startswith(legacy + "."):
+                module = "mappa" + module[len(legacy):]
+                break
         return super().find_class(module, name)
 
 

@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
-from graft import build_graph
-from graft.alignment.index_chirality import (
+from mappa import build_graph
+from mappa.alignment.index_chirality import (
     compile_analytical_mapping_family,
 )
-from graft.alignment.post_aam import (
+from mappa.alignment.post_aam import (
     AffineChiralityConstraint,
     AtomBijection,
     AtomPermutation,

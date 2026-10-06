@@ -4,7 +4,7 @@ Unassigned atoms use standard element colors (oxygen red, nitrogen blue, carbon 
 
 A **30-second 3D replay** of one recorded cut context. The matching grows atom by atom, branches from its actual shared states, and reaches the two featured oxygen alternatives. The other subtree is shown as **“… 2 other terminals”**; it has not been removed from the underlying trace.
 
-![Actual GRAFT atom-by-atom growth and the oxygen-placement split](gold-oxygen-preview.gif)
+![Actual MAPPA atom-by-atom growth and the oxygen-placement split](gold-oxygen-preview.gif)
 
 [Film (MP4)](gold-oxygen-3d.mp4) · [Film viewer](index.html) · [Inspect every growth event and all four branches](trajectory.html) · [Inputs and reproduction](../../../examples/gold_rearrangement/README.md)
 
@@ -31,7 +31,7 @@ The final cards enlarge the organic core. Fragment colors show correspondence. R
 
 [**View the original published pathway pictures: Schemes 2, 4 and 5**](pathway-reference/README.md). The reference page places each scheme beside its corresponding oxygen assignment.
 
-Candidate 1 sends O* to the product's **ester-link oxygen**, consistent with literature route a. Candidate 2 sends O* to the **ketone oxygen**, consistent with routes b and c. Those two literature routes converge at intermediate 14 and share an endpoint oxygen pattern. The paper favors route a energetically. GRAFT recovered the correspondences from endpoints alone; it did not calculate the intermediate mechanisms or their kinetics.
+Candidate 1 sends O* to the product's **ester-link oxygen**, consistent with literature route a. Candidate 2 sends O* to the **ketone oxygen**, consistent with routes b and c. Those two literature routes converge at intermediate 14 and share an endpoint oxygen pattern. The paper favors route a energetically. MAPPA recovered the correspondences from endpoints alone; it did not calculate the intermediate mechanisms or their kinetics.
 
 Source: González Pérez et al., *J. Org. Chem.* **2009**, 74, 2982–2991. [DOI: 10.1021/jo802516k](https://pubs.acs.org/doi/10.1021/jo802516k). The input preparation and independent oxygen-provenance interpretation are documented in the linked example.
 

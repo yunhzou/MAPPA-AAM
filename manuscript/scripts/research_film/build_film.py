@@ -11,8 +11,8 @@ import sys
 
 def build(repo, out, source):
     sys.path.insert(0, str(repo / 'src'))
-    from graft import AAMProblem, MolecularEndpoint
-    from graft.event_patterns import SignedEventIndex
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.event_patterns import SignedEventIndex
     data = json.loads(source.read_text())
     problem = AAMProblem(*(MolecularEndpoint(**data['source_input'][k]) for k in ('reactant', 'product')))
     index = SignedEventIndex(problem, threshold=.5, metal_threshold=.3)
@@ -43,7 +43,7 @@ def build(repo, out, source):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'film-data.json').write_text(json.dumps(data, indent=2) + '\n')
     html = (Path(__file__).parent / 'film.html').read_text()
-    html = html.replace('__LIBRARY__', (repo / 'src/graft/static/3Dmol-min.js').read_text())
+    html = html.replace('__LIBRARY__', (repo / 'src/mappa/static/3Dmol-min.js').read_text())
     html = html.replace('__DATA__', json.dumps(data, separators=(',', ':')).replace('</', '<\\/'))
     (out / 'index.html').write_text(html)
     (out / 'science-validation.json').write_text(json.dumps(dict(status='passed', source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),

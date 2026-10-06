@@ -38,14 +38,14 @@ for name, path in sources.items():
 
 engine = RUNS / 'aam_one_seed_bidirectional_20260910/original/src'
 sys.path.insert(0, str(engine))
-import graft
+import mappa
 # The frozen source snapshot stores growth binaries separately. Symmetry
 # finalization uses the shared, unchanged bookkeeping extension; hash it below.
-graft.__path__.append(str(ROOT / 'src/graft'))
-from graft.frag import build_graph
-from graft.alignment.branch import find_islands, _generate_seed_orders
-from graft.search_symmetry import finalize_graph_symmetry
-from graft.matcher import _nauty_orbits
+mappa.__path__.append(str(ROOT / 'src/mappa'))
+from mappa.frag import build_graph
+from mappa.alignment.branch import find_islands, _generate_seed_orders
+from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.matcher import _nauty_orbits
 import numpy as np
 
 raw = json.loads((OUT / f'case{case}_input.json').read_text())
@@ -65,9 +65,9 @@ out = {'case': case, 'name': raw['name'], 'input': raw, 'seed_order': order,
                 'Not a benchmark rerun, molecular dynamics, or reference mapping.',
        'engine_commit': '98b01b175eeed31f70d13e7cbf178b80bf07c9e0',
        'bookkeeping_binary_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                                    for p in (ROOT/'src/graft').glob('_group_ops*.so')},
+                                    for p in (ROOT/'src/mappa').glob('_group_ops*.so')},
        'engine_files': {str(p.relative_to(engine)): hashlib.sha256(p.read_bytes()).hexdigest()
-                        for p in (engine / 'graft').rglob('*.py')}}
+                        for p in (engine / 'mappa').rglob('*.py')}}
 (OUT / ('growth_trace.json' if case == 64 else f'growth_trace_{case}.json')).write_text(json.dumps(out, indent=2, default=lambda x: int(x))+'\n')
 (OUT / 'sources.json').write_text(json.dumps(manifest, indent=2)+'\n')
 print(json.dumps({'events': Counter(e['type'] for e in events),

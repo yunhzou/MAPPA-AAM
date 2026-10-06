@@ -38,11 +38,11 @@ The production source passes 66 focused tests covering representative validation
 Use a separate source checkout at **807d36f**, install repository dependencies plus pybind11, setuptools, psutil and z3-solver, and invoke the scripts from this report directory. The adjacent prefix report supplies the isolated experimental engine; the adjacent unrestricted report supplies the five saved input archives. No working source is modified.
 
 ```sh
-export GRAFT_EXPERIMENT_WORK=/tmp/graft-reuse-before
+export MAPPA_EXPERIMENT_WORK=/tmp/mappa-reuse-before
 python prepare.py --repo /path/to/source-at-807d36f --reference
 python bench_reuse.py
-export GRAFT_REFERENCE_WORK="$GRAFT_EXPERIMENT_WORK"
-export GRAFT_EXPERIMENT_WORK=/tmp/graft-reuse-after
+export MAPPA_REFERENCE_WORK="$MAPPA_EXPERIMENT_WORK"
+export MAPPA_EXPERIMENT_WORK=/tmp/mappa-reuse-after
 python prepare.py --repo /path/to/source-at-807d36f
 python bench_reuse.py
 python verify_outputs.py

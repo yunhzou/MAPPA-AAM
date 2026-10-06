@@ -10,7 +10,7 @@
         900
       ],
       "fps": 24.0,
-      "sha256": "d729874c21a8180263cc910c29b85f05cb0ee7a182660a55e4e5090497bdff97"
+      "sha256": "4994267dd7e0167f1698cf302a5a6925ab4215899ffb420df225a6d70f67bba6"
     },
     {
       "file": "rp-to-ts-mode-preview.gif",
@@ -20,7 +20,7 @@
         600
       ],
       "duration": 30.0,
-      "sha256": "498a100d7a1b91908d51b1b758f28d6dc8c79f7ffaeb2d1064531a340a15fb13"
+      "sha256": "6bd924128845fe82c2c9bc26659a128b8fdfb71b23cae67e1cb2087436082efd"
     },
     {
       "file": "poster.png",
@@ -28,7 +28,7 @@
         1440,
         900
       ],
-      "sha256": "666a66d840f0f884a3f6a764f2c368a24541f6208f8b2ba2624db30a8842b116"
+      "sha256": "458c24186c83d31e98b4d8b16be6cac063dc9050a610cfcde92788251a9ab326"
     }
   ]
 }

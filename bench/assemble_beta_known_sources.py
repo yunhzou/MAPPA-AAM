@@ -8,8 +8,8 @@ import pickle
 import time
 
 from run_beta_distributed import DistributedBank
-from graft.retrosynthesis.beta import BetaRecommendation, BetaResult
-from graft.retrosynthesis.beta_assembly import assemble_supplier_copies, placement_pattern
+from mappa.retrosynthesis.beta import BetaRecommendation, BetaResult
+from mappa.retrosynthesis.beta_assembly import assemble_supplier_copies, placement_pattern
 
 
 def main():

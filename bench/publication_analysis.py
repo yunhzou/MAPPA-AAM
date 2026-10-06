@@ -9,7 +9,7 @@ import pynauty
 from golden_evaluation import colored_graph, project, evaluate_planned
 from golden_topk import summarize_classes
 from golden_policy_campaign import save
-from graft.artifacts import read_aam_checkpoint
+from mappa.artifacts import read_aam_checkpoint
 from view_golden_remaining import ranker
 
 

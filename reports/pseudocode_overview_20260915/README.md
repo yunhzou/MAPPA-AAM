@@ -1,4 +1,4 @@
-# High-level GRAFT pseudocode
+# High-level MAPPA pseudocode
 
 Added Algorithm1 near the start of Methods, with a short definition of a live branch. It connects sweep conditions and seed orders to conditioned fragment growth, structural placement forks, compressed symmetry/constraints, optional bounded competition, unordered final grouping, and separate event decoding. Figure1a/b/c references explicitly connect growth, competition, and decoding. Isomorphism and group internals remain named operations, with their detailed definitions in the existing subsections.
 

@@ -23,8 +23,8 @@ def prepare_inputs():
 
 def child(dataset,seed,case,direction,phase):
  import numpy as np
- from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig,search_aam,search_aam_checkpoints
- from graft.search_orientation import AAMSearchPlan
+ from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig,search_aam,search_aam_checkpoints
+ from mappa.search_orientation import AAMSearchPlan
  from golden_checkpoint_evaluation import evaluate_checkpoints
  random.seed(42);np.random.seed(42)
  raw=read((ROOT/'golden-inputs'/str(case) if dataset=='golden' else WORK/'full140_inputs'/str(case))/'input.json')

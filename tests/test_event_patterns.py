@@ -10,9 +10,9 @@ import pynauty
 import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
-from graft import AAMProblem, MolecularEndpoint
-from graft.event_patterns import SignedEventIndex, _response_bounds, extract_path_events
-from graft.search_graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
+from mappa import AAMProblem, MolecularEndpoint
+from mappa.event_patterns import SignedEventIndex, _response_bounds, extract_path_events
+from mappa.search_graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
 from reference_dense_events import DeltaPatterns
@@ -155,7 +155,7 @@ def test_large_invariant_pool_never_enters_solver(monkeypatch):
     path = saved_path(value, blocks=[dict(r_atoms=list(range(1, 13)), p_atoms=list(range(1, 13)))])
     def forbidden(*args, **kwargs):
         raise AssertionError('invariant pool must remain compressed')
-    monkeypatch.setattr('graft.family_query.compile_path', forbidden)
+    monkeypatch.setattr('mappa.family_query.compile_path', forbidden)
     result = extract_path_events(path, value, SignedEventIndex(value))
     assert result['complete'] and result['solver_queries'] == 0 and len(result['patterns']) == 1
 
@@ -207,9 +207,9 @@ def test_reject_partial_invalid_and_asymmetric_inputs():
 
 
 def test_whole_event_orbit_is_excluded_in_one_query(monkeypatch):
-    import graft.event_patterns as module
+    import mappa.event_patterns as module
     # Exercise the exact solver fallback separately from the faster group certificate.
-    monkeypatch.setattr('graft.event_certificates.EventFamilyCertificates.invariant_class',
+    monkeypatch.setattr('mappa.event_certificates.EventFamilyCertificates.invariant_class',
                         lambda *args: False)
     edges = [(0, a, 1.) for a in range(1, 8)]
     value = problem(('C',) + ('H',) * 7, edges,
@@ -240,7 +240,7 @@ def test_correlated_actions_do_not_turn_into_independent_fragment_pools():
 
 def test_symbolic_orbit_equality_matches_canonical_identity():
     import z3
-    from graft.event_patterns import _same_event_orbit
+    from mappa.event_patterns import _same_event_orbit
     value = problem('CHHH', [(0, a, 1.) for a in (1, 2, 3)], [(0, 1, .1), (0, 2, 1.), (0, 3, 1.)])
     index = SignedEventIndex(value)
     pattern = index.describe([0, 1, 2, 3])

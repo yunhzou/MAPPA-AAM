@@ -194,7 +194,7 @@ def test_score_plot_coincident_choices_and_clicks():
     node = shutil.which('node')
     if not node:
         pytest.skip('JavaScript test requires Node')
-    source = (TOOLS.parent/'src/graft/static/retro_score_plot.js').read_text()
+    source = (TOOLS.parent/'src/mappa/static/retro_score_plot.js').read_text()
     code = source + """
 const assert=require('node:assert/strict');
 const make=(fragments,retention=.9,validation=false)=>({rank:fragments,pattern:'p',ground_truth:validation,precursors:[{}],score:{matched_fragment_count:fragments,set_atom_retention:retention,broken_bonds:8,formed_bonds:4}});

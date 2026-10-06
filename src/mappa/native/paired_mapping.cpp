@@ -334,7 +334,7 @@ PyMethodDef methods[] = {
 PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
     "_native",
-    "Native exact kernels for graft.",
+    "Native exact kernels for mappa.",
     -1,
     methods,
 };

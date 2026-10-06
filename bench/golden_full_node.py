@@ -13,11 +13,11 @@ import time
 
 from golden_policy_campaign import load_case, save, guarded
 from golden_evaluation import evaluate_planned
-from graft import search_aam
-from graft.aam import _initialize_finalization, _restore_finalized_cut
-from graft.alignment.sweep import cut_sweep_items
-from graft.domain import AAMResult, AAMSearchMetrics
-from graft.artifacts import raw_cut_paths
+from mappa import search_aam
+from mappa.aam import _initialize_finalization, _restore_finalized_cut
+from mappa.alignment.sweep import cut_sweep_items
+from mappa.domain import AAMResult, AAMSearchMetrics
+from mappa.artifacts import raw_cut_paths
 
 
 def aggregate(checks, expected):

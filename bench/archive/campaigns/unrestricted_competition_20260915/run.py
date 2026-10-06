@@ -3,17 +3,17 @@ from pathlib import Path
 import sys,os,json,gzip,time,resource,subprocess
 from concurrent.futures import ThreadPoolExecutor,as_completed
 PACKAGE=Path(__file__).resolve().parent
-S=Path(os.environ.get('GRAFT_EXPERIMENT_WORK', PACKAGE/'work')).resolve()
+S=Path(os.environ.get('MAPPA_EXPERIMENT_WORK', PACKAGE/'work')).resolve()
 sys.path.insert(0,str(S/'engine/src'))
 
 def save(p,v):
  p.parent.mkdir(parents=True,exist_ok=True);tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(v,indent=2)+'\n');tmp.replace(p)
 
 def worker(case,mode,stage):
- from graft.artifacts import read_aam_checkpoint,write_aam_checkpoint
- from graft.final_branches import FinalBranchCatalogue
- from graft.event_patterns import SignedEventIndex,extract_path_events
- from graft.competition import compete_fragments,CompetitionConfig
+ from mappa.artifacts import read_aam_checkpoint,write_aam_checkpoint
+ from mappa.final_branches import FinalBranchCatalogue
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.competition import compete_fragments,CompetitionConfig
  out=S/'runs'/str(case)/mode;out.mkdir(parents=True,exist_ok=True)
  start=time.perf_counter();cpu=time.process_time()
  src=PACKAGE/f'inputs/case{case}.pkl.gz'

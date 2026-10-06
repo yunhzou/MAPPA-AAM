@@ -1,7 +1,7 @@
 """Experimental, opt-in fragment competition; disabled in the default pipeline.
 
 An explicit call may add this stage after sweep search and before decoding.
-It is not part of the published GRAFT algorithm.
+It is not part of the published MAPPA algorithm.
 
 TODO: establish a controlled coverage/cost benefit and improve proposal
 scheduling and deduplication before considering default integration.

@@ -76,7 +76,7 @@ def submit(args):
     count = sum(not r['reused'] for r in m['cases'])
     engine = args.run.resolve()/'engine'
     command = shlex.join(['env',f'PYTHONPATH={engine}/src:{engine}/bench',
-        'GRAFT_NATIVE=1','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1',
+        'MAPPA_NATIVE=1','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1',
         sys.executable,str(engine/'bench/golden_reverse_campaign.py'),'worker',
         '--run',str(args.run.resolve()),'--slot'])+' "$SLURM_ARRAY_TASK_ID"'
     job = subprocess.check_output(['sbatch','--parsable','--partition=cpunodes',

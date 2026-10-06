@@ -2,9 +2,9 @@ from dataclasses import asdict
 import networkx as nx
 
 from golden_more_seeds import changed_config
-from graft import AAMSearchConfig
-from graft.aam import cut_seed
-from graft.alignment.branch import _generate_seed_orders
+from mappa import AAMSearchConfig
+from mappa.aam import cut_seed
+from mappa.alignment.branch import _generate_seed_orders
 
 
 def test_seed_ablation_changes_no_other_parameter():

@@ -7,10 +7,10 @@ import subprocess
 import tarfile
 
 from compare_real_ts_mappings import METHODS, save
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
-from graft.viewers import collection_html, comparison_document
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
+from mappa.viewers import collection_html, comparison_document
 
 
 def scalar_events(problem, mapping):

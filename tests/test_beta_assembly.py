@@ -3,8 +3,8 @@ from dataclasses import replace
 from itertools import product
 
 from test_beta_retro import FakeBank, block
-from graft.retrosynthesis.beta import recommend_big_blocks
-from graft.retrosynthesis.beta_assembly import (
+from mappa.retrosynthesis.beta import recommend_big_blocks
+from mappa.retrosynthesis.beta_assembly import (
     assemble_supplier_copies, rank_complete_assemblies,
     assembly_metrics, dominates, pareto_assembly_ranks, assembly_key,
 )
@@ -63,7 +63,7 @@ def test_final_rank_uses_structural_operations_and_rejects_partial():
     cut = (replace(clean[0],candidate=replace(clean[0].candidate,boundary_bonds=((0,5),))),)
     assert dominates(assembly_metrics(clean,target), assembly_metrics(cut,target))
     with pytest.raises(ValueError,match='complete'):
-        from graft.retrosynthesis.beta import BetaRecommendation
+        from mappa.retrosynthesis.beta import BetaRecommendation
         pareto_assembly_ranks((BetaRecommendation((block('a',(0,1)),),(2,3)),),target)
 
 
@@ -77,7 +77,7 @@ def test_repeated_overlapping_copies_do_not_inflate_retention():
 
 
 def test_display_order_is_final_rank_even_with_pattern_diversity():
-    from graft.retrosynthesis.beta import BetaRecommendation
+    from mappa.retrosynthesis.beta import BetaRecommendation
     target = FakeBank().target
     a = block('a',range(4),refined=True)
     b = replace(a,candidate=replace(a.candidate,source_id='b'))
@@ -91,7 +91,7 @@ def test_display_order_is_final_rank_even_with_pattern_diversity():
 
 
 def test_pareto_layers_equal_exhaustive_dominance_and_preserve_tradeoffs():
-    from graft.retrosynthesis.beta import BetaRecommendation
+    from mappa.retrosynthesis.beta import BetaRecommendation
     target = FakeBank().target
     answers = []
     for waste in range(5):
@@ -119,7 +119,7 @@ def test_pareto_layers_equal_exhaustive_dominance_and_preserve_tradeoffs():
 
 
 def test_species_only_breaks_equal_objective_ties_not_pareto_layers():
-    from graft.retrosynthesis.beta import BetaRecommendation
+    from mappa.retrosynthesis.beta import BetaRecommendation
     a,b = block('a',(0,1),refined=True),block('b',(2,3),refined=True)
     distinct = BetaRecommendation((a,b),())
     repeated = BetaRecommendation((a,replace(b,candidate=replace(b.candidate,source_id='a'))),())
@@ -131,7 +131,7 @@ def test_species_only_breaks_equal_objective_ties_not_pareto_layers():
 
 
 def test_fragment_count_breaks_equal_score_ties_without_changing_front():
-    from graft.retrosynthesis.beta import BetaRecommendation
+    from mappa.retrosynthesis.beta import BetaRecommendation
     p = block('r',range(4),refined=True)
     connected = BetaRecommendation((p,),())
     split = BetaRecommendation((replace(p,candidate=replace(p.candidate,

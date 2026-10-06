@@ -17,10 +17,10 @@ import time
 
 from golden_campaign import initialize,save
 from golden_evaluation import evaluate
-from graft import AAMProblem,AAMSearchConfig,search_aam
-from graft.aam import checkpoint_manifest
-from graft.artifacts import read_aam,read_aam_checkpoint,write_aam_checkpoint,raw_cut_paths
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem,AAMSearchConfig,search_aam
+from mappa.aam import checkpoint_manifest
+from mappa.artifacts import read_aam,read_aam_checkpoint,write_aam_checkpoint,raw_cut_paths
+from mappa.domain import MolecularEndpoint
 
 
 def problem_at(directory):

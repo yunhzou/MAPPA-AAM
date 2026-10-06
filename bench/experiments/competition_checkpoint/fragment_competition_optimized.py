@@ -39,20 +39,20 @@ def takeover_plan(old,owners,owner,new,*,allow_b_relocation=False):
              touched_owners=sorted({owners[r] for r in eaten+displaced}))
 def child(case):
  import numpy as np
- from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig
- from graft.artifacts import read_aam_checkpoint,write_aam_checkpoint
- from graft.domain import AAMResult,AAMSearchMetrics
- from graft.frag import build_graph
- from graft.fragment import match_fragment,FragmentMatchConfig,FragmentMatchContext
- from graft.matcher import _nauty_orbits
- from graft.native_search import find_islands_native
- from graft.search_symmetry import finalize_graph_symmetry
+ from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig
+ from mappa.artifacts import read_aam_checkpoint,write_aam_checkpoint
+ from mappa.domain import AAMResult,AAMSearchMetrics
+ from mappa.frag import build_graph
+ from mappa.fragment import match_fragment,FragmentMatchConfig,FragmentMatchContext
+ from mappa.matcher import _nauty_orbits
+ from mappa.native_search import find_islands_native
+ from mappa.search_symmetry import finalize_graph_symmetry
  folder=OUT/f'case{case}';folder.mkdir(parents=True,exist_ok=True)
  archive=ROOT/f'outputs/holdout140_cap2000_seed1/case{case}/cuts/aam.pkl.gz'
  if case==25:archive=ROOT/'outputs/holdout140_case25_retry/case25/cuts/aam.pkl.gz'
  total_start=time.perf_counter();total_cpu=time.process_time()
  a=read_aam_checkpoint(archive);problem=a.problem;cfg=a.config
- from graft.event_patterns import SignedEventIndex
+ from mappa.event_patterns import SignedEventIndex
  idx=SignedEventIndex(problem);start=time.perf_counter();cpu=time.process_time();deadline=start+270
  # Search-side selection uses only our terminal scores/partitions. Saved SLAP
  # labels/results are not read until the search loop has ended.
@@ -161,7 +161,7 @@ def child(case):
     graph=find_islands_native(completion_source,target,completion_order,graph_floor=cfg.graph_floor,iso_tol=cfg.iso_tolerance,max_branches=2000,p_orbits=po,cuts=effective_cuts,anchor_map=anchors)
     graph,_=finalize_graph_symmetry(graph,target,iso_tolerance=cfg.iso_tolerance)
     if RELEASE_BOUNDARIES or VERIFIED_PILOT:
-     from graft.family_scoring import validate_representative
+     from mappa.family_scoring import validate_representative
      invalid=[]
      for path in graph.paths():
       if len(path.mapping)!=idx.n:continue

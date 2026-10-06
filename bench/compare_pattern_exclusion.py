@@ -8,8 +8,8 @@ import time
 from collect_golden_patterns import first_paths
 from golden_publication import plans
 from golden_policy_campaign import save
-from graft.artifacts import read_aam_checkpoint
-from graft.pattern_collection import PatternEquivalence,extract_path_patterns
+from mappa.artifacts import read_aam_checkpoint
+from mappa.pattern_collection import PatternEquivalence,extract_path_patterns
 from view_golden_mapping import molecules
 
 
@@ -17,8 +17,8 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source',type=Path,required=True);parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
-    old={'__package__':'graft'}
-    exec(subprocess.check_output(['git','show','7eec906:src/graft/pattern_collection.py'],text=True),old)
+    old={'__package__':'mappa'}
+    exec(subprocess.check_output(['git','show','7eec906:src/mappa/pattern_collection.py'],text=True),old)
     audit={r['index']:r for r in map(json.loads,Path('data/aam_benchmarks/golden_original_20260906/audit.jsonl').read_text().splitlines())}
     results=[]
     for index,direction in [(44,'P_to_R'),(865,'P_to_R'),(1033,'P_to_R')]:

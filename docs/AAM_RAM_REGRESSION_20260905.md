@@ -59,7 +59,7 @@ artifact from shared pages across processes.
 
 ### AAM result-construction defect
 
-`src/graft/search_symmetry.py:17` processes every recorded transition,
+`src/mappa/search_symmetry.py:17` processes every recorded transition,
 including the history of discarded/capped subtrees. Line 41 creates fresh
 `list(g)` arrays for every transition's generators.
 

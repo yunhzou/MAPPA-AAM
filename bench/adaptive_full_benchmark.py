@@ -61,7 +61,7 @@ def environment():
 
 
 def prepare(args):
-    from graft import AAMSearchConfig
+    from mappa import AAMSearchConfig
     args.run.mkdir(parents=True, exist_ok=False)
     for folder in ('src', 'native', 'bench', 'tests', 'tools', 'benchmarks', 'docs/example_runs'):
         shutil.copytree(ROOT/folder, args.run/'engine'/folder,
@@ -162,9 +162,9 @@ def spec_and_folder(args):
 
 
 def problem_plan(args, spec):
-    from graft import AAMProblem, AAMSearchConfig
-    from graft.domain import MolecularEndpoint
-    from graft.search_orientation import AAMSearchPlan
+    from mappa import AAMProblem, AAMSearchConfig
+    from mappa.domain import MolecularEndpoint
+    from mappa.search_orientation import AAMSearchPlan
     raw = read(args.run/f"inputs/{spec['dataset']}/{spec['index']}/input.json")
     endpoints = [MolecularEndpoint(**{k:v for k,v in raw[n].items()
                     if k in ('elements', 'coordinates', 'wbo', 'label', 'metadata')})
@@ -177,8 +177,8 @@ def problem_plan(args, spec):
 
 
 def search(args):
-    from graft import search_aam
-    from graft.artifacts import write_aam_checkpoint
+    from mappa import search_aam
+    from mappa.artifacts import write_aam_checkpoint
     from publication_timing import SearchProfiler
     spec, folder = spec_and_folder(args)
     _, plan = problem_plan(args, spec)
@@ -196,8 +196,8 @@ def search(args):
                          metrics=asdict(result.metrics), states=len(result.graph.states),
                          terminals=len(result.graph.terminals), capped=result.graph.capped))
     else:
-        from graft.adaptive_seed_search import AdaptiveSeedSearch
-        from graft.adaptive_cut_search import AdaptiveCutSearch
+        from mappa.adaptive_seed_search import AdaptiveSeedSearch
+        from mappa.adaptive_cut_search import AdaptiveCutSearch
         cpu, wall = time.process_time(), time.perf_counter()
         policy = manifest.get('adaptive_policy', 'seed_frontier')
         session = (AdaptiveCutSearch(plan.problem, plan.config, policy='shared')
@@ -270,7 +270,7 @@ def holdout_classes(aam, plan, raw):
 
 
 def analyze(args):
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     from golden_evaluation import evaluate_planned
     from publication_analysis import rank_archive
     from ranked_reference_check import check_ranked_reference
@@ -307,7 +307,7 @@ def worker(args):
     record = dict(**spec, method=args.method, environment=environment(), started=time.time())
     save(status, record)
     source = args.run/('original' if args.method == 'original' else 'engine')/'src'
-    env = dict(os.environ, PYTHONPATH=f'{source}:{args.run}/engine/bench', GRAFT_NATIVE='1',
+    env = dict(os.environ, PYTHONPATH=f'{source}:{args.run}/engine/bench', MAPPA_NATIVE='1',
                PYTHONHASHSEED='0', OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
     common = ['--run', str(args.run), '--slot', str(args.slot), '--method', args.method]
     for phase, seconds in (('search', 300), ('analyze', 240)):

@@ -17,7 +17,7 @@ import pynauty
 from rdkit import Chem
 
 from golden_evaluation import colored_graph, exact_action, project
-from graft.artifacts import read_aam, read_aam_checkpoint
+from mappa.artifacts import read_aam, read_aam_checkpoint
 
 
 def save(path, value):

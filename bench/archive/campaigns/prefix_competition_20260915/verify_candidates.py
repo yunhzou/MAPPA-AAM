@@ -2,12 +2,12 @@
 from pathlib import Path
 import gzip,json,os,sys
 package=Path(__file__).resolve().parent
-work=Path(os.environ.get('GRAFT_EXPERIMENT_WORK',package/'work')).resolve()
+work=Path(os.environ.get('MAPPA_EXPERIMENT_WORK',package/'work')).resolve()
 sys.path.insert(0,str(work/'engine/src'))
-from graft.artifacts import read_aam_checkpoint
-from graft.final_branches import FinalFamily
-from graft.family_query import query_path
-from graft.event_patterns import SignedEventIndex
+from mappa.artifacts import read_aam_checkpoint
+from mappa.final_branches import FinalFamily
+from mappa.family_query import query_path
+from mappa.event_patterns import SignedEventIndex
 proofs=json.loads(gzip.decompress((package/'novel-candidates.json.gz').read_bytes()))
 for proof in proofs:
  a=read_aam_checkpoint(package.parent/f"unrestricted_competition_20260915/inputs/case{proof['case']}.pkl.gz")

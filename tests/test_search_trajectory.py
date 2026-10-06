@@ -7,10 +7,10 @@ import sys
 
 import numpy as np
 import pytest
-from graft import AAMProblem,AAMSearchConfig,MolecularEndpoint,search_aam
-from graft.artifacts import write_aam_checkpoint, read_aam_checkpoint, aam_json
-from graft.search_trajectory import build_trajectory,growth,extension
-from graft.viewers import growth_trace_html
+from mappa import AAMProblem,AAMSearchConfig,MolecularEndpoint,search_aam
+from mappa.artifacts import write_aam_checkpoint, read_aam_checkpoint, aam_json
+from mappa.search_trajectory import build_trajectory,growth,extension
+from mappa.viewers import growth_trace_html
 
 
 def toy_archive(folder, suffix='', translation=0):
@@ -64,8 +64,8 @@ def test_mismatched_endpoints_are_rejected(tmp_path):
 
 
 def test_in_memory_replay_matches_archive_and_keeps_result(tmp_path, monkeypatch):
-    from graft import search_trajectory
-    from graft.viewers import aam_growth_html
+    from mappa import search_trajectory
+    from mappa.viewers import aam_growth_html
     archive = toy_archive(tmp_path)
     aam = read_aam_checkpoint(archive)
     before = aam_json(aam)
@@ -90,7 +90,7 @@ def test_in_memory_replay_matches_archive_and_keeps_result(tmp_path, monkeypatch
 
 
 def test_event_overlay_uses_decoder_thresholds_and_target_indexing():
-    from graft.search_trajectory import bond_events
+    from mappa.search_trajectory import bond_events
     # Inclusive 0.5 boundary, metal-only 0.3 event, subthreshold edge loss,
     # and a formed bond under a nonidentity atom mapping.
     elements = ['C', 'O', 'Fe', 'H']

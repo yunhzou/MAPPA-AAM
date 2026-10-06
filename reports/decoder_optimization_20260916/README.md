@@ -1,4 +1,4 @@
-# GRAFT decoder optimization
+# MAPPA decoder optimization
 
 All 140 saved searches decode completely with the same 300 reaction-local event classes.
 All 110,477 previously completed per-family class-support records match.

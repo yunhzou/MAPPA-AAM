@@ -1,6 +1,6 @@
 """Replay all branches of one saved gold cut, retaining atom-level events.
 
-Input checkpoints must be trusted files produced by GRAFT, not downloads from
+Input checkpoints must be trusted files produced by MAPPA, not downloads from
 unknown sources. A 300-second watchdog bounds the replay process.
 """
 from pathlib import Path
@@ -17,9 +17,9 @@ sys.path.insert(0, str(ROOT / 'src'))
 
 
 def capture(archive, output, context=21):
-    from graft.artifacts import read_aam_checkpoint
-    from graft.search_trajectory import build_trajectory
-    from graft.viewers import growth_trace_html
+    from mappa.artifacts import read_aam_checkpoint
+    from mappa.search_trajectory import build_trajectory
+    from mappa.viewers import growth_trace_html
     aam = read_aam_checkpoint(archive)
     terminals = [t for t in aam.graph.terminals if aam.graph.states[t].context == context]
     document = build_trajectory([dict(aam=aam, context=context, terminals=terminals)],

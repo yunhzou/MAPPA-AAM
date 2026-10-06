@@ -1,8 +1,8 @@
-"""Bridge to the optional native growth engine (``graft._engine``).
+"""Bridge to the optional native growth engine (``mappa._engine``).
 
-The native engine is a C++ port of :func:`graft.growth.island.grow_island`
+The native engine is a C++ port of :func:`mappa.growth.island.grow_island`
 and the matcher step it drives.  It is used only when the extension is
-importable, ``GRAFT_NATIVE`` is not ``0`` (enabled by default), and the call is one the port
+importable, ``MAPPA_NATIVE`` is not ``0`` (enabled by default), and the call is one the port
 covers (default element policy, exact nauty orbit map with a structural zero
 bucket, no trace events).  Its outputs are the same ``_IsoResult`` objects the
 Python engine returns. ``tests/test_native_engine.py`` compares growth calls,
@@ -29,7 +29,7 @@ def built():
 
 
 def available():
-    return built() and os.environ.get("GRAFT_NATIVE", os.environ.get("RXN_CORE_NATIVE", "1")) != "0"
+    return built() and os.environ.get("MAPPA_NATIVE", os.environ.get("RXN_CORE_NATIVE", "1")) != "0"
 
 
 @dataclass(frozen=True)

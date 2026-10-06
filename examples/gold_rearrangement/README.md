@@ -1,6 +1,6 @@
 # Gold-catalyzed rearrangement: two oxygen-fate patterns
 
-This 65-atom example tests whether an endpoint-only GRAFT search retains oxygen correspondences compatible with different mechanisms considered by González Pérez et al., *J. Org. Chem.* **2009**, 74, 2982–2991 ([DOI: 10.1021/jo802516k](https://pubs.acs.org/doi/10.1021/jo802516k)).
+This 65-atom example tests whether an endpoint-only MAPPA search retains oxygen correspondences compatible with different mechanisms considered by González Pérez et al., *J. Org. Chem.* **2009**, 74, 2982–2991 ([DOI: 10.1021/jo802516k](https://pubs.acs.org/doi/10.1021/jo802516k)).
 
 The endpoints are the supplied AuPPh₃ complexes **2 → 9**, including the catalyst and explicit hydrogens. They are not the catalyst-free structures 1 → 10. The 3D growth view shows all 65 atoms; the final candidate cards enlarge the organic heavy-atom core and follow the original epoxide oxygen, O*.
 
@@ -22,7 +22,7 @@ The paper examines three mechanisms. Route a starts with 1,3-ester migration and
 
 ## Reproduce
 
-Install GRAFT with its native extension as described in the repository README, then run:
+Install MAPPA with its native extension as described in the repository README, then run:
 
 ```bash
 python examples/gold_rearrangement/run_gold.py --output gold-output --workers 4
@@ -45,6 +45,6 @@ OMP_NUM_THREADS=1 python examples/gold_rearrangement/recompute_wbo.py \
   examples/gold_rearrangement/data/2PPh3.xyz /tmp/reactant-wbo.json
 ```
 
-`selected-families.json` stores the two film families and full witness checks. Both film witnesses are siblings in cut context 21, with a shared 63-atom prefix. The standalone recovery script can select a different representative with the same event class. The film includes verified atom-level replay; the linked detailed trajectory viewer retains all four branches in this cut. `oxygen-provenance-audit.json` records the independent stationary-structure tracing; this was performed after the search and used only for interpretation. Intermediate geometry files are not required to reproduce GRAFT's recovery. Selected pathway schemes are reproduced on the linked reference page with attribution; the complete source PDF and full supplied archive are not redistributed.
+`selected-families.json` stores the two film families and full witness checks. Both film witnesses are siblings in cut context 21, with a shared 63-atom prefix. The standalone recovery script can select a different representative with the same event class. The film includes verified atom-level replay; the linked detailed trajectory viewer retains all four branches in this cut. `oxygen-provenance-audit.json` records the independent stationary-structure tracing; this was performed after the search and used only for interpretation. Intermediate geometry files are not required to reproduce MAPPA's recovery. Selected pathway schemes are reproduced on the linked reference page with attribution; the complete source PDF and full supplied archive are not redistributed.
 
 [Animations and offline viewer](../../manuscript/animations/gold_rearrangement/README.md)

@@ -3,11 +3,11 @@
   "mapping_reruns": 0,
   "common_mac_cases": 1821,
   "slap_records_files_verified": 7284,
-  "graft_direction_timers_checked": 7284,
+  "mappa_direction_timers_checked": 7284,
   "coordinate_case_totals": 140,
   "coordinate_attempts": 142,
   "checks": [
-    "direction CPU sums reproduce published GRAFT totals",
+    "direction CPU sums reproduce published MAPPA totals",
     "SLAP per-cut scalar CPU sums reproduce every saved case total and matched mean",
     "all selected SLAP cut schedules complete and ordered",
     "directional recovery derived from saved verified hits",

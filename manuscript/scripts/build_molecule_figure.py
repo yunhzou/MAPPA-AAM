@@ -225,7 +225,7 @@ def build(man):
 
  # A: two genuine conditional forks, followed by the forced third placement.
  box(12,12,1416,557,bg,bg,r=16)
- label(34,47,'a','GRAFT growth: earlier placements condition every later choice')
+ label(34,47,'a','MAPPA growth: earlier placements condition every later choice')
  t(34,80,'Local alcohol fragments A, B and C share this motif; R lies outside the matched atoms.',10.5,muted)
  for x,atoms,name in [(24,[11],'Seed'),(163,[11,12],'Grow'),(302,[11,12,13],'Match O-H')]:
   t(x+64,119,name,10,green,'bold',ha='center')

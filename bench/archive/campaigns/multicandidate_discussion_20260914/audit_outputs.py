@@ -5,18 +5,18 @@ from collections import Counter
 from dataclasses import asdict
 parser=argparse.ArgumentParser()
 parser.add_argument('--repo',type=Path,default=Path(__file__).resolve().parents[2])
-parser.add_argument('--package-src',type=Path,help='Optional built source tree containing graft')
+parser.add_argument('--package-src',type=Path,help='Optional built source tree containing mappa')
 parser.add_argument('--archive-dir',type=Path)
 args=parser.parse_args();repo=args.repo.resolve()
 archive=args.archive_dir or repo/'reports/golden_competitor_recheck_20260913'
 sys.path.insert(0,str(repo/'docs'))
 if args.package_src:
     package=args.package_src.resolve()
-    for f in (repo/'src/graft').rglob('*.py'):
-        assert f.read_bytes()==(package/'graft'/f.relative_to(repo/'src/graft')).read_bytes(),f
+    for f in (repo/'src/mappa').rglob('*.py'):
+        assert f.read_bytes()==(package/'mappa'/f.relative_to(repo/'src/mappa')).read_bytes(),f
     sys.path.insert(0,str(package))
-from graft import AAMProblem,AAMSearchConfig,search_aam
-from graft.postprocessing import EventDecodeConfig,decode_events
+from mappa import AAMProblem,AAMSearchConfig,search_aam
+from mappa.postprocessing import EventDecodeConfig,decode_events
 from notebook_helpers import endpoint
 out=Path(__file__).resolve().parent
 p=AAMProblem(endpoint('CO','Methanol'),endpoint('C=O.[H][H]','Formaldehyde + H2'))
@@ -44,7 +44,7 @@ proof={'description':'Six-atom notebook reaction, current library, one direction
  'elements_R':list(p.reactant.elements),'elements_P':list(p.product.elements),
  'wbo_R':p.reactant.wbo.tolist(),'wbo_P':p.product.wbo.tolist(),
  'cpu_seconds':time.process_time()-t,'wall_seconds':time.perf_counter()-w,
- 'source_sha256':{str(f.relative_to(repo)):hashlib.sha256(f.read_bytes()).hexdigest() for f in [repo/'src/graft/aam.py',repo/'src/graft/postprocessing.py',repo/'docs/notebook_helpers.py']}}
+ 'source_sha256':{str(f.relative_to(repo)):hashlib.sha256(f.read_bytes()).hexdigest() for f in [repo/'src/mappa/aam.py',repo/'src/mappa/postprocessing.py',repo/'docs/notebook_helpers.py']}}
 (out/'multicandidate_example.json').write_text(json.dumps(proof,indent=2)+'\n')
 methods=[]
 for name in ['rxnmapper','localmapper','indigo','chython','rdt','slap_binary','slap_weighted']:

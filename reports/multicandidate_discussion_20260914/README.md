@@ -1,6 +1,6 @@
 # Multi-candidate discussion and Figure 4
 
-The paper now distinguishes alternative event patterns, residual symmetry, and potential downstream geometric uses. It does not equate distinct mappings with distinct experimentally established pathways or claim that GRAFT/SLAP exhaust all mappings.
+The paper now distinguishes alternative event patterns, residual symmetry, and potential downstream geometric uses. It does not equate distinct mappings with distinct experimentally established pathways or claim that MAPPA/SLAP exhaust all mappings.
 
 ## Evidence
 
@@ -13,6 +13,6 @@ The paper now distinguishes alternative event patterns, residual symmetry, and p
 
 Ali, Mizuno, Akiyama, Nagata, and Komatsuzaki, *Enumeration Approach to Atom-to-Atom Mapping Accelerated by Ising Computing*, JCIM 65(4), 1901–1910 (2025), https://doi.org/10.1021/acs.jcim.4c01871, is a counterexample to global exclusivity. It enumerates optimal mappings and clusters them by molecular symmetry. It was not added as an unmeasured performance row.
 
-De, Krummenacher, Schaefer, and Goedecker, *Finding Reaction Pathways with Optimal Atomic Index Mappings*, PRL 123, 206102 (2019), https://doi.org/10.1103/PhysRevLett.123.206102 (open preprint https://arxiv.org/abs/1906.06077), supports the relevance of atomic-index choices to pathway searches. This does not establish transition-state or barrier improvements for GRAFT.
+De, Krummenacher, Schaefer, and Goedecker, *Finding Reaction Pathways with Optimal Atomic Index Mappings*, PRL 123, 206102 (2019), https://doi.org/10.1103/PhysRevLett.123.206102 (open preprint https://arxiv.org/abs/1906.06077), supports the relevance of atomic-index choices to pathway searches. This does not establish transition-state or barrier improvements for MAPPA.
 
 `audit_outputs.py` reproduces the small example using an installed/built package plus the checked-in notebook helper and reads the archived comparator files. Use `--repo` to select a checkout; optionally supply `--package-src` for a built source tree and `--archive-dir` for the rescored outputs. The expensive benchmark campaigns are not rerun.

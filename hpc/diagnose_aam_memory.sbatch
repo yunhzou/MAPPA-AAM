@@ -9,6 +9,6 @@
 
 set -euo pipefail
 cd /h/399/yunhengzou/coordinate_alignment
-export GRAFT_NATIVE=1
+export MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 srun timeout --kill-after=10s 580s .venv/bin/python bench/aam_memory_boundary.py "$@"

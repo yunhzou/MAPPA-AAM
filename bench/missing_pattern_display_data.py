@@ -8,9 +8,9 @@ import json
 from pathlib import Path
 
 from holdout_minimum_events import AAM, EventPatterns, read, save, sha
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
 
 
 ROOT = Path(__file__).resolve().parents[1]

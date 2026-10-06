@@ -38,9 +38,9 @@ def main():
     parser.add_argument("--save-intermediates", action="store_true")
     args = parser.parse_args()
     sys.path.insert(0, str(args.package_root / "src"))
-    from graft import AAMProblem, AAMSearchConfig, search_aam
+    from mappa import AAMProblem, AAMSearchConfig, search_aam
     if not args.legacy_api:
-        from graft.mechanisms import group_mechanisms
+        from mappa.mechanisms import group_mechanisms
     reactant, product = CASES[args.case]()
     timings = []
     for _ in range(args.repeats):
@@ -64,7 +64,7 @@ def main():
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, indent=2) + "\n")
     if not args.legacy_api:
-        from graft.artifacts import aam_record
+        from mappa.artifacts import aam_record
         path.with_suffix('.aam.json').write_text(json.dumps(aam_record(result)) + '\n')
     print(json.dumps({k: v for k, v in report.items() if k != "mechanisms"}))
 

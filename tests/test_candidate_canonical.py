@@ -1,9 +1,9 @@
 import networkx as nx
 
-from graft.matcher.canonical import _CandidateAutomorphismCanonicalizer
-from graft.matcher.dedupe import _dedup_sym_cands
-from graft.matcher.orbits import _nauty_orbits
-from graft.matcher.state import _SymCand
+from mappa.matcher.canonical import _CandidateAutomorphismCanonicalizer
+from mappa.matcher.dedupe import _dedup_sym_cands
+from mappa.matcher.orbits import _nauty_orbits
+from mappa.matcher.state import _SymCand
 
 
 def _carbon_path():
@@ -51,7 +51,7 @@ def test_live_candidate_dedupe_never_computes_full_automorphism_group(
 
 
 def test_candidate_canonicalizer_reuses_product_base(monkeypatch):
-    from graft.matcher import canonical
+    from mappa.matcher import canonical
 
     graph = _carbon_path()
     orbits = _nauty_orbits(graph)
@@ -74,7 +74,7 @@ def test_candidate_canonicalizer_reuses_product_base(monkeypatch):
 
 
 def test_candidate_canonicalizer_reuses_explicit_operation_cache(monkeypatch):
-    from graft.matcher import canonical
+    from mappa.matcher import canonical
 
     graph = _carbon_path()
     original = canonical._nauty_colored_wbo_graph

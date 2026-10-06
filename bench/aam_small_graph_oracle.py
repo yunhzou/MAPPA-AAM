@@ -49,8 +49,8 @@ def generate(args):
 
 
 def aam(args):
-    from graft import AAMProblem,AAMSearchConfig,search_aam
-    from graft.domain import MolecularEndpoint
+    from mappa import AAMProblem,AAMSearchConfig,search_aam
+    from mappa.domain import MolecularEndpoint
     row=json.loads((args.run/f'{args.index}.json').read_text());n=len(row['R'])
     problem=AAMProblem(*(MolecularEndpoint(('C',)*n,np.zeros((n,3)),row[k]) for k in ('R','P')))
     out=args.run/f'aam_{args.index}';out.mkdir(exist_ok=False)
@@ -99,7 +99,7 @@ def expand_slap(args):
 
 def submit(args):
     shutil.copy2(__file__,args.run/'oracle_driver.py')
-    command=['env','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1','PYTHONHASHSEED=0','GRAFT_NATIVE=1',
+    command=['env','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1','PYTHONHASHSEED=0','MAPPA_NATIVE=1',
         'timeout','--kill-after=5s','300',sys.executable,str(args.run/'oracle_driver.py'),'aam_all','--run',str(args.run)]
     options=['sbatch','--parsable','--partition=cpunodes','--exclude=bosque5,bosque6,bosque8',
         '--cpus-per-task=16','--mem=32G','--time=00:10:00','--job-name=aam_oracle',

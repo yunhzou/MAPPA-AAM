@@ -46,8 +46,8 @@ def prepare(args):
         iso_tolerance=1., event_tolerance=.5, branch_cap=100, explicit_H=True,
         seed_policy='unchanged cut_seed(cut), original ten-order generation; select specified seed index',
         cuts='uncut plus every source edge', whole_cache_bytes=64*2**20, extension_cache_bytes=64*2**20,
-        baseline_native_sha256=hashlib.sha256(next((args.run/'baseline/src/graft').glob('_engine*.so')).read_bytes()).hexdigest(),
-        optimized_native_sha256=hashlib.sha256(next((args.run/'engine/src/graft').glob('_engine*.so')).read_bytes()).hexdigest()))
+        baseline_native_sha256=hashlib.sha256(next((args.run/'baseline/src/mappa').glob('_engine*.so')).read_bytes()).hexdigest(),
+        optimized_native_sha256=hashlib.sha256(next((args.run/'engine/src/mappa').glob('_engine*.so')).read_bytes()).hexdigest()))
     (args.run/'status').mkdir()
     print(args.run, len(tasks), 'paired tasks')
 
@@ -73,7 +73,7 @@ def paired(args):
         if (args.run/f'results/{args.slot}/{mode}/summary.json').exists():
             print('SAVED',mode,flush=True);continue
         folder='baseline' if mode=='baseline' else 'engine'
-        env=dict(os.environ,PYTHONPATH=f'{args.run}/{folder}/src:{args.run}/engine/bench',GRAFT_NATIVE='1')
+        env=dict(os.environ,PYTHONPATH=f'{args.run}/{folder}/src:{args.run}/engine/bench',MAPPA_NATIVE='1')
         print('START',mode,flush=True)
         subprocess.run(['timeout','--kill-after=5s','300',sys.executable,__file__,'worker',
             '--run',str(args.run),'--slot',str(args.slot),'--mode',mode],env=env,check=True)
@@ -82,15 +82,15 @@ def paired(args):
 
 
 def worker(args):
-    from graft.aam import cut_seed
-    from graft.alignment.branch import _generate_seed_orders, find_islands
-    from graft.alignment.sweep import cut_sweep_items
-    from graft.artifacts import write_graph_checkpoint
-    from graft.cut_replay import FragmentRepair
-    from graft.frag import build_graph
-    from graft.matcher import _nauty_orbits
-    from graft.native_search import find_islands_native
-    from graft.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
+    from mappa.aam import cut_seed
+    from mappa.alignment.branch import _generate_seed_orders, find_islands
+    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.artifacts import write_graph_checkpoint
+    from mappa.cut_replay import FragmentRepair
+    from mappa.frag import build_graph
+    from mappa.matcher import _nauty_orbits
+    from mappa.native_search import find_islands_native
+    from mappa.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
 
     spec=json.loads((args.run/'tasks.json').read_text())[args.slot]
     folder=args.run/f'results/{args.slot}/{args.mode}';folder.mkdir(parents=True,exist_ok=False)
@@ -111,7 +111,7 @@ def worker(args):
         if args.mode not in ('baseline','current'):
             repair=FragmentRepair(r,p,po,extension_cache_bytes=64*2**20 if args.mode in ('extensions','combined') else 0)
         if args.mode in ('symmetry','combined'):
-            from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
+            from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
             workspace=ConditionedSymmetryWorkspace(p,1.)
         elif args.mode=='shared_symmetry':
             workspace=SymmetryWorkspace(p,1.)
@@ -179,7 +179,7 @@ def report(args):
 
 def recover_one(run, slot, host):
     """Recover only the known post-persistence statistics-export failure."""
-    from graft.artifacts import read_graph_checkpoint
+    from mappa.artifacts import read_graph_checkpoint
     folder=run/f'results/{slot}/shared_symmetry'
     if (folder/'summary.json').exists() or not (folder/'progress.json').exists():return False
     progress=json.loads((folder/'progress.json').read_text())

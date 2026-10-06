@@ -1,4 +1,4 @@
-// Native port of graft.alignment.sweep._freeze_analytical_py.
+// Native port of mappa.alignment.sweep._freeze_analytical_py.
 //
 // The semantics must match the pure-Python original exactly:
 //
@@ -224,7 +224,7 @@ py::object freeze_analytical(py::handle value) {
 
 void register_freeze(py::module_& m) {
     m.def("freeze_analytical", &freeze_analytical, py::arg("value"),
-          "Exact native port of graft.alignment.sweep._freeze_analytical_py.\n\n"
+          "Exact native port of mappa.alignment.sweep._freeze_analytical_py.\n\n"
           "dict -> tuple(sorted((str(k), freeze(v)) for k, v in value.items()));\n"
           "list/tuple -> tuple of frozen items; set/frozenset -> tuple(sorted(..., key=repr));\n"
           "anything else is returned unchanged (same object).");

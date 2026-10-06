@@ -26,15 +26,15 @@ def main():
     if a.capture_only:
         engine=resolve(manifest['engine_source']) if manifest.get('engine_source') else str(ROOT/'src')
         sys.path.insert(0,engine)
-        import graft
+        import mappa
         # Load this pipeline module against the selected engine's matcher APIs.
         import importlib.util
-        spec=importlib.util.spec_from_file_location('graft.search_trajectory',ROOT/'src/graft/search_trajectory.py')
+        spec=importlib.util.spec_from_file_location('mappa.search_trajectory',ROOT/'src/mappa/search_trajectory.py')
         module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module)
         selections=[{**s,'archive':resolve(s['archive'])} for s in manifest['selections']]
         document=module.build_trajectory(selections,title=manifest.get('title'),key_atoms=manifest.get('key_atoms'),
             watch_targets=manifest.get('watch_targets'),event_tolerance=manifest.get('event_tolerance',.5))
-        document['engine_source']=str(Path(graft.__file__).parent)
+        document['engine_source']=str(Path(mappa.__file__).parent)
         document['requested_engine_commit']=manifest.get('engine_commit')
         (a.output/'trace.json').write_text(json.dumps(document,separators=(',',':'),default=lambda x:int(x))+'\n')
         (a.output/'validation.json').write_text(json.dumps(dict(status='passed',checks=document['checks']),indent=2)+'\n')
@@ -44,7 +44,7 @@ def main():
     subprocess.run([sys.executable,str(Path(__file__).resolve()),str(a.manifest),str(a.output),'--capture-only'],
                    env=env,check=True)
     sys.path.insert(0,str(ROOT/'src'))
-    from graft.viewers import growth_trace_html
+    from mappa.viewers import growth_trace_html
     (a.output/'algorithm_trajectory.html').write_text(growth_trace_html(json.loads((a.output/'trace.json').read_text())))
     print(a.output/'algorithm_trajectory.html')
 

@@ -111,7 +111,7 @@ def report(run, output):
 def check_partial(run, slot):
     """Positive-only certificate check of completed cuts; not a full evaluation."""
     import gc
-    from graft.artifacts import raw_cut_paths,read_raw_cut
+    from mappa.artifacts import raw_cut_paths,read_raw_cut
     import pynauty
     from golden_evaluation import colored_graph, project
     job = json.loads((run/'manifest.json').read_text())['jobs'][slot]

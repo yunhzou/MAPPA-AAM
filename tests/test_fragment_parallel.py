@@ -1,7 +1,7 @@
 """Execution buffering must not become either a search cap or an output queue."""
 import pytest
 
-from graft.fragment_matching import parallel
+from mappa.fragment_matching import parallel
 
 
 def test_augmentation_stream_is_ordered_and_bounds_outstanding_results(monkeypatch):
@@ -50,8 +50,8 @@ def test_small_augmentation_stream_keeps_all_results(monkeypatch, placements):
 
 def test_merge_freezes_once_and_preserves_every_derivation(monkeypatch):
     from types import SimpleNamespace
-    import graft.fragment_matching.detection as detection
-    from graft.fragment_matching.models import FragmentCandidate, FragmentDerivation, FragmentDetectionConfig
+    import mappa.fragment_matching.detection as detection
+    from mappa.fragment_matching.models import FragmentCandidate, FragmentDerivation, FragmentDetectionConfig
     placement = SimpleNamespace(retained_atoms=(0,), representative_mapping=((0, 0),), encounter_count=1)
     initial = ((placement,), 0, 0, False, False, 1, 0, False, ())
     a, b = FragmentDerivation((), (), ((0, 0),)), FragmentDerivation((), (), ((0, 1), (1, 0)))

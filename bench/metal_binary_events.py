@@ -6,9 +6,9 @@ import time
 
 import numpy as np
 
-from graft.frag import is_metal_element, classify_bonds
-from graft import AAMProblem, MolecularEndpoint
-from graft.event_patterns import SignedEventIndex, _event_model
+from mappa.frag import is_metal_element, classify_bonds
+from mappa import AAMProblem, MolecularEndpoint
+from mappa.event_patterns import SignedEventIndex, _event_model
 
 
 def binary_metal_input(raw, threshold=.2):
@@ -68,7 +68,7 @@ def delta_objective(compiled, canonical):
 
 def query_pattern(compiled, canonical, pattern, objective, timeout_ms):
     import z3
-    from graft.family_query import SymbolicActions
+    from mappa.family_query import SymbolicActions
     started = time.perf_counter(); solver = compiled.solver; solver.push()
     solver.add(objective==pattern['total'])
     encoder = SymbolicActions(solver,fresh=True)
@@ -97,8 +97,8 @@ def query_pattern(compiled, canonical, pattern, objective, timeout_ms):
 
 def membership(aam, canonical, patterns, saved_patterns, seconds=120):
     """Query supplied event patterns in saved families, with explicit unknowns."""
-    from graft.family_query import compile_path
-    from graft.search_graph import frozen_value
+    from mappa.family_query import compile_path
+    from mappa.search_graph import frozen_value
     start=time.perf_counter(); deadline=start+seconds
     results={k:dict(status='represented',method='saved_representative',witness=saved_patterns[k])
              for k in patterns if k in saved_patterns}

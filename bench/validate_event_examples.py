@@ -47,7 +47,7 @@ def compare_saved_slap(slap, patterns, window, complete):
 
 def finish_saved(args, aam, canonical, folder):
     """Retry only unfinished families and unvisited paths from the same archive."""
-    from graft.event_patterns import extract_path_events
+    from mappa.event_patterns import extract_path_events
     record = read(folder / 'comparison.json')
     if (folder / 'comparison_initial.json').exists():
         raise ValueError('finish is a single bounded follow-up, not an unlimited retry loop')
@@ -85,16 +85,16 @@ def finish_saved(args, aam, canonical, folder):
     record['comparisons'] = compare_saved_slap(record['slap'], patterns, record['max_events'], record['saved_graph_window_complete'])
     record['finish'] = dict(cpu_seconds=time.process_time() - cpu, wall_seconds=time.perf_counter() - start,
                            mapping_search_rerun=False)
-    record['final_source_sha256'] = hashlib.sha256((ROOT / 'src/graft/event_patterns.py').read_bytes()).hexdigest()
+    record['final_source_sha256'] = hashlib.sha256((ROOT / 'src/mappa/event_patterns.py').read_bytes()).hexdigest()
     save(folder / 'comparison.json', record)
 
 
 def child(args):
     import random
     import numpy as np
-    from graft import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-    from graft.artifacts import read_aam_checkpoint, write_aam_checkpoint
-    from graft.event_patterns import SignedEventIndex, extract_path_events
+    from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
+    from mappa.artifacts import read_aam_checkpoint, write_aam_checkpoint
+    from mappa.event_patterns import SignedEventIndex, extract_path_events
     raw = read(args.repo / f'manuscript/evidence/case{args.case}_input.json')
     problem = AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant', 'product')))
     folder = args.output / f'case{args.case}'
@@ -204,7 +204,7 @@ def main(args):
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=min(2, (os.cpu_count() or 1) - 1)) as pool:
         rows = list(pool.map(run, (1, 64, 135)))
-    files = [ROOT / 'src/graft/event_patterns.py', Path(__file__)]
+    files = [ROOT / 'src/mappa/event_patterns.py', Path(__file__)]
     summary = dict(cases=rows, elapsed_seconds=time.perf_counter() - start, worker_limit=2,
                    numerical_threads_per_worker=1, process_timeout_seconds=12,
                    sources={str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files})

@@ -8,7 +8,7 @@ from functools import cached_property
 import hashlib
 import numpy as np
 import pynauty
-from graft.frag import is_metal_element
+from mappa.frag import is_metal_element
 from golden_evaluation import colored_graph
 from metal_binary_events import scalar_events
 

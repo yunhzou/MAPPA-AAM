@@ -6,15 +6,15 @@ import numpy as np
 import pytest
 from rdkit import Chem
 
-from graft import WeightedGraph
-from graft.retrosynthesis.decision_graph import CoverageDecisionGraph
-from graft.retrosynthesis.assembly import AssemblyProblem
-from graft.retrosynthesis.ranking import assembly_rank, validate_atom_ownership
-from graft.retrosynthesis.catalog_index import exact_source_copy_capacity
-from graft.fragment_matching import detect_fragments, FragmentDetectionConfig
-from graft.fragment_matching import FragmentCandidate, materialize_target_coverage_orbit
-from graft.fragment_matching.graph_ops import fragment_equivalence_classes
-from graft.alignment.post_aam import AAMHierarchy, FragmentMatch, AtomPermutation
+from mappa import WeightedGraph
+from mappa.retrosynthesis.decision_graph import CoverageDecisionGraph
+from mappa.retrosynthesis.assembly import AssemblyProblem
+from mappa.retrosynthesis.ranking import assembly_rank, validate_atom_ownership
+from mappa.retrosynthesis.catalog_index import exact_source_copy_capacity
+from mappa.fragment_matching import detect_fragments, FragmentDetectionConfig
+from mappa.fragment_matching import FragmentCandidate, materialize_target_coverage_orbit
+from mappa.fragment_matching.graph_ops import fragment_equivalence_classes
+from mappa.alignment.post_aam import AAMHierarchy, FragmentMatch, AtomPermutation
 
 
 @pytest.mark.parametrize('source_smiles,target_smiles', [
@@ -22,9 +22,9 @@ from graft.alignment.post_aam import AAMHierarchy, FragmentMatch, AtomPermutatio
 ])
 def test_augmented_observation_quotient_matches_full_expansion(
         monkeypatch, source_smiles, target_smiles):
-    from graft.fragment_matching import symmetry
-    from graft.fragment_matching.detection import _candidate_identity
-    from graft.fragment_matching.rdkit_adapter import molecule_to_weighted_graph
+    from mappa.fragment_matching import symmetry
+    from mappa.fragment_matching.detection import _candidate_identity
+    from mappa.fragment_matching.rdkit_adapter import molecule_to_weighted_graph
     source = molecule_to_weighted_graph(Chem.AddHs(Chem.MolFromSmiles(source_smiles)))
     target = molecule_to_weighted_graph(Chem.AddHs(Chem.MolFromSmiles(target_smiles)))
     compact = detect_fragments(source, target)
@@ -74,7 +74,7 @@ def test_explicit_copy_limit_and_duplicate_slots_equal_exhaustive_oracle():
 
 
 def test_pattern_quotient_preserves_fragment_hierarchy_and_target_symmetry():
-    from graft.retrosynthesis.assembly import construction_pattern
+    from mappa.retrosynthesis.assembly import construction_pattern
     labels = ((6, 0, 0),) * 3
     bonds = ((0, 1, 1.), (1, 2, 1.))
     def part(atoms):
@@ -163,7 +163,7 @@ def test_fragment_first_best_first_matches_random_exhaustive_oracle(seed):
 
 
 def test_typed_api_prioritizes_matched_fragment_units():
-    from graft.retrosynthesis import assemble_fragment_cover
+    from mappa.retrosynthesis import assemble_fragment_cover
     from dataclasses import replace
     target = WeightedGraph(["C", "C"], np.array([[0., 1.], [1., 0.]]))
     split = FragmentCandidate("a-split", ((0, 0), (1, 1)), (0, 1), (0, 1),
@@ -183,7 +183,7 @@ def test_overlap_does_not_create_an_order_dependent_bond_edit():
 
 
 def test_typed_assembly_consumes_fragment_bonds_without_reinterpreting_aam():
-    from graft.retrosynthesis import assemble_fragment_cover
+    from mappa.retrosynthesis import assemble_fragment_cover
     target = WeightedGraph(["C", "O"], np.array([[0., 1.], [1., 0.]]))
     candidate = FragmentCandidate("CO", ((0, 0), (1, 1)), (0, 1), (0, 1),
         (), (), (), (), (), 2, retained_fragments=((0, 1),),

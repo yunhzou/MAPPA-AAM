@@ -4,8 +4,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
 from golden_evaluation import rank_key
 
 spec=importlib.util.spec_from_file_location('golden_fast_rerank',Path(__file__).parents[1]/'bench/golden_fast_rerank.py')

@@ -2,7 +2,7 @@
 """Build a standalone viewer for ranked per-precursor AAM mappings."""
 from __future__ import annotations
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 
 import argparse
 import gzip
@@ -100,7 +100,7 @@ def main():
         json_output.parent.mkdir(parents=True, exist_ok=True)
         json_output.write_text(json.dumps(payload, indent=2) + "\n")
 
-    library = (Path(__file__).parents[1] / "src" / "graft" / "static" /
+    library = (Path(__file__).parents[1] / "src" / "mappa" / "static" /
                "3Dmol-min.js").read_text()
     data = json.dumps(payload, separators=(",", ":"))
     colors = json.dumps(COLORS)

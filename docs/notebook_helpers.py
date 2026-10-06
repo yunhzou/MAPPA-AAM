@@ -2,7 +2,7 @@
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from graft import MolecularEndpoint
+from mappa import MolecularEndpoint
 
 
 def endpoint(smiles, label):

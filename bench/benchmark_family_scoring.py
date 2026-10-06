@@ -9,9 +9,9 @@ import time
 
 from golden_publication import plans
 from golden_policy_campaign import save
-from graft.artifacts import read_aam_checkpoint
-from graft.search_graph import SearchPath
-from graft.family_scoring import minimize_events,bond_events
+from mappa.artifacts import read_aam_checkpoint
+from mappa.search_graph import SearchPath
+from mappa.family_scoring import minimize_events,bond_events
 
 CASES=((0,'P_to_R'),(44,'R_to_P'),(44,'P_to_R'),(865,'P_to_R'),
        (1033,'P_to_R'),(1786,'P_to_R'))

@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 pytest.importorskip("rdkit")
-from graft import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
+from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/molecule_verification"
 API = runpy.run_path(str(EXAMPLE / "verify.py"))

@@ -1,6 +1,6 @@
 """Checkpointed Golden campaign. Search and evaluation are independent jobs."""
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 from dataclasses import asdict
 import gzip
@@ -16,9 +16,9 @@ import sys
 import time
 
 from golden_evaluation import prepare, evaluate
-from graft import AAMProblem, AAMSearchConfig, search_aam
-from graft.artifacts import aam_from_record,read_aam,raw_cut_paths,read_raw_cut
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem, AAMSearchConfig, search_aam
+from mappa.artifacts import aam_from_record,read_aam,raw_cut_paths,read_raw_cut
+from mappa.domain import MolecularEndpoint
 
 
 def save(path,value):
@@ -119,7 +119,7 @@ def partial_score(args):
     Do not merge/rebuild a giant partial archive merely to ask whether one
     recorded family contains the reference. Original compressed cuts persist.
     """
-    from graft.domain import AAMResult,AAMSearchMetrics
+    from mappa.domain import AAMResult,AAMSearchMetrics
     directory=args.run/str(args.index)
     chunks=raw_cut_paths(directory/'cuts')
     if (directory/'partial_archive.json').exists():
@@ -171,7 +171,7 @@ def worker(args):
         with (directory/f'{phase}.log').open('a') as stream:
             try:
                 completed=subprocess.run(command,stdout=stream,stderr=subprocess.STDOUT,timeout=timeout,
-                    env=dict(os.environ,GRAFT_NATIVE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1'))
+                    env=dict(os.environ,MAPPA_NATIVE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1'))
                 if completed.returncode:
                     save(directory/'status.json',dict(stage=f'{phase}_error',exit_code=completed.returncode,
                                                      index=args.index,elapsed=time.time()-started));return

@@ -107,7 +107,7 @@ patterns, recommendation ranking, or retrosynthesis.
 Public package:
 
 ```text
-graft.fragment_matching
+mappa.fragment_matching
 ```
 
 Public operation:
@@ -289,18 +289,18 @@ non-overlapping target covers, and ranks precursor-set recommendations.
 Public package:
 
 ```text
-graft.retrosynthesis
+mappa.retrosynthesis
 ```
 
 Detection never imports or calls assembly.  Assembly depends on detection's
 `FragmentCandidate` record.
 
-Neither API is re-exported from the root `graft` namespace.  Callers import
+Neither API is re-exported from the root `mappa` namespace.  Callers import
 the component they use explicitly:
 
 ```text
-from graft.fragment_matching import detect_fragments
-from graft.retrosynthesis import assemble_fragment_cover
+from mappa.fragment_matching import detect_fragments
+from mappa.retrosynthesis import assemble_fragment_cover
 ```
 
 ### 6. Candidate indexing
@@ -417,34 +417,34 @@ stage consumes saved intermediates and writes a new versioned artifact.
 ## 11. Module boundaries
 
 ```text
-graft.fragment_matching.models
+mappa.fragment_matching.models
     detection config, fragment candidates, results, cap diagnostics
 
-graft.fragment_matching.detection
+mappa.fragment_matching.detection
     connected-island growth and fragment candidate generation
 
-graft.fragment_matching.augmentation
+mappa.fragment_matching.augmentation
     boundary cutting, augmented target construction, candidate projection
 
-graft.fragment_matching.serialization
+mappa.fragment_matching.serialization
     strict fragment-detection artifact conversion
 
-graft.fragment_matching.rdkit_adapter
+mappa.fragment_matching.rdkit_adapter
     optional RDKit-to-weighted-graph conversion
 
-graft.retrosynthesis.models
+mappa.retrosynthesis.models
     assembly result records
 
-graft.retrosynthesis.coverage
+mappa.retrosynthesis.coverage
     in-memory assembly validation for domain candidates
 
-graft.retrosynthesis.catalog_index
+mappa.retrosynthesis.catalog_index
     persisted-record normalization, controlled ownership variants, mask index
 
-graft.retrosynthesis.enumeration
+mappa.retrosynthesis.enumeration
     bounded exact, modular, and recommendation coverage-pattern search
 
-graft.retrosynthesis.ranking
+mappa.retrosynthesis.ranking
     candidate and assembly score construction; no I/O
 
 tools/search_mcule_retro.py

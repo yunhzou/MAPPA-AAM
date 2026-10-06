@@ -11,7 +11,7 @@ separate matching, occupation, exact assembly, ranking, and viewer layers.
 
 ## Public Surface
 
-`graft.__init__` is the convenience API used by scripts and the pipeline.
+`mappa.__init__` is the convenience API used by scripts and the pipeline.
 It re-exports stable entry points such as:
 
 - `match_fragment`
@@ -48,7 +48,7 @@ grouping. Augmentation, assembly, ranking, and visualization remain Python.
 See [the native backend guide](../native/README.md) for pseudocode, build
 instructions, and the distinction between active and currently unused kernels.
 
-## Molecule Alignment: `graft.alignment`
+## Molecule Alignment: `mappa.alignment`
 
 Purpose: turn two WBO matrices into scored molecule-level alignments.
 
@@ -74,7 +74,7 @@ mechanism discovery, mechanism-local TS core matching, and final representative
 choice. It does not implement single-fragment growth or symmetry-block witness
 search.
 
-## Fragment Growth: `graft.growth`
+## Fragment Growth: `mappa.growth`
 
 Purpose: grow one connected R fragment against a target graph.
 
@@ -89,9 +89,9 @@ Files:
 - `growth/trace.py`: diagnostic event formatting and failure explanations.
 
 This layer owns traversal order and locking. It does not decide whether a
-candidate target atom is valid; validity is delegated to `graft.matcher`.
+candidate target atom is valid; validity is delegated to `mappa.matcher`.
 
-## Symmetry Matching: `graft.matcher`
+## Symmetry Matching: `mappa.matcher`
 
 Purpose: represent and extend symmetry-compressed partial mappings.
 
@@ -168,7 +168,7 @@ running alignment.
 The intended direction is:
 
 ```text
-graft.__init__
+mappa.__init__
   -> alignment
       -> growth
           -> matcher

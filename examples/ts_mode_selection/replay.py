@@ -1,8 +1,8 @@
-"""Score a bundled real TS guess using only the public GRAFT API."""
+"""Score a bundled real TS guess using only the public MAPPA API."""
 import json
 from pathlib import Path
 import numpy as np
-from graft import (
+from mappa import (
     AAMProblem, AAMSearchConfig, AtomBijection, MolecularEndpoint,
     ReactionContext, ResolvedMechanism, TransitionStateTarget, VibrationalModes,
     analyze_transition_state, ts_record,

@@ -10,13 +10,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
 import golden_checkpoint_evaluation as streaming
 from golden_evaluation import prepare, evaluate_planned
-from graft import search_aam, search_aam_checkpoints, AAMSearchConfig, AAMSearchPlan
-from graft.aam import checkpoint_manifest
-from graft.artifacts import read_raw_cut
-from graft.search_graph import AAMSearchGraph
-from graft.search_symmetry import finalize_graph_symmetry
-from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
-from graft.frag import build_graph
+from mappa import search_aam, search_aam_checkpoints, AAMSearchConfig, AAMSearchPlan
+from mappa.aam import checkpoint_manifest
+from mappa.artifacts import read_raw_cut
+from mappa.search_graph import AAMSearchGraph
+from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
+from mappa.frag import build_graph
 
 
 @pytest.mark.parametrize('rows,expected', [([], 'unknown'),
@@ -56,7 +56,7 @@ def test_disk_search_matches_full_graph_and_resume_without_matching(tmp_path, re
     actual = streaming.evaluate_checkpoints(tmp_path, plan, features, reference)
     expected = evaluate_planned(full, plan, features, reference)
     assert actual['reference_recovery'] == expected['reference_recovery'] == 'recovered'
-    import graft.aam as aam
+    import mappa.aam as aam
     monkeypatch.setattr(aam, '_search_cut', lambda *a: pytest.fail('Resume searched an existing cut'))
     monkeypatch.setattr(AAMSearchGraph, 'combine', lambda *a: pytest.fail('Resume combined histories'))
     resumed = search_aam_checkpoints(plan.problem, plan.config, intermediate_dir=tmp_path, resume=True)
@@ -64,7 +64,7 @@ def test_disk_search_matches_full_graph_and_resume_without_matching(tmp_path, re
 
 
 def test_serial_producer_does_not_retain_previous_cut(tmp_path, reaction, monkeypatch):
-    import graft.aam as aam
+    import mappa.aam as aam
     original = aam._search_cut
     previous = []
     def observed(cut):
@@ -133,7 +133,7 @@ def test_parallel_checkpoint_producers_preserve_cut_graphs(tmp_path, reaction):
 
 def test_wrong_cut_context_is_rejected(tmp_path, reaction):
     from dataclasses import replace
-    from graft.artifacts import write_raw_cut
+    from mappa.artifacts import write_raw_cut
     plan, features, reference = reaction
     result = search_aam_checkpoints(plan.problem, plan.config, intermediate_dir=tmp_path)
     graph = read_raw_cut(result.cut_paths[0])

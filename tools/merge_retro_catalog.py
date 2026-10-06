@@ -12,12 +12,12 @@ import time
 
 from rdkit import Chem
 
-from graft.retrosynthesis.assembly import AssemblyProblem
-from graft.retrosynthesis.catalog_index import (
+from mappa.retrosynthesis.assembly import AssemblyProblem
+from mappa.retrosynthesis.catalog_index import (
     CandidateIndexConfig, build_candidate_index, merge_candidate_indexes,
 )
-from graft.retrosynthesis.ranking import assembly_rank
-from graft.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
+from mappa.retrosynthesis.ranking import assembly_rank
+from mappa.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
 
 
 def _part_records(path):

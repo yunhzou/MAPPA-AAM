@@ -11,7 +11,7 @@ HERE=Path(__file__).resolve().parent
 REPO=HERE.parents[1]
 sys.path[:0]=[str(REPO/'src'),str(REPO/'bench')]
 from golden_checkpoint_evaluation import evaluate_checkpoints
-from graft import AAMProblem, MolecularEndpoint, AAMSearchConfig, AAMSearchPlan
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, AAMSearchPlan
 
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('campaign',type=Path);parser.add_argument('case',type=int);parser.add_argument('direction',choices=['R_to_P','P_to_R']);parser.add_argument('output',type=Path)

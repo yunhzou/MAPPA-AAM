@@ -28,9 +28,9 @@ def aggregate():
    rec['cap2000_minimum_patterns_missing_at_cap100']=sorted(set(b['minimum_ids'])-set(a['patterns']))
    rec['cap2000_window_patterns_missing_at_cap100']=sorted(set(b['patterns'])-set(a['patterns']))
   if b:
-   rec['saved_cap2000_minimum']=controls[case]['graft_minimum']
+   rec['saved_cap2000_minimum']=controls[case]['mappa_minimum']
    rec['fresh_cap2000_minimum']=b['minimum']
-   rec['saved_minimum_patterns_missing_from_fresh2000']=sorted(set(controls[case]['graft_minimum_ids'])-set(b['patterns']))
+   rec['saved_minimum_patterns_missing_from_fresh2000']=sorted(set(controls[case]['mappa_minimum_ids'])-set(b['patterns']))
   cases.append(rec)
  summary=dict(status='all_cases_processed' if len(cases)==140 else 'in_progress',processed=len(cases),cpu_models=dict(models),paired_minima_resolved=sum(r['both_resolved'] for r in cases),cap100_higher_minimum=[r['case'] for r in cases if r.get('minimum_delta_cap100_minus_cap2000',0)>0],cap100_lower_minimum=[r['case'] for r in cases if r.get('minimum_delta_cap100_minus_cap2000',0)<0],same_minimum=sum(r.get('minimum_delta_cap100_minus_cap2000')==0 for r in cases),cap100_missing_minimum_patterns=[r['case'] for r in cases if r.get('cap2000_minimum_patterns_missing_at_cap100')],unresolved=[r['case'] for r in cases if not r['both_resolved']],per_case=cases)
  run.save(S/'comparison.json',summary)

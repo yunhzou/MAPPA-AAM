@@ -1,6 +1,6 @@
 # Does takeover-prefix competition replace cut sweep?
 
-**Not in its current post-search form.** In a fixed 25-reaction pilot, prefixes without sweep retain higher minimum event counts in cases **35, 64 and 69**. With sweep, both local and prefix competition recover the saved GRAFT minimum classes on all 25 cases. The production configuration is unchanged.
+**Not in its current post-search form.** In a fixed 25-reaction pilot, prefixes without sweep retain higher minimum event counts in cases **35, 64 and 69**. With sweep, both local and prefix competition recover the saved MAPPA minimum classes on all 25 cases. The production configuration is unchanged.
 
 ## Factorial pilot
 
@@ -8,7 +8,7 @@ The pilot includes the five development cases (6, 11, 59, 64, 101) and 20 furthe
 
 The same input, forward direction, one seed, random seed 42, branch cap 2,000, matching tolerance 1 and event thresholds 0.5/0.3 were used for all six configurations. Competition has 128 completion calls, eight selected parents, depth two and queue limit 512. Prefix mode additionally retains intermediate stopping points along each started greedy takeover trajectory; its completion budget can interrupt that sequence.
 
-| Cut sweep | Competition | Reactions matching saved GRAFT minimum count /25 | Saved GRAFT minimum classes /35 | SLAP-sweep minimum classes /36 | Search + competition CPU s |
+| Cut sweep | Competition | Reactions matching saved MAPPA minimum count /25 | Saved MAPPA minimum classes /35 | SLAP-sweep minimum classes /36 | Search + competition CPU s |
 |---|---|---:|---:|---:|---:|
 | Off | None | 20 | 21 | 22 | 0.500 |
 | Off | Local | 22 | 30 | 30 | 18.538 |
@@ -17,7 +17,7 @@ The same input, forward direction, one seed, random seed 42, branch cap 2,000, m
 | On | Local | 25 | 35 | 34 | 72.457 |
 | On | Prefix | 25 | 35 | 34 | 161.902 |
 
-The saved GRAFT target is the previously decoded default sweep-plus-local result, not ground truth. These columns count recovery among all returned candidates within the frozen event window; they do not claim the target sets contain every valid alternative. The two missing SLAP-sweep classes are in case 64. Pooling local and prefix outputs does not improve either target-coverage total in this pilot, although their broader event sets can differ.
+The saved MAPPA target is the previously decoded default sweep-plus-local result, not ground truth. These columns count recovery among all returned candidates within the frozen event window; they do not claim the target sets contain every valid alternative. The two missing SLAP-sweep classes are in case 64. Pooling local and prefix outputs does not improve either target-coverage total in this pilot, although their broader event sets can differ.
 
 Without sweep, prefix competition's minimum is **2 versus 1** in case 35, **6 versus 4** in case 64, and **4 versus 3** in case 69. Thus it recovers much of the sweep result, but cannot yet replace it without regression.
 
@@ -61,7 +61,7 @@ Two case pipelines ran concurrently, with one numerical thread per worker, a fiv
 The experiment uses the isolated engine from the adjacent `prefix_competition_20260915` report. The additional `paired.patch` changes only a separate diagnostic module, forcing the fixed starting trial. It does not change the ordinary experiment or production policy. Use a source checkout at commit `807d36f` (the pinned pre-optimization implementation). Install the repository dependencies plus pybind11, setuptools, psutil and z3-solver, then:
 
 ```sh
-export GRAFT_EXPERIMENT_WORK=/tmp/graft-sweep-prefix
+export MAPPA_EXPERIMENT_WORK=/tmp/mappa-sweep-prefix
 python prepare.py --repo /path/to/coordinate_alignment
 python run.py
 python summarize.py

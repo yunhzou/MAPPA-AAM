@@ -5,11 +5,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from graft import AAMProblem,AAMSearchConfig,plan_aam_search,search_aam
-from graft.aam import cut_seed,checkpoint_manifest
-from graft.domain import MolecularEndpoint
-from graft.alignment.branch import _generate_seed_orders
-from graft.frag import build_graph
+from mappa import AAMProblem,AAMSearchConfig,plan_aam_search,search_aam
+from mappa.aam import cut_seed,checkpoint_manifest
+from mappa.domain import MolecularEndpoint
+from mappa.alignment.branch import _generate_seed_orders
+from mappa.frag import build_graph
 
 
 def endpoint(n):

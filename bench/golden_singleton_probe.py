@@ -8,7 +8,7 @@ from itertools import chain
 import pynauty
 from golden_policy_campaign import load_case,save
 from golden_evaluation import project,colored_graph,symbolic_path_query
-from graft.artifacts import read_aam_checkpoint
+from mappa.artifacts import read_aam_checkpoint
 
 
 def main(args):

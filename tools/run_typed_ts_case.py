@@ -9,7 +9,7 @@ import re
 import time
 from pathlib import Path
 
-from graft import (
+from mappa import (
     AAMProblem,
     AAMSearchConfig,
     AtomBijection,
@@ -25,9 +25,9 @@ from graft import (
     ts_record,
     write_rp_bundle,
 )
-from graft.chemistry_computations import parse_xyz
-from graft.chemistry_computations.xtb import read_wbo_file
-from graft.modes import parse_g98_modes
+from mappa.chemistry_computations import parse_xyz
+from mappa.chemistry_computations.xtb import read_wbo_file
+from mappa.modes import parse_g98_modes
 
 
 def _endpoint(cache, label):

@@ -1,7 +1,7 @@
 // Native AAM growth engine.
 //
-// A C++ port of graft.growth.island.grow_island together with the matcher
-// step it drives (graft.matcher: state, extend, support, dedupe,
+// A C++ port of mappa.growth.island.grow_island together with the matcher
+// step it drives (mappa.matcher: state, extend, support, dedupe,
 // canonical).  Every rule below mirrors one Python function; the Python
 // engine remains the reference and the default, and bench/compare_grow_calls.py
 // replays recorded Python calls through this module to prove identical
@@ -215,7 +215,7 @@ struct SourceReadScope {
 };
 
 // ---------------------------------------------------------------------------
-// candidate state (graft.matcher.state._SymCand / _SymBlock)
+// candidate state (mappa.matcher.state._SymCand / _SymBlock)
 // ---------------------------------------------------------------------------
 
 struct Block {
@@ -1354,7 +1354,7 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
 }
 
 // ---------------------------------------------------------------------------
-// growth loop (graft.growth.island.grow_island)
+// growth loop (mappa.growth.island.grow_island)
 // ---------------------------------------------------------------------------
 
 struct HeapItem {

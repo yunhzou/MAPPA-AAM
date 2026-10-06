@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench/experiments/final_fragment_dedup'))
 from test_event_patterns import problem,saved_path
-from graft.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
-from graft.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
-from graft.event_patterns import SignedEventIndex,extract_path_events
-from graft.family_query import query_path
+from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
+from mappa.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
+from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.family_query import query_path
 
 
 def independent_path(order, mapping=None, labels=(7,19)):

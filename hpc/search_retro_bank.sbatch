@@ -12,7 +12,7 @@ cd /h/399/yunhengzou/coordinate_alignment
 run_root=$1
 target_smiles=$2
 shard_count=$3
-export PYTHONPATH=src GRAFT_NATIVE=1
+export PYTHONPATH=src MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 srun timeout --kill-after=10s 580s .venv/bin/python tools/search_mcule_retro.py \
   --target-smiles "$target_smiles" \

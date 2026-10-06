@@ -1,6 +1,6 @@
 # Golden illustration and separate event markers
 
-Figure 4 now uses the author-selected Golden case 9. A matches all15 reference heavy-atom pairs exactly; B exchanges O3/O15 origins; C additionally exchanges C13/C14. The original RDF annotation, input matrices, and all displayed signed events are verified. The prior preview reproduction used final-source GRAFT with one seed, sweep, cap2000, iso1 and one worker (0.189 CPU seconds for search and representative extraction). No new searches or benchmark reruns were needed for this revision.
+Figure 4 now uses the author-selected Golden case 9. A matches all15 reference heavy-atom pairs exactly; B exchanges O3/O15 origins; C additionally exchanges C13/C14. The original RDF annotation, input matrices, and all displayed signed events are verified. The prior preview reproduction used final-source MAPPA with one seed, sweep, cap2000, iso1 and one worker (0.189 CPU seconds for search and representative extraction). No new searches or benchmark reruns were needed for this revision.
 
 The displayed witnesses have5/6/7 heavy changes and4/2/2 H changes, totalling9/8/9. Each reaches the H-event lower bound for its fixed heavy correspondence. Build validation recomputes that bound. Selected representatives are not an exhaustive decoded set or a global-minimum certificate; Golden ground truth concerns heavy-atom annotations, not hydrogen identities or validated pathways.
 

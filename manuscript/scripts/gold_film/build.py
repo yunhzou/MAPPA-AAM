@@ -1,4 +1,4 @@
-"""Validate two frozen GRAFT witnesses and rebuild the standalone gold film."""
+"""Validate two frozen MAPPA witnesses and rebuild the standalone gold film."""
 from pathlib import Path
 import argparse
 import json
@@ -9,10 +9,10 @@ sys.path.insert(0, str(ROOT / 'src'))
 
 
 def build(repo, output):
-    from graft import AAMProblem, MolecularEndpoint
-    from graft.event_patterns import SignedEventIndex
-    from graft.final_branches import FinalFamily
-    from graft.family_query import query_path
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.event_patterns import SignedEventIndex
+    from mappa.final_branches import FinalFamily
+    from mappa.family_query import query_path
     source = repo / 'manuscript/animations/gold_rearrangement'
     data = json.loads((source / 'film-data.json').read_text())
     families = json.loads((repo / 'examples/gold_rearrangement/data/selected-families.json').read_text())
@@ -76,7 +76,7 @@ def build(repo, output):
     assert len(set(canonical)) == 2
     output.mkdir(parents=True, exist_ok=True)
     html = (Path(__file__).parent / 'film.html').read_text()
-    html = html.replace('__LIBRARY__', (repo / 'src/graft/static/3Dmol-min.js').read_text())
+    html = html.replace('__LIBRARY__', (repo / 'src/mappa/static/3Dmol-min.js').read_text())
     html = html.replace('__DATA__', json.dumps(data, separators=(',', ':')).replace('</', '<\\/'))
     (output / 'index.html').write_text(html)
     (output / 'film-data.json').write_text(json.dumps(data, indent=2) + '\n')

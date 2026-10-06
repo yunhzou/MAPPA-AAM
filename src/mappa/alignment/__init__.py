@@ -1,8 +1,8 @@
 """Molecule-level WBO graph alignment.
 
 This package owns the public alignment API and branch-level scheduling. Lower
-layers handle fragment growth (`graft.growth`) and symmetry-compressed
-candidate state (`graft.matcher`).
+layers handle fragment growth (`mappa.growth`) and symmetry-compressed
+candidate state (`mappa.matcher`).
 """
 from __future__ import annotations
 

@@ -2,14 +2,14 @@
 
 import numpy as np
 import pytest
-from graft import (
+from mappa import (
     AAMProblem,
     MolecularEndpoint,
     AAMSearchConfig,
     search_aam,
     search_aam_directions,
 )
-from graft.postprocessing import EventDecodeConfig, decode_events
+from mappa.postprocessing import EventDecodeConfig, decode_events
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def test_bidirectional_anchors_and_unequal_sizes():
 
 
 def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
-    from graft.aam import checkpoint_manifest
+    from mappa.aam import checkpoint_manifest
     from dataclasses import replace
 
     cfg = AAMSearchConfig(sweep_cuts=False, random_seed=9)
@@ -101,8 +101,8 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
 
 
 def test_competition_retains_baseline_and_hard_anchors(reaction):
-    from graft.competition import compete_fragments, CompetitionConfig
-    from graft.growth.native import available
+    from mappa.competition import compete_fragments, CompetitionConfig
+    from mappa.growth.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")
@@ -121,7 +121,7 @@ def test_competition_retains_baseline_and_hard_anchors(reaction):
 
 
 def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
-    from graft.growth.native import available
+    from mappa.growth.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")

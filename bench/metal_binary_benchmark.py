@@ -32,7 +32,7 @@ def variant_root(run,dataset,variant):return run/'runs'/dataset/variant
 def folder(run,task,variant):return variant_root(run,task['dataset'],variant)/f"results/{task['dataset']}/{task['index']}/{task['direction']}/original"
 def environment(run):
     return dict(os.environ,PYTHONPATH=f'{run}/original/src:{run}/engine/bench',PYTHONHASHSEED='0',
-                PYTHONDONTWRITEBYTECODE='1',GRAFT_NATIVE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1')
+                PYTHONDONTWRITEBYTECODE='1',MAPPA_NATIVE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1')
 
 
 def prepare(args):
@@ -159,7 +159,7 @@ def audit(aam):
 
 
 def analyze(args):
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     task=read(args.run/'tasks.json')[args.slot];f=folder(args.run,task,args.variant)
     raw=read(args.run/f"raw/{task['dataset']}/{task['index']}/input.json")
     start=time.monotonic();aam=read_aam_checkpoint(f/'cuts/aam.pkl.gz');loading=time.monotonic()-start
@@ -212,7 +212,7 @@ def analyze(args):
 
 
 def query(args):
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     task=read(args.run/'tasks.json')[args.slot];assert task['dataset']=='holdout'
     raw=read(args.run/f"raw/holdout/{task['index']}/input.json");canonical=DeltaPatterns(raw)
     analyses={v:read(folder(args.run,task,v)/'raw_evaluation.json') for v in VARIANTS}

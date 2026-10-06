@@ -1,9 +1,9 @@
 from itertools import permutations
 
-from graft.alignment.post_aam import (
+from mappa.alignment.post_aam import (
     AAMHierarchy, AAMHierarchyView, AAMHierarchyChain, AtomPermutation, FragmentMatch)
-from graft.fragment_matching import FragmentCandidate
-from graft.fragment_matching.serialization import (
+from mappa.fragment_matching import FragmentCandidate
+from mappa.fragment_matching.serialization import (
     fragment_candidate_to_record, fragment_candidate_from_record,
     fragment_archive_from_record, repack_fragment_detection_v4,
     repack_fragment_detection_v6,
@@ -61,7 +61,7 @@ def test_archive_does_not_materialize_views_and_interns_generators():
 
 
 def test_archive_shares_encoded_arrays_without_mutating_typed_input():
-    from graft.fragment_matching.serialization import _GraphArchive
+    from mappa.fragment_matching.serialization import _GraphArchive
     original = candidate(base())
     archive = _GraphArchive()
     first = fragment_candidate_to_record(original, archive=archive)
@@ -74,8 +74,8 @@ def test_archive_shares_encoded_arrays_without_mutating_typed_input():
 
 def test_archive_state_records_reuse_immutable_fields_and_match_asdict():
     from dataclasses import asdict
-    from graft.search_graph import AAMSearchGraph, SearchContext, SearchState
-    from graft.fragment_matching.serialization import _GraphArchive
+    from mappa.search_graph import AAMSearchGraph, SearchContext, SearchState
+    from mappa.fragment_matching.serialization import _GraphArchive
     state = SearchState(0, 0, ((0, 1),), ((0, 0),), ())
     context = SearchContext((0,), (0, 1), (0,))
     graph = AAMSearchGraph((context,), (0,), (state,), (), ())

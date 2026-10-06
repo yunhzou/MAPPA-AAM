@@ -20,7 +20,7 @@ Fresh cap-2,000 cases disagreeing with saved minimum counts or omitting a saved 
 
 Mappings in this collection are unverified. These results compare event counts and patterns, not mapping accuracy. Minima refer to returned candidates, not global optima.
 
-| GRAFT cap | Comparator | Fewer events | Equal | More | No full mapping | Unresolved | Comparator minimum patterns covered in window |
+| MAPPA cap | Comparator | Fewer events | Equal | More | No full mapping | Unresolved | Comparator minimum patterns covered in window |
 |---|---|---:|---:|---:|---:|---:|---:|
 | 100 | native_slap | 15 | 123 | 0 | 2 | 0 | 153/160 |
 | 100 | slap_sweep | 4 | 134 | 0 | 2 | 0 | 164/168 |

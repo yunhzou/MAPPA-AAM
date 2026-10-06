@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import numpy as np
 from compare_elementary_outputs import features, certificate
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
 
 
 def audit(base, overlap=None, comparison=None):

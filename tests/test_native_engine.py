@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "bench"))
 
-from graft.growth import native  # noqa: E402
+from mappa.growth import native  # noqa: E402
 
 pytestmark = pytest.mark.skipif(
     not native.built(), reason="native growth engine not built")
@@ -34,9 +34,9 @@ def _iso_key(isos):
 
 def _search(case, workers=1):
     from cases import CASES
-    from graft.aam import search_aam
-    from graft.mechanisms import group_mechanisms
-    from graft.domain import AAMProblem, AAMSearchConfig
+    from mappa.aam import search_aam
+    from mappa.mechanisms import group_mechanisms
+    from mappa.domain import AAMProblem, AAMSearchConfig
 
     R, P = CASES[case]()
     return group_mechanisms(search_aam(AAMProblem(R, P, name=case), AAMSearchConfig(),
@@ -58,24 +58,24 @@ def _result_key(result):
 
 
 def test_every_growth_call_agrees_with_python(monkeypatch):
-    import graft.fragment as fragment_mod
-    import graft.growth.island as island_mod
-    from graft.growth.result import IslandBranchLimitExceeded
-    from graft.matcher.policy import as_node_match_policy
+    import mappa.fragment as fragment_mod
+    import mappa.growth.island as island_mod
+    from mappa.growth.result import IslandBranchLimitExceeded
+    from mappa.matcher.policy import as_node_match_policy
 
     original = island_mod.grow_island
     stats = {"calls": 0, "native": 0}
 
     def both(g_R, g_P, seed, mapping, **kw):
         stats["calls"] += 1
-        monkeypatch.setenv("GRAFT_NATIVE", "0")
+        monkeypatch.setenv("MAPPA_NATIVE", "0")
         try:
             try:
                 expected = ("ok", _iso_key(original(g_R, g_P, seed, dict(mapping), **kw)))
             except IslandBranchLimitExceeded as exc:
                 expected = ("raised", (exc.count, exc.limit))
         finally:
-            monkeypatch.setenv("GRAFT_NATIVE", "1")
+            monkeypatch.setenv("MAPPA_NATIVE", "1")
         policy = as_node_match_policy(kw.get("node_policy"))
         if native.applicable(g_R, g_P, kw.get("p_orbits"), policy, kw.get("events")):
             stats["native"] += 1
@@ -104,16 +104,16 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
 
 
 def test_search_results_agree_between_engines(monkeypatch):
-    monkeypatch.setenv("GRAFT_NATIVE", "1")
+    monkeypatch.setenv("MAPPA_NATIVE", "1")
     with_native = _result_key(_search("tetraphenyl"))
-    monkeypatch.setenv("GRAFT_NATIVE", "0")
+    monkeypatch.setenv("MAPPA_NATIVE", "0")
     with_python = _result_key(_search("tetraphenyl"))
     assert with_native == with_python
 
 
 def test_reused_target_rejects_source_elements_introduced_later():
     """A cached target must safely handle new catalog element codes."""
-    from graft import _engine
+    from mappa import _engine
 
     target = _engine.TargetGraph(
         ["NativeTargetC", "NativeTargetH"],
@@ -144,7 +144,7 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
     import networkx as nx
     import numpy as np
 
-    from graft.matcher.orbits import _nauty_orbits
+    from mappa.matcher.orbits import _nauty_orbits
 
     source = nx.Graph()
     source.add_nodes_from(((10, {"element": "C"}),

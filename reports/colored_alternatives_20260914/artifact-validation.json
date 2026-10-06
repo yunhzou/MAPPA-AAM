@@ -11,6 +11,6 @@
   "references_resolved": true,
   "no_overfull_boxes": true,
   "manual_visual_review_required": true,
-  "scope": "Numerical and build validation; visual review is recorded separately. GRAFT and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.",
+  "scope": "Numerical and build validation; visual review is recorded separately. MAPPA and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.",
   "manuscript_sha256": "e263cc4b91bbd6c12f482c9d4137d4d18471387030b4375480aa0cdeb0657a26"
 }

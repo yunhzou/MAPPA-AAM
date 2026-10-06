@@ -1,9 +1,9 @@
-from graft.retrosynthesis.ranking import (
+from mappa.retrosynthesis.ranking import (
     assembly_rank,
     build_ranked_assembly,
     validate_atom_ownership,
 )
-from graft.retrosynthesis.catalog_index import exact_source_copy_capacity
+from mappa.retrosynthesis.catalog_index import exact_source_copy_capacity
 
 
 def _item(precursor_id, structure_key, retained, total,

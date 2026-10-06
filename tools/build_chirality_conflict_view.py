@@ -2,7 +2,7 @@
 """Build a self-contained viewer for rejected index-chirality mechanisms."""
 from __future__ import annotations
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 
 import argparse
 import json
@@ -72,7 +72,7 @@ def build(case_root: Path, selection_manifest: Path, output: Path):
         "rejected_mechanisms": mechanisms,
     }
     three_dmol = (
-        REPOSITORY / "src/graft/static/3Dmol-min.js").read_text()
+        REPOSITORY / "src/mappa/static/3Dmol-min.js").read_text()
     html = HTML.replace("__THREEDMOL__", three_dmol).replace(
         "__DATA__", json.dumps(data))
     output.parent.mkdir(parents=True, exist_ok=True)

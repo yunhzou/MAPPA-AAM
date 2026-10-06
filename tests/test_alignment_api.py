@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
-import graft.alignment.api as api
+import mappa.alignment.api as api
 
 
 def test_analyze_alignment_accepts_multiplicity_not_uhf(tmp_path, monkeypatch):

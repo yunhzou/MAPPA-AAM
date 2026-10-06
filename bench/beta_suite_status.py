@@ -1,6 +1,6 @@
 """Build a download index and concise progress snapshot for a beta case suite."""
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 from html import escape
 import json

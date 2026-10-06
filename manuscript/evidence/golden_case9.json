@@ -2960,7 +2960,7 @@
   "representative_event_classes": 84,
   "cpu_seconds": 0.18924600000000003,
   "wall_seconds": 0.19083545822650194,
-  "scope": "Three selected explicit witnesses from a fresh current-version GRAFT search. Not exhaustive decoding, no minimum-event coverage claim. Reference label concerns heavy atoms only; H identities are not annotated in Golden.",
+  "scope": "Three selected explicit witnesses from a fresh current-version MAPPA search. Not exhaustive decoding, no minimum-event coverage claim. Reference label concerns heavy atoms only; H identities are not annotated in Golden.",
   "source_sha256": {
     "src/rxn_core/pattern_collection.py": "699875b603f172af26c5e344e3e10635725d1b5d52b0fd25e78f03aea35a6ed7",
     "src/rxn_core/cut_replay.py": "8618aba5b359ceece17110a2eee398241efc261a62c2f2000ade0543de1b3d98",

@@ -1,6 +1,6 @@
 # Scientific novelty audit: continuous fragment-growth atom mapping
 
-Assessment date: 10 September 2026. The algorithm is called GRAFT in the current
+Assessment date: 10 September 2026. The algorithm is called MAPPA in the current
 draft; naming is still provisional. This assessment concerns the frozen benchmark
 source `98b01b175eeed31f70d13e7cbf178b80bf07c9e0`, rather than subsequent development
 changes. No benchmarks were rerun.
@@ -47,37 +47,37 @@ are not, by themselves, mathematical proofs of the complete bounded algorithm.
 
 **Closest prior methods and the distinctions that matter.** Descriptions below
 are limited to the primary material actually inspected. Differences are this
-audit's interpretation, not claims made by those authors about GRAFT.
+audit's interpretation, not claims made by those authors about MAPPA.
 
-| Prior work | Documented overlap | Distinction or consequence for GRAFT |
+| Prior work | Documented overlap | Distinction or consequence for MAPPA |
 | --- | --- | --- |
-| **SMSD, Rahman et al., 2009** | Combines molecular subgraph algorithms and extends approximate common substructures using McGregor search. Multiple matches and chemical filtering are already part of the design. [Primary article](https://link.springer.com/article/10.1186/1758-2946-1-12). | Growing partial molecular matches is established. GRAFT's shared-fragment placement collection and staged contextual representation require a more specific comparison than “we grow fragments.” |
-| **McSplit, McCreesh, Prosser and Trimble, 2017** | Incrementally builds a mapping using branch and bound, stores candidate domains compactly as paired vertex classes, and refines those classes after assignments. [Paper and Algorithm 1](https://www.ijcai.org/proceedings/2017/0099.pdf). | Compact alternatives during graph search are established. McSplit targets maximum common induced subgraphs and branches on vertex assignments, including unmatched choices. GRAFT uses weighted source-edge compatibility and greedy shared-fragment extension before whole-mapping branching. |
-| **Jaworski et al., 2019** | Extends matches through atom neighborhoods, searches a bounded decision tree, and cuts bond subsets starting with single bonds and increasing up to six when needed. Reaction heuristics guide candidate assignments. [Primary article, “Establishing isomorphic mapping”](https://www.nature.com/articles/s41467-019-09440-2). | This is a particularly close precedent for growth + branching + cuts. The described neighborhood-order procedure differs from GRAFT's continued weighted frontier and compressed placements. The full GRAFT state/family combination was not identified in the inspected main article; its supplementary PDF was unavailable in this audit. |
-| **Mann et al., 2014** | Uses constraint programming to find cyclic imaginary-transition-state candidates, removes hydrogen-related symmetries, and extends candidates to full atom mappings by graph matching. [Primary article](https://link.springer.com/article/10.1186/s13015-014-0023-3). | Search domains, chemical constraints, partial-map extension, and symmetry handling are established in atom mapping. Its reaction-center/ITS-first formulation differs from GRAFT's fragment-growth search. |
-| **Ali et al., 2025** | Enumerates maximum-common-edge-subgraph-based mappings and clusters complete mappings by reactant/product symmetry, retaining representatives of distinct reaction patterns. [Primary article, Section 2.2](https://pubs.acs.org/doi/10.1021/acs.jcim.4c01871). | Discovering symmetry-distinct alternatives is already an explicit contribution in atom mapping. GRAFT's possible distinction concerns live compression and correlated family output, rather than the general motivation to return alternatives. |
+| **SMSD, Rahman et al., 2009** | Combines molecular subgraph algorithms and extends approximate common substructures using McGregor search. Multiple matches and chemical filtering are already part of the design. [Primary article](https://link.springer.com/article/10.1186/1758-2946-1-12). | Growing partial molecular matches is established. MAPPA's shared-fragment placement collection and staged contextual representation require a more specific comparison than “we grow fragments.” |
+| **McSplit, McCreesh, Prosser and Trimble, 2017** | Incrementally builds a mapping using branch and bound, stores candidate domains compactly as paired vertex classes, and refines those classes after assignments. [Paper and Algorithm 1](https://www.ijcai.org/proceedings/2017/0099.pdf). | Compact alternatives during graph search are established. McSplit targets maximum common induced subgraphs and branches on vertex assignments, including unmatched choices. MAPPA uses weighted source-edge compatibility and greedy shared-fragment extension before whole-mapping branching. |
+| **Jaworski et al., 2019** | Extends matches through atom neighborhoods, searches a bounded decision tree, and cuts bond subsets starting with single bonds and increasing up to six when needed. Reaction heuristics guide candidate assignments. [Primary article, “Establishing isomorphic mapping”](https://www.nature.com/articles/s41467-019-09440-2). | This is a particularly close precedent for growth + branching + cuts. The described neighborhood-order procedure differs from MAPPA's continued weighted frontier and compressed placements. The full MAPPA state/family combination was not identified in the inspected main article; its supplementary PDF was unavailable in this audit. |
+| **Mann et al., 2014** | Uses constraint programming to find cyclic imaginary-transition-state candidates, removes hydrogen-related symmetries, and extends candidates to full atom mappings by graph matching. [Primary article](https://link.springer.com/article/10.1186/s13015-014-0023-3). | Search domains, chemical constraints, partial-map extension, and symmetry handling are established in atom mapping. Its reaction-center/ITS-first formulation differs from MAPPA's fragment-growth search. |
+| **Ali et al., 2025** | Enumerates maximum-common-edge-subgraph-based mappings and clusters complete mappings by reactant/product symmetry, retaining representatives of distinct reaction patterns. [Primary article, Section 2.2](https://pubs.acs.org/doi/10.1021/acs.jcim.4c01871). | Discovering symmetry-distinct alternatives is already an explicit contribution in atom mapping. MAPPA's possible distinction concerns live compression and correlated family output, rather than the general motivation to return alternatives. |
 | **SLAPMapper, Koda and Saito, 2025** | The frozen author implementation branches over distinct LAP solutions, tracks visited refined-label states, and filters isomorphic completed outputs. [Author source, `SlapMapper`](https://github.com/shin1koda/slap-mapper/blob/ea248fd9494f52f4865193e87a98cc92c62b5f9e/src/slapmapper/core.py#L168). | Branching and deduplication are not absent from SLAP. The useful contrast is sequential assignment/label refinement versus continued fragment growth and its contextual placement/family representation. The preprint PDF was inaccessible; the benchmarked source was inspected directly. |
-| **Laffitte, Phan and Stadler, 2026; preceding WABI 2025 paper** | Formalizes stable extensions of partial atom maps, completion by anchored VF2 or relabeling/isomorphism, and equivalence/co-extension using graph automorphisms. [Primary article](https://link.springer.com/article/10.1186/s13015-026-00300-5). | A necessary comparison for partial maps, fixed context, and hydrogen extensions. Its anchored completion problem starts with a supplied partial map; GRAFT searches for fragment placements and boundaries. Stable-extension uniqueness is up to the paper's equivalence, not unique atom indices. |
-| **SynKit v1.5.0, July 2026** | Combines WL/SLAP mapping with uncertainty-region refinement, orbital branching, symmetry-distinct enumeration, certificates, and canonical keys for full and partial mappings. [Archived release](https://zenodo.org/records/21293638), [pinned branching source](https://github.com/TieuLongPhan/SynKit/blob/b57f2a39f1807a2682913183b22e1d8d61531bba/synkit/Chem/Reaction/Mapper/exact/branching.py), [partial-map canonicalization](https://github.com/TieuLongPhan/SynKit/blob/b57f2a39f1807a2682913183b22e1d8d61531bba/synkit/Chem/Reaction/Mapper/exact/enumerate.py#L849). | Another close software precedent. The inspected solver refines an uncertainty kernel from SLAP rather than using GRAFT's saturation-based growing-fragment scheduler. Its presence rules out treating partial-map canonicalization or certificates alone as a distinctive new feature. This audit does not certify its stated solver guarantees. |
+| **Laffitte, Phan and Stadler, 2026; preceding WABI 2025 paper** | Formalizes stable extensions of partial atom maps, completion by anchored VF2 or relabeling/isomorphism, and equivalence/co-extension using graph automorphisms. [Primary article](https://link.springer.com/article/10.1186/s13015-026-00300-5). | A necessary comparison for partial maps, fixed context, and hydrogen extensions. Its anchored completion problem starts with a supplied partial map; MAPPA searches for fragment placements and boundaries. Stable-extension uniqueness is up to the paper's equivalence, not unique atom indices. |
+| **SynKit v1.5.0, July 2026** | Combines WL/SLAP mapping with uncertainty-region refinement, orbital branching, symmetry-distinct enumeration, certificates, and canonical keys for full and partial mappings. [Archived release](https://zenodo.org/records/21293638), [pinned branching source](https://github.com/TieuLongPhan/SynKit/blob/b57f2a39f1807a2682913183b22e1d8d61531bba/synkit/Chem/Reaction/Mapper/exact/branching.py), [partial-map canonicalization](https://github.com/TieuLongPhan/SynKit/blob/b57f2a39f1807a2682913183b22e1d8d61531bba/synkit/Chem/Reaction/Mapper/exact/enumerate.py#L849). | Another close software precedent. The inspected solver refines an uncertainty kernel from SLAP rather than using MAPPA's saturation-based growing-fragment scheduler. Its presence rules out treating partial-map canonicalization or certificates alone as a distinctive new feature. This audit does not certify its stated solver guarantees. |
 
 **General techniques also have relevant precedents.** OpenChemLib 2026.2.0's
 [`setFragmentSymmetryConstraints`](https://github.com/Actelion/openchemlib/blob/0754c781c23f7570b13866e202836b5449282ad6/src/main/java/com/actelion/research/chem/SSSearcher.java#L244)
 explicitly distinguishes otherwise symmetric fragment atoms using reaction
-context. That is not the same state representation as GRAFT's locks, pools,
+context. That is not the same state representation as MAPPA's locks, pools,
 boundaries, and continuations, but context-sensitive symmetry handling is not a
 new general idea.
 
 Dechter and Mateescu's
 [AND/OR search paper](https://www.ics.uci.edu/~csp/r126.pdf) develops merging and
 context-based search graphs, including the preservation of incoming paths through
-shared continuations. GRAFT is not thereby an implementation of their complete
+shared continuations. MAPPA is not thereby an implementation of their complete
 algorithm; the connection establishes that replacing redundant search-tree
 continuations with shared graph states is an established principle.
 
 [McKay and Piperno's nauty/Traces work](https://arxiv.org/abs/1301.1493) supplies
 established graph-canonicalization and automorphism machinery. Likewise, if one
 isomorphism is known, representing other isomorphisms through automorphism actions
-is a standard group-theoretic construction. GRAFT's use of these tools should be
+is a standard group-theoretic construction. MAPPA's use of these tools should be
 credited as such. A contribution may lie in the encoded relation and how it is
 maintained during fragment decisions, rather than in inventing canonical labeling
 or cosets.
@@ -92,7 +92,7 @@ not as full algorithm exclusions. The 2026
 [NEBscape article](https://www.nature.com/articles/s41524-026-02298-1) also describes
 retaining distinct atom-mapping classes and reducing symmetry-equivalent variants
 before transition-state searches. That is relevant to downstream motivation, not
-evidence that it implements GRAFT's growth loop.
+evidence that it implements MAPPA's growth loop.
 
 **The most defensible candidate contribution.** The following description is
 supported by the implementation and avoids a claim of universal priority:
@@ -146,7 +146,7 @@ follow-ups, not experiments performed by this audit.
    branches survive finite caps; make that distinction explicit.
 5. Keep the SLAP sweep as the supporting cut-policy ablation requested by the
    author. Its recovery gain demonstrates usefulness under the tested budget;
-   it does not isolate GRAFT's growth, branching, or deduplication contributions.
+   it does not isolate MAPPA's growth, branching, or deduplication contributions.
 
 The existing Golden and 140-case results establish measured behavior in their
 documented scopes. High recovery or lower recorded CPU does not establish

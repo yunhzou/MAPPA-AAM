@@ -5,7 +5,7 @@ import gzip
 import json
 from pathlib import Path
 
-from graft.fragment_matching.serialization import (
+from mappa.fragment_matching.serialization import (
     repack_fragment_detection_v4, repack_fragment_detection_v6)
 
 

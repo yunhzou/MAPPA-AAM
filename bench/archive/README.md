@@ -12,7 +12,7 @@ For exact historical reproduction, use a separate checkout of the manifest's
 base revision and the original campaign's input/environment records:
 
 ```sh
-git worktree add --detach ../graft-historical 59f55e4
+git worktree add --detach ../mappa-historical 59f55e4
 ```
 
 The [relocation manifest](../../docs/publication_cleanup_20260916.json) maps every

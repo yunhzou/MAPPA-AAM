@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-06",
+  "scope": "GRAFT to MAPPA naming only; regenerate existing media and manuscript.",
+  "python_package": "mappa",
+  "cli": "mappa",
+  "animation_scientific_data_and_timelines_unchanged": true,
+  "media": [
+    {
+      "film": "gold_rearrangement",
+      "status": "passed",
+      "media": [
+        {
+          "file": "gold-oxygen-3d.mp4",
+          "frames": 720,
+          "duration": 30.0,
+          "size": [
+            1440,
+            900
+          ],
+          "fps": 24.0,
+          "sha256": "26b48943e1f6e0d3fcd34c21fe666f17cdbe32f06a5ca88dbb3fdbdb068e474f"
+        },
+        {
+          "file": "gold-oxygen-preview.gif",
+          "frames": 360,
+          "size": [
+            960,
+            600
+          ],
+          "duration": 30.0,
+          "sha256": "7e1424e08ca2e642ab64832fb0a67afb6d30a1a442f0f69c3e22196b4bd2e4b6"
+        },
+        {
+          "file": "poster-3d.png",
+          "size": [
+            1440,
+            900
+          ],
+          "sha256": "36761eba86ebe18a4be510bb5224652f9ce411dc228411c94b4b614ae1ce2994"
+        }
+      ]
+    },
+    {
+      "film": "molecule_verification_broken",
+      "status": "passed",
+      "media": [
+        {
+          "file": "broken-molecule-verification.mp4",
+          "frames": 720,
+          "duration": 30.0,
+          "size": [
+            1440,
+            900
+          ],
+          "fps": 24.0,
+          "sha256": "dd40feda85de715bbafa3de6ff8c4c304fa62540121872755bbc1365f301d841"
+        },
+        {
+          "file": "broken-molecule-verification-preview.gif",
+          "frames": 360,
+          "size": [
+            960,
+            600
+          ],
+          "duration": 30.0,
+          "sha256": "9864c46fcf9b6f3cae0c081ab6d64ff23b462ae00e41f2dc0f3c1e07fb9a80a0"
+        },
+        {
+          "file": "poster.png",
+          "size": [
+            1440,
+            900
+          ],
+          "sha256": "ecbeed2909e02af0a556626c74943d62072130405224cca5b976de405b30b55b"
+        }
+      ]
+    },
+    {
+      "film": "ts_mode_selection",
+      "status": "passed",
+      "media": [
+        {
+          "file": "rp-to-ts-mode.mp4",
+          "frames": 720,
+          "duration": 30.0,
+          "size": [
+            1440,
+            900
+          ],
+          "fps": 24.0,
+          "sha256": "4994267dd7e0167f1698cf302a5a6925ab4215899ffb420df225a6d70f67bba6"
+        },
+        {
+          "file": "rp-to-ts-mode-preview.gif",
+          "frames": 360,
+          "size": [
+            960,
+            600
+          ],
+          "duration": 30.0,
+          "sha256": "6bd924128845fe82c2c9bc26659a128b8fdfb71b23cae67e1cb2087436082efd"
+        },
+        {
+          "file": "poster.png",
+          "size": [
+            1440,
+            900
+          ],
+          "sha256": "458c24186c83d31e98b4d8b16be6cac063dc9050a610cfcde92788251a9ab326"
+        }
+      ]
+    },
+    {
+      "film": "mappa_research_preview",
+      "status": "passed",
+      "media": [
+        {
+          "file": "mappa-grow-branch-decode.mp4",
+          "frames": 528,
+          "duration": 22.0,
+          "size": [
+            1440,
+            900
+          ],
+          "fps": 24.0,
+          "sha256": "059789511e9d29e8de8af1db8f1c8b8773b81c74dba7c8baa04bd913c5550315"
+        },
+        {
+          "file": "mappa-grow-branch-decode.gif",
+          "frames": 264,
+          "size": [
+            960,
+            600
+          ],
+          "duration": 22.0,
+          "sha256": "5cdfb9739d8058eb05e8da4fe58860f8517e8ad990d5ea5ea7d071d24964c8c7"
+        },
+        {
+          "file": "poster.png",
+          "size": [
+            1440,
+            900
+          ],
+          "sha256": "3eb895ac9d1c18c3d13429bbc19a76d528aa59ab0c722fb9450c35dfc6dc4445"
+        }
+      ]
+    },
+    {
+      "film": "molecule_verification",
+      "status": "passed",
+      "media": [
+        {
+          "file": "molecule-verification.mp4",
+          "frames": 672,
+          "duration": 28.0,
+          "size": [
+            1440,
+            900
+          ],
+          "fps": 24.0,
+          "sha256": "5e34dec2ff7ec11db3c9b8b668ce623dedd3f4a5fe68c33741f55bddf8dc4b40"
+        },
+        {
+          "file": "molecule-verification-preview.gif",
+          "frames": 336,
+          "size": [
+            960,
+            600
+          ],
+          "duration": 28.0,
+          "sha256": "a0b6218ec2312800694020438fd06c5c452c7471a9ee0d0a3b97a43dd19a87ee"
+        },
+        {
+          "file": "poster.png",
+          "size": [
+            1440,
+            900
+          ],
+          "sha256": "6bab31084c4487a6986c6cf3ed43c59d2a6f6332be56dd782d0682a1fe51f3af"
+        }
+      ]
+    }
+  ],
+  "manuscript": {
+    "pages": 18,
+    "visual_review": "passed",
+    "numerical_source_checks": "passed",
+    "sha256": "f846c953951b91658d3efcca2dcc0bf753a6fddfa82f3b06d175678a9d63e12e"
+  },
+  "tests": {
+    "full_suite_passed": 640,
+    "full_suite_skipped": 3,
+    "full_suite_subtests_passed": 27,
+    "preexisting_failures": [
+      "test_golden_cap_campaign.py::test_watchdog_terminates_process_group_and_records_incomplete",
+      "test_index_chirality.py::test_index_chirality_scores_every_valid_atom_action_before_rmsd_choice",
+      "test_native_engine.py::test_every_growth_call_agrees_with_python"
+    ],
+    "all_three_failures_reproduced_on_unmodified_main": true,
+    "source_files_verified_name_only": 102,
+    "checkpoint_reader_legacy_namespace_support_added": true
+  },
+  "compatibility": {
+    "legacy_checkpoint_namespace_preserved": true,
+    "existing_hosted_repository_URL_preserved": false
+  },
+  "repository": "https://github.com/yunhzou/MAPPA-AAM",
+  "publication_base_commit": "c8ab91aa88f5dc4a402c295b137231fdfaea2321",
+  "experimental_chirality_changes_included": false
+}

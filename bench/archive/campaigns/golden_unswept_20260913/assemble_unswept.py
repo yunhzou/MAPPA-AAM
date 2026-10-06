@@ -6,8 +6,8 @@ from golden_competitors import signatures
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 save=lambda p,d:p.write_text(json.dumps(d,indent=2)+'\n')
 def load(p):return json.loads(p.read_text())
-graft=sorted([load(p) for p in (V/'uncut').glob('*.json')],key=lambda r:r['case']);assert len(graft)==1851
-assert all(r['status']=='passed' for c in graft for r in c['directions'])
+mappa=sorted([load(p) for p in (V/'uncut').glob('*.json')],key=lambda r:r['case']);assert len(mappa)==1851
+assert all(r['status']=='passed' for c in mappa for r in c['directions'])
 source=REPO/'reports/current_validation_20260912/slap-golden-evaluations.json.gz';original=json.load(gzip.open(source,'rt'));slap=[]
 refs=[json.loads(s) for s in (ROOT/'golden-data/audit.jsonl').read_text().splitlines()]
 for r in original:
@@ -35,10 +35,10 @@ for r in original:
  print('',end='',flush=True)
 seed=load(REPO/'manuscript/evidence/seed_comparison.json')['methods']['seeds1']['per_case'];sweep=load(REPO/'manuscript/evidence/slap_sweep.json')['per_case']
 methods={}
-for name,rows,full in [('graft',graft,seed),('slap',slap,sweep)]:
+for name,rows,full in [('mappa',mappa,seed),('slap',slap,sweep)]:
  hits={r['case'] for r in rows if r['outcome']=='recovered'};fullhits={r['case'] for r in full if r['outcome']=='recovered'};assert hits<=fullhits
  methods[name]=dict(counts=dict(collections.Counter(r['outcome'] for r in rows)),recovered_cases=sorted(hits),unknown_cases=[r['case'] for r in rows if r['outcome']=='unknown'],sweep_recovered=len(fullhits),added_by_sweep=sorted(fullhits-hits))
  with gzip.open(OUT/f'{name}-uncut-records.json.gz','wt') as f:json.dump(rows,f,separators=(',',':'))
-result=dict(denominator=1851,seed_count=1,branch_cap=100,bidirectional=True,competition=False,algorithm_commit='3a9ef9a8aec3e129ea5f4ee67df47ce2c25ade3c',methods=methods,scope='Paired uncut controls taken from the final campaign; GRAFT saved families freshly finalized and evaluated. SLAP unions uncut binary/weighted outputs in both directions; incomplete sweep records are rechecked only at ordinal zero. No search reruns.',sources={'slap_evaluations_sha256':sha(source),'audit_sha256':sha(ROOT/'golden-data/audit.jsonl'),'graft_driver_sha256':sha(V/'score_uncut.py')},graft_rescore_wall_seconds=50.87213141703978)
+result=dict(denominator=1851,seed_count=1,branch_cap=100,bidirectional=True,competition=False,algorithm_commit='3a9ef9a8aec3e129ea5f4ee67df47ce2c25ade3c',methods=methods,scope='Paired uncut controls taken from the final campaign; MAPPA saved families freshly finalized and evaluated. SLAP unions uncut binary/weighted outputs in both directions; incomplete sweep records are rechecked only at ordinal zero. No search reruns.',sources={'slap_evaluations_sha256':sha(source),'audit_sha256':sha(ROOT/'golden-data/audit.jsonl'),'mappa_driver_sha256':sha(V/'score_uncut.py')},mappa_rescore_wall_seconds=50.87213141703978)
 save(OUT/'unswept.json',result);save(V/'manuscript/evidence/unswept.json',result)
 print(json.dumps({k:dict(counts=m['counts'],sweep_added=len(m['added_by_sweep']),unknown=m['unknown_cases']) for k,m in methods.items()}),flush=True)

@@ -3,7 +3,7 @@ requires = ["setuptools>=61", "wheel", "pybind11>=2.10"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "graft"
+name = "mappa"
 version = "0.2.0"
 description = "Fragment-based atom–atom matching with symmetry-aware alternatives and bond-event decoding"
 readme = "README.md"
@@ -34,17 +34,17 @@ benchmark = ["rdkit>=2022.9", "z3-solver>=4.13"]
 sessions = ["pymongo>=4.6"]
 
 [project.scripts]
-graft = "graft.cli:main"
+mappa = "mappa.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yunhzou/GRAFT-AAM"
-Repository = "https://github.com/yunhzou/GRAFT-AAM"
+Homepage = "https://github.com/yunhzou/MAPPA-AAM"
+Repository = "https://github.com/yunhzou/MAPPA-AAM"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-graft = ["static/*.js", "static/*.html", "static/*.css", "static/LICENSES/*"]
+mappa = ["static/*.js", "static/*.html", "static/*.css", "static/LICENSES/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

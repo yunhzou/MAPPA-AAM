@@ -11,12 +11,12 @@ import time
 
 import numpy as np
 
-from graft.frag import WeightedGraph
-from graft.fragment_matching import FragmentDetectionConfig, prepare_fragment_target
-from graft.fragment_matching.connected import find_connected_fragments
-from graft.fragment_matching.symmetry import materialize_target_coverage_orbit
-from graft.retrosynthesis.beta import BetaPlacement
-from graft.smiles import smiles_to_weighted_graph
+from mappa.frag import WeightedGraph
+from mappa.fragment_matching import FragmentDetectionConfig, prepare_fragment_target
+from mappa.fragment_matching.connected import find_connected_fragments
+from mappa.fragment_matching.symmetry import materialize_target_coverage_orbit
+from mappa.retrosynthesis.beta import BetaPlacement
+from mappa.smiles import smiles_to_weighted_graph
 
 
 def initialize(manifest, query):

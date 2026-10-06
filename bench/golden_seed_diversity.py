@@ -34,7 +34,7 @@ def worker(args):
     for policy in ('random','distance'):
         run=(args.run/policy).resolve()
         env=dict(os.environ,PYTHONPATH=f'{run}/engine/src:{run}/engine/bench',
-            GRAFT_NATIVE='1',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1')
+            MAPPA_NATIVE='1',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1')
         children.append(subprocess.Popen([sys.executable,str(run/'engine/bench/golden_more_seeds.py'),
             'worker','--run',str(run),'--slot',str(args.slot)],env=env))
     codes=[p.wait() for p in children]

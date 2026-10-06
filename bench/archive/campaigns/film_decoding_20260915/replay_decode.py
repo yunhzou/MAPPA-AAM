@@ -4,9 +4,9 @@ from pathlib import Path
 S=Path(__file__).resolve().parent
 # Run in an installed checkout, or from reports/film_decoding_20260915.
 repo=S.parents[1];sys.path.insert(0,str(repo/'src'))
-from graft import AAMProblem,MolecularEndpoint
-from graft.final_branches import FinalBranchCatalogue
-from graft.event_patterns import SignedEventIndex,extract_path_events
+from mappa import AAMProblem,MolecularEndpoint
+from mappa.final_branches import FinalBranchCatalogue
+from mappa.event_patterns import SignedEventIndex,extract_path_events
 source=json.loads((S/'input.json').read_text())
 problem=AAMProblem(*(MolecularEndpoint(**source[k]) for k in ['reactant','product']))
 cat=FinalBranchCatalogue.from_record(problem,json.loads(gzip.decompress((S/'final-catalogue.json.gz').read_bytes())))

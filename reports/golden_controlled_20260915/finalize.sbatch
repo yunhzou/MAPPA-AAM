@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=graft-controlled-summary
+#SBATCH --job-name=mappa-controlled-summary
 #SBATCH --partition=cpu_short
 #SBATCH --account=nvr_lpr_agentic
 #SBATCH --cpus-per-task=1

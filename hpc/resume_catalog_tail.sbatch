@@ -12,7 +12,7 @@ set -euo pipefail
 repo_root=/h/399/yunhengzou/coordinate_alignment
 cd "$repo_root"
 export PYTHONPATH="$repo_root/src"
-export GRAFT_NATIVE=1
+export MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 stage_args=()
 if [[ "${3:-}" == "checkpoint" ]]; then

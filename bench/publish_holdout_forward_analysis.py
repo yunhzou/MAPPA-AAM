@@ -1,6 +1,6 @@
 """Publish the audited forward-only elementary-step comparison."""
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 from collections import Counter
 import csv

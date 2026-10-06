@@ -1,6 +1,6 @@
 # Native AAM growth engine
 
-`graft._engine` is an optional compiled extension (pybind11, C++17) that
+`mappa._engine` is an optional compiled extension (pybind11, C++17) that
 executes fragment growth and its inner symmetry matcher. Python retains the
 AAM public objects, search orchestration, and result hierarchy.
 
@@ -57,8 +57,8 @@ AAMResult
 `group_mechanisms(aam)` is a separate optional Python stage. Its `AAMBranch`
 records use `AtomBijection` representatives and hierarchy/group information.
 Using C++ does not remove those Python objects.
-The public objects are defined in `src/graft/domain.py` and
-`src/graft/alignment/post_aam.py`.
+The public objects are defined in `src/mappa/domain.py` and
+`src/mappa/alignment/post_aam.py`.
 
 Fragment detection is a separate consumer of the same `grow_island` entry
 point. Its augmentation and detection orchestration remain Python, as do
@@ -72,7 +72,7 @@ extension accelerates the mapping invariant used during detection.
 ```
 
 This compiles `native/src/*.cpp` and the vendored nauty sources in
-`native/nauty/` and copies `_engine.cpython-*.so` into `src/graft/`.
+`native/nauty/` and copies `_engine.cpython-*.so` into `src/mappa/`.
 Requirements: a C/C++ compiler, `pybind11` and `setuptools` in the
 environment. The `_engine` binary is not committed; when unavailable, growth
 uses the Python implementation. The separate `_native` extension is built by
@@ -81,7 +81,7 @@ uses the Python implementation. The separate `_native` extension is built by
 ## Switches
 
 - The native growth engine is used automatically when it is built.
-- `GRAFT_NATIVE=0` selects Python fragment growth. It does not disable the
+- `MAPPA_NATIVE=0` selects Python fragment growth. It does not disable the
   separate `_native` mapping-invariant extension or pynauty.
 
 ## Catalog validation

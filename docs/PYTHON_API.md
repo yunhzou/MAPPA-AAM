@@ -7,8 +7,8 @@ Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postpro
 ## Default pipeline; separate post-processing
 
 ```python
-from graft import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from graft.postprocessing import EventDecodeConfig, decode_events
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
+from mappa.postprocessing import EventDecodeConfig, decode_events
 
 problem = AAMProblem(
     MolecularEndpoint(elements_R, xyz_R, wbo_R),
@@ -20,11 +20,11 @@ candidates = decoded.candidates
 witness = candidates[0].mapping if candidates else None
 ```
 
-Default GRAFT uses one-seed cut sweep followed by separate event decoding. Competition is off by default; the standard search and decoding functions never invoke it.
+Default MAPPA uses one-seed cut sweep followed by separate event decoding. Competition is off by default; the standard search and decoding functions never invoke it.
 
 Matrices must be symmetric and coordinates finite. The event decoder additionally requires balanced elements, complete bijections, nonnegative and exactly symmetric raw matrices. Search supports unbalanced/partial mappings; inspect `aam.graph.paths()` and stop reasons for those cases. Do not silently treat a partial mapping as a complete event candidate.
 
-A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Event edges use source atom indices. This is different from a unique mapping modulo exact molecular symmetry (`PatternEquivalence` / `extract_path_patterns` in `graft.pattern_collection`) and from a deduplicated final fragment branch (`aam.final_catalogue()`). None of these APIs enumerates every atom bijection.
+A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Event edges use source atom indices. This is different from a unique mapping modulo exact molecular symmetry (`PatternEquivalence` / `extract_path_patterns` in `mappa.pattern_collection`) and from a deduplicated final fragment branch (`aam.final_catalogue()`). None of these APIs enumerates every atom bijection.
 
 `decoded.complete` only certifies all retained complete families in the requested window; it is false when a family times out or a partial path was skipped. It does not certify exhaustive search. `decoded.minimum_candidates` selects the lowest **observed** event count. With no candidates, inspect family reports and search stops. Budgets are soft; production callers needing a hard wall limit should isolate the call in a process. The default decoder has no class-count cap but a ten-second budget per family.
 
@@ -48,7 +48,7 @@ The evidence retains ordered target generators/pools, required fragment edges, m
 ```python
 from html import escape
 from IPython.display import HTML, display
-from graft.viewers import aam_growth_html
+from mappa.viewers import aam_growth_html
 
 page = aam_growth_html(aam, context=None, event_threshold=0.5,
                        metal_event_threshold=0.3)
@@ -63,7 +63,7 @@ This is verified local replay, not another sweep search or full decoding. It rep
 ## Directions and anchors
 
 ```python
-from graft import search_aam_directions
+from mappa import search_aam_directions
 config = AAMSearchConfig(anchors=((r0, p0),), seed_count=1)
 runs = search_aam_directions(problem, config, direction="both", workers=1)
 for run in runs:
@@ -101,7 +101,7 @@ For compatibility, `AAMSearchConfig` also retains `event_threshold`, `metal_even
 ## Experimental fragment competition (optional; default off)
 
 ```python
-from graft.competition import CompetitionConfig, compete_fragments
+from mappa.competition import CompetitionConfig, compete_fragments
 augmented = compete_fragments(aam, CompetitionConfig(operation_budget=128))
 decoded = decode_events(augmented.final_catalogue())
 ```

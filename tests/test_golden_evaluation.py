@@ -55,8 +55,8 @@ def test_inputs_are_unmapped_explicit_H_and_reference_indices_are_separate():
 def test_one_sided_reference_requires_exact_relation_not_subset(extra_pair):
     from types import SimpleNamespace as S
     import numpy as np
-    from graft import AAMProblem
-    from graft.domain import MolecularEndpoint
+    from mappa import AAMProblem
+    from mappa.domain import MolecularEndpoint
     endpoint=MolecularEndpoint(('C','C'),np.zeros((2,3)),np.zeros((2,2)))
     mapping={0:0,1:1} if extra_pair else {0:0}
     graph=S(terminals=[0],states=[S(mapping=tuple(mapping.items()))],capped=False,
@@ -70,8 +70,8 @@ def test_one_sided_reference_requires_exact_relation_not_subset(extra_pair):
 
 def test_reference_recovery_queries_real_compressed_aam_not_only_representative():
     import numpy as np
-    from graft import AAMProblem,AAMSearchConfig,search_aam
-    from graft.domain import MolecularEndpoint
+    from mappa import AAMProblem,AAMSearchConfig,search_aam
+    from mappa.domain import MolecularEndpoint
     bonds=np.array([[0.,1.,0.],[1.,0.,2.],[0.,2.,0.]])
     endpoint=MolecularEndpoint(('C','C','C'),np.zeros((3,3)),bonds)
     result=search_aam(AAMProblem(endpoint,endpoint),AAMSearchConfig(seed_count=1,cut_floor=10))
@@ -87,8 +87,8 @@ def test_reference_recovery_queries_real_compressed_aam_not_only_representative(
 def test_H_witness_differences_retain_full_feasibility_queries():
     from types import SimpleNamespace as S
     import numpy as np
-    from graft import AAMProblem
-    from graft.domain import MolecularEndpoint
+    from mappa import AAMProblem
+    from mappa.domain import MolecularEndpoint
     endpoint=MolecularEndpoint(('C','C','H','H'),np.zeros((4,3)),np.zeros((4,4)))
     mappings=[{0:0,1:1,2:2,3:3},{0:0,1:1,2:3,3:2}]
     graph=S(terminals=[0,1],states=[S(mapping=tuple(m.items())) for m in mappings],capped=False,
@@ -107,8 +107,8 @@ def test_H_witness_differences_retain_full_feasibility_queries():
 def test_explicit_H_donor_competition_depends_on_seed_order():
     """Completing a seed order does not enumerate every reactant subset."""
     import numpy as np
-    from graft.frag import build_graph
-    from graft.alignment.branch import find_islands
+    from mappa.frag import build_graph
+    from mappa.alignment.branch import find_islands
     source=np.zeros((9,9));target=np.zeros((6,6))
     for a,b in [(0,1),(0,3),(0,4),(0,5),(1,8),(2,6),(2,7)]:source[a,b]=source[b,a]=1
     for a,b in [(0,1),(0,2),(0,3),(0,4),(1,5)]:target[a,b]=target[b,a]=1

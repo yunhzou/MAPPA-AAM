@@ -36,7 +36,7 @@ def prepare(args):
         source=str(source),input_sha256=hashes,branch_cap=100,seeds=1,iso_tolerance=1.,explicit_H=True,
         root_seed=42,work_budgets=args.work_budgets,soft_search_seconds=args.search_seconds,policy='No event-score pruning',
         watchdog=dict(worker_seconds=300,kill_after_seconds=5,slurm_minutes=10,requeue=False),
-        native_sha256=hashlib.sha256(next((args.run/'engine/src/graft').glob('_engine*.so')).read_bytes()).hexdigest()))
+        native_sha256=hashlib.sha256(next((args.run/'engine/src/mappa').glob('_engine*.so')).read_bytes()).hexdigest()))
 
 
 def submit(args):
@@ -53,11 +53,11 @@ def submit(args):
 
 def worker(args):
     import numpy as np
-    from graft import AAMProblem,AAMSearchConfig
-    from graft.domain import MolecularEndpoint
-    from graft.adaptive_search import AdaptiveFragmentSearch
-    from graft.adaptive_seed_search import AdaptiveSeedSearch
-    from graft.artifacts import write_aam_checkpoint
+    from mappa import AAMProblem,AAMSearchConfig
+    from mappa.domain import MolecularEndpoint
+    from mappa.adaptive_search import AdaptiveFragmentSearch
+    from mappa.adaptive_seed_search import AdaptiveSeedSearch
+    from mappa.artifacts import write_aam_checkpoint
     from compare_elementary_outputs import event_counts
     spec=json.loads((args.run/'tasks.json').read_text())[args.slot]
     manifest=json.loads((args.run/'manifest.json').read_text())

@@ -4,5 +4,5 @@
     "bench/golden_evaluation.py": "a4e115b567fbdd9c2a412e126e95333041dc174f33cef1cb66eb8cf36509330a",
     "bench/golden_competitors.py": "54354c059f981fd6d180a2c8267cc325d60da234b63279cbafc731f41abd25c2"
   },
-  "scope": "Frozen campaign evaluators are byte-identical to current repository evaluators; uncut graph manifests match campaign input/configuration and graph contexts contain no cuts. All 3702 GRAFT directional evaluations completed."
+  "scope": "Frozen campaign evaluators are byte-identical to current repository evaluators; uncut graph manifests match campaign input/configuration and graph contexts contain no cuts. All 3702 MAPPA directional evaluations completed."
 }

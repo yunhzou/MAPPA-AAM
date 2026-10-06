@@ -28,7 +28,7 @@ def prepare(args):
     for i in (77,114):shutil.copy2(source/f'{i}/input.json',args.run/f'inputs/{i}.json')
     save(args.run/'tasks.json',[dict(index=77,direction='P_to_R'),dict(index=114,direction='R_to_P')])
     save(args.run/'manifest.json',dict(parent_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
-        native_sha256=hashlib.sha256(next((args.run/'engine/src/graft').glob('_engine*.so')).read_bytes()).hexdigest(),
+        native_sha256=hashlib.sha256(next((args.run/'engine/src/mappa').glob('_engine*.so')).read_bytes()).hexdigest(),
         seeds=10,branch_cap=100,iso_tolerance=1.,workers=10,explicit_H=True))
     (args.run/'status').mkdir()
 
@@ -65,9 +65,9 @@ def submit_tests(args):
 
 
 def worker(args):
-    from graft import AAMProblem,AAMSearchConfig,search_aam
-    from graft.domain import MolecularEndpoint
-    import graft.artifacts as artifacts
+    from mappa import AAMProblem,AAMSearchConfig,search_aam
+    from mappa.domain import MolecularEndpoint
+    import mappa.artifacts as artifacts
     spec=json.loads((args.run/'tasks.json').read_text())[args.slot]
     raw=json.loads((args.run/f"inputs/{spec['index']}.json").read_text())
     endpoints=[MolecularEndpoint(**{k:v for k,v in raw[name].items() if k in ('elements','coordinates','wbo')})

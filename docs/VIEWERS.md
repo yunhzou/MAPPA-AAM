@@ -5,8 +5,8 @@ adapter; they do not introduce another stylesheet or benchmark-specific skin.
 
 | Style | Purpose | Authoritative files |
 | --- | --- | --- |
-| `reaction` | R/P comparison, TS structures/modes, mapping diagnostics and recorded growth | `src/graft/static/reaction_viewer.css`; original R/P/TS layout in `reaction_viewer.html` |
-| `catalog` | Catalog search, precursor/results lists and batch navigation | `src/graft/static/catalog_viewer.css` |
+| `reaction` | R/P comparison, TS structures/modes, mapping diagnostics and recorded growth | `src/mappa/static/reaction_viewer.css`; original R/P/TS layout in `reaction_viewer.html` |
+| `catalog` | Catalog search, precursor/results lists and batch navigation | `src/mappa/static/catalog_viewer.css` |
 
 The molecular presentation restores the original white panels, yellow mechanism
 buttons, thin molecular sticks, R-order/spatial-alignment controls and TS mode
@@ -14,7 +14,7 @@ animation from `stable/legacy-aam:src/rxn_core/pipeline.py`. The separate dark
 `elementary_comparison_viewer.html` skin and its derived missing-pattern viewer
 were rejected and removed. Its reports now use the shared original renderer.
 
-`graft.viewers.reaction_html` renders one reaction; `collection_html` adds a
+`mappa.viewers.reaction_html` renders one reaction; `collection_html` adds a
 case selector with one shared copy of the renderer and libraries. Existing
 diagnostic layouts use `style_document` / `viewer_style`. Golden 2D diagrams
 remain 2D where the evidence has no native geometry; they use the same reaction
@@ -22,7 +22,7 @@ style. Catalog layouts retain their existing result-navigation behavior.
 Different layouts and chemical highlight colors are not independent skins.
 
 The reusable **algorithm search trajectory** pipeline is documented in
-[SEARCH_TRAJECTORIES.md](SEARCH_TRAJECTORIES.md). Use `from graft.viewers import aam_growth_html` for direct in-memory
+[SEARCH_TRAJECTORIES.md](SEARCH_TRAJECTORIES.md). Use `from mappa.viewers import aam_growth_html` for direct in-memory
 results; archive capture and `growth_trace_html` remain supported. The executed
 [AAM notebook](AAM_SIMPLE.ipynb) shows a separate animation for each sweep.
 The PR7 example is `reports/pr7_search_trajectory_20260911/algorithm_trajectory.html`.

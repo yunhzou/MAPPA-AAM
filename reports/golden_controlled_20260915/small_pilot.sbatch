@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=graft-small-pilot
+#SBATCH --job-name=mappa-small-pilot
 #SBATCH --partition=cpu_short
 #SBATCH --account=nvr_lpr_agentic
 #SBATCH --cpus-per-task=1

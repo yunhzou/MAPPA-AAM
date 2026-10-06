@@ -6,10 +6,10 @@ import time
 import pynauty
 
 from golden_policy_campaign import load_case,save
-from graft.alignment.branch import find_islands,_generate_seed_orders
-from graft.artifacts import write_graph_checkpoint
-from graft.frag import build_graph
-from graft.matcher.policy import AttributeNodeMatchPolicy
+from mappa.alignment.branch import find_islands,_generate_seed_orders
+from mappa.artifacts import write_graph_checkpoint
+from mappa.frag import build_graph
+from mappa.matcher.policy import AttributeNodeMatchPolicy
 from golden_evaluation import colored_graph,project
 from investigate_golden_mapping import original_reference_certificate
 

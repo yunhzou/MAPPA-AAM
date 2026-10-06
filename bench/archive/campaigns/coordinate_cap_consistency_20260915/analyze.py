@@ -23,7 +23,7 @@ def analyze():
    if a['minimum']==b['minimum']:out['same_minimum']+=1
    elif a['minimum']>b['minimum']:out['higher_minimum'].append(case)
    else:out['lower_minimum'].append(case)
-  if b['minimum']!=controls[case]['graft_minimum'] or set(controls[case]['graft_minimum_ids'])-set(b['patterns']):out['fresh2000_disagrees_with_saved'].append(case)
+  if b['minimum']!=controls[case]['mappa_minimum'] or set(controls[case]['mappa_minimum_ids'])-set(b['patterns']):out['fresh2000_disagrees_with_saved'].append(case)
   out['per_case'].append(detail)
  common=[r for r in data['per_case'] if all(r['caps'][str(c)]['decoded'] and r['caps'][str(c)]['decoded']['minimum_proven'] and all(x=='passed' for phase in r['caps'][str(c)]['timing'].values() for x in phase['statuses']) for c in [100,2000])]
  out['timing']['paired_cases']=[r['case'] for r in common]

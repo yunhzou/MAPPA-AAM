@@ -1,10 +1,10 @@
-# GRAFT: fragment-based atom–atom matching
+# MAPPA: fragment-based atom–atom matching
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-GRAFT is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. A separate decoder turns those families into distinct bond-change candidates, each with an explicit atom mapping and queryable symmetry information.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. A separate decoder turns those families into distinct bond-change candidates, each with an explicit atom mapping and queryable symmetry information.
 
-Use GRAFT to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
+Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
 **Golden reference coverage: 99.08% with the default one-seed sweep; 99.41% with ten seeds.** These scores measure recovery among alternatives across all 1,851 reactions.
 
@@ -12,7 +12,7 @@ Use GRAFT to map reactants to products, analyze how molecular structures differ,
 
 ## Golden benchmark: coverage of mapping alternatives
 
-![Golden benchmark: GRAFT covers 99.08% of references by default and 99.41% with ten seeds](docs/assets/golden-coverage.png)
+![Golden benchmark: MAPPA covers 99.08% of references by default and 99.41% with ten seeds](docs/assets/golden-coverage.png)
 
 **Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
 
@@ -20,9 +20,9 @@ Use GRAFT to map reactants to products, analyze how molecular structures differ,
 
 | Method | Search setting | Output | References covered | Coverage | Mean CPU s/reaction |
 |---|---|---|---:|---:|---:|
-| **GRAFT** | **1 seed, sweep (default)** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
-| GRAFT | 3 seeds, sweep | Compressed families | 1,837 / 1,851 | 99.24% | 2.265 |
-| GRAFT | 10 seeds, sweep | Compressed families | 1,840 / 1,851 | 99.41% | 6.993 |
+| **MAPPA** | **1 seed, sweep (default)** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
+| MAPPA | 3 seeds, sweep | Compressed families | 1,837 / 1,851 | 99.24% | 2.265 |
+| MAPPA | 10 seeds, sweep | Compressed families | 1,840 / 1,851 | 99.41% | 6.993 |
 | SLAP | Bidirectional + our sweep | Multiple candidates | 1,796 / 1,851 | 97.03% | 2.793 |
 | SLAP | Bidirectional, no sweep | Multiple candidates | 1,661 / 1,851 | 89.74% | 0.105 |
 | SLAP | Default, no sweep (binary) | Multiple candidates | 1,591 / 1,851 | 85.95% | 0.075† |
@@ -36,11 +36,11 @@ Use GRAFT to map reactants to products, analyze how molecular structures differ,
 
 Unmarked CPU times are paired search averages over the same 1,403 completed reactions on the same CPU, excluding separate bond-event decoding. † Archived completed mapper calls from a separate timing group; these times are not directly comparable with the unmarked values.
 
-GRAFT rows use bidirectional search and branch cap 100. Bidirectional combines searches starting from each endpoint. The cut sweep is part of default GRAFT; **SLAP + our sweep** applies our search extension to SLAP and is not its original published score. The bidirectional SLAP rows combine its binary and weighted modes; the released default row uses binary only. All numbers above come from our strict re-evaluation, including LocalMapper, the prior accuracy-SOTA baseline discussed in the paper.
+MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines searches starting from each endpoint. The cut sweep is part of default MAPPA; **SLAP + our sweep** applies our search extension to SLAP and is not its original published score. The bidirectional SLAP rows combine its binary and weighted modes; the released default row uses binary only. All numbers above come from our strict re-evaluation, including LocalMapper, the prior accuracy-SOTA baseline discussed in the paper.
 
 [Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](bench/publish_readme_coverage.py)
 
-## What you can do with GRAFT
+## What you can do with MAPPA
 
 - **Atom–atom matching:** recover alternative reactant/product correspondences and inspect the fragments supporting each match.
 - **Structure analytics:** compare bond-change patterns, locate reaction cores, and query which atom shuffles preserve a candidate's events.
@@ -52,8 +52,8 @@ Different atom assignments can imply different bond changes and reaction-core mo
 ## Get started
 
 ```bash
-git clone git@github.com:yunhzou/GRAFT-AAM.git
-cd GRAFT-AAM
+git clone git@github.com:yunhzou/MAPPA-AAM.git
+cd MAPPA-AAM
 python -m pip install -e ".[notebook]"
 ```
 
@@ -62,8 +62,8 @@ Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molec
 The core workflow has two steps:
 
 ```python
-from graft import search_aam
-from graft.postprocessing import decode_events
+from mappa import search_aam
+from mappa.postprocessing import decode_events
 
 aam = search_aam(problem)       # Compressed fragment-matching families
 decoded = decode_events(aam)     # Distinct bond-event candidates
@@ -76,33 +76,33 @@ for candidate in decoded.candidates:
 
 ## Grow, branch, decode
 
-A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. GRAFT grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding exposes distinct bond-change candidates for inspection.
+A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding exposes distinct bond-change candidates for inspection.
 
 ![Manuscript overview: fragment growth, three levels of conditional branching, cut sweep, and symmetry-aware event decoding](manuscript/figs/fig1_algorithm.png)
 
 Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions, while decoding separates bond-change patterns within the retained families.
 
-![GRAFT: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/graft_research_preview/graft-grow-branch-decode.gif)
+![MAPPA: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.gif)
 
 This Golden example follows the recorded growth and branching, then shows two distinct decoded event patterns, including one equivalent to the reference. The saved catalogue contains nine patterns. Red × marks indicate breaking or weakening; green inward arrows indicate forming or strengthening.
 
-[Full-resolution MP4](manuscript/animations/graft_research_preview/graft-grow-branch-decode.mp4) · [Offline interactive viewer](manuscript/animations/graft_research_preview/index.html) · [Example and provenance](manuscript/animations/graft_research_preview/README.md)
+[Full-resolution MP4](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.mp4) · [Offline interactive viewer](manuscript/animations/mappa_research_preview/index.html) · [Example and provenance](manuscript/animations/mappa_research_preview/README.md)
 
 ## Alternative mappings in Golden case 9
 
-![Golden case 9: GRAFT recovers the annotated reference and alternatives with different oxygen and carbon correspondences](manuscript/figs/fig4_alternatives.png)
+![Golden case 9: MAPPA recovers the annotated reference and alternatives with different oxygen and carbon correspondences](manuscript/figs/fig4_alternatives.png)
 
-In this manuscript example, GRAFT recovers the annotated heavy-atom correspondence alongside alternatives with different atom origins and bond changes. The alternative with fewer total bond events is not the annotated reference, illustrating why selecting only the minimum-event mapping can discard useful information. This illustration uses branch cap 2,000; the benchmark table above reports cap 100.
+In this manuscript example, MAPPA recovers the annotated heavy-atom correspondence alongside alternatives with different atom origins and bond changes. The alternative with fewer total bond events is not the annotated reference, illustrating why selecting only the minimum-event mapping can discard useful information. This illustration uses branch cap 2,000; the benchmark table above reports cap 100.
 
 ## Use atom matching to explore alternative reaction pathways
 
 Suppose you know the reactants and products, but want to investigate whether the reaction could follow more than one pathway. The product structure alone may not tell you which reactant atom ends up at each site. Committing to one atom mapping can hide alternative atom origins and the different bond changes they imply.
 
-GRAFT searches for alternative correspondences so you can turn those differences into concrete pathway hypotheses. These give you starting points for mechanistic analysis and TS calculations; establishing whether a pathway exists requires investigating the steps between the endpoints.
+MAPPA searches for alternative correspondences so you can turn those differences into concrete pathway hypotheses. These give you starting points for mechanistic analysis and TS calculations; establishing whether a pathway exists requires investigating the steps between the endpoints.
 
-![GRAFT recovers two oxygen-fate patterns in a 65-atom gold-catalyzed rearrangement](manuscript/animations/gold_rearrangement/gold-oxygen-preview.gif)
+![MAPPA recovers two oxygen-fate patterns in a 65-atom gold-catalyzed rearrangement](manuscript/animations/gold_rearrangement/gold-oxygen-preview.gif)
 
-In this gold-catalyzed rearrangement, GRAFT recovers two possible destinations for the original epoxide oxygen: the ester link or the ketone. They are consistent with different pathways considered in the published study. The video follows the actual fragment growth that finds both oxygen assignments in the 65-atom system.
+In this gold-catalyzed rearrangement, MAPPA recovers two possible destinations for the original epoxide oxygen: the ester link or the ketone. They are consistent with different pathways considered in the published study. The video follows the actual fragment growth that finds both oxygen assignments in the 65-atom system.
 
 [3D film](manuscript/animations/gold_rearrangement/gold-oxygen-3d.mp4) · [Film viewer](manuscript/animations/gold_rearrangement/index.html) · [Full growth trajectory](manuscript/animations/gold_rearrangement/trajectory.html) · [Reproduce and inspect the witnesses](examples/gold_rearrangement/README.md)
 
@@ -136,11 +136,11 @@ These original schemes use PH₃; the animation uses the supplied AuPPh₃ endpo
 
 Suppose a generative model produces an XYZ structure for a target molecule. Its atoms may be reordered and its conformation may look different, so comparing coordinates directly does not tell you whether it generated the intended connectivity.
 
-GRAFT matches the generated structure to the target and checks whether the inferred connections agree under that correspondence. A complete match with no missing or extra connections verifies the same connectivity under the chosen bond-detection rule. Bond orders, stereochemistry and stability require separate checks.
+MAPPA matches the generated structure to the target and checks whether the inferred connections agree under that correspondence. A complete match with no missing or extra connections verifies the same connectivity under the chosen bond-detection rule. Bond orders, stereochemistry and stability require separate checks.
 
-![GRAFT verifies a 135-atom candidate with one complete fragment and no connectivity changes](manuscript/animations/molecule_verification/molecule-verification-preview.gif)
+![MAPPA verifies a 135-atom candidate with one complete fragment and no connectivity changes](manuscript/animations/molecule_verification/molecule-verification-preview.gif)
 
-This controlled demonstration uses a 135-atom target with a changed conformation and shuffled atom order to illustrate the check. GRAFT matches it as one complete fragment and preserves all 148 inferred connections.
+This controlled demonstration uses a 135-atom target with a changed conformation and shuffled atom order to illustrate the check. MAPPA matches it as one complete fragment and preserves all 148 inferred connections.
 
 [3D video](manuscript/animations/molecule_verification/molecule-verification.mp4) · [Interactive film](manuscript/animations/molecule_verification/index.html) · [Try it with your XYZ files](examples/molecule_verification/README.md)
 
@@ -148,9 +148,9 @@ This controlled demonstration uses a 135-atom target with a changed conformation
 
 A generated structure can contain every expected atom and still have a disconnected group. Atom counts alone would miss that error. The same AAM check can locate the missing connection and reject the structure.
 
-![GRAFT detects an intentionally broken molecule despite complete atom coverage](manuscript/animations/molecule_verification_broken/broken-molecule-verification-preview.gif)
+![MAPPA detects an intentionally broken molecule despite complete atom coverage](manuscript/animations/molecule_verification_broken/broken-molecule-verification-preview.gif)
 
-Here we deliberately disconnect a 21-atom group. GRAFT still assigns all 135 atoms, but now needs two fragments and finds one missing connection. The video shows why complete atom coverage alone is insufficient for structure verification.
+Here we deliberately disconnect a 21-atom group. MAPPA still assigns all 135 atoms, but now needs two fragments and finds one missing connection. The video shows why complete atom coverage alone is insufficient for structure verification.
 
 [Broken-molecule video and evidence](manuscript/animations/molecule_verification_broken/README.md) · [Run the negative control](examples/molecule_verification/README.md#negative-control-break-one-connection)
 
@@ -158,9 +158,9 @@ Here we deliberately disconnect a 21-atom group. GRAFT still assigns all 135 ato
 
 Suppose you have a TS guess and a frequency calculation with many vibrational modes. You need to identify the motion relevant to your intended reaction: which mode moves atoms along the bonds that should break and form? A frequency value alone does not identify that motion.
 
-GRAFT first maps the reactant and product to identify their bond changes, then matches the reaction core into the guess. It scores how well the mode displacements follow those changes and selects among the imaginary modes. This provides a reaction-guided choice of mode for a subsequent TS search.
+MAPPA first maps the reactant and product to identify their bond changes, then matches the reaction core into the guess. It scores how well the mode displacements follow those changes and selects among the imaginary modes. This provides a reaction-guided choice of mode for a subsequent TS search.
 
-![GRAFT maps bond changes and selects a recorded mode at a TS guess](manuscript/animations/ts_mode_selection/rp-to-ts-mode-preview.gif)
+![MAPPA maps bond changes and selects a recorded mode at a TS guess](manuscript/animations/ts_mode_selection/rp-to-ts-mode-preview.gif)
 
 The video illustrates an O–H → N–H transfer in a 57-atom guess. The selected imaginary mode moves the highlighted hydrogen along the mapped bond changes; a stable mode is shown for contrast. This particular guess has one imaginary mode. The geometry remains a **TS guess, not an optimized TS**.
 
@@ -198,8 +198,8 @@ until a reactant is selected; it does not replace the full workflow.
 Start with the executed, self-contained [AAM notebook](docs/AAM_SIMPLE.ipynb): embedded molecules, matching, raw branch inspection, unique bond-event candidates, certified symmetry queries, py3Dmol inspection, and a growth animation for each sweep. All inputs and display helpers are in the notebook; no benchmark files are needed. The [Python API guide](docs/PYTHON_API.md) lists anchors, directions, conditional matching, all configuration controls, and current chirality limitations. Install its dependencies with `python -m pip install -e ".[notebook]"`.
 
 ```python
-from graft import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from graft.postprocessing import EventDecodeConfig, decode_events
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
+from mappa.postprocessing import EventDecodeConfig, decode_events
 
 # Arrays for both endpoints are embedded in docs/AAM_SIMPLE.ipynb.
 problem = AAMProblem(
@@ -236,7 +236,7 @@ retains all represented event counts by default, including nonminimum
 alternatives. Search and final event tolerances are configured independently.
 
 Anchors use `AAMSearchConfig(anchors=((r_atom, p_atom),))`.
-`from graft import search_aam_directions` exposes forward, reverse,
+`from mappa import search_aam_directions` exposes forward, reverse,
 smaller-first, larger-first, and both-direction searches. The
 [API guide](docs/PYTHON_API.md) documents conditional fragment matching,
 fixed-query isomorphism, serialization, and the current chirality TODO.
@@ -245,7 +245,7 @@ For one animation per sweep, use the in-memory result directly:
 
 ```python
 from pathlib import Path
-from graft.viewers import aam_growth_html
+from mappa.viewers import aam_growth_html
 
 Path("aam_growth.html").write_text(aam_growth_html(aam), encoding="utf-8")
 ```
@@ -257,7 +257,7 @@ interactive views require a trusted Jupyter notebook.
 
 `align_reaction`, `group_mechanisms`, `compile_mechanism_families`,
 `select_rp_mappings`, and `analyze_transition_state` remain importable from
-`graft` for the optional geometry/TS workflow, illustrated in
+`mappa` for the optional geometry/TS workflow, illustrated in
 [TUTORIAL.ipynb](docs/TUTORIAL.ipynb).
 
 ## CLI
@@ -265,7 +265,7 @@ interactive views require a trusted Jupyter notebook.
 NPZ endpoint files contain `elements`, `coordinates`, and `wbo` arrays:
 
 ```bash
-graft \
+mappa \
   --stage rp \
   --reactant-npz R.npz \
   --product-npz P.npz \
@@ -278,7 +278,7 @@ Existing xTB cache directories containing one XYZ and a `wbo` file can be
 used directly:
 
 ```bash
-graft --reactant-cache cache/R --product-cache cache/P \
+mappa --reactant-cache cache/R --product-cache cache/P \
   --workers 48 --output alignment
 ```
 
@@ -287,7 +287,7 @@ mechanism, a reusable `reaction.json`, and a self-contained `view.html`.
 The TS verifier/scorer can then be entered independently without R/P search:
 
 ```bash
-graft --stage ts \
+mappa --stage ts \
   --reactant-npz R.npz --product-npz P.npz \
   --reaction-json alignment/reaction.json \
   --target-npz guess_1.npz --target-npz guess_2.npz \
@@ -337,7 +337,7 @@ endpoint-consensus merging, and imaginary-mode scoring.
 
 | Location | Contents |
 |---|---|
-| `src/graft/` | Importable matching, search, separate decoding, geometry, and viewers |
+| `src/mappa/` | Importable matching, search, separate decoding, geometry, and viewers |
 | `docs/` | Executed notebooks and public API documentation |
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `bench/experiments/` | Optional research experiments, excluded from the published default |
@@ -361,7 +361,7 @@ contains the manuscript PDF, figures, animations, and reproducible figure data.
 <details>
 <summary>Upgrading from the former rxn_core package</summary>
 
-The Python package and command are now named `graft` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import graft` and `from graft.postprocessing import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `GRAFT_NATIVE=0` selects Python growth; the former `RXN_CORE_NATIVE` setting is still accepted as a fallback.
+The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.postprocessing import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth; the former `RXN_CORE_NATIVE` setting is still accepted as a fallback.
 
 </details>
 

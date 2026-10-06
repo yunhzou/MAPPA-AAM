@@ -33,7 +33,7 @@
         "status": "passed"
       },
       {
-        "file": "manuscript/animations/graft_research_preview/index.html",
+        "file": "manuscript/animations/mappa_research_preview/index.html",
         "status": "passed",
         "duration": 22
       }
@@ -54,7 +54,7 @@
     "references_resolved": true,
     "no_overfull_boxes": true,
     "manual_visual_review_required": true,
-    "scope": "Numerical and build validation; visual review is recorded separately. GRAFT and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.",
+    "scope": "Numerical and build validation; visual review is recorded separately. MAPPA and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.",
     "manuscript_sha256": "352fc2b30f017fe39f58e6ce29e92f3672bc7b47ed98b34d62124ae531d11a09"
   }
 }

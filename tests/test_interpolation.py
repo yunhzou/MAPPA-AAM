@@ -1,6 +1,6 @@
 import numpy as np
 
-from graft.alignment.interpolation import (
+from mappa.alignment.interpolation import (
     _dihedral,
     _rotation_fraction,
     _wrap_angle,

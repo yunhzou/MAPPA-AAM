@@ -88,7 +88,7 @@ The production algorithm is not modified. `competition.patch` applies to the sou
 Using a Python environment with the repository dependencies, `z3-solver`, `psutil`, `pybind11`, and setuptools installed:
 
 ```sh
-export GRAFT_EXPERIMENT_WORK=/tmp/graft-full-growth
+export MAPPA_EXPERIMENT_WORK=/tmp/mappa-full-growth
 python prepare.py --repo /path/to/coordinate_alignment
 python check_control.py
 python verify_candidates.py

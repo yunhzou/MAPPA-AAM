@@ -7,8 +7,8 @@ import time
 
 from golden_evaluation import evaluate
 from investigate_golden_mapping import save
-from graft import AAMProblem,AAMSearchConfig,search_aam
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem,AAMSearchConfig,search_aam
+from mappa.domain import MolecularEndpoint
 
 
 def main():
@@ -31,18 +31,18 @@ def main():
     if args.tolerance is not None:config=replace(config,iso_tolerance=args.tolerance)
     started=time.perf_counter()
     if args.cut:
-        from graft.aam import _initialize_search,_search_cut
-        from graft.artifacts import write_aam_checkpoint
-        from graft.domain import AAMResult,AAMSearchMetrics
-        from graft.frag import build_graph
-        from graft.search_symmetry import finalize_graph_symmetry
+        from mappa.aam import _initialize_search,_search_cut
+        from mappa.artifacts import write_aam_checkpoint
+        from mappa.domain import AAMResult,AAMSearchMetrics
+        from mappa.frag import build_graph
+        from mappa.search_symmetry import finalize_graph_symmetry
         cuts=tuple(tuple(sorted(pair)) for pair in args.cut)
         save(args.output/'diagnostic_design.json',dict(reference_directed=True,cuts=cuts,
             seed_prefix=args.seed_prefix,
             note='Explicit cut-set diagnostic; not included in blind benchmark accuracy'))
         _initialize_search(problem,config)
         if args.seed_prefix:
-            from graft.alignment.branch import find_islands
+            from mappa.alignment.branch import find_islands
             source=build_graph(problem.reactant.elements,problem.reactant.wbo,bond_cut=config.graph_floor)
             source.remove_edges_from(cuts)
             order=list(dict.fromkeys(args.seed_prefix+list(range(problem.source_atom_count))))

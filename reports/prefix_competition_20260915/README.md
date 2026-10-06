@@ -82,9 +82,9 @@ Fourteen focused tests passed, including the existing fragment-choice tests and 
 `prefix.patch` applies only to an isolated copy. Its exact base and resulting source hashes are in `manifest.json`. The baseline archives and SLAP reference sets are reused from the adjacent `unrestricted_competition_20260915` report. With repository dependencies plus `pybind11`, `setuptools`, `psutil`, `pytest` and `z3-solver` installed:
 
 ```sh
-export GRAFT_EXPERIMENT_WORK=/tmp/graft-prefix-test
+export MAPPA_EXPERIMENT_WORK=/tmp/mappa-prefix-test
 python prepare.py --repo /path/to/coordinate_alignment
-PYTHONPATH="$GRAFT_EXPERIMENT_WORK/engine/src" python -m pytest tests/test_fragment_choices.py test_prefix.py -q
+PYTHONPATH="$MAPPA_EXPERIMENT_WORK/engine/src" python -m pytest tests/test_fragment_choices.py test_prefix.py -q
 python check_control.py
 python verify_candidates.py
 python run.py

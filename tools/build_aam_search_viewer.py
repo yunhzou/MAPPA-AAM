@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from graft import aam_from_record, write_aam_bundle
+from mappa import aam_from_record, write_aam_bundle
 
 
 def main():

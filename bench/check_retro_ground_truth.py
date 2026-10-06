@@ -17,7 +17,7 @@ import sys
 from collections import Counter
 
 from rdkit import Chem
-from graft.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
+from mappa.retrosynthesis.config import DEFAULT_ISO_TOLERANCE
 
 
 def audit_saved_results(directory):
@@ -71,8 +71,8 @@ def build_partial_diagnostic(directory, report_name="results.json"):
     Equal masks retain the best witness for those objectives within each R.
     Production matching/indexing is unchanged.
     """
-    from graft.retrosynthesis.compressed_coverage import place_item
-    from graft.retrosynthesis.ranking import build_ranked_assembly, precursor_cost
+    from mappa.retrosynthesis.compressed_coverage import place_item
+    from mappa.retrosynthesis.ranking import build_ranked_assembly, precursor_cost
     report = json.loads((directory / report_name).read_text())
     index = json.loads((directory / "results.occupations.json").read_text())
     pools = {source_id: {} for source_id in report["expected_ids"]}

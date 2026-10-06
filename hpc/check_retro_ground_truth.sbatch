@@ -9,7 +9,7 @@
 
 set -euo pipefail
 cd /h/399/yunhengzou/coordinate_alignment
-export PYTHONPATH=src GRAFT_NATIVE=1
+export PYTHONPATH=src MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 source_args=()
 if [[ "$1" == detect ]]; then

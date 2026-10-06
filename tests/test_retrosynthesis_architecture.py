@@ -1,18 +1,18 @@
 import numpy as np
 
-from graft import WeightedGraph
-from graft.alignment.post_aam import (
+from mappa import WeightedGraph
+from mappa.alignment.post_aam import (
     AAMHierarchy,
     AtomPermutation,
     FragmentMatch,
     SymmetryDomain,
 )
-from graft.fragment_matching import FragmentCandidate
-from graft.retrosynthesis.enumeration import (
+from mappa.fragment_matching import FragmentCandidate
+from mappa.retrosynthesis.enumeration import (
     CoverageEnumerationConfig,
     enumerate_coverage_patterns,
 )
-from graft.retrosynthesis.compressed_coverage import (
+from mappa.retrosynthesis.compressed_coverage import (
     CoverageRecommendationConfig,
     assign_candidate_items,
     assign_occupation_signatures,
@@ -21,7 +21,7 @@ from graft.retrosynthesis.compressed_coverage import (
     place_candidate_items,
     recommend_compressed_coverage_patterns,
 )
-from graft.fragment_matching.serialization import (
+from mappa.fragment_matching.serialization import (
     fragment_candidate_from_record,
     fragment_candidate_to_record,
 )

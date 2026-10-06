@@ -11,7 +11,7 @@ import shutil
 import time
 
 from golden_campaign import save
-from graft.artifacts import aam_from_record
+from mappa.artifacts import aam_from_record
 
 
 def recover(run,index):

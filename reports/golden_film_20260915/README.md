@@ -1,6 +1,6 @@
 # Golden case 15: growth, fragment competition and canonical event decoding
 
-The 28-second research preview uses real saved GRAFT search states and a verified competition completion. It replaces the coordinate-case illustration with a Golden example. The source is one-seed, cap-100, iso-tolerance-1 sweep output. The displayed baseline paths are terminals 29 and 30 of context 2, with the N0–H19 sweep constraint. Fragment-growth calls were replayed against their archived placements and matched exactly.
+The 28-second research preview uses real saved MAPPA search states and a verified competition completion. It replaces the coordinate-case illustration with a Golden example. The source is one-seed, cap-100, iso-tolerance-1 sweep output. The displayed baseline paths are terminals 29 and 30 of context 2, with the N0–H19 sweep constraint. Fragment-growth calls were replayed against their archived placements and matched exactly.
 
 The displayed competition starts from terminal 29. The O18 fragment receives priority to extend across C16: O18 changes target, displacing O17, while H19 is also released. The fresh completion retains 28 anchors and refills two assignments. It preserves the original baseline paths. This is a new conditioned completion, not ordinary depth-first backtracking. `offers.json` records the actual proposal and `takeover3.json.gz` records its graph, including the unchanged-assignment revalidation step that is omitted from the compact diagram.
 

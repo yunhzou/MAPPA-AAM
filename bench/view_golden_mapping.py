@@ -1,6 +1,6 @@
 """Offline 2D reference/actual AAM comparison from an existing checkpoint."""
 
-from graft.viewers import viewer_style
+from mappa.viewers import viewer_style
 import argparse
 import ast
 import colorsys
@@ -17,7 +17,7 @@ from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from golden_evaluation import colored_graph, project
-from graft.artifacts import read_aam_checkpoint
+from mappa.artifacts import read_aam_checkpoint
 
 PALETTE = ['#009e73', '#e69f00', '#0072b2', '#cc79a7', '#d55e00', '#56b4e9', '#8c6bb1', '#a6761d', '#737373']
 
@@ -205,9 +205,9 @@ document.querySelectorAll('.atom-hit,tr[data-p]').forEach(x=>{x.addEventListener
 
 def main(args):
     if args.cut_graph:
-        from graft import AAMProblem, AAMSearchConfig
-        from graft.domain import MolecularEndpoint
-        from graft.search_graph import AAMSearchGraph
+        from mappa import AAMProblem, AAMSearchConfig
+        from mappa.domain import MolecularEndpoint
+        from mappa.search_graph import AAMSearchGraph
         raw = json.loads((args.source/'input.json').read_text())
         problem = AAMProblem(MolecularEndpoint(**raw['reactant']), MolecularEndpoint(**raw['product']), raw['name'])
         config = AAMSearchConfig(**json.loads((args.archive.parent/'manifest.json').read_text())['config'])

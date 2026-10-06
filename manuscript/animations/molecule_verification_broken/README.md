@@ -8,7 +8,7 @@ A **30-second 3D negative control** accompanying the [successful verification fi
 
 [Full-resolution MP4](broken-molecule-verification.mp4) · [Offline interactive film](index.html) · [Runnable XYZ example](../../../examples/molecule_verification/README.md)
 
-The actual unswept GRAFT search returns a complete diagnostic witness in **two fragments: 114 + 21 atoms**. It has **one missing connection and zero extra connections**. The original target has 148 inferred connections and one component; the broken candidate has 147 connections and two components. These graph invariants establish the mismatch independently of which symmetry-related atom mapping is chosen.
+The actual unswept MAPPA search returns a complete diagnostic witness in **two fragments: 114 + 21 atoms**. It has **one missing connection and zero extra connections**. The original target has 148 inferred connections and one component; the broken candidate has 147 connections and two components. These graph invariants establish the mismatch independently of which symmetry-related atom mapping is chosen.
 
 The film first illustrates the deliberate separation, then replays the recorded search on the fixed broken geometry. It includes two seed placements, all 133 single-atom extensions and both recorded boundary deferrals. Green and purple show the two mapping fragments. The red × marks the missing connection, with the existing target bond retained as a black line. The first fragment stops at 114 atoms; growth restarts in the remaining group. The final panel keeps atom coverage green while showing failed connectivity checks in red.
 
@@ -24,7 +24,7 @@ python examples/molecule_verification/verify.py \
   --output verification-broken-output --capture
 python manuscript/scripts/verification_broken_film/build.py \
   --run verification-broken-output \
-  --library src/graft/static/3Dmol-min.js \
+  --library src/mappa/static/3Dmol-min.js \
   --preparation examples/molecule_verification/break-preparation.json \
   --intact examples/molecule_verification/candidate.xyz \
   --output manuscript/animations/molecule_verification_broken

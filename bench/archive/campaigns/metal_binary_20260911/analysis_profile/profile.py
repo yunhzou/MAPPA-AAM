@@ -4,7 +4,7 @@ import numpy as np
 run=Path('/project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911')
 sys.path.insert(0,str(run))
 import metal_binary_events as events
-from graft.artifacts import read_aam_checkpoint
+from mappa.artifacts import read_aam_checkpoint
 index=int(sys.argv[1]);variant='original';folder=run/f'runs/holdout/{variant}/results/holdout/{index}/R_to_P/original'
 raw=json.loads((run/f'raw/holdout/{index}/input.json').read_text());expected=json.loads((folder/'raw_evaluation.json').read_text())
 start=time.process_time();aam=read_aam_checkpoint(folder/'cuts/aam.pkl.gz');loading=time.process_time()-start

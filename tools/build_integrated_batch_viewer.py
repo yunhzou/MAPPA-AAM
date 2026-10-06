@@ -2,7 +2,7 @@
 """Build one offline HTML navigator containing every batch case viewer."""
 from __future__ import annotations
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 
 import argparse
 import base64

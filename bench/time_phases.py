@@ -4,8 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "bench"))
 from cases import CASES
-import graft.aam as aam_mod
-from graft.domain import AAMProblem, AAMSearchConfig
+import mappa.aam as aam_mod
+from mappa.domain import AAMProblem, AAMSearchConfig
 
 def main():
     if "--fork" in sys.argv:
@@ -25,7 +25,7 @@ def main():
     aam_mod.finalize_graph_symmetry = timed("exact_groups", aam_mod.finalize_graph_symmetry)
     t0 = time.perf_counter()
     result = aam_mod.search_aam(problem, AAMSearchConfig(), workers=workers)
-    from graft import group_mechanisms
+    from mappa import group_mechanisms
     timed('optional_grouping', group_mechanisms)(result)
     total = time.perf_counter() - t0
     m = result.metrics

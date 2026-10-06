@@ -47,8 +47,8 @@ def certificate_rows(path):
 
 def child(args):
     import json
-    from graft.artifacts import read_aam_checkpoint
-    from graft.event_patterns import SignedEventIndex, extract_path_events
+    from mappa.artifacts import read_aam_checkpoint
+    from mappa.event_patterns import SignedEventIndex, extract_path_events
     from validate_event_examples import compare_saved_slap
     start, cpu = time.perf_counter(), time.process_time()
     deadline = start + max(0., args.seconds - 2.)
@@ -140,7 +140,7 @@ def child(args):
 
 def main(args):
     args.output.mkdir(parents=True, exist_ok=False)
-    sources = [ROOT / 'src/graft' / name for name in
+    sources = [ROOT / 'src/mappa' / name for name in
                ('event_patterns.py', 'event_certificates.py', 'family_query.py')]
     save(args.output / 'manifest.json', dict(archive=str(args.archive), archive_sha256=sha(args.archive),
         max_events=args.max_events, hard_watchdog_seconds=args.seconds, workers=1,

@@ -7,8 +7,8 @@ sys.path[:0]=[str(CODE/'src'),str(CODE/'bench')]
 from fragment_competition_optimized import save
 
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
  start=time.perf_counter();cpu=time.process_time();folder=OUT/f'case{case}'
  baseline=next(r for r in json.loads((ROOT/'outputs/holdout140_decoded_results/results.json').read_text())['cases'] if r['case']==case)
  window=int(baseline['max_events']);patterns={};rows=[];counts=collections.Counter();unfinished=[];idx=None

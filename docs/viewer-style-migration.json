@@ -29,7 +29,7 @@
       "layout": "golden_mapping"
     },
     {
-      "source": "src/graft/static/aam_search.html",
+      "source": "src/mappa/static/aam_search.html",
       "style_sha256": "c0c2e2962ac154602cef12a191bc72e1de66274f6aff8ea87bcb66af8bb4cd63",
       "family": "reaction",
       "layout": "search_graph"

@@ -20,9 +20,9 @@ import numpy as np
 import pynauty
 from holdout_minimum_events import AAM,DATA,PYTHON,EventPatterns,read,save,sha,event_counts,read_aam_checkpoint,colored_graph
 from holdout_minimum_event_families import aam_membership
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
 
 CASES=(11,64,101)
 SEEDS=(1,3,10,30)
@@ -127,7 +127,7 @@ def worker(args):
     path=args.run/f'status/case_{index}.json';assert not path.exists()
     status=dict(index=index,host=socket.gethostname(),started=time.time(),phases={})
     save(path,status)
-    env=dict(os.environ,PYTHONPATH=f'{AAM}/original/src:{AAM}/engine/bench',GRAFT_NATIVE='1',
+    env=dict(os.environ,PYTHONPATH=f'{AAM}/original/src:{AAM}/engine/bench',MAPPA_NATIVE='1',
         PYTHONHASHSEED='0',PYTHONDONTWRITEBYTECODE='1',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',CUDA_VISIBLE_DEVICES='')
     variants=read(args.run/'variants.json')
     for name,variant in variants.items():

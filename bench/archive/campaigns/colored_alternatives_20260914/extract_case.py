@@ -7,10 +7,10 @@ parser.add_argument('--repo',type=Path,default=Path(__file__).resolve().parents[
 parser.add_argument('--package-src',type=Path,help='Optional already built package source tree')
 args=parser.parse_args();ROOT=args.workspace.resolve();repo=args.repo.resolve()
 if args.package_src:sys.path.insert(0,str(args.package_src.resolve()))
-from graft.artifacts import read_aam_checkpoint
-from graft.final_branches import FinalBranchCatalogue
-from graft.event_patterns import SignedEventIndex
-from graft.family_query import query_path
+from mappa.artifacts import read_aam_checkpoint
+from mappa.final_branches import FinalBranchCatalogue
+from mappa.event_patterns import SignedEventIndex
+from mappa.family_query import query_path
 from rdkit import Chem
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 start=time.process_time();case=127

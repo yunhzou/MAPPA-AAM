@@ -1,9 +1,9 @@
 from dataclasses import replace
 
-from graft import AAMSearchConfig, search_aam
-from graft.frag import build_graph
-from graft.search_graph import AAMSearchGraph
-from graft.search_symmetry import finalize_graph_symmetry
+from mappa import AAMSearchConfig, search_aam
+from mappa.frag import build_graph
+from mappa.search_graph import AAMSearchGraph
+from mappa.search_symmetry import finalize_graph_symmetry
 from test_fragment_choices import problem
 
 
@@ -46,9 +46,9 @@ def test_pre_finalized_immutable_group_is_only_interned_once():
 def test_finalization_scoped_gc_preserves_records_and_restores_caller_state():
     import gc
     import pytest
-    from graft import AAMSearchConfig, search_aam
-    from graft.frag import build_graph
-    from graft.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
+    from mappa import AAMSearchConfig, search_aam
+    from mappa.frag import build_graph
+    from mappa.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
     from test_fragment_choices import problem
     sample=problem(6)
     aam=search_aam(sample,AAMSearchConfig(seed_count=3,iso_tolerance=1.))

@@ -8,7 +8,7 @@ manifest charge/multiplicity, and aggregates a compact GT + top-2 IG viewer.
 """
 from __future__ import annotations
 
-from graft.viewers import viewer_style
+from mappa.viewers import viewer_style
 
 import argparse
 import csv
@@ -29,7 +29,7 @@ if str(SRC) not in sys.path:
 
 import numpy as np
 
-from graft.chemistry_computations.xyz import parse_xyz, write_xyz_str
+from mappa.chemistry_computations.xyz import parse_xyz, write_xyz_str
 
 DEFAULT_BENCHMARK_ROOT = Path(
     "/h/399/yunhengzou/appendix_final/benchmark"
@@ -176,7 +176,7 @@ def validate_compositions(step_dir: Path, reactant_xyz: Path,
 
 
 def configure_pipeline(args, charge: int, multiplicity: int):
-    import graft.pipeline as pipeline
+    import mappa.pipeline as pipeline
 
     run_root = args.run_root
     pipeline.OUT_ROOT = run_root / "views"
@@ -204,7 +204,7 @@ def configure_pipeline(args, charge: int, multiplicity: int):
         "BGCP_XTB_WORKERS": str(pipeline.XTB_WORKERS),
         "BGCP_CHARGE": str(charge),
         "BGCP_MULTIPLICITY": str(multiplicity),
-        "GRAFT_PROJECT": str(PROJECT),
+        "MAPPA_PROJECT": str(PROJECT),
     })
     return pipeline
 

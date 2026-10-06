@@ -21,7 +21,7 @@
   "competition_budget": 128,
   "parents": 8,
   "depth": 2,
-  "scope": "Known failure-case development experiment; both directions of SLAP are evaluated only after GRAFT proposals. No global completeness claim.",
+  "scope": "Known failure-case development experiment; both directions of SLAP are evaluated only after MAPPA proposals. No global completeness claim.",
   "original_competition_sha256": "9e5f7dbc620b23bbf5beff7d76135fc698da14a40ebfe4696fd173dab28a11d7",
   "experimental_competition_sha256": "86df27b12c8574855a6f6b1c36e46f04c85b06d13f19fa73cf86e253c32061cc",
   "event_tolerances": {

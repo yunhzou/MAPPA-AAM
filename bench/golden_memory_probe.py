@@ -14,9 +14,9 @@ import tracemalloc
 
 def prepare(args):
     from golden_policy_campaign import load_case
-    from graft.frag import build_graph
-    from graft.aam import cut_seed
-    from graft.alignment.branch import _generate_seed_orders
+    from mappa.frag import build_graph
+    from mappa.aam import cut_seed
+    from mappa.alignment.branch import _generate_seed_orders
     _,plan=load_case(args.source,833)
     r=build_graph(plan.problem.reactant.elements,plan.problem.reactant.wbo,plan.config.graph_floor)
     p=build_graph(plan.problem.product.elements,plan.problem.product.wbo,plan.config.graph_floor)
@@ -27,13 +27,13 @@ def prepare(args):
 
 def probe(args):
     sys.path.insert(0,str(args.package/'src'))
-    from graft.alignment.branch import find_islands
-    from graft.growth.native import built
+    from mappa.alignment.branch import find_islands
+    from mappa.growth.native import built
     assert built(), 'Native engine must be present for a fair comparison'
     data=args.input.read_bytes();r,p,orders=pickle.loads(data)
     builders=[];results=[];profile=[];start=time.monotonic()
     if not args.legacy:
-        from graft.search_graph import SearchGraphBuilder
+        from mappa.search_graph import SearchGraphBuilder
         original=SearchGraphBuilder.__init__
         def capture(self,*a,**kw):
             original(self,*a,**kw);builders.append(self)

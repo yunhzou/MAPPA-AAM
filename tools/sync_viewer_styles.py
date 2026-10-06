@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,8 +22,8 @@ def sync():
             continue
         if name == 'tools/anchor_picker.html':
             source = path.read_text()
-            if '../src/graft/static/reaction_viewer.css' not in source:
-                source = source.replace('</head>', '<link rel="stylesheet" href="../src/graft/static/reaction_viewer.css"></head>', 1)
+            if '../src/mappa/static/reaction_viewer.css' not in source:
+                source = source.replace('</head>', '<link rel="stylesheet" href="../src/mappa/static/reaction_viewer.css"></head>', 1)
             source = source.replace('<body>', '<body data-viewer-layout="anchor">', 1)
             path.write_text(source)
             continue

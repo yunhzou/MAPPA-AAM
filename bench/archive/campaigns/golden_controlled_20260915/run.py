@@ -12,13 +12,13 @@ def save(p,v):
  p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);q=p.with_suffix(p.suffix+'.tmp');q.write_text(json.dumps(v)+'\n');q.replace(p)
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def configurations():
- return [dict(key=f'graft_c{cap}_s{seed}_{"sweep" if sweep else "uncut"}',method='graft',cap=cap,seed=seed,sweep=sweep) for cap in (100,2000) for seed,sweep in [(1,False),(1,True),(2,True),(3,True),(10,True)]]+[dict(key='slap_'+('sweep' if sweep else 'uncut'),method='slap',sweep=sweep) for sweep in (False,True)]
+ return [dict(key=f'mappa_c{cap}_s{seed}_{"sweep" if sweep else "uncut"}',method='mappa',cap=cap,seed=seed,sweep=sweep) for cap in (100,2000) for seed,sweep in [(1,False),(1,True),(2,True),(3,True),(10,True)]]+[dict(key='slap_'+('sweep' if sweep else 'uncut'),method='slap',sweep=sweep) for sweep in (False,True)]
 def setting(key):return next(c for c in configurations() if c['key']==key)
 def folder(case,key,direction):return ROOT/'results'/str(case)/key/direction
 
 def plan_for(case,cfg,direction):
- from graft import AAMProblem,MolecularEndpoint,AAMSearchConfig
- from graft.search_orientation import AAMSearchPlan
+ from mappa import AAMProblem,MolecularEndpoint,AAMSearchConfig
+ from mappa.search_orientation import AAMSearchPlan
  raw=read(BASE/'golden-inputs'/str(case)/'input.json')
  problem=AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant','product')),raw.get('name',''))
  config=AAMSearchConfig(seed_count=cfg['seed'],branch_limit=cfg['cap'],sweep_cuts=cfg['sweep'])
@@ -31,9 +31,9 @@ def begin(dest,**info):
  save(dest/'search-start.json',dict(cpu_baseline=baseline,wall_start=start,**info))
  return baseline,start
 
-def graft_search(case,cfg,direction,dest):
- from graft import search_aam_checkpoints
- import graft.aam as core
+def mappa_search(case,cfg,direction,dest):
+ from mappa import search_aam_checkpoints
+ import mappa.aam as core
  plan=plan_for(case,cfg,direction)
  compute={'cpu_seconds':0.,'wall_seconds':0.}
  # Read-only timers around unchanged native search calls; output handling remains
@@ -51,7 +51,7 @@ def graft_search(case,cfg,direction,dest):
  api_cpu=time.process_time()-c;api_wall=time.perf_counter()-w
  save(dest/'search.json',dict(cpu_seconds=api_cpu,wall_seconds=api_wall,compute=compute,config=asdict(plan.config),metrics=asdict(result.metrics),capped=result.capped,manifest_sha256=sha(dest/'cuts/manifest.json'),search_complete=True))
 
-def graft_score(case,cfg,direction,dest):
+def mappa_score(case,cfg,direction,dest):
  from golden_checkpoint_evaluation import evaluate_checkpoints
  plan=plan_for(case,cfg,direction)
  if not (dest/'cuts/manifest.json').exists():save(dest/'evaluation.json',dict(reference_recovery='unknown',reason='no search checkpoint'));return

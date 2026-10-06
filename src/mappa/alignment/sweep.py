@@ -1673,7 +1673,7 @@ def _cut_sweep_parallel(elR, wboR, elT, wboT, cfg, n_workers, core_R,
     metrics = _new_sweep_metrics(cfg['max_branches'])
     temporary = None
     if intermediate_dir is None:
-        temporary = tempfile.TemporaryDirectory(prefix='graft_sweep_')
+        temporary = tempfile.TemporaryDirectory(prefix='mappa_sweep_')
         intermediate_dir = temporary.name
     proc_pool = mp.Pool(n_workers, initializer=_cs_winit,
                         initargs=(elR, wboR, elT, wboT, cfg))
@@ -1716,7 +1716,7 @@ def _cut_sweep_chunk_parallel(elR, wboR, elT, wboT, cfg, n_workers, core_R,
     metrics = _new_sweep_metrics(cfg['max_branches'])
     temporary = None
     if intermediate_dir is None:
-        temporary = tempfile.TemporaryDirectory(prefix='graft_sweep_')
+        temporary = tempfile.TemporaryDirectory(prefix='mappa_sweep_')
         intermediate_dir = temporary.name
     proc_pool = mp.Pool(n_workers, initializer=_cs_winit,
                         initargs=(elR, wboR, elT, wboT, cfg))

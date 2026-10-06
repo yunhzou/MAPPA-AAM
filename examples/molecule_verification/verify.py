@@ -1,4 +1,4 @@
-"""Verify inferred connectivity from two XYZ files using an unswept GRAFT match.
+"""Verify inferred connectivity from two XYZ files using an unswept MAPPA match.
 
 The bundled candidate is a controlled demonstration, not generative-model output.
 XYZ has no bond labels: this example infers a binary graph independently on each
@@ -15,8 +15,8 @@ import numpy as np
 import networkx as nx
 from rdkit import Chem
 from rdkit.Chem import rdDetermineBonds
-from graft import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-from graft.artifacts import write_aam_checkpoint
+from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
+from mappa.artifacts import write_aam_checkpoint
 
 
 def endpoint_from_xyz(path):
@@ -46,7 +46,7 @@ def connection_check(problem, mapping):
 
 
 def verify(target, candidate, output, capture=False):
-    from graft.growth.native import available
+    from mappa.growth.native import available
     target_endpoint, candidate_endpoint = endpoint_from_xyz(target), endpoint_from_xyz(candidate)
     problem = AAMProblem(target_endpoint, candidate_endpoint,
                          f'{target_endpoint.atom_count}-atom connectivity verification')
@@ -95,7 +95,7 @@ def verify(target, candidate, output, capture=False):
         terminal,mapping,check,fragments=witness
         report.update(terminal=terminal,fragments=fragments,mapping=mapping,**check)
         if capture:
-            from graft.search_trajectory import build_trajectory
+            from mappa.search_trajectory import build_trajectory
             trace=build_trajectory([dict(aam=result, context=0, terminals=[terminal])], title='Molecule verification: recorded atom-by-atom growth')
             (output/'trajectory.json.gz').write_bytes(gzip.compress(json.dumps(trace,separators=(',',':')).encode(),mtime=0))
     (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n')

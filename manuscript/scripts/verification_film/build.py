@@ -1,4 +1,4 @@
-"""Build the verification film from a recorded GRAFT replay, without re-searching."""
+"""Build the verification film from a recorded MAPPA replay, without re-searching."""
 from pathlib import Path
 import argparse,gzip,json,hashlib
 import numpy as np

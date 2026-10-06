@@ -1,8 +1,8 @@
 from golden_evaluation import prepare
 from view_golden_mapping import molecules
 from collect_golden_patterns import collect,first_paths
-from graft import search_aam,AAMSearchConfig
-from graft.search_orientation import plan_aam_search
+from mappa import search_aam,AAMSearchConfig
+from mappa.search_orientation import plan_aam_search
 
 
 def test_archive_completion_resume_and_provenance(tmp_path):

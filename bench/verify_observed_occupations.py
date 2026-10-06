@@ -8,7 +8,7 @@ import pickle
 import sys
 import time
 
-from graft._group_ops import occupation_orbit
+from mappa._group_ops import occupation_orbit
 
 
 def relation(images, observed, attachments, fragments, bonds):

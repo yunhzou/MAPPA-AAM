@@ -1,6 +1,6 @@
 # Verify a candidate XYZ against a target
 
-This self-contained example checks whether two XYZ files have the same **inferred connectivity**, using an uncut GRAFT search. It is intended as a starting point for checking generated coordinates.
+This self-contained example checks whether two XYZ files have the same **inferred connectivity**, using an uncut MAPPA search. It is intended as a starting point for checking generated coordinates.
 
 [Watch the 28-second 3D film](../../manuscript/animations/molecule_verification/molecule-verification.mp4) · [Animated preview and evidence](../../manuscript/animations/molecule_verification/README.md)
 
@@ -19,7 +19,7 @@ python examples/molecule_verification/verify.py \
   --target target.xyz --candidate model_output.xyz --output verification-output
 ```
 
-The importable example function is `verify(target, candidate, output, capture=False)`. It uses `MolecularEndpoint`, `AAMProblem`, `AAMSearchConfig` and `search_aam` from `graft`. Add `--capture` to save the actual atom-by-atom trajectory for a successful match or a retained complete diagnostic witness.
+The importable example function is `verify(target, candidate, output, capture=False)`. It uses `MolecularEndpoint`, `AAMProblem`, `AAMSearchConfig` and `search_aam` from `mappa`. Add `--capture` to save the actual atom-by-atom trajectory for a successful match or a retained complete diagnostic witness.
 
 A result of `verified_connectivity` requires all of the following for the same retained witness:
 
@@ -38,7 +38,7 @@ The result is one complete 135-atom fragment with 148 inferred connections, zero
 Regenerate the candidate deterministically from the bundled target:
 
 ```bash
-python examples/molecule_verification/prepare_candidate.py --output /tmp/graft-candidate
+python examples/molecule_verification/prepare_candidate.py --output /tmp/mappa-candidate
 ```
 
 The preparation script uses torsion indices specific to this example. It is not a general conformer generator. [Preparation provenance](preparation.json) records the changes, seed, target hash and RDKit version.
@@ -65,4 +65,4 @@ python examples/molecule_verification/verify.py \
 
 The recorded diagnostic witness maps all 135 atoms in **two fragments (114 + 21)** and has **one missing connection**. The result is `different_connectivity`: complete atom coverage alone does not establish the same molecule. The component and edge counts establish the mismatch independently of the selected mapping or any search cap.
 
-Regenerate the negative input with `python examples/molecule_verification/prepare_broken.py --output /tmp/graft-broken`. The script checks that only the selected bridge is lost. Its supplied bridge indices are specific to this demonstration. [Preparation evidence](break-preparation.json) records the translation and moved atoms. Equivalent ligand attachments can be shuffled by symmetry; the film's final red marker follows the returned GRAFT witness, whose target atom indices can differ from the construction indices.
+Regenerate the negative input with `python examples/molecule_verification/prepare_broken.py --output /tmp/mappa-broken`. The script checks that only the selected bridge is lost. Its supplied bridge indices are specific to this demonstration. [Preparation evidence](break-preparation.json) records the translation and moved atoms. Equivalent ligand attachments can be shuffled by symmetry; the film's final red marker follows the returned MAPPA witness, whose target atom indices can differ from the construction indices.

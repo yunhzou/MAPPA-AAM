@@ -1,5 +1,5 @@
 """
-Low-level utilities used by graft:
+Low-level utilities used by mappa:
 
   build_graph               — WBO graph (edge iff WBO >= bond_cut)
   expand_mapping            — element-multiset pairing of unmapped neighbors

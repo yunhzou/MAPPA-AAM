@@ -3,14 +3,14 @@ from pathlib import Path
 import sys,os,json,gzip,time,subprocess,signal,concurrent.futures,hashlib
 S=Path(__file__).resolve().parent
 R=S.parents[1]
-W=Path(os.environ['GRAFT_ARCHIVE_ROOT'])
+W=Path(os.environ['MAPPA_ARCHIVE_ROOT'])
 sys.path.insert(0,str(R/'src'))
 def read(p):return json.loads(gzip.decompress(p.read_bytes()) if p.suffix=='.gz' else p.read_text())
 def save(p,d):p.write_text(json.dumps(d,separators=(',',':'))+'\n')
 def child(case):
- from graft.artifacts import read_aam_checkpoint
- from graft.final_branches import FinalBranchCatalogue
- from graft.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.artifacts import read_aam_checkpoint
+ from mappa.final_branches import FinalBranchCatalogue
+ from mappa.event_patterns import SignedEventIndex,extract_path_events
  folder=S/'decoded'/str(case);folder.mkdir(parents=True,exist_ok=True)
  start=time.perf_counter();cpu=time.process_time()
  path=W/f'runs/coordinate/seed1/case{case}/R_to_P/cuts/aam.pkl.gz'

@@ -3,12 +3,12 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from graft.alignment.branch import find_islands
-from graft.growth import native
-from graft.cut_replay import FragmentRepair
-from graft.native_search import find_islands_native
-from graft.matcher import _nauty_orbits
-from graft.search_symmetry import finalize_graph_symmetry
+from mappa.alignment.branch import find_islands
+from mappa.growth import native
+from mappa.cut_replay import FragmentRepair
+from mappa.native_search import find_islands_native
+from mappa.matcher import _nauty_orbits
+from mappa.search_symmetry import finalize_graph_symmetry
 from test_cut_replay import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
@@ -97,7 +97,7 @@ def test_random_graphs_exercise_both_cap_stages():
         for side in range(2):
             w=np.triu(rng.choice([0.,0.,0.,1.,1.5,2.],size=(8,8)),1)
             matrices.append(w+w.T)
-        from graft.frag import build_graph
+        from mappa.frag import build_graph
         source,target=[build_graph(['C']*4+['O']*2+['H']*2,w,bond_cut=.2) for w in matrices]
         result=compare(source,target,list(map(int,rng.permutation(8))),max_branches=int(rng.choice([3,4,8,100])))
         cap_stages.update(stop.stage for stop in result.stops if stop.reason=='capped')

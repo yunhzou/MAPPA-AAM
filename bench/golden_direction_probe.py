@@ -11,9 +11,9 @@ import pynauty
 
 from golden_evaluation import colored_graph, project, rank_key
 from investigate_golden_mapping import save
-from graft import AAMProblem, AAMSearchConfig
-from graft.artifacts import read_aam_checkpoint
-from graft.domain import MolecularEndpoint
+from mappa import AAMProblem, AAMSearchConfig
+from mappa.artifacts import read_aam_checkpoint
+from mappa.domain import MolecularEndpoint
 
 
 def original_mapping(pairs, direction):
@@ -72,7 +72,7 @@ def compare(run, output, reverse_cut=None):
         directory = run/direction/'case1665_seeds3_cap2000'
         partial = direction == 'P_to_R' and reverse_cut is not None
         if partial:
-            from graft.search_graph import AAMSearchGraph
+            from mappa.search_graph import AAMSearchGraph
             graph = AAMSearchGraph.from_record(json.loads(reverse_cut.read_bytes()),copy=False)
             config = AAMSearchConfig(**json.loads((reverse_cut.parent/'manifest.json').read_text())['config'])
             archive = reverse_cut

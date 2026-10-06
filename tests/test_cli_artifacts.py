@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from graft.cli import main
+from mappa.cli import main
 
 
 def _write_endpoint(path, elements, coordinates, edges, *, modes=False):

@@ -2,10 +2,10 @@
 from pathlib import Path
 import sys,json,gzip
 S=Path(__file__).resolve().parent;R=S.parents[2];sys.path.insert(0,str(R/'src'))
-from graft.artifacts import aam_from_record
-from graft.final_branches import FinalBranchCatalogue
-from graft.event_patterns import SignedEventIndex
-from graft.family_query import query_path
+from mappa.artifacts import aam_from_record
+from mappa.final_branches import FinalBranchCatalogue
+from mappa.event_patterns import SignedEventIndex
+from mappa.family_query import query_path
 read=lambda p:json.loads(gzip.decompress(p.read_bytes()) if p.suffix=='.gz' else p.read_text())
 a=aam_from_record(read(S/'baseline.json.gz'));cat=FinalBranchCatalogue.from_record(a.problem,read(S/'catalogue.json.gz'));d=read(S/'film-source.json');idx=SignedEventIndex(a.problem);assert 'competition' not in d
 assert len(d['paths'])==2 and {p['terminal'] for p in d['paths']}=={29,30}

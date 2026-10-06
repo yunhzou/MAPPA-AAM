@@ -1,9 +1,9 @@
 from itertools import permutations
 import numpy as np
 
-from graft import AAMProblem,AAMSearchConfig,search_aam,query_path
-from graft.domain import MolecularEndpoint
-from graft.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
+from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
+from mappa.domain import MolecularEndpoint
+from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
 
 
 def endpoint(elements,edges):

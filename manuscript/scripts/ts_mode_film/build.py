@@ -1,11 +1,11 @@
-"""Export recorded TEMPO initial-guess modes and verify the current GRAFT selection."""
+"""Export recorded TEMPO initial-guess modes and verify the current MAPPA selection."""
 from pathlib import Path
 import argparse,json,hashlib,signal
 import numpy as np
-from graft import (AAMProblem,AAMSearchConfig,AtomBijection,MolecularEndpoint,ReactionContext,ResolvedMechanism,TransitionStateTarget,VibrationalModes,analyze_transition_state,ts_record)
-from graft.chemistry_computations import parse_xyz
-from graft.chemistry_computations.xtb import read_wbo_file
-from graft.modes import parse_g98_modes,bond_overlap_per_mode
+from mappa import (AAMProblem,AAMSearchConfig,AtomBijection,MolecularEndpoint,ReactionContext,ResolvedMechanism,TransitionStateTarget,VibrationalModes,analyze_transition_state,ts_record)
+from mappa.chemistry_computations import parse_xyz
+from mappa.chemistry_computations.xtb import read_wbo_file
+from mappa.modes import parse_g98_modes,bond_overlap_per_mode
 
 def build(source,library,output):
  output.mkdir(parents=True,exist_ok=True)

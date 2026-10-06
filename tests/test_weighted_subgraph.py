@@ -1,6 +1,6 @@
 import numpy as np
 
-from graft import WeightedGraph, WeightedNode, match_weighted_subgraph
+from mappa import WeightedGraph, WeightedNode, match_weighted_subgraph
 
 
 def _edge_matrix(n, edges):

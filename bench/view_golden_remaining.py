@@ -1,6 +1,6 @@
 """Offline simultaneous reference/detected views from saved AAM archives only."""
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 import colorsys
 from collections import Counter
@@ -15,7 +15,7 @@ from rdkit import Chem
 from rdkit.Geometry import Point3D
 from golden_policy_campaign import load_case,save
 from view_golden_mapping import molecules,svg,mapping_fragments,PALETTE
-from graft.artifacts import read_aam_checkpoint,read_raw_cut,raw_cut_paths
+from mappa.artifacts import read_aam_checkpoint,read_raw_cut,raw_cut_paths
 
 INDICES=[7,19,590,603,780,833,845,865,867,871,986,1228,1285,1358,1377,1380,1475,1553,1568,1574,1793]
 

@@ -4,7 +4,7 @@ Distance is literal heavy-atom pair disagreement, not family or symmetry distanc
 An optional reactant subset must occupy its reference target set collectively.
 """
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 import argparse
 import ast
 import colorsys

@@ -47,7 +47,7 @@ def submit(args):
     assert not (args.run / 'jobs.json').exists()
     engine = args.run / 'engine'
     env = ['env', 'OMP_NUM_THREADS=1', 'OPENBLAS_NUM_THREADS=1', 'MKL_NUM_THREADS=1',
-           'PYTHONHASHSEED=0', 'GRAFT_NATIVE=1', f'PYTHONPATH={engine}/src:{engine}/bench', 'CUDA_VISIBLE_DEVICES=']
+           'PYTHONHASHSEED=0', 'MAPPA_NATIVE=1', f'PYTHONPATH={engine}/src:{engine}/bench', 'CUDA_VISIBLE_DEVICES=']
     command = [*env, sys.executable, str(engine / 'bench/elementary_feasibility.py'),
                'worker', '--run', str(args.run), '--method', 'aam', '--slot']
     options = ['sbatch', '--parsable', '--partition=cpunodes', '--nodes=1', '--cpus-per-task=16',
@@ -166,7 +166,7 @@ def cap_followup(args):
             manifest['followup_scope'] = 'Only case123, both directions; cap200, tolerance1; never mixed into fixed cap100 results.'
         save(out / name, manifest)
     env = ['env', 'OMP_NUM_THREADS=1', 'OPENBLAS_NUM_THREADS=1', 'MKL_NUM_THREADS=1', 'PYTHONHASHSEED=0',
-           'GRAFT_NATIVE=1', f'PYTHONPATH={out}/engine/src:{out}/engine/bench']
+           'MAPPA_NATIVE=1', f'PYTHONPATH={out}/engine/src:{out}/engine/bench']
     cmd = [*env, sys.executable, str(out / 'engine/bench/elementary_feasibility.py'), 'worker',
            '--run', str(out), '--method', 'aam', '--slot']
     options = ['sbatch', '--parsable', '--partition=cpunodes', '--exclude=bosque5,bosque6,bosque8',

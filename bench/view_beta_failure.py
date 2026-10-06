@@ -7,7 +7,7 @@ import pickle
 import subprocess
 import sys
 
-from graft.retrosynthesis.beta import BetaResult, BetaRecommendation
+from mappa.retrosynthesis.beta import BetaResult, BetaRecommendation
 
 
 def main():

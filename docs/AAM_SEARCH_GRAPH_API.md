@@ -63,7 +63,7 @@ an equality key. Broader exact-family comparisons remain post-processing.
 ## Reusable conditional fragment matching
 
 ```python
-from graft import match_fragment, FragmentMatchConfig, FragmentMatchContext
+from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
 
 result = match_fragment(
     source_graph, target_graph, seed=source_atom,
@@ -147,7 +147,7 @@ automatically the original search witness; use the graph for raw matching.
 ## Persistence and offline replay
 
 ```python
-from graft import search_aam, aam_from_record, write_aam_bundle
+from mappa import search_aam, aam_from_record, write_aam_bundle
 import json
 
 aam = search_aam(problem, config, workers=8, intermediate_dir="run/aam_search")

@@ -31,7 +31,7 @@ def main():
         nodes=args.nodes,workers_per_node=args.workers,cut_workers=args.cut_workers,
         cpus_per_node=args.cpus,memory_per_node=args.memory,jobs=[])
     for shard,node in enumerate(args.nodes):
-        command=['env',f'PYTHONPATH={engine}/src','GRAFT_NATIVE=1','OPENBLAS_NUM_THREADS=1',
+        command=['env',f'PYTHONPATH={engine}/src','MAPPA_NATIVE=1','OPENBLAS_NUM_THREADS=1',
             'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1',sys.executable,str(engine/'bench/complete_golden_campaign.py'),
             'pool','--run',str(args.run),'--shard',str(shard),'--shards',str(len(args.nodes)),
             '--workers',str(args.workers),'--cut-workers',str(args.cut_workers)]

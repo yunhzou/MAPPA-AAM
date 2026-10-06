@@ -7,9 +7,9 @@ import time
 
 from golden_policy_campaign import load_case, save
 from golden_evaluation import evaluate_planned
-from graft import AAMProblem, search_aam
-from graft.search_orientation import AAMSearchPlan
-from graft.artifacts import read_aam_checkpoint, raw_cut_paths, read_raw_cut, read_graph_checkpoint
+from mappa import AAMProblem, search_aam
+from mappa.search_orientation import AAMSearchPlan
+from mappa.artifacts import read_aam_checkpoint, raw_cut_paths, read_raw_cut, read_graph_checkpoint
 
 
 def main(args):
@@ -45,9 +45,9 @@ def main(args):
         else:
             # A watchdog may interrupt a later cut or parent merge. Saved cuts
             # can certify a positive; incomplete evidence cannot certify absence.
-            from graft.domain import AAMResult, AAMSearchMetrics
-            from graft.search_symmetry import finalize_graph_symmetry
-            from graft.frag import build_graph
+            from mappa.domain import AAMResult, AAMSearchMetrics
+            from mappa.search_symmetry import finalize_graph_symmetry
+            from mappa.frag import build_graph
             target = build_graph(plan.problem.product.elements, plan.problem.product.wbo, config.graph_floor)
             start = time.monotonic()
             checks = []

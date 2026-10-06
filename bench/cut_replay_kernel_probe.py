@@ -12,14 +12,14 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--binary',type=Path,required=True)
 p.add_argument('--output',type=Path,required=True)
 a=p.parse_args()
-spec=importlib.util.spec_from_file_location('graft._engine',a.binary)
+spec=importlib.util.spec_from_file_location('mappa._engine',a.binary)
 module=importlib.util.module_from_spec(spec)
-sys.modules['graft._engine']=module
+sys.modules['mappa._engine']=module
 spec.loader.exec_module(module)
 
-from graft.frag import build_graph
-from graft.matcher import _nauty_orbits
-from graft.growth import native
+from mappa.frag import build_graph
+from mappa.matcher import _nauty_orbits
+from mappa.growth import native
 
 source=Path('/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909/inputs')
 rows=[]

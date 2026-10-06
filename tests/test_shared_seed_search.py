@@ -4,14 +4,14 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from graft import AAMSearchConfig
-from graft.aam import cut_seed
-from graft.adaptive_cut_search import AdaptiveCutSearch
-from graft.alignment.branch import _generate_seed_orders
-from graft.domain import AAMProblem, MolecularEndpoint
-from graft.native_search import find_islands_native
-from graft.search_graph import frozen_value
-from graft.shared_seed_search import SharedSeedSearch
+from mappa import AAMSearchConfig
+from mappa.aam import cut_seed
+from mappa.adaptive_cut_search import AdaptiveCutSearch
+from mappa.alignment.branch import _generate_seed_orders
+from mappa.domain import AAMProblem, MolecularEndpoint
+from mappa.native_search import find_islands_native
+from mappa.search_graph import frozen_value
+from mappa.shared_seed_search import SharedSeedSearch
 
 
 def state_key(state):
@@ -102,7 +102,7 @@ def test_element_exhaustion_skips_only_impossible_growth(cap, monkeypatch):
 
 @pytest.mark.parametrize('workers', [1, 2])
 def test_cut_worker_backend_preserves_full_fragment_content_and_checkpoint_identity(tmp_path, workers):
-    from graft import search_aam
+    from mappa import search_aam
     from test_fragment_choices import problem
     config = AAMSearchConfig(seed_count=3, iso_tolerance=1., branch_limit=100)
     original = search_aam(problem(6), config, workers=workers, execution='reused_native')

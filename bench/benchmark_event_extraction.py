@@ -28,8 +28,8 @@ def save(path, value):
 
 def child(args):
     import pynauty
-    from graft import AAMProblem, MolecularEndpoint
-    from graft.event_patterns import SignedEventIndex
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.event_patterns import SignedEventIndex
     from reference_dense_events import DeltaPatterns
     raw = json.loads((args.repo / f'manuscript/evidence/case{args.case}_input.json').read_text())
     catalogue = json.loads((args.repo / 'reports/holdout_minimum_event_patterns_20260910/per_case.json').read_text())
@@ -122,7 +122,7 @@ def main(args):
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=workers) as pool:
         cases = list(pool.map(run, selected))
-    source_files = [ROOT / 'src/graft/event_patterns.py', ROOT / 'bench/reference_dense_events.py', Path(__file__)]
+    source_files = [ROOT / 'src/mappa/event_patterns.py', ROOT / 'bench/reference_dense_events.py', Path(__file__)]
     inputs = [args.repo / f'manuscript/evidence/case{i}_input.json' for i in selected]
     inputs.append(args.repo / 'reports/holdout_minimum_event_patterns_20260910/per_case.json')
     summary = dict(logical_cpus=logical, worker_limit=workers, logical_cpus_not_assigned_to_workers=logical - workers,

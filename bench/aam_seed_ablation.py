@@ -102,7 +102,7 @@ def batch(args):
     width=manifest['original_workers'] if args.phase=='search' else 1
     allocation=manifest['node_cpus'] if args.phase=='search' else manifest['analysis_node_cpus']
     assert len(cores)>=allocation and allocation%width==0
-    env=dict(os.environ,PYTHONPATH=f'{args.run}/original/src:{args.run}/engine/bench',GRAFT_NATIVE='1',
+    env=dict(os.environ,PYTHONPATH=f'{args.run}/original/src:{args.run}/engine/bench',MAPPA_NATIVE='1',
         PYTHONHASHSEED='0',PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1')
     def work(affinity):
         while (slot:=claim(args.run,args.phase)) is not None:

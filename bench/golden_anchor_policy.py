@@ -67,11 +67,11 @@ def init(args):
 
 
 def search(args):
-    from graft.aam import _initialize_search,_search_cut
-    from graft.artifacts import write_aam_checkpoint
-    from graft.domain import AAMResult,AAMSearchMetrics
-    from graft.frag import build_graph
-    from graft.search_symmetry import finalize_graph_symmetry
+    from mappa.aam import _initialize_search,_search_cut
+    from mappa.artifacts import write_aam_checkpoint
+    from mappa.domain import AAMResult,AAMSearchMetrics
+    from mappa.frag import build_graph
+    from mappa.search_symmetry import finalize_graph_symmetry
     m=json.loads((args.run/'manifest.json').read_text());task=m['tasks'][args.slot]
     _,plan=load_case(Path(m['source']),task['index']);out=args.run/str(args.slot)
     anchors=(tuple(task['pair']),) if task['kind']=='anchor' else ()
@@ -90,7 +90,7 @@ def search(args):
 
 
 def score(args):
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     from golden_evaluation import evaluate_planned
     m=json.loads((args.run/'manifest.json').read_text());task=m['tasks'][args.slot]
     directory,plan=load_case(Path(m['source']),task['index']);out=args.run/str(args.slot)

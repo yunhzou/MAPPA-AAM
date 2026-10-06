@@ -8,6 +8,6 @@
 #SBATCH --time=08:00:00
 set -euo pipefail
 cd /h/399/yunhengzou/coordinate_alignment
-export PYTHONPATH=src GRAFT_NATIVE=1
+export PYTHONPATH=src MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 .venv/bin/python bench/run_beta_case.py --case "$1" --cpu-budget "$2"

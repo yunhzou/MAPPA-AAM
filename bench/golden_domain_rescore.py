@@ -11,7 +11,7 @@ import time
 
 from golden_policy_campaign import load_case,save,guarded
 from golden_evaluation import evaluate_planned
-from graft.artifacts import read_aam_checkpoint,raw_cut_paths,read_raw_cut
+from mappa.artifacts import read_aam_checkpoint,raw_cut_paths,read_raw_cut
 
 
 def init(args):
@@ -46,9 +46,9 @@ def score(args):
         e.update(search_incomplete=False,archive=str(archive),total_seconds=time.perf_counter()-start)
         save(out/'evaluation.json',e)
         return
-    from graft.search_symmetry import finalize_graph_symmetry
-    from graft.frag import build_graph
-    from graft.domain import AAMResult,AAMSearchMetrics
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from mappa.frag import build_graph
+    from mappa.domain import AAMResult,AAMSearchMetrics
     target=build_graph(plan.problem.product.elements,plan.problem.product.wbo,plan.config.graph_floor)
     checks=[]
     for cut in raw_cut_paths(source/'cuts'):

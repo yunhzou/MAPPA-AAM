@@ -14,7 +14,7 @@ from build_alternatives_figure import check_case
 check_case(MAN)
 uncut=read('unswept.json')
 assert uncut['denominator']==1851 and uncut['seed_count']==1
-for name in ['graft','slap']:
+for name in ['mappa','slap']:
  d=uncut['methods'][name]
  assert sum(d['counts'].values())==1851
  assert d['counts']['recovered']==len(set(d['recovered_cases']))
@@ -87,7 +87,7 @@ for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{s
 assert 'Golden reference recovery and runtime' in alltext
 assert 'First correct' not in alltext and 'two ten-order cases remain unresolved' not in alltext
 comparison=(MAN/'includes/generated-competitor-table.tex').read_text()
-assert comparison.count('GRAFT &')==5
+assert comparison.count('MAPPA &')==5
 assert comparison.count('SLAP,')==3
 assert comparison.count('One bijection')==5
 assert r'\multicolumn' not in comparison
@@ -112,7 +112,7 @@ assert 'AMD EPYC 9J14' in alltext and 'CPU model unrecorded' in alltext.replace(
 assert '--' not in comparison
 
 for fig in figs:
- assert 'GRAFT' in PdfReader(MAN/fig).pages[0].extract_text(), fig
+ assert 'MAPPA' in PdfReader(MAN/fig).pages[0].extract_text(), fig
 for value in ['1,489','1,661','80.44','89.74']:assert value in alltext
 for d in competitors['methods']:
  if d['method']!='slap_weighted':assert f"{d['any_correct']:,}" in alltext
@@ -139,7 +139,7 @@ for k,d in timing['methods'].items():
  assert abs(st['mean']-statistics.mean(xs))<1e-8 and abs(st['median']-statistics.median(xs))<1e-8
  # 1821 samples give an integer index under the stated linear percentile rule.
  assert abs(st['p95']-xs[1729])<1e-8
-for prefix,key in [('graft1','seeds1'),('graft2','seeds2')]:
+for prefix,key in [('mappa1','seeds1'),('mappa2','seeds2')]:
  assert abs(timing['methods'][prefix+'_bidirectional']['stats']['mean']-seed['methods'][key]['common_mean_cpu_seconds'])<1e-8
 for v in ['1.141','1.377','2.518','3.329','1.490','4.819','95th pct.']:assert v in alltext,v
 for d in timing['default_comparators']:
@@ -148,7 +148,7 @@ for d in timing['default_comparators']:
  assert abs(d['mean_wall_seconds']*d['calls']-source['original_mapping_timing']['successful_mapping_wall_sum_seconds'])<1e-8
 coord=read('coordinate_minima.json')
 assert coord['cases']==140 and coord['mapping_runs']==0
-assert coord['graft_minimum_patterns']==166==sum(len(r['graft_minimum_ids']) for r in coord['per_case'])
+assert coord['mappa_minimum_patterns']==166==sum(len(r['mappa_minimum_ids']) for r in coord['per_case'])
 assert coord['comparisons']['slap_sweep']['count_relations']=={'equal':136,'lower':4}
 assert coord['comparisons']['native_slap']['count_relations']=={'equal':125,'lower':15}
 for method,d in coord['comparisons'].items():
@@ -164,7 +164,7 @@ assert 'not a mapping-accuracy benchmark' in alltext.replace('\n',' ')
 local=next(d for d in competitors['methods'] if d['method']=='localmapper')
 assert local['any_correct']==max(d['any_correct'] for d in competitors['methods'] if not d['method'].startswith('slap'))
 assert 'CPU/SLAP' in alltext and 'LocalMapper' in alltext and 'prior' in alltext
-for prefix in ['graft1','graft2','slap']:
+for prefix in ['mappa1','mappa2','slap']:
  for policy in ['smaller_first','larger_first','bidirectional']:
   ratio=timing['methods'][prefix+'_'+policy]['stats']['mean']/timing['methods']['slap_'+policy]['stats']['mean']
   assert f'{ratio:.2f}' in (MAN/'includes/generated-direction-table.tex').read_text()
@@ -174,13 +174,13 @@ assert min(timing['default_comparators'],key=lambda d:d['mean_cpu_seconds'])['ke
 # The coordinate cap paragraph carries forward search completion only.
 assert '123 and 125' in alltext.replace('\n',' ')
 assert not re.search(r'\b(?:competition|takeover|competing)\b',tex,re.I)
-assert 'graft_competition' not in coord['timing']
-assert 'graft_decoding' not in coord['timing']  # no complete baseline timing pass
+assert 'mappa_competition' not in coord['timing']
+assert 'mappa_decoding' not in coord['timing']  # no complete baseline timing pass
 assert coord['competition'] is False
 for row,cert in zip(coord['per_case'],flat['per_case']):
  assert row['case']==cert['case']
  for other in row['comparators'].values():
-  assert set(other['covered_in_graft_window'])==set(other['ids'])&set(cert['class_ids'])
+  assert set(other['covered_in_mappa_window'])==set(other['ids'])&set(cert['class_ids'])
 
 # Same-CPU Golden cap ablation; unresolved is not a verified exclusion.
 ablation=read('golden_cap_ablation.json')
@@ -204,11 +204,11 @@ for key,units in e2e['complete_cohort'].items():
  for unit,d in units.items():
   values=[(r['result']['end_to_end'] if key=='end_to_end' else r['result']['stages'][key])[unit] for r in e2e['rows'] if r['execution']['complete']]
   assert d['n']==len(values)==e2e['completed'] and abs(d['mean']-sum(values)/len(values))<1e-8
-assert 'GRAFT search plus bond-event decoding' in alltext
+assert 'MAPPA search plus bond-event decoding' in alltext
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. GRAFT and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. MAPPA and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

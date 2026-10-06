@@ -8,9 +8,9 @@ import shutil
 import tarfile
 
 from holdout_missing_pattern_seeds import CASES,SEEDS,AAM,EventPatterns,read,save,sha
-from graft import AAMProblem
-from graft.domain import MolecularEndpoint
-from graft.family_scoring import bond_events
+from mappa import AAMProblem
+from mappa.domain import MolecularEndpoint
+from mappa.family_scoring import bond_events
 
 
 def publish(args):

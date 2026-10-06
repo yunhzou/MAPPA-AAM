@@ -7,12 +7,12 @@ import time
 import numpy as np
 from adaptive_fragment_pilot import save
 from compare_elementary_outputs import event_counts
-from graft.artifacts import read_graph_checkpoint, write_graph_checkpoint
-from graft.frag import build_graph
-from graft.matcher import _nauty_orbits
-from graft.native_search import find_islands_native
-from graft.search_symmetry import finalize_graph_symmetry
-from graft.conditioned_symmetry import ConditionedSymmetryWorkspace
+from mappa.artifacts import read_graph_checkpoint, write_graph_checkpoint
+from mappa.frag import build_graph
+from mappa.matcher import _nauty_orbits
+from mappa.native_search import find_islands_native
+from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
 
 
 def best(graph,r,p):

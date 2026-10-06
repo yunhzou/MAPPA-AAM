@@ -10,17 +10,17 @@ for w,row,cert,original in zip(windows,coord['per_case'],certs['per_case'],old['
  assert w['case']==row['case']==cert['case']==original['case']
  assert cert['complete'] and original['complete'] and w['complete_saved_window']
  assert set(w['patterns'])==set(cert['class_ids'])==set(original['baseline_class_ids'])
- minimum=min(p['total'] for p in w['patterns'].values());assert minimum==row['graft_minimum']
- assert set(row['graft_minimum_ids'])=={k for k,p in w['patterns'].items() if p['total']==minimum}
+ minimum=min(p['total'] for p in w['patterns'].values());assert minimum==row['mappa_minimum']
+ assert set(row['mappa_minimum_ids'])=={k for k,p in w['patterns'].items() if p['total']==minimum}
  for comparator in row['comparators'].values():
-  assert set(comparator['covered_in_graft_window'])==set(w['patterns'])&set(comparator['ids'])
-  assert set(comparator['shared_minimum_ids'])==set(row['graft_minimum_ids'])&set(comparator['ids'])
+  assert set(comparator['covered_in_mappa_window'])==set(w['patterns'])&set(comparator['ids'])
+  assert set(comparator['shared_minimum_ids'])==set(row['mappa_minimum_ids'])&set(comparator['ids'])
 for name,total in coord['comparisons'].items():
  rows=[r['comparators'][name] for r in coord['per_case']]
  assert total['count_relations']==dict(collections.Counter(r['count_relation'] for r in rows))
- assert total['covered_in_graft_window']==sum(len(r['covered_in_graft_window']) for r in rows)
+ assert total['covered_in_mappa_window']==sum(len(r['covered_in_mappa_window']) for r in rows)
  assert total['shared_minimum_patterns']==sum(len(r['shared_minimum_ids']) for r in rows)
 assert len(windows)==140 and sum(len(w['patterns']) for w in windows)==300
-assert sum(len(r['graft_minimum_ids']) for r in coord['per_case'])==166
-assert 'graft_competition' not in coord['timing'] and 'graft_decoding' not in coord['timing']
+assert sum(len(r['mappa_minimum_ids']) for r in coord['per_case'])==166
+assert 'mappa_competition' not in coord['timing'] and 'mappa_decoding' not in coord['timing']
 print('Passed: 140 baseline windows, 300 patterns, 166 minimum patterns; no competition.')

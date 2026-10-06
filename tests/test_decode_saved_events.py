@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
 from decode_saved_events import same_config, verified_resume, certificate_rows
-from graft import AAMSearchConfig
+from mappa import AAMSearchConfig
 
 
 def test_json_roundtrip_is_the_same_search_configuration():

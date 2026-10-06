@@ -25,9 +25,9 @@ from golden_policy_campaign import load_case, save, guarded
 from golden_evaluation import evaluate_planned
 from publication_timing import SearchProfiler
 from publication_analysis import rank_archive, merge_classes, representative_metrics, certificate_id, union_outcome, top_five_family
-from graft import AAMProblem, AAMSearchConfig, search_aam
-from graft.search_orientation import AAMSearchPlan
-from graft.artifacts import read_aam_checkpoint
+from mappa import AAMProblem, AAMSearchConfig, search_aam
+from mappa.search_orientation import AAMSearchPlan
+from mappa.artifacts import read_aam_checkpoint
 
 DIRECTIONS = ('R_to_P','P_to_R')
 
@@ -244,7 +244,7 @@ def submit(args):
         memory='32G' if phase=='search' else '24G'
         concurrency=40 if phase=='search' else 24
         command=shlex.join(['env',f'PYTHONPATH={engine}/src:{engine}/bench','PYTHONHASHSEED=0',
-            'GRAFT_NATIVE=1','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1','MKL_NUM_THREADS=1',
+            'MAPPA_NATIVE=1','OPENBLAS_NUM_THREADS=1','OMP_NUM_THREADS=1','MKL_NUM_THREADS=1',
             sys.executable,str(engine/'bench/golden_publication.py'),'worker','--run',str(root),
             '--phase',phase,'--offset',str(offset),'--slot'])+' "$SLURM_ARRAY_TASK_ID"'
         options=['sbatch','--parsable',f'--partition={args.partition}',f'--cpus-per-task={cpus}',

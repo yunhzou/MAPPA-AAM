@@ -9,7 +9,7 @@ import time
 from types import SimpleNamespace
 
 from adaptive_full_benchmark import problem_plan, read, save
-from graft import aam
+from mappa import aam
 
 
 if __name__=='__main__':

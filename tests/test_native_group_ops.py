@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from graft._group_ops import (occupation_orbit, project_generators,
+from mappa._group_ops import (occupation_orbit, project_generators,
                                  conjugate_generators, OccupationLimitExceeded)
 
 

@@ -29,8 +29,8 @@ for key, method in methods.items():
 assert computed_common == common
 for audit in json.loads((base / 'paired-cap-audit.json').read_text()):
     seed = audit['seed']
-    a = {r['case']: r['reference_recovery'] for r in methods[f'graft_c100_s{seed}_sweep']['per_case']}
-    b = {r['case']: r['reference_recovery'] for r in methods[f'graft_c2000_s{seed}_sweep']['per_case']}
+    a = {r['case']: r['reference_recovery'] for r in methods[f'mappa_c100_s{seed}_sweep']['per_case']}
+    b = {r['case']: r['reference_recovery'] for r in methods[f'mappa_c2000_s{seed}_sweep']['per_case']}
     resolved = [c for c in a if a[c] != 'unknown' and b[c] != 'unknown']
     assert len(resolved) == audit['resolved_pairs']
     assert all(a[c] == b[c] for c in resolved)

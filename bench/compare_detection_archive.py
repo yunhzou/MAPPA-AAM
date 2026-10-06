@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 import time
 
-from graft.fragment_matching import detect_fragments, FragmentDetectionConfig
-from graft.fragment_matching.serialization import fragment_detection_to_record
-from graft.smiles import smiles_to_weighted_graph
+from mappa.fragment_matching import detect_fragments, FragmentDetectionConfig
+from mappa.fragment_matching.serialization import fragment_detection_to_record
+from mappa.smiles import smiles_to_weighted_graph
 
 
 def main():

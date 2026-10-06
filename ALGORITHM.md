@@ -130,20 +130,20 @@ automorphism.
 
 The primary implementation is in:
 
-- `src/graft/matcher/`: compressed fragment candidate matching;
-- `src/graft/growth/`: weighted island growth;
-- `src/graft/alignment/branch.py`: multi-island branch construction;
-- `src/graft/alignment/sweep.py`: cut sweep and mechanism grouping;
-- `src/graft/alignment/post_aam.py`: typed post-AAM data model;
-- `src/graft/alignment/index_chirality.py`: analytical families,
+- `src/mappa/matcher/`: compressed fragment candidate matching;
+- `src/mappa/growth/`: weighted island growth;
+- `src/mappa/alignment/branch.py`: multi-island branch construction;
+- `src/mappa/alignment/sweep.py`: cut sweep and mechanism grouping;
+- `src/mappa/alignment/post_aam.py`: typed post-AAM data model;
+- `src/mappa/alignment/index_chirality.py`: analytical families,
   chirality, and fixed-mapping RMSD selection;
-- `src/graft/aam.py`: typed full AAM search;
-- `src/graft/analytical.py`: exact coset compilation and containment;
-- `src/graft/rp.py`: R/P composition;
-- `src/graft/core_aam.py`: exact partial AAM for mechanism cores;
-- `src/graft/ts.py`: typed TS composition and mode scoring;
-- `src/graft/cli.py`: typed command-line composition;
-- `src/graft/artifacts.py`: JSON, aligned XYZ, and self-contained HTML
+- `src/mappa/aam.py`: typed full AAM search;
+- `src/mappa/analytical.py`: exact coset compilation and containment;
+- `src/mappa/rp.py`: R/P composition;
+- `src/mappa/core_aam.py`: exact partial AAM for mechanism cores;
+- `src/mappa/ts.py`: typed TS composition and mode scoring;
+- `src/mappa/cli.py`: typed command-line composition;
+- `src/mappa/artifacts.py`: JSON, aligned XYZ, and self-contained HTML
   boundary adapters.
 
 ## 1. What the Investigation Changed

@@ -1,6 +1,6 @@
 import itertools
 import numpy as np
-from graft import AAMProblem,MolecularEndpoint
+from mappa import AAMProblem,MolecularEndpoint
 from golden_evaluation import rank_key
 from view_golden_remaining import ranker,INDICES
 

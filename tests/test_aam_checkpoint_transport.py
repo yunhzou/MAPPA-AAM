@@ -1,9 +1,9 @@
 import json
 import pytest
 
-from graft import aam
-from graft.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
-from graft.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
+from mappa import aam
+from mappa.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
+from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
 
 
 def test_cut_worker_persists_graph_and_returns_only_reference(tmp_path, monkeypatch):

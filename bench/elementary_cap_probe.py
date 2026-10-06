@@ -31,7 +31,7 @@ def prepare(args):
         only_search_change='branch_limit',reference_available=False))
     engine=args.run/'engine'
     command=['env',f'PYTHONPATH={engine}/src:{engine}/bench','PYTHONHASHSEED=0',
-        'GRAFT_NATIVE=1','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1',
+        'MAPPA_NATIVE=1','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1',
         sys.executable,str(engine/'bench/elementary_feasibility.py'),'worker','--run',str(args.run),
         '--method','aam','--slot']
     options=['sbatch','--parsable','--partition=cpunodes','--exclude=bosque8',
@@ -45,7 +45,7 @@ def prepare(args):
 
 
 def report(args):
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     manifest=json.loads((args.run/'manifest.json').read_text());index=manifest['index']
     rows=[]
     for root,cap in [(Path(manifest['source']),manifest['config_before']['branch_limit']),

@@ -28,7 +28,7 @@ path = restored.families[0].as_path(aam.problem)
 # Pass path to extract_path_events or query_path.
 ```
 
-Import `FinalBranchCatalogue` from `graft.final_branches`. The flat archive fingerprint checks endpoint elements and WBO matrices. Reloading requires the endpoint problem but no original search graph. Endpoints must be balanced. Catalogue construction skips partial mappings and reports their count.
+Import `FinalBranchCatalogue` from `mappa.final_branches`. The flat archive fingerprint checks endpoint elements and WBO matrices. Reloading requires the endpoint problem but no original search graph. Endpoints must be balanced. Catalogue construction skips partial mappings and reports their count.
 
 From an environment with this package and its native extensions installed:
 

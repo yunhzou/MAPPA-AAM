@@ -16,7 +16,7 @@ async function main(){
  // Verify every displayed frame can be selected and every mapped atom remains injective.
  for(let i=0;i<=240;i++){const t=i/240*duration;const state=await page.evaluate(t=>window.film.seek(t),t);if(new Set(Object.values(state.mapping)).size!==Object.keys(state.mapping).length)throw Error('Non-injective displayed mapping at '+t);}
  if(mode==='video'){
-  const fps=24,encoder=spawn(process.env.FFMPEG||'ffmpeg',['-y','-f','image2pipe','-vcodec','png','-framerate',String(fps),'-i','-','-an','-c:v','libx264','-threads',process.env.FFMPEG_THREADS||'4','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart',path.join(dir,'graft-grow-branch-decode.mp4')],{stdio:['pipe','ignore','pipe']});
+  const fps=24,encoder=spawn(process.env.FFMPEG||'ffmpeg',['-y','-f','image2pipe','-vcodec','png','-framerate',String(fps),'-i','-','-an','-c:v','libx264','-threads',process.env.FFMPEG_THREADS||'4','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart',path.join(dir,'mappa-grow-branch-decode.mp4')],{stdio:['pipe','ignore','pipe']});
   let log='';encoder.stderr.on('data',b=>log+=b);const done=new Promise((resolve,reject)=>{encoder.on('close',code=>code?reject(Error(log)):resolve());encoder.on('error',reject)});
   for(let i=0;i<duration*fps;i++){
    await page.evaluate(t=>window.film.seek(t),i/fps);

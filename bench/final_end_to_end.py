@@ -51,9 +51,9 @@ def child(args):
     startup = clock()
     import numpy as np
     import random
-    from graft import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-    from graft.final_branches import FinalBranchCatalogue
-    import graft.postprocessing as pp
+    from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
+    from mappa.final_branches import FinalBranchCatalogue
+    import mappa.postprocessing as pp
 
     folder = args.output / f'case{args.child}'
     expected = next(row for row in read(REPO / 'reports/published_baseline_20260915/baseline-windows.json.gz')
@@ -142,7 +142,7 @@ def campaign(args):
     args.output.mkdir(parents=True, exist_ok=True)
     identity = dict(commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=REPO, text=True).strip(),
         driver_sha256=sha(Path(__file__)), inputs={str(c):sha(args.inputs / str(c) / 'input.json') for c in range(140)},
-        sources={str(p.relative_to(REPO)):sha(p) for base in ('src/graft','native/src')
+        sources={str(p.relative_to(REPO)):sha(p) for base in ('src/mappa','native/src')
                  for p in sorted((REPO/base).rglob('*')) if p.suffix in ('.py','.cpp','.h','.so')},
         windows_sha256=sha(REPO/'reports/published_baseline_20260915/baseline-windows.json.gz'),
         workers=workers, numerical_threads=1, watchdog_seconds=300,
@@ -158,7 +158,7 @@ def campaign(args):
         save(manifest, identity)
     env = dict(os.environ, OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1',
                VECLIB_MAXIMUM_THREADS='1', NUMEXPR_NUM_THREADS='1', PYTHONHASHSEED='0',
-               PYTHONDONTWRITEBYTECODE='1', GRAFT_NATIVE='1')
+               PYTHONDONTWRITEBYTECODE='1', MAPPA_NATIVE='1')
     lock = threading.Lock()
     active = {}
     def run(case):

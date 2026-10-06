@@ -4,16 +4,16 @@ from dataclasses import replace
 from run import S,PACKAGE
 sys.path.insert(0,str(S/'engine/src'))
 from run import save,read
-from graft.artifacts import read_aam_checkpoint,write_aam_checkpoint
-from graft.frag import build_graph
-from graft.matcher import _nauty_orbits
-from graft.native_search import find_islands_native
-from graft.search_graph import AAMSearchGraph
-from graft.search_symmetry import finalize_graph_symmetry
-from graft.domain import AAMResult,AAMSearchMetrics
-from graft.final_branches import FinalBranchCatalogue
-from graft.event_patterns import SignedEventIndex,extract_path_events
-from graft.competition import compete_fragments,CompetitionConfig
+from mappa.artifacts import read_aam_checkpoint,write_aam_checkpoint
+from mappa.frag import build_graph
+from mappa.matcher import _nauty_orbits
+from mappa.native_search import find_islands_native
+from mappa.search_graph import AAMSearchGraph
+from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.domain import AAMResult,AAMSearchMetrics
+from mappa.final_branches import FinalBranchCatalogue
+from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.competition import compete_fragments,CompetitionConfig
 
 def run(case):
  c=time.process_time();out=S/f'seed-control/{case}';out.mkdir(parents=True,exist_ok=True)

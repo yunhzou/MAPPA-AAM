@@ -4,11 +4,11 @@ from dataclasses import replace
 from golden_evaluation import prepare
 from publication_timing import SearchProfiler
 from publication_analysis import rank_archive, merge_classes, certificate_id, representative_metrics, union_outcome
-from graft import AAMSearchConfig, plan_aam_search, search_aam
+from mappa import AAMSearchConfig, plan_aam_search, search_aam
 
 
 def test_profiling_does_not_change_graph_or_parallel_seed_results(tmp_path, monkeypatch):
-    from graft import artifacts
+    from mappa import artifacts
     p,features,reference=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     c=AAMSearchConfig(seed_count=10,branch_limit=100)
     expected=search_aam(p,c,workers=1)

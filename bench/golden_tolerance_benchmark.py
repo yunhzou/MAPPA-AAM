@@ -27,7 +27,7 @@ TOLERANCES = {'tol_1p0': 1.0, 'tol_1p5': 1.5}
 
 def environment(run):
     return dict(os.environ, PYTHONPATH=f'{run}/original/src:{run}/engine/bench',
-                GRAFT_NATIVE='1', PYTHONHASHSEED='0', PYTHONDONTWRITEBYTECODE='1',
+                MAPPA_NATIVE='1', PYTHONHASHSEED='0', PYTHONDONTWRITEBYTECODE='1',
                 OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
 
 

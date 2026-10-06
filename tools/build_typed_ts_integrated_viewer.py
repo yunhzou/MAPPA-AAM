@@ -2,7 +2,7 @@
 """Pack typed per-case TS viewers into one self-contained batch navigator."""
 from __future__ import annotations
 
-from graft.viewers import style_document
+from mappa.viewers import style_document
 
 import argparse
 import base64

@@ -1,4 +1,4 @@
-# Final GRAFT end-to-end timing
+# Final MAPPA end-to-end timing
 
 Fresh attempts: 140/140; completed within the five-minute watchdog: 140.
 

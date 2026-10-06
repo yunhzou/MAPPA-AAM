@@ -2,9 +2,9 @@
 
 Unassigned atoms use standard element colors (oxygen red, nitrogen blue, carbon gray, hydrogen white); fragment colors appear as matching progresses.
 
-A **28-second 3D demonstration** of checking a candidate XYZ against a 135-atom target. The film shows the actual GRAFT atom-by-atom growth, with rotating structures, a traveling atom-pair highlight and a final connectivity check.
+A **28-second 3D demonstration** of checking a candidate XYZ against a 135-atom target. The film shows the actual MAPPA atom-by-atom growth, with rotating structures, a traveling atom-pair highlight and a final connectivity check.
 
-![135-atom GRAFT verification: grow one fragment and check all connections](molecule-verification-preview.gif)
+![135-atom MAPPA verification: grow one fragment and check all connections](molecule-verification-preview.gif)
 
 [Full-resolution MP4](molecule-verification.mp4) · [Offline interactive film](index.html) · [Self-contained XYZ example](../../../examples/molecule_verification/README.md)
 
@@ -15,7 +15,7 @@ A **28-second 3D demonstration** of checking a candidate XYZ against a 135-atom 
 - **18–22 s:** confirm 135/135 atoms, one connected fragment, no missing connections and no extra connections.
 - **22–28 s:** present the connectivity verdict and its scope while the molecules continue rotating.
 
-The target is the 135-atom reactant from holdout case 68, `pr17.carbene.ins_ts6a`. The candidate is a **controlled demonstration, not model output**. It was constructed using four torsional changes, small coordinate perturbations, a rigid rotation and reordered atoms. No reference mapping enters GRAFT.
+The target is the 135-atom reactant from holdout case 68, `pr17.carbene.ins_ts6a`. The candidate is a **controlled demonstration, not model output**. It was constructed using four torsional changes, small coordinate perturbations, a rigid rotation and reordered atoms. No reference mapping enters MAPPA.
 
 Both binary connection matrices are inferred independently from the XYZ files with RDKit's covalent-radius rule. The final witness preserves all **148 inferred connections**. The one-fragment result is checked against both edges and nonedges, so an extra candidate connection cannot silently pass. This is a connectivity check, not a check of bond order, charge, stereochemistry or energetic stability. Camera motion is presentation, not dynamics.
 
@@ -30,7 +30,7 @@ python examples/molecule_verification/verify.py --output verification-output --c
 python manuscript/scripts/verification_film/build.py \
   --run verification-output \
   --output manuscript/animations/molecule_verification \
-  --library src/graft/static/3Dmol-min.js \
+  --library src/mappa/static/3Dmol-min.js \
   --preparation examples/molecule_verification/preparation.json
 node manuscript/scripts/verification_film/render.cjs \
   manuscript/animations/molecule_verification --video

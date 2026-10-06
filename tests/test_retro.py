@@ -3,10 +3,10 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from graft import (
+from mappa import (
     WeightedGraph,
 )
-from graft.fragment_matching import (
+from mappa.fragment_matching import (
     FragmentCandidate,
     FragmentDetectionConfig,
     FragmentDetectionExecution,
@@ -16,9 +16,9 @@ from graft.fragment_matching import (
     prepare_fragment_target,
     progressive_fragment_matching,
 )
-from graft.fragment_matching.augmentation import match_augmented_residuals
-from graft.retrosynthesis import assemble_fragment_cover
-from graft.smiles import smiles_to_weighted_graph
+from mappa.fragment_matching.augmentation import match_augmented_residuals
+from mappa.retrosynthesis import assemble_fragment_cover
+from mappa.smiles import smiles_to_weighted_graph
 
 
 def test_prepared_fragment_target_matches_direct_detection():
@@ -378,7 +378,7 @@ def test_parallel_seed_execution_preserves_exact_detection_result():
 def test_balanced_williamson_reaction_is_recovered_with_hidden_side_product():
     pytest.importorskip("rdkit")
     from rdkit import Chem
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.smiles import smiles_to_weighted_graph
 
     reactant_smiles = ("CCBr", "C[O-].[Na+]")
     product_smiles = ("CCOC", "[Na+].[Br-]")
@@ -477,7 +477,7 @@ def test_symmetric_cover_can_reuse_one_precursor_three_times():
 
 def test_two_step_triphenylamine_route_materializes_symmetric_placements():
     pytest.importorskip("rdkit")
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.smiles import smiles_to_weighted_graph
 
     def graph(smiles):
         return smiles_to_weighted_graph(smiles, expand_hydrogens=True)
@@ -544,7 +544,7 @@ def test_two_step_triphenylamine_route_materializes_symmetric_placements():
 
 def test_large_symmetric_star_uses_three_repeated_biphenyl_arms():
     pytest.importorskip("rdkit")
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.smiles import smiles_to_weighted_graph
 
     def graph(smiles):
         return smiles_to_weighted_graph(smiles, expand_hydrogens=True)
@@ -601,7 +601,7 @@ def test_large_symmetric_star_uses_three_repeated_biphenyl_arms():
 
 def test_chloroform_plus_three_repeated_pyrazoles_covers_target():
     pytest.importorskip("rdkit")
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.smiles import smiles_to_weighted_graph
 
     target = smiles_to_weighted_graph(
         "N1(C(N2C=CC=N2)N3N=CC=C3)N=CC=C1",
@@ -636,7 +636,7 @@ def test_chloroform_plus_three_repeated_pyrazoles_covers_target():
 
 def test_known_mcule_suzuki_precursors_cover_ortho_chlorobiphenyl():
     pytest.importorskip("rdkit")
-    from graft.smiles import smiles_to_weighted_graph
+    from mappa.smiles import smiles_to_weighted_graph
 
     # Both exact structures occur in the downloaded Mcule building-block file:
     #   BrC1=CC=CC=C1                 MCULE-5539191636

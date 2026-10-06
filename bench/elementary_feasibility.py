@@ -36,9 +36,9 @@ def valid_mapping(elements_r, elements_p, mapping):
 
 def prepare(args):
     import numpy as np
-    from graft import AAMSearchConfig
-    from graft.chemistry_computations.xyz import parse_xyz
-    from graft.chemistry_computations.xtb import load_cached_xtb
+    from mappa import AAMSearchConfig
+    from mappa.chemistry_computations.xyz import parse_xyz
+    from mappa.chemistry_computations.xtb import load_cached_xtb
     args.run.mkdir(parents=True, exist_ok=False)
     (args.run/'inputs').mkdir(); (args.run/'status').mkdir()
     selection = SOURCE/'aam_neb_preservation/sweep_selections_140.json'
@@ -93,7 +93,7 @@ def aam(args):
     from golden_publication import search
     search(args)  # Existing search, profiler and checkpoint contract, no reference reads.
     from golden_policy_campaign import load_case
-    from graft.artifacts import read_aam_checkpoint
+    from mappa.artifacts import read_aam_checkpoint
     _, plan = load_case(args.run/'inputs', args.index)
     problem = plan.input_problem
     out=args.run/'directions'/str(args.index)/args.direction
@@ -169,7 +169,7 @@ def submit(args):
         cpus=16 if method=='aam' else 1
         python=(Path(sys.executable) if method=='aam' else BENCH_ROOT/'competitor_env_20260908/bin/python')
         env=['env','OMP_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1','MKL_NUM_THREADS=1',
-             'PYTHONHASHSEED=0','GRAFT_NATIVE=1',f'PYTHONPATH={args.run}/dependencies:{engine}/src:{engine}/bench',
+             'PYTHONHASHSEED=0','MAPPA_NATIVE=1',f'PYTHONPATH={args.run}/dependencies:{engine}/src:{engine}/bench',
              'CUDA_VISIBLE_DEVICES=']
         command=[str(python),str(engine/'bench/elementary_feasibility.py'),'worker','--run',str(args.run),
                  '--method',method,'--slot']

@@ -8,7 +8,7 @@
 #SBATCH --time=00:10:00
 set -euo pipefail
 cd /h/399/yunhengzou/coordinate_alignment
-export PYTHONPATH=src GRAFT_NATIVE=1
+export PYTHONPATH=src MAPPA_NATIVE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
 srun timeout --kill-after=10s 580s .venv/bin/python bench/index_beta_query.py \
     --query "$1" --shard "$SLURM_ARRAY_TASK_ID"
