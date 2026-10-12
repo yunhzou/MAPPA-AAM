@@ -1,5 +1,9 @@
 # Paper benchmark index
 
+## EnzymeMap completion and miss investigation
+
+[Final EnzymeMap report](enzymemap_20261008/README.md) — all 47,974 reactions completed under recorded policies, including 108 audited continuations; 47,335 strict reference matches across the output union. Methods, all 807 miss classifications and aggregate results are documented. Detailed evidence is preserved separately. Completion is distinct from reference agreement and full atom coverage.
+
 Start here when querying results or preparing the paper. Existing reports and
 numerical evidence and raw-run references are preserved in place; this index
 does not merge experimental protocols. Historical driver code is stored in

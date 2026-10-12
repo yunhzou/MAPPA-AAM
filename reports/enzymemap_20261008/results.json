@@ -1,0 +1,49 @@
+{
+  "completed": 47974,
+  "total": 47974,
+  "original_completed": 47866,
+  "newly_completed": 108,
+  "original_strict_reference_hits": 47167,
+  "additional_unique_strict_reference_hits": 168,
+  "strict_reference_hits_in_recorded_output_union": 47335,
+  "remaining_strict_reference_misses": 639,
+  "original_raw_reference_hits": 47351,
+  "miss_classifications": {
+    "reference_absent_from_completed_configured_searches": 472,
+    "reference_event_class_returned_with_different_representative": 166,
+    "decoded_reference_recovered_after_input_indexing_fix": 11,
+    "decoded_reference_recovered": 141,
+    "complete_decoder_output_excludes_strict_reference": 1,
+    "partial_output_reference_recovered": 16
+  },
+  "full_decoder_audit_tasks": 254,
+  "full_decoder_audit_counts": {
+    "validated": 226,
+    "superseded": 28
+  },
+  "exact_reference_proof_tasks": 211,
+  "scope": "Combined recorded configurations and output policies; not a single uniform rerun, top-1 accuracy, full atom coverage, or global search completeness.",
+  "completed_utc": "2026-10-12T02:00:35.284622+00:00",
+  "publication_scope": "Report and aggregate results only. Case-level data, proof records, archives and research sources are retained separately; not uploaded in this commit.",
+  "engine_commit": "ea6a7a3d6bfb4361d582dbc60dcfb87f183d1f8e",
+  "remaining_reference_differences": {
+    "recorded_search_absence": 472,
+    "stereo_sensitive_representative": 166,
+    "charge_sensitive_representative": 1
+  },
+  "original_unfinished_categories": {
+    "incomplete_family_decoding": 35,
+    "decode_timeout": 40,
+    "search_timeout": 6,
+    "explicit_hydrogen_composition_mismatch": 16,
+    "input_reference_preparation_mismatch": 11
+  },
+  "verification": {
+    "full_decoder_audit": "passed",
+    "proof_audit": "passed",
+    "miss_ledger_cases": 807,
+    "required_tasks_complete": 464,
+    "previously_unfinished_rows_resolved": 108,
+    "locally_verified_proof_record_members": 131552
+  }
+}
