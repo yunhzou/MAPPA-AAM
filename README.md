@@ -40,9 +40,9 @@ MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines s
 
 [Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](bench/publish_readme_coverage.py)
 
-## EnzymeMap: 47,974 reactions, completed and audited
+## EnzymeMap: final benchmark results
 
-The [EnzymeMap report](reports/enzymemap_20261008/README.md) records **47,974 / 47,974 completed outputs (100%)** across the original run and audited follow-ups. Strict candidate-set reference agreement across the recorded configurations is **47,335 / 47,974 (98.6680%)**. All 108 previously unfinished reactions are resolved. The report explains the remaining reference differences, methods, partial mappings and validation scope; aggregate results are included.
+MAPPA completed **47,974 / 47,974 reactions (100%)**, with **47,335 / 47,974 strict reference matches (98.6680%)** across the recorded configurations and output policies. All remaining reference differences are classified. The [final EnzymeMap report](reports/enzymemap_20261008/README.md) presents the results, evaluation protocol and validation; machine-readable aggregate results are included.
 
 ## What you can do with MAPPA
 
