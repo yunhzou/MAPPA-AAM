@@ -436,11 +436,17 @@ class TransitionStateTarget:
     molecule: MolecularEndpoint
     vibrations: VibrationalModes
     kind: str = "candidate"
+    reactant_atom_mapping: tuple[int, ...] | None = None
 
     def __post_init__(self):
         if self.vibrations.displacements.shape[1] != self.molecule.atom_count:
             raise ValueError("normal modes and target atom counts differ")
         object.__setattr__(self, "kind", str(self.kind))
+        if self.reactant_atom_mapping is not None:
+            images = tuple(self.reactant_atom_mapping)
+            if any(not isinstance(i, (int, np.integer)) or isinstance(i, bool) for i in images):
+                raise ValueError("reactant_atom_mapping requires integer indices")
+            object.__setattr__(self, "reactant_atom_mapping", images)
 
 
 @dataclass(frozen=True)
@@ -526,23 +532,19 @@ class TSScore:
     assignment: AtomAssignment
     sources: frozenset[str]
     score: float
-    overlap: float
     wbo_progress: float
     mode_index: int
     frequency: float
     event_terms: tuple[Mapping[str, Any], ...]
+    diagnostics: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
 class TSScoringConfig:
-    event_weight_power: float = 1.0
-    wbo_progress_power: float = 1.0
     prefer_endpoint_consensus: bool = True
     core_assignment_limit: int = 20_000
 
     def __post_init__(self):
-        if self.event_weight_power < 0 or self.wbo_progress_power < 0:
-            raise ValueError("TS scoring powers cannot be negative")
         if self.core_assignment_limit < 1:
             raise ValueError("core assignment limit must be positive")
 

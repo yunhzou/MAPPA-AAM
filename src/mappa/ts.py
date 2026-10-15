@@ -19,14 +19,16 @@ from .domain import (
     TSScoringConfig,
     TransitionStateTarget,
 )
-from .modes import bond_overlap_per_mode, reindex_modes_to_R
+from .scoring import POLICY, pair_geometry, subset_score
+from .bond_diagnostics import endpoint_bond_changes
+from dataclasses import replace
 
 
 def _clip01(value):
     return max(0.0, min(1.0, float(value)))
 
 
-def _score_assignment(rp, mechanism, target, assignment, sources, config):
+def _assignment_terms(rp, mechanism, target, assignment):
     reactant = rp.problem.reactant
     product = rp.problem.product
     target_molecule = target.molecule
@@ -56,7 +58,7 @@ def _score_assignment(rp, mechanism, target, assignment, sources, config):
                 "wbo_reactant": w_r,
                 "wbo_product": w_p,
                 "wbo_target": w_t,
-                "event_weight": delta ** config.event_weight_power,
+                "event_weight": delta,
                 "target_progress": progress,
             })
 
@@ -64,44 +66,21 @@ def _score_assignment(rp, mechanism, target, assignment, sources, config):
     progress = (1.0 if total_weight < 1e-12 else sum(
         term["event_weight"] * term["target_progress"] for term in terms
     ) / total_weight)
-    target_in_r = np.array(reactant.coordinates, copy=True)
-    for source, image in assignment.pairs:
-        target_in_r[source] = target_molecule.coordinates[image]
-    reaction_vector = np.zeros_like(target_in_r)
-    for term in terms:
-        left, right = term["reactant_bond"]
-        vector = target_in_r[right] - target_in_r[left]
-        norm = float(np.linalg.norm(vector))
-        if norm < 1e-9:
-            continue
-        unit = term["event_weight"] * vector / norm
-        if term["kind"] == "broken":
-            reaction_vector[left] -= unit
-            reaction_vector[right] += unit
-        else:
-            reaction_vector[left] += unit
-            reaction_vector[right] -= unit
+    return tuple(terms), float(progress)
 
-    modes = target.vibrations.displacements
-    modes_r = reindex_modes_to_R(modes, mapping_rt, reactant.atom_count)
-    mode_norms = np.linalg.norm(modes.reshape(modes.shape[0], -1), axis=1)
-    overlaps = bond_overlap_per_mode(
-        modes_r, reaction_vector, mode_norms=mode_norms)
+
+def _score_assignment(target, assignment, sources, terms, progress, pairs):
     imaginary = np.flatnonzero(target.vibrations.frequencies < 0)
     if not len(imaginary):
         return None
-    mode_index = int(max(imaginary, key=lambda index: overlaps[index]))
-    overlap = float(overlaps[mode_index])
-    return TSScore(
-        assignment=assignment,
-        sources=frozenset(sources),
-        score=overlap * float(progress) ** config.wbo_progress_power,
-        overlap=overlap,
-        wbo_progress=float(progress),
-        mode_index=mode_index,
-        frequency=float(target.vibrations.frequencies[mode_index]),
-        event_terms=tuple(terms),
-    )
+    scored = [(int(k), subset_score(target.molecule.coordinates,
+                target.vibrations.displacements[k], target.molecule.elements,
+                terms, pairs)) for k in imaginary]
+    k, diagnostic = max(scored, key=lambda item: (item[1]['score'], -item[0]))
+    return TSScore(assignment=assignment, sources=frozenset(sources),
+                   score=float(diagnostic['score']), wbo_progress=progress,
+                   mode_index=k, frequency=float(target.vibrations.frequencies[k]),
+                   event_terms=terms, diagnostics=dict(policy=POLICY, **diagnostic))
 
 
 def reaction_context_from_rp(rp: RPResult) -> ReactionContext:
@@ -140,6 +119,7 @@ def analyze_transition_state(
     scoring_config = scoring_config or TSScoringConfig()
     started = time.perf_counter()
     results = []
+    pending = []
     problem = reaction.problem
     for mechanism in reaction.mechanisms:
         core_r = mechanism.core_atoms
@@ -178,12 +158,27 @@ def analyze_transition_state(
                 for source_p, target_atom in assignment.pairs))
             candidates[pulled.pairs].add("product")
             objects[pulled.pairs] = pulled
-        scores = tuple(filter(None, (
-            _score_assignment(
-                reaction, mechanism, target, objects[key], candidates[key],
-                scoring_config)
-            for key in sorted(candidates)
-        )))
+        assignments = []
+        for key in sorted(candidates):
+            terms, progress = _assignment_terms(reaction, mechanism, target, objects[key])
+            assignments.append((objects[key], candidates[key], terms, progress))
+        pending.append((mechanism, from_r, from_p, assignments))
+
+    # One normalization set across ALL retained mechanism/core assignments,
+    # exactly as in significant_subset_motion_v1, never per-candidate selection.
+    geometry = pair_geometry(target.molecule.coordinates, target.molecule.elements)
+    events = {tuple(sorted(e['target_bond'])) for _, _, _, assignments in pending
+              for _, _, terms, _ in assignments for e in terms}
+    pairs = [(int(i), int(j)) for k, (i, j) in enumerate(zip(geometry['i'], geometry['j']))
+             if geometry['distance'][k] <= 1.2 * geometry['radii_sum'][k]
+             or (int(i), int(j)) in events]
+    for mechanism, from_r, from_p, assignments in pending:
+        scores = tuple(filter(None, (_score_assignment(target, assignment, sources,
+                            terms, progress, pairs)
+                        for assignment, sources, terms, progress in assignments)))
+        scores = tuple(replace(score, diagnostics=dict(score.diagnostics,
+            endpoint_bond_changes=endpoint_bond_changes(reaction, mechanism, target, score.assignment)))
+            for score in scores)
         eligible = scores
         if scoring_config.prefer_endpoint_consensus:
             consensus = tuple(score for score in scores
@@ -206,6 +201,7 @@ def analyze_transition_state(
         ))
     return TSResult(
         reaction=reaction,
-        mechanisms=tuple(results),
+        mechanisms=tuple(next(item for item in results if item.mechanism is mechanism)
+                         for mechanism in reaction.mechanisms),
         elapsed_seconds=time.perf_counter() - started,
     )

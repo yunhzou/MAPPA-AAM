@@ -63,7 +63,7 @@ from .frag import (
     build_weighted_graph,
     classify_bonds,
 )
-from .modes import bond_overlap_per_mode, rxn_overlap_per_mode
+from .scoring import POLICY as TS_SCORING_POLICY, subset_score
 from .subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
@@ -91,7 +91,7 @@ __all__ = [
     "rp_record", "ts_record", "write_rp_bundle", "write_ts_record",
     "reaction_record", "reaction_from_record",
     "WeightedGraph", "WeightedNode", "build_graph", "build_weighted_graph",
-    "classify_bonds", "bond_overlap_per_mode", "rxn_overlap_per_mode",
+    "classify_bonds", "TS_SCORING_POLICY", "subset_score",
     "SubgraphMatch", "match_weighted_subgraph",
 ]
 

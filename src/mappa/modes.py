@@ -1,17 +1,4 @@
-"""
-Per-mode reactive features.
-
-Given a normal-mode displacement matrix in R-frame indexing, computes:
-  - bond_overlap (beta)  : projection on the broken/formed bond-axis vector V
-  - rxn_overlap  (rho)   : projection on the reaction-coord vector Delta restricted to core
-  - core_fraction (kappa): fraction of mode energy on core atoms (computed inline by callers)
-
-All features are sign-blind, in [0, 1], and zero on spectator atoms by construction
-(V_hat is sparse on non-core; Delta_hat_core is sparse on non-core).
-
-Helpers also include the g98.out parser, the bond-reaction-vector builder, and
-mode reindexing into R-frame.
-"""
+"""Mode parsing and coordinate reindexing; scoring lives only in mappa.scoring."""
 from __future__ import annotations
 import re
 from pathlib import Path
@@ -95,66 +82,6 @@ def bond_reaction_vector(xyz_TS_in_R, broken_bonds_R, formed_bonds_R):
         V[i] += u
         V[j] -= u
     return V
-
-
-def bond_overlap_per_mode(modes_R, V, mode_norms=None):
-    """|mode . V_hat| / ||mode||  in [0, 1].
-
-    V is the bond-reaction-direction vector from bond_reaction_vector().
-    Numerator captures alignment with the bond-stretch/contract motion;
-    denominator penalizes amplitude on spectator atoms.  When `modes_R` is
-    only a partial witness reindex, pass `mode_norms` from the original full
-    TS modes so unmapped spectators still contribute to the denominator."""
-    n_modes = modes_R.shape[0]
-    if n_modes == 0:
-        return np.zeros(0)
-    v_flat = np.asarray(V).reshape(-1)
-    v_norm = float(np.linalg.norm(v_flat))
-    if v_norm < 1e-9:
-        return np.zeros(n_modes)
-    v_unit = v_flat / v_norm
-    m_flat = modes_R.reshape(n_modes, -1)
-    if mode_norms is None:
-        m_norm = np.linalg.norm(m_flat, axis=1)
-    else:
-        m_norm = np.asarray(mode_norms, dtype=float)
-    dots = np.abs(m_flat @ v_unit)
-    out = np.zeros(n_modes)
-    valid = m_norm > 1e-9
-    out[valid] = dots[valid] / m_norm[valid]
-    return out
-
-
-def rxn_overlap_per_mode(modes_R, delta, core_atoms, mode_norms=None):
-    """Reaction-mode overlap: projection of each full-molecule mode onto
-    the unit reaction-coord vector restricted to core atoms.
-
-    Builds Delta_hat_core (zero outside core, normalized over core),
-    then q_m = |d_m . Delta_hat_core| / ||d_m|| in [0, 1]. Penalizes
-    spectator-atom motion (in denominator) and core motion not aligned
-    with Delta (in numerator).  When `modes_R` is a partial witness reindex,
-    pass `mode_norms` from the original full TS modes."""
-    n_modes = modes_R.shape[0]
-    if n_modes == 0 or not core_atoms:
-        return np.zeros(n_modes)
-    core = np.asarray(core_atoms, dtype=int)
-    delta_pad = np.zeros_like(modes_R[0])
-    delta_pad[core] = delta[core]
-    d_flat = delta_pad.reshape(-1)
-    d_norm = float(np.linalg.norm(d_flat))
-    if d_norm < 1e-9:
-        return np.zeros(n_modes)
-    d_unit = d_flat / d_norm
-    m_flat = modes_R.reshape(n_modes, -1)
-    if mode_norms is None:
-        m_norm = np.linalg.norm(m_flat, axis=1)
-    else:
-        m_norm = np.asarray(mode_norms, dtype=float)
-    dots = np.abs(m_flat @ d_unit)
-    out = np.zeros(n_modes)
-    valid = m_norm > 1e-9
-    out[valid] = dots[valid] / m_norm[valid]
-    return out
 
 
 def core_atoms_in_R_frame(mapping_R_to_P, broken, formed):

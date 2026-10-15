@@ -226,7 +226,9 @@ def rp_record(result: RPResult):
 
 def ts_record(result: TSResult):
     """Return a compact JSON boundary representation of one typed TS run."""
+    from .scoring import POLICY
     return {
+        "scoring_policy": POLICY,
         "schema": "rxn_core.ts/v2",
         "target": result.mechanisms[0].target.molecule.label
         if result.mechanisms else "",
@@ -247,7 +249,7 @@ def ts_record(result: TSResult):
                                for a, b in item.selected.assignment.pairs},
                 "sources": sorted(item.selected.sources),
                 "score": item.selected.score,
-                "overlap": item.selected.overlap,
+                "diagnostics": dict(item.selected.diagnostics),
                 "wbo_progress": item.selected.wbo_progress,
                 "mode_index": item.selected.mode_index,
                 "frequency": item.selected.frequency,

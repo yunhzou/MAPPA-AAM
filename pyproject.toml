@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.23",
+    "ase>=3.22",
     "networkx>=2.8",
     "pynauty>=2.8",
     "sympy>=1.10",

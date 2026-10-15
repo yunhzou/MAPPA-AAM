@@ -6,7 +6,7 @@ import pytest
 
 from mappa import classify_bonds
 from mappa import build_graph
-from mappa import bond_overlap_per_mode, rxn_overlap_per_mode
+
 from mappa.alignment import (
     cut_sweep,
     match_wbo_graphs,
@@ -1341,22 +1341,12 @@ def test_find_islands_reuses_precomputed_orbits(monkeypatch):
     assert next(branches.paths()).mapping == {0: 0, 1: 1}
 
 
-def test_partial_witness_mode_scores_use_full_mode_norm():
-    modes_R = np.zeros((1, 2, 3))
-    modes_R[0, 0, 0] = 1.0
-    full_mode_norms = np.array([math.sqrt(2.0)])
-
-    V = np.zeros((2, 3))
-    V[0, 0] = 1.0
-    beta = bond_overlap_per_mode(modes_R, V, mode_norms=full_mode_norms)
-
-    delta = np.zeros((2, 3))
-    delta[0, 0] = 1.0
-    rho = rxn_overlap_per_mode(modes_R, delta, [0],
-                               mode_norms=full_mode_norms)
-
-    assert np.allclose(beta, [1.0 / math.sqrt(2.0)])
-    assert np.allclose(rho, [1.0 / math.sqrt(2.0)])
+def test_removed_overlap_scorers_are_not_public():
+    import mappa
+    import mappa.modes
+    assert not hasattr(mappa, 'bond_overlap_per_mode')
+    assert not hasattr(mappa.modes, 'bond_overlap_per_mode')
+    assert not hasattr(mappa, 'rxn_overlap_per_mode')
 
 
 def test_cut_sweep_is_core_mechanism_discovery_api():
