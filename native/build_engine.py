@@ -64,7 +64,7 @@ def main():
     cmd.build_temp = str(BUILD / "tmp")
     cmd.ensure_finalized()
     cmd.run()
-    built = next((BUILD / "lib" / "mappa").glob("_engine*.so"))
+    built = Path(cmd.get_ext_fullpath(ext.name))
     target = ROOT / "src" / "mappa" / built.name
     shutil.copy2(built, target)
     print("built", target)
