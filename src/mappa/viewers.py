@@ -71,7 +71,18 @@ def comparison_document(case):
         assert sorted(mapping) == sorted(mapping.values()) == list(range(len(r['elements'])))
         assert all(r['elements'][a] == p['elements'][b] for a, b in mapping.items())
         ordered = [p['coordinates'][mapping[a]] for a in range(len(mapping))]
-        events = record.get('events', [])
+        # Decoder signs describe WBO decreases/increases, including bonds that
+        # remain present. Presentation uses the same >0.2 bond-presence cutoff
+        # as the endpoint renderer to distinguish loss/gain from order changes.
+        events = []
+        for event in record.get('events', []):
+            event = dict(event)
+            if event['kind'] in ('broken', 'formed') and 'wbo' in event:
+                before, after = event['wbo']
+                if before is not None and after is not None and before > 0.2 and after > 0.2:
+                    event['decoder_kind'] = event['kind']
+                    event['kind'] = 'weakened' if before > after else 'strengthened'
+            events.append(event)
         by_kind = {kind: [e['r'] for e in events if e['kind'] == kind]
                    for kind in ('broken', 'formed', 'strengthened', 'weakened', 'order_changed')}
         mechanisms.append(dict(
@@ -80,7 +91,7 @@ def comparison_document(case):
             broken_bonds_R=by_kind['broken'], formed_bonds_R=by_kind['formed'],
             formed_bonds_P=[[mapping[a], mapping[b]] for a, b in by_kind['formed']],
             order_events={k: by_kind[k] for k in ('strengthened', 'weakened', 'order_changed')},
-            event_records=events, event_counts=record.get('counts'),
+            event_records=events, event_counts={kind: len(pairs) for kind, pairs in by_kind.items()},
             pattern_id=record.get('pattern'), provenance=record.get('provenance', {}),
             core_atoms=sorted({a for e in events for a in e['r']}), igs=[], gt=None,
         ))

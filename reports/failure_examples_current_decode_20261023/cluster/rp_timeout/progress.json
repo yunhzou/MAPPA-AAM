@@ -1,0 +1,36 @@
+{
+  "stage": "finished",
+  "seconds": 2.3055991900037043,
+  "result": {
+    "status": "complete",
+    "case": "rp_timeout",
+    "atoms": 40,
+    "search_capped": false,
+    "cuts": 1,
+    "families": 7,
+    "family_reports": 7,
+    "incomplete_families": [],
+    "incomplete_paths": 0,
+    "candidates": 1,
+    "minimum_events": 0,
+    "minimum_proven": true,
+    "event_window": null,
+    "witness_rescore_passed": 1,
+    "minimum_membership": [
+      {
+        "candidate": "rxn_core.signed_events/v1:b03b6666ac49c421c49ae386833a8e26365c556eb6e457e5ddae1ecf9cdb3409",
+        "status": "allowed",
+        "reason": ""
+      }
+    ],
+    "timings": {
+      "search": 0.05989756897906773,
+      "catalogue": 0.01611200298066251,
+      "decode": 1.923617707012454,
+      "audit": 0.26398598501691595
+    },
+    "wall_seconds": 2.3033287370053586,
+    "peak_rss_mib": 107.69921875,
+    "geometry_selection": false
+  }
+}

@@ -96,7 +96,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 
 The library and this notebook use the branch-limit default of 100. A cap bounds a growth call's live alternatives, not the number of saved histories or all permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
-For compatibility, `AAMSearchConfig` also retains `event_threshold`, `metal_event_threshold`, `symmetry_repair`, `symmetry_repair_min_changes`, and `symmetry_repair_max_evaluations`. The raw search does not classify or repair events. These fields configure the older mechanism/geometry pipeline; competition also uses its event thresholds for parent ordering. The separate signed-event decoder uses **only its own `EventDecodeConfig`**, not these legacy event fields. `group_mechanisms`, `compile_mapping_families`, `compile_mechanism_families`, `select_rp_mappings`, and TS routines remain available and unchanged.
+For compatibility, `AAMSearchConfig` also retains `event_threshold`, `metal_event_threshold`, `symmetry_repair`, `symmetry_repair_min_changes`, and `symmetry_repair_max_evaluations`. The raw search does not classify or repair events. These fields configure explicit mechanism grouping/repair; competition also uses its event thresholds for parent ordering. The separate signed-event decoder uses **only its own `EventDecodeConfig`**, not these legacy event fields. `group_mechanisms`, `compile_mapping_families`, and `compile_mechanism_families` remain explicit family-analysis utilities. TS analysis requires a `ReactionContext` supplied by the caller.
 
 ## Experimental fragment competition (optional; default off)
 
@@ -112,6 +112,24 @@ This exposes the bounded local B-priority takeover policy used in the coordinate
 
 ## Chirality and audit scope
 
-**TODO: a general stereochemistry-preserving AAM search/decoder contract.** Element/WBO inputs do not encode CIP labels, E/Z geometry, formal charge, or isotope labels as first-class constraints. Do not claim raw AAM preserves them. The existing `select_rp_mappings` stage applies coordinate/index-chirality and fixed-mapping RMSD selection to exact analytical families. That downstream check does not supply a general stereochemical guarantee for the event notebook. Fixed-query matching can accept richer node policies, but the full AAM endpoint contract still needs that extension.
+**TODO: a general stereochemistry-preserving AAM search/decoder contract.** Element/WBO inputs do not encode CIP labels, E/Z geometry, formal charge, or isotope labels as first-class constraints. Raw AAM and signed-event decoding do not establish a general stereochemical guarantee. Fixed-query matching can accept richer node policies, but the full AAM endpoint contract still needs that extension.
 
 The September 2026 Python audit added importable direction orchestration, signed-event decoding with witness-linked symmetry queries, explicit random/cut controls, optional dependency groups, and the competition adapter. It leaves the computational stages separate. Focused tests verify anchors in both orientations, threshold independence, partial/timeout status, same-class versus broader-family queries, checkpoint identity, and baseline retention under competition. This is software validation using small examples, not a new benchmark campaign.
+
+## Removed orientation-selection API
+
+`mappa.rp`, `align_reaction`, `select_rp_mappings`, and
+`mappa.alignment.index_chirality` have been removed, including the legacy
+orientation-graph selector. There are no deprecated wrappers, compatibility
+aliases, automatic substitutions, or fallback options. Callers must use
+`search_aam` and `decode_events` explicitly. Coordinate orientation is not
+selected or certified by the default mapping workflow.
+
+The CLI accepts `--stage aam`, `--stage events` (default), and `--stage ts`.
+The former `rp`/`full` modes and `--post-workers` argument are rejected.
+TS calls require a `ReactionContext`; no hidden R/P selection is performed.
+
+The cached TS utility (`tools/run_typed_ts_case.py`) likewise requires
+`--reaction-root`, containing `cases/<case_id>/reaction.json` records produced
+with `reaction_record`. Its batch launcher requires `TS_REACTION_ROOT`.
+Neither entry point computes missing R/P selections.

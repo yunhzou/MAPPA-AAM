@@ -181,9 +181,7 @@ search_aam -> AAMResult -> decode_events -> DecodedEvents
                                           `- symmetry and shuffle queries
 ```
 
-The optional geometry/TS workflow consumes the same AAM result:
-`group_mechanisms` → `compile_mechanism_families` → `select_rp_mappings`
-→ `analyze_transition_state`.
+TS analysis consumes an explicit `ReactionContext`. It is not run automatically by AAM or event decoding.
 
 The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding groups the retained alternatives by their signed bond events. You can inspect a candidate's witness, ask which shuffles are allowed, or replay the search that produced it.
 
@@ -259,50 +257,42 @@ it does not enumerate every symmetry permutation. The notebook embeds it in an
 iframe alongside py3Dmol views. GitHub shows saved text and molecule PNGs;
 interactive views require a trusted Jupyter notebook.
 
-`align_reaction`, `group_mechanisms`, `compile_mechanism_families`,
-`select_rp_mappings`, and `analyze_transition_state` remain importable from
-`mappa` for the optional geometry/TS workflow, illustrated in
-[TUTORIAL.ipynb](docs/TUTORIAL.ipynb).
+The [tutorial notebook](docs/TUTORIAL.ipynb) demonstrates search, event decoding,
+and explicit handoff of a selected event witness to TS analysis.
 
 ## CLI
 
-NPZ endpoint files contain `elements`, `coordinates`, and `wbo` arrays:
+The default stage is signed-event decoding. NPZ endpoints contain `elements`,
+`coordinates`, and `wbo` arrays:
 
 ```bash
-mappa \
-  --stage rp \
-  --reactant-npz R.npz \
-  --product-npz P.npz \
-  --workers 48 \
-  --post-workers 8 \
-  --output alignment
+mappa --stage events \
+  --reactant-npz R.npz --product-npz P.npz \
+  --workers 4 --seconds-per-family 30 --output mapping
 ```
 
-Existing xTB cache directories containing one XYZ and a `wbo` file can be
-used directly:
+Use `--stage aam` for raw search only. Both stages write `aam.json` and the
+self-contained `search.html` viewer. The events stage also writes `events.json`
+with candidate witnesses, per-family reports, and explicit completeness flags.
+`complete` is scoped to retained families and the requested event window; it
+must not be interpreted as proof that capped search explored every mapping.
+Existing xTB caches can be supplied with `--reactant-cache` and `--product-cache`.
 
-```bash
-mappa --reactant-cache cache/R --product-cache cache/P \
-  --workers 48 --output alignment
-```
-
-The output contains `rp.json`, one `R.xyz` and `P_aligned.xyz` pair per
-mechanism, a reusable `reaction.json`, and a self-contained `view.html`.
-The TS verifier/scorer can then be entered independently without R/P search:
+TS processing requires an explicitly supplied resolved-reaction record:
 
 ```bash
 mappa --stage ts \
   --reactant-npz R.npz --product-npz P.npz \
-  --reaction-json alignment/reaction.json \
-  --target-npz guess_1.npz --target-npz guess_2.npz \
+  --reaction-json selected_reaction.json --target-npz guess.npz \
   --output ts_scores
 ```
 
-Use `--stage full` to compose both stages in one process. Target NPZ files
-contain `elements`, `coordinates`, `wbo`, `frequencies`, and `modes`.
+Target NPZ files additionally contain `frequencies` and `modes`. See the
+[tutorial](docs/TUTORIAL.ipynb) for constructing a `ReactionContext` from a
+chosen decoded event witness and serializing it with `reaction_record`.
 
-The executed [tutorial notebook](docs/TUTORIAL.ipynb) demonstrates the staged
-Python API, CPU controls, AAM inspection, R/P alignment, and TS scoring.
+The legacy orientation-selection APIs and CLI stages `rp` and `full` have been
+removed. They have no compatibility aliases or fallback dispatch.
 
 ## Result hierarchy
 
@@ -317,11 +307,11 @@ DecodedEvents                              # separate signed-event post-processi
    |- event edges, count, and supporting family IDs
    `- symmetry evidence and conditional shuffle queries
 
-MechanismResult / AnalyticalAAMResult       # optional geometry/TS pipeline
+MechanismResult / AnalyticalAAMResult       # explicit family analysis
 `- analytical mapping families per mechanism
 
-RPResult
-`- selected mapping per mechanism, with index-chirality diagnostics
+ReactionContext                           # explicit TS input
+`- supplied mappings and corresponding bond events
 
 TSResult
 `- R->TS and P->TS CoreAAMResult plus scored core tuples
@@ -333,8 +323,8 @@ TSResult
 python -m pytest -q
 ```
 
-The suite includes a non-empty TS integration case that performs endpoint
-AAM, analytical-family compilation, R/P selection, two partial core searches,
+The suite includes a non-empty TS integration case that consumes explicit endpoint
+mappings and events and performs two partial core searches,
 endpoint-consensus merging, and imaginary-mode scoring.
 
 ## Repository layout

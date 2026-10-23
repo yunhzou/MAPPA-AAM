@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "witnesses": 1,
+  "all_identity_action_witnesses_valid": true,
+  "minimum_witness_queries": [
+    {
+      "candidate": "rxn_core.signed_events/v1:b03b6666ac49c421c49ae386833a8e26365c556eb6e457e5ddae1ecf9cdb3409",
+      "producing_family_id": 0,
+      "status": "allowed",
+      "reason": ""
+    }
+  ],
+  "minimum_witness_count": 1,
+  "seconds": 0.19684162503108382
+}

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from mappa import build_graph
-from mappa.alignment.index_chirality import (
+from mappa.alignment.mapping_families import (
     compile_analytical_mapping_family,
 )
 from mappa.alignment.post_aam import (

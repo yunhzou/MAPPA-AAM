@@ -11,8 +11,6 @@ from .domain import (
     AAMSearchConfig,
     AtomAssignment,
     ReactionContext,
-    ResolvedMechanism,
-    RPResult,
     TSMechanismResult,
     TSResult,
     TSScore,
@@ -83,24 +81,8 @@ def _score_assignment(target, assignment, sources, terms, progress, pairs):
                    event_terms=terms, diagnostics=dict(policy=POLICY, **diagnostic))
 
 
-def reaction_context_from_rp(rp: RPResult) -> ReactionContext:
-    """Project a full analytical R/P result onto the exact TS dependency."""
-    if not isinstance(rp, RPResult):
-        raise TypeError("reaction_context_from_rp requires an RPResult")
-    return ReactionContext(
-        problem=rp.analytical.aam.problem,
-        config=rp.analytical.aam.config,
-        mechanisms=tuple(ResolvedMechanism(
-            mapping=item.mapping,
-            broken_bonds=item.broken_bonds,
-            formed_bonds=item.formed_bonds,
-            core_atoms=item.core_atoms,
-        ) for item in rp.mechanisms),
-    )
-
-
 def analyze_transition_state(
-        reaction: RPResult | ReactionContext, target: TransitionStateTarget, *,
+        reaction: ReactionContext, target: TransitionStateTarget, *,
         search_config: AAMSearchConfig | None = None,
         scoring_config: TSScoringConfig | None = None) -> TSResult:
     """Evaluate one TS target under every selected R/P mechanism.
@@ -109,12 +91,10 @@ def analyze_transition_state(
     pulled into the R frame through the already selected R/P bijection, then
     exact tuples are unioned with source provenance before mode scoring.
     """
-    if isinstance(reaction, RPResult):
-        reaction = reaction_context_from_rp(reaction)
     if (not isinstance(reaction, ReactionContext)
             or not isinstance(target, TransitionStateTarget)):
         raise TypeError(
-            "typed RPResult/ReactionContext and TransitionStateTarget are required")
+            "typed ReactionContext and TransitionStateTarget are required")
     search_config = search_config or reaction.config
     scoring_config = scoring_config or TSScoringConfig()
     started = time.perf_counter()

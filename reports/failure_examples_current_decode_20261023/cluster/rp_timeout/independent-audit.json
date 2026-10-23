@@ -1,0 +1,25 @@
+{
+  "case": "rp_timeout",
+  "atoms": 40,
+  "complete": true,
+  "cuts": 1,
+  "search_capped": false,
+  "family_count": 7,
+  "complete_family_count": 7,
+  "incomplete_paths": 0,
+  "candidate_count": 1,
+  "event_histogram": {
+    "0": 1
+  },
+  "minimum_events": 0,
+  "all_witnesses_independently_rescored": true,
+  "input_hashes_verified": true,
+  "unrestricted_event_window": true,
+  "geometry_selection": false,
+  "evidence_sha256": {
+    "decoded.json.gz": "dc0ee1d1ac7a905c798bf477d550b32a5473fcbfca918785923ec644507cef67",
+    "catalogue.json.gz": "d176be48ab7e144b87a6f0602daf4c790d6aa6b2ab50190fe85c1ad4d652813c",
+    "search.json": "ef7440c35b1f3d0ed26d0c3436edfce206253b53c6b15bf05fe061ae1e09056c",
+    "configuration.json": "a1217371baeba8ecd2ea2b5abd211ce60980210b464ad790792311b45b13eee8"
+  }
+}

@@ -7,13 +7,16 @@ from pathlib import Path
 
 import numpy as np
 
-from .artifacts import reaction_from_record, write_rp_bundle, write_ts_record
+from .aam import search_aam
+from .artifacts import (
+    decoded_events_record, reaction_from_record, write_aam_bundle, write_ts_record,
+)
 from .chemistry_computations import load_cached_xtb
 from .domain import (
     AAMProblem, AAMSearchConfig, MolecularEndpoint, TransitionStateTarget,
     VibrationalModes,
 )
-from .rp import align_reaction
+from .postprocessing import EventDecodeConfig, decode_events
 from .ts import analyze_transition_state
 
 
@@ -59,16 +62,17 @@ def _parser():
     parser.add_argument("--reactant-cache")
     parser.add_argument("--product-cache")
     parser.add_argument("--target-npz", action="append", default=[])
-    parser.add_argument("--stage", choices=("rp", "ts", "full"),
-                        default="full")
+    parser.add_argument("--stage", choices=("aam", "events", "ts"),
+                        default="events")
     parser.add_argument("--reaction-json",
-                        help="resolved reaction.json produced by the RP stage")
+                        help="explicit resolved-reaction record required by --stage ts")
     parser.add_argument("--name", default="reaction")
     parser.add_argument("--output", default="mappa_output")
     parser.add_argument("--workers", type=int, default=1,
                         help="CPU processes used by the cut sweep")
-    parser.add_argument("--post-workers", type=int, default=None,
-                        help="CPU processes used for analytical family compilation")
+    parser.add_argument("--seconds-per-family", type=float, default=10.0,
+                        help="event-decoder time budget per saved family")
+    parser.add_argument("--max-events", type=int)
     parser.add_argument("--cut-floor", type=float, default=0.2)
     parser.add_argument("--graph-floor", type=float, default=0.2)
     parser.add_argument("--iso-tolerance", type=float, default=1.0)
@@ -81,30 +85,37 @@ def _parser():
 
 
 def main(argv=None):
-    args = _parser().parse_args(argv)
+    parser = _parser()
+    args = parser.parse_args(argv)
+    if args.stage == "ts":
+        if not args.reaction_json or not args.target_npz:
+            parser.error("--stage ts requires --reaction-json and --target-npz")
+    elif args.reaction_json or args.target_npz:
+        parser.error("--reaction-json and --target-npz require --stage ts")
     reactant = _endpoint(args, "reactant", "R")
     product = _endpoint(args, "product", "P")
     config = _config(args)
     problem = AAMProblem(reactant, product, name=args.name)
     output = Path(args.output)
     if args.stage == "ts":
-        if not args.reaction_json:
-            raise SystemExit("--stage ts requires --reaction-json")
         reaction = reaction_from_record(
             json.loads(Path(args.reaction_json).read_text()),
             problem, config)
         output.mkdir(parents=True, exist_ok=True)
     else:
-        rp = align_reaction(
-            problem,
-            search_config=config,
+        aam = search_aam(
+            problem, config,
             workers=max(1, args.workers),
-            post_workers=args.post_workers,
             intermediate_dir=output / 'aam_search')
-        output = write_rp_bundle(rp, output)
-        from .ts import reaction_context_from_rp
-        reaction = reaction_context_from_rp(rp)
-    if args.stage == "rp":
+        output = write_aam_bundle(aam, output)
+        if args.stage == "events":
+            decoded = decode_events(aam, EventDecodeConfig(
+                threshold=args.event_threshold,
+                metal_threshold=args.metal_event_threshold,
+                max_events=args.max_events,
+                seconds_per_family=args.seconds_per_family))
+            (output / "events.json").write_text(
+                json.dumps(decoded_events_record(decoded), indent=2))
         print(output.resolve())
         return
     for index, path in enumerate(args.target_npz, 1):

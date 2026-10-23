@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "event_classes_counts_and_support_identical": true,
+  "candidates": 23956,
+  "family_reports": 27295,
+  "all_families_complete_both": true,
+  "different_witness_mappings": 4406
+}

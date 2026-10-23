@@ -1,0 +1,13 @@
+{
+  "all_allowed": true,
+  "witness_count": 1,
+  "results": [
+    {
+      "candidate": "rxn_core.signed_events/v1:b03b6666ac49c421c49ae386833a8e26365c556eb6e457e5ddae1ecf9cdb3409",
+      "status": "allowed",
+      "reason": "",
+      "family_id": 0
+    }
+  ],
+  "seconds": 0.19593629194423556
+}

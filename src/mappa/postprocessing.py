@@ -61,6 +61,21 @@ class DecodedEvents:
     config: EventDecodeConfig
 
     @property
+    def observed_minimum(self):
+        return min((c.total for c in self.candidates), default=None)
+
+    @property
+    def minimum_proven(self):
+        """Minimum over retained families, not over branches lost to caps."""
+        return self.observed_minimum is not None and self.catalogue.incomplete_paths == 0 and (
+            self.observed_minimum == 0 or self.complete
+        )
+
+    @property
+    def event_window(self):
+        return self.config.max_events
+
+    @property
     def complete(self):
         return self.catalogue.incomplete_paths == 0 and all(
             r["complete"] for r in self.family_reports

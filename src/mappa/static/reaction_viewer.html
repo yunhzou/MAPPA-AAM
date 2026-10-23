@@ -7,6 +7,7 @@
   <div class="mech-sel" id="mech-sel"></div>
   <label class="index-toggle"><input type="checkbox" id="showAtomIndices"> Atom labels</label>
   <label class="index-toggle"><input type="checkbox" id="showDegeneracy"> Degeneracy</label>
+  <label class="index-toggle"><input type="checkbox" id="onlyBondChanges"> Highlight only breaking / forming</label>
   <label class="index-toggle"><input type="checkbox" id="rOrdered" checked> R-order + spatial alignment</label>
   <button class="download-all" id="downloadAllBtn">Download</button>
 </div>
@@ -38,6 +39,7 @@ const DATA = __DATA__;
 let currentMechId = DATA.default_mech_id;
 let showAtomIndices = false;
 let showDegeneracy = false;
+let onlyBondChanges = !!DATA.only_break_form_highlights;
 let rOrdered = true;
 let interpPlayTimer = null;
 let interpViewer = null;
@@ -99,6 +101,7 @@ function addEndpointModel(v, divId, els, xyz) {
  if (!endpoint || !endpoint.wbo) { v.addModel(buildBody(els,xyz),'xyz'); return; }
  const order=side===1 && rOrdered ? els.map((_,i)=>mech.mapping_RP[i]) : els.map((_,i)=>i);
  v.addModel().addAtoms(els.map((elem,i)=>({elem,index:i,serial:i,x:xyz[i][0],y:xyz[i][1],z:xyz[i][2],bonds:order.flatMap((j,k)=>k!==i && endpoint.wbo[order[i]][j]>.2?[k]:[]),bondOrder:order.flatMap((j,k)=>k!==i && endpoint.wbo[order[i]][j]>.2?[1]:[])})));
+ if (onlyBondChanges) return;
  for (const [kind,pairs] of Object.entries(mech.order_events||{})) for (const [a,b] of pairs) {
   const pa=mech.mapping_RP[a],pb=mech.mapping_RP[b];
   const delta=kind==='strengthened'?1:kind==='weakened'?-1:DATA.product.wbo[pa][pb]-DATA.reactant.wbo[a][b];
@@ -109,7 +112,7 @@ function addEndpointModel(v, divId, els, xyz) {
 }
 function describeWitness(mech) {
  document.getElementById('comparison-note').textContent=DATA.note||'';
- const events=mech.event_records||[];document.getElementById('event-details').hidden=!events.length;
+ const events=(mech.event_records||[]).filter(e=>!onlyBondChanges || e.kind==='broken' || e.kind==='formed');document.getElementById('event-details').hidden=!events.length;
  const table=document.getElementById('event-table');table.replaceChildren();
  for(const e of events) {const row=document.createElement('p');row.textContent=e.kind+': '+e.r.map(i=>DATA.reactant.elements[i]+' R'+i).join('–')+' → P'+e.p.join('–P')+' | WBO '+e.wbo.map(x=>x.toFixed(3)).join(' → ');table.appendChild(row);}
  document.getElementById('witness').textContent=JSON.stringify({pattern:mech.pattern_id,mapping:mech.mapping_RP,provenance:mech.provenance},null,2);
@@ -124,6 +127,13 @@ const ms = document.getElementById('mech-sel'); ms.innerHTML = "<span style='fon
 document.getElementById('interpFrame').oninput = renderInterpolationFrame;
 document.getElementById('interpPlayBtn').onclick = toggleInterpolation;
 document.getElementById('showClashHighlights').onchange = (e) => { showClashHighlights=!!e.target.checked; renderInterpolationFrame(); };
+document.getElementById('onlyBondChanges').checked = onlyBondChanges;
+document.getElementById('onlyBondChanges').onchange = e => {
+ const views = Object.fromEntries(Object.entries(molecularViewers).map(([id,v])=>[id,v.getView()]));
+ onlyBondChanges = e.target.checked;
+ render();
+ for (const [id,view] of Object.entries(views)) if (molecularViewers[id]) { molecularViewers[id].setView(view); molecularViewers[id].render(); }
+};
 window.addEventListener('load', render);
 window.addEventListener('resize',()=>Object.values(molecularViewers).forEach(v=>{v.resize();v.render()}));
 </script>

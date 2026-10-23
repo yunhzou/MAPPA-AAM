@@ -1,0 +1,37 @@
+{
+  "case": "rp_timeout",
+  "atoms": 40,
+  "inputs": {
+    "reference_arrays.npz": "cfba352b70c761be341347dcd1fdc7eb21a6e3179646a3be8d09732e97b019d4",
+    "prediction_arrays.npz": "4bcaca33151321f1be0676ea103ef5012dacf110b99636cbec1f4149453ed0e7"
+  },
+  "search": {
+    "cut_floor": 0.15,
+    "graph_floor": 0.15,
+    "iso_tolerance": 1.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 3,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "symmetry_repair": true,
+    "symmetry_repair_min_changes": 1,
+    "symmetry_repair_max_evaluations": 20000,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": false
+  },
+  "decode": {
+    "threshold": 0.5,
+    "metal_threshold": 0.3,
+    "max_events": null,
+    "seconds_per_family": 120,
+    "max_patterns_per_family": null,
+    "event_slack": null
+  },
+  "execution": "reference",
+  "mappa_path": "/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/current_decode_20261023_v1/source/src/mappa/__init__.py",
+  "memory_gib": 5.0,
+  "python": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]"
+}

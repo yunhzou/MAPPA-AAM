@@ -18,7 +18,7 @@ It re-exports stable entry points such as:
 - `search_aam`
 - `group_mechanisms`
 - `compile_mapping_families` / `compile_mechanism_families`
-- `align_reaction`
+- `mappa.postprocessing.decode_events`
 - `build_graph`
 - `classify_bonds`
 
@@ -58,7 +58,7 @@ Files:
   `MatchCandidate`, `MatchResult`, `match_wbo_graphs`,
   `align_from_arrays`, `analyze_alignment`, `cut_edges_above_floor`.
 - `alignment/branch.py`: molecule-level branch scheduling, branch dedupe,
-  seed-order generation, and final symmetry repair.
+  seed-order generation, and explicit symmetry repair.
 - `alignment/sweep.py`: R-P sweep-cut mechanism discovery via no-cut plus
   one-edge R cuts, with symmetry-canonical mechanism signatures.  Parallel
   cut-sweep work is grouped by cut, so each worker computes the cut-specific R
@@ -128,37 +128,15 @@ symmetry state. A block with two R atoms and four P atoms represents
 - `modes.py`: normal-mode parsing and score-feature vectors.
 - `align.py`: compatibility facade for cache loading and coordinate reindex
   helpers now owned by `chemistry_computations`.
-- `pipeline.py`: BGCP cached orchestration, split into explicit resumable
-  stages. `run_rp_stage` is the reusable R-P alignment / mechanism-discovery
-  entry point and writes `rp_stage.json`. `run_ts_stage` consumes those
-  mechanisms plus GT/IG/TS targets, runs mechanism-local no-cut R/P endpoint
-  realignment through the same symmetry-aware fragment-growth matcher, expands
-  only core-atom degeneracy, and writes `ts_stage.json`. `write_view_stage` is
-  presentation-only: it writes the multi-mechanism viewer plus slim eval JSON
-  from stage records. `write_rp_alignment_files` is a Stage 1 export helper
-  for downstream NEB/path setup: it writes per-mechanism `R.xyz`,
-  `P_aligned.xyz`, `neb_endpoints.xyz`, mapping CSV, and metadata without
-  doing any spatial fitting. `write_ts_alignment_files` exports the
-  Stage 2 selected best-S GT/IG/TS core mapping as native target XYZ plus an
-  R-frame core-aligned materialization and picked-mode extended XYZ. The
-  TS selector prefers exact core mappings seen from both R and P endpoints
-  when such endpoint-consensus candidates exist, then falls back to score-only
-  selection for one-endpoint pools.
-  compatibility `process_step` composes all three.
-  The CLI exposes the same split through `--stage rp|ts|view|full`, and
-  `--mechanism` restricts Stage 2 verification to selected mechanism IDs.
-  The default auto scheduler treats `--workers` as a total CPU budget and
-  splits it between concurrent steps and each step's inner worker pool. That
-  inner pool is reused after R-P discovery for independent TS/IG endpoint
-  core-matching tasks across targets, mechanisms, and R/P endpoints. The
-  pipeline prefers existing xtb caches but, in `BGCP_XTB_MODE=auto`, can fill
-  missing `wbo` and `g98.out` files from available XYZ inputs before
-  alignment. Each individual xtb subprocess is capped by
-  `BGCP_XTB_MAX_THREADS=8` through `OMP_NUM_THREADS`; target cache filling has
-  its own `BGCP_XTB_WORKERS` pool so multi-threaded xtb jobs can be balanced
-  separately from R-P/TS alignment workers. Each cache endpoint is loaded as one complete
-  molecule/complex graph; the pipeline does not assemble separate
-  reactant/product fragments or merge independent WBO matrices.
+- `cli.py`: explicit `aam`, `events` (default), and `ts` stages. Search and
+  event decoding never call a geometry selector. TS processing requires a
+  caller-supplied resolved-reaction record.
+- `alignment/mapping_families.py`: exact structural and event-conditioned
+  family compilation and membership. It performs no 3D witness selection.
+- `coordinate_orientation.py`: scalar signed-volume measurements.
+
+The legacy R/P selector, its public wrappers, and its CLI modes are removed.
+There are no compatibility aliases or automatic replacements.
 
 These modules should not depend on matcher internals unless they are explicitly
 running alignment.

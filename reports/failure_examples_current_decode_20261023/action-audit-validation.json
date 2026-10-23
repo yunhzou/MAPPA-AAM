@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "witnesses": 7,
+  "tampered_action_rejected": true,
+  "group_witnesses": 3,
+  "non_group_permutation_rejected": true
+}

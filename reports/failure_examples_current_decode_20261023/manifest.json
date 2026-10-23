@@ -1,0 +1,78 @@
+{
+  "status": "complete",
+  "source": "current working tree after legacy orientation-selector removal",
+  "git_head": "eb128e062ec7f3fed2cfa60b728037e0ca411de8",
+  "source_manifest": "source_sha256.json",
+  "source_archive_sha256": "8ad3c9ff4a48a9da7cc92fb9b0a2c5bb82355698097df4d61e1d2499d81f3262",
+  "runner_sha256": "af087078e6aec02a8ab061bda2d352552ba96a8d71ecb919324a8c8850342470",
+  "cluster_directory": "/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/current_decode_20261023_v1",
+  "jobs": {
+    "build": "7570589",
+    "decode_array": "7570590",
+    "family_shards": "7570884",
+    "producing_family_audit": "7571081",
+    "constructive_witness_audit": "7572216"
+  },
+  "cases": {
+    "rp_timeout": "40 atoms; original uncut search, all saved-family event classes",
+    "search_memory": "80 atoms; original cut sweep, checkpointed cuts instead of combined history"
+  },
+  "scientific_settings": {
+    "seed_count": 3,
+    "branch_limit": 100,
+    "iso_tolerance": 1.0,
+    "graph_floor": 0.15,
+    "cut_floor": 0.15,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3
+  },
+  "decoder": {
+    "api": "mappa.postprocessing.decode_events",
+    "max_events": null,
+    "event_slack": null,
+    "seconds_per_family": 120
+  },
+  "resources": {
+    "cpus": 1,
+    "job_memory_gib": 8,
+    "address_space_gib": 5,
+    "job_seconds": 3600
+  },
+  "scope": "Complete decoding means every retained family decoded without an event-count window; search caps and geometry validation remain distinct.",
+  "local_control": "local40/result.json",
+  "executed_runner": "cluster/executed_runner.py",
+  "reproducer": "run_decode.py",
+  "reproducer_sha256": "d5f71e7c0f73b5310245c1d23611eceb9d85c27665872e777a43cdd6d1ce41db",
+  "audit": "audit_decode.py (direct delta-WBO rescore) and check_membership.py (saved-family witness membership)",
+  "partitioned_decode": {
+    "shards": 32,
+    "max_concurrent": 16,
+    "decoder": "unchanged mappa.event_patterns.extract_path_events called by public decode_events",
+    "configuration": "identical unrestricted, 120 seconds per family",
+    "validation": "shard-validation.json",
+    "runner_sha256": "12e52bfcd1ba631526c63da714655717bb866b7a04b34932ae3d166cf107d90e",
+    "evidence": "One saved JSONL report per family, globally keyed by catalogue family ID"
+  },
+  "results": {
+    "rp_timeout": {
+      "families_complete": 7,
+      "event_classes": 1,
+      "minimum_events": 0
+    },
+    "search_memory": {
+      "families_complete": 27295,
+      "event_classes": 23956,
+      "minimum_events": 24,
+      "minimum_event_classes": 12
+    }
+  },
+  "final_report": "FINAL_REPORT.md",
+  "final_results": "final-results.json",
+  "final_audits": [
+    "cluster/rp_timeout/producing-family-audit-v3.json",
+    "cluster-evidence/results/search_memory_partitioned/independent-audit.json",
+    "cluster-evidence/results/search_memory_partitioned/constructive-membership-audit.json",
+    "cluster-evidence/serial-parallel-equality.json"
+  ],
+  "all_task_jobs_retired": true
+}

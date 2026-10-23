@@ -1,0 +1,16 @@
+{
+  "base_commit": "590d0a7cc230cf07ed694e8e736f723082eba7f1",
+  "scope": "Removed legacy RP orientation selector; current event CLI, explicit TS input, corrected viewer highlights and supplied-case reports",
+  "tests": {
+    "passed": 56,
+    "skipped": 2,
+    "scope": "CLI, artifacts, typed API, family compilation, alignment, Python workflow, viewer style, main TS scorer and bond diagnostics"
+  },
+  "native_extensions": "Built from publication source; no prebuilt substitutions",
+  "benchmark_source": "source.tar.gz contains the exact independently frozen benchmark engine; it differs from this main-based publication checkout",
+  "unchanged_newer_main_modules": [
+    "src/mappa/scoring.py",
+    "src/mappa/bond_diagnostics.py"
+  ],
+  "viewer_validation": "viewer_80atom/viewer-validation.json"
+}

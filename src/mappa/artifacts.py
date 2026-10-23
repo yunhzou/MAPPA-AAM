@@ -1,19 +1,15 @@
 """Serialization and self-contained views for typed computational results."""
 from __future__ import annotations
 
-import html
 import json
 import gc
 import gzip
 import pickle
 from pathlib import Path
 
-import numpy as np
-
-from .chemistry_computations import write_xyz_str
 from .alignment.post_aam import AtomBijection
 from .domain import (
-    AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, RPResult, ReactionContext,
+    AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext,
     ResolvedMechanism, TSResult,
 )
 from .search_graph import AAMSearchGraph
@@ -196,31 +192,27 @@ def _mapping_record(mapping):
             for source, target in mapping.as_dict().items()}
 
 
-def rp_record(result: RPResult):
-    """Return the stable JSON boundary representation of an ``RPResult``."""
-    problem = result.analytical.aam.problem
+def decoded_events_record(result):
+    """Serialize event witnesses and their explicitly scoped completeness."""
+    from .postprocessing import DecodedEvents
+    if not isinstance(result, DecodedEvents):
+        raise TypeError("decoded_events_record requires DecodedEvents")
     return {
-        "schema": "rxn_core.rp/v2",
-        "aam": aam_record(result.analytical.aam),
-        "name": problem.name,
-        "atom_count": problem.atom_count,
-        "timing": {
-            "aam_seconds": result.analytical.aam.metrics.elapsed_seconds,
-            "family_seconds": result.analytical.elapsed_seconds,
-            "selection_seconds": result.elapsed_seconds,
-        },
-        "search_metrics": vars(result.analytical.aam.metrics),
-        "mechanisms": [{
-            "id": index,
-            "mapping": _mapping_record(mechanism.mapping),
-            "broken_bonds": [list(bond) for bond in mechanism.broken_bonds],
-            "formed_bonds": [list(bond) for bond in mechanism.formed_bonds],
-            "core_atoms": list(mechanism.core_atoms),
-            "fixed_mapping_rmsd": mechanism.fixed_mapping_rmsd,
-            "selected_branch_index": mechanism.selected_branch_index,
-            "chirality": dict(mechanism.chirality),
-            "analytical_family_count": len(mechanism.analytical.branches),
-        } for index, mechanism in enumerate(result.mechanisms, 1)],
+        "schema": "mappa.decoded_events/v1",
+        "complete": result.complete,
+        "minimum_proven": result.minimum_proven,
+        "observed_minimum": result.observed_minimum,
+        "event_window": result.event_window,
+        "config": vars(result.config),
+        "incomplete_paths": result.catalogue.incomplete_paths,
+        "family_reports": result.family_reports,
+        "candidates": [{
+            "id": candidate.id,
+            "mapping": {str(a): int(b) for a, b in candidate.mapping.items()},
+            "events": candidate.events,
+            "total": candidate.total,
+            "family_ids": candidate.family_ids,
+        } for candidate in result.candidates],
     }
 
 
@@ -302,55 +294,6 @@ def reaction_from_record(record, problem: AAMProblem,
 
 def _json_dump(path, value):
     Path(path).write_text(json.dumps(value, indent=2, default=float))
-
-
-def _viewer_html(result: RPResult):
-    from .viewers import comparison_document, reaction_html
-    problem = result.analytical.aam.problem
-    endpoints = [dict(elements=e.elements, coordinates=e.coordinates.tolist(), wbo=e.wbo.tolist())
-                 for e in (problem.reactant, problem.product)]
-    records = []
-    for index, mechanism in enumerate(result.mechanisms, 1):
-        mapping = _mapping_record(mechanism.mapping)
-        pairs = sorted((int(a), int(b)) for a, b in mapping.items())
-        m = dict(pairs)
-        events = []
-        for kind, bonds in [('broken', mechanism.broken_bonds), ('formed', mechanism.formed_bonds)]:
-            for a, b in bonds:
-                events.append(dict(kind=kind, r=[a,b], p=[m[a],m[b]],
-                                   wbo=[float(problem.reactant.wbo[a,b]),float(problem.product.wbo[m[a],m[b]])]))
-        records.append(dict(name=f'Mechanism {index} · RMSD {mechanism.fixed_mapping_rmsd:.4f} Å',
-                            mapping=pairs, events=events, provenance=dict(selected_branch=mechanism.selected_branch_index)))
-    if not records:
-        return '<!doctype html><p>No selected R/P mechanism.</p>'
-    document = comparison_document(dict(index=0, name=problem.name or 'R/P alignment',
-                                        endpoints=endpoints, records=records))
-    return reaction_html(document)
-
-
-def write_rp_bundle(result: RPResult, output_directory):
-    """Write JSON, per-mechanism endpoint XYZ files, and an inline viewer."""
-    output = Path(output_directory)
-    output.mkdir(parents=True, exist_ok=True)
-    problem = result.analytical.aam.problem
-    _json_dump(output / "rp.json", rp_record(result))
-    from .ts import reaction_context_from_rp
-    _json_dump(
-        output / "reaction.json",
-        reaction_record(reaction_context_from_rp(result)))
-    (output / "R.xyz").write_text(write_xyz_str(
-        problem.reactant.elements, problem.reactant.coordinates, "Reactant"))
-    for index, mechanism in enumerate(result.mechanisms, 1):
-        directory = output / f"mechanism_{index:03d}"
-        directory.mkdir(exist_ok=True)
-        (directory / "R.xyz").write_text(write_xyz_str(
-            problem.reactant.elements, problem.reactant.coordinates, "Reactant"))
-        aligned = mechanism.mapping.product_in_reactant_order(
-            problem.product.coordinates)
-        (directory / "P_aligned.xyz").write_text(write_xyz_str(
-            problem.reactant.elements, aligned, "Product in reactant order"))
-    (output / "view.html").write_text(_viewer_html(result))
-    return output
 
 
 def write_ts_record(result: TSResult, path):
