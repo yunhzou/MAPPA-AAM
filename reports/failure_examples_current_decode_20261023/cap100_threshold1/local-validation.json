@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "archive_sha256_verified": true,
+  "input_hashes_verified": true,
+  "configuration_diff_from_cap10": [
+    "branch_limit"
+  ],
+  "cut_checkpoints": 91,
+  "complete_family_reports": 27295,
+  "family_reasons": {
+    "signed_event_invariance": 26695,
+    "all_event_orbits_excluded": 600
+  },
+  "independently_rescored_witnesses": 342,
+  "minimum_events": 6,
+  "minimum_candidates": 3,
+  "minimum_signed_counts": [
+    {
+      "broken": 4,
+      "formed": 2
+    },
+    {
+      "broken": 4,
+      "formed": 2
+    },
+    {
+      "broken": 4,
+      "formed": 2
+    }
+  ]
+}

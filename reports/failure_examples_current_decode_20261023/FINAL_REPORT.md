@@ -37,3 +37,5 @@ The [single-mapping viewer](viewer_80atom/view.html) distinguishes bond disappea
 The separately requested [cap-10 / threshold-1.0 measurement](cap10_threshold1/REPORT.md) took 1.49 seconds but retained no complete mappings; it is not a successful faster decode.
 
 The exact benchmark engine is preserved in the source archive; the publication branch retains GitHub main's newer TS scorer. The [original input arrays](inputs/) and [publication checks](publication-validation.json) are included.
+
+The controlled [cap-100 / threshold-1.0 measurement](cap100_threshold1/REPORT.md) completed in 357.34 seconds, including 93.55 seconds of full decoding. All 27,295 families finished, yielding 342 audited event classes and a retained-family minimum of six threshold-1.0 signed changes.
