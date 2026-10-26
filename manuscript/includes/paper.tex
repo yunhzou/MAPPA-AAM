@@ -1,6 +1,6 @@
 \section{Introduction}
 
-Atom-to-atom mapping assigns corresponding atoms across a reaction. It underlies reaction-center identification, template extraction, and the preparation of endpoint structures for mechanistic calculations. A reaction can admit several plausible correspondences, while many different atom-index assignments are chemically equivalent. An algorithm intended to retain alternatives must therefore resolve two questions: which structural choices deserve separate candidates, and which permutations can be represented together?
+Atom-to-atom mapping assigns corresponding atoms across a reaction. It is used to identify reaction centers, extract reaction templates, and prepare endpoint structures for mechanistic calculations. Importantly, a reaction may not have a single chemically meaningful atom correspondence: different mappings can imply different reaction centers or bond-change patterns, while molecular symmetry can produce multiple atom assignments that are chemically equivalent. For downstream analyses, it can therefore be useful to keep more than one plausible mapping rather than committing to a single correspondence too early. The challenge is to distinguish genuinely different mapping possibilities from permutations that arise only from molecular symmetry.
 
 Existing approaches use learned correspondence signals or graph-based optimization. RXNMapper derives mappings from attention in a reaction language model~\citep{schwaller2021}; LocalMapper learns from chemist-labeled reactions~\citep{chen2024}; and SLAPMapper combines iterative label refinement with sequential linear assignment~\citep{koda2025}. The Golden benchmark provides a common set of annotated reactions for assessing mapping recovery~\citep{lin2022}. For applications requiring alternatives, recovering the annotation somewhere in a returned family is a different objective from producing one correct top-ranked mapping.
 
@@ -219,7 +219,7 @@ The default-comparator rows in \Cref{tab:competitors} use released interfaces wi
 \FloatBarrier
 \subsection{Minimum bond-event comparison on 140 coordinate reactions}
 
-We use one-seed MAPPA sweep search at cap 2,000, which returns complete mappings for all 140 reactions. Cap 100 leaves two reactions incomplete (cases 123 and 125). The larger cap is therefore used for this comparison; the library default remains 100.
+We use one-seed MAPPA sweep search with a branch cap of 2,000, meaning that the search can retain up to 2,000 concurrent branches before truncating the search. This configuration returns complete mappings for all 140 reactions. With the library-default branch cap of 100, two reactions (cases 123 and 125) remain incomplete. We therefore use the 2,000-branch configuration for this comparison, while retaining 100 as the library default.
 
 MAPPA matches or lowers the minimum event count found by both native SLAP and SLAP sweep in every reaction (\Cref{tab:coordinate-minima,fig:coordinate}). This does not imply recovery of every alternative: at equal minima, six SLAP-sweep patterns remain absent across four reactions. An equal count can describe different changed bonds, and a lower count alone does not establish a more plausible transformation.
 

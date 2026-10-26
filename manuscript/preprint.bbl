@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{15}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -46,6 +46,15 @@ Leonardo de~Moura and Nikolaj Bj{\o}rner.
 \newblock \url{https://github.com/epam/Indigo}.
 \newblock Evaluated version 1.46.0.
 
+\bibitem[Goddard et~al.(2018)Goddard, Huang, Meng, Pettersen, Couch, Morris,
+  and Ferrin]{goddard2018chimerax}
+Thomas~D. Goddard, Conrad~C. Huang, Elaine~C. Meng, Eric~F. Pettersen,
+  Gregory~S. Couch, John~H. Morris, and Thomas~E. Ferrin.
+\newblock {UCSF ChimeraX}: Meeting modern challenges in visualization and
+  analysis.
+\newblock \emph{Protein Science}, 27:\penalty0 14--25, 2018.
+\newblock \doi{10.1002/pro.3235}.
+
 \bibitem[Henkelman et~al.(2000)Henkelman, Uberuaga, and
   J{\'o}nsson]{henkelman2000}
 Graeme Henkelman, Blas~P. Uberuaga, and Hannes J{\'o}nsson.
@@ -86,6 +95,14 @@ Brendan~D. McKay and Adolfo Piperno.
 \newblock Practical graph isomorphism, {II}.
 \newblock \emph{Journal of Symbolic Computation}, 60:\penalty0 94--112, 2014.
 \newblock \doi{10.1016/j.jsc.2013.09.003}.
+
+\bibitem[Pettersen et~al.(2021)Pettersen, Goddard, Huang,
+  et~al.]{pettersen2021chimerax}
+Eric~F. Pettersen, Thomas~D. Goddard, Conrad~C. Huang, et~al.
+\newblock {UCSF ChimeraX}: Structure visualization for researchers, educators,
+  and developers.
+\newblock \emph{Protein Science}, 30:\penalty0 70--82, 2021.
+\newblock \doi{10.1002/pro.3943}.
 
 \bibitem[Rahman et~al.(2016)Rahman, Torrance, Baldacci, Mart{\'i}nez~Cuesta,
   Fenninger, Gopal, Choudhary, May, Holliday, Steinbeck, and
