@@ -1,0 +1,16 @@
+Exact boundary-profile reuse: local Golden comparison
+
+Nonzero bond-weight rows are cached once per immutable target. Filtering them by the candidate outside set produces the same ordered boundary constraints as a full matrix scan. Sub-threshold nonzero weights are retained. Matching, compression, growth, seeds, caps and scoring are unchanged.
+
+Three cases, 3 fresh-process repetitions per direction per revision, one process at a time; median sum of the two directional process CPU times. Search, symmetry finalization and checkpoint output included; imports, decoding and graph hashing excluded. Same corrected algorithm, inputs, seeds and caps; only the boundary-profile cache differs.
+
+Case | before CPU (s) | after CPU (s) | observed reduction
+64 | 0.193 | 0.187 | 3.1%
+604 | 1.669 | 1.604 | 3.9%
+17 | 14.292 | 13.966 | 2.3%
+
+All 18 comparisons have identical full search-graph SHA-256 hashes, covering contexts, states, transitions, stops and finalized symmetry records. All 116 targeted tests passed, including direct full-matrix equality, independent injective enumeration and native/standard finalizer equality.
+
+The gains are modest and specific to these three cases and repetitions. This is not a full-dataset speedup estimate or a comparison isolating differences from the historical paper implementation. The baseline is the corrected published commit 4445342.
+
+Reproduce individual directional measurements with bench/measure_fragment_search.py INPUT OUTPUT [--reverse], using fresh output directories. Compare the baseline commit against the cache revision with the three included inputs and single-thread numerical libraries. Raw measurements and input/source/complete-graph hashes are in comparison.json.

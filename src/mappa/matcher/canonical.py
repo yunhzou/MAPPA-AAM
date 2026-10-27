@@ -360,12 +360,17 @@ class _CandidateAutomorphismCanonicalizer:
                 tuple(sorted(edge_vertices_by_bucket.items(),
                              key=lambda item: item[0])),
                 tuple(sorted(exact_edge_vertices.items())),
+                # Continuation roles use all nonzero weights, including pairs
+                # below the active-graph threshold. The target is immutable.
+                {p: tuple((q, weight) for q in sorted(nodes)
+                          if (weight := _edge_wbo(g_P, p, q)) != 0)
+                 for p in nodes},
             )
             if cache is not None:
                 cache[cache_key] = base
         (self.nodes, self.atom_index, self.n_atoms, self.atom_base_color,
          self.n_vertices, self.adjacency, self.edge_color_classes,
-         self.exact_edge_color_classes) = base
+         self.exact_edge_color_classes, self.nonzero_wbo) = base
         import pynauty
         self.nauty_graph = pynauty.Graph(
             self.n_vertices,
@@ -425,8 +430,8 @@ class _CandidateAutomorphismCanonicalizer:
             # Pool atoms can still be unassigned in another represented witness.
             # Fix them too; their permutations are already stored in the pool.
             continuation = ('outside', p) if p in outside else (
-                'boundary', tuple((q, weight) for q in sorted(outside)
-                                  if (weight := _edge_wbo(self.g_P, p, q)) != 0))
+                'boundary', tuple((q, weight) for q, weight in self.nonzero_wbo[p]
+                                  if q in outside))
             roles[p] = (*roles.get(p, ()), continuation)
         return roles
 

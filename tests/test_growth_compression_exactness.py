@@ -19,6 +19,31 @@ def graph(elements, edges):
     return build_graph(elements, weights, bond_cut=0.2)
 
 
+def test_continuation_roles_equal_direct_full_matrix_scan():
+    from mappa.matcher.canonical import _CandidateAutomorphismCanonicalizer
+    rng = np.random.default_rng(7321)
+    nodes = (2, 5, 9, 12, 19)
+    for _ in range(12):
+        weights = rng.choice([0., .1, .35, 1., 1.1], size=(20, 20))
+        weights = np.triu(weights, 1)
+        weights += weights.T
+        target = build_graph(['C'] * 20, weights, bond_cut=.2).subgraph(nodes).copy()
+        canonicalizer = _CandidateAutomorphismCanonicalizer(target, wbo_tol=.5)
+        for images in permutations(nodes, 3):
+            for pooled in (False, True):
+                blocks = (_SymBlock((1,), (images[1], images[2])),) if pooled else ()
+                candidate = _SymCand({0: images[0], 1: images[1]}, blocks)
+                expected = canonicalizer._candidate_roles(candidate, group_domains=True)
+                pool_atoms = {p for block in blocks for p in block.p_atoms}
+                outside = set(nodes) - (set(candidate.mapping.values()) - pool_atoms)
+                for p in nodes:
+                    boundary = tuple((q, float(weights[p, q])) for q in sorted(outside)
+                                     if p != q and weights[p, q] != 0)
+                    role = ('outside', p) if p in outside else ('boundary', boundary)
+                    expected[p] = (*expected.get(p, ()), role)
+                assert canonicalizer._growth_roles(candidate, group_domains=True) == expected
+
+
 def represented(candidates, target, tolerance):
     """Enumerate tiny test groups independently of the production decoder."""
     workspace = SymmetryWorkspace(target, tolerance)

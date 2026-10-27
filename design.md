@@ -93,3 +93,14 @@ approved policies; the matching repair above preserves them. The seed-order
 generator already on GitHub main is retained: later seeds use its shared shuffled
 pool. Earlier local experiments with independently reshuffled seed orders are
 historical evidence, not timings for this published revision.
+
+## Exact boundary-profile reuse
+
+For each immutable target, cache the ordered nonzero pairs `(q, W[p,q])` for
+every atom p. A candidate's boundary profile filters this row to its outside
+atoms. This equals the original operation of scanning the sorted outside atoms
+and excluding zero weights: the same pairs appear in the same order. We retain
+all nonzero values, including below-threshold weights; no rounding, bond cutoff,
+or symmetry approximation enters this cache. Thus candidate colors, generators,
+and the represented relation are unchanged. Direct full-matrix comparisons
+cover sparse atom indices, pools, and weak bonds.
