@@ -1349,6 +1349,20 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
                            certificate_calls);
 }
 
+// Read-only display snapshot: one witness at the largest live candidate set.
+struct GrowthObservation {
+    size_t count = 0;
+    Cand witness;
+    std::vector<uint8_t> fragment;
+    std::vector<Pair> deferred;
+    void record(const std::vector<Cand>& candidates, const std::vector<uint8_t>& atoms,
+                const std::vector<Pair>& boundary) {
+        if (candidates.empty() || candidates.size() <= count) return;
+        count = candidates.size(); witness = candidates.front();
+        fragment = atoms; deferred = boundary;
+    }
+};
+
 // ---------------------------------------------------------------------------
 // growth loop (mappa.growth.island.grow_island)
 // ---------------------------------------------------------------------------
@@ -1450,7 +1464,8 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        const GrowthTrace* previous = nullptr, int resume_step = -1,
                        GrowthDependencies* dependencies = nullptr,
                        ExtensionCache* extension_cache = nullptr,
-                       std::vector<FragmentFrontier>* choices = nullptr, uint64_t random_seed = 42) {
+                       std::vector<FragmentFrontier>* choices = nullptr, uint64_t random_seed = 42,
+                       GrowthObservation* observation = nullptr) {
     SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);
     GrowResult result;
     GrowProfile& prof = result.profile;
@@ -1554,6 +1569,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     }
 
     auto checkpoint = [&]() {
+        if (observation) observation->record(cands, fragment, deferred);
         if (!trace) return;
         if (!trace->store_checkpoints) return;
         trace->reads.step = (int)trace->checkpoints.size();
@@ -1884,7 +1900,7 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed) {
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe) {
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -1892,13 +1908,26 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         islands_ptr = &islands;
     }
     GrowResult res;
+    GrowthObservation observation;
     {
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed);
+                          nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed,observe ? &observation : nullptr);
     }
-    return grow_result_dict(res);
+    auto out = grow_result_dict(res).cast<py::dict>();
+    if (observe) {
+        py::dict snapshot;
+        snapshot["candidate_count"] = observation.count;
+        snapshot["symmetry"] = symmetry_state(observation.witness);
+        std::vector<int> atoms;
+        for (size_t i=0;i<observation.fragment.size();++i)
+            if (observation.fragment[i]) atoms.push_back(i);
+        snapshot["fragment"] = atoms;
+        snapshot["deferred"] = observation.deferred;
+        out["observation"] = snapshot;
+    }
+    return out;
 }
 
 #include "growth_replay.h"
@@ -1941,7 +1970,7 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42);
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false);
     register_growth_replay(mod);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);
