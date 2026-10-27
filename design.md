@@ -128,3 +128,25 @@ nor matching, branching, decoding, or memory limits.
 
 Fresh-process measurements, full graph comparisons, peak process memory, and
 validation are recorded in `reports/revision_cpu_audit_20261027/report.txt`.
+
+## Rebenchmark evidence and scheduling
+
+The benchmark uses the public disk-checkpoint search, with eight cut workers per
+claimed reaction/direction and up to 100 simultaneous claims on NRT CPU-short.
+A shared claim list balances reactions across allocations; cut workers balance
+sweep work inside each reaction. Numerical libraries use one thread. Search
+semantics, branch cap, cut order identities and seed generation are unchanged.
+
+One ten-seed archive retains ten independent contexts per cut. Prefix reports
+select the first n contexts; this is validated against independent n-seed runs.
+Per-seed CPU reflects shared runtime caches, not independent-run latency. Total
+CPU includes children and reports persistence separately from computation.
+
+Node-local raw cuts, seed records, finalized cuts, ranking, exact reference
+queries and outcomes are verified into per-direction archives after each stage.
+A resource interruption preserves saved work and remains incomplete. The input
+manifest retains all 1,851 Golden rows and separates preparation errors. Raw
+family membership, representative ranking, and completed event decoding remain
+distinct metrics. Historical campaigns are immutable. A pilot must pass full
+serial/parallel graph equality, seed-prefix equality and archive restore before
+any full run is submitted.
