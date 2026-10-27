@@ -14,6 +14,39 @@ from test_cut_replay import graph
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
 
 
+@pytest.mark.parametrize('enabled', [False, True])
+@pytest.mark.parametrize('failure', [None, 'search', 'construction'])
+def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
+    import gc
+    from mappa.search_graph import AAMSearchGraph
+    original_state = gc.isenabled()
+    source = graph(3, [(0, 1), (1, 2)], ['C', 'O', 'H'])
+    search = native._engine.search_fragments
+    construct = AAMSearchGraph.from_record
+    def checked_search(*args, **kwargs):
+        assert not gc.isenabled()
+        if failure == 'search':
+            raise RuntimeError('injected search failure')
+        return search(*args, **kwargs)
+    def checked_construction(cls, *args, **kwargs):
+        assert not gc.isenabled()
+        if failure == 'construction':
+            raise RuntimeError('injected construction failure')
+        return construct(*args, **kwargs)
+    monkeypatch.setattr(native._engine, 'search_fragments', checked_search)
+    monkeypatch.setattr(AAMSearchGraph, 'from_record', classmethod(checked_construction))
+    try:
+        (gc.enable if enabled else gc.disable)()
+        if failure:
+            with pytest.raises(RuntimeError, match='injected'):
+                find_islands_native(source, source, list(source))
+        else:
+            assert find_islands_native(source, source, list(source)).terminals
+        assert gc.isenabled() == enabled
+    finally:
+        (gc.enable if original_state else gc.disable)()
+
+
 def compare(source,target,order,**options):
     orbits=_nauty_orbits(target,wbo_tol=options.get('iso_tol',1.))
     expected=find_islands(source,target,order,p_orbits=orbits,**options)

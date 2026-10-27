@@ -114,3 +114,17 @@ conditioned automorphism group is identity. Returning its empty generator list
 directly is exact. Local pool permutations remain in the pool records and are
 not removed. Legacy records and nonempty automorphism blocks still use the
 exact conditioned solver. The standard finalizer remains an independent oracle.
+
+## Cyclic collection during native record construction
+
+The native exporter creates nested acyclic containers, and `from_record` turns
+them into an acyclic decision graph. Cyclic garbage collection is suspended only
+across these two operations, avoiding repeated scans of previously retained cut
+graphs while allocating the next record. Reference counting remains active. The
+record wrapper is released before restoring the caller's collection state in a
+`finally` block, including on exceptions. Normal collection remains enabled
+between calls when it was enabled on entry. This changes neither graph contents
+nor matching, branching, decoding, or memory limits.
+
+Fresh-process measurements, full graph comparisons, peak process memory, and
+validation are recorded in `reports/revision_cpu_audit_20261027/report.txt`.
