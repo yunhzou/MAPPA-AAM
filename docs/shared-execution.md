@@ -100,11 +100,16 @@ decoding. Reporting must audit those results separately. In particular, the
 Golden adapter runs search and reference analysis; it does not claim that
 full-event decoding or all benchmark-report metrics are complete.
 
+`execution.decoding.plan_event_decoding` schedules the existing balanced-family
+decoder with an explicit absolute bound (or unbounded enumeration). It preserves
+incomplete family reports. It rejects relative minimum+n configurations until
+the caller supplies the proper bound for the requested prefix. It does not
+replace Golden's partial-mapping decoding policy.
+
 Additional stages use `Task(operation='module:function', dependencies=(...))`.
 The function receives its payload and a `Workspace`; `workspace.dependency(key)`
-loads a verified predecessor result. Family solvers can be scheduled using this
-interface after catalogue construction and valid bounds for the requested seed
-prefixes. No decoder semantics or minimum/window policies are changed here.
+loads a verified predecessor result. Other family solvers can use this interface after catalogue construction
+and valid bounds for the requested seed prefixes. No decoder semantics or minimum/window policies are changed here.
 
 ## Validation and performance
 

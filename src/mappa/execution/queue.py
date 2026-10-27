@@ -39,6 +39,7 @@ class TaskQueue:
             CREATE TABLE IF NOT EXISTS attempts (
                 token TEXT PRIMARY KEY, task TEXT, worker TEXT, started REAL, finished REAL, state TEXT, result BLOB);
             CREATE TABLE IF NOT EXISTS dependencies (task TEXT, dependency TEXT, PRIMARY KEY(task, dependency));
+            CREATE INDEX IF NOT EXISTS case_deadline ON cases(deadline);
             CREATE INDEX IF NOT EXISTS task_state ON tasks(state);
             CREATE INDEX IF NOT EXISTS task_case ON tasks(case_name,state);
             CREATE INDEX IF NOT EXISTS task_expiry ON tasks(state,expires);
@@ -56,18 +57,26 @@ class TaskQueue:
     def add(self, tasks):
         tasks = list(tasks)
         with self.lock, self.db:
-            graph = {row[0]: [] for row in self.db.execute('SELECT key FROM tasks')}
-            for key, dependency in self.db.execute('SELECT task,dependency FROM dependencies'):
-                graph[key].append(dependency)
             if len({t.key for t in tasks}) != len(tasks):
                 raise ValueError('Duplicate task key')
+            new = {}
             for task in tasks:
                 if task.case_seconds <= 0 or task.memory_bytes <= 0:
                     raise ValueError('Resource budgets must be positive')
-                graph[task.key] = list(task.dependencies)
-            if any(d not in graph for ds in graph.values() for d in ds):
-                raise ValueError('Unknown dependency')
-            tuple(TopologicalSorter(graph).static_order())
+                previous = self.db.execute('SELECT specification FROM tasks WHERE key=?', (task.key,)).fetchone()
+                if previous:
+                    if previous[0] != pickle.dumps(task, protocol=5):
+                        raise ValueError('Task identity reused with different work')
+                else:
+                    new[task.key] = task
+            external = {d for t in new.values() for d in t.dependencies if d not in new}
+            for dependency in external:
+                if self.db.execute('SELECT 1 FROM tasks WHERE key=?', (dependency,)).fetchone() is None:
+                    raise ValueError('Unknown dependency')
+            # Existing specifications are immutable and cannot refer to future
+            # tasks. Only the new subgraph can introduce a cycle.
+            tuple(TopologicalSorter({k: [d for d in t.dependencies if d in new]
+                                     for k, t in new.items()}).static_order())
             for task in tasks:
                 data = pickle.dumps(task, protocol=5)
                 previous = self.db.execute('SELECT specification FROM tasks WHERE key=?', (task.key,)).fetchone()
@@ -93,7 +102,7 @@ class TaskQueue:
             (SELECT name FROM cases WHERE deadline IS NOT NULL AND deadline<=?)""", (now,))
         while self.db.execute("""UPDATE tasks SET state='blocked' WHERE state='pending' AND key IN
             (SELECT d.task FROM dependencies d JOIN tasks p ON p.key=d.dependency
-             WHERE p.state NOT IN ('pending','running','complete'))""").rowcount:
+             WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
             pass
 
     def claim(self, worker, memory_bytes, identity):
@@ -160,10 +169,12 @@ class TaskQueue:
             self._refresh(time.time())
             return dict(self.db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))
 
-    def results(self):
+    def results(self, keys=None):
         with self.lock:
-            return {k: dict(state=s, result=pickle.loads(r) if r else None)
-                    for k, s, r in self.db.execute('SELECT key,state,result FROM tasks ORDER BY rowid')}
+            rows = (self.db.execute('SELECT key,state,result FROM tasks ORDER BY rowid') if keys is None
+                    else (self.db.execute('SELECT key,state,result FROM tasks WHERE key=?', (key,)).fetchone()
+                          for key in keys))
+            return {k: dict(state=s, result=pickle.loads(r) if r else None) for k, s, r in rows}
 
     def backup(self, path):
         """One compact consistent checkpoint, never a shared database writer."""

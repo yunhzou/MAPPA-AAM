@@ -230,3 +230,48 @@ def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
     assert queue.snapshot() == {'memory_limit': 1, 'complete': 1}
     assert queue.results()['large']['result']['peak_tree_rss_bytes'] > limit
     queue.close()
+
+
+def test_independent_family_decoding_equals_production(tmp_path):
+    from golden_evaluation import prepare
+    from mappa import search_aam
+    from mappa.final_branches import FinalBranchCatalogue
+    from mappa.postprocessing import EventDecodeConfig, decode_events
+    from mappa.execution.decoding import plan_event_decoding
+    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')
+    catalogue = FinalBranchCatalogue(case).add_aam(aam)
+    config = EventDecodeConfig(max_events=5, seconds_per_family=10)
+    expected = decode_events(catalogue, config)
+    assert expected.complete
+    writer = BundleWriter(tmp_path/'inputs', tmp_path)
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    tasks = plan_event_decoding('decode', case, catalogue.families, config, writer)
+    queue.add(tasks)
+    run(queue, workers=2, identity=IDENTITY, scratch=tmp_path,
+        bundles=tmp_path/'bundles', memory_bytes=MEMORY)
+    assert set(queue.snapshot()) == {'complete'}
+    patterns = set()
+    for row in queue.results().values():
+        result = read_blob(row['result']['blob'], tmp_path)
+        assert result['report']['complete']
+        patterns.update(p['id'] for p in result['report']['patterns'])
+    assert patterns == {candidate.id for candidate in expected.candidates}
+    with pytest.raises(ValueError, match='absolute window'):
+        plan_event_decoding('bad', case, catalogue.families, EventDecodeConfig(event_slack=5), writer)
+    queue.close()
+
+
+def test_incremental_queue_plan_keeps_history_and_fetches_selected_results(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('first')])
+    claim = queue.claim('worker', MEMORY, IDENTITY)
+    queue.finish('first', claim['token'], 'error', {'error': 'diagnosed'})
+    queue.retry('first')
+    claim = queue.claim('worker', MEMORY, IDENTITY)
+    queue.finish('first', claim['token'], 'complete', {'ok': True})
+    queue.add([task('second', dependencies=('first',))])
+    assert list(queue.results(['second'])) == ['second']
+    assert queue.claim('worker', MEMORY, IDENTITY)['task'].key == 'second'
+    assert queue.db.execute("SELECT state FROM attempts WHERE task='first' ORDER BY started").fetchall() == [('error',), ('complete',)]
+    queue.close()

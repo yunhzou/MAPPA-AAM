@@ -15,11 +15,15 @@ def _endpoint(endpoint):
                 label=endpoint.label, energy=endpoint.energy, metadata=dict(endpoint.metadata))
 
 
+def _restore_problem(record):
+    return AAMProblem(MolecularEndpoint(**record['reactant']), MolecularEndpoint(**record['product']), record['name'])
+
+
 def _session(payload, workspace):
     reference = payload['input']
     def prepare():
         record = workspace.load(reference)
-        problem = AAMProblem(MolecularEndpoint(**record['reactant']), MolecularEndpoint(**record['product']), record['name'])
+        problem = _restore_problem(record)
         return SearchSession(problem, AAMSearchConfig(**record['config']), record['execution'])
     return workspace.prepared(reference, prepare)
 
@@ -94,7 +98,7 @@ def finalize_cut(payload, workspace):
 def iter_cuts(queue, keys, scratch):
     """Read canonical cuts one at a time; refuse incomplete campaign results."""
     from .bundles import read_blob
-    rows = queue.results()
+    rows = queue.results(keys)
     for key in keys:
         row = rows[key]
         if row['state'] != 'complete':
