@@ -27,6 +27,7 @@ from .evidence import read, save, sha, publish, restore
 
 REPO=Path(__file__).resolve().parents[2]
 DIRECTIONS=('R_to_P','P_to_R')
+CASE_SECONDS=3600
 RDF_SHA='4e287d49b70791ec30acee6d12babc26a8b7d15bd5730a3a4464e78e43eb74ce'
 
 
@@ -149,20 +150,30 @@ def worker(args,manifest=None):
             folder=Path(td);source=args.run/'inputs'/str(task['index'])
             for name in ('input.json','reference.json','source.json'):shutil.copy2(source/name,folder/name)
             save(folder/'task.json',task);save(folder/'environment.json',environment())
-            state=dict(task=args.task,index=task['index'],direction=task['direction'],stages={},complete=False)
+            started=time.perf_counter()
+            state=dict(task=args.task,index=task['index'],direction=task['direction'],stages={},complete=False,
+                started_utc=time.time(),case_seconds=CASE_SECONDS)
             for stage in ('search','analysis'):
+                case_remaining=CASE_SECONDS-(time.perf_counter()-started)
+                if case_remaining<=0:
+                    state['stop_reason']='case_wall_limit'
+                    break
                 state['active_stage']=stage;save(progress,state)
                 command=[sys.executable,'-m','rebenchmark.campaign','child','--folder',str(folder),
                     '--stage',stage,'--workers',str(manifest['workers'])]
                 remaining=float(os.environ.get('MAPPA_ALLOCATION_DEADLINE',str(time.time()+14000)))-time.time()-180
-                record=guarded(command,folder,stage,min(manifest['stage_seconds'][stage],max(1,remaining)),manifest['memory_mib'])
+                budget=min(manifest['stage_seconds'][stage],max(1,remaining),case_remaining)
+                record=guarded(command,folder,stage,budget,manifest['memory_mib'])
+                if record['status']=='timeout':
+                    record['limit_scope']='case' if budget==case_remaining else 'stage_or_allocation'
                 state['stages'][stage]=record
                 save(folder/(stage+'-resources.json'),record)
                 save(folder/'status.json',state)
                 receipt=publish(folder,args.run/'archives'/f'{args.task:05d}.tar')
                 state['archive']=receipt;save(progress,state)
                 if record['status']!='complete':break
-            state.update(active_stage=None,complete=all(state['stages'].get(s,{}).get('status')=='complete' for s in ('search','analysis')))
+            state.update(active_stage=None,wall_seconds=time.perf_counter()-started,
+                complete=all(state['stages'].get(s,{}).get('status')=='complete' for s in ('search','analysis')))
             save(progress,state)
             print(json.dumps(state),flush=True)
 

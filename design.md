@@ -150,3 +150,11 @@ family membership, representative ranking, and completed event decoding remain
 distinct metrics. Historical campaigns are immutable. A pilot must pass full
 serial/parallel graph equality, seed-prefix equality and archive restore before
 any full run is submitted.
+
+Each directional task has a 3,600-second work budget shared by search and
+analysis. After a limit, the supervisor publishes saved evidence and releases
+the worker for another task. Archive publication may finish after the work
+deadline; it is allowed to preserve evidence. The thirty-minute monitor checks
+stalls, memory failures and publication failures but does not enforce timing
+in place of the worker. Limited tasks remain unresolved and require separate
+diagnosis before continuation; they must not hold up the rest of Golden.

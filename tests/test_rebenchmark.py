@@ -101,3 +101,30 @@ def test_report_missing_seed_remains_unknown(tmp_path):
     assert result['modes']['bidirectional/seeds1']['not_recovered']==1
     assert result['modes']['bidirectional/seeds2']['unknown']==1
     assert result['modes']['bidirectional/seeds2']['ranking_complete']==0
+
+
+def test_case_deadline_spans_stages_and_preserves_evidence(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from rebenchmark import campaign
+    run=tmp_path/'run'
+    for name in ('input.json','reference.json','source.json'):
+        save(run/'inputs/0'/name,{})
+    clock=[100.0];budgets=[]
+    monkeypatch.setattr(campaign,'CASE_SECONDS',10)
+    monkeypatch.setattr(campaign.time,'perf_counter',lambda:clock[0])
+    def stage(command,folder,name,seconds,memory):
+        budgets.append(seconds)
+        save(folder/(name+'-saved.json'),dict(evidence='retained'))
+        clock[0]+=8 if name=='search' else seconds
+        return dict(status='complete' if name=='search' else 'timeout')
+    monkeypatch.setattr(campaign,'guarded',stage)
+    manifest=dict(tasks=[dict(index=0,direction='R_to_P',config={})],
+        workers=1,stage_seconds=dict(search=100,analysis=100),memory_mib=100)
+    campaign.worker(SimpleNamespace(run=run,task=0),manifest)
+    assert budgets==[10,2]
+    state=read(run/'progress/00000.json')
+    assert not state['complete'] and state['active_stage'] is None
+    assert state['stages']['analysis']['limit_scope']=='case'
+    restore(run/'archives/00000.tar',tmp_path/'restored')
+    assert read(tmp_path/'restored/search-saved.json')['evidence']=='retained'
+    assert read(tmp_path/'restored/analysis-saved.json')['evidence']=='retained'
