@@ -26,6 +26,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+execution = ["psutil>=5.9"]
 notebook = ["rdkit>=2022.9", "z3-solver>=4.13", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
 postprocessing = ["z3-solver>=4.13"]
 dev = ["pytest", "nbclient", "ipykernel"]

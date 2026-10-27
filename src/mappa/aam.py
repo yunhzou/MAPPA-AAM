@@ -21,7 +21,7 @@ from .search_symmetry import finalize_graph_symmetry
 _SEARCH_CONTEXT = None
 _SEARCH_REPAIR = None
 _FINALIZATION_WORKSPACE = None
-_SEARCH_EXECUTION = 'reference'
+_SEARCH_SESSION = None
 
 
 class _GrowthCounts:
@@ -64,71 +64,100 @@ def checkpoint_manifest(problem, config):
         config=settings)))
 
 
-def _initialize_search(problem, config, execution='reference'):
-    global _SEARCH_CONTEXT, _SEARCH_REPAIR, _FINALIZATION_WORKSPACE, _SEARCH_EXECUTION
-    _SEARCH_EXECUTION = execution
-    target = build_graph(problem.product.elements, problem.product.wbo,
-                         bond_cut=config.graph_floor)
-    _SEARCH_CONTEXT = (problem, config, target,
-                       _nauty_orbits(target, wbo_tol=config.iso_tolerance))
-    _SEARCH_REPAIR = None
-    _FINALIZATION_WORKSPACE = None
-    if execution in ('reused_native', 'shared_policies'):
-        from .cut_replay import FragmentRepair
-        source = build_graph(problem.reactant.elements, problem.reactant.wbo,
+class SearchSession:
+    """Prepared matching state reused by local or remote workers.
+
+    Seed batches select from the original full seed plan. They never reseed a
+    separate search. Sessions own their caches and are not shared across threads.
+    """
+    def __init__(self, problem, config, execution='reused_native'):
+        if execution not in ('reference', 'reused_native', 'shared_policies'):
+            raise ValueError('unknown AAM execution backend')
+        if execution != 'reference':
+            from .growth.native import available
+            if not available():
+                raise ValueError('native execution requires the built native engine')
+        self.execution = execution
+        target = build_graph(problem.product.elements, problem.product.wbo,
                              bond_cut=config.graph_floor)
-        _SEARCH_REPAIR = FragmentRepair(source, target, _SEARCH_CONTEXT[3])
+        self.context = (problem, config, target,
+                        _nauty_orbits(target, wbo_tol=config.iso_tolerance))
+        self.repair = None
+        if execution in ('reused_native', 'shared_policies'):
+            from .cut_replay import FragmentRepair
+            source = build_graph(problem.reactant.elements, problem.reactant.wbo,
+                                 bond_cut=config.graph_floor)
+            self.repair = FragmentRepair(source, target, self.context[3])
+
+    def search_cut(self, cut, *, seed_indices=None):
+        started = time.perf_counter()
+        problem, config, target, target_orbits = self.context
+        view = (self.repair.for_cut(tuple(edge for edge in cut if self.repair.source.has_edge(*edge)))
+                if self.repair is not None else None)
+        if view is None:
+            source = build_graph(problem.reactant.elements, problem.reactant.wbo,
+                                 bond_cut=config.graph_floor)
+            source.remove_edges_from(cut)
+            matcher = find_islands
+        else:
+            from .native_search import find_islands_native
+            source = view.source
+            matcher = find_islands_native
+        if self.execution == 'shared_policies':
+            if seed_indices is not None:
+                raise ValueError('Shared-policy search is an indivisible cut task')
+            from .adaptive_search import AdaptiveSearchCondition
+            from .shared_seed_search import SharedSeedSearch
+            condition = AdaptiveSearchCondition(source, target, (), target_orbits, None, cut, view)
+            gc_enabled = gc.isenabled()
+            try:
+                # These DAG/cache records are acyclic; avoid repeatedly scanning
+                # the growing cut heap. Restore the caller's setting at the boundary.
+                gc.disable()
+                profile = _GrowthCounts()
+                session = SharedSeedSearch(problem, config, condition=condition, profile=profile)
+                while session.advance():
+                    pass
+                graph = session.builder.finish()
+                return graph, {'search_seconds':time.perf_counter()-started,
+                    'max_live_branches':session.max_live_branches,
+                    'max_growth_candidates':profile.maximum}
+            finally:
+                if gc_enabled:
+                    gc.enable()
+        source_orbits = _nauty_orbits(source, wbo_tol=config.iso_tolerance)
+        graphs, profile = [], _GrowthCounts()
+        orders = tuple(_generate_seed_orders(source, n_trials=config.seed_count,
+            rng_seed=cut_seed(cut, config.random_seed), seed_selection=config.seed_selection))
+        indices = tuple(range(len(orders))) if seed_indices is None else tuple(seed_indices)
+        if not indices or tuple(sorted(set(indices))) != indices or any(i < 0 or i >= len(orders) for i in indices):
+            raise ValueError('Seed indices must be a nonempty ordered subset of the original seed plan')
+        for index in indices:
+            order = orders[index]
+            graphs.append(matcher(source, target, order,
+                graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
+                max_branches=config.branch_limit, p_orbits=target_orbits,
+                r_orbits=source_orbits, anchor_map=dict(config.anchors),
+                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))
+        graph = AAMSearchGraph.combine(graphs)
+        return graph, {
+            'search_seconds': time.perf_counter() - started,
+            'max_live_branches': max((len(g.terminals) for g in graphs), default=0),
+            'max_growth_candidates': profile.maximum,
+        }
+
+
+
+def _initialize_search(problem, config, execution='reference'):
+    global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_REPAIR, _FINALIZATION_WORKSPACE
+    _SEARCH_SESSION = SearchSession(problem, config, execution)
+    # Profiling tools inspect these views; computation is owned by the session.
+    _SEARCH_CONTEXT, _SEARCH_REPAIR = _SEARCH_SESSION.context, _SEARCH_SESSION.repair
+    _FINALIZATION_WORKSPACE = None
 
 
 def _search_cut(cut):
-    started = time.perf_counter()
-    problem, config, target, target_orbits = _SEARCH_CONTEXT
-    view = (_SEARCH_REPAIR.for_cut(tuple(edge for edge in cut if _SEARCH_REPAIR.source.has_edge(*edge)))
-            if _SEARCH_REPAIR is not None else None)
-    if view is None:
-        source = build_graph(problem.reactant.elements, problem.reactant.wbo,
-                             bond_cut=config.graph_floor)
-        source.remove_edges_from(cut)
-        matcher = find_islands
-    else:
-        from .native_search import find_islands_native
-        source = view.source
-        matcher = find_islands_native
-    if _SEARCH_EXECUTION == 'shared_policies':
-        from .adaptive_search import AdaptiveSearchCondition
-        from .shared_seed_search import SharedSeedSearch
-        condition = AdaptiveSearchCondition(source, target, (), target_orbits, None, cut, view)
-        gc_enabled = gc.isenabled()
-        try:
-            # These DAG/cache records are acyclic; avoid repeatedly scanning
-            # the growing cut heap. Restore the caller's setting at the boundary.
-            gc.disable()
-            profile = _GrowthCounts()
-            session = SharedSeedSearch(problem, config, condition=condition, profile=profile)
-            while session.advance():
-                pass
-            graph = session.builder.finish()
-            return graph, {'search_seconds':time.perf_counter()-started,
-                'max_live_branches':session.max_live_branches,
-                'max_growth_candidates':profile.maximum}
-        finally:
-            if gc_enabled:
-                gc.enable()
-    source_orbits = _nauty_orbits(source, wbo_tol=config.iso_tolerance)
-    graphs, profile = [], _GrowthCounts()
-    for order in _generate_seed_orders(source, n_trials=config.seed_count,
-            rng_seed=cut_seed(cut, config.random_seed), seed_selection=config.seed_selection):
-        graphs.append(matcher(source, target, order,
-            graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
-            max_branches=config.branch_limit, p_orbits=target_orbits,
-            r_orbits=source_orbits, anchor_map=dict(config.anchors),
-            profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))
-    graph = AAMSearchGraph.combine(graphs)
-    return graph, {
-        'search_seconds': time.perf_counter() - started,
-        'max_live_branches': max((len(g.terminals) for g in graphs), default=0),
-        'max_growth_candidates': profile.maximum,
-    }
+    return _SEARCH_SESSION.search_cut(cut)
 
 
 def _search_cut_task(payload, *, in_process=False):
