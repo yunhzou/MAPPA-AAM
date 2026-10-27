@@ -1352,13 +1352,14 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
 // Read-only display snapshot: one witness at the largest live candidate set.
 struct GrowthObservation {
     size_t count = 0;
-    Cand witness;
+    Cand witness, alternative;
     std::vector<uint8_t> fragment;
     std::vector<Pair> deferred;
     void record(const std::vector<Cand>& candidates, const std::vector<uint8_t>& atoms,
                 const std::vector<Pair>& boundary) {
         if (candidates.empty() || candidates.size() <= count) return;
         count = candidates.size(); witness = candidates.front();
+        if (count > 1) alternative = candidates[1];
         fragment = atoms; deferred = boundary;
     }
 };
@@ -1920,6 +1921,8 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::dict snapshot;
         snapshot["candidate_count"] = observation.count;
         snapshot["symmetry"] = symmetry_state(observation.witness);
+        if (observation.count > 1)
+            snapshot["alternative"] = symmetry_state(observation.alternative);
         std::vector<int> atoms;
         for (size_t i=0;i<observation.fragment.size();++i)
             if (observation.fragment[i]) atoms.push_back(i);
