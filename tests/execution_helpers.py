@@ -4,6 +4,7 @@ import time
 
 
 def value(payload, workspace):
+    allocation = bytearray(payload.get('allocate', 0))
     time.sleep(payload.get('sleep', 0))
     if payload.get('fail'):
         raise ValueError('deliberate test failure')

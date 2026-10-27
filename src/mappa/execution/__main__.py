@@ -3,7 +3,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-import socket
 import time
 
 from . import TaskQueue, connect, coordinator, run
@@ -48,8 +47,6 @@ def main():
                     previous = state
                 queue.backup(temporary)
                 temporary.replace(args.backup)
-                if not (state.get('pending', 0) or state.get('running', 0)):
-                    break
                 time.sleep(10)
         queue.close()
 

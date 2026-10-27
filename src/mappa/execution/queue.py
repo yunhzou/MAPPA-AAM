@@ -36,6 +36,8 @@ class TaskQueue:
             CREATE TABLE IF NOT EXISTS tasks (
                 key TEXT PRIMARY KEY, specification BLOB, case_name TEXT, memory INTEGER,
                 state TEXT, worker TEXT, token TEXT, expires REAL, result BLOB);
+            CREATE TABLE IF NOT EXISTS attempts (
+                token TEXT PRIMARY KEY, task TEXT, worker TEXT, started REAL, finished REAL, state TEXT, result BLOB);
             CREATE TABLE IF NOT EXISTS dependencies (task TEXT, dependency TEXT, PRIMARY KEY(task, dependency));
             CREATE INDEX IF NOT EXISTS task_state ON tasks(state);
             CREATE INDEX IF NOT EXISTS task_case ON tasks(case_name,state);
@@ -84,6 +86,8 @@ class TaskQueue:
                     [(task.key, d) for d in task.dependencies])
 
     def _refresh(self, now):
+        self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
+            (SELECT token FROM tasks WHERE state='running' AND expires<?)""", (now, now))
         self.db.execute("UPDATE tasks SET state='lost' WHERE state='running' AND expires<?", (now,))
         self.db.execute("""UPDATE tasks SET state='timeout' WHERE state='pending' AND case_name IN
             (SELECT name FROM cases WHERE deadline IS NOT NULL AND deadline<=?)""", (now,))
@@ -115,6 +119,8 @@ class TaskQueue:
             token = uuid.uuid4().hex
             self.db.execute("UPDATE tasks SET state='running',worker=?,token=?,expires=? WHERE key=?",
                             (worker, token, now+self.lease_seconds, key))
+            self.db.execute('INSERT INTO attempts VALUES (?,?,?,?,NULL,?,NULL)',
+                            (token, key, worker, now, 'running'))
             dependencies = {d: pickle.loads(r) for d, r in self.db.execute('''
                 SELECT p.key,p.result FROM dependencies d JOIN tasks p ON p.key=d.dependency WHERE d.task=?''', (key,))}
             return dict(state='work', task=pickle.loads(specification), token=token,
@@ -130,8 +136,14 @@ class TaskQueue:
             raise ValueError('Invalid task outcome')
         with self.lock, self.db:
             self._refresh(time.time())
-            return bool(self.db.execute("UPDATE tasks SET state=?,result=? WHERE key=? AND token=? AND state='running'",
-                (state, pickle.dumps(result, protocol=5), key, token)).rowcount)
+            data = pickle.dumps(result, protocol=5)
+            accepted = bool(self.db.execute("UPDATE tasks SET state=?,result=? WHERE key=? AND token=? AND state='running'",
+                (state, data, key, token)).rowcount)
+            if accepted:
+                self.db.execute('UPDATE attempts SET state=?,result=?,finished=? WHERE token=?',
+                                (state, data, time.time(), token))
+            return accepted
+
 
     def retry(self, key):
         """Explicit recovery after diagnosis; completed work and budgets survive."""

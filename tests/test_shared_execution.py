@@ -219,3 +219,14 @@ def test_parallel_reference_evaluation_equals_existing_evaluator(tmp_path):
         assert actual['classes'] == json.loads((tmp_path/f'direct-{seed}'/'classes.json').read_text())
         assert actual['evidence'].size > 0
     queue.close()
+
+
+def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
+    limit = 512*2**20
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('large', payload={'allocate': 640*2**20, 'sleep': 5}, memory_bytes=limit),
+               task('small', memory_bytes=limit)])
+    run(queue, identity=IDENTITY, scratch=tmp_path, bundles=tmp_path/'bundles', memory_bytes=limit)
+    assert queue.snapshot() == {'memory_limit': 1, 'complete': 1}
+    assert queue.results()['large']['result']['peak_tree_rss_bytes'] > limit
+    queue.close()

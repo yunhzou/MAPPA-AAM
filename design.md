@@ -157,8 +157,9 @@ diagnosis before continuation; they must not hold up the rest of Golden.
 
 ## Shared execution across single CPU, local pools and Slurm
 
-Design brief requested 2026-10-27. This section specifies the next execution-layer
-refactor; the shared scheduler is not implemented or validated yet. Running Golden
+Design accepted 2026-10-27. The shared execution layer, prepared search sessions
+and independent seed evaluation are implemented; validation is recorded in
+[shared execution](docs/shared-execution.md) and tracker ticket 7. Running Golden
 jobs retain their frozen code. An EnzymeMap production launch still needs explicit
 permission after Golden completion.
 
@@ -233,12 +234,14 @@ libraries use one thread unless explicitly budgeted. Preserve a case deadline
 across redistributed tasks rather than granting each task a fresh hour. Record
 queue wait, setup, compute, I/O, retries and allocated resources separately.
 
-Required code changes are concentrated in `aam.py` (currently process-global
-prepared state and cut/seed loop), `rebenchmark/analysis.py` (currently finalizes
-and evaluates all seeds inside one cut worker), and the benchmark claim/runner
-layer. Existing user APIs should delegate to the common task runner, including
-workers=1. Slurm submission is a launcher for that same worker, not a scientific
-backend or a fallback. Remove superseded live orchestration after migration;
+Prepared computation now lives in `aam.SearchSession`, shared by existing public
+APIs and `execution.search` tasks. `rebenchmark.analysis.analyze_seed` is the one
+reference evaluator used by both campaign frontends. `execution.queue` owns
+metadata/dependencies, `execution.runtime` owns supervision/transport and
+`execution.bundles` owns publication. Single-CPU and remote queue workers call
+the same runtime. Existing standalone cut-pool APIs remain convenience entry
+points to the same scientific session, not a second matcher. Slurm submission is a launcher for that same worker, not a scientific
+backend or a fallback. Campaign adoption and full report/decoder task planning remain integration gates;
 historical frozen job code is not a second supported implementation.
 
 Acceptance gates: identical canonical search graphs and seed prefixes for one

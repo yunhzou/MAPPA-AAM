@@ -175,6 +175,8 @@ def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes):
     """
     if workers < 1 or memory_bytes < 1:
         raise ValueError('Positive worker count and per-worker memory are required')
+    for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
+        os.environ[name] = '1'
     options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes)
     if workers == 1:
         _supervise(queue, options)
