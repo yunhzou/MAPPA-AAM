@@ -107,9 +107,8 @@ class TaskQueue:
                 active = self.db.execute("SELECT count(*) FROM tasks WHERE state IN ('pending','running')").fetchone()[0]
                 if not active:
                     return {'state': 'finished'}
-                eligible = self.db.execute("SELECT count(*) FROM tasks WHERE state IN ('pending','running') AND memory<=?",
-                                           (memory_bytes,)).fetchone()[0]
-                return {'state': 'waiting' if eligible else 'insufficient_memory'}
+                running = self.db.execute("SELECT count(*) FROM tasks WHERE state='running'").fetchone()[0]
+                return {'state': 'waiting' if running else 'insufficient_memory'}
             key, specification, case = row
             self.db.execute('UPDATE cases SET deadline=?+seconds WHERE name=? AND deadline IS NULL', (now, case))
             deadline = self.db.execute('SELECT deadline FROM cases WHERE name=?', (case,)).fetchone()[0]

@@ -119,6 +119,9 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                         peak = max(peak, rss)
                     except psutil.NoSuchProcess:
                         continue
+                    if peak > memory_bytes:
+                        state = 'memory_limit'
+                        break
                     if parent.poll(poll_seconds):
                         state, result = parent.recv()
                         if state == 'publishing':
@@ -131,9 +134,6 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                         break
                     if not process.is_alive():
                         state, result = 'error', dict(exit_code=process.exitcode)
-                        break
-                    if peak > memory_bytes:
-                        state = 'memory_limit'
                         break
                     if not publishing and time.time() >= claim['deadline']:
                         state = 'timeout'
