@@ -104,3 +104,13 @@ all nonzero values, including below-threshold weights; no rounding, bond cutoff,
 or symmetry approximation enters this cache. Thus candidate colors, generators,
 and the represented relation are unchanged. Direct full-matrix comparisons
 cover sparse atom indices, pools, and weak bonds.
+
+## Identity groups during finalization
+
+In version-2 records, every atom outside the occupied non-pool set has a unique
+pointwise-fixed role. If no automorphism block exists, each remaining atom also
+has a unique mapped-source role. Every target atom is therefore fixed, so the
+conditioned automorphism group is identity. Returning its empty generator list
+directly is exact. Local pool permutations remain in the pool records and are
+not removed. Legacy records and nonempty automorphism blocks still use the
+exact conditioned solver. The standard finalizer remains an independent oracle.

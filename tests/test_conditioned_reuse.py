@@ -101,3 +101,39 @@ def test_new_records_preserve_exact_weights_and_outside_atoms():
             if version == 2:
                 assert actual == ()
     assert optimized.stats()['resident_bytes'] <= optimized.cache_bytes
+
+
+@pytest.mark.parametrize('pool', [False, True])
+@pytest.mark.parametrize('locked', [(), ((8, 5),)])
+def test_fixed_continuation_roles_prove_identity_without_group_search(pool, locked, monkeypatch):
+    # The bare target has interchangeable components and hydrogens. Version-2
+    # outside roles fix the other component; pool permutations stay separate.
+    target = graph(8, [(0, 1), (0, 2), (0, 3), (4, 5), (4, 6), (4, 7)],
+                   ['C', 'H', 'H', 'H'] * 2)
+    candidate = candidate_from_record(dict(
+        witness={0: 0, 1: 1}, compression_version=2, automorph_blocks=[],
+        blocks=[dict(r_atoms=[1], p_atoms=[1, 2, 3], extendable=True)] if pool else []))
+    expected = SymmetryWorkspace(target, .5).conditioned_generators(candidate, locked)
+    assert expected == ()
+    optimized = ConditionedSymmetryWorkspace(target, .5)
+    def unexpected_engine(_continuation):
+        raise AssertionError('identity proof should not invoke a group solver')
+    monkeypatch.setattr(optimized, '_engine', unexpected_engine)
+    assert optimized.conditioned_generators(candidate, locked) == expected
+    assert optimized.stats()['identity_shortcuts'] == 1
+    assert optimized.stats()['group_solves'] == 0
+    assert len(candidate.blocks) == int(pool)
+
+
+def test_legacy_and_correlated_groups_still_use_exact_solver():
+    target = graph(4, [(0, 1), (1, 2), (2, 3), (3, 0)], ['C'] * 4)
+    optimized = ConditionedSymmetryWorkspace(target, .5)
+    for version, blocks in ((1, []), (2, [dict(r_atoms=[0, 1, 2, 3],
+                                            p_atoms=[0, 1, 2, 3], extendable=False)])):
+        candidate = candidate_from_record(dict(
+            witness={i: i for i in range(4)}, compression_version=version,
+            blocks=[], automorph_blocks=blocks))
+        assert tuple(map(tuple, optimized.conditioned_generators(candidate, ()))) == (
+            SymmetryWorkspace(target, .5).conditioned_generators(candidate, ()))
+    assert optimized.stats()['identity_shortcuts'] == 0
+    assert optimized.stats()['calls'] == 2

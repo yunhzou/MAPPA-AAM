@@ -15,6 +15,7 @@ class ConditionedSymmetryWorkspace(SymmetryWorkspace):
         self.canonicalizer = _CandidateAutomorphismCanonicalizer(target, wbo_tol=iso_tolerance)
         self.cache_bytes = cache_bytes
         self.engines = {}
+        self.identity_shortcuts = 0
 
     def _engine(self, continuation):
         if continuation in self.engines:
@@ -34,6 +35,13 @@ class ConditionedSymmetryWorkspace(SymmetryWorkspace):
 
     def conditioned_generators(self, candidate, locked, intern=tuple):
         continuation = candidate.compression_version >= 2
+        # Version 2 fixes every outside/pool atom pointwise. Without an
+        # automorphism block, each remaining atom has its unique source role.
+        # Thus the conditioned group is identity; local pool permutations
+        # remain represented by candidate.blocks, independently of this group.
+        if continuation and not candidate.automorph_blocks:
+            self.identity_shortcuts += 1
+            return intern(())
         c = self.canonicalizer
         role_builder = c._growth_roles if continuation else c._candidate_roles
         roles = role_builder(candidate, group_domains=True)
@@ -49,4 +57,5 @@ class ConditionedSymmetryWorkspace(SymmetryWorkspace):
         for engine in self.engines.values():
             for key, value in engine.stats().items():
                 totals[key] += value
+        totals['identity_shortcuts'] = self.identity_shortcuts
         return totals
