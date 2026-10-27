@@ -148,13 +148,24 @@ def worker(args,manifest=None):
         assert not progress.exists(),'An existing attempt requires explicit diagnosis'
         with tempfile.TemporaryDirectory(prefix='mappa-benchmark-',dir=os.environ.get('TMPDIR','/tmp')) as td:
             folder=Path(td);source=args.run/'inputs'/str(task['index'])
-            for name in ('input.json','reference.json','source.json'):shutil.copy2(source/name,folder/name)
+            seed=manifest.get('resume_archives',{}).get(str(args.task))
+            if seed:
+                assert sha(seed['path'])==seed['sha256'],'Continuation archive hash differs'
+                restore(seed['path'],folder)
+                assert read(folder/'task.json')==task,'Continuation task differs'
+                for name in ('input.json','reference.json','source.json'):
+                    assert sha(folder/name)==sha(source/name),name
+                assert 0 <= seed['charged_seconds'] < CASE_SECONDS
+                save(folder/'continuation.json',seed)
+            else:
+                for name in ('input.json','reference.json','source.json'):shutil.copy2(source/name,folder/name)
             save(folder/'task.json',task);save(folder/'environment.json',environment())
             started=time.perf_counter()
             state=dict(task=args.task,index=task['index'],direction=task['direction'],stages={},complete=False,
-                started_utc=time.time(),case_seconds=CASE_SECONDS)
+                started_utc=time.time(),case_seconds=CASE_SECONDS,
+                prior_charged_seconds=seed['charged_seconds'] if seed else 0)
             for stage in ('search','analysis'):
-                case_remaining=CASE_SECONDS-(time.perf_counter()-started)
+                case_remaining=CASE_SECONDS-state['prior_charged_seconds']-(time.perf_counter()-started)
                 if case_remaining<=0:
                     state['stop_reason']='case_wall_limit'
                     break

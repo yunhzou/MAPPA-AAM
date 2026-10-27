@@ -43,6 +43,53 @@ def test_archive_integrity_and_corruption(tmp_path):
     with pytest.raises(AssertionError):restore(tmp_path/'case.tar',tmp_path/'restored')
 
 
+def test_logged_resume_searches_only_missing_cut(tmp_path,monkeypatch):
+    problem,_,_=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    config=AAMSearchConfig(seed_count=2,branch_limit=100)
+    full=search(problem,config,tmp_path,1)
+    expected={p.name:read_raw_cut(p) for p in full.cut_paths}
+    missing=full.cut_paths[-1];missing.unlink()
+    from mappa import aam as core
+    original=core._search_cut;calls=[]
+    def observed(cut):
+        calls.append(cut)
+        return original(cut)
+    monkeypatch.setattr(core,'_search_cut',observed)
+    result=search(problem,config,tmp_path,1)
+    assert len(calls)==1
+    assert read(tmp_path/'search.json')['resumed_cuts']==len(full.cut_paths)-1
+    assert {p.name:read_raw_cut(p) for p in result.cut_paths}==expected
+
+
+def test_worker_continuation_preserves_inputs_and_prior_budget(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from rebenchmark import campaign
+    run=tmp_path/'run';seed=tmp_path/'seed'
+    task=dict(index=0,direction='R_to_P',config={})
+    for name in ('input.json','reference.json','source.json'):
+        save(run/'inputs/0'/name,{})
+        save(seed/name,{})
+    save(seed/'task.json',task);save(seed/'cuts/manifest.json',{})
+    save(seed/'cuts/saved.json',{'unchanged':True})
+    receipt=publish(seed,tmp_path/'seed.tar')
+    budgets=[]
+    monkeypatch.setattr(campaign,'CASE_SECONDS',10)
+    monkeypatch.setattr(campaign.time,'perf_counter',lambda:100.0)
+    def stage(command,folder,name,seconds,memory):
+        assert read(folder/'cuts/saved.json')=={'unchanged':True}
+        budgets.append(seconds)
+        return dict(status='complete')
+    monkeypatch.setattr(campaign,'guarded',stage)
+    manifest=dict(tasks=[task],workers=1,stage_seconds=dict(search=100,analysis=100),
+        memory_mib=100,resume_archives={'0':dict(path=receipt['path'],sha256=receipt['sha256'],charged_seconds=3)})
+    campaign.worker(SimpleNamespace(run=run,task=0),manifest)
+    assert budgets==[7,7]
+    state=read(run/'progress/00000.json')
+    assert state['complete'] and state['prior_charged_seconds']==3
+    restore(run/'archives/00000.tar',tmp_path/'restored')
+    assert read(tmp_path/'restored/continuation.json')['sha256']==receipt['sha256']
+
+
 @pytest.mark.parametrize('reverse',[False,True])
 def test_full_analysis_keeps_seed_evidence(tmp_path,reverse):
     from rebenchmark.analysis import analyze

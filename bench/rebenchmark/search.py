@@ -58,11 +58,16 @@ def search(problem, config, folder, workers):
     from mappa import search_aam_checkpoints
     from publication_timing import SearchProfiler
     folder = Path(folder)
+    resume = (folder/'cuts/manifest.json').exists()
+    from mappa.artifacts import raw_cut_paths
+    resumed_cuts = len(raw_cut_paths(folder/'cuts')) if resume else 0
     with SearchProfiler(folder/'search-timing') as profiler, SeedLog(folder/'seed-timing'):
         result = search_aam_checkpoints(problem, config, workers=workers,
-            execution='reused_native', intermediate_dir=folder/'cuts')
+            execution='reused_native', intermediate_dir=folder/'cuts', resume=resume)
     save(folder/'search.json', dict(complete=True, metrics=asdict(result.metrics),
         capped=result.capped, timing=profiler.summary(),
+        resumed_cuts=resumed_cuts,
+        metric_scope='Counts cover all cuts; growth peak and worker/checkpoint durations cover newly searched cuts.',
         cut_hashes={p.name:sha(p) for p in result.cut_paths},
         seed_timing_scope='Seed-call CPU with shared runtime caches; not standalone seed-count latency.'))
     return result
