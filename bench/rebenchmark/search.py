@@ -61,12 +61,18 @@ def search(problem, config, folder, workers):
     resume = (folder/'cuts/manifest.json').exists()
     from mappa.artifacts import raw_cut_paths
     resumed_cuts = len(raw_cut_paths(folder/'cuts')) if resume else 0
-    with SearchProfiler(folder/'search-timing') as profiler, SeedLog(folder/'seed-timing'):
+    timing_directory, seed_directory = folder/'search-timing', folder/'seed-timing'
+    if resume:
+        attempt = len(list(timing_directory.glob('continuation-*'))) + 1
+        timing_directory /= f'continuation-{attempt:04d}'
+        seed_directory /= f'continuation-{attempt:04d}'
+    with SearchProfiler(timing_directory) as profiler, SeedLog(seed_directory):
         result = search_aam_checkpoints(problem, config, workers=workers,
             execution='reused_native', intermediate_dir=folder/'cuts', resume=resume)
     save(folder/'search.json', dict(complete=True, metrics=asdict(result.metrics),
         capped=result.capped, timing=profiler.summary(),
         resumed_cuts=resumed_cuts,
+        timing_directory=str(timing_directory.relative_to(folder)),
         metric_scope='Counts cover all cuts; growth peak and worker/checkpoint durations cover newly searched cuts.',
         cut_hashes={p.name:sha(p) for p in result.cut_paths},
         seed_timing_scope='Seed-call CPU with shared runtime caches; not standalone seed-count latency.'))
