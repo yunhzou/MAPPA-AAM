@@ -1,0 +1,8 @@
+Validation: rebuilt native/build_engine.py and setup.py build_ext --inplace.
+Python 3.12; pytest with native extensions enabled.
+Files: test_conditioned_reuse, test_growth_compression_exactness, test_symmetry_matching, test_native_engine, test_native_scheduler, test_fragment_parallel, test_fragment_repair, test_completed_branch_cap, test_random_growth, test_weighted_subgraph, test_growth_display, test_search_trajectory, test_search_validation, test_post_aam, test_relative_event_window, test_distance_seeds.
+
+........................................................................ [ 33%]
+........................................................................ [ 67%]
+......................................................................   [100%]
+214 passed in 90.86s (0:01:30)

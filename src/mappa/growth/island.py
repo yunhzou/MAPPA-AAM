@@ -1,7 +1,6 @@
-"""Live priority-queue fragment growth loop."""
+"""Seeded random-boundary fragment growth loop."""
 from __future__ import annotations
 
-import heapq
 import time
 
 from ..matcher import (
@@ -17,7 +16,7 @@ from ..matcher import (
 )
 from ..matcher.policy import as_node_match_policy
 from . import native
-from .frontier import _frontier_boundary_edges, _push_edges_from, _set_unique
+from .frontier import _frontier_boundary_edges, _push_edges_from, _set_unique, _pop_random_atom, GrowthRandom
 from .result import IslandBranchLimitExceeded, _IsoResult
 from .trace import (
     cand_possible_values,
@@ -44,9 +43,16 @@ def grow_island(g_R, g_P, seed, mapping,
                 node_policy=None,
                 allow_mapped_seed=False,
                 profile=None,
-                profile_context=None, replay=None):
+                profile_context=None, replay=None, random_seed=42):
     """
-    Grow a fragment from `seed` using priority-queue propagation.
+    Grow a fragment from `seed` by uniformly sampling the live boundary atoms.
+
+    Bond order is used in compatibility checks, never in selection priority.
+    ``random_seed`` makes each conditional fragment call reproducible.
+
+    ``max_branches`` bounds completed, symmetry-deduplicated fragment
+    placements. Intermediate embedding candidates may exceed it: later
+    growth constraints can resolve their ambiguity before branching.
 
     Returns a list of isos:
       []            -- failed (no initial cands, or fragment too small)
@@ -67,9 +73,10 @@ def grow_island(g_R, g_P, seed, mapping,
             islands_R=islands_R, p_orbits=p_orbits,
             prior_deferred_edges=prior_deferred_edges,
             allow_mapped_seed=allow_mapped_seed, profile=profile,
-            profile_context=profile_context, replay=replay)
-        if out is not None:
-            return out
+            profile_context=profile_context, replay=replay, random_seed=random_seed)
+        if out is None:
+            raise ValueError("Selected native growth cannot represent these inputs")
+        return out
     record = events is not None
     prof = None
     profile_t0 = None
@@ -178,22 +185,12 @@ def grow_island(g_R, g_P, seed, mapping,
             'cand_patterns': cands_pattern_sample(cands, 5),
         })
 
-    if len(cands) > max_branches:
-        _finish_profile('live_branch_cap', len(cands), fragment, len(cands))
-        if record:
-            events.append({
-                'type': 'seed_end',
-                'result': 'live_branch_cap',
-                'final_cands': len(cands),
-                'max_branches': int(max_branches),
-                'fragment': sorted(int(x) for x in fragment),
-                'iso': None,
-            })
-        raise IslandBranchLimitExceeded(
-            len(cands), max_branches, seed=int(seed))
-
+    rng = GrowthRandom(random_seed)
     while heap:
-        neg_w, u, n = heapq.heappop(heap)
+        selected = _pop_random_atom(heap, used_edges, fragment, rng)
+        if selected is None:
+            break
+        neg_w, u, n = selected
         if prof is not None:
             prof['heap_pops'] += 1
         wbo = -neg_w
@@ -271,21 +268,6 @@ def grow_island(g_R, g_P, seed, mapping,
             iso_tol, islands_R, p_orbits=p_orbits, r_orbits=r_orbits,
             deferred_edges=deferred_edges, anchor_u=u, anchor_wbo=wbo,
             dedupe_edges=dedupe_edges, node_policy=node_policy)
-        if len(new_cands) > max_branches:
-            _finish_profile(
-                'live_branch_cap', len(new_cands), candidate_fragment,
-                len(new_cands))
-            if record:
-                events.append({
-                    'type': 'seed_end',
-                    'result': 'live_branch_cap',
-                    'final_cands': len(new_cands),
-                    'max_branches': int(max_branches),
-                    'fragment': sorted(int(x) for x in candidate_fragment),
-                    'iso': None,
-                })
-            raise IslandBranchLimitExceeded(
-                len(new_cands), max_branches, seed=int(seed))
         if prof is not None:
             extend_elapsed = time.perf_counter() - extend_t0
             prof['extend_elapsed_sec'] += extend_elapsed
@@ -421,6 +403,8 @@ def grow_island(g_R, g_P, seed, mapping,
                            symmetry=_symmetry_state(
                                cands[0],
                                r_orbits=r_orbits, p_orbits=p_orbits))]
+    # Only saturated placements are branches. The scheduler additionally
+    # bounds the combined live leaves across parent branches.
     if len(cands) > max_branches:
         _finish_profile('subtree_branch_cap', len(cands), fragment, len(cands))
         if record:

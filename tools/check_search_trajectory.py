@@ -50,6 +50,24 @@ def main():
                     assert page.evaluate('searchTrajectory.getState().candidate')==1
                     expected_preview={**path['frames'][branching]['locked'],**path['frames'][branching]['candidates'][1]['witness']}
                     assert page.evaluate('searchTrajectory.mapping()')==expected_preview
+                # Locks survive the next fragment, terminal display, and reverse seeks.
+                lock_steps={0,len(path['frames'])-1}
+                for i,f in enumerate(path['frames']):
+                    if f['kind']=='locked':
+                        lock_steps.update((i,min(i+1,len(path['frames'])-1)))
+                for fi in sorted(lock_steps,reverse=True):
+                    page.evaluate('(i)=>searchTrajectory.setFrame(i)',fi)
+                    f=path['frames'][fi]
+                    for side,indices in [('r',list(map(int,f['locked']))),('p',list(f['locked'].values()))]:
+                        styles=page.evaluate('(side)=>viewers[side].selectedAtoms({}).map(a=>a.style.sphere.color)',side)
+                        expected=page.evaluate('Object.fromEntries(Object.entries(fragmentOwners()).map(([r,s])=>[r,fragmentColor(s)]))')
+                        for r,target in f['locked'].items():
+                            assert styles[int(r) if side=='r' else target]==expected[r], (fi,side,'lost fragment color')
+                    # Hiding locks must reveal element colors without hiding active growth.
+                    page.locator('#locked-fragments').uncheck()
+                    styles=page.evaluate("viewers.r.selectedAtoms({}).map(a=>a.style.sphere.color)")
+                    assert all(styles[int(i)]!=expected[i] for i in f['locked'])
+                    page.locator('#locked-fragments').check()
                 for fi in sorted({0,start,min(start+1,len(path['frames'])-1),len(path['frames'])-1}):
                     page.evaluate('(i)=>searchTrajectory.setFrame(i)',fi)
                     for side,key in [('r','reactant'),('p','product')]:
@@ -76,7 +94,8 @@ def main():
                 if path['terminal']==run['default_terminal']:
                     page.screenshot(path=str(bundle/f'run_{ri}_decision.png'),full_page=True)
                 checks.append(dict(context=run['context'],terminal=path['terminal'],fixed_geometry='passed',
-                                   event_colors='passed',candidate_selection='passed',playback='passed'))
+                                   event_colors='passed',candidate_selection='passed',playback='passed',
+                                   persistent_locks='passed',reverse_seek='passed'))
                 print(f'Checked context {run["context"]}, terminal {path["terminal"]}.',flush=True)
         page.set_viewport_size({'width':390,'height':844})
         assert page.evaluate('document.documentElement.scrollWidth')<=390

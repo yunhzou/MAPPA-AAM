@@ -61,7 +61,8 @@ def test_every_transition_and_ordered_generator_matches_reference(tol):
 
 
 @pytest.mark.parametrize('budget', [1, 2**20])
-def test_conditioned_generators_keep_correlated_ring_symmetry_and_sparse_indices(budget):
+@pytest.mark.parametrize('compression_version', [1, 2])
+def test_conditioned_generators_keep_correlated_ring_symmetry_and_sparse_indices(budget, compression_version):
     import networkx as nx
     rng = np.random.default_rng(3911)
     target = graph(40, [(i,(i+1)%20) for i in range(20)] + [(i,i+20) for i in range(20)], ['C']*20+['H']*20)
@@ -74,6 +75,7 @@ def test_conditioned_generators_keep_correlated_ring_symmetry_and_sparse_indices
     for trial in range(50):
         locked = tuple((int(i), int(i*7)) for i in sorted(rng.choice(20, [0,1,2,4][trial%4], replace=False)))
         state = dict(witness={0:0, 1:7}, blocks=[], exact_fixed=[], multiplicity=1,
+                     compression_version=compression_version,
                      automorph_blocks=[dict(r_atoms=[0,1], p_atoms=list(range(0,140,7)), extendable=False)])
         candidate = candidate_from_record(state)
         assert tuple(map(tuple, optimized.conditioned_generators(candidate, locked))) == reference.conditioned_generators(candidate, locked)
@@ -81,3 +83,21 @@ def test_conditioned_generators_keep_correlated_ring_symmetry_and_sparse_indices
         before = optimized.stats()['partition_hits']
         optimized.conditioned_generators(candidate, locked)
         assert optimized.stats()['partition_hits'] == before + 1
+
+
+def test_new_records_preserve_exact_weights_and_outside_atoms():
+    target = graph(4, [(0, 1, 1.), (0, 2, 1.1), (1, 3, 1.2)], ['C']*4)
+    reference = SymmetryWorkspace(target, .5)
+    optimized = ConditionedSymmetryWorkspace(target, .5)
+    for version in (1, 2, 1, 2):
+        for witness in ({0: 0, 1: 1}, {0: 0, 1: 1, 2: 2, 3: 3}):
+            candidate = candidate_from_record(dict(
+                witness=witness, compression_version=version, blocks=[],
+                automorph_blocks=[dict(r_atoms=list(witness),
+                                      p_atoms=list(witness.values()), extendable=False)]))
+            expected = reference.conditioned_generators(candidate, ())
+            actual = tuple(map(tuple, optimized.conditioned_generators(candidate, ())))
+            assert actual == expected
+            if version == 2:
+                assert actual == ()
+    assert optimized.stats()['resident_bytes'] <= optimized.cache_bytes

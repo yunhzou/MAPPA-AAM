@@ -24,12 +24,20 @@ extension = importlib.import_module(__package__ + '.matcher.extend')
 def snapshot(cands):
     result = cands_pattern_sample(cands, len(cands))
     for row,cand in zip(result,cands):
+        row['compression_version'] = cand.compression_version
+        row['exact_fixed'] = sorted(cand.exact_fixed)
         row['automorph_blocks'] = [dict(r_atoms=list(b.r_atoms),p_atoms=list(b.p_atoms))
                                   for b in cand.automorph_blocks]
     return result
 
 
 def replay(source, target, state, edge, po, ro, context):
+    import inspect
+    supports_random = 'random_seed' in inspect.signature(growth.grow_island).parameters
+    policy = getattr(context, 'growth_policy', 'legacy_wbo_priority')
+    if supports_random != (policy == 'uniform_boundary_atom_splitmix64_v1'):
+        raise ValueError('Growth policy differs from archive; use its producing engine')
+    growth_options = dict(random_seed=context.random_seed) if supports_random else {}
     calls, events, quotient = [], [], []
     original_extend, original_dedupe = growth._extend_sym_cands, extension._dedupe_children
 
@@ -95,14 +103,15 @@ def replay(source, target, state, edge, po, ro, context):
         isos = growth.grow_island(source,target,edge.seed,dict(state.mapping),
             graph_floor=context.graph_floor,iso_tol=context.iso_tolerance,max_branches=context.branch_limit,events=events,
             islands_R=dict(state.islands),p_orbits=po,r_orbits=ro,
-            prior_deferred_edges=state.deferred_edges)
+            prior_deferred_edges=state.deferred_edges, **growth_options)
     finally:
         growth._extend_sym_cands, extension._dedupe_children = original_extend, original_dedupe
     expected = dict(edge.match['symmetry']['witness'])
     matching = [i for i in isos if dict(i)==expected and sorted(i.fragment)==sorted(edge.match['fragment'])]
     if not matching or sorted(matching[0].deferred_edges)!=sorted(map(tuple,edge.match['deferred_edges'])):
         raise ValueError(f'Replay differs from archived transition {edge.id}; use its producing engine')
-    return dict(events=events,calls=calls,isos=[dict(i) for i in isos],verified=True)
+    return dict(events=events,calls=calls,isos=[dict(i) for i in isos],
+                iso_candidates=[{**i.symmetry, 'symmetry_complete': True} for i in isos],verified=True)
 
 
 def bond_events(raw, mapping, floor=.2, tolerance=.5, metal_tolerance=.3):
@@ -161,7 +170,7 @@ def frames_for(graph, terminal, traces):
                     refinement=dict(before=len(call['before']),after=len(call['after']),dedupe=call['dedupe']),
                     deferred=[*deferred])
             elif kind=='seed_end':
-                patterns=[dict(witness=i,blocks=[]) for i in trace['isos']]
+                patterns=trace.get('iso_candidates', [dict(witness=i,blocks=[]) for i in trace['isos']])
                 data.update(title=f'Fragment {stage} saturated · {len(patterns)} retained placement(s)',
                     active=event['fragment'],candidates=patterns)
             else:continue
@@ -255,6 +264,8 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
             context=context_id,seed_order=list(c.seed_order),cuts=list(c.cuts),paths=paths,
             default_terminal=selection.get('default_terminal',terminals[0]),focus=selection.get('focus'),
             config=dict(graph_floor=c.graph_floor,iso_tolerance=c.iso_tolerance,branch_limit=c.branch_limit,
+                        growth_policy=getattr(c,"growth_policy","legacy_wbo_priority"),
+                        random_seed=getattr(c,"random_seed",42),
                         event_tolerance=event_tolerance,metal_event_tolerance=metal_event_tolerance),
             graph=dict(states=[dict(id=s.id,assigned=len(s.mapping)) for s in nodes],
                 transitions=[dict(id=eid,source=g.transitions[eid].source,target=g.transitions[eid].target,

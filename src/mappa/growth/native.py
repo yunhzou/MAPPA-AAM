@@ -149,7 +149,7 @@ def applicable(g_R, g_P, p_orbits, node_policy, events, defer=False):
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, p_orbits, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, replay=None):
+                allow_mapped_seed, profile, profile_context, replay=None, random_seed=42):
     """Run the native engine; returns None when the inputs are not covered."""
     if replay is not None and (replay.source is not g_R or replay.target is not g_P):
         raise ValueError("cut replay view belongs to different source/target graphs")
@@ -180,7 +180,7 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
         deferred.append((source_index[int(a)], source_index[int(b)]))
     started = time.perf_counter()
     arguments = (source_index[int(seed)], image, float(graph_floor), float(iso_tol),
-                 int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed))
+                 int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed), int(random_seed) & ((1<<64)-1))
     if replay is None:
         out = _engine.grow_island(source_view.graph, target_view.graph, *arguments)
     else:

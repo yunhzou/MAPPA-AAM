@@ -49,7 +49,8 @@ class FragmentChoices:
         self.engine = native._engine.FragmentChoices(self.r.graph, self.p.graph,
             self.r.index[seed], mapping, self.config.graph_floor, self.config.iso_tolerance,
             self.config.branch_limit, [(self.r.index[r], i) for r, i in (context.islands or {}).items()],
-            [(self.r.index[a], self.r.index[b]) for a, b in context.deferred_edges])
+            [(self.r.index[a], self.r.index[b]) for a, b in context.deferred_edges],
+            int(self.config.random_seed) & ((1<<64)-1))
         self.normal = self._decode(self.engine.normal(), time.perf_counter() - started)
         self.closures = tuple(FragmentClosure(i, size, self.r.nodes[n], count,
                                               frozenset(self.r.nodes[a] for a in atoms))

@@ -107,7 +107,7 @@ public:
     }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed) {
+                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
         const std::vector<Pair> empty_islands;
         const auto& islands=islands_ptr ? *islands_ptr : empty_islands;
         GrowResult result;
@@ -129,7 +129,7 @@ public:
                 }
             }
             std::string key;
-            append(key,seed);append(key,graph_floor);append(key,iso_tol);
+            append(key,random_seed);append(key,seed);append(key,graph_floor);append(key,iso_tol);
             append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
             std::vector<uint8_t> occupied(target.n,0);
             for (int p:mapping) if (p>=0) occupied[p]=1;
@@ -161,7 +161,7 @@ public:
                 Entry entry(base.n);
                 GrowthTrace trace(active_source);trace.store_checkpoints=false;
                 result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get());
+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),nullptr,random_seed);
                 entry.key=std::move(key);entry.result=result;entry.mapping=mapping;
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);
@@ -178,7 +178,7 @@ public:
     }
     py::object grow(const std::vector<Pair>& cuts,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed) {
+                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
         std::vector<Pair> islands;
         const std::vector<Pair>* islands_ptr=nullptr;
         if (!islands_obj.is_none()) {islands=islands_obj.cast<std::vector<Pair>>();islands_ptr=&islands;}
@@ -186,7 +186,7 @@ public:
         {
             py::gil_scoped_release release;
             computed=compute(cuts,seed,mapping,graph_floor,iso_tol,min_lock_size,max_branches,
-                             islands_ptr,deferred,allow_mapped_seed);
+                             islands_ptr,deferred,allow_mapped_seed,random_seed);
         }
         auto out=grow_result_dict(computed.first).cast<py::dict>();
         out["reused_extensions"]=computed.second;
@@ -213,6 +213,6 @@ void register_fragment_repair(py::module_& mod) {
             py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::arg("extension_cache_bytes")=0,py::keep_alive<1,3>())
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
-             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"))
+             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42)
         .def("stats",&FragmentRepair::stats);
 }

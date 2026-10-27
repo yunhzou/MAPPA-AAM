@@ -147,6 +147,8 @@ def aam_growth_html(aam, *, context=None, terminals=None, title=None,
 
 def growth_trace_html(document):
     """Present recorded algorithm events using the shared 3D reaction style."""
+    from .growth_display import with_represented_targets
+    document = with_represented_targets(document)
     template = (ASSETS / 'growth_trace.html').read_text()
     page = style_document(template, layout='growth_trace')
     return (page.replace('__LIBRARY__', (ASSETS / '3Dmol-min.js').read_text())

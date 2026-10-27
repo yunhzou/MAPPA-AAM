@@ -1,4 +1,4 @@
-"""Trace/event helpers for priority-queue fragment growth.
+"""Trace/event helpers for random-boundary fragment growth.
 
 These helpers format state for HTML/debug traces. They should not decide
 whether a match is valid; validity lives in ``mappa.matcher`` and the
@@ -74,6 +74,7 @@ def cands_pattern_sample(cands, k=5):
             'blocks': [],
         }
         if isinstance(cand, _SymCand):
+            item['compression_version'] = cand.compression_version
             item['multiplicity'] = int(cand.multiplicity)
             item['automorph_domains'] = len(cand.automorph_blocks)
             for block in cand.blocks:
@@ -88,9 +89,9 @@ def cands_pattern_sample(cands, k=5):
 
 
 def heap_snapshot(heap, used_edges, fragment, mapping, k=None):
-    """Pending heap entries sorted by WBO desc, filtered to live entries."""
+    """Pending random-pool entries in atom-index display order, not priority order."""
     peek = list(heap)
-    peek.sort()
+    peek.sort(key=lambda e: (e[1], e[2]))
     live = [(w, uu, nn) for (w, uu, nn) in peek
             if frozenset({uu, nn}) not in used_edges and nn not in fragment]
     if k is not None:
@@ -104,7 +105,7 @@ def heap_snapshot(heap, used_edges, fragment, mapping, k=None):
 def pool_by_frag_atom(heap, used_edges, fragment, mapping, g_R):
     """Live propagation pool grouped by fragment atom."""
     peek = list(heap)
-    peek.sort()
+    peek.sort(key=lambda e: (e[1], e[2]))
     by_u = defaultdict(list)
     for w, uu, nn in peek:
         if frozenset({uu, nn}) in used_edges:
@@ -119,7 +120,7 @@ def pool_by_frag_atom(heap, used_edges, fragment, mapping, g_R):
         })
     return [{'frag_atom': int(u),
              'frag_element': g_R.nodes[u]['element'],
-             'edges': sorted(by_u[u], key=lambda x: -x['wbo'])}
+             'edges': sorted(by_u[u], key=lambda x: x['ext_atom'])}
             for u in sorted(by_u.keys())]
 
 

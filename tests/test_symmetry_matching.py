@@ -88,7 +88,7 @@ def test_fragment_branch_cap_is_loud_and_allows_exact_limit():
     assert exc_info.value.limit == 2
 
 
-def test_incremental_extension_enforces_cap_after_symmetry_deduplication():
+def test_completed_fragment_enforces_cap_after_symmetry_deduplication():
     g_r = build_graph(
         ["Si", "N"], np.array([[0.0, 1.0], [1.0, 0.0]]), bond_cut=0.2)
     wbo = np.zeros((9, 9))
@@ -399,7 +399,7 @@ def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
     assert record["blocks"][0]["assignments"] == "2!"
 
 
-def test_extension_collapses_correlated_orbit_duplicate_without_boundary():
+def test_extension_retains_correlated_placements_on_different_atom_sets():
     elements = ["C", "C"]
     wbo_r = np.zeros((2, 2))
     wbo_r[0, 1] = wbo_r[1, 0] = 1.0
@@ -421,7 +421,7 @@ def test_extension_collapses_correlated_orbit_duplicate_without_boundary():
     )
     mappings = {tuple(sorted(_cand_map(c).items())) for c in out}
 
-    assert mappings == {((0, 1), (1, 3))}
+    assert mappings == {((0, 0), (1, 2)), ((0, 1), (1, 3))}
 
 
 def test_extension_ignores_inactive_r_pairs():
@@ -791,9 +791,10 @@ def test_planar_metal_tetramethyl_child_h_keeps_parent_degeneracy():
         anchor_u=1, anchor_wbo=1.0,
     )
 
-    assert len(hydrogen) == 1
-    assert hydrogen[0].multiplicity == 12
-    assert _represented_count(hydrogen[0]) == 12
+    assert len(hydrogen) == 4
+    assert {cand.mapping[1] for cand in hydrogen} == {1, 5, 9, 13}
+    assert all(len(cand.blocks[0].p_atoms) == 3 for cand in hydrogen)
+    assert sum(_represented_count(cand) for cand in hydrogen) == 12
 
 
 def test_planar_metal_tetramethyl_two_metal_carbon_edges_are_correlated():
@@ -865,8 +866,9 @@ def test_exact_certificate_preserves_coupled_group_action_not_just_orbits():
         r_orbits=orbits, p_orbits=orbits,
     )
 
-    assert len(deduped) == 2
-    assert sorted(cand.multiplicity for cand in deduped) == [1, 2]
+    # Different occupied atom sets remain separate during growth.
+    assert len(deduped) == 3
+    assert all(cand.multiplicity == 1 for cand in deduped)
 
 
 def test_successful_primary_extension_preserves_exact_group_evidence():
@@ -899,48 +901,6 @@ def test_successful_primary_extension_preserves_exact_group_evidence():
     ]
     state = _symmetry_state(cands[0], r_orbits=r_orbits, p_orbits=p_orbits)
     assert state["automorph_blocks"][0]["source"] == "exact_automorph_group"
-
-
-def test_deferred_boundary_dedupe_retains_concrete_witnesses_until_saturation():
-    elements = ["X", "C", "C", "H", "H"]
-    wbo = np.zeros((5, 5))
-    for carbon in [1, 2]:
-        wbo[0, carbon] = wbo[carbon, 0] = 1.0
-    wbo[1, 3] = wbo[3, 1] = 1.0
-    wbo[2, 4] = wbo[4, 2] = 1.0
-    graph = build_graph(elements, wbo, bond_cut=0.2)
-    r_orbits = _nauty_orbits(graph, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(graph, wbo_tol=0.2)
-
-    cands = [_SymCand({0: 0})]
-    for fragment, atom, anchor in [
-        ({0}, 1, 0),
-        ({0, 1}, 2, 0),
-        ({0, 1, 2}, 3, 1),
-        ({0, 1, 2, 3}, 4, 2),
-    ]:
-        cands = _extend_sym_cands(
-            cands, fragment, atom, graph, graph, {}, 0.5, None,
-            p_orbits=p_orbits, r_orbits=r_orbits,
-            anchor_u=anchor, anchor_wbo=1.0,
-            defer_boundary_dedupe=True)
-
-    # No witness was quotient-merged during growth, so both correlated
-    # concrete paths remain independently available to later atoms.
-    assert len(cands) == 2
-    assert {tuple(sorted(cand.mapping.items())) for cand in cands} == {
-        tuple(sorted({0: 0, 1: 1, 2: 2, 3: 3, 4: 4}.items())),
-        tuple(sorted({0: 0, 1: 2, 2: 1, 3: 4, 4: 3}.items())),
-    }
-
-    saturated = _dedup_sym_cands(
-        cands, graph, graph, r_orbits=r_orbits, p_orbits=p_orbits,
-        fragment=set(range(5)))
-    assert len(saturated) == 1
-    assert saturated[0].multiplicity == 2
-    assert [(b.r_atoms, b.p_atoms) for b in saturated[0].automorph_blocks] == [
-        ((1, 2, 3, 4), (1, 2, 3, 4)),
-    ]
 
 
 def test_block_join_refines_bucket_mismatch_before_later_frontier():
@@ -1047,7 +1007,8 @@ def test_deferred_boundary_prevents_false_orbit_dedup():
         deferred_edges={(0, 2)},
     )
 
-    assert len(no_boundary) == 1
+    # Sub-floor WBO distinctions are retained even before a deferred edge.
+    assert len(no_boundary) == 2
     assert len(with_boundary) == 2
 
 

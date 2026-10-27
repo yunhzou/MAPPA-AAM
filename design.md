@@ -1,0 +1,95 @@
+# Fragment matching: preservation under growth
+
+The existing public boundary is `mappa.match_fragment`, implemented in
+`src/mappa/fragment.py`. AAM and standalone fragment detection compose this
+same primitive. `src/mappa/matcher/` owns the incremental isomorphism relation;
+`growth/island.py` chooses the next atom and decides when to lock a fragment.
+The native engine implements the same operations. This repair does not change
+node compatibility, bond acceptance, random growth, seed selection, cuts,
+branch admission, or event scoring.
+
+```mermaid
+flowchart TD
+    A[AAM / standalone fragment detection] --> B[match_fragment]
+    B --> C[Growth: choose next atom / lock fragment]
+    C --> D[Matcher: extend all represented matches]
+    D --> E[Support: restrict pools by the new bonds]
+    E --> F[Compression: preserve the resulting relation]
+    F --> C
+```
+
+## Invariant and induction
+
+For a fixed source fragment F, locked assignment L, and retained source bonds E,
+let M(F,L,E) be every injective mapping satisfying the configured node policy,
+target availability, and the existing WBO test on E. Source nonedges impose
+no induced-isomorphism condition. Let R(C) be the relation represented by the
+candidate collection C, including its pools and automorphism actions.
+The invariant is **R(C) = M(F,L,E)**, conditional on the chosen fragment and
+locked context. It does not assert that greedy growth discovers every possible
+fragment, or that a capped search is exhaustive.
+
+**Base.** Seed initialization includes every compatible unlocked target.
+Grouping a single source atom into a pool preserves exactly that union.
+
+**Extension.** Every mapping of F plus atom n restricts to a mapping of F.
+For each permitted target v for n, restrict old pool domains by all new active
+bond checks and injectivity. Enumerate all constrained support assignments;
+leave unrestricted pool assignments symbolic. Thus every returned child is
+valid, and every valid extension has a supporting child. Equal support
+assignments can share a new target pool. Enlarging an existing pool is allowed
+only when *every* target choice is interchangeable and the source atoms have
+identical external bond requirements. Otherwise refine that pool by the
+supported assignments. An exhausted support budget raises an error, never an
+empty match relation.
+
+**Locked islands.** Add their fixed atom images through the same restriction
+operation, one atom at a time, checking every newly introduced bond. Induction
+therefore covers the whole island; a representative-only check is unnecessary.
+
+**Compression.** A target automorphism used during growth must preserve exact
+active WBOs, locked images, and every target outside the fixed occupied set
+pointwise. Pool targets are fixed too: their permutations already belong to
+the pool representation. Such an automorphism fixes every future target choice,
+so extending a representative commutes with its action. Its inverse gives the
+reverse inclusion. Consequently quotienting cannot remove an extension or add
+an invalid match. Tolerance buckets remain coarse grouping hints; they are not
+proof that a permutation preserves the source-target tolerance predicate.
+
+## Implementation and evidence
+
+- `matcher/support.py`: one support calculation shared by ordinary extension,
+  locked-island extension, and trace witness selection.
+- `matcher/extend.py`: support refinement, independent pools, and safe pool joins.
+- `matcher/canonical.py`: exact continuation-preserving compression.
+- `native/src/engine.cpp`: the corresponding native implementation; extension
+  caching retains the same result and topology dependencies.
+- No alternate deduplication mode remains in the matcher.
+
+New symmetry records carry `compression_version: 2`. Reading an unversioned
+historical record retains its historical group interpretation; it does not
+rerun the old matching algorithm or silently promote the record to corrected
+evidence. Existing finalized generators and benchmark artifacts are preserved.
+Both finalizers interpret version-2 records with the same exact edge colors and
+continuation roles. The reused native workspace keeps the two record versions
+in separate bounded caches. Checkpoint manifests identify the repaired matching
+policy and reject resuming pre-repair searches as corrected runs.
+
+`tests/test_growth_compression_exactness.py` checks equality of the *complete
+represented relation* with independent injective enumeration after each step.
+It covers all connected unlabelled graph topologies through five vertices,
+weighted source-target fixtures, correlated pools, locked islands, duplicated
+components, and retained hydrogen compression. Native differential tests and
+standalone API tests cover the execution boundary. Case 31164 evidence is kept
+separately from the historical benchmark. Publication validation is recorded in
+`reports/exact_fragment_publication_20261027/report.txt`.
+
+## Search policies carried with this publication
+
+Growth samples boundary atoms uniformly, without a bond-order priority. The
+branch cap applies to completed fragment placements and the combined live
+frontier, rather than intermediate embedding counts. These are the previously
+approved policies; the matching repair above preserves them. The seed-order
+generator already on GitHub main is retained: later seeds use its shared shuffled
+pool. Earlier local experiments with independently reshuffled seed orders are
+historical evidence, not timings for this published revision.

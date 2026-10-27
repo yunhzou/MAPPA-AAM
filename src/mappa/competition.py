@@ -274,7 +274,7 @@ def compete_fragments(a, config=None):
                     config=FragmentMatchConfig(
                         graph_floor=cfg.graph_floor,
                         iso_tolerance=cfg.iso_tolerance,
-                        branch_limit=cfg.branch_limit,
+                        branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,
                         allow_mapped_seed=False,
                     ),
                 )

@@ -171,7 +171,7 @@ struct Target : Graph {
     // nauty base graph: atoms 0..n-1, one vertex per pair with nonzero bucket
     int n_vertices = 0;
     std::vector<int> edge_vertex_bucket;                 // per edge vertex
-    std::map<int, std::vector<int>> edge_cells;          // bucket -> edge vertices
+    std::map<int, std::vector<int>> edge_cells;          // exact WBO colour -> edge vertices
     std::vector<int> edge_cell_colour;                   // colour id per edge cell (edge_cells order)
     std::unique_ptr<DenseGraph> nauty;
     mutable Interner roles;    // role keys -> ids
@@ -517,37 +517,6 @@ bool refine_sym_assignments(const Cand& c, const std::vector<Pair>& assignments_
     return make_cand(m, new_blocks, c.exact_fixed, c.mult, c.automorph, NP, out);
 }
 
-// support._force_sym_value (the _SymCand branch)
-bool force_sym_value(const Cand& c, int r, int p, int NR, int NP, Cand& out) {
-    BlockIndex bi = block_indexes(c, NR, NP);
-    if (c.has(r)) {
-        int current = c.img[r];
-        if (current == p) {
-            out = c;
-            return true;
-        }
-        int bidx = bi.r_to_block[r];
-        if (bidx < 0 || !contains(c.blocks[bidx].p, p)) return false;
-        std::vector<Pair> assignment{{r, p}};
-        for (int other : c.blocks[bidx].r) {
-            if (other != r && c.img[other] == p) {
-                assignment.push_back({other, current});
-                break;
-            }
-        }
-        return refine_sym_assignments(c, assignment, NR, NP, out);
-    }
-    int bidx = bi.p_to_block[p];
-    if (bidx >= 0) {
-        Cand nc;
-        if (!with_extended_block(c, bidx, r, NP, nc)) return false;
-        return refine_sym_assignments(nc, {{r, p}}, NR, NP, out);
-    }
-    for (int q : c.mapped)
-        if (bi.r_to_block[q] < 0 && c.img[q] == p) return false;
-    return with_fixed(c, r, p, NP, out);
-}
-
 // ---------------------------------------------------------------------------
 // extension context (matcher.extend._ExtensionContext)
 // ---------------------------------------------------------------------------
@@ -577,10 +546,9 @@ struct Context {
     bool is_merge() const { return (*mapping)[n] >= 0; }
 };
 
-// support._support_witness_for_value; returns false for None, else fills
-// `support` with (u, p) block assignments.
-bool support_witness_for_value(const Cand& c, const Context& ctx, int v_n, int join_block_idx,
-                               const BlockIndex& bi, std::vector<Pair>& support,
+// All constrained pool assignments; unrestricted pools remain symbolic.
+bool support_assignments_for_value(const Cand& c, const Context& ctx, int v_n, int join_block_idx,
+                               const BlockIndex& bi, std::vector<std::vector<Pair>>& supports,
                                int max_states = 4096) {
     const Target& P = *ctx.P;
     const double floor = P.bond_cut;
@@ -598,7 +566,7 @@ bool support_witness_for_value(const Cand& c, const Context& ctx, int v_n, int j
         const Block& block = c.blocks[join_block_idx];
         if (!contains(block.p, v_n) || !block.open()) return false;
     }
-    support.clear();
+    supports = {std::vector<Pair>{}};
     std::vector<int> block_order;
     std::vector<std::vector<std::pair<int, double>>> by_block(c.blocks.size());
     for (size_t i = 0; i < ctx.bonded_in_frag.size(); ++i) {
@@ -626,12 +594,10 @@ bool support_witness_for_value(const Cand& c, const Context& ctx, int v_n, int j
             for (int p : available_pool)
                 if (pair_ok(item.first, item.second, p)) vals.push_back(p);
             if (vals.empty()) return false;
-            domains.push_back({item.first, std::move(vals)});
+            if (vals.size() < available_pool.size())
+                domains.push_back({item.first, std::move(vals)});
         }
-        bool all_full = true;
-        for (const auto& d : domains)
-            if (d.second.size() != available_pool.size()) { all_full = false; break; }
-        if (all_full) continue;
+        if (domains.empty()) continue;
         std::stable_sort(domains.begin(), domains.end(),
                          [](const auto& a, const auto& b) {
                              if (a.second.size() != b.second.size())
@@ -642,23 +608,30 @@ bool support_witness_for_value(const Cand& c, const Context& ctx, int v_n, int j
         std::vector<uint8_t> used(P.n, 0);
         if (bidx == join_block_idx) used[v_n] = 1;
         int states = 0;
-        std::function<bool(size_t)> backtrack = [&](size_t pos) -> bool {
+        std::vector<std::vector<Pair>> choices;
+        std::function<void(size_t)> backtrack = [&](size_t pos) {
             ++states;
-            if (states > max_states) return false;
-            if (pos == domains.size()) return true;
+            if (states > max_states) throw std::runtime_error("symmetry support state limit exceeded");
+            if (pos == domains.size()) { choices.push_back(chosen); return; }
             int u = domains[pos].first;
             for (int p : domains[pos].second) {
                 if (used[p]) continue;
                 used[p] = 1;
                 chosen.push_back({u, p});
-                if (backtrack(pos + 1)) return true;
+                backtrack(pos + 1);
                 chosen.pop_back();
                 used[p] = 0;
             }
-            return false;
         };
-        if (!backtrack(0)) return false;
-        support.insert(support.end(), chosen.begin(), chosen.end());
+        backtrack(0);
+        if (choices.empty()) return false;
+        std::vector<std::vector<Pair>> combined;
+        for (const auto& prior : supports) for (const auto& choice : choices) {
+            auto assignment = prior;
+            assignment.insert(assignment.end(), choice.begin(), choice.end());
+            combined.push_back(std::move(assignment));
+        }
+        supports = std::move(combined);
     }
     return true;
 }
@@ -672,9 +645,9 @@ bool r_compatible_with_block(const Cand& c, int bidx, const Context& ctx) {
     for (int r = 0; r < R.n; ++r)
         if (ctx.fragment_old[r] && !contains(b.r, r) && c.has(r)) outside.push_back(r);
     auto rel_sig = [&](int r) {
-        std::vector<std::pair<int, long>> out;
+        std::vector<std::pair<int, double>> out;
         for (int x : outside)
-            if (R.has_edge(r, x)) out.push_back({x, wbo_bucket(R.wbo(r, x))});
+            if (R.has_edge(r, x)) out.push_back({x, R.wbo(r, x)});
         return out;
     };
     auto n_sig = rel_sig(ctx.n);
@@ -882,6 +855,30 @@ struct Canonicalizer {
             for (int r : b.r) key.push_back(r);
             int id = P->roles.intern(key);
             for (int p : b.p) pairs.push_back({p, id});
+        }
+        // A compressed witness may be extended alone only if the transporting
+        // automorphism fixes every possible unassigned target atom. Pool atoms
+        // remain fixed here; their alternatives are represented by the pool.
+        std::vector<uint8_t> occupied(P->n, 0);
+        for (int r : c.mapped) occupied[c.img[r]] = 1;
+        for (const auto& b : c.blocks)
+            for (int p : b.p) occupied[p] = 0;
+        for (int p = 0; p < P->n; ++p) {
+            key.clear();
+            if (!occupied[p]) {
+                key = {3, p};
+            } else {
+                key.push_back(4);
+                for (int q = 0; q < P->n; ++q) {
+                    const double weight = P->wbo(p, q);
+                    if (occupied[q] || weight == 0.0) continue;
+                    int64_t bits;
+                    std::memcpy(&bits, &weight, sizeof(bits));
+                    key.push_back(q);
+                    key.push_back(bits);
+                }
+            }
+            pairs.push_back({p, P->roles.intern(key)});
         }
         std::sort(pairs.begin(), pairs.end());
         const int NP = P->n;
@@ -1173,48 +1170,41 @@ struct TargetEntry {
     bool can_extend;
 };
 
-bool island_merge_wbo_consistent(const Cand& child, const Context& ctx) {
-    const Source& R = *ctx.R;
-    const Target& P = *ctx.P;
-    const double floor = P.bond_cut;
-    std::vector<uint8_t> is_island(R.n, 0);
-    for (int r : ctx.island_atoms) is_island[r] = 1;
-    for (int r : ctx.island_atoms) {
-        for (int r2 : child.mapped) {  // sorted(check_set)
-            if (r2 == r) continue;
-            if (r >= r2 && is_island[r2]) continue;
-            if (!R.has_edge(r, r2)) continue;
-            double w_r = R.wbo(r, r2);
-            int p = child.img[r], p2 = child.img[r2];
-            if (!growth_edge_supported(w_r, P.wbo(p, p2), ctx.iso_tol, floor)) return false;
-        }
-    }
-    return true;
-}
-
-bool extend_locked_merge(const Cand& c, const Context& ctx, Cand& out) {
+void extend_locked_merge(const Cand& c, const Context& ctx, std::vector<Cand>& children) {
     const int NR = ctx.R->n, NP = ctx.P->n;
-    int v_n = (*ctx.mapping)[ctx.n];
-    BlockIndex bi = block_indexes(c, NR, NP);
-    int join_idx = bi.p_to_block[v_n];
-    if (join_idx >= 0 && !r_compatible_with_block(c, join_idx, ctx)) return false;
-    std::vector<Pair> support;
-    if (!support_witness_for_value(c, ctx, v_n, join_idx, bi, support)) return false;
-    Cand child;
-    if (!force_sym_value(c, ctx.n, v_n, NR, NP, child)) return false;
-    support.push_back({ctx.n, v_n});
-    Cand witnessed;
-    if (!with_witness(child, support, NR, NP, witnessed)) return false;
-    child = std::move(witnessed);
-    for (int r : ctx.island_atoms) {
-        if (r == ctx.n) continue;
-        Cand forced;
-        if (!force_sym_value(child, r, (*ctx.mapping)[r], NR, NP, forced)) return false;
-        child = std::move(forced);
+    std::vector<Cand> current{c};
+    std::vector<int> atoms{ctx.n};
+    for (int atom : ctx.island_atoms) if (atom != ctx.n) atoms.push_back(atom);
+    Context step = ctx;
+    for (int atom : atoms) {
+        step.n = atom;
+        step.bonded_in_frag.clear();
+        step.r_wbos.clear();
+        if (atom != ctx.n) step.strict_r = -1;
+        for (int r = 0; r < NR; ++r) {
+            if (!step.fragment_old[r] || !ctx.R->has_edge(r, atom)) continue;
+            step.bonded_in_frag.push_back(r);
+            step.r_wbos.push_back(ctx.R->wbo(r, atom));
+        }
+        int target = (*ctx.mapping)[atom];
+        std::vector<Cand> extended;
+        for (const auto& child : current) {
+            BlockIndex bi = block_indexes(child, NR, NP);
+            std::vector<std::vector<Pair>> supports;
+            if (!support_assignments_for_value(child, step, target,
+                                               bi.p_to_block[target], bi, supports)) continue;
+            for (auto& support : supports) {
+                support.push_back({atom, target});
+                Cand refined;
+                if (refine_sym_assignments(child, support, NR, NP, refined))
+                    extended.push_back(std::move(refined));
+            }
+        }
+        current = std::move(extended);
+        step.fragment_old[atom] = 1;
     }
-    if (!island_merge_wbo_consistent(child, ctx)) return false;
-    out = std::move(child);
-    return true;
+    children.insert(children.end(), std::make_move_iterator(current.begin()),
+                    std::make_move_iterator(current.end()));
 }
 
 void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& children) {
@@ -1256,21 +1246,23 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
                 can_extend = compat_cache[join_idx] == 1;
             }
         }
-        std::vector<Pair> support;
-        if (!support_witness_for_value(c, ctx, v, join_idx, bi, support)) continue;
-        if (join_idx >= 0) {
-            block_join[join_idx].push_back({v, std::move(support), can_extend});
-        } else {
-            DenseSignature sig = dense_signature(c, v, P);
-            bool placed = false;
-            for (auto& g : groups)
-                if (g.sig == sig) { g.entries.push_back({v, std::move(support), true}); placed = true; break; }
-            if (!placed) {
-                Group g;
-                g.sig = sig;
-                g.repr = g.sig.repr();
-                g.entries.push_back({v, std::move(support), true});
-                groups.push_back(std::move(g));
+        std::vector<std::vector<Pair>> supports;
+        if (!support_assignments_for_value(c, ctx, v, join_idx, bi, supports)) continue;
+        for (auto& support : supports) {
+            if (join_idx >= 0) {
+                block_join[join_idx].push_back({v, std::move(support), can_extend});
+            } else {
+                DenseSignature sig = dense_signature(c, v, P);
+                bool placed = false;
+                for (auto& g : groups)
+                    if (g.sig == sig) { g.entries.push_back({v, std::move(support), true}); placed = true; break; }
+                if (!placed) {
+                    Group g;
+                    g.sig = sig;
+                    g.repr = g.sig.repr();
+                    g.entries.push_back({v, std::move(support), true});
+                    groups.push_back(std::move(g));
+                }
             }
         }
     }
@@ -1281,7 +1273,8 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
         std::vector<int> free_vs;
         for (const auto& e : entries)
             if (e.support.empty() && e.can_extend) free_vs.push_back(e.v);
-        if (!free_vs.empty()) {
+        const bool whole_pool = free_vs.size() == c.blocks[join_idx].p.size();
+        if (whole_pool) {
             int witness_v = *std::min_element(free_vs.begin(), free_vs.end());
             Cand child;
             if (with_extended_block(c, join_idx, ctx.n, NP, child)) {
@@ -1291,7 +1284,7 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
             }
         }
         for (const auto& e : entries) {
-            if (e.support.empty() && e.can_extend) continue;
+            if (whole_pool && e.support.empty() && e.can_extend) continue;
             std::vector<Pair> fixed = e.support;
             fixed.push_back({ctx.n, e.v});
             Cand child;
@@ -1305,27 +1298,31 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
                      [&](size_t a, size_t b) { return groups[a].repr < groups[b].repr; });
     for (size_t gi : order) {
         const auto& entries = groups[gi].entries;
+        struct SupportedTargets { std::vector<Pair> support; std::vector<int> values; };
+        std::vector<SupportedTargets> by_support;
         for (const auto& e : entries) {
-            if (e.support.empty()) continue;
-            std::vector<Pair> fixed = e.support;
-            fixed.push_back({ctx.n, e.v});
-            Cand child;
-            if (refine_sym_assignments(c, fixed, NR, NP, child)) children.push_back(std::move(child));
+            auto support = e.support;
+            std::sort(support.begin(), support.end());
+            auto found = std::find_if(by_support.begin(), by_support.end(),
+                [&](const auto& group) { return group.support == support; });
+            if (found == by_support.end()) by_support.push_back({support, {e.v}});
+            else found->values.push_back(e.v);
         }
-        std::vector<int> group;
-        for (const auto& e : entries)
-            if (e.support.empty()) group.push_back(e.v);
-        if (group.empty()) continue;
-        std::sort(group.begin(), group.end());
-        int witness_v = group[0];
-        Cand child;
-        bool ok;
-        if (group.size() > 1) ok = with_new_block(c, ctx.n, group, true, NP, child);
-        else ok = with_fixed(c, ctx.n, witness_v, NP, child);
-        if (!ok) continue;
-        Cand witnessed;
-        if (with_witness(child, {{ctx.n, witness_v}}, NR, NP, witnessed))
-            children.push_back(std::move(witnessed));
+        for (auto& supported : by_support) {
+            Cand base;
+            if (!refine_sym_assignments(c, supported.support, NR, NP, base)) continue;
+            auto& group = supported.values;
+            std::sort(group.begin(), group.end());
+            group.erase(std::unique(group.begin(), group.end()), group.end());
+            const int witness_v = group[0];
+            Cand child;
+            bool ok = group.size() > 1 ? with_new_block(base, ctx.n, group, true, NP, child)
+                                      : with_fixed(base, ctx.n, witness_v, NP, child);
+            if (!ok) continue;
+            Cand witnessed;
+            if (with_witness(child, {{ctx.n, witness_v}}, NR, NP, witnessed))
+                children.push_back(std::move(witnessed));
+        }
     }
 }
 
@@ -1343,8 +1340,7 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
         if (extension_cache) {
             extension_cache->extend(c,ctx,children);
         } else if (ctx.is_merge()) {
-            Cand child;
-            if (extend_locked_merge(c, ctx, child)) children.push_back(std::move(child));
+            extend_locked_merge(c, ctx, children);
         } else {
             extend_free_atom(c, ctx, children);
         }
@@ -1357,13 +1353,19 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
 // growth loop (mappa.growth.island.grow_island)
 // ---------------------------------------------------------------------------
 
-struct HeapItem {
-    double neg_w;
-    int u, n;
-    bool operator>(const HeapItem& o) const {
-        if (neg_w != o.neg_w) return neg_w > o.neg_w;
-        if (u != o.u) return u > o.u;
-        return n > o.n;
+struct HeapItem { double neg_w; int u, n; };
+
+struct GrowthRandom {
+    uint64_t state;
+    size_t below(size_t n) {
+        const uint64_t threshold = -uint64_t(n) % n;
+        for (;;) {
+            uint64_t z = (state += UINT64_C(0x9E3779B97F4A7C15));
+            z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
+            z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
+            z ^= z >> 31;
+            if (z >= threshold) return z % n;
+        }
     }
 };
 
@@ -1448,7 +1450,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        const GrowthTrace* previous = nullptr, int resume_step = -1,
                        GrowthDependencies* dependencies = nullptr,
                        ExtensionCache* extension_cache = nullptr,
-                       std::vector<FragmentFrontier>* choices = nullptr) {
+                       std::vector<FragmentFrontier>* choices = nullptr, uint64_t random_seed = 42) {
     SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);
     GrowResult result;
     GrowProfile& prof = result.profile;
@@ -1516,13 +1518,14 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     std::sort(deferred.begin(), deferred.end());
     deferred.erase(std::unique(deferred.begin(), deferred.end()), deferred.end());
 
-    std::priority_queue<HeapItem, std::vector<HeapItem>, std::greater<HeapItem>> heap;
+    std::vector<HeapItem> heap;
+    GrowthRandom rng{random_seed};
     auto push_edges_from = [&](int atom) {
         for (int nb : R.neighbors(atom)) {
             if (fragment[nb]) continue;
             if (edge_used(atom, nb)) continue;
             double w = R.wbo(atom, nb);
-            if (w >= graph_floor) heap.push({-w, atom, nb});
+            if (w >= graph_floor) heap.push_back({-w, atom, nb});
         }
     };
     push_edges_from(seed);
@@ -1531,15 +1534,8 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     prof.max_cands_before = prof.max_cands_after = (long)cands.size();
     prof.max_fragment_size = 1;
     prof.max_heap_len = (long)heap.size();
-    if ((long)cands.size() > max_branches) {
-        prof.result = "live_branch_cap";
-        prof.final_cands = (long)cands.size();
-        prof.final_fragment_size = fragment_size;
-        prof.branches = (long)cands.size();
-        result.capped = true;
-        result.cap = {(long)cands.size(), max_branches};
-        return result;
-    }
+    // Embeddings during growth are not completed branches. Apply the branch
+    // budget only after saturation and symmetry deduplication in finish_fragment.
     Canonicalizer canon(&P, mapping);
     long certificate_calls = 0;
 
@@ -1551,6 +1547,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         used_edge = saved.used_edge;
         deferred = saved.deferred;
         heap = saved.heap;
+        rng.state = saved.random_state;
         prof = saved.profile;
         certificate_calls = saved.certificate_calls;
         if (trace) trace->inherit_prefix(*previous, resume_step);
@@ -1565,14 +1562,29 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         } else {
             trace->checkpoints.push_back(std::make_shared<GrowthCheckpoint>(
                 GrowthCheckpoint{cands, fragment, used_edge, fragment_size,
-                                 deferred, heap, prof, certificate_calls}));
+                                 deferred, heap, prof, certificate_calls, rng.state}));
         }
     };
 
     while (!heap.empty()) {
         checkpoint();
-        HeapItem item = heap.top();
-        heap.pop();
+        // Sample distinct boundary atoms uniformly, then one incident edge.
+        // Neither bond order nor the number of incident edges biases the atom.
+        heap.erase(std::remove_if(heap.begin(), heap.end(), [&](const auto& e) {
+            return fragment[e.n] || edge_used(e.u,e.n);
+        }), heap.end());
+        if (heap.empty()) break;
+        std::vector<int> atoms;
+        for (const auto& e:heap) atoms.push_back(e.n);
+        std::sort(atoms.begin(),atoms.end());
+        atoms.erase(std::unique(atoms.begin(),atoms.end()),atoms.end());
+        int selected = atoms[rng.below(atoms.size())];
+        std::vector<size_t> edges;
+        for (size_t i=0;i<heap.size();++i) if (heap[i].n==selected) edges.push_back(i);
+        std::sort(edges.begin(),edges.end(),[&](size_t a,size_t b){return heap[a].u<heap[b].u;});
+        size_t index = edges[rng.below(edges.size())];
+        HeapItem item = heap[index];
+        heap.erase(heap.begin()+index);
         prof.heap_pops++;
         int u = item.u, n = item.n;
         double wbo = -item.neg_w;
@@ -1648,16 +1660,6 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         }
         if (choices && !new_cands.empty())
             choices->push_back({cands,fragment,deferred,n});
-        if ((long)new_cands.size() > max_branches) {
-            prof.result = "live_branch_cap";
-            prof.final_cands = (long)new_cands.size();
-            prof.final_fragment_size = fragment_size + 1;
-            prof.branches = (long)new_cands.size();
-            prof.certificate_calls = certificate_calls;
-            result.capped = true;
-            result.cap = {(long)new_cands.size(), max_branches};
-            return result;
-        }
         if (!new_cands.empty()) {
             prof.commits++;
             prof.max_cands_after = std::max(prof.max_cands_after, (long)new_cands.size());
@@ -1771,13 +1773,17 @@ struct PyTarget {
             nauty_edges.push_back({a, next});
             nauty_edges.push_back({b, next});
             g.edge_vertex_bucket.push_back(bucket);
-            g.edge_cells[bucket].push_back(next);
+            const double weight = g.wbo(a, b);
+            int64_t bits;
+            std::memcpy(&bits, &weight, sizeof(bits));
+            int exact_color = g.colours.intern({1, bits});
+            g.edge_cells[exact_color].push_back(next);
             ++next;
         }
         g.n_vertices = next;
         g.nauty = std::make_unique<DenseGraph>(next, nauty_edges);
         for (const auto& item : g.edge_cells)
-            g.edge_cell_colour.push_back(g.colours.intern({1, (int64_t)item.first}));
+            g.edge_cell_colour.push_back(item.first);
         int max_code = 0;
         for (int c : g.ecode) max_code = std::max(max_code, c);
         g.same_element.assign((size_t)max_code + 1, {});
@@ -1816,6 +1822,7 @@ py::dict symmetry_state(const Cand& c) {
     py::dict witness;
     for (int r : c.mapped) witness[py::int_(r)] = c.img[r];
     item["witness"] = witness;
+    item["compression_version"] = 2;
     py::list blocks;
     item["blocks"] = blocks;
     py::list exact;
@@ -1877,7 +1884,7 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed) {
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed) {
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -1888,7 +1895,8 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
     {
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
-                          max_branches, islands_ptr, prior_deferred, allow_mapped_seed);
+                          max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
+                          nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed);
     }
     return grow_result_dict(res);
 }
@@ -1933,7 +1941,7 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"));
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42);
     register_growth_replay(mod);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);

@@ -1,0 +1,13 @@
+Exact fragment matching and growth replay
+
+Fragment extension preserves all valid injective matches represented by the incoming candidates. Ordinary growth and extension through locked islands use the same support restriction. Unrestricted interchangeable atoms remain compressed; constrained alternatives remain available to subsequent growth. Compression preserves exact active bond orders and fixes atoms outside the occupied set, so it commutes with later extension.
+
+Both standard and reused-native symmetry finalization follow this contract for version-2 records. Historical records retain their explicit historical interpretation. New checkpoint manifests identify the corrected matching policy and cannot resume a pre-repair run as corrected evidence.
+
+The standalone fragment API, Python growth, and native growth share the same relation. Validation compares it against independent injective enumeration after each fragment prefix across all 31 connected unlabelled graph topologies through five atoms, weighted fixtures, locked islands, duplicate components, and compressed hydrogen permutations. Differential tests check native/Python execution, finalization, caching, branch caps, replay, and viewer domains.
+
+The publication also includes the previously approved uniform boundary-atom selection, completed-fragment frontier cap, minimum+n decoding option, and growth viewer with correlated target alternatives and persistent fragment colors. Main's shared-pool seed-order generator and published manuscript/TS changes are preserved.
+
+Scope: this establishes the recorded fragment-matching invariant and validated API behavior. It does not establish global optimality under greedy growth or branch pruning, and does not revise historical benchmark coverage. Older local experiment timings are not timings of this published revision.
+
+Validation command and outcome: tests.txt.

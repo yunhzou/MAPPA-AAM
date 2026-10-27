@@ -10,11 +10,11 @@ class FragmentChoices {
 public:
     FragmentChoices(const PySource& r,const PyTarget& p,int seed,std::vector<int> locked,
                     double floor,double tol,long limit,const std::vector<Pair>& islands,
-                    const std::vector<Pair>& deferred)
+                    const std::vector<Pair>& deferred,uint64_t random_seed)
         :source(r.g),target(p.g),mapping(std::move(locked)),tolerance(tol),cap(limit) {
         py::gil_scoped_release release;
         greedy=grow_island(source,target,seed,mapping,floor,tol,1,cap,&islands,deferred,false,
-                           nullptr,nullptr,-1,nullptr,nullptr,&frontiers);
+                           nullptr,nullptr,-1,nullptr,nullptr,&frontiers,random_seed);
     }
     py::object normal() const {return grow_result_dict(greedy);}
     py::list options() const {
@@ -52,7 +52,7 @@ public:
 void register_fragment_choices(py::module_& mod) {
     py::class_<FragmentChoices>(mod,"FragmentChoices")
         .def(py::init<const PySource&,const PyTarget&,int,std::vector<int>,double,double,long,
-                      const std::vector<Pair>&,const std::vector<Pair>&>(),
+                      const std::vector<Pair>&,const std::vector<Pair>&,uint64_t>(),
              py::keep_alive<1,2>(),py::keep_alive<1,3>())
         .def("normal",&FragmentChoices::normal)
         .def("options",&FragmentChoices::options)

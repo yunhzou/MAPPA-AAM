@@ -93,14 +93,16 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
                 got = ("ok", _iso_key(out)) if out is not None else None
             except IslandBranchLimitExceeded as exc:
                 got = ("raised", (exc.count, exc.limit))
-            assert got is None or got == expected, (seed, len(mapping))
+            assert got == expected, (seed, len(mapping))
         return original(g_R, g_P, seed, dict(mapping), **kw)
 
     monkeypatch.setattr(fragment_mod, "grow_island", both)
     result = _search("tetraphenyl")
     assert result.mechanisms
-    assert stats["calls"] > 300
-    assert stats["native"] > 300
+    # Search policy changes can change the call count. Require differential
+    # coverage of every actual growth request, not a historical count floor.
+    assert stats["calls"] > 0
+    assert stats["native"] == stats["calls"]
 
 
 def test_search_results_agree_between_engines(monkeypatch):

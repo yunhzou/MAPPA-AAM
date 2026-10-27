@@ -19,6 +19,7 @@ class EventDecodeConfig:
     max_events: int | None = None
     seconds_per_family: float = 10.0
     max_patterns_per_family: int | None = None
+    event_slack: int | None = None
 
     def __post_init__(self):
         for value in (self.threshold, self.metal_threshold):
@@ -28,10 +29,12 @@ class EventDecodeConfig:
             raise ValueError("ordinary event threshold is required")
         if not math.isfinite(self.seconds_per_family) or self.seconds_per_family < 0:
             raise ValueError("seconds_per_family must be finite and nonnegative")
-        for name, minimum in [("max_events", 0), ("max_patterns_per_family", 1)]:
+        for name, minimum in [("max_events", 0), ("max_patterns_per_family", 1), ("event_slack", 0)]:
             value = getattr(self, name)
             if value is not None and (not isinstance(value, int) or value < minimum):
                 raise ValueError(f"invalid {name}")
+        if self.max_events is not None and self.event_slack is not None:
+            raise ValueError("choose an absolute max_events or relative event_slack")
 
 
 @dataclass
@@ -66,13 +69,15 @@ class DecodedEvents:
 
     @property
     def minimum_proven(self):
-        """Minimum over retained families, not over branches lost to caps."""
+        """Proof within retained families, never a claim about pruned searches."""
         return self.observed_minimum is not None and self.catalogue.incomplete_paths == 0 and (
             self.observed_minimum == 0 or self.complete
         )
 
     @property
     def event_window(self):
+        if self.config.event_slack is not None and self.observed_minimum is not None:
+            return self.observed_minimum + self.config.event_slack
         return self.config.max_events
 
     @property
@@ -196,7 +201,13 @@ def decode_events(aam, config=None):
 
     Accept one AAMResult or a FinalBranchCatalogue containing multiple searches
     of the *same directed problem*. Search settings are never modified. This
-    balanced, complete-mapping policy includes explicit H; partial mappings
+    event_slack limits decoding to the best feasible event count plus its
+    allowance. Score every representative first, then tighten the solver window
+    as lower witnesses are found. Every earlier window contains the final one,
+    so completed family reports certify the final window without a full decode.
+    If interrupted, the minimum is only observed and completeness stays false.
+
+    This balanced, complete-mapping policy includes explicit H; partial mappings
     remain available through the raw AAM graph, not this decoder.
     """
     config = config or EventDecodeConfig()
@@ -211,6 +222,18 @@ def decode_events(aam, config=None):
         metal_threshold=config.metal_threshold,
     )
     candidates, reports = {}, []
+    best = None
+    if config.event_slack is not None:
+        # Bounded batches avoid an O(families * atoms**2) allocation. Validate
+        # these witnesses before using their scores to discard any alternatives.
+        for start in range(0, len(catalogue.families), 32):
+            vectors = []
+            for family in catalogue.families[start:start + 32]:
+                family.validate_representative(catalogue.problem)
+                mapping = dict(family.mapping)
+                vectors.append([mapping[a] for a in range(index.n)])
+            value = int(index.counts(vectors).sum(axis=1).min())
+            best = value if best is None else min(best, value)
     source_edges = {}
     for i, family in enumerate(catalogue.families):
         floor = family.policy[0]
@@ -221,11 +244,18 @@ def decode_events(aam, config=None):
             family.as_path(catalogue.problem, source_edges[floor]),
             catalogue.problem,
             index,
-            max_events=config.max_events,
+            max_events=(best + config.event_slack if best is not None else config.max_events),
             seconds=config.seconds_per_family,
             max_patterns=config.max_patterns_per_family,
         )
+        if config.event_slack is not None:
+            best = min(best, min((p['total'] for p in report['patterns']), default=best))
+            # A later family can lower the minimum; release candidates outside
+            # the tightened global window while keeping all ties in the window.
+            candidates = {k: c for k, c in candidates.items() if c.total <= best + config.event_slack}
         for pattern in report["patterns"]:
+            if config.event_slack is not None and pattern['total'] > best + config.event_slack:
+                continue
             candidate = candidates.setdefault(
                 pattern["id"],
                 EventCandidate(

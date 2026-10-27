@@ -54,10 +54,11 @@ class FragmentMatchConfig:
     graph_floor: float = 0.2
     iso_tolerance: float = 0.5
     minimum_size: int = 1
-    branch_limit: int = 100
+    branch_limit: int = 100  # Distinct placements after growth and deduplication.
     node_policy: object = None
     allow_mapped_seed: bool = False
     orbit_dedup: bool = True
+    random_seed: int = 42
 
 
 @dataclass(frozen=True)
@@ -100,7 +101,7 @@ def match_fragment(source, target, *, seed, context=None, config=None,
             p_orbits=target_orbits, r_orbits=source_orbits,
             prior_deferred_edges=context.deferred_edges,
             allow_mapped_seed=config.allow_mapped_seed,
-            replay=context.growth_replay,
+            replay=context.growth_replay, random_seed=config.random_seed,
             events=events, profile=profile, profile_context=profile_context)
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,

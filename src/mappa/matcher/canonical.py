@@ -14,6 +14,7 @@ from .policy import (
     as_node_match_policy,
 )
 from .state import _SymCand
+from .primitives import _edge_wbo
 
 
 class _PartialMappingCanonicalizer:
@@ -291,8 +292,9 @@ class _CandidateAutomorphismCanonicalizer:
     The full WBO-colored product graph supplies the group.  Locked mappings
     individualize their product images.  Candidate mappings and symmetry pools
     are additional vertex roles.  Equal pynauty certificates therefore mean
-    that one exact automorphism transports the complete hierarchical candidate
-    state to the other while preserving every possible future product edge.
+    that one automorphism transports the candidate state to the other.
+    Growth certificates additionally fix the unassigned target atoms: extending
+    one representative must preserve all continuations of the represented set.
     """
 
     def __init__(self, g_P, p_orbits=None, locked_mapping=None,
@@ -337,6 +339,7 @@ class _CandidateAutomorphismCanonicalizer:
             }
             adjacency = defaultdict(set)
             edge_vertices_by_bucket = defaultdict(set)
+            exact_edge_vertices = defaultdict(set)
             next_vertex = n_atoms
             for (a, b), bucket in sorted(pair_buckets.items()):
                 if bucket == zero_bucket:
@@ -347,6 +350,7 @@ class _CandidateAutomorphismCanonicalizer:
                 adjacency[bi].add(next_vertex)
                 adjacency[next_vertex].update((ai, bi))
                 edge_vertices_by_bucket[bucket].add(next_vertex)
+                exact_edge_vertices[_edge_wbo(g_P, a, b)].add(next_vertex)
                 next_vertex += 1
             base = (
                 tuple(nodes), atom_index, n_atoms, atom_base_color,
@@ -355,11 +359,13 @@ class _CandidateAutomorphismCanonicalizer:
                  for vertex in range(next_vertex)},
                 tuple(sorted(edge_vertices_by_bucket.items(),
                              key=lambda item: item[0])),
+                tuple(sorted(exact_edge_vertices.items())),
             )
             if cache is not None:
                 cache[cache_key] = base
         (self.nodes, self.atom_index, self.n_atoms, self.atom_base_color,
-         self.n_vertices, self.adjacency, self.edge_color_classes) = base
+         self.n_vertices, self.adjacency, self.edge_color_classes,
+         self.exact_edge_color_classes) = base
         import pynauty
         self.nauty_graph = pynauty.Graph(
             self.n_vertices,
@@ -409,9 +415,31 @@ class _CandidateAutomorphismCanonicalizer:
         return {p: tuple(sorted(items, key=repr))
                 for p, items in roles.items()}
 
-    def _colored_vertices(self, cand, *, group_domains=False, locked_roles=None):
-        candidate_roles = self._candidate_roles(
-            cand, group_domains=group_domains)
+    def _growth_roles(self, cand, *, group_domains=False):
+        roles = self._candidate_roles(cand, group_domains=group_domains)
+        mapping = cand.mapping if isinstance(cand, _SymCand) else dict(cand)
+        pools = {p for block in getattr(cand, 'blocks', ()) for p in block.p_atoms}
+        occupied = set(mapping.values()) - pools
+        outside = set(self.nodes) - occupied
+        for p in self.nodes:
+            # Pool atoms can still be unassigned in another represented witness.
+            # Fix them too; their permutations are already stored in the pool.
+            continuation = ('outside', p) if p in outside else (
+                'boundary', tuple((q, weight) for q in sorted(outside)
+                                  if (weight := _edge_wbo(self.g_P, p, q)) != 0))
+            roles[p] = (*roles.get(p, ()), continuation)
+        return roles
+
+    def _colored_vertices(self, cand, *, group_domains=False, locked_roles=None,
+                          candidate_roles=None):
+        # Legacy records retain their recorded interpretation. Live growth
+        # always supplies continuation roles and writes the version-2 contract.
+        continuation = (candidate_roles is not None or
+                        getattr(cand, 'compression_version', 1) >= 2)
+        if candidate_roles is None:
+            role_builder = self._growth_roles if continuation else self._candidate_roles
+            candidate_roles = role_builder(
+                cand, group_domains=group_domains)
         colors = defaultdict(set)
         locked_roles = self.locked_roles if locked_roles is None else locked_roles
         for p in self.nodes:
@@ -421,7 +449,9 @@ class _CandidateAutomorphismCanonicalizer:
                 candidate_roles.get(p, ()),
             )
             colors[('atom', self.atom_base_color[vertex], role)].add(vertex)
-        for color_index, vertices in self.edge_color_classes:
+        edge_colors = (self.exact_edge_color_classes if continuation
+                       else self.edge_color_classes)
+        for color_index, vertices in edge_colors:
             colors[('edge', color_index)].update(vertices)
         return tuple(
             (color, frozenset(vertices))
@@ -442,8 +472,9 @@ class _CandidateAutomorphismCanonicalizer:
             colored_vertices, color_profile)
 
     def coloring_profile(self, cand):
-        """Return the exact vertex coloring and its cheap role profile."""
-        colored_vertices = self._colored_vertices(cand)
+        """Return a continuation-preserving coloring and its cheap profile."""
+        colored_vertices = self._colored_vertices(
+            cand, candidate_roles=self._growth_roles(cand))
         color_profile = tuple(
             (color, len(vertices)) for color, vertices in colored_vertices)
         return colored_vertices, color_profile

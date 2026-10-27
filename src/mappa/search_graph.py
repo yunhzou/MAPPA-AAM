@@ -57,6 +57,17 @@ class SearchContext:
     iso_tolerance: float = 0.5
     branch_limit: int = 100
     objective: str = 'full_source'
+    random_seed: int = 42
+    growth_policy: str = 'uniform_boundary_atom_splitmix64_v1'
+
+    def __setstate__(self, state):
+        # Identify historical pickles accurately; this does not enable legacy growth.
+        for key, value in state.items():
+            object.__setattr__(self, key, value)
+        if 'random_seed' not in state:
+            object.__setattr__(self, 'random_seed', 42)
+        if 'growth_policy' not in state:
+            object.__setattr__(self, 'growth_policy', 'legacy_wbo_priority')
 
 
 @dataclass(frozen=True)
@@ -393,7 +404,8 @@ class AAMSearchGraph:
             values = tuple(tuple_pool.setdefault(pair,pair) for pair in values)
             return tuple_pool.setdefault(values,values)
         contexts = tuple(SearchContext(
-            **{**item, "source_atoms": tuple(item["source_atoms"]),
+            **{**item, "growth_policy": item.get("growth_policy", "legacy_wbo_priority"),
+               "source_atoms": tuple(item["source_atoms"]),
                "target_atoms": tuple(item["target_atoms"]),
                "seed_order": tuple(item["seed_order"]), "cuts": pairs(item["cuts"]),
                "anchors": pairs(item["anchors"]), "core_atoms": tuple(item["core_atoms"])})
