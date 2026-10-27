@@ -128,3 +128,24 @@ def test_case_deadline_spans_stages_and_preserves_evidence(tmp_path,monkeypatch)
     restore(run/'archives/00000.tar',tmp_path/'restored')
     assert read(tmp_path/'restored/search-saved.json')['evidence']=='retained'
     assert read(tmp_path/'restored/analysis-saved.json')['evidence']=='retained'
+
+
+def test_report_uncut_complete_does_not_make_incomplete_sweep_negative(tmp_path):
+    from rebenchmark.report import summarize
+    run=tmp_path/'run'
+    _,features,reference=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    save(run/'inputs/0/reference.json',dict(features=features,mapping=sorted(reference.items())))
+    save(run/'manifest.json',dict(total=1,inputs=[dict(index=0,status='prepared',reactant_atoms=6,product_atoms=6)],
+        tasks=[dict(index=0,direction=d) for d in ('R_to_P','P_to_R')],timing='test'))
+    for task in range(2):
+        folder=tmp_path/f'worker{task}'
+        save(folder/'search.json',dict(metrics=dict(cut_count=2)))
+        save(folder/'analysis/00000/00/evaluation.json',dict(cut=0,seed=1,reference_recovery='not_recovered'))
+        save(folder/'analysis/00000/00/classes.json',[])
+        publish(folder,run/'archives'/f'{task:05d}.tar')
+    serial=summarize(run,tmp_path/'serial')
+    parallel=summarize(run,tmp_path/'parallel',workers=2)
+    assert serial==parallel
+    assert serial['modes']['uncut/bidirectional/seeds1']['not_recovered']==1
+    assert serial['modes']['bidirectional/seeds1']['unknown']==1
+    assert serial['modes']['bidirectional/seeds1']['ranking_complete']==0
