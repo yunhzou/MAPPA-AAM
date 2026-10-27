@@ -154,3 +154,96 @@ deadline; it is allowed to preserve evidence. The thirty-minute monitor checks
 stalls, memory failures and publication failures but does not enforce timing
 in place of the worker. Limited tasks remain unresolved and require separate
 diagnosis before continuation; they must not hold up the rest of Golden.
+
+## Shared execution across single CPU, local pools and Slurm
+
+Design brief requested 2026-10-27. This section specifies the next execution-layer
+refactor; the shared scheduler is not implemented or validated yet. Running Golden
+jobs retain their frozen code. An EnzymeMap production launch still needs explicit
+permission after Golden completion.
+
+The scientific task and its implementation must be identical in every environment.
+Only worker allocation and connection change. Do not maintain separate local and
+cluster matching or evaluation implementations.
+
+```mermaid
+flowchart LR
+    Inputs[Inputs and scientific configuration] --> Planner[Deterministic task planner]
+    Planner --> Queue[Ready queue and dependency records]
+    Queue --> Runtime[Common worker runtime]
+    Local[Single CPU or local processes] --> Runtime
+    Slurm[Slurm allocations] --> Runtime
+    Runtime --> Search[Existing fragment search]
+    Runtime --> Finalize[Existing symmetry finalization]
+    Runtime --> Evaluate[Reference evaluation]
+    Runtime --> Decode[Existing family solver]
+    Runtime --> Bundles[Verified result bundles]
+    Bundles --> Reduce[Deterministic reducers and audits]
+    Reduce --> Queue
+    Reduce --> Report[Complete metrics with explicit unknowns]
+```
+
+Responsibilities:
+
+- Planner: derive directions, cuts and the full ordered seed list once, assign
+  stable task identities, and declare dependencies. A search task contains explicit
+  seed indices/orders; independently rerunning seed_count=1 with different random
+  seeds is not equivalent to splitting the existing ten-seed run.
+- Scientific operations: expose prepared-session search of a cut/seed batch,
+  finalization of the merged cut, evaluation of one seed context, and existing
+  family scoring/decoding. Extract these from current orchestration, without
+  changing matching, locking, symmetry, branching or solver semantics.
+- Worker runtime: claim ready work, reuse bounded local preparation/matching
+  caches, enforce resources, checkpoint completed units, and publish verified
+  bundles. Related tasks have a locality preference, not exclusive ownership by
+  one worker. Unstarted work can be claimed elsewhere.
+- Queue: own dependencies, leases, heartbeats and completed task identities.
+  Duplicate execution after a worker failure must not duplicate accepted results.
+  Keep one writer for queue metadata on a local filesystem; do not put a shared
+  SQLite writer or millions of claim files on Lustre. Local execution accesses the
+  same queue operations directly; cluster workers use a coordinator connection.
+- Reducers: restore canonical direction/cut/seed order and verify expected
+  coverage. Completion order must not affect seed prefixes, representative order,
+  event minima or the interpretation of missing results.
+- Storage: retain inputs once, cache materialized inputs per worker, and publish
+  bounded bundles containing many task results. Keep individual temporary files
+  node-local. Record hashes and task-to-bundle indexes in queue metadata.
+
+Initial work units and boundaries:
+
+| Stage | Claimable work | Dependency and reuse |
+| --- | --- | --- |
+| Search | reaction × direction × cut × seed batch | Explicit original seed orders; reuse prepared matching session |
+| Finalization | merged cut graph | All required seed batches for that cut; finalize once |
+| Reference evaluation | cut × seed context | Read finalized cut; reuse immutable graph preparation locally |
+| Family minimum | retained family | Same production family solver |
+| Event-window enumeration | retained family and declared bound | Verified minimum/bound reduction for every requested seed prefix |
+| Reporting | case or bounded case batch | Audit expected task identities and completion evidence |
+
+A seed batch is a scheduling choice, not a scientific policy. Start by measuring
+1, 2, 5 and 10 seeds per search batch on fixed controls. Compare total CPU, wall,
+peak memory and data transfer. Single-seed tasks offer more parallelism but may
+repeat expensive preparation or lose useful caches. Never promise that the
+smallest unit has the best throughput. Split pending batches to reduce the tail;
+do not interrupt a running solver merely to redistribute work.
+
+Workers must not launch nested CPU pools. The outer scheduler owns concurrency
+and admits work against both available CPUs and measured memory. Numerical
+libraries use one thread unless explicitly budgeted. Preserve a case deadline
+across redistributed tasks rather than granting each task a fresh hour. Record
+queue wait, setup, compute, I/O, retries and allocated resources separately.
+
+Required code changes are concentrated in `aam.py` (currently process-global
+prepared state and cut/seed loop), `rebenchmark/analysis.py` (currently finalizes
+and evaluates all seeds inside one cut worker), and the benchmark claim/runner
+layer. Existing user APIs should delegate to the common task runner, including
+workers=1. Slurm submission is a launcher for that same worker, not a scientific
+backend or a fallback. Remove superseded live orchestration after migration;
+historical frozen job code is not a second supported implementation.
+
+Acceptance gates: identical canonical search graphs and seed prefixes for one
+CPU/local pool/multiple workers; identical family membership, scores and decoded
+sets on finite controls; bounded caches and memory admission; safe worker loss,
+resume and duplicate claims; no repeated completed work; verified bundled storage;
+and measured end-to-end overhead/throughput including a deliberately uneven tail.
+A Slurm pilot must pass before this becomes the production EnzymeMap runner.
