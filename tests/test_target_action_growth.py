@@ -114,3 +114,67 @@ def test_decoding_transports_later_fragments_with_the_earlier_group():
             status, _ = query_path(path, problem, dict(enumerate(images)),
                                    source_atoms=tuple(range(4)), timeout_ms=2000)
             assert status == ('recovered' if expected else 'not_recovered')
+
+
+def test_locked_ring_then_free_hydrogen():
+    """Run the real scheduler and enumerate this small saved decoder relation."""
+    import json
+    import time
+    import z3
+    from mappa import AAMProblem
+    from mappa.alignment.branch import find_islands
+    from mappa.family_query import compile_path
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from test_family_query import endpoint
+
+    ring, target = rings()
+    source = graph(['C'] * 6 + ['H'] * 7, [(a, b, 1) for a, b in ring.edges])
+    problem = AAMProblem(endpoint('C' * 6 + 'H' * 7, source.edges),
+                         endpoint('C' * 6 + 'H' * 12, target.edges))
+    start = time.process_time()
+    found = find_islands(source, target, list(range(13)), iso_tol=1, max_branches=100)
+    found, _ = finalize_graph_symmetry(found, target, iso_tolerance=1)
+    paths = list(found.paths())
+    assert len(paths) == 1
+    path = paths[0]
+    assert [set(f['fragment']) for f in path.fragments] == [set(range(12)), {12}]
+    first, second = path.hierarchy.fragments
+    locked = dict(first.representative_assignments)
+    remaining = set(range(6, 18)) - set(locked.values())
+    assert len(remaining) == 6
+    assert len(second.symmetry_domains) == 1
+    assert set(second.symmetry_domains[0].p_atoms) == remaining
+    search_cpu = time.process_time() - start
+
+    expected = {mapping + ((12, h),) for mapping in ring_mappings()
+                for h in set(range(6, 18)) - {p for _, p in mapping}}
+    assert len(expected) == 4608
+    compiled = compile_path(path, problem, {}, source_atoms=tuple(range(13)),
+                            complete_reference=False)
+    compiled.solver.set(timeout=3000)
+    decoded = set()
+    decoding_start = time.process_time()
+    while True:
+        status = compiled.solver.check()
+        assert status != z3.unknown, compiled.solver.reason_unknown()
+        if status == z3.unsat:
+            break
+        model = compiled.solver.model()
+        # Use the production realization code, including its independent
+        # injectivity, element, and retained-bond validation.
+        mapping = tuple(map(tuple, compiled.realize(model)['mapping']))
+        assert mapping in expected and mapping not in decoded
+        decoded.add(mapping)
+        compiled.solver.add(z3.Or(*(value[0] != p
+            for value, (_r, p) in zip(compiled.values, mapping))))
+        if len(decoded) % 768 == 0:
+            print(f'decoded {len(decoded)}', flush=True)
+    assert decoded == expected
+    result = dict(compressed_paths=len(paths), fragment_sizes=[12, 1],
+                  locked_witness=locked, remaining_H=sorted(remaining),
+                  H_pool=sorted(second.symmetry_domains[0].p_atoms),
+                  decoded_mappings=len(decoded), extra_H_targets=sorted({m[-1][1] for m in decoded}),
+                  choices_per_ring_mapping=6, search_cpu_seconds=search_cpu,
+                  decoder_cpu_seconds=time.process_time()-decoding_start,
+                  terminal_solver_status='unsat', exact_oracle_equality=True)
+    print(json.dumps(result, sort_keys=True), flush=True)
