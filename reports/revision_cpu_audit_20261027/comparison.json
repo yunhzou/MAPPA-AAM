@@ -1,0 +1,368 @@
+{
+  "64": {
+    "old_main": {
+      "cpu_seconds": 0.10548149999999999,
+      "bidirectional_repeats": [
+        0.10385799999999998,
+        0.107105
+      ],
+      "peak_process_rss_mib": 57.8125,
+      "growth_requests": 520,
+      "uncached_growth_requests": 252,
+      "states": 523,
+      "exclusive_phase_cpu": {
+        "initialization": 0.005646999999999958,
+        "search_other": 0.026966000000000434,
+        "other": 0.004522000000000248,
+        "raw_checkpoint_writes": 0.021841999999999778,
+        "native_search_and_export": 0.02031799999999978,
+        "final_checkpoint_write": 0.00425600000000001,
+        "conditioned_groups": 0.011964000000000086,
+        "symmetry_bookkeeping": 0.0070539999999999214,
+        "graph_combination": 0.001732999999999929,
+        "python_graph_construction": 0.005294999999999855
+      }
+    },
+    "policies_only": {
+      "cpu_seconds": 0.10015899999999998,
+      "bidirectional_repeats": [
+        0.09889799999999999,
+        0.10141999999999998
+      ],
+      "peak_process_rss_mib": 57.21875,
+      "growth_requests": 494,
+      "uncached_growth_requests": 247,
+      "states": 465,
+      "exclusive_phase_cpu": {
+        "initialization": 0.005501999999999979,
+        "search_other": 0.026357000000000103,
+        "other": 0.004648999999999931,
+        "raw_checkpoint_writes": 0.022098000000000007,
+        "native_search_and_export": 0.018269999999999925,
+        "final_checkpoint_write": 0.00408200000000003,
+        "conditioned_groups": 0.010503000000000068,
+        "symmetry_bookkeeping": 0.00626799999999994,
+        "graph_combination": 0.0015419999999999878,
+        "python_graph_construction": 0.004274
+      }
+    },
+    "current": {
+      "cpu_seconds": 0.185987,
+      "bidirectional_repeats": [
+        0.184461,
+        0.18751299999999999
+      ],
+      "peak_process_rss_mib": 65.0,
+      "growth_requests": 867,
+      "uncached_growth_requests": 329,
+      "states": 1145,
+      "exclusive_phase_cpu": {
+        "initialization": 0.006003999999999982,
+        "search_other": 0.027792000000000178,
+        "other": 0.006007000000000096,
+        "raw_checkpoint_writes": 0.025484999999999897,
+        "native_search_and_export": 0.04270400000000016,
+        "continuation_roles": 0.008403000000000133,
+        "final_checkpoint_write": 0.007804000000000005,
+        "conditioned_groups": 0.03175499999999956,
+        "symmetry_bookkeeping": 0.016092000000000273,
+        "graph_combination": 0.003465999999999858,
+        "python_graph_construction": 0.015149999999999858
+      }
+    },
+    "identity": {
+      "cpu_seconds": 0.15684950000000003,
+      "bidirectional_repeats": [
+        0.158971,
+        0.15472800000000003
+      ],
+      "peak_process_rss_mib": 65.6875,
+      "growth_requests": 867,
+      "uncached_growth_requests": 329,
+      "states": 1145,
+      "exclusive_phase_cpu": {
+        "initialization": 0.0049379999999999424,
+        "search_other": 0.026034999999999975,
+        "other": 0.0047499999999998654,
+        "raw_checkpoint_writes": 0.026071000000000094,
+        "native_search_and_export": 0.03998299999999991,
+        "continuation_roles": 0.002501000000000586,
+        "final_checkpoint_write": 0.007797000000000026,
+        "conditioned_groups": 0.008525999999998729,
+        "symmetry_bookkeeping": 0.014900000000000718,
+        "graph_combination": 0.003485000000000127,
+        "python_graph_construction": 0.008732000000000156,
+        "cyclic_gc": 0.012157999999999891
+      }
+    },
+    "optimized": {
+      "cpu_seconds": 0.1538545,
+      "bidirectional_repeats": [
+        0.149188,
+        0.15852100000000002
+      ],
+      "peak_process_rss_mib": 64.1875,
+      "growth_requests": 867,
+      "uncached_growth_requests": 329,
+      "states": 1145,
+      "exclusive_phase_cpu": {
+        "initialization": 0.005053999999999975,
+        "search_other": 0.02558000000000002,
+        "other": 0.004594999999999877,
+        "raw_checkpoint_writes": 0.025047000000000014,
+        "native_search_and_export": 0.040031000000000094,
+        "continuation_roles": 0.0025059999999999527,
+        "final_checkpoint_write": 0.007467999999999947,
+        "conditioned_groups": 0.00854600000000083,
+        "symmetry_bookkeeping": 0.014944999999999209,
+        "graph_combination": 0.0034370000000001066,
+        "python_graph_construction": 0.008620999999999907,
+        "cyclic_gc": 0.011422000000000099
+      }
+    }
+  },
+  "604": {
+    "old_main": {
+      "cpu_seconds": 0.9021955,
+      "bidirectional_repeats": [
+        0.898232,
+        0.9061589999999999
+      ],
+      "peak_process_rss_mib": 136.921875,
+      "growth_requests": 8649,
+      "uncached_growth_requests": 1918,
+      "states": 10977,
+      "exclusive_phase_cpu": {
+        "initialization": 0.006543000000000021,
+        "search_other": 0.08873099999999964,
+        "other": 0.017782000000000187,
+        "raw_checkpoint_writes": 0.10339599999999993,
+        "native_search_and_export": 0.2541260000000001,
+        "final_checkpoint_write": 0.05601100000000003,
+        "conditioned_groups": 0.1937930000000046,
+        "symmetry_bookkeeping": 0.06613499999999539,
+        "graph_combination": 0.03178500000000023,
+        "python_graph_construction": 0.12240799999999993
+      }
+    },
+    "policies_only": {
+      "cpu_seconds": 1.0624515,
+      "bidirectional_repeats": [
+        1.064806,
+        1.0600969999999998
+      ],
+      "peak_process_rss_mib": 123.21875,
+      "growth_requests": 11366,
+      "uncached_growth_requests": 2807,
+      "states": 12541,
+      "exclusive_phase_cpu": {
+        "initialization": 0.007529999999999953,
+        "search_other": 0.08103299999999969,
+        "other": 0.022553000000000045,
+        "raw_checkpoint_writes": 0.0890679999999999,
+        "native_search_and_export": 0.3032849999999998,
+        "final_checkpoint_write": 0.06829399999999997,
+        "conditioned_groups": 0.26940699999999573,
+        "symmetry_bookkeeping": 0.08809500000000425,
+        "graph_combination": 0.034591000000000455,
+        "python_graph_construction": 0.12854000000000015
+      }
+    },
+    "current": {
+      "cpu_seconds": 1.601001,
+      "bidirectional_repeats": [
+        1.6007230000000001,
+        1.601279
+      ],
+      "peak_process_rss_mib": 150.234375,
+      "growth_requests": 15936,
+      "uncached_growth_requests": 3869,
+      "states": 16479,
+      "exclusive_phase_cpu": {
+        "initialization": 0.0067979999999999985,
+        "search_other": 0.09712499999999921,
+        "other": 0.03021900000000033,
+        "raw_checkpoint_writes": 0.1108989999999998,
+        "native_search_and_export": 0.44477200000000006,
+        "continuation_roles": 0.07152899999999451,
+        "final_checkpoint_write": 0.08902399999999999,
+        "conditioned_groups": 0.4761680000000085,
+        "symmetry_bookkeeping": 0.122744999999997,
+        "graph_combination": 0.04539300000000024,
+        "python_graph_construction": 0.1582590000000004
+      }
+    },
+    "identity": {
+      "cpu_seconds": 1.121619,
+      "bidirectional_repeats": [
+        1.127501,
+        1.115737
+      ],
+      "peak_process_rss_mib": 146.625,
+      "growth_requests": 15936,
+      "uncached_growth_requests": 3869,
+      "states": 16479,
+      "exclusive_phase_cpu": {
+        "initialization": 0.0066419999999999535,
+        "search_other": 0.08907600000000052,
+        "other": 0.013223000000000096,
+        "raw_checkpoint_writes": 0.10577800000000018,
+        "native_search_and_export": 0.35494599999999965,
+        "continuation_roles": 0.010128000000001802,
+        "final_checkpoint_write": 0.08584400000000003,
+        "conditioned_groups": 0.05032899999999929,
+        "symmetry_bookkeeping": 0.1113059999999989,
+        "graph_combination": 0.04390999999999998,
+        "python_graph_construction": 0.12800799999999882,
+        "cyclic_gc": 0.1598190000000008
+      }
+    },
+    "optimized": {
+      "cpu_seconds": 1.038645,
+      "bidirectional_repeats": [
+        1.0376880000000002,
+        1.039602
+      ],
+      "peak_process_rss_mib": 148.90625,
+      "growth_requests": 15936,
+      "uncached_growth_requests": 3869,
+      "states": 16479,
+      "exclusive_phase_cpu": {
+        "initialization": 0.0061299999999999966,
+        "search_other": 0.08930000000000135,
+        "other": 0.012915999999999428,
+        "raw_checkpoint_writes": 0.10482000000000011,
+        "native_search_and_export": 0.35104699999999966,
+        "continuation_roles": 0.010155999999998389,
+        "final_checkpoint_write": 0.08541299999999996,
+        "conditioned_groups": 0.049762000000003415,
+        "symmetry_bookkeeping": 0.11097899999999827,
+        "graph_combination": 0.0431209999999998,
+        "python_graph_construction": 0.1251879999999998,
+        "cyclic_gc": 0.0788019999999997
+      }
+    }
+  },
+  "17": {
+    "old_main": {
+      "cpu_seconds": 17.8609705,
+      "bidirectional_repeats": [
+        17.992654,
+        17.729287
+      ],
+      "peak_process_rss_mib": 1389.421875,
+      "growth_requests": 74188,
+      "uncached_growth_requests": 27762,
+      "states": 185490,
+      "exclusive_phase_cpu": {
+        "initialization": 0.010348999999999997,
+        "search_other": 0.8009550000000081,
+        "other": 0.21921600000000296,
+        "raw_checkpoint_writes": 1.8353179999999987,
+        "native_search_and_export": 5.583927999999997,
+        "final_checkpoint_write": 1.2427959999999993,
+        "conditioned_groups": 2.0337720000000687,
+        "symmetry_bookkeeping": 0.406598999999932,
+        "graph_combination": 1.0352469999999954,
+        "python_graph_construction": 5.009123999999998
+      }
+    },
+    "policies_only": {
+      "cpu_seconds": 12.4436155,
+      "bidirectional_repeats": [
+        12.438155999999998,
+        12.449075
+      ],
+      "peak_process_rss_mib": 874.65625,
+      "growth_requests": 56171,
+      "uncached_growth_requests": 21065,
+      "states": 128553,
+      "exclusive_phase_cpu": {
+        "initialization": 0.010024000000000005,
+        "search_other": 0.5913649999999954,
+        "other": 0.18369500000000105,
+        "raw_checkpoint_writes": 0.8378960000000009,
+        "native_search_and_export": 3.942267000000002,
+        "final_checkpoint_write": 0.8311849999999987,
+        "conditioned_groups": 1.8529399999999345,
+        "symmetry_bookkeeping": 0.3536410000000654,
+        "graph_combination": 0.5351840000000005,
+        "python_graph_construction": 3.3368650000000004
+      }
+    },
+    "current": {
+      "cpu_seconds": 14.015287999999998,
+      "bidirectional_repeats": [
+        14.031058,
+        13.999517999999998
+      ],
+      "peak_process_rss_mib": 889.140625,
+      "growth_requests": 57712,
+      "uncached_growth_requests": 21648,
+      "states": 133655,
+      "exclusive_phase_cpu": {
+        "initialization": 0.010302000000000033,
+        "search_other": 0.741157999999992,
+        "other": 0.17632800000000337,
+        "raw_checkpoint_writes": 0.8982059999999994,
+        "native_search_and_export": 4.433751000000003,
+        "continuation_roles": 0.26504099999987085,
+        "final_checkpoint_write": 0.9309409999999998,
+        "conditioned_groups": 2.565352000000091,
+        "symmetry_bookkeeping": 0.38134800000003777,
+        "graph_combination": 0.47400400000000203,
+        "python_graph_construction": 3.292644
+      }
+    },
+    "identity": {
+      "cpu_seconds": 11.3538825,
+      "bidirectional_repeats": [
+        11.370223,
+        11.337542000000001
+      ],
+      "peak_process_rss_mib": 874.53125,
+      "growth_requests": 57712,
+      "uncached_growth_requests": 21648,
+      "states": 133655,
+      "exclusive_phase_cpu": {
+        "initialization": 0.009570999999999996,
+        "search_other": 0.591499999999999,
+        "other": 0.06718599999999642,
+        "raw_checkpoint_writes": 0.6536249999999959,
+        "native_search_and_export": 2.9069490000000013,
+        "continuation_roles": 0.011252999999995517,
+        "final_checkpoint_write": 0.8560670000000012,
+        "conditioned_groups": 0.07407099999997602,
+        "symmetry_bookkeeping": 0.32805300000002857,
+        "graph_combination": 0.400447000000005,
+        "python_graph_construction": 1.3833339999999892,
+        "cyclic_gc": 4.152317000000012
+      }
+    },
+    "optimized": {
+      "cpu_seconds": 8.361849,
+      "bidirectional_repeats": [
+        8.359256,
+        8.364442
+      ],
+      "peak_process_rss_mib": 876.78125,
+      "growth_requests": 57712,
+      "uncached_growth_requests": 21648,
+      "states": 133655,
+      "exclusive_phase_cpu": {
+        "initialization": 0.00979499999999997,
+        "search_other": 0.600433000000001,
+        "other": 0.06950899999999738,
+        "raw_checkpoint_writes": 0.6525880000000014,
+        "native_search_and_export": 2.9058739999999985,
+        "continuation_roles": 0.01133500000000609,
+        "final_checkpoint_write": 0.8595950000000001,
+        "conditioned_groups": 0.07323599999997699,
+        "symmetry_bookkeeping": 0.3263420000000177,
+        "graph_combination": 0.3871039999999983,
+        "python_graph_construction": 1.3692800000000003,
+        "cyclic_gc": 1.1171280000000023
+      }
+    }
+  }
+}

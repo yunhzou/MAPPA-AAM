@@ -1,0 +1,1103 @@
+--- a/src/mappa/aam.py
++++ b/src/mappa/aam.py
+@@ -56,7 +56,7 @@
+     if config.seed_selection == 'random':
+         settings.pop('seed_selection')  # unchanged policy can resume older cuts
+     return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v5',
+-        matching_policy='exact_fragment_support_v2',
++        matching_policy='historical_pre_repair_diagnostic',
+         growth_policy='uniform_boundary_atom_splitmix64_v1',
+         branch_cap_policy='completed_fragment_frontier_v1',
+         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
+--- a/src/mappa/matcher/__init__.py
++++ b/src/mappa/matcher/__init__.py
+@@ -4,8 +4,8 @@
+ - primitives: WBO access and tolerance primitives
+ - orbits: exact nauty orbit grouping plus a separately named WL diagnostic
+ - state: _SymCand/_SymBlock compressed matching state
+-- support: all constrained assignments inside unresolved symmetry blocks
+-- dedupe: continuation-preserving automorphism compression
++- support: witness search inside unresolved symmetry blocks
++- dedupe: one-hop boundary-aware state dedupe
+ - extend: one-atom candidate extension
+ """
+ from __future__ import annotations
+@@ -48,6 +48,7 @@
+     _symmetry_state,
+ )
+ from .support import (
++    _force_sym_value,
+     _refine_sym_assignments,
+     _r_compatible_with_block,
+     _support_witness_for_value,
+--- a/src/mappa/matcher/canonical.py
++++ b/src/mappa/matcher/canonical.py
+@@ -14,7 +14,6 @@
+     as_node_match_policy,
+ )
+ from .state import _SymCand
+-from .primitives import _edge_wbo
+ 
+ 
+ class _PartialMappingCanonicalizer:
+@@ -292,9 +291,8 @@
+     The full WBO-colored product graph supplies the group.  Locked mappings
+     individualize their product images.  Candidate mappings and symmetry pools
+     are additional vertex roles.  Equal pynauty certificates therefore mean
+-    that one automorphism transports the candidate state to the other.
+-    Growth certificates additionally fix the unassigned target atoms: extending
+-    one representative must preserve all continuations of the represented set.
++    that one exact automorphism transports the complete hierarchical candidate
++    state to the other while preserving every possible future product edge.
+     """
+ 
+     def __init__(self, g_P, p_orbits=None, locked_mapping=None,
+@@ -339,7 +337,6 @@
+             }
+             adjacency = defaultdict(set)
+             edge_vertices_by_bucket = defaultdict(set)
+-            exact_edge_vertices = defaultdict(set)
+             next_vertex = n_atoms
+             for (a, b), bucket in sorted(pair_buckets.items()):
+                 if bucket == zero_bucket:
+@@ -350,7 +347,6 @@
+                 adjacency[bi].add(next_vertex)
+                 adjacency[next_vertex].update((ai, bi))
+                 edge_vertices_by_bucket[bucket].add(next_vertex)
+-                exact_edge_vertices[_edge_wbo(g_P, a, b)].add(next_vertex)
+                 next_vertex += 1
+             base = (
+                 tuple(nodes), atom_index, n_atoms, atom_base_color,
+@@ -359,18 +355,11 @@
+                  for vertex in range(next_vertex)},
+                 tuple(sorted(edge_vertices_by_bucket.items(),
+                              key=lambda item: item[0])),
+-                tuple(sorted(exact_edge_vertices.items())),
+-                # Continuation roles use all nonzero weights, including pairs
+-                # below the active-graph threshold. The target is immutable.
+-                {p: tuple((q, weight) for q in sorted(nodes)
+-                          if (weight := _edge_wbo(g_P, p, q)) != 0)
+-                 for p in nodes},
+             )
+             if cache is not None:
+                 cache[cache_key] = base
+         (self.nodes, self.atom_index, self.n_atoms, self.atom_base_color,
+-         self.n_vertices, self.adjacency, self.edge_color_classes,
+-         self.exact_edge_color_classes, self.nonzero_wbo) = base
++         self.n_vertices, self.adjacency, self.edge_color_classes) = base
+         import pynauty
+         self.nauty_graph = pynauty.Graph(
+             self.n_vertices,
+@@ -420,31 +409,9 @@
+         return {p: tuple(sorted(items, key=repr))
+                 for p, items in roles.items()}
+ 
+-    def _growth_roles(self, cand, *, group_domains=False):
+-        roles = self._candidate_roles(cand, group_domains=group_domains)
+-        mapping = cand.mapping if isinstance(cand, _SymCand) else dict(cand)
+-        pools = {p for block in getattr(cand, 'blocks', ()) for p in block.p_atoms}
+-        occupied = set(mapping.values()) - pools
+-        outside = set(self.nodes) - occupied
+-        for p in self.nodes:
+-            # Pool atoms can still be unassigned in another represented witness.
+-            # Fix them too; their permutations are already stored in the pool.
+-            continuation = ('outside', p) if p in outside else (
+-                'boundary', tuple((q, weight) for q, weight in self.nonzero_wbo[p]
+-                                  if q in outside))
+-            roles[p] = (*roles.get(p, ()), continuation)
+-        return roles
+-
+-    def _colored_vertices(self, cand, *, group_domains=False, locked_roles=None,
+-                          candidate_roles=None):
+-        # Legacy records retain their recorded interpretation. Live growth
+-        # always supplies continuation roles and writes the version-2 contract.
+-        continuation = (candidate_roles is not None or
+-                        getattr(cand, 'compression_version', 1) >= 2)
+-        if candidate_roles is None:
+-            role_builder = self._growth_roles if continuation else self._candidate_roles
+-            candidate_roles = role_builder(
+-                cand, group_domains=group_domains)
++    def _colored_vertices(self, cand, *, group_domains=False, locked_roles=None):
++        candidate_roles = self._candidate_roles(
++            cand, group_domains=group_domains)
+         colors = defaultdict(set)
+         locked_roles = self.locked_roles if locked_roles is None else locked_roles
+         for p in self.nodes:
+@@ -454,9 +421,7 @@
+                 candidate_roles.get(p, ()),
+             )
+             colors[('atom', self.atom_base_color[vertex], role)].add(vertex)
+-        edge_colors = (self.exact_edge_color_classes if continuation
+-                       else self.edge_color_classes)
+-        for color_index, vertices in edge_colors:
++        for color_index, vertices in self.edge_color_classes:
+             colors[('edge', color_index)].update(vertices)
+         return tuple(
+             (color, frozenset(vertices))
+@@ -477,9 +442,8 @@
+             colored_vertices, color_profile)
+ 
+     def coloring_profile(self, cand):
+-        """Return a continuation-preserving coloring and its cheap profile."""
+-        colored_vertices = self._colored_vertices(
+-            cand, candidate_roles=self._growth_roles(cand))
++        """Return the exact vertex coloring and its cheap role profile."""
++        colored_vertices = self._colored_vertices(cand)
+         color_profile = tuple(
+             (color, len(vertices)) for color, vertices in colored_vertices)
+         return colored_vertices, color_profile
+--- a/src/mappa/matcher/extend.py
++++ b/src/mappa/matcher/extend.py
+@@ -9,28 +9,25 @@
+ symmetry blocks/multiplicity that represent many injective concrete mappings.
+ The outer ``list[_SymCand]`` stores multiple canonical-distinct local states.
+ 
+-The main function operates on internal growth objects. The standalone public
+-entry point is ``mappa.fragment.match_fragment``.
+-
+-Invariant: the children represent exactly every valid one-atom extension of
+-the input relation. Pool restriction is exhaustive; compression must commute
+-with later extensions. See ``design.md`` for the induction argument.
++The main function is intentionally private because it operates on internal
++growth objects.  The public molecule-level APIs are in ``mappa.alignment``.
+ """
+ from __future__ import annotations
+ 
+ from collections import defaultdict
+ from collections.abc import Iterable, Mapping
+-from dataclasses import dataclass, replace
++from dataclasses import dataclass
+ from typing import Any
+ 
+ from .dedupe import _dedup_sym_cands, _p_relation_signature
+ from .policy import DEFAULT_NODE_POLICY, as_node_match_policy
+-from .primitives import _edge_wbo
++from .primitives import _edge_wbo, _growth_edge_supported
+ from .state import _SymCand, _sym_block_indexes
+ from .support import (
++    _force_sym_value,
+     _refine_sym_assignments,
+     _r_compatible_with_block,
+-    _support_assignments_for_value,
++    _support_witness_for_value,
+ )
+ 
+ 
+@@ -59,6 +56,7 @@
+     anchor_wbo: Wbo | None = None,
+     dedupe_edges: Iterable[EdgeKey] | None = None,
+     node_policy=None,
++    defer_boundary_dedupe: bool = False,
+ ) -> list[_SymCand]:
+     """Symmetry-compressed incremental extension.
+ 
+@@ -114,6 +112,9 @@
+         Node-level compatibility policy.  The default is same element.  Custom
+         policies can admit target nodes by electronic or other descriptors
+         before the normal WBO/``iso_tol`` edge verifier is applied.
++    defer_boundary_dedupe
++        Diagnostic mode that postpones automorphism quotienting until fragment
++        saturation. Exact duplicate states are still combined.
+     Returns
+     -------
+     list[_SymCand]
+@@ -133,6 +134,8 @@
+     for raw_cand in cands:
+         cand = raw_cand if isinstance(raw_cand, _SymCand) else _SymCand(raw_cand)
+         children.extend(_extend_one_candidate(cand, ctx))
++    if defer_boundary_dedupe:
++        return _dedupe_children_exact(children)
+     return _dedupe_children(children, ctx)
+ 
+ 
+@@ -306,7 +309,7 @@
+     v: Node,
+     join_block_idx: int | None,
+     block_indexes=None,
+-) -> list[Support]:
++) -> Support | None:
+     """Return support assignments proving ``ctx.n -> v`` is valid.
+ 
+     This is where active R-pair WBO validity enters the extension step.  The
+@@ -314,7 +317,7 @@
+     stored witness, so an arbitrary witness cannot incorrectly reject a valid
+     correlated assignment.
+     """
+-    return _support_assignments_for_value(
++    return _support_witness_for_value(
+         cand,
+         ctx.n,
+         v,
+@@ -328,28 +331,80 @@
+     )
+ 
+ 
+-def _extend_locked_merge(cand: _SymCand, ctx: _ExtensionContext) -> list[_SymCand]:
+-    """Apply the same extension invariant to each atom of a locked island."""
+-    children = [cand]
+-    fragment = set(ctx.fragment_old)
+-    for atom in (ctx.n, *(r for r in ctx.island_atoms if r != ctx.n)):
+-        bonded = _active_fragment_neighbors(fragment, ctx.g_R, atom)
+-        step = replace(ctx, n=atom, fragment_old=frozenset(fragment),
+-                       bonded_in_frag=bonded,
+-                       r_wbos=tuple((r, _edge_wbo(ctx.g_R, r, atom)) for r in bonded),
+-                       strict_r_wbos=ctx.strict_r_wbos if atom == ctx.n else {})
+-        target = ctx.mapping[atom]
+-        extended = []
+-        for child in children:
+-            indexes = _sym_block_indexes(child)
+-            for support in _supported_value(child, step, target,
+-                                             indexes[1].get(target), indexes):
+-                refined = _refine_sym_assignments(child, {**support, atom: target})
+-                if refined is not None:
+-                    extended.append(refined)
+-        children = extended
+-        fragment.add(atom)
+-    return children
++def _force_required_image(
++    cand: _SymCand,
++    ctx: _ExtensionContext,
++    r: Node,
++    p: Node,
++):
++    """Force one R atom to one P atom while respecting symmetry blocks."""
++    return _force_sym_value(
++        cand, r, p, set(ctx.fragment_old),
++        ctx.g_R, ctx.r_orbits, ctx.p_orbits,
++    )
++
++
++def _island_merge_wbo_consistent(cand: _SymCand, ctx: _ExtensionContext) -> bool:
++    """Check full WBO consistency after merging locked island atoms.
++
++    The merge path may add more than just ``ctx.n``.  Every added island atom
++    must be WBO-compatible with every materialized atom already in the candidate.
++    """
++    base = cand.materialize()
++    graph_floor = float(ctx.g_P.graph.get("bond_cut", 0.2))
++    check_set = set(base.keys())
++    for r in ctx.island_atoms:
++        for r2 in sorted(check_set):
++            if r2 == r:
++                continue
++            if r >= r2 and r2 in ctx.island_atoms:
++                continue
++            if not ctx.g_R.has_edge(r, r2):
++                continue
++            w_r = _edge_wbo(ctx.g_R, r, r2)
++            p, p2 = base[r], base[r2]
++            if not _growth_edge_supported(
++                    w_r, _edge_wbo(ctx.g_P, p, p2),
++                    ctx.iso_tol, graph_floor):
++                return False
++    return True
++
++
++def _extend_locked_merge(cand: _SymCand, ctx: _ExtensionContext) -> _SymCand | None:
++    """Extend into an atom that already has a locked branch-level image.
++
++    This is the ``merge_island`` path.  The target image is fixed by the
++    current branch, but the current island candidate may still need to reshuffle
++    a symmetry block to support that fixed image.
++    """
++    v_n = ctx.mapping[ctx.n]
++    _, p_to_block = _sym_block_indexes(cand)
++    join_idx = p_to_block.get(v_n)
++    if join_idx is not None and not _r_compatible_with_block(
++            cand, join_idx, ctx.n, set(ctx.fragment_old), ctx.g_R, ctx.r_orbits):
++        return None
++
++    support = _supported_value(cand, ctx, v_n, join_idx)
++    if support is None:
++        return None
++
++    child = _force_required_image(cand, ctx, ctx.n, v_n)
++    if child is None:
++        return None
++    support = dict(support)
++    support[ctx.n] = v_n
++    child = child.with_witness(support) if isinstance(child, _SymCand) else child
++    if child is None:
++        return None
++
++    for r in ctx.island_atoms:
++        if r == ctx.n:
++            continue
++        child = _force_required_image(child, ctx, r, ctx.mapping[r])
++        if child is None:
++            return None
++
++    return child if _island_merge_wbo_consistent(child, ctx) else None
+ 
+ 
+ def _target_join_info(
+@@ -401,15 +456,17 @@
+     for v in ctx.compatible_p_atoms:
+         join_idx, can_extend = _target_join_info(
+             cand, ctx, v, p_to_block=p_to_block)
+-        supports = _supported_value(
++        support = _supported_value(
+             cand, ctx, v, join_idx, block_indexes=block_indexes)
++        if support is None:
++            continue
+         if join_idx is not None:
+-            block_join[join_idx].extend((v, support, can_extend) for support in supports)
+-        elif supports:
++            block_join[join_idx].append((v, support, can_extend))
++        else:
+             sig = _p_relation_signature(
+                 cand, v, ctx.g_P, ctx.p_orbits,
+                 node_policy=ctx.node_policy)
+-            by_group[sig].extend((v, support, True) for support in supports)
++            by_group[sig].append((v, support, True))
+     return block_join, by_group
+ 
+ 
+@@ -427,8 +484,7 @@
+         for v, support, can_extend in entries
+         if not support and can_extend
+     ]
+-    whole_pool = {v for v, _ in free_entries} == set(cand.blocks[join_idx].p_atoms)
+-    if whole_pool:
++    if free_entries:
+         # No old-block witness needs to be fixed.  The existing block expands
+         # from, for example, "one H occupies methyl-H pool" to "two H atoms
+         # occupy methyl-H pool".
+@@ -440,7 +496,7 @@
+             children.append(child)
+ 
+     for v, support, can_extend in entries:
+-        if whole_pool and not support and can_extend:
++        if not support and can_extend:
+             continue
+         # The join is either correlated with an old block assignment, or exact
+         # support exists while the source atom is not block-compatible enough
+@@ -462,21 +518,37 @@
+     """Build children for target atoms outside existing symmetry blocks."""
+     children: list[_SymCand] = []
+ 
+-    by_support = defaultdict(set)
+-    for v, support, _can_extend in entries:
+-        by_support[tuple(sorted(support.items()))].add(v)
+-    for support, values in by_support.items():
+-        base = _refine_sym_assignments(cand, dict(support)) if support else cand
+-        if base is None:
+-            continue
+-        group = tuple(sorted(values))
+-        child = (base.with_new_block(n, group, extendable=True) if len(group) > 1
+-                 else base.with_fixed(n, group[0]))
+-        if child is not None:
+-            child = child.with_witness({n: group[0]})
++    correlated = [(v, support) for v, support, _can_extend in entries
++                  if support]
++    for v, support in correlated:
++        # This target image is outside old blocks, but an old block must still
++        # reshuffle to support it.  The child therefore carries a refined
++        # correlated witness.
++        fixed = dict(support)
++        fixed[n] = v
++        child = _refine_sym_assignments(cand, fixed)
+         if child is not None:
+             children.append(child)
+ 
++    independent = [(v, support) for v, support, _can_extend in entries
++                   if not support]
++    if not independent:
++        return children
++
++    group = tuple(sorted(v for v, _ in independent))
++    witness_v, support = sorted(independent, key=lambda item: item[0])[0]
++    if len(group) > 1:
++        # Symmetric independent choice: one new block represents all injective
++        # choices into this target pool.
++        child = cand.with_new_block(n, group, extendable=True)
++    else:
++        child = cand.with_fixed(n, witness_v)
++    if child is not None and isinstance(child, _SymCand):
++        support = dict(support)
++        support[n] = witness_v
++        child = child.with_witness(support)
++    if child is not None:
++        children.append(child)
+     return children
+ 
+ 
+@@ -496,12 +568,13 @@
+     if not _candidate_covers_fragment(cand, ctx):
+         return []
+     if ctx.is_merge:
+-        return _extend_locked_merge(cand, ctx)
++        child = _extend_locked_merge(cand, ctx)
++        return [] if child is None else [child]
+     return _extend_free_atom(cand, ctx)
+ 
+ 
+ def _dedupe_children(children: list[_SymCand], ctx: _ExtensionContext) -> list[_SymCand]:
+-    """Compress equivalent states without changing any future extension."""
++    """Collapse child states that are equivalent under orbit/boundary context."""
+     return _dedup_sym_cands(
+         children,
+         ctx.g_R,
+@@ -513,3 +586,32 @@
+         locked_mapping=ctx.mapping,
+         node_policy=ctx.node_policy,
+     )
++
++
++def _dedupe_children_exact(children: list[_SymCand]) -> list[_SymCand]:
++    """Combine only literally identical compressed child states.
++
++    Unlike orbit/boundary dedupe, this operation cannot erase a future
++    distinction: mapping, block pools, block behavior, and exact-fixed atoms
++    must all agree.  Multiplicity is additive because the states are exact
++    duplicates rather than separate automorphism-group members.
++    """
++    seen: dict[tuple, _SymCand] = {}
++    order: list[tuple] = []
++    for child in children:
++        key = (
++            tuple(sorted(child.mapping.items())),
++            tuple((block.r_atoms, block.p_atoms, bool(block.extendable))
++                  for block in child.blocks),
++            tuple(sorted(child.exact_fixed)),
++            tuple((block.r_atoms, block.p_atoms)
++                  for block in child.automorph_blocks),
++        )
++        kept = seen.get(key)
++        if kept is None:
++            seen[key] = child
++            order.append(key)
++            continue
++        seen[key] = kept.with_multiplicity(
++            kept.multiplicity + child.multiplicity)
++    return [seen[key] for key in order]
+--- a/src/mappa/matcher/support.py
++++ b/src/mappa/matcher/support.py
+@@ -1,10 +1,9 @@
+-"""Exact extension support inside compressed fragment matches."""
++"""Support-witness search inside compressed symmetry blocks."""
+ from __future__ import annotations
+ 
+ from collections import defaultdict
+-from itertools import product
+-
+-from .primitives import SYM_SUPPORT_MAX_STATES, _edge_wbo, _growth_edge_supported
++
++from .primitives import SYM_SUPPORT_MAX_STATES, _edge_wbo, _growth_edge_supported, _orbit_id, _wbo_bucket
+ from .state import _SymBlock, _SymCand, _sym_block_indexes
+ 
+ 
+@@ -21,7 +20,7 @@
+         out = []
+         for x in outside:
+             if g_R.has_edge(r, x):
+-                out.append((x, _edge_wbo(g_R, r, x)))
++                out.append((x, _wbo_bucket(_edge_wbo(g_R, r, x))))
+         return tuple(out)
+ 
+     n_sig = rel_sig(n)
+@@ -95,15 +94,17 @@
+         return None
+ 
+ 
+-def _support_assignments_for_value(cand, n, v_n, bonded_in_frag, r_wbos,
++def _support_witness_for_value(cand, n, v_n, bonded_in_frag, r_wbos,
+                                g_P, iso_tol, join_block_idx=None,
+                                strict_r_wbos=None,
+                                max_states=SYM_SUPPORT_MAX_STATES,
+                                block_indexes=None):
+-    """Return every constrained pool assignment supporting the new target.
+-
+-    Unrestricted pools stay symbolic. Only assignments whose domains shrink
+-    are materialized, so interchangeable hydrogen permutations stay compressed.
++    """Find a concrete witness that supports R[n] -> P[v_n].
++
++    `_SymCand` blocks represent a pool of legal P atoms, but the stored
++    mapping is only one witness.  Extension must therefore ask whether some
++    assignment inside each unresolved block can satisfy the new edge pattern,
++    not whether the current witness happens to satisfy it.
+     """
+     strict_by_r = dict(strict_r_wbos or ())
+     graph_floor = float(g_P.graph.get("bond_cut", 0.2))
+@@ -118,17 +119,17 @@
+     if not isinstance(cand, _SymCand):
+         used = set(cand.values())
+         if v_n in used and cand.get(n) != v_n:
+-            return []
++            return None
+         support = {}
+         for u, w in r_wbos:
+             if u not in cand:
+-                return []
++                return None
+             p_u = cand[u]
+             if p_u == v_n:
+-                return []
++                return None
+             if not _pair_ok(u, w, p_u):
+-                return []
+-        return [support]
++                return None
++        return support
+ 
+     r_to_block, p_to_block = (
+         _sym_block_indexes(cand)
+@@ -137,28 +138,28 @@
+     block_r = set(r_to_block)
+     fixed_used = {p for r, p in cand.mapping.items() if r not in block_r}
+     if v_n in fixed_used and cand.get(n) != v_n:
+-        return []
++        return None
+     value_block = p_to_block.get(v_n)
+     if value_block is not None and value_block != join_block_idx:
+-        return []
++        return None
+     if join_block_idx is not None:
+         block = cand.blocks[join_block_idx]
+         if v_n not in block.p_atoms or not block.open:
+-            return []
++            return None
+ 
+     by_block = defaultdict(list)
+-    block_choices = []
++    support = {}
+     w_by_r = {u: w for u, w in r_wbos}
+     for u in bonded_in_frag:
+         if u not in cand.mapping:
+-            return []
++            return None
+         bidx = r_to_block.get(u)
+         if bidx is None:
+             p_u = cand.mapping[u]
+             if p_u == v_n:
+-                return []
++                return None
+             if not _pair_ok(u, w_by_r[u], p_u):
+-                return []
++                return None
+             continue
+         by_block[bidx].append((u, w_by_r[u]))
+ 
+@@ -175,44 +176,69 @@
+                 if _pair_ok(u, w, p):
+                     vals.append(p)
+             if not vals:
+-                return []
+-            if len(vals) < len(available_pool):
+-                domains.append((u, vals))
+-        if not domains:
++                return None
++            domains.append((u, vals))
++        if all(set(vals) == set(available_pool) for _, vals in domains):
+             continue
+         domains.sort(key=lambda item: (len(item[1]), item[0]))
+         chosen = {}
+         used = set(reserved)
+         states = 0
+-        choices = []
+ 
+         def backtrack(pos):
+             nonlocal states
+             states += 1
+             if states > max_states:
+-                raise RuntimeError("symmetry support state limit exceeded")
++                return False
+             if pos == len(domains):
+-                choices.append(dict(chosen))
+-                return
++                return True
+             u, vals = domains[pos]
+             for p in vals:
+                 if p in used:
+                     continue
+                 used.add(p)
+                 chosen[u] = p
+-                backtrack(pos + 1)
++                if backtrack(pos + 1):
++                    return True
+                 chosen.pop(u, None)
+                 used.remove(p)
+-
+-        backtrack(0)
+-        if not choices:
+-            return []
+-        block_choices.append(choices)
+-    return [dict(pair for choice in combination for pair in choice.items())
+-            for combination in product(*block_choices)]
+-
+-
+-def _support_witness_for_value(*args, **kwargs):
+-    """One witness for trace display; growth consumes all support assignments."""
+-    assignments = _support_assignments_for_value(*args, **kwargs)
+-    return assignments[0] if assignments else None
++            return False
++
++        if not backtrack(0):
++            return None
++        support.update(chosen)
++    return support
++
++
++def _force_sym_value(cand, r, p, fragment, g_R, r_orbits, p_orbits):
++    if not isinstance(cand, _SymCand):
++        if r in cand:
++            return cand if cand[r] == p else None
++        if p in cand.values():
++            return None
++        nc = dict(cand)
++        nc[r] = p
++        return nc
++    r_to_block, p_to_block = _sym_block_indexes(cand)
++    if r in cand.mapping:
++        current = cand.mapping[r]
++        if current == p:
++            return cand
++        block_idx = r_to_block.get(r)
++        if block_idx is None or p not in cand.blocks[block_idx].p_atoms:
++            return None
++        assignment = {r: p}
++        for other in cand.blocks[block_idx].r_atoms:
++            if other != r and cand.mapping.get(other) == p:
++                assignment[other] = current
++                break
++        return _refine_sym_assignments(cand, assignment)
++    block_idx = p_to_block.get(p)
++    if block_idx is not None:
++        nc = cand.with_extended_block(block_idx, r)
++        return _refine_sym_assignments(nc, {r: p}) if nc is not None else None
++    block_r = set(r_to_block)
++    fixed_used = {v for rr, v in cand.mapping.items() if rr not in block_r}
++    if p in fixed_used:
++        return None
++    return cand.with_fixed(r, p)
+--- a/native/src/engine.cpp
++++ b/native/src/engine.cpp
+@@ -171,7 +171,7 @@
+     // nauty base graph: atoms 0..n-1, one vertex per pair with nonzero bucket
+     int n_vertices = 0;
+     std::vector<int> edge_vertex_bucket;                 // per edge vertex
+-    std::map<int, std::vector<int>> edge_cells;          // exact WBO colour -> edge vertices
++    std::map<int, std::vector<int>> edge_cells;          // bucket -> edge vertices
+     std::vector<int> edge_cell_colour;                   // colour id per edge cell (edge_cells order)
+     std::unique_ptr<DenseGraph> nauty;
+     mutable Interner roles;    // role keys -> ids
+@@ -517,6 +517,37 @@
+     return make_cand(m, new_blocks, c.exact_fixed, c.mult, c.automorph, NP, out);
+ }
+ 
++// support._force_sym_value (the _SymCand branch)
++bool force_sym_value(const Cand& c, int r, int p, int NR, int NP, Cand& out) {
++    BlockIndex bi = block_indexes(c, NR, NP);
++    if (c.has(r)) {
++        int current = c.img[r];
++        if (current == p) {
++            out = c;
++            return true;
++        }
++        int bidx = bi.r_to_block[r];
++        if (bidx < 0 || !contains(c.blocks[bidx].p, p)) return false;
++        std::vector<Pair> assignment{{r, p}};
++        for (int other : c.blocks[bidx].r) {
++            if (other != r && c.img[other] == p) {
++                assignment.push_back({other, current});
++                break;
++            }
++        }
++        return refine_sym_assignments(c, assignment, NR, NP, out);
++    }
++    int bidx = bi.p_to_block[p];
++    if (bidx >= 0) {
++        Cand nc;
++        if (!with_extended_block(c, bidx, r, NP, nc)) return false;
++        return refine_sym_assignments(nc, {{r, p}}, NR, NP, out);
++    }
++    for (int q : c.mapped)
++        if (bi.r_to_block[q] < 0 && c.img[q] == p) return false;
++    return with_fixed(c, r, p, NP, out);
++}
++
+ // ---------------------------------------------------------------------------
+ // extension context (matcher.extend._ExtensionContext)
+ // ---------------------------------------------------------------------------
+@@ -546,9 +577,10 @@
+     bool is_merge() const { return (*mapping)[n] >= 0; }
+ };
+ 
+-// All constrained pool assignments; unrestricted pools remain symbolic.
+-bool support_assignments_for_value(const Cand& c, const Context& ctx, int v_n, int join_block_idx,
+-                               const BlockIndex& bi, std::vector<std::vector<Pair>>& supports,
++// support._support_witness_for_value; returns false for None, else fills
++// `support` with (u, p) block assignments.
++bool support_witness_for_value(const Cand& c, const Context& ctx, int v_n, int join_block_idx,
++                               const BlockIndex& bi, std::vector<Pair>& support,
+                                int max_states = 4096) {
+     const Target& P = *ctx.P;
+     const double floor = P.bond_cut;
+@@ -566,7 +598,7 @@
+         const Block& block = c.blocks[join_block_idx];
+         if (!contains(block.p, v_n) || !block.open()) return false;
+     }
+-    supports = {std::vector<Pair>{}};
++    support.clear();
+     std::vector<int> block_order;
+     std::vector<std::vector<std::pair<int, double>>> by_block(c.blocks.size());
+     for (size_t i = 0; i < ctx.bonded_in_frag.size(); ++i) {
+@@ -594,10 +626,12 @@
+             for (int p : available_pool)
+                 if (pair_ok(item.first, item.second, p)) vals.push_back(p);
+             if (vals.empty()) return false;
+-            if (vals.size() < available_pool.size())
+-                domains.push_back({item.first, std::move(vals)});
+-        }
+-        if (domains.empty()) continue;
++            domains.push_back({item.first, std::move(vals)});
++        }
++        bool all_full = true;
++        for (const auto& d : domains)
++            if (d.second.size() != available_pool.size()) { all_full = false; break; }
++        if (all_full) continue;
+         std::stable_sort(domains.begin(), domains.end(),
+                          [](const auto& a, const auto& b) {
+                              if (a.second.size() != b.second.size())
+@@ -608,30 +642,23 @@
+         std::vector<uint8_t> used(P.n, 0);
+         if (bidx == join_block_idx) used[v_n] = 1;
+         int states = 0;
+-        std::vector<std::vector<Pair>> choices;
+-        std::function<void(size_t)> backtrack = [&](size_t pos) {
++        std::function<bool(size_t)> backtrack = [&](size_t pos) -> bool {
+             ++states;
+-            if (states > max_states) throw std::runtime_error("symmetry support state limit exceeded");
+-            if (pos == domains.size()) { choices.push_back(chosen); return; }
++            if (states > max_states) return false;
++            if (pos == domains.size()) return true;
+             int u = domains[pos].first;
+             for (int p : domains[pos].second) {
+                 if (used[p]) continue;
+                 used[p] = 1;
+                 chosen.push_back({u, p});
+-                backtrack(pos + 1);
++                if (backtrack(pos + 1)) return true;
+                 chosen.pop_back();
+                 used[p] = 0;
+             }
++            return false;
+         };
+-        backtrack(0);
+-        if (choices.empty()) return false;
+-        std::vector<std::vector<Pair>> combined;
+-        for (const auto& prior : supports) for (const auto& choice : choices) {
+-            auto assignment = prior;
+-            assignment.insert(assignment.end(), choice.begin(), choice.end());
+-            combined.push_back(std::move(assignment));
+-        }
+-        supports = std::move(combined);
++        if (!backtrack(0)) return false;
++        support.insert(support.end(), chosen.begin(), chosen.end());
+     }
+     return true;
+ }
+@@ -645,9 +672,9 @@
+     for (int r = 0; r < R.n; ++r)
+         if (ctx.fragment_old[r] && !contains(b.r, r) && c.has(r)) outside.push_back(r);
+     auto rel_sig = [&](int r) {
+-        std::vector<std::pair<int, double>> out;
++        std::vector<std::pair<int, long>> out;
+         for (int x : outside)
+-            if (R.has_edge(r, x)) out.push_back({x, R.wbo(r, x)});
++            if (R.has_edge(r, x)) out.push_back({x, wbo_bucket(R.wbo(r, x))});
+         return out;
+     };
+     auto n_sig = rel_sig(ctx.n);
+@@ -855,30 +882,6 @@
+             for (int r : b.r) key.push_back(r);
+             int id = P->roles.intern(key);
+             for (int p : b.p) pairs.push_back({p, id});
+-        }
+-        // A compressed witness may be extended alone only if the transporting
+-        // automorphism fixes every possible unassigned target atom. Pool atoms
+-        // remain fixed here; their alternatives are represented by the pool.
+-        std::vector<uint8_t> occupied(P->n, 0);
+-        for (int r : c.mapped) occupied[c.img[r]] = 1;
+-        for (const auto& b : c.blocks)
+-            for (int p : b.p) occupied[p] = 0;
+-        for (int p = 0; p < P->n; ++p) {
+-            key.clear();
+-            if (!occupied[p]) {
+-                key = {3, p};
+-            } else {
+-                key.push_back(4);
+-                for (int q = 0; q < P->n; ++q) {
+-                    const double weight = P->wbo(p, q);
+-                    if (occupied[q] || weight == 0.0) continue;
+-                    int64_t bits;
+-                    std::memcpy(&bits, &weight, sizeof(bits));
+-                    key.push_back(q);
+-                    key.push_back(bits);
+-                }
+-            }
+-            pairs.push_back({p, P->roles.intern(key)});
+         }
+         std::sort(pairs.begin(), pairs.end());
+         const int NP = P->n;
+@@ -1170,41 +1173,48 @@
+     bool can_extend;
+ };
+ 
+-void extend_locked_merge(const Cand& c, const Context& ctx, std::vector<Cand>& children) {
++bool island_merge_wbo_consistent(const Cand& child, const Context& ctx) {
++    const Source& R = *ctx.R;
++    const Target& P = *ctx.P;
++    const double floor = P.bond_cut;
++    std::vector<uint8_t> is_island(R.n, 0);
++    for (int r : ctx.island_atoms) is_island[r] = 1;
++    for (int r : ctx.island_atoms) {
++        for (int r2 : child.mapped) {  // sorted(check_set)
++            if (r2 == r) continue;
++            if (r >= r2 && is_island[r2]) continue;
++            if (!R.has_edge(r, r2)) continue;
++            double w_r = R.wbo(r, r2);
++            int p = child.img[r], p2 = child.img[r2];
++            if (!growth_edge_supported(w_r, P.wbo(p, p2), ctx.iso_tol, floor)) return false;
++        }
++    }
++    return true;
++}
++
++bool extend_locked_merge(const Cand& c, const Context& ctx, Cand& out) {
+     const int NR = ctx.R->n, NP = ctx.P->n;
+-    std::vector<Cand> current{c};
+-    std::vector<int> atoms{ctx.n};
+-    for (int atom : ctx.island_atoms) if (atom != ctx.n) atoms.push_back(atom);
+-    Context step = ctx;
+-    for (int atom : atoms) {
+-        step.n = atom;
+-        step.bonded_in_frag.clear();
+-        step.r_wbos.clear();
+-        if (atom != ctx.n) step.strict_r = -1;
+-        for (int r = 0; r < NR; ++r) {
+-            if (!step.fragment_old[r] || !ctx.R->has_edge(r, atom)) continue;
+-            step.bonded_in_frag.push_back(r);
+-            step.r_wbos.push_back(ctx.R->wbo(r, atom));
+-        }
+-        int target = (*ctx.mapping)[atom];
+-        std::vector<Cand> extended;
+-        for (const auto& child : current) {
+-            BlockIndex bi = block_indexes(child, NR, NP);
+-            std::vector<std::vector<Pair>> supports;
+-            if (!support_assignments_for_value(child, step, target,
+-                                               bi.p_to_block[target], bi, supports)) continue;
+-            for (auto& support : supports) {
+-                support.push_back({atom, target});
+-                Cand refined;
+-                if (refine_sym_assignments(child, support, NR, NP, refined))
+-                    extended.push_back(std::move(refined));
+-            }
+-        }
+-        current = std::move(extended);
+-        step.fragment_old[atom] = 1;
+-    }
+-    children.insert(children.end(), std::make_move_iterator(current.begin()),
+-                    std::make_move_iterator(current.end()));
++    int v_n = (*ctx.mapping)[ctx.n];
++    BlockIndex bi = block_indexes(c, NR, NP);
++    int join_idx = bi.p_to_block[v_n];
++    if (join_idx >= 0 && !r_compatible_with_block(c, join_idx, ctx)) return false;
++    std::vector<Pair> support;
++    if (!support_witness_for_value(c, ctx, v_n, join_idx, bi, support)) return false;
++    Cand child;
++    if (!force_sym_value(c, ctx.n, v_n, NR, NP, child)) return false;
++    support.push_back({ctx.n, v_n});
++    Cand witnessed;
++    if (!with_witness(child, support, NR, NP, witnessed)) return false;
++    child = std::move(witnessed);
++    for (int r : ctx.island_atoms) {
++        if (r == ctx.n) continue;
++        Cand forced;
++        if (!force_sym_value(child, r, (*ctx.mapping)[r], NR, NP, forced)) return false;
++        child = std::move(forced);
++    }
++    if (!island_merge_wbo_consistent(child, ctx)) return false;
++    out = std::move(child);
++    return true;
+ }
+ 
+ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& children) {
+@@ -1246,23 +1256,21 @@
+                 can_extend = compat_cache[join_idx] == 1;
+             }
+         }
+-        std::vector<std::vector<Pair>> supports;
+-        if (!support_assignments_for_value(c, ctx, v, join_idx, bi, supports)) continue;
+-        for (auto& support : supports) {
+-            if (join_idx >= 0) {
+-                block_join[join_idx].push_back({v, std::move(support), can_extend});
+-            } else {
+-                DenseSignature sig = dense_signature(c, v, P);
+-                bool placed = false;
+-                for (auto& g : groups)
+-                    if (g.sig == sig) { g.entries.push_back({v, std::move(support), true}); placed = true; break; }
+-                if (!placed) {
+-                    Group g;
+-                    g.sig = sig;
+-                    g.repr = g.sig.repr();
+-                    g.entries.push_back({v, std::move(support), true});
+-                    groups.push_back(std::move(g));
+-                }
++        std::vector<Pair> support;
++        if (!support_witness_for_value(c, ctx, v, join_idx, bi, support)) continue;
++        if (join_idx >= 0) {
++            block_join[join_idx].push_back({v, std::move(support), can_extend});
++        } else {
++            DenseSignature sig = dense_signature(c, v, P);
++            bool placed = false;
++            for (auto& g : groups)
++                if (g.sig == sig) { g.entries.push_back({v, std::move(support), true}); placed = true; break; }
++            if (!placed) {
++                Group g;
++                g.sig = sig;
++                g.repr = g.sig.repr();
++                g.entries.push_back({v, std::move(support), true});
++                groups.push_back(std::move(g));
+             }
+         }
+     }
+@@ -1273,8 +1281,7 @@
+         std::vector<int> free_vs;
+         for (const auto& e : entries)
+             if (e.support.empty() && e.can_extend) free_vs.push_back(e.v);
+-        const bool whole_pool = free_vs.size() == c.blocks[join_idx].p.size();
+-        if (whole_pool) {
++        if (!free_vs.empty()) {
+             int witness_v = *std::min_element(free_vs.begin(), free_vs.end());
+             Cand child;
+             if (with_extended_block(c, join_idx, ctx.n, NP, child)) {
+@@ -1284,7 +1291,7 @@
+             }
+         }
+         for (const auto& e : entries) {
+-            if (whole_pool && e.support.empty() && e.can_extend) continue;
++            if (e.support.empty() && e.can_extend) continue;
+             std::vector<Pair> fixed = e.support;
+             fixed.push_back({ctx.n, e.v});
+             Cand child;
+@@ -1298,31 +1305,27 @@
+                      [&](size_t a, size_t b) { return groups[a].repr < groups[b].repr; });
+     for (size_t gi : order) {
+         const auto& entries = groups[gi].entries;
+-        struct SupportedTargets { std::vector<Pair> support; std::vector<int> values; };
+-        std::vector<SupportedTargets> by_support;
+         for (const auto& e : entries) {
+-            auto support = e.support;
+-            std::sort(support.begin(), support.end());
+-            auto found = std::find_if(by_support.begin(), by_support.end(),
+-                [&](const auto& group) { return group.support == support; });
+-            if (found == by_support.end()) by_support.push_back({support, {e.v}});
+-            else found->values.push_back(e.v);
+-        }
+-        for (auto& supported : by_support) {
+-            Cand base;
+-            if (!refine_sym_assignments(c, supported.support, NR, NP, base)) continue;
+-            auto& group = supported.values;
+-            std::sort(group.begin(), group.end());
+-            group.erase(std::unique(group.begin(), group.end()), group.end());
+-            const int witness_v = group[0];
++            if (e.support.empty()) continue;
++            std::vector<Pair> fixed = e.support;
++            fixed.push_back({ctx.n, e.v});
+             Cand child;
+-            bool ok = group.size() > 1 ? with_new_block(base, ctx.n, group, true, NP, child)
+-                                      : with_fixed(base, ctx.n, witness_v, NP, child);
+-            if (!ok) continue;
+-            Cand witnessed;
+-            if (with_witness(child, {{ctx.n, witness_v}}, NR, NP, witnessed))
+-                children.push_back(std::move(witnessed));
+-        }
++            if (refine_sym_assignments(c, fixed, NR, NP, child)) children.push_back(std::move(child));
++        }
++        std::vector<int> group;
++        for (const auto& e : entries)
++            if (e.support.empty()) group.push_back(e.v);
++        if (group.empty()) continue;
++        std::sort(group.begin(), group.end());
++        int witness_v = group[0];
++        Cand child;
++        bool ok;
++        if (group.size() > 1) ok = with_new_block(c, ctx.n, group, true, NP, child);
++        else ok = with_fixed(c, ctx.n, witness_v, NP, child);
++        if (!ok) continue;
++        Cand witnessed;
++        if (with_witness(child, {{ctx.n, witness_v}}, NR, NP, witnessed))
++            children.push_back(std::move(witnessed));
+     }
+ }
+ 
+@@ -1340,7 +1343,8 @@
+         if (extension_cache) {
+             extension_cache->extend(c,ctx,children);
+         } else if (ctx.is_merge()) {
+-            extend_locked_merge(c, ctx, children);
++            Cand child;
++            if (extend_locked_merge(c, ctx, child)) children.push_back(std::move(child));
+         } else {
+             extend_free_atom(c, ctx, children);
+         }
+@@ -1773,17 +1777,13 @@
+             nauty_edges.push_back({a, next});
+             nauty_edges.push_back({b, next});
+             g.edge_vertex_bucket.push_back(bucket);
+-            const double weight = g.wbo(a, b);
+-            int64_t bits;
+-            std::memcpy(&bits, &weight, sizeof(bits));
+-            int exact_color = g.colours.intern({1, bits});
+-            g.edge_cells[exact_color].push_back(next);
++            g.edge_cells[bucket].push_back(next);
+             ++next;
+         }
+         g.n_vertices = next;
+         g.nauty = std::make_unique<DenseGraph>(next, nauty_edges);
+         for (const auto& item : g.edge_cells)
+-            g.edge_cell_colour.push_back(item.first);
++            g.edge_cell_colour.push_back(g.colours.intern({1, (int64_t)item.first}));
+         int max_code = 0;
+         for (int c : g.ecode) max_code = std::max(max_code, c);
+         g.same_element.assign((size_t)max_code + 1, {});
+@@ -1822,7 +1822,6 @@
+     py::dict witness;
+     for (int r : c.mapped) witness[py::int_(r)] = c.img[r];
+     item["witness"] = witness;
+-    item["compression_version"] = 2;
+     py::list blocks;
+     item["blocks"] = blocks;
+     py::list exact;
+--- a/native/src/extension_cache.h
++++ b/native/src/extension_cache.h
+@@ -52,7 +52,7 @@
+             vector(key,ctx.island_atoms);
+             scalar(key,(*ctx.mapping)[ctx.n]);
+             for (int r:ctx.island_atoms) scalar(key,(*ctx.mapping)[r]);
+-            // Every old-fragment bond tested while adding the locked island.
++            // Every source topology test in island_merge_wbo_consistent.
+             for (int r:ctx.island_atoms) for (int a:c.mapped)
+                 scalar(key,ctx.R->has_edge(r,a));
+             // Added island atoms are also included in the merged child's mapping.
+@@ -89,7 +89,8 @@
+         }
+         std::vector<Cand> children;
+         if (ctx.is_merge()) {
+-            extend_locked_merge(c,ctx,children);
++            Cand child;
++            if (extend_locked_merge(c,ctx,child)) children.push_back(std::move(child));
+         } else extend_free_atom(c,ctx,children);
+         size_t size=sizeof(Entry)+sizeof(Key)+2*key.context.capacity()+key.candidate->value.capacity()
+             +sizeof(CandidateCacheKey)+192+children.capacity()*sizeof(Cand);
+--- a/native/src/fragment_scheduler.h
++++ b/native/src/fragment_scheduler.h
+@@ -251,7 +251,6 @@
+         for (const auto& b:candidate.automorph) automorph.append(block_dict(translate(b),true));
+         for (auto b:automorph) blocks.append(b);
+         out["exact_fixed"]=fixed;out["blocks"]=blocks;out["automorph_blocks"]=automorph;
+-        out["compression_version"]=2;
+         return out;
+     };
+     py::list states,transitions,stops;
