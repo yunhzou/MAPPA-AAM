@@ -7,6 +7,14 @@ import numpy as np
 from mappa.viewers import ASSETS, align_product, stylesheet
 
 
+def test_comparison_events_include_product_indices_from_mapping():
+    from mappa.viewers import comparison_document
+    endpoint = dict(elements=['C', 'C'], coordinates=[[0., 0., 0.], [1.5, 0., 0.]], wbo=[[0, 1], [1, 0]])
+    doc = comparison_document(dict(name='pair', index='pair', endpoints=[endpoint, endpoint],
+        records=[dict(name='mapping', mapping=[1, 0], events=[dict(kind='broken', r=[0, 1], wbo=[1., 0.])])]))
+    assert doc['mechanisms'][0]['event_records'][0]['p'] == [1, 0]
+
+
 def test_only_two_shared_viewer_styles():
     assert sorted(p.name for p in ASSETS.glob('*viewer.css')) == [
         'catalog_viewer.css', 'reaction_viewer.css']

@@ -77,6 +77,7 @@ def comparison_document(case):
         events = []
         for event in record.get('events', []):
             event = dict(event)
+            event['p'] = [mapping[a] for a in event['r']]
             if event['kind'] in ('broken', 'formed') and 'wbo' in event:
                 before, after = event['wbo']
                 if before is not None and after is not None and before > 0.2 and after > 0.2:
