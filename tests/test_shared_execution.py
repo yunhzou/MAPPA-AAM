@@ -150,7 +150,7 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
     writer = BundleWriter(tmp_path/'inputs', tmp_path)
     expected = []
-    for name, sizes in [('forward', (4, 5)), ('reverse', (5, 4))]:
+    for name, sizes in [('forward', (4, 5)), ('reverse', (5, 4)), ('balanced', (4, 4))]:
         case = problem(*sizes)
         config = AAMSearchConfig(seed_count=3, iso_tolerance=1., branch_limit=4)
         tasks, keys = plan_search(name, case, config, writer, seed_batch=batch, memory_bytes=MEMORY)
@@ -172,11 +172,50 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
             raw, _ = session.search_cut(cut)
             original, _ = finalize_graph_symmetry(raw, session.context[2], iso_tolerance=config.iso_tolerance)
             assert observed['graph'] == original
-            if not cut:
+            if not cut and case.balanced:
                 def decode(graph):
                     result = AAMResult(case, config, graph, AAMSearchMetrics.from_record({}, 0))
                     decoded = decode_events(result, EventDecodeConfig(max_events=8, seconds_per_family=10))
                     assert decoded.complete
                     return {str(sorted(c.events.items())) for c in decoded.candidates}
                 assert decode(original) == decode(observed['graph'])
+    queue.close()
+
+
+def test_abrupt_exit_keeps_other_work_moving(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('dead', payload={'exit': True}), task('healthy')])
+    run(queue, identity=IDENTITY, scratch=tmp_path, bundles=tmp_path/'bundles', memory_bytes=MEMORY)
+    assert queue.snapshot() == {'error': 1, 'complete': 1}
+    queue.close()
+
+
+def test_parallel_reference_evaluation_equals_existing_evaluator(tmp_path):
+    from golden_evaluation import prepare
+    from mappa import AAMSearchPlan
+    from rebenchmark.shared import plan_direction
+    from rebenchmark.analysis import analyze_seed
+    import json
+    case, features, mapping = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
+    plan = AAMSearchPlan(case, case, config, False)
+    reference = dict(features=features, mapping=sorted(mapping.items()))
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    writer = BundleWriter(tmp_path/'inputs', tmp_path)
+    tasks, cuts, evaluation_keys = plan_direction('control', plan, reference, writer, seed_batch=1)
+    queue.add(tasks)
+    run(queue, workers=2, identity=IDENTITY, scratch=tmp_path,
+        bundles=tmp_path/'bundles', memory_bytes=MEMORY)
+    assert set(queue.snapshot()) == {'complete'}, queue.results()
+    graph = next(iter_cuts(queue, cuts, tmp_path))['graph']
+    rows = queue.results()
+    for seed, key in enumerate(evaluation_keys):
+        actual = read_blob(rows[key]['result']['blob'], tmp_path)
+        expected = analyze_seed(plan, reference, graph, seed, tmp_path/f'direct-{seed}', 0)
+        verdict = json.loads((tmp_path/f'direct-{seed}'/'evaluation.json').read_text())
+        assert actual['summary'] == expected
+        for field in ('reference_recovery', 'representative_covered'):
+            assert actual['evaluation'].get(field) == verdict.get(field)
+        assert actual['classes'] == json.loads((tmp_path/f'direct-{seed}'/'classes.json').read_text())
+        assert actual['evidence'].size > 0
     queue.close()

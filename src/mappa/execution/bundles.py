@@ -55,32 +55,41 @@ class BundleWriter:
         with tempfile.TemporaryFile(dir=self.scratch) as local:
             with gzip.GzipFile(fileobj=local, mode='wb', mtime=0) as compressed:
                 pickle.dump(value, compressed, protocol=5)
-            size = local.tell()
-            if self.size and self.size+size > self.limit_bytes:
-                self.sequence += 1
-                self.size = 0
-            path = self.directory/f'{self.prefix}-{self.sequence:05d}.bundle'
-            digest = hashlib.sha256()
-            local.seek(0)
-            with path.open('ab') as destination:
-                offset = destination.tell()
-                while block := local.read(2**20):
-                    digest.update(block)
-                    destination.write(block)
-                destination.flush()
-                os.fsync(destination.fileno())
-            blob = Blob(str(path.resolve()), offset, size, digest.hexdigest())
-            # Verify publication without materializing or unpickling the result.
-            with path.open('rb') as stream:
-                stream.seek(offset)
-                observed, remaining = hashlib.sha256(), size
-                while remaining:
-                    block = stream.read(min(2**20, remaining))
-                    if not block:
-                        raise ValueError('Truncated publication')
-                    observed.update(block)
-                    remaining -= len(block)
-            if observed.hexdigest() != blob.sha256:
-                raise ValueError('Publication checksum differs')
-            self.size += size
-            return blob
+            return self._append(local)
+
+    def put_file(self, path):
+        """Publish an already bundled evidence file without loading it into RAM."""
+        with open(path, 'rb') as local:
+            local.seek(0, os.SEEK_END)
+            return self._append(local)
+
+    def _append(self, local):
+        size = local.tell()
+        if self.size and self.size+size > self.limit_bytes:
+            self.sequence += 1
+            self.size = 0
+        path = self.directory/f'{self.prefix}-{self.sequence:05d}.bundle'
+        digest = hashlib.sha256()
+        local.seek(0)
+        with path.open('ab') as destination:
+            offset = destination.tell()
+            while block := local.read(2**20):
+                digest.update(block)
+                destination.write(block)
+            destination.flush()
+            os.fsync(destination.fileno())
+        blob = Blob(str(path.resolve()), offset, size, digest.hexdigest())
+        # Verify publication without materializing or unpickling the result.
+        with path.open('rb') as stream:
+            stream.seek(offset)
+            observed, remaining = hashlib.sha256(), size
+            while remaining:
+                block = stream.read(min(2**20, remaining))
+                if not block:
+                    raise ValueError('Truncated publication')
+                observed.update(block)
+                remaining -= len(block)
+        if observed.hexdigest() != blob.sha256:
+            raise ValueError('Publication checksum differs')
+        self.size += size
+        return blob

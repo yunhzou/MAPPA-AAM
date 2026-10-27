@@ -37,18 +37,37 @@ def exact_query(directory):
     return query
 
 
+def analyze_seed(plan, ref, graph, seed, out, number, **provenance):
+    """Evaluate one finalized context; both campaign executors call this operation."""
+    from mappa import AAMResult
+    from mappa.domain import AAMSearchMetrics
+    from golden_evaluation import evaluate_planned
+    from publication_analysis import rank_archive
+    one=select_contexts(graph,[seed])
+    result=AAMResult(plan.problem,plan.config,one,AAMSearchMetrics.from_record({},0))
+    c,w=time.process_time(),time.perf_counter()
+    classes=rank_archive(result,plan)
+    for row in classes:
+        row.update(cut=number,seed=seed+1)
+    save(out/'classes.json',classes)
+    ranking=dict(cpu_seconds=time.process_time()-c,wall_seconds=time.perf_counter()-w)
+    c,w=time.process_time(),time.perf_counter()
+    verdict=evaluate_planned(result,plan,ref['features'],ref['mapping'],
+        seconds=3600,query=exact_query(out/'queries'))
+    save(out/'evaluation.json',dict(**verdict,cpu_seconds=time.process_time()-c,
+         wall_seconds=time.perf_counter()-w,cut=number,seed=seed+1,ranking=ranking,
+         **provenance))
+    return dict(seed=seed+1, outcome=verdict['reference_recovery'])
+
+
 def analyze_cut(payload):
     folder, number = payload
     folder = Path(folder)
     from .campaign import load_plan
-    from mappa import AAMResult
-    from mappa.domain import AAMSearchMetrics
     from mappa.artifacts import read_raw_cut, write_graph_checkpoint
     from mappa.frag import build_graph
     from mappa.conditioned_symmetry import ConditionedSymmetryWorkspace
     from mappa.search_symmetry import finalize_graph_symmetry
-    from golden_evaluation import evaluate_planned
-    from publication_analysis import rank_archive
     plan = load_plan(folder)
     ref = read(folder/'reference.json')
     path = folder/'cuts'/f'cut_{number:05d}.raw.pkl.gz'
@@ -64,21 +83,9 @@ def analyze_cut(payload):
     rows=[]
     for seed in range(len(graph.contexts)):
         out=folder/'analysis'/f'{number:05d}'/f'{seed:02d}'
-        one=select_contexts(graph,[seed])
-        result=AAMResult(plan.problem,plan.config,one,AAMSearchMetrics.from_record({},0))
-        c,w=time.process_time(),time.perf_counter()
-        classes=rank_archive(result,plan)
-        for row in classes:
-            row.update(cut=number,seed=seed+1)
-        save(out/'classes.json',classes)
-        ranking=dict(cpu_seconds=time.process_time()-c,wall_seconds=time.perf_counter()-w)
-        c,w=time.process_time(),time.perf_counter()
-        verdict=evaluate_planned(result,plan,ref['features'],ref['mapping'],
-            seconds=3600,query=exact_query(out/'queries'))
-        save(out/'evaluation.json',dict(**verdict,cpu_seconds=time.process_time()-c,
-             wall_seconds=time.perf_counter()-w,cut=number,seed=seed+1,ranking=ranking,
-             raw_sha256=sha(path),finalized_sha256=sha(finalized)))
-        rows.append(dict(seed=seed+1,outcome=verdict['reference_recovery']))
+        row = analyze_seed(plan, ref, graph, seed, out, number,
+            raw_sha256=sha(path), finalized_sha256=sha(finalized))
+        rows.append(row)
     save(folder/'analysis'/f'{number:05d}'/'complete.json',dict(cut=number,seeds=rows,finalization=finalization))
     del graph
     gc.collect()

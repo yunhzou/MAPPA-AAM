@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 import importlib
 import multiprocessing as mp
-from multiprocessing.managers import BaseManager
+from multiprocessing.managers import BaseManager, Server
 import os
 from pathlib import Path
 import signal
@@ -186,6 +186,19 @@ def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes):
     return queue.snapshot()
 
 
+class _QueueServer(Server):
+    """Manager transport with a bounded, joinable accept loop."""
+    def serve_forever(self):
+        mp.current_process()._manager_server = self
+        self.listener._listener._socket.settimeout(.2)
+        while not self.stop_event.is_set():
+            try:
+                connection = self.listener.accept()
+            except OSError:
+                continue
+            threading.Thread(target=self.handle_request, args=(connection,), daemon=True).start()
+
+
 @contextmanager
 def coordinator(queue, address, authkey):
     """Authenticated trusted-cluster transport; metadata stays with its owner.
@@ -197,7 +210,8 @@ def coordinator(queue, address, authkey):
         pass
     Manager.register('queue', callable=lambda: queue,
                      exposed=('claim', 'heartbeat', 'finish', 'snapshot', 'results'))
-    server = Manager(address=address, authkey=authkey).get_server()
+    server = _QueueServer(Manager._registry, address, authkey, 'pickle')
+    server.stop_event = threading.Event()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:

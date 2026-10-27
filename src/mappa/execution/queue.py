@@ -38,6 +38,9 @@ class TaskQueue:
                 state TEXT, worker TEXT, token TEXT, expires REAL, result BLOB);
             CREATE TABLE IF NOT EXISTS dependencies (task TEXT, dependency TEXT, PRIMARY KEY(task, dependency));
             CREATE INDEX IF NOT EXISTS task_state ON tasks(state);
+            CREATE INDEX IF NOT EXISTS task_case ON tasks(case_name,state);
+            CREATE INDEX IF NOT EXISTS task_expiry ON tasks(state,expires);
+            CREATE INDEX IF NOT EXISTS dependency_parent ON dependencies(dependency);
         ''')
         row = self.db.execute('SELECT value FROM identity').fetchone()
         if row and row[0] != identity:
