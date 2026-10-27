@@ -48,8 +48,14 @@ def test_full_hydrogen_mapping_is_returned_and_one_to_one():
     molecule=endpoint('OHOH',[(0,1),(2,3)])
     problem=AAMProblem(molecule,molecule)
     result=search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10))
-    status,witness=query_path(next(result.graph.paths()),problem,{0:2,2:0},source_atoms=(0,2),timeout_ms=3000)
-    assert status=='recovered'
+    # Different target molecules are separate branches. Check their union,
+    # without assuming the first branch is the swapped-component placement.
+    answers=[query_path(path,problem,{0:2,2:0},source_atoms=(0,2),timeout_ms=3000)
+             for path in result.graph.paths()]
+    assert all(status in ('recovered','not_recovered') for status,_ in answers)
+    witnesses=[witness for status,witness in answers if status=='recovered']
+    assert witnesses
+    witness=witnesses[0]
     mapping=dict(witness['mapping'])
     assert len(mapping)==len(set(mapping.values()))==4
     assert molecule.wbo[mapping[0],mapping[1]]==molecule.wbo[mapping[2],mapping[3]]==1

@@ -18,13 +18,22 @@ def test_tolerant_symmetry_minimum_matches_tiny_exhaustive_oracle():
     mol=endpoint('CCCHHH',[(0,1,2),(1,2,1),(0,2,1),(0,3,1),(1,4,1),(2,5,1)])
     problem=AAMProblem(mol,mol)
     aam=search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1))
-    path=next(aam.graph.paths())
+    paths=list(aam.graph.paths())
     scores=[bond_events(problem,dict(enumerate((*p,*(i+3 for i in p)))))['total']
             for p in permutations(range(3))]
     assert set(scores)=={0,2}
-    result=minimize_events(path,problem,seconds=5)
-    assert result['method']=='bounded_symbolic'
-    assert result['optimal'] and result['upper_bound']==min(scores)
+    # Tolerance-compatible placements need not share an exact target orbit.
+    # Every placement must remain in the union, with a proven family minimum.
+    from mappa import query_path
+    for p in permutations(range(3)):
+        mapping=dict(enumerate((*p,*(i+3 for i in p))))
+        assert any(query_path(path,problem,mapping,source_atoms=tuple(range(6)),
+                              timeout_ms=2000)[0]=='recovered' for path in paths)
+    results=[minimize_events(path,problem,seconds=5) for path in paths]
+    assert all(result['optimal'] for result in results)
+    assert min(result['upper_bound'] for result in results)==min(scores)
+    assert all(bond_events(problem,result['mapping'])['total']==result['upper_bound']
+               for result in results)
 
 
 def test_partial_mapping_both_orientations_match_exhaustive_oracle():
