@@ -20,7 +20,7 @@ def _write_endpoint(path, elements, coordinates, edges, *, modes=False):
     np.savez(path, **payload)
 
 
-def test_typed_cli_writes_rp_ts_and_self_contained_view(tmp_path):
+def test_typed_cli_decodes_then_uses_explicit_reaction_for_ts(tmp_path):
     elements = ("C", "N", "O", "H")
     xyz = np.asarray([
         [0.0, 0.0, 0.0], [1.0, 0.0, 0.0],
@@ -41,26 +41,34 @@ def test_typed_cli_writes_rp_ts_and_self_contained_view(tmp_path):
     main([
         "--reactant-npz", str(reactant),
         "--product-npz", str(product),
-        "--target-npz", str(target),
         "--output", str(output),
         "--seed-count", "1",
         "--workers", "1",
     ])
 
-    rp = json.loads((output / "rp.json").read_text())
-    ts = json.loads((output / "ts_001.json").read_text())
-    assert rp["schema"] == "rxn_core.rp/v2"
-    assert rp["mechanisms"][0]["mapping"] == {
-        "0": 0, "1": 1, "2": 2, "3": 3}
-    assert ts["schema"] == "rxn_core.ts/v2"
-    assert ts["mechanisms"][0]["selected"]["sources"] == [
-        "product", "reactant"]
-    assert (output / "mechanism_001" / "R.xyz").exists()
-    assert (output / "mechanism_001" / "P_aligned.xyz").exists()
-    assert (output / "reaction.json").exists()
-    view = (output / "view.html").read_text()
+    decoded = json.loads((output / "events.json").read_text())
+    assert decoded["complete"]
+    assert len(decoded["candidates"]) == 1
+    candidate = decoded["candidates"][0]
+    assert candidate["mapping"] == {"0": 0, "1": 1, "2": 2, "3": 3}
+    assert candidate["events"] == {
+        "broken": [[0, 1], [2, 3]], "formed": [[0, 2], [1, 3]]}
+    view = (output / "search.html").read_text()
     assert "$3Dmol.createViewer" in view
     assert "<script src=" not in view
+    assert not (output / "rp.json").exists()
+    assert not (output / "reaction.json").exists()
+    # Choose the sole decoded event class explicitly for downstream TS analysis.
+    record = {
+        "schema": "rxn_core.resolved_reaction/v1", "atom_count": 4,
+        "mechanisms": [{
+            "mapping": candidate["mapping"],
+            "broken_bonds": candidate["events"]["broken"],
+            "formed_bonds": candidate["events"]["formed"],
+            "core_atoms": [0, 1, 2, 3],
+        }],
+    }
+    (output / "reaction.json").write_text(json.dumps(record))
 
     ts_only = tmp_path / "ts_only"
     main([
@@ -74,3 +82,7 @@ def test_typed_cli_writes_rp_ts_and_self_contained_view(tmp_path):
     ])
     assert (ts_only / "ts_001.json").exists()
     assert not (ts_only / "rp.json").exists()
+    ts = json.loads((ts_only / "ts_001.json").read_text())
+    assert ts["schema"] == "rxn_core.ts/v2"
+    assert ts["mechanisms"][0]["selected"]["sources"] == [
+        "product", "reactant"]

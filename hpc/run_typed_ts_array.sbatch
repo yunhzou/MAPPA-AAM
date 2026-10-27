@@ -13,6 +13,7 @@ set -euo pipefail
 : "${TS_OUTPUT_ROOT:?set TS_OUTPUT_ROOT}"
 : "${TS_WORK_ROOT:?set TS_WORK_ROOT}"
 : "${TS_BENCHMARK_ROOT:?set TS_BENCHMARK_ROOT}"
+: "${TS_REACTION_ROOT:?set TS_REACTION_ROOT to explicit resolved-reaction records}"
 
 export PYTHONPATH="$MAPPA_ROOT/src"
 export OPENBLAS_NUM_THREADS=1
@@ -20,17 +21,10 @@ export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 export PYTHONUNBUFFERED=1
 
-extra_args=()
-if [[ -n "${TS_RESOLVED_RP_ROOT:-}" ]]; then
-  extra_args+=(--resolved-rp-root "$TS_RESOLVED_RP_ROOT")
-fi
-
 "$MAPPA_PYTHON" \
   "$MAPPA_ROOT/tools/run_typed_ts_case.py" \
   --manifest "$TS_MANIFEST" \
   --work-root "$TS_WORK_ROOT" \
   --benchmark-root "$TS_BENCHMARK_ROOT" \
   --output-root "$TS_OUTPUT_ROOT" \
-  --workers "$SLURM_CPUS_PER_TASK" \
-  --post-workers "$SLURM_CPUS_PER_TASK" \
-  "${extra_args[@]}"
+  --reaction-root "$TS_REACTION_ROOT"

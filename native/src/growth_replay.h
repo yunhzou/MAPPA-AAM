@@ -57,7 +57,7 @@ public:
     py::object grow(const std::vector<Pair>& cuts, int seed, const std::vector<int>& mapping,
                     double graph_floor, double iso_tol, int min_lock_size, long max_branches,
                     py::object islands_obj, const std::vector<Pair>& prior_deferred,
-                    bool allow_mapped_seed) {
+                    bool allow_mapped_seed, uint64_t random_seed) {
         std::vector<Pair> islands;
         const std::vector<Pair>* islands_ptr=nullptr;
         if (!islands_obj.is_none()) { islands=islands_obj.cast<std::vector<Pair>>(); islands_ptr=&islands; }
@@ -87,7 +87,7 @@ public:
             }
             const Source& source=active_source;
             std::string key;
-            append(key,seed); append_real(key,graph_floor); append_real(key,iso_tol);
+            append(key,random_seed); append(key,seed); append_real(key,graph_floor); append_real(key,iso_tol);
             append(key,min_lock_size); append(key,max_branches); append(key,allow_mapped_seed);
             append(key,mapping.size()); for (int image:mapping) append(key,image);
             append(key,islands_ptr ? (int64_t)islands.size() : -1);
@@ -132,7 +132,7 @@ public:
                 }
                 result=grow_island(source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
                                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,
-                                   trace.get(),previous.get(),resume);
+                                   trace.get(),previous.get(),resume,nullptr,nullptr,nullptr,random_seed);
                 if (trace) {
                     trace->result=result;
                     insert(std::move(key),std::move(trace));
@@ -168,6 +168,6 @@ void register_growth_replay(py::module_& mod) {
         .def("grow",&GrowthReplay::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),
              py::arg("max_branches"),py::arg("islands"),py::arg("prior_deferred_edges"),
-             py::arg("allow_mapped_seed"))
+             py::arg("allow_mapped_seed"),py::arg("random_seed")=42)
         .def("stats",&GrowthReplay::stats);
 }

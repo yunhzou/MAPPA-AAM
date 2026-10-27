@@ -99,9 +99,10 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
     monkeypatch.setattr(fragment_mod, "grow_island", both)
     result = _search("tetraphenyl")
     assert result.mechanisms
-    # Search pruning changes call counts; every observed call must still be
-    # compared with the native engine, with no fallback or skipped result.
-    assert stats["native"] == stats["calls"] > 0
+    # Search policy changes can change the call count. Require differential
+    # coverage of every actual growth request, not a historical count floor.
+    assert stats["calls"] > 0
+    assert stats["native"] == stats["calls"]
 
 
 def test_search_results_agree_between_engines(monkeypatch):

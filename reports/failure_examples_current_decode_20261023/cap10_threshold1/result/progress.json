@@ -1,0 +1,31 @@
+{
+  "stage": "finished",
+  "seconds": 1.492228139017243,
+  "result": {
+    "status": "complete",
+    "case": "search_memory",
+    "atoms": 80,
+    "search_capped": true,
+    "cuts": 91,
+    "families": 0,
+    "family_reports": 0,
+    "incomplete_families": [],
+    "incomplete_paths": 0,
+    "candidates": 0,
+    "minimum_events": null,
+    "minimum_proven": false,
+    "event_window": null,
+    "witness_rescore_passed": 0,
+    "minimum_membership": [],
+    "timings": {
+      "search": 0.8182202050229535,
+      "catalogue": 0.6289061199931893,
+      "decode": 0.0017189389909617603,
+      "through_decoding": 1.475641427008668,
+      "audit": 0.010789266001665965
+    },
+    "wall_seconds": 1.4901698270114139,
+    "peak_rss_mib": 57.53125,
+    "geometry_selection": false
+  }
+}

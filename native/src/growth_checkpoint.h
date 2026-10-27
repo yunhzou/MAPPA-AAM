@@ -4,9 +4,10 @@ struct GrowthCheckpoint {
     std::vector<uint8_t> fragment, used_edge;
     int fragment_size;
     std::vector<Pair> deferred;
-    std::priority_queue<HeapItem, std::vector<HeapItem>, std::greater<HeapItem>> heap;
+    std::vector<HeapItem> heap;
     GrowProfile profile;
     long certificate_calls;
+    uint64_t random_state;
 
     size_t bytes() const {
         size_t size = sizeof(*this) + fragment.capacity() + used_edge.capacity()

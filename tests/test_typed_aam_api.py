@@ -5,14 +5,14 @@ import mappa
 from mappa.aam import search_aam
 from mappa.analytical import compile_mechanism_families
 from mappa.mechanisms import group_mechanisms
-from mappa.rp import select_rp_mappings
+from mappa.alignment.post_aam import AtomBijection
 from mappa.ts import analyze_transition_state
 from mappa.domain import (
     AAMProblem,
     AAMSearchConfig,
     MolecularEndpoint,
     TransitionStateTarget,
-    VibrationalModes,
+    VibrationalModes, ReactionContext, ResolvedMechanism,
 )
 
 
@@ -189,12 +189,6 @@ def test_search_aam_returns_complete_typed_hierarchy():
     assert family.family.contains(family.representative.as_dict())
     assert family.aam_branch.hierarchy.has_complete_exact_target_groups
 
-    rp = select_rp_mappings(analytical)
-    assert rp.mechanisms
-    assert rp.mechanisms[0].mapping.degree == problem.atom_count
-    assert rp.mechanisms[0].chirality[
-        "selected_index_chirality_violation_count"] == 0
-
 
 def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
     elements = ("C", "N", "O", "H")
@@ -221,9 +215,10 @@ def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
                (0, 2, 0.5), (1, 3, 0.5))), label="TS")
     config = AAMSearchConfig(
         seed_count=1, branch_limit=100, symmetry_repair=False)
-    rp = select_rp_mappings(compile_mechanism_families(
-        group_mechanisms(search_aam(AAMProblem(reactant, product), config)),
-        minimum_events_only=True))
+    rp = ReactionContext(AAMProblem(reactant, product), config, (
+        ResolvedMechanism(AtomBijection((0, 1, 2, 3)),
+                          ((0, 1), (2, 3)), ((0, 2), (1, 3)), (0, 1, 2, 3)),
+    ))
     modes = np.zeros((1, 4, 3))
     modes[0, :, 0] = (1.0, -1.0, -1.0, 1.0)
     ts_target = TransitionStateTarget(
@@ -245,8 +240,9 @@ def test_no_event_mechanism_has_explicit_unscorable_ts_status():
     problem = AAMProblem(_endpoint("R"), _endpoint("P"), name="no_event")
     config = AAMSearchConfig(
         seed_count=1, branch_limit=100, symmetry_repair=False)
-    rp = select_rp_mappings(compile_mechanism_families(
-        group_mechanisms(search_aam(problem, config)), minimum_events_only=True))
+    rp = ReactionContext(problem, config, (
+        ResolvedMechanism(AtomBijection((0, 1)), (), (), ()),
+    ))
     modes = np.zeros((1, 2, 3))
     target = TransitionStateTarget(
         _endpoint("TS"), VibrationalModes(np.array([-100.0]), modes))

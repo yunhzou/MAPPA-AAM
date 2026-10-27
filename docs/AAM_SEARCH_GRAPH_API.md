@@ -13,10 +13,11 @@ match_fragment(source, target, seed, context, config)
 search_aam(problem, config)
     -> AAMResult: AAMSearchGraph + inputs/configuration/diagnostics
 
-group_mechanisms(aam)                         optional balanced event policy
-    -> MechanismResult
-    -> compile_mechanism_families(grouped)    optional exact event families
-    -> select_rp_mappings(...)               optional chirality/geometry selection
+decode_events(aam)                           separate signed-event decoder
+    -> DecodedEvents: event candidates, witnesses, and completeness evidence
+
+select_chiral_witness(decoded, candidate)    explicit coordinate-orientation filter
+    -> ChiralWitness: allowed / forbidden / unknown (or explicit relaxation)
 ```
 
 `compile_mapping_families(aam)` separately compiles complete raw structural

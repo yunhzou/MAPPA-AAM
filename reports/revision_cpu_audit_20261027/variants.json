@@ -1,0 +1,17 @@
+{
+  "old_main": "7f3ec8e: prepublication code",
+  "policies_only": "67f013e with archived prerepair matcher and historical record interpretation; keeps current random growth, completed cap and main seed orders. Diagnostic only, known incomplete matching.",
+  "current": "67f013e: corrected matcher, finalizer, cache",
+  "archive_sha256": "272e3954ba7345e6e6df4ff6743bfe13299ee667c6653bb92eaaa51fc20c6870",
+  "overlaid_files": {
+    "__init__.py": "src/mappa/matcher/__init__.py",
+    "canonical.py": "src/mappa/matcher/canonical.py",
+    "extend.py": "src/mappa/matcher/extend.py",
+    "support.py": "src/mappa/matcher/support.py",
+    "engine.cpp": "native/src/engine.cpp",
+    "extension_cache.h": "native/src/extension_cache.h"
+  },
+  "identity": "1477378: exact identity-group shortcut",
+  "optimized": "b6dc000: identity shortcut plus scoped cyclic collection",
+  "measurement_tool_sha256": "556250a5a5f52b774e4ac42480e889c10d6a294ff768d1d5930019fee34f7b0a"
+}

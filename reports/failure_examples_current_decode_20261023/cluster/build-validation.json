@@ -1,0 +1,11 @@
+{
+  "source_files": 137,
+  "all_hashes_match": true,
+  "mappa": "/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/current_decode_20261023_v1/source/src/mappa/__init__.py",
+  "native": true,
+  "extensions": {
+    "_engine.cpython-311-x86_64-linux-gnu.so": "929ee7cb8151d88775aa8983493eb32efea01d797a5842bc90ba1cca0f3c3132",
+    "_group_ops.cpython-311-x86_64-linux-gnu.so": "7b51b1ae427787b4dd2d74d343d2f4d46a7ba931443c1c209ed67f04aa779217",
+    "_native.cpython-311-x86_64-linux-gnu.so": "479b411e746b3958acfac56028275be4ba7b128f7e17871330ab44d5e589765f"
+  }
+}

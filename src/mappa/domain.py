@@ -325,54 +325,12 @@ class AnalyticalAAMResult:
 
 
 @dataclass(frozen=True)
-class RPMechanism:
-    """One geometry-selected mapping for an analytical mechanism family."""
-
-    analytical: AnalyticalMechanism
-    mapping: AtomBijection
-    broken_bonds: tuple[tuple[int, int], ...]
-    formed_bonds: tuple[tuple[int, int], ...]
-    core_atoms: tuple[int, ...]
-    fixed_mapping_rmsd: float
-    chirality: Mapping[str, Any]
-    selected_branch_index: int
-
-    def __post_init__(self):
-        if self.mapping.degree != self.analytical.source.representative.degree:
-            raise ValueError("selected R/P mapping has the wrong degree")
-        object.__setattr__(self, "broken_bonds", tuple(sorted(
-            tuple(sorted(map(int, bond))) for bond in self.broken_bonds)))
-        object.__setattr__(self, "formed_bonds", tuple(sorted(
-            tuple(sorted(map(int, bond))) for bond in self.formed_bonds)))
-        object.__setattr__(self, "core_atoms", tuple(sorted(
-            map(int, self.core_atoms))))
-        object.__setattr__(
-            self, "fixed_mapping_rmsd", float(self.fixed_mapping_rmsd))
-        object.__setattr__(self, "chirality", _frozen_mapping(self.chirality))
-        object.__setattr__(
-            self, "selected_branch_index", int(self.selected_branch_index))
-
-
-@dataclass(frozen=True)
-class RPResult:
-    """Final R/P mappings after analytical chirality and RMSD processing."""
-
-    analytical: AnalyticalAAMResult
-    mechanisms: tuple[RPMechanism, ...]
-    elapsed_seconds: float
-
-    def __post_init__(self):
-        object.__setattr__(self, "mechanisms", tuple(self.mechanisms))
-        object.__setattr__(self, "elapsed_seconds", float(self.elapsed_seconds))
-
-
-@dataclass(frozen=True)
 class ResolvedMechanism:
-    """Geometry-selected R/P mechanism independent of AAM provenance.
+    """Explicit R/P mapping and events consumed by downstream TS processing.
 
-    This is the exact interface required by downstream TS processing.  It can
-    be constructed from an ``RPResult`` or a persisted, already validated R/P
-    selection without repeating the R/P search.
+    This is the exact interface required by downstream TS processing. The
+    caller supplies the mapping and events explicitly; this object does not
+    select an orientation or repeat the R/P search.
     """
 
     mapping: AtomBijection

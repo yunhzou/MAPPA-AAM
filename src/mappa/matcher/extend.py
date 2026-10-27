@@ -9,25 +9,28 @@ is one canonical compressed state: it has one concrete witness mapping, plus
 symmetry blocks/multiplicity that represent many injective concrete mappings.
 The outer ``list[_SymCand]`` stores multiple canonical-distinct local states.
 
-The main function is intentionally private because it operates on internal
-growth objects.  The public molecule-level APIs are in ``mappa.alignment``.
+The main function operates on internal growth objects. The standalone public
+entry point is ``mappa.fragment.match_fragment``.
+
+Invariant: the children represent exactly every valid one-atom extension of
+the input relation. Pool restriction is exhaustive; compression must commute
+with later extensions. See ``design.md`` for the induction argument.
 """
 from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from .dedupe import _dedup_sym_cands, _p_relation_signature
 from .policy import DEFAULT_NODE_POLICY, as_node_match_policy
-from .primitives import _edge_wbo, _growth_edge_supported
+from .primitives import _edge_wbo
 from .state import _SymCand, _sym_block_indexes
 from .support import (
-    _force_sym_value,
     _refine_sym_assignments,
     _r_compatible_with_block,
-    _support_witness_for_value,
+    _support_assignments_for_value,
 )
 
 
@@ -56,7 +59,6 @@ def _extend_sym_cands(
     anchor_wbo: Wbo | None = None,
     dedupe_edges: Iterable[EdgeKey] | None = None,
     node_policy=None,
-    defer_boundary_dedupe: bool = False,
 ) -> list[_SymCand]:
     """Symmetry-compressed incremental extension.
 
@@ -112,9 +114,6 @@ def _extend_sym_cands(
         Node-level compatibility policy.  The default is same element.  Custom
         policies can admit target nodes by electronic or other descriptors
         before the normal WBO/``iso_tol`` edge verifier is applied.
-    defer_boundary_dedupe
-        Diagnostic mode that postpones automorphism quotienting until fragment
-        saturation. Exact duplicate states are still combined.
     Returns
     -------
     list[_SymCand]
@@ -134,8 +133,6 @@ def _extend_sym_cands(
     for raw_cand in cands:
         cand = raw_cand if isinstance(raw_cand, _SymCand) else _SymCand(raw_cand)
         children.extend(_extend_one_candidate(cand, ctx))
-    if defer_boundary_dedupe:
-        return _dedupe_children_exact(children)
     return _dedupe_children(children, ctx)
 
 
@@ -309,7 +306,7 @@ def _supported_value(
     v: Node,
     join_block_idx: int | None,
     block_indexes=None,
-) -> Support | None:
+) -> list[Support]:
     """Return support assignments proving ``ctx.n -> v`` is valid.
 
     This is where active R-pair WBO validity enters the extension step.  The
@@ -317,7 +314,7 @@ def _supported_value(
     stored witness, so an arbitrary witness cannot incorrectly reject a valid
     correlated assignment.
     """
-    return _support_witness_for_value(
+    return _support_assignments_for_value(
         cand,
         ctx.n,
         v,
@@ -331,80 +328,28 @@ def _supported_value(
     )
 
 
-def _force_required_image(
-    cand: _SymCand,
-    ctx: _ExtensionContext,
-    r: Node,
-    p: Node,
-):
-    """Force one R atom to one P atom while respecting symmetry blocks."""
-    return _force_sym_value(
-        cand, r, p, set(ctx.fragment_old),
-        ctx.g_R, ctx.r_orbits, ctx.p_orbits,
-    )
-
-
-def _island_merge_wbo_consistent(cand: _SymCand, ctx: _ExtensionContext) -> bool:
-    """Check full WBO consistency after merging locked island atoms.
-
-    The merge path may add more than just ``ctx.n``.  Every added island atom
-    must be WBO-compatible with every materialized atom already in the candidate.
-    """
-    base = cand.materialize()
-    graph_floor = float(ctx.g_P.graph.get("bond_cut", 0.2))
-    check_set = set(base.keys())
-    for r in ctx.island_atoms:
-        for r2 in sorted(check_set):
-            if r2 == r:
-                continue
-            if r >= r2 and r2 in ctx.island_atoms:
-                continue
-            if not ctx.g_R.has_edge(r, r2):
-                continue
-            w_r = _edge_wbo(ctx.g_R, r, r2)
-            p, p2 = base[r], base[r2]
-            if not _growth_edge_supported(
-                    w_r, _edge_wbo(ctx.g_P, p, p2),
-                    ctx.iso_tol, graph_floor):
-                return False
-    return True
-
-
-def _extend_locked_merge(cand: _SymCand, ctx: _ExtensionContext) -> _SymCand | None:
-    """Extend into an atom that already has a locked branch-level image.
-
-    This is the ``merge_island`` path.  The target image is fixed by the
-    current branch, but the current island candidate may still need to reshuffle
-    a symmetry block to support that fixed image.
-    """
-    v_n = ctx.mapping[ctx.n]
-    _, p_to_block = _sym_block_indexes(cand)
-    join_idx = p_to_block.get(v_n)
-    if join_idx is not None and not _r_compatible_with_block(
-            cand, join_idx, ctx.n, set(ctx.fragment_old), ctx.g_R, ctx.r_orbits):
-        return None
-
-    support = _supported_value(cand, ctx, v_n, join_idx)
-    if support is None:
-        return None
-
-    child = _force_required_image(cand, ctx, ctx.n, v_n)
-    if child is None:
-        return None
-    support = dict(support)
-    support[ctx.n] = v_n
-    child = child.with_witness(support) if isinstance(child, _SymCand) else child
-    if child is None:
-        return None
-
-    for r in ctx.island_atoms:
-        if r == ctx.n:
-            continue
-        child = _force_required_image(child, ctx, r, ctx.mapping[r])
-        if child is None:
-            return None
-
-    return child if _island_merge_wbo_consistent(child, ctx) else None
+def _extend_locked_merge(cand: _SymCand, ctx: _ExtensionContext) -> list[_SymCand]:
+    """Apply the same extension invariant to each atom of a locked island."""
+    children = [cand]
+    fragment = set(ctx.fragment_old)
+    for atom in (ctx.n, *(r for r in ctx.island_atoms if r != ctx.n)):
+        bonded = _active_fragment_neighbors(fragment, ctx.g_R, atom)
+        step = replace(ctx, n=atom, fragment_old=frozenset(fragment),
+                       bonded_in_frag=bonded,
+                       r_wbos=tuple((r, _edge_wbo(ctx.g_R, r, atom)) for r in bonded),
+                       strict_r_wbos=ctx.strict_r_wbos if atom == ctx.n else {})
+        target = ctx.mapping[atom]
+        extended = []
+        for child in children:
+            indexes = _sym_block_indexes(child)
+            for support in _supported_value(child, step, target,
+                                             indexes[1].get(target), indexes):
+                refined = _refine_sym_assignments(child, {**support, atom: target})
+                if refined is not None:
+                    extended.append(refined)
+        children = extended
+        fragment.add(atom)
+    return children
 
 
 def _target_join_info(
@@ -456,17 +401,15 @@ def _collect_free_target_entries(
     for v in ctx.compatible_p_atoms:
         join_idx, can_extend = _target_join_info(
             cand, ctx, v, p_to_block=p_to_block)
-        support = _supported_value(
+        supports = _supported_value(
             cand, ctx, v, join_idx, block_indexes=block_indexes)
-        if support is None:
-            continue
         if join_idx is not None:
-            block_join[join_idx].append((v, support, can_extend))
-        else:
+            block_join[join_idx].extend((v, support, can_extend) for support in supports)
+        elif supports:
             sig = _p_relation_signature(
                 cand, v, ctx.g_P, ctx.p_orbits,
                 node_policy=ctx.node_policy)
-            by_group[sig].append((v, support, True))
+            by_group[sig].extend((v, support, True) for support in supports)
     return block_join, by_group
 
 
@@ -484,7 +427,8 @@ def _children_from_block_join(
         for v, support, can_extend in entries
         if not support and can_extend
     ]
-    if free_entries:
+    whole_pool = {v for v, _ in free_entries} == set(cand.blocks[join_idx].p_atoms)
+    if whole_pool:
         # No old-block witness needs to be fixed.  The existing block expands
         # from, for example, "one H occupies methyl-H pool" to "two H atoms
         # occupy methyl-H pool".
@@ -496,7 +440,7 @@ def _children_from_block_join(
             children.append(child)
 
     for v, support, can_extend in entries:
-        if not support and can_extend:
+        if whole_pool and not support and can_extend:
             continue
         # The join is either correlated with an old block assignment, or exact
         # support exists while the source atom is not block-compatible enough
@@ -518,37 +462,21 @@ def _children_from_context_group(
     """Build children for target atoms outside existing symmetry blocks."""
     children: list[_SymCand] = []
 
-    correlated = [(v, support) for v, support, _can_extend in entries
-                  if support]
-    for v, support in correlated:
-        # This target image is outside old blocks, but an old block must still
-        # reshuffle to support it.  The child therefore carries a refined
-        # correlated witness.
-        fixed = dict(support)
-        fixed[n] = v
-        child = _refine_sym_assignments(cand, fixed)
+    by_support = defaultdict(set)
+    for v, support, _can_extend in entries:
+        by_support[tuple(sorted(support.items()))].add(v)
+    for support, values in by_support.items():
+        base = _refine_sym_assignments(cand, dict(support)) if support else cand
+        if base is None:
+            continue
+        group = tuple(sorted(values))
+        child = (base.with_new_block(n, group, extendable=True) if len(group) > 1
+                 else base.with_fixed(n, group[0]))
+        if child is not None:
+            child = child.with_witness({n: group[0]})
         if child is not None:
             children.append(child)
 
-    independent = [(v, support) for v, support, _can_extend in entries
-                   if not support]
-    if not independent:
-        return children
-
-    group = tuple(sorted(v for v, _ in independent))
-    witness_v, support = sorted(independent, key=lambda item: item[0])[0]
-    if len(group) > 1:
-        # Symmetric independent choice: one new block represents all injective
-        # choices into this target pool.
-        child = cand.with_new_block(n, group, extendable=True)
-    else:
-        child = cand.with_fixed(n, witness_v)
-    if child is not None and isinstance(child, _SymCand):
-        support = dict(support)
-        support[n] = witness_v
-        child = child.with_witness(support)
-    if child is not None:
-        children.append(child)
     return children
 
 
@@ -568,13 +496,12 @@ def _extend_one_candidate(cand: _SymCand, ctx: _ExtensionContext) -> list[_SymCa
     if not _candidate_covers_fragment(cand, ctx):
         return []
     if ctx.is_merge:
-        child = _extend_locked_merge(cand, ctx)
-        return [] if child is None else [child]
+        return _extend_locked_merge(cand, ctx)
     return _extend_free_atom(cand, ctx)
 
 
 def _dedupe_children(children: list[_SymCand], ctx: _ExtensionContext) -> list[_SymCand]:
-    """Collapse child states that are equivalent under orbit/boundary context."""
+    """Compress equivalent states without changing any future extension."""
     return _dedup_sym_cands(
         children,
         ctx.g_R,
@@ -586,32 +513,3 @@ def _dedupe_children(children: list[_SymCand], ctx: _ExtensionContext) -> list[_
         locked_mapping=ctx.mapping,
         node_policy=ctx.node_policy,
     )
-
-
-def _dedupe_children_exact(children: list[_SymCand]) -> list[_SymCand]:
-    """Combine only literally identical compressed child states.
-
-    Unlike orbit/boundary dedupe, this operation cannot erase a future
-    distinction: mapping, block pools, block behavior, and exact-fixed atoms
-    must all agree.  Multiplicity is additive because the states are exact
-    duplicates rather than separate automorphism-group members.
-    """
-    seen: dict[tuple, _SymCand] = {}
-    order: list[tuple] = []
-    for child in children:
-        key = (
-            tuple(sorted(child.mapping.items())),
-            tuple((block.r_atoms, block.p_atoms, bool(block.extendable))
-                  for block in child.blocks),
-            tuple(sorted(child.exact_fixed)),
-            tuple((block.r_atoms, block.p_atoms)
-                  for block in child.automorph_blocks),
-        )
-        kept = seen.get(key)
-        if kept is None:
-            seen[key] = child
-            order.append(key)
-            continue
-        seen[key] = kept.with_multiplicity(
-            kept.multiplicity + child.multiplicity)
-    return [seen[key] for key in order]

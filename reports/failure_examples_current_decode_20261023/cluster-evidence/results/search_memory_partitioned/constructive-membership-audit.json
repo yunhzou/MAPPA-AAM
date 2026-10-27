@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "witnesses": 23956,
+  "identity_action_witnesses": 19550,
+  "constructive_action_certificates": 4406,
+  "minimum_witnesses_verified": 12,
+  "checks": [
+    "permutation domains and fixed atoms",
+    "exact membership in recorded group factors",
+    "action order and transition identity",
+    "exact replay to emitted full mapping",
+    "element preservation and injectivity",
+    "every required fragment edge and WBO tolerance"
+  ],
+  "seconds": 36.53329163102899
+}

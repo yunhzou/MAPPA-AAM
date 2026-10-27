@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one cached benchmark case through the typed R/P and TS APIs."""
+"""Run cached TS targets with an explicitly supplied resolved reaction."""
 from __future__ import annotations
 
 import argparse
@@ -12,18 +12,11 @@ from pathlib import Path
 from mappa import (
     AAMProblem,
     AAMSearchConfig,
-    AtomBijection,
     MolecularEndpoint,
-    ReactionContext,
-    ResolvedMechanism,
     TransitionStateTarget,
     VibrationalModes,
-    align_reaction,
     analyze_transition_state,
-    reaction_context_from_rp,
-    rp_record,
-    ts_record,
-    write_rp_bundle,
+    ts_record, reaction_from_record, reaction_record,
 )
 from mappa.chemistry_computations import parse_xyz
 from mappa.chemistry_computations.xtb import read_wbo_file
@@ -57,31 +50,7 @@ def _iteration(path):
     return int(match.group(1)) if match else -1
 
 
-def _load_resolved_reaction(path, problem, config):
-    """Load the validated R/P selections needed by TS; perform no R/P AAM."""
-    document = json.loads(Path(path).read_text())
-    if document.get("stage") != "rp":
-        raise ValueError(f"unsupported resolved R/P artifact: {path}")
-    mechanisms = []
-    for raw in document.get("mechanisms") or ():
-        mapping = {int(source): int(target)
-                   for source, target in raw["mapping_RP"].items()}
-        mechanisms.append(ResolvedMechanism(
-            mapping=AtomBijection.from_mapping(
-                mapping, degree=problem.atom_count),
-            broken_bonds=tuple(tuple(bond)
-                               for bond in raw.get("broken_bonds_R") or ()),
-            formed_bonds=tuple(tuple(bond)
-                               for bond in raw.get("formed_bonds_R") or ()),
-            core_atoms=tuple(raw.get("core_atoms") or ()),
-        ))
-    if not mechanisms:
-        raise ValueError(f"resolved R/P artifact contains no mechanisms: {path}")
-    return ReactionContext(problem, config, tuple(mechanisms))
-
-
-def run_case(case, *, work_root, benchmark_root, output_root, workers,
-             post_workers=None, resolved_rp_root=None):
+def run_case(case, *, work_root, benchmark_root, output_root, reaction_root):
     case_id = str(case["step_id"])
     started = time.perf_counter()
     case_work = Path(work_root) / case_id
@@ -92,36 +61,9 @@ def run_case(case, *, work_root, benchmark_root, output_root, workers,
     reactant = _endpoint(case_work / "endpoints" / "R", "R")
     product = _endpoint(case_work / "endpoints" / "P", "P")
     problem = AAMProblem(reactant, product, name=case_id)
-    if resolved_rp_root is None:
-        rp_started = time.perf_counter()
-        rp = align_reaction(
-            problem,
-            search_config=config,
-            workers=max(1, int(workers)),
-            post_workers=max(1, int(post_workers or workers)),
-        )
-        rp_seconds = time.perf_counter() - rp_started
-        write_rp_bundle(rp, case_output / "rp")
-        reaction = reaction_context_from_rp(rp)
-        rp_document = rp_record(rp)
-        rp_source = "computed"
-    else:
-        artifact = (Path(resolved_rp_root) / "cases" / case_id
-                    / "rp_stage.json")
-        reaction = _load_resolved_reaction(artifact, problem, config)
-        rp_seconds = 0.0
-        rp_document = {
-            "schema": "rxn_core.resolved_reaction/v1",
-            "source": str(artifact),
-            "mechanisms": [{
-                "mapping": {str(a): int(b)
-                            for a, b in item.mapping.as_dict().items()},
-                "broken_bonds": [list(bond) for bond in item.broken_bonds],
-                "formed_bonds": [list(bond) for bond in item.formed_bonds],
-                "core_atoms": list(item.core_atoms),
-            } for item in reaction.mechanisms],
-        }
-        rp_source = "resolved_artifact"
+    artifact = Path(reaction_root) / "cases" / case_id / "reaction.json"
+    reaction = reaction_from_record(
+        json.loads(artifact.read_text()), problem, config)
 
     initial_guess = Path(benchmark_root) / case_id / "initial_guess"
     guess_files = {
@@ -189,12 +131,9 @@ def run_case(case, *, work_root, benchmark_root, output_root, workers,
         "schema": "rxn_core.typed_ts_case/v1",
         "case": case_id,
         "atom_count": reactant.atom_count,
-        "workers": int(workers),
-        "post_workers": int(post_workers or workers),
-        "rp_source": rp_source,
-        "rp_seconds": rp_seconds,
+        "reaction_source": str(artifact),
         "elapsed_seconds": time.perf_counter() - started,
-        "rp": rp_document,
+        "reaction": reaction_record(reaction),
         "targets": target_records,
         "rankings": rankings,
     }
@@ -210,12 +149,8 @@ def run_case(case, *, work_root, benchmark_root, output_root, workers,
             target.get("status") == "ok" for target in target_records),
         "missing_target_count": sum(
             target.get("status") == "missing" for target in target_records),
-        "rp_seconds": rp_seconds,
         "elapsed_seconds": document["elapsed_seconds"],
         "scores": str(case_output / "ts_scores.json"),
-        "rp_view": (
-            str(case_output / "rp" / "view.html")
-            if rp_source == "computed" else None),
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
         "slurm_array_task_id": os.environ.get("SLURM_ARRAY_TASK_ID"),
     }
@@ -231,9 +166,8 @@ def main(argv=None):
     parser.add_argument("--work-root", required=True)
     parser.add_argument("--benchmark-root", required=True)
     parser.add_argument("--output-root", required=True)
-    parser.add_argument("--workers", type=int, required=True)
-    parser.add_argument("--post-workers", type=int, default=None)
-    parser.add_argument("--resolved-rp-root", default=None)
+    parser.add_argument("--reaction-root", required=True,
+                        help="contains cases/<case_id>/reaction.json resolved-reaction records")
     args = parser.parse_args(argv)
     index = args.index
     if index is None:
@@ -244,9 +178,7 @@ def main(argv=None):
         work_root=args.work_root,
         benchmark_root=args.benchmark_root,
         output_root=args.output_root,
-        workers=args.workers,
-        post_workers=args.post_workers,
-        resolved_rp_root=args.resolved_rp_root,
+        reaction_root=args.reaction_root,
     )
 
 

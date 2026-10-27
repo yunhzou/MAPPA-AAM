@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "witnesses": 1,
+  "identity_action_witnesses": 1,
+  "exact_family_queries": 1,
+  "queries": [
+    {
+      "candidate": "rxn_core.signed_events/v1:b03b6666ac49c421c49ae386833a8e26365c556eb6e457e5ddae1ecf9cdb3409",
+      "producing_family_id": 0,
+      "status": "allowed",
+      "reason": "",
+      "is_minimum": true
+    }
+  ],
+  "minimum_witness_count": 1,
+  "seconds": 0.1841456670081243
+}

@@ -8,6 +8,7 @@ from .primitives import _orbit_id
 
 def candidate_from_record(state):
     """Reconstruct the compressed native/Python candidate, not its bijections."""
+    # Unversioned archives describe the historical group, not a new search.
     witness = {int(r): int(p) for r, p in state['witness'].items()}
     automorph_blocks = tuple(_SymBlock(
         tuple(block['r_atoms']), tuple(block['p_atoms']), extendable=False)
@@ -18,7 +19,8 @@ def candidate_from_record(state):
         if block.get('source') != 'exact_automorph_group')
     return _SymCand(witness, blocks, exact_fixed=tuple(state.get('exact_fixed', ())),
                     multiplicity=int(state.get('multiplicity', 1)),
-                    automorph_blocks=automorph_blocks)
+                    automorph_blocks=automorph_blocks,
+                    compression_version=state.get('compression_version', 1))
 
 
 @dataclass(frozen=True)
@@ -58,11 +60,12 @@ class _SymCand:
     """
     __slots__ = (
         'mapping', 'blocks', 'exact_fixed', 'multiplicity',
-        'automorph_blocks',
+        'automorph_blocks', 'compression_version',
     )
 
     def __init__(self, mapping=None, blocks=(), exact_fixed=(), multiplicity=1,
-                 automorph_blocks=()):
+                 automorph_blocks=(), compression_version=2):
+        self.compression_version = compression_version
         blocks = tuple(blocks)
         block_r = {r for b in blocks for r in b.r_atoms}
         raw = dict(mapping or {})
@@ -295,6 +298,7 @@ def _symmetry_state(cand, r_orbits=None, p_orbits=None):
         'blocks': [],
     }
     if isinstance(cand, _SymCand):
+        item['compression_version'] = cand.compression_version
         item['exact_fixed'] = [int(x) for x in sorted(cand.exact_fixed)]
         item['multiplicity'] = int(cand.multiplicity)
         item['automorph_blocks'] = [{

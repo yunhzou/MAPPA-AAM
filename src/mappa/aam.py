@@ -55,7 +55,10 @@ def checkpoint_manifest(problem, config):
         settings.pop('sweep_cuts')
     if config.seed_selection == 'random':
         settings.pop('seed_selection')  # unchanged policy can resume older cuts
-    return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v2',
+    return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v5',
+        matching_policy='exact_fragment_support_v2',
+        growth_policy='uniform_boundary_atom_splitmix64_v1',
+        branch_cap_policy='completed_fragment_frontier_v1',
         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
         reactant=endpoint(problem.reactant),product=endpoint(problem.product),
         config=settings)))
@@ -119,7 +122,7 @@ def _search_cut(cut):
             graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
             max_branches=config.branch_limit, p_orbits=target_orbits,
             r_orbits=source_orbits, anchor_map=dict(config.anchors),
-            profile=profile, cuts=cut, growth_replay=view))
+            profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))
     graph = AAMSearchGraph.combine(graphs)
     return graph, {
         'search_seconds': time.perf_counter() - started,

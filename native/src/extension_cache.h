@@ -52,7 +52,7 @@ class ExtensionCache {
             vector(key,ctx.island_atoms);
             scalar(key,(*ctx.mapping)[ctx.n]);
             for (int r:ctx.island_atoms) scalar(key,(*ctx.mapping)[r]);
-            // Every source topology test in island_merge_wbo_consistent.
+            // Every old-fragment bond tested while adding the locked island.
             for (int r:ctx.island_atoms) for (int a:c.mapped)
                 scalar(key,ctx.R->has_edge(r,a));
             // Added island atoms are also included in the merged child's mapping.
@@ -89,8 +89,7 @@ public:
         }
         std::vector<Cand> children;
         if (ctx.is_merge()) {
-            Cand child;
-            if (extend_locked_merge(c,ctx,child)) children.push_back(std::move(child));
+            extend_locked_merge(c,ctx,children);
         } else extend_free_atom(c,ctx,children);
         size_t size=sizeof(Entry)+sizeof(Key)+2*key.context.capacity()+key.candidate->value.capacity()
             +sizeof(CandidateCacheKey)+192+children.capacity()*sizeof(Cand);

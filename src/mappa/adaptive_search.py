@@ -47,7 +47,7 @@ class AdaptiveSearchCondition:
     def uncut(cls, problem, config):
         source, target = [build_graph(endpoint.elements, endpoint.wbo,
             bond_cut=config.graph_floor) for endpoint in (problem.reactant, problem.product)]
-        order = tuple(_generate_seed_orders(source, 1, rng_seed=42,
+        order = tuple(_generate_seed_orders(source, 1, rng_seed=config.random_seed,
                                              seed_selection=config.seed_selection)[0])
         return cls(source, target, order, _nauty_orbits(target, wbo_tol=config.iso_tolerance),
                    ConditionedSymmetryWorkspace(target, config.iso_tolerance))
@@ -93,7 +93,7 @@ class AdaptiveFragmentSearch:
     advance() consumes one growth/closure operation. Callers own time/work
     budgets and can save snapshots without restarting completed work.
 
-    This experiment retains the native per-growth branch cap, not the mature
+    This experiment caps completed fragment placements, not the mature
     scheduler's synchronized live-frontier cap. The agenda is budgeted by the
     caller. Snapshots persist results and pending descriptors, not native
     sessions for cross-process resume. No cut sweep or symmetry-repair pass is
@@ -114,7 +114,8 @@ class AdaptiveFragmentSearch:
         self.orbits, self.order = self.condition.orbits, self.condition.order
         self.builder = SearchGraphBuilder(SearchContext(tuple(sorted(self.source)), tuple(sorted(self.target)),
             self.order, cuts=self.condition.cuts, anchors=self.config.anchors, graph_floor=self.config.graph_floor,
-            iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit))
+            iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
+                    random_seed=self.config.random_seed))
         self.workspace = self.condition.workspace
         self.agenda = _ChoiceAgenda(fair=policy == 'fair_depth')
         self.seen = {}
@@ -199,7 +200,8 @@ class AdaptiveFragmentSearch:
                 context=FragmentMatchContext(branch.mapping, branch.islands_R,
                     tuple(branch.deferred_edges), target_orbits=self.orbits),
                 config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
-                    iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit))
+                    iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
+                    random_seed=self.config.random_seed))
             for option in session.closures:
                 self._push(self._closure_priority(depth + 1, session, option),
                            ('close', branch, position, depth + 1, session, option))

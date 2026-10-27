@@ -204,6 +204,7 @@ class FragmentMatch:
     multiplicity: int = 1
     automorph_domains: tuple[SymmetryDomain, ...] = ()
     target_generators: tuple[AtomPermutation, ...] | None = None
+    compression_version: int = 1
 
     def __post_init__(self):
         object.__setattr__(self, "r_atoms", tuple(sorted(map(int, self.r_atoms))))
@@ -316,6 +317,7 @@ class AAMHierarchy:
                 exact_fixed=tuple(map(
                     int, symmetry.get("exact_fixed") or ())),
                 multiplicity=int(symmetry.get("multiplicity", 1)),
+                compression_version=int(symmetry.get("compression_version", 1)),
                 automorph_domains=automorph_domains,
                 target_generators=(
                     None if raw_generators is None else tuple(
@@ -347,6 +349,7 @@ class AAMHierarchy:
                 ],
                 "exact_fixed": list(fragment.exact_fixed),
                 "multiplicity": int(fragment.multiplicity),
+                "compression_version": fragment.compression_version,
                 "automorph_blocks": [
                     domain_record(domain)
                     for domain in fragment.automorph_domains

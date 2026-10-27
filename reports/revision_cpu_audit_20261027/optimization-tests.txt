@@ -1,0 +1,5 @@
+Command: PYTHONPATH=src:/private/tmp/mappa-publish-deps /Users/yunhengz/Desktop/AAM Writing/.venv/bin/python -m pytest -q tests/test_native_scheduler.py tests/test_conditioned_reuse.py tests/test_growth_compression_exactness.py tests/test_completed_branch_cap.py tests/test_random_growth.py tests/test_search_trajectory.py tests/test_search_validation.py tests/test_growth_display.py
+
+........................................................................ [ 59%]
+..................................................                       [100%]
+122 passed in 2.76s

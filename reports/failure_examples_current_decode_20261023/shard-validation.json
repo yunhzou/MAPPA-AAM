@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "invariant_control_families": 7,
+  "invariant_control_candidates": 1,
+  "solver_control_families": 2,
+  "solver_control_candidates": 6,
+  "solver_queries": 6,
+  "same_decoder_function": true,
+  "settings_unchanged": true
+}

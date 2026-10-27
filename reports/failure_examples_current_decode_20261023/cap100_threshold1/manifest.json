@@ -1,0 +1,32 @@
+{
+  "status": "complete_and_audited",
+  "branch_limit": 100,
+  "iso_tolerance": 1.0,
+  "event_threshold": 1.0,
+  "metal_event_threshold": 1.0,
+  "source_archive_sha256": "8ad3c9ff4a48a9da7cc92fb9b0a2c5bb82355698097df4d61e1d2499d81f3262",
+  "comparison": "Only branch_limit changes from cap10_threshold1; same public decoder, instrumentation, inputs, resource budgets and frozen engine.",
+  "runner_sha256": "d092646d1a2e546f44844fb5ebf70ca2bb238b6a77594a2219fa6b1138e0bf1d",
+  "job": "7573145",
+  "families_complete": 27295,
+  "event_classes": 342,
+  "minimum_events": 6,
+  "wall_seconds": 357.33542221802054,
+  "hashes": {
+    "decoded.json.gz": "23afb93ce9f800f5f71bcd7c6cf240dc6d63185bdf367071541abd5783d9d659",
+    "evidence.sha256": "217bd16fd25b46d55c88b6a925587803290265a66509596457d4c2d1c9bd7710",
+    "scheduler-final.txt": "44584fd382f993b10495208bd054324579f380faaccf22c48605f3b69f0d4296",
+    "decode_shard.py": "12e52bfcd1ba631526c63da714655717bb866b7a04b34932ae3d166cf107d90e",
+    "run_decode.py": "d092646d1a2e546f44844fb5ebf70ca2bb238b6a77594a2219fa6b1138e0bf1d",
+    "result.json": "df035bc36271c3145e4ea4686862266b1a7c9ce358dc72b4182b7bd733398c11",
+    "job-id.txt": "9577da507a2fc44ff152b22e24641e7182e5175f5a3f432346cbdc8ab639cf58",
+    "search.json": "c1540f8201968221829886e9df4ec53e70e8c9d4087c56540450ad1825b6924f",
+    "REPORT.md": "42d77bd8db4ec37b837e7a68eb22610319d9aa5f2e76d86816e971a739bda468",
+    "run.sbatch": "7106c383500b8603d4adeeb7096c012dcc493a24b6ae1c13cced7f8295ea93a1",
+    "local-validation.json": "904a61f0d49b54ea7e31cd41481c1d112b679e367668c4fdbca3a557933aea36",
+    "configuration.json": "65f5c2e0d1b60ffc00e4d94a8ae260cf6da3e5b874e52add00065a98d4d40344",
+    "independent-audit.json": "48c049f0326fe2ec35b904ac026e147453c316a0697b1c6428e3c087ac773f10",
+    "evidence.tar.gz": "71e764d72f0af5c0c8169ef94e21f7914b1f38d2c189e7afa0fe08e2a0c838a4",
+    "audit_actions.py": "b562e870b4ba6123bd87f2d771d7ca6309b541cddea0a7a89f64867f4dde946e"
+  }
+}

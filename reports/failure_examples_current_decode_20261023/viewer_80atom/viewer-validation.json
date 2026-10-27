@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "pageErrors": [],
+  "checks": [
+    "80 atoms and full bonds retained in both modes",
+    "Filtered: 11 red, 10 green; 21 detail rows",
+    "All changes: 13 red, 11 green; 24 detail rows",
+    "Native and mapped product coordinates",
+    "Atom labels toggle"
+  ]
+}

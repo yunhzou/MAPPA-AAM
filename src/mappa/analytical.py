@@ -11,7 +11,7 @@ import numpy as np
 from .mechanisms import _branch_from_record
 from .alignment.post_aam import AAMHierarchy
 from .search_graph import frozen_value
-from .alignment.index_chirality import (
+from .alignment.mapping_families import (
     analytical_family_static_context,
     compile_analytical_mapping_family,
 )

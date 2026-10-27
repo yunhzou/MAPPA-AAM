@@ -107,7 +107,8 @@ class AdaptiveSeedSearch(AdaptiveFragmentSearch):
                 tuple(branch.deferred_edges),self.source_orbits,self.orbits,
                 growth_replay=self.condition.growth_replay),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
-                iso_tolerance=self.config.iso_tolerance,branch_limit=self.config.branch_limit))
+                iso_tolerance=self.config.iso_tolerance,branch_limit=self.config.branch_limit,
+                random_seed=self.config.random_seed))
         for match in result.matches:
             trial['covered'].update(match.fragment)
         trial['productive'] |= bool(result.matches)

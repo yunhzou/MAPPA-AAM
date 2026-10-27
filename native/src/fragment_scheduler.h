@@ -118,7 +118,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                                   const std::vector<int>& order,double graph_floor,double iso_tol,
                                   long max_branches,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts) {
+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
     ScheduledGraph graph;
     auto root=std::make_shared<ScheduledBranch>();
     root->mapping.assign(source.n,-1);root->labels.assign(source.n,-1);
@@ -202,9 +202,9 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                 ++graph.growth_calls;
                 auto result=repair
                     ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                      &branch->islands,branch->deferred,anchor).first
+                                      &branch->islands,branch->deferred,anchor,random_seed).first
                     : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                  &branch->islands,branch->deferred,anchor);
+                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed);
                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);
                 if (result.capped) {
                     graph.stop(*branch,"capped","fragment_growth",result.cap.count,result.cap.limit);
@@ -251,6 +251,7 @@ py::dict scheduled_graph_record(const ScheduledGraph& graph,const std::vector<in
         for (const auto& b:candidate.automorph) automorph.append(block_dict(translate(b),true));
         for (auto b:automorph) blocks.append(b);
         out["exact_fixed"]=fixed;out["blocks"]=blocks;out["automorph_blocks"]=automorph;
+        out["compression_version"]=2;
         return out;
     };
     py::list states,transitions,stops;
@@ -300,15 +301,15 @@ void register_fragment_scheduler(py::module_& mod) {
                                   double floor,double tol,long cap,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
                                   const std::vector<int>& r_ids,const std::vector<int>& p_ids,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts) {
+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
         ScheduledGraph graph;
         {
             py::gil_scoped_release release;
-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts);
+            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);
         }
         return scheduled_graph_record(graph,r_ids,p_ids);
     },py::arg("source"),py::arg("target"),py::arg("seed_order"),py::arg("graph_floor"),
        py::arg("iso_tolerance"),py::arg("branch_cap"),py::arg("anchors"),py::arg("core_atoms"),
        py::arg("stop_at_core"),py::arg("source_ids"),py::arg("target_ids"),
-       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{});
+       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42);
 }

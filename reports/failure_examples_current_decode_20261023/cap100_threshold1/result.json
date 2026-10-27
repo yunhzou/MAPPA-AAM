@@ -1,0 +1,43 @@
+{
+  "status": "complete",
+  "case": "search_memory",
+  "atoms": 80,
+  "search_capped": true,
+  "cuts": 91,
+  "families": 27295,
+  "family_reports": 27295,
+  "incomplete_families": [],
+  "incomplete_paths": 0,
+  "candidates": 342,
+  "minimum_events": 6,
+  "minimum_proven": true,
+  "event_window": null,
+  "witness_rescore_passed": 342,
+  "minimum_membership": [
+    {
+      "candidate": "rxn_core.signed_events/v1:105a524273dc987f2d33b6bb95b60c1fd0dab7c32d70fc506085e976adc29ae2",
+      "status": "allowed",
+      "reason": "exact constructive certificate replay"
+    },
+    {
+      "candidate": "rxn_core.signed_events/v1:a0c59006fbc75abd1e7d3a4569904f5aa8d231bd75525334e155f70c46604098",
+      "status": "allowed",
+      "reason": "exact constructive certificate replay"
+    },
+    {
+      "candidate": "rxn_core.signed_events/v1:bff812dc7a5d494a9fe2d4567035ebc5260ed3d5c19bf4f1e399aabb0ee30545",
+      "status": "allowed",
+      "reason": "exact constructive certificate replay"
+    }
+  ],
+  "timings": {
+    "search": 132.05542408500332,
+    "catalogue": 62.09481620200677,
+    "decode": 93.55055875098333,
+    "through_decoding": 355.9833353330032,
+    "audit": 0.8089524940005504
+  },
+  "wall_seconds": 357.33542221802054,
+  "peak_rss_mib": 1783.8359375,
+  "geometry_selection": false
+}

@@ -4,8 +4,8 @@ The package is intentionally split by responsibility:
 - primitives: WBO access and tolerance primitives
 - orbits: exact nauty orbit grouping plus a separately named WL diagnostic
 - state: _SymCand/_SymBlock compressed matching state
-- support: witness search inside unresolved symmetry blocks
-- dedupe: one-hop boundary-aware state dedupe
+- support: all constrained assignments inside unresolved symmetry blocks
+- dedupe: continuation-preserving automorphism compression
 - extend: one-atom candidate extension
 """
 from __future__ import annotations
@@ -48,7 +48,6 @@ from .state import (
     _symmetry_state,
 )
 from .support import (
-    _force_sym_value,
     _refine_sym_assignments,
     _r_compatible_with_block,
     _support_witness_for_value,

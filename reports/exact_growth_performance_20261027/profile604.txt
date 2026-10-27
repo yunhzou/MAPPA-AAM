@@ -1,0 +1,46 @@
+         1856422 function calls (1748209 primitive calls) in 0.828 seconds
+
+   Ordered by: cumulative time
+   List reduced from 547 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        3    0.001    0.000    0.570    0.190 conditioned_symmetry.py:35(conditioned_generators)
+        1    0.000    0.000    0.514    0.514 aam.py:237(collect)
+       37    0.000    0.000    0.514    0.014 aam.py:260(<genexpr>)
+       36    0.001    0.000    0.514    0.014 aam.py:134(_search_cut_task)
+       36    0.009    0.000    0.396    0.011 aam.py:83(_search_cut)
+       36    0.032    0.001    0.331    0.009 native_search.py:15(find_islands_native)
+       36    0.163    0.005    0.163    0.005 {built-in method mappa._engine.search_fragments}
+     2970    0.026    0.000    0.128    0.000 canonical.py:418(_growth_roles)
+       36    0.016    0.000    0.123    0.003 search_graph.py:391(from_record)
+       36    0.000    0.000    0.117    0.003 artifacts.py:138(write_raw_cut)
+       36    0.000    0.000    0.116    0.003 artifacts.py:104(_write_graph_checkpoint)
+     6266    0.007    0.000    0.086    0.000 search_graph.py:413(<genexpr>)
+    24956    0.027    0.000    0.080    0.000 search_graph.py:397(pairs)
+    12289    0.019    0.000    0.070    0.000 canonical.py:428(<genexpr>)
+34909/29237    0.016    0.000    0.064    0.000 {built-in method builtins.sorted}
+       37    0.047    0.001    0.060    0.002 {built-in method _pickle.dump}
+56619/2980    0.024    0.000    0.055    0.000 search_graph.py:17(frozen_value)
+   181533    0.040    0.000    0.051    0.000 primitives.py:7(_edge_wbo)
+49254/20860    0.011    0.000    0.050    0.000 search_graph.py:19(<genexpr>)
+       37    0.000    0.000    0.050    0.001 pathlib.py:1366(replace)
+       37    0.049    0.001    0.049    0.001 {built-in method posix.replace}
+   223232    0.028    0.000    0.045    0.000 search_graph.py:404(<genexpr>)
+        1    0.000    0.000    0.036    0.036 artifacts.py:68(write_aam_checkpoint)
+   112907    0.035    0.000    0.035    0.000 {built-in method builtins.repr}
+       37    0.000    0.000    0.034    0.001 gzip.py:32(open)
+       37    0.000    0.000    0.034    0.001 gzip.py:159(__init__)
+       38    0.033    0.001    0.033    0.001 {built-in method _io.open}
+       37    0.000    0.000    0.030    0.001 search_graph.py:434(combine)
+      521    0.002    0.000    0.030    0.000 {method 'extend' of 'list' objects}
+   373102    0.030    0.000    0.030    0.000 {method 'get' of 'dict' objects}
+     2970    0.008    0.000    0.027    0.000 state.py:9(candidate_from_record)
+27256/11597    0.003    0.000    0.025    0.000 search_graph.py:21(<genexpr>)
+       37    0.001    0.000    0.023    0.001 orbits.py:177(_nauty_orbits)
+     2970    0.012    0.000    0.020    0.000 canonical.py:384(_candidate_roles)
+      6/4    0.000    0.000    0.020    0.005 <frozen importlib._bootstrap>:1349(_find_and_load)
+      6/4    0.000    0.000    0.020    0.005 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+       38    0.003    0.000    0.020    0.001 orbits.py:127(_nauty_colored_wbo_graph)
+      6/4    0.000    0.000    0.020    0.005 <frozen importlib._bootstrap>:911(_load_unlocked)
+      5/4    0.000    0.000    0.020    0.005 <frozen importlib._bootstrap_external>:993(exec_module)
+   226611    0.020    0.000    0.020    0.000 {method 'setdefault' of 'dict' objects}

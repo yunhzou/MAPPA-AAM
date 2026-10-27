@@ -1,0 +1,144 @@
+MAPPA revision: measured CPU cost and exact reductions
+27 October 2026
+
+The corrected search now takes 0.154, 1.039, and 8.362 CPU seconds on Golden
+64, 604, and 17, respectively, summed over both search directions. These are
+17.3%, 35.1%, and 40.3% reductions from the published corrected implementation
+67f013e. Complete serialized search graphs are identical before and after both
+optimizations in every measured case and direction. No matching alternatives,
+branch rules, random choices, bond tests, or decoding rules were changed.
+
+What changed in the earlier revision
+
+1. Growth policy: boundary-atom selection became uniformly random, removing the
+   highest-bond-order preference. This is a search-policy change approved by the
+   user. It can increase or decrease work for a fixed input and random seed.
+2. Cap policy: the cap moved from intermediate embedding counts to completed
+   fragment placements and the accumulated live frontier. This preserves the
+   intended meaning of branch cap, but changes which branches survive.
+3. Fragment matching: extension preserves all constrained assignments represented
+   by incoming candidates, including extension through locked islands. Both paths
+   use the same support logic. Interchangeable pools remain compressed; the repair
+   does not enumerate every full permutation independently.
+4. Compression: version-2 continuation records preserve exact active bond weights
+   and fix outside atoms, preventing compression from discarding distinct future
+   extensions. Distinct target atom sets remain separate branches. Both finalizers
+   interpret these records consistently. This corrects the implementation's use
+   of symmetry, not the mathematical validity of automorphism compression.
+5. Checkpoints identify the corrected matching policy. Viewer changes and the
+   minimum+n decoder option were also published, but neither viewer nor decoder
+   runs in this timing experiment. Main's shared shuffled seed pool is unchanged.
+6. Commit 67f013e additionally caches exact ordered nonzero boundary weights. It
+   changes no matching relation and is already included in the corrected baseline.
+
+Controlled comparison
+
+CPU seconds, both directions summed; mean of two unprofiled repeats:
+
+Golden | Old main A | New policies, old matcher B | Corrected C | Optimized E
+64     |     0.1055 |                      0.1002 |      0.1860 |      0.1539
+604    |     0.9022 |                      1.0625 |      1.6010 |      1.0386
+17     |    17.8610 |                     12.4436 |     14.0153 |      8.3618
+
+A = 7f3ec8e. B = controlled diagnostic source snapshot with current random growth,
+completed branch cap and main seed orders, but archived pre-repair matcher and
+historical record interpretation. B is known incomplete and is not an available
+production mode. C = 67f013e. E = b6dc000 (includes 1477378).
+
+A to B estimates the combined policy/publication change, not either policy alone.
+B to C isolates the repair package (matching, continuation compression and its
+finalization, including boundary reuse), not each internal subchange separately.
+The repair adds 0.086, 0.539 and 1.572 CPU seconds. Earlier local comparisons using
+a different seed-order generator cannot be treated as this same comparison.
+
+Why the repair costs more
+
+Uncached growth requests, both directions (total requests include cache hits):
+Golden | B uncached | C uncached | B total | C total
+64     |        247 |        329 |     494 |     867
+604    |       2807 |       3869 |   11366 |   15936
+17     |      21065 |      21648 |   56171 |   57712
+
+Separate exclusive-phase measurements attribute approximately 45%, 56% and 59%
+of the B-to-C CPU increase to continuation-role construction and symmetry
+finalization. Native search/export and graph construction account for other
+costs. These phase runs include instrumentation overhead; unprofiled runs above
+are the timing comparison. In particular, case 17 has only 2.8% more uncached
+growth requests but 12.6% more CPU time. The slowdown cannot be explained simply
+as growing every possibility.
+
+Exact reductions implemented
+
+Identity group, commit 1477378: in version-2 records without an automorphism
+block, all outside/pool atoms are pointwise fixed and every remaining atom has
+its unique source role. The conditioned group must therefore be identity. Return
+its empty generator list directly, retaining local pool permutations. Records
+with nonempty automorphism blocks still use the exact solver. The standard
+finalizer is an independent oracle. This alone reduces total CPU by approximately
+16%, 30%, and 19% on these cases.
+
+Scoped cyclic collection, commit b6dc000: native result containers and the
+constructed decision graph are acyclic. Defer Python's cyclic scans only while
+exporting and constructing one result, release its wrapper, then restore the
+caller's collection state, including on exceptions. Reference counting stays
+active. This avoids repeatedly scanning accumulated cuts. It does not change
+memory limits or globally disable collection for the search. An additional
+instrumented case-17 reverse run found 2.986 CPU seconds in 1,661 collections
+before these optimizations; the optimized run spent 0.804 seconds in 679 scans.
+Collection timing is nested exclusively, so it is not added again to enclosing
+phase times. Earlier phase runs lack this separate collection breakdown.
+
+Maximum observed process RSS across unprofiled runs, MiB:
+Golden | Corrected C | Optimized E
+64     |        65.0 |        64.2
+604    |       150.2 |       148.9
+17     |       889.1 |       876.8
+
+No process-memory increase was observed relative to C. These are whole-process
+peaks, including imports and the post-timing graph hash, not an allocation bound
+or a guarantee for every molecule.
+
+Method and validation
+
+Three fixed saved Golden inputs (64:23/25 atoms; 604:36/38; 17:62/62), both
+directions, one process at a time on the same Mac. ISO tolerance 1, branch cap100,
+one starting seed, random seed42, all-cut sweep, main's seed-order policy.
+OPENBLAS_NUM_THREADS=1, OMP_NUM_THREADS=1, VECLIB_MAXIMUM_THREADS=1.
+Each repeat is a fresh Python3.12 process using the same native compiler setup.
+CPU includes search, symmetry finalization and checkpoint output; excludes
+imports, input loading, decoding, and the final graph hash. Wall time and full
+configuration are also retained. Two repeats establish a small-case comparison,
+not a cohort-wide speed claim or a confidence interval.
+
+The full graph hash, inputs, configuration, states, transitions, terminals and
+capped stops agree with C in all 36 measured identity/optimized runs (three cases,
+two directions, one phase run and two plain runs for each optimization stage).
+The old diagnostic graphs are not asserted equivalent to corrected graphs.
+
+Identity validation: 121 tests passed, including independent complete-relation
+checks, standard-finalizer comparisons, pools, locks, legacy records and replay.
+Combined optimization validation: 122 tests passed, including native/Python
+scheduler comparison, complete-relation checks, cap/random policies, replay,
+validation, display, and collection-state restoration on successful/error paths.
+See identity-tests.txt and optimization-tests.txt for commands and outcomes.
+
+Reproduction and evidence
+
+inputs/ contains the three exact, hash-verified problem files.
+bench/audit_search_revision.py accepts one explicit source checkout, input JSON,
+fresh output directory, --reverse, and optional --phases. It never selects a
+historical runtime path inside production. measurements/ contains all 91 records
+with input and source hashes, graph hashes, timings, memory and work counters.
+comparison.json contains totals and repeated bidirectional times. variants.json
+records versions, archived source hash and measurement-tool hash.
+diagnostic-prerepair.patch reconstructs B from C before rebuilding its native
+engine. Raw checkpoint archives remain in the original local audit directory;
+no earlier benchmark artifacts or coverage counts are replaced.
+
+Remaining limits
+
+Native growth/export, Python graph construction and checkpoint serialization
+still take time. These measurements do not justify removing alternatives,
+loosening equivalence, or changing the core search. Further acceleration needs
+its own exactness argument and measurement. This audit establishes the two
+reductions above for these cases, not global optimality or new dataset coverage.
