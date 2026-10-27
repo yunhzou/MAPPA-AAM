@@ -1,5 +1,5 @@
 """Exact target actions must transport future atoms, not discard their matches."""
-from itertools import product
+from itertools import product, permutations, combinations
 
 import numpy as np
 import pytest
@@ -85,3 +85,32 @@ def test_asymmetric_future_neighbors_keep_non_equivalent_matches():
     source = graph(['C', 'C', 'O'], [(0, 1, 1), (1, 2, 1)])
     target = graph(['C', 'C', 'C', 'O'], [(0, 1, 1), (1, 2, 1), (2, 3, 1)])
     assert_prefixes(source, target, [0, 1, 2])
+
+
+def test_decoding_transports_later_fragments_with_the_earlier_group():
+    from mappa import AAMProblem, query_path
+    from mappa.alignment.branch import find_islands
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from test_family_query import endpoint
+
+    source = graph(['C'] * 4, [(0, 1, 1), (1, 2, 1), (2, 0, 1)])
+    target = graph(['C'] * 4, [(i, (i + 1) % 4, 1) for i in range(4)])
+    problem = AAMProblem(endpoint('CCCC', source.edges), endpoint('CCCC', target.edges))
+    found = find_islands(source, target, [0, 1, 2, 3], iso_tol=.2, max_branches=100)
+    found, _ = finalize_graph_symmetry(found, target, iso_tolerance=.2)
+    paths = list(found.paths())
+    assert paths and all(len(path.fragments) > 1 for path in paths)
+    for path in paths:
+        first = path.hierarchy.fragments[0]
+        outside = set(target) - {p for _, p in first.representative_assignments}
+        assert any(g.images[p] != p for g in first.target_generators for p in outside)
+        required = set()
+        for fragment in path.hierarchy.fragments:
+            deferred = {tuple(sorted(e)) for e in fragment.deferred_edges}
+            required.update((a, b) for a, b in combinations(sorted(fragment.r_atoms), 2)
+                            if source.has_edge(a, b) and (a, b) not in deferred)
+        for images in permutations(range(4)):
+            expected = all(target.has_edge(images[a], images[b]) for a, b in required)
+            status, _ = query_path(path, problem, dict(enumerate(images)),
+                                   source_atoms=tuple(range(4)), timeout_ms=2000)
+            assert status == ('recovered' if expected else 'not_recovered')
