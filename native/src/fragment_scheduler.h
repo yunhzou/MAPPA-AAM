@@ -251,7 +251,7 @@ py::dict scheduled_graph_record(const ScheduledGraph& graph,const std::vector<in
         for (const auto& b:candidate.automorph) automorph.append(block_dict(translate(b),true));
         for (auto b:automorph) blocks.append(b);
         out["exact_fixed"]=fixed;out["blocks"]=blocks;out["automorph_blocks"]=automorph;
-        out["compression_version"]=2;
+        out["compression_version"]=3;
         return out;
     };
     py::list states,transitions,stops;

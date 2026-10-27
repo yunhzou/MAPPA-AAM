@@ -19,7 +19,7 @@ def graph(elements, edges):
     return build_graph(elements, weights, bond_cut=0.2)
 
 
-def test_continuation_roles_equal_direct_full_matrix_scan():
+def test_historical_v2_roles_equal_direct_full_matrix_scan():
     from mappa.matcher.canonical import _CandidateAutomorphismCanonicalizer
     rng = np.random.default_rng(7321)
     nodes = (2, 5, 9, 12, 19)
@@ -28,7 +28,7 @@ def test_continuation_roles_equal_direct_full_matrix_scan():
         weights = np.triu(weights, 1)
         weights += weights.T
         target = build_graph(['C'] * 20, weights, bond_cut=.2).subgraph(nodes).copy()
-        canonicalizer = _CandidateAutomorphismCanonicalizer(target, wbo_tol=.5)
+        canonicalizer = _CandidateAutomorphismCanonicalizer(target, wbo_tol=.5, compression_version=2)
         for images in permutations(nodes, 3):
             for pooled in (False, True):
                 blocks = (_SymBlock((1,), (images[1], images[2])),) if pooled else ()
@@ -208,7 +208,7 @@ def test_compression_contract_survives_typed_hierarchy_roundtrip():
     record = {'fragments': [{'fragment': [0], 'symmetry': _symmetry_state(candidate)}]}
     hierarchy = AAMHierarchy.from_record(record)
     restored = hierarchy.to_record()['fragments'][0]['symmetry']
-    assert restored['compression_version'] == 2
-    assert candidate_from_record(restored).compression_version == 2
+    assert restored['compression_version'] == 3
+    assert candidate_from_record(restored).compression_version == 3
     del restored['compression_version']
     assert candidate_from_record(restored).compression_version == 1

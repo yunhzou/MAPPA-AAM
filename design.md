@@ -47,14 +47,24 @@ empty match relation.
 operation, one atom at a time, checking every newly introduced bond. Induction
 therefore covers the whole island; a representative-only check is unnecessary.
 
-**Compression.** A target automorphism used during growth must preserve exact
-active WBOs, locked images, and every target outside the fixed occupied set
-pointwise. Pool targets are fixed too: their permutations already belong to
-the pool representation. Such an automorphism fixes every future target choice,
-so extending a representative commutes with its action. Its inverse gives the
-reverse inclusion. Consequently quotienting cannot remove an extension or add
-an invalid match. Tolerance buckets remain coarse grouping hints; they are not
-proof that a permutation preserves the source-target tolerance predicate.
+**Compression.** Fix one target group G for the growing fragment: automorphisms
+of the full exact weighted matrix and active adjacency, preserving node labels,
+each target component, and all locked images. A candidate denotes G applied to
+its witness and local pools. For extension E, **E(G C) = G E(C)**: transport both
+the existing mapping and the next target atom by the same action. The inverse
+action proves completeness. Thus we extend the representative pools and keep
+G symbolic; neither group elements nor complete bijections need enumeration.
+
+Equivalent candidate relations have equal exact colored-graph certificates.
+Mapped source roles and local pool roles identify the relation for this test;
+past moved-atom summaries are metadata, not restrictions on the group. The
+group is independent of which duplicate witnesses happened to be encountered.
+At fragment locking, exact generators are recorded. Later fragments are grown
+in that witness frame; existing reverse-order decoding transports the whole
+later assignment through the earlier action, including its outside atoms.
+Different target components remain separate placements. Locks fix individual
+atoms; tolerance buckets never prove symmetry. Exact weak weights below the
+active threshold are retained in the target symmetry graph too.
 
 ## Implementation and evidence
 
@@ -66,14 +76,12 @@ proof that a permutation preserves the source-target tolerance predicate.
   caching retains the same result and topology dependencies.
 - No alternate deduplication mode remains in the matcher.
 
-New symmetry records carry `compression_version: 2`. Reading an unversioned
-historical record retains its historical group interpretation; it does not
-rerun the old matching algorithm or silently promote the record to corrected
-evidence. Existing finalized generators and benchmark artifacts are preserved.
-Both finalizers interpret version-2 records with the same exact edge colors and
-continuation roles. The reused native workspace keeps the two record versions
-in separate bounded caches. Checkpoint manifests identify the repaired matching
-policy and reject resuming pre-repair searches as corrected runs.
+New symmetry records carry `compression_version: 3`. Version 3 records the
+fixed target action above; old version-1/2 archives retain their historical
+group interpretation. Reading those archives does not rerun an old matcher.
+The standard and reused native finalizers use the same version-specific graph
+and roles, with separate bounded caches. Checkpoint manifests identify
+`exact_fragment_target_action_v3` and reject mixing old searches into new ones.
 
 `tests/test_growth_compression_exactness.py` checks equality of the *complete
 represented relation* with independent injective enumeration after each step.
@@ -94,26 +102,14 @@ generator already on GitHub main is retained: later seeds use its shared shuffle
 pool. Earlier local experiments with independently reshuffled seed orders are
 historical evidence, not timings for this published revision.
 
-## Exact boundary-profile reuse
+## Historical archive interpretation
 
-For each immutable target, cache the ordered nonzero pairs `(q, W[p,q])` for
-every atom p. A candidate's boundary profile filters this row to its outside
-atoms. This equals the original operation of scanning the sorted outside atoms
-and excluding zero weights: the same pairs appear in the same order. We retain
-all nonzero values, including below-threshold weights; no rounding, bond cutoff,
-or symmetry approximation enters this cache. Thus candidate colors, generators,
-and the represented relation are unchanged. Direct full-matrix comparisons
-cover sparse atom indices, pools, and weak bonds.
-
-## Identity groups during finalization
-
-In version-2 records, every atom outside the occupied non-pool set has a unique
-pointwise-fixed role. If no automorphism block exists, each remaining atom also
-has a unique mapped-source role. Every target atom is therefore fixed, so the
-conditioned automorphism group is identity. Returning its empty generator list
-directly is exact. Local pool permutations remain in the pool records and are
-not removed. Legacy records and nonempty automorphism blocks still use the
-exact conditioned solver. The standard finalizer remains an independent oracle.
+Version-2 groups fixed every outside/pool target pointwise. Their saved records
+still use those roles and exact active-edge colors. Their empty-automorph-block
+identity shortcut is restricted to version 2. Version 3 always derives the
+locked target group, including actions moving future atoms. Version 1 retains
+its original colors. This compatibility exists only for reading evidence;
+there is one live matching policy.
 
 ## Cyclic collection during native record construction
 

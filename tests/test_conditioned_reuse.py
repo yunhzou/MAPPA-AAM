@@ -61,7 +61,7 @@ def test_every_transition_and_ordered_generator_matches_reference(tol):
 
 
 @pytest.mark.parametrize('budget', [1, 2**20])
-@pytest.mark.parametrize('compression_version', [1, 2])
+@pytest.mark.parametrize('compression_version', [1, 2, 3])
 def test_conditioned_generators_keep_correlated_ring_symmetry_and_sparse_indices(budget, compression_version):
     import networkx as nx
     rng = np.random.default_rng(3911)
@@ -89,7 +89,7 @@ def test_new_records_preserve_exact_weights_and_outside_atoms():
     target = graph(4, [(0, 1, 1.), (0, 2, 1.1), (1, 3, 1.2)], ['C']*4)
     reference = SymmetryWorkspace(target, .5)
     optimized = ConditionedSymmetryWorkspace(target, .5)
-    for version in (1, 2, 1, 2):
+    for version in (1, 2, 3, 1, 2, 3):
         for witness in ({0: 0, 1: 1}, {0: 0, 1: 1, 2: 2, 3: 3}):
             candidate = candidate_from_record(dict(
                 witness=witness, compression_version=version, blocks=[],

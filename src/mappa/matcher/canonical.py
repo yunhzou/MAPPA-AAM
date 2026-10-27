@@ -293,13 +293,16 @@ class _CandidateAutomorphismCanonicalizer:
     individualize their product images.  Candidate mappings and symmetry pools
     are additional vertex roles.  Equal pynauty certificates therefore mean
     that one automorphism transports the candidate state to the other.
-    Growth certificates additionally fix the unassigned target atoms: extending
-    one representative must preserve all continuations of the represented set.
+    Live candidates represent orbits under the exact target group fixing locked
+    images and component identity. Extension commutes with this whole action,
+    including its action on atoms outside the current fragment.
     """
 
     def __init__(self, g_P, p_orbits=None, locked_mapping=None,
-                 node_policy=None, wbo_tol=None, base_cache=None):
+                 node_policy=None, wbo_tol=None, base_cache=None,
+                 compression_version=3):
         self.g_P = g_P
+        self.compression_version = compression_version
         self.node_policy = as_node_match_policy(node_policy)
         tolerance = float(
             wbo_tol if wbo_tol is not None else
@@ -326,7 +329,7 @@ class _CandidateAutomorphismCanonicalizer:
             # A mutable/custom policy cannot safely share prepared colors.
             cache = None
         if cache is not None:
-            cache_key = (g_P, tolerance, policy_key)
+            cache_key = (g_P, tolerance, policy_key, compression_version)
         base = cache.get(cache_key) if cache is not None else None
         if base is None:
             nodes, atom_index, _base_graph, pair_buckets, zero_bucket = (
@@ -337,12 +340,22 @@ class _CandidateAutomorphismCanonicalizer:
                 atom_index[p]: ('node', self.node_policy.key(g_P, p))
                 for p in nodes
             }
+            if compression_version >= 3:
+                import networkx as nx
+                # Different molecular components remain different placements.
+                for component in nx.connected_components(g_P):
+                    for p in component:
+                        atom_base_color[atom_index[p]] += ('component', min(component))
+                pair_buckets = {
+                    (a, b): (_edge_wbo(g_P, a, b), g_P.has_edge(a, b))
+                    for i, a in enumerate(nodes) for b in nodes[i + 1:]
+                    if _edge_wbo(g_P, a, b) != 0 or g_P.has_edge(a, b)}
             adjacency = defaultdict(set)
             edge_vertices_by_bucket = defaultdict(set)
             exact_edge_vertices = defaultdict(set)
             next_vertex = n_atoms
             for (a, b), bucket in sorted(pair_buckets.items()):
-                if bucket == zero_bucket:
+                if compression_version < 3 and bucket == zero_bucket:
                     continue
                 ai = atom_index[a]
                 bi = atom_index[b]
@@ -350,7 +363,8 @@ class _CandidateAutomorphismCanonicalizer:
                 adjacency[bi].add(next_vertex)
                 adjacency[next_vertex].update((ai, bi))
                 edge_vertices_by_bucket[bucket].add(next_vertex)
-                exact_edge_vertices[_edge_wbo(g_P, a, b)].add(next_vertex)
+                exact_color = bucket if compression_version >= 3 else _edge_wbo(g_P, a, b)
+                exact_edge_vertices[exact_color].add(next_vertex)
                 next_vertex += 1
             base = (
                 tuple(nodes), atom_index, n_atoms, atom_base_color,
@@ -410,7 +424,7 @@ class _CandidateAutomorphismCanonicalizer:
             )
             for p in block.p_atoms:
                 roles[int(p)].append(block_role)
-        if isinstance(cand, _SymCand):
+        if isinstance(cand, _SymCand) and self.compression_version < 3:
             for block in cand.automorph_blocks:
                 group_role = (
                     'automorph_domain', tuple(int(r) for r in block.r_atoms)
@@ -421,6 +435,10 @@ class _CandidateAutomorphismCanonicalizer:
                 for p, items in roles.items()}
 
     def _growth_roles(self, cand, *, group_domains=False):
+        if self.compression_version >= 3:
+            # The action is fixed for this growth, not reconstructed from a
+            # union of moved-atom domains. Those domains are display metadata.
+            return {} if group_domains else self._candidate_roles(cand)
         roles = self._candidate_roles(cand, group_domains=group_domains)
         mapping = cand.mapping if isinstance(cand, _SymCand) else dict(cand)
         pools = {p for block in getattr(cand, 'blocks', ()) for p in block.p_atoms}
@@ -437,10 +455,8 @@ class _CandidateAutomorphismCanonicalizer:
 
     def _colored_vertices(self, cand, *, group_domains=False, locked_roles=None,
                           candidate_roles=None):
-        # Legacy records retain their recorded interpretation. Live growth
-        # always supplies continuation roles and writes the version-2 contract.
-        continuation = (candidate_roles is not None or
-                        getattr(cand, 'compression_version', 1) >= 2)
+        # Historical records retain their recorded group interpretation.
+        continuation = self.compression_version >= 2
         if candidate_roles is None:
             role_builder = self._growth_roles if continuation else self._candidate_roles
             candidate_roles = role_builder(

@@ -64,7 +64,7 @@ class _SymCand:
     )
 
     def __init__(self, mapping=None, blocks=(), exact_fixed=(), multiplicity=1,
-                 automorph_blocks=(), compression_version=2):
+                 automorph_blocks=(), compression_version=3):
         self.compression_version = compression_version
         blocks = tuple(blocks)
         block_r = {r for b in blocks for r in b.r_atoms}

@@ -21,19 +21,23 @@ class SymmetryWorkspace:
         self.coloring_cache = {}
         self.generators = {}
         self.groups = {}
-        self.canonicalizer = None
+        self.canonicalizers = {}
+
+    def canonicalizer_for(self, version):
+        if version not in self.canonicalizers:
+            self.canonicalizers[version] = _CandidateAutomorphismCanonicalizer(
+                self.target, wbo_tol=self.iso_tolerance, compression_version=version)
+        return self.canonicalizers[version]
 
     def conditioned_generators(self, candidate, locked, intern=tuple):
-        if self.canonicalizer is None:
-            self.canonicalizer = _CandidateAutomorphismCanonicalizer(self.target, wbo_tol=self.iso_tolerance)
-        canonicalizer = self.canonicalizer
+        canonicalizer = self.canonicalizer_for(candidate.compression_version)
         locked_roles = defaultdict(list)
         for r, p in sorted(locked):
             if p in canonicalizer.atom_index:
                 locked_roles[p].append(('locked', r))
         coloring = canonicalizer._colored_vertices(candidate, group_domains=True,
             locked_roles={p: tuple(roles) for p, roles in locked_roles.items()})
-        key = tuple(vertices for _label, vertices in coloring)
+        key = candidate.compression_version, tuple(vertices for _label, vertices in coloring)
         if key not in self.coloring_cache:
             self.coloring_cache[key] = intern(canonicalizer.atom_generators(candidate, colored_vertices=coloring))
         return self.coloring_cache[key]

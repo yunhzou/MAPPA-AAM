@@ -164,6 +164,7 @@ struct Interner {
 };
 
 struct Target : Graph {
+    std::vector<int> component;    // distinct target components stay separate
     std::vector<int> orbit;        // p_orbits[v]
     std::vector<int> orbit_size;   // by orbit id
     std::vector<int> bucket;       // n*n pair bucket table (symmetric)
@@ -849,37 +850,8 @@ struct Canonicalizer {
             int id = P->roles.intern(key);
             for (int p : b.p) pairs.push_back({p, id});
         }
-        for (const auto& b : c.automorph) {
-            key.clear();
-            key.push_back(2);
-            for (int r : b.r) key.push_back(r);
-            int id = P->roles.intern(key);
-            for (int p : b.p) pairs.push_back({p, id});
-        }
-        // A compressed witness may be extended alone only if the transporting
-        // automorphism fixes every possible unassigned target atom. Pool atoms
-        // remain fixed here; their alternatives are represented by the pool.
-        std::vector<uint8_t> occupied(P->n, 0);
-        for (int r : c.mapped) occupied[c.img[r]] = 1;
-        for (const auto& b : c.blocks)
-            for (int p : b.p) occupied[p] = 0;
-        for (int p = 0; p < P->n; ++p) {
-            key.clear();
-            if (!occupied[p]) {
-                key = {3, p};
-            } else {
-                key.push_back(4);
-                for (int q = 0; q < P->n; ++q) {
-                    const double weight = P->wbo(p, q);
-                    if (occupied[q] || weight == 0.0) continue;
-                    int64_t bits;
-                    std::memcpy(&bits, &weight, sizeof(bits));
-                    key.push_back(q);
-                    key.push_back(bits);
-                }
-            }
-            pairs.push_back({p, P->roles.intern(key)});
-        }
+        // A candidate denotes the entire exact target-group orbit. Outside
+        // atoms move with it; later extension and decoding carry that action.
         std::sort(pairs.begin(), pairs.end());
         const int NP = P->n;
         out.start.assign(NP + 1, 0);
@@ -906,6 +878,7 @@ struct Canonicalizer {
             key.clear();
             key.push_back(0);
             key.push_back(P->ecode[p]);
+            key.push_back(P->component[p]);
             key.push_back(locked_r_of_p[p]);
             for (int k = roles.start[p]; k < roles.start[p + 1]; ++k) key.push_back(roles.ids[k]);
             coloured.push_back({P->colours.intern(key), p});
@@ -967,6 +940,7 @@ struct Canonicalizer {
             auto& item = items[count++];
             item.clear();
             item.push_back((int64_t)P->orbit[p]);
+            item.push_back((int64_t)P->component[p]);
             item.push_back((int64_t)locked_r_of_p[p]);
             for (int k = roles.start[p]; k < roles.start[p + 1]; ++k) item.push_back(roles.ids[k]);
         }
@@ -1780,20 +1754,30 @@ struct PyTarget {
             g.bucket[(size_t)a * g.n + b] = bucket;
             g.bucket[(size_t)b * g.n + a] = bucket;
         }
-        // nauty base graph: atoms then one vertex per nonzero-bucket pair in
-        // sorted pair order (canonical._CandidateAutomorphismCanonicalizer)
+        g.component.assign(g.n, -1);
+        for (int root = 0; root < g.n; ++root) {
+            if (g.component[root] >= 0) continue;
+            std::vector<int> pending{root};
+            g.component[root] = root;
+            for (size_t i = 0; i < pending.size(); ++i)
+                for (int neighbor : g.adj[pending[i]])
+                    if (g.component[neighbor] < 0) {
+                        g.component[neighbor] = root;
+                        pending.push_back(neighbor);
+                    }
+        }
+        // Preserve the full weighted matrix and active adjacency, including
+        // weak pairs below the bond floor. No tolerance buckets prove symmetry.
         std::vector<Pair> nauty_edges;
         int next = g.n;
-        for (const auto& t : sorted_pairs) {
-            int a = std::get<0>(t), b = std::get<1>(t), bucket = std::get<2>(t);
-            if (bucket == zero_bucket) continue;
+        for (int a = 0; a < g.n; ++a) for (int b = a + 1; b < g.n; ++b) {
+            const double weight = g.wbo(a, b);
+            if (weight == 0.0 && !g.has_edge(a, b)) continue;
             nauty_edges.push_back({a, next});
             nauty_edges.push_back({b, next});
-            g.edge_vertex_bucket.push_back(bucket);
-            const double weight = g.wbo(a, b);
             int64_t bits;
             std::memcpy(&bits, &weight, sizeof(bits));
-            int exact_color = g.colours.intern({1, bits});
+            int exact_color = g.colours.intern({1, bits, g.has_edge(a, b)});
             g.edge_cells[exact_color].push_back(next);
             ++next;
         }
@@ -1839,7 +1823,7 @@ py::dict symmetry_state(const Cand& c) {
     py::dict witness;
     for (int r : c.mapped) witness[py::int_(r)] = c.img[r];
     item["witness"] = witness;
-    item["compression_version"] = 2;
+    item["compression_version"] = 3;
     py::list blocks;
     item["blocks"] = blocks;
     py::list exact;
