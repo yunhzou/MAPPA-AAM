@@ -57,7 +57,8 @@ def summarize(run,output):
                     data=directed[d]
                     count=data['search'].get('metrics',{}).get('cut_count') if data else None
                     selected=[r for (cut,seed),r in data['seeds'].items() if seed<=n] if data else []
-                    full=count is not None and len(selected)==count*n
+                    keys={(cut,seed) for cut,seed in data['seeds'] if seed<=n} if data else set()
+                    full=count is not None and keys=={(cut,seed) for cut in range(count) for seed in range(1,n+1)}
                     outcomes=[r['evaluation']['reference_recovery'] for r in selected]
                     if not full:outcomes.append('unknown')
                     verdicts.append(union_outcome(outcomes));complete &= full
