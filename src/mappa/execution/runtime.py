@@ -14,6 +14,7 @@ import traceback
 import uuid
 
 from .bundles import BundleWriter, read_blob
+from .resources import tree_rss
 
 
 class Workspace:
@@ -109,14 +110,14 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                     continue
                 task, token = claim['task'], claim['token']
                 parent.send((task, claim['dependencies']))
-                peak, publishing, publication_deadline = 0, False, None
+                peak, publishing, publication_deadline, monitoring = 0, False, None, 0.
                 start, heartbeat = time.perf_counter(), time.monotonic()
                 result = {}
                 while True:
                     try:
-                        tree = psutil.Process(process.pid)
-                        rss = sum(p.memory_info().rss for p in [tree, *tree.children(recursive=True)])
-                        peak = max(peak, rss)
+                        stamp = time.perf_counter()
+                        peak = max(peak, tree_rss(process.pid))
+                        monitoring += time.perf_counter()-stamp
                     except psutil.NoSuchProcess:
                         continue
                     if peak > memory_bytes:
@@ -145,7 +146,7 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                         if not queue.heartbeat(task.key, token):
                             return  # lease lost; never accept stale work
                         heartbeat = time.monotonic()
-                result.update(peak_tree_rss_bytes=peak, worker=worker_id,
+                result.update(peak_tree_rss_bytes=peak, worker=worker_id, monitoring_seconds=monitoring,
                               elapsed_seconds=time.perf_counter()-start)
                 queue.finish(task.key, token, state, result)
                 if state != 'complete':

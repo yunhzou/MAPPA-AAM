@@ -119,6 +119,7 @@ def main():
                     compute_cpu_seconds=sum(r['result']['cpu_seconds'] for r in rows.values()),
                     compute_seconds=sum(r['result']['compute_seconds'] for r in rows.values()),
                     publish_seconds=sum(r['result']['publish_seconds'] for r in rows.values()),
+                    monitoring_seconds=sum(r['result']['monitoring_seconds'] for r in rows.values()),
                     max_worker_rss_bytes=max(r['result']['peak_tree_rss_bytes'] for r in rows.values()),
                     shared_files=sum(1 for p in folder.rglob('*') if p.is_file()),
                     **verification)
