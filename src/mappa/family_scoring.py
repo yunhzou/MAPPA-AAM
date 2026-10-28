@@ -122,7 +122,8 @@ def event_objective(compiled,*,reverse=False,bond_floor=.2,event_tolerance=.5):
     return objective,max(0,lower),dict(variable_bond_terms=len(terms),constant_bond_terms=removed)
 
 
-def minimize_events(path,problem,*,reverse=False,seconds=10.,bond_floor=.2,event_tolerance=.5):
+def minimize_events(path,problem,*,reverse=False,seconds=10.,bond_floor=.2,event_tolerance=.5,
+                    record_query=None):
     """Return a proven minimum or explicit bounds and an achievable witness.
 
     ``seconds`` budgets encoding and solver checks; a completed SAT check's
@@ -164,6 +165,8 @@ def minimize_events(path,problem,*,reverse=False,seconds=10.,bond_floor=.2,event
             result['witness_seconds']+=time.perf_counter()-stamp
         elif status==z3.unsat:lower=mid+1
         else:result['unknown_reason']=solver.reason_unknown()
+        if record_query is not None:
+            record_query(solver, str(status), mid)
         solver.pop()
         if status==z3.unknown:break
     result.update(lower_bound=lower,upper_bound=upper,optimal=lower==upper,events=events,

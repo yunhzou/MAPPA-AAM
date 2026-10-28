@@ -70,3 +70,40 @@ def test_archive_byte_ranges_detect_corruption(tmp_path):
         stream.seek(member['offset']); stream.write(b'x')
     with pytest.raises(ValueError, match='checksum'):
         read_member(member)
+
+
+@pytest.mark.parametrize('reverse', [False, True])
+def test_minimum_tasks_preserve_partial_score_and_prefixes(tmp_path, reverse):
+    from mappa import AAMProblem, AAMSearchPlan
+    from mappa.family_scoring import minimize_events
+    from rebenchmark.minima import selected_families, seed_bounds
+    from rebenchmark.search import select_contexts
+    problem, _, _ = prepare('[OH2:1]>>[OH2:1].O')
+    config = AAMSearchConfig(seed_count=3, branch_limit=100, iso_tolerance=1)
+    directed = AAMProblem(problem.product, problem.reactant) if reverse else problem
+    plan = AAMSearchPlan(problem, directed, config, reverse)
+    graph = search_aam(directed, config).graph
+    tiers, families = selected_families(plan, graph)
+    results = {i: minimize_events(path, directed, reverse=reverse, seconds=5)
+               for i, (path, _) in enumerate(families)}
+    bounds = seed_bounds(tiers, families, results)
+    assert len(bounds) == 3 and all(row['minimum_proven'] for row in bounds.values())
+    for prefix in range(1, 4):
+        eligible = min(row['coverage_tier'] for s, row in bounds.items() if int(s) <= prefix)
+        actual = min(row['upper_bound'] for s, row in bounds.items()
+                     if int(s) <= prefix and row['coverage_tier'] == eligible)
+        subset = select_contexts(graph, range(prefix))
+        direct = [minimize_events(path, directed, reverse=reverse, seconds=5)
+                  for path in subset.paths()]
+        assert all(row['optimal'] for row in direct)
+        assert actual == min(row['upper_bound'] for row in direct)
+
+
+def test_missing_families_do_not_prove_positive_minimum():
+    from rebenchmark.minima import seed_bounds
+    families = [(None, [dict(seed=1)]), (None, [dict(seed=1), dict(seed=2)])]
+    result = {0: dict(lower_bound=4, upper_bound=4, optimal=True)}
+    rows = seed_bounds({0: (-2, -4), 1: (-2, -4)}, families, result)
+    assert rows['1']['lower_bound'] == 0 and rows['1']['upper_bound'] == 4
+    assert not rows['1']['minimum_proven'] and not rows['2']['minimum_proven']
+    assert rows['2']['upper_bound'] is None

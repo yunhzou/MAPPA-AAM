@@ -4,7 +4,7 @@ The shared executor handles CPU placement and the directional wall budget.
 Archive byte ranges avoid copying old solver logs or extracting shared trees.
 """
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, is_dataclass
 import hashlib
 import json
 import os
@@ -126,8 +126,12 @@ def execute(args):
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         queue = TaskQueue(Path(scratch)/'queue.sqlite', identity)
         tasks = []
+        planner = plan_missing
+        if specification.get('stage') == 'minima':
+            from .minima import plan_minima
+            planner = plan_minima
         for row in specification['archives']:
-            tasks.extend(plan_missing(row['path'], row['task'],
+            tasks.extend(planner(row['path'], row['task'],
                 seconds=specification['case_seconds'], memory_bytes=memory))
         if specification.get('selected_keys') is not None:
             selected = set(specification['selected_keys'])
@@ -153,17 +157,19 @@ def execute(args):
                 record = dict(state=row['state'], resource=row['result'])
                 if row['state'] == 'complete':
                     value = read_blob(row['result']['blob'], scratch)
-                    record['evaluation'] = value['evaluation']
-                    record['classes'] = value['classes']
-                    record['evidence'] = asdict(value['evidence'])
-                    record['source'] = value['source']
-                    record['raw'] = value['raw']
-                    record['graph'] = value['graph']
-                    record['finalized'] = asdict(value['finalized']) if value['finalized'] else None
+                    record.update(value)
                 if record['resource'] and 'blob' in record['resource']:
                     record['resource'] = dict(record['resource'], blob=asdict(record['resource']['blob']))
                 merged[key] = record
-            save(output/'results.json', merged)
+            def serializable(value):
+                if is_dataclass(value):
+                    return serializable(asdict(value))
+                if isinstance(value, dict):
+                    return {k: serializable(v) for k, v in value.items()}
+                if isinstance(value, (tuple, list)):
+                    return [serializable(v) for v in value]
+                return value
+            save(output/'results.json', serializable(merged))
             save(output/'progress.json', dict(states=queue.snapshot(), utc=time.time(), finished=True))
             # Let remote workers receive the terminal queue state before closing.
             time.sleep(5)
