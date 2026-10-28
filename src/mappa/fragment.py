@@ -7,6 +7,7 @@ import time
 
 from .growth import IslandBranchLimitExceeded, grow_island
 from .matcher import _nauty_orbits
+from .matcher.bond_policy import BondTolerance
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,7 @@ class FragmentMatchConfig:
     allow_mapped_seed: bool = False
     orbit_dedup: bool = True
     random_seed: int = 42
+    bond_tolerance: BondTolerance | None = None
 
 
 @dataclass(frozen=True)
@@ -102,7 +104,8 @@ def match_fragment(source, target, *, seed, context=None, config=None,
             prior_deferred_edges=context.deferred_edges,
             allow_mapped_seed=config.allow_mapped_seed,
             replay=context.growth_replay, random_seed=config.random_seed,
-            events=events, profile=profile, profile_context=profile_context)
+            events=events, profile=profile, profile_context=profile_context,
+            bond_tolerance=config.bond_tolerance)
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,
                                    time.perf_counter() - started)

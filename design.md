@@ -343,3 +343,35 @@ directional deadline. Exact queries, family reports and witnesses are bundled
 for audit; saved graphs and search settings remain unchanged.
 
 Scheduler continuations use a verified final queue checkpoint after the prior coordinator and active workers retire. Only pending tasks with no attempt history enter the next allocation. Preserve completed, interrupted and limited outcomes in the original run for aggregation and separate diagnosis. Carry the original remaining directional budget; never reset it. The original and continuation coordinators share endpoint publication and snapshot handling. Scientific decoding and saved input identities remain unchanged.
+
+### Conditional bond tolerance in fragment matching (2026-10-28)
+
+The fragment matcher owns bond compatibility. `FragmentMatchConfig.bond_tolerance`
+accepts `BondTolerance(value, inclusive=True)`, where `value` is either a constant
+or a deterministic, endpoint-symmetric function of the source graph and a bond's
+atom indices. A rule can use element labels, node features, or bond attributes.
+The caller can reuse `bond_event_threshold` for ordinary/metal event criteria;
+the matching kernel contains no metal-specific branch.
+
+```mermaid
+flowchart LR
+  A[Constant or conditional bond rule] --> B[Resolve once per source bond]
+  B --> C[Python fragment matcher]
+  B --> D[Native fragment matcher]
+  C --> E[Compressed matches and anchors]
+  D --> E
+```
+
+Both engines consume the same resolved thresholds. Pool compression compares
+source bond thresholds as well as weights before combining source roles. Exact
+target automorphisms, locked assignments, growth selection and branch caps retain
+their existing behavior. Cut replay fixes the policy for its session and rejects
+calls with changed tolerances. Trace explanations use the same comparisons.
+
+Without this setting, the existing inclusive `iso_tolerance` behavior remains.
+`inclusive=False` supports the strict unchanged-bond condition needed when events
+start at equality. This capability applies to the reusable `match_fragment` API
+and its growth kernel. It is not yet a saved AAM conversion pipeline, and it does
+not change the serialized search policy or restart any benchmark. Matching still
+checks active source bonds and the target graph floor; this alone is not a proof
+that all internal target-only/weak-pair events have been resolved.

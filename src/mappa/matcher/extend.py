@@ -59,6 +59,7 @@ def _extend_sym_cands(
     anchor_wbo: Wbo | None = None,
     dedupe_edges: Iterable[EdgeKey] | None = None,
     node_policy=None,
+    bond_tolerance=None,
 ) -> list[_SymCand]:
     """Symmetry-compressed incremental extension.
 
@@ -125,7 +126,7 @@ def _extend_sym_cands(
     ctx = _make_extension_context(
         fragment_old, n, g_R, g_P, mapping, iso_tol, islands_R,
         p_orbits, r_orbits, deferred_edges, anchor_u, anchor_wbo,
-        dedupe_edges, node_policy)
+        dedupe_edges, node_policy, bond_tolerance)
     if ctx is None:
         return []
 
@@ -167,6 +168,7 @@ class _ExtensionContext:
     strict_r_wbos: Mapping[Node, Wbo]
     island_atoms: tuple[Node, ...]
     node_policy: Any = DEFAULT_NODE_POLICY
+    bond_tolerance: Any = None
 
     @property
     def is_merge(self) -> bool:
@@ -257,6 +259,7 @@ def _make_extension_context(
     anchor_wbo: Wbo | None,
     dedupe_edges: Iterable[EdgeKey] | None,
     node_policy,
+    bond_tolerance=None,
 ) -> _ExtensionContext | None:
     """Collect repeated extension inputs into one typed context."""
     bonded_in_frag = _active_fragment_neighbors(fragment_old, g_R, n)
@@ -292,6 +295,7 @@ def _make_extension_context(
             fragment_old, anchor_u, anchor_wbo, g_R, n),
         island_atoms=_locked_island_atoms(n, fragment_old, mapping, islands_R),
         node_policy=node_policy,
+        bond_tolerance=bond_tolerance,
     )
 
 
@@ -325,6 +329,7 @@ def _supported_value(
         join_block_idx=join_block_idx,
         block_indexes=block_indexes,
         strict_r_wbos=ctx.strict_r_wbos,
+        bond_tolerance=ctx.bond_tolerance,
     )
 
 
@@ -375,7 +380,7 @@ def _target_join_info(
         return None, False
     can_extend = _r_compatible_with_block(
         cand, join_idx, ctx.n, set(ctx.fragment_old),
-        ctx.g_R, ctx.r_orbits)
+        ctx.g_R, ctx.r_orbits, bond_tolerance=ctx.bond_tolerance)
     return join_idx, can_extend
 
 

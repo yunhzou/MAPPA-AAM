@@ -16,7 +16,7 @@ def _edge_wbo(g, a, b):
     return 0.0
 
 
-def _growth_edge_supported(w_R, w_P, iso_tol, graph_floor=0.2):
+def _growth_edge_supported(w_R, w_P, iso_tol, graph_floor=0.2, *, inclusive=True):
     """Compatibility for one active R-side growth/vector edge.
 
     The popped edge is not special chemically; it is one active R-side pair in
@@ -26,7 +26,8 @@ def _growth_edge_supported(w_R, w_P, iso_tol, graph_floor=0.2):
     bond as matching a target nonbond.
     """
     w_P = float(w_P)
-    return w_P >= graph_floor and abs(float(w_R) - w_P) <= iso_tol
+    difference = abs(float(w_R) - w_P)
+    return w_P >= graph_floor and (difference <= iso_tol if inclusive else difference < iso_tol)
 
 
 def _wbo_bucket(w):

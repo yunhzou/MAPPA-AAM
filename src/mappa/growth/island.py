@@ -43,7 +43,7 @@ def grow_island(g_R, g_P, seed, mapping,
                 node_policy=None,
                 allow_mapped_seed=False,
                 profile=None,
-                profile_context=None, replay=None, random_seed=42):
+                profile_context=None, replay=None, random_seed=42, bond_tolerance=None):
     """
     Grow a fragment from `seed` by uniformly sampling the live boundary atoms.
 
@@ -64,6 +64,7 @@ def grow_island(g_R, g_P, seed, mapping,
     existing trace_run.HTML viewer.
     """
     node_policy = as_node_match_policy(node_policy)
+    bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
     if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):
         raise ValueError("cut replay requires the native element-policy matcher without trace events")
     if native.applicable(g_R, g_P, p_orbits, node_policy, events):
@@ -73,7 +74,8 @@ def grow_island(g_R, g_P, seed, mapping,
             islands_R=islands_R, p_orbits=p_orbits,
             prior_deferred_edges=prior_deferred_edges,
             allow_mapped_seed=allow_mapped_seed, profile=profile,
-            profile_context=profile_context, replay=replay, random_seed=random_seed)
+            profile_context=profile_context, replay=replay, random_seed=random_seed,
+            bond_tolerance=bond_tolerance)
         if out is None:
             raise ValueError("Selected native growth cannot represent these inputs")
         return out
@@ -267,7 +269,7 @@ def grow_island(g_R, g_P, seed, mapping,
             cands, fragment, n, g_R, g_P, mapping,
             iso_tol, islands_R, p_orbits=p_orbits, r_orbits=r_orbits,
             deferred_edges=deferred_edges, anchor_u=u, anchor_wbo=wbo,
-            dedupe_edges=dedupe_edges, node_policy=node_policy)
+            dedupe_edges=dedupe_edges, node_policy=node_policy, bond_tolerance=bond_tolerance)
         if prof is not None:
             extend_elapsed = time.perf_counter() - extend_t0
             prof['extend_elapsed_sec'] += extend_elapsed
@@ -350,8 +352,8 @@ def grow_island(g_R, g_P, seed, mapping,
                     'reason': ('merge_failed' if n_in_mapping else 'cut_all_cands'),
                     'island_image': int(mapping[n]) if n_in_mapping else None,
                     'island_id': int(islands_R[n]) if islands_R and n in islands_R else None,
-                    'why_per_cand': (why_merge_failed(cands, fragment, n, mapping, islands_R, g_R, g_P, iso_tol) if n_in_mapping
-                                     else why_extend_failed(cands, fragment, n, u, wbo, g_R, g_P, mapping, iso_tol, node_policy=node_policy)),
+                    'why_per_cand': (why_merge_failed(cands, fragment, n, mapping, islands_R, g_R, g_P, iso_tol, bond_tolerance=bond_tolerance) if n_in_mapping
+                                     else why_extend_failed(cands, fragment, n, u, wbo, g_R, g_P, mapping, iso_tol, node_policy=node_policy, bond_tolerance=bond_tolerance)),
                     'cands_count': len(cands),
                     'represented_assignments': represented_assignment_expr(cands),
                     'cands_sample': cands_sample(cands, 5),

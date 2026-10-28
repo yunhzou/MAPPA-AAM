@@ -121,6 +121,12 @@ struct Graph {
     std::vector<uint8_t> edge;          // n*n adjacency flags
     std::vector<double> w;              // n*n full WBO matrix
     double bond_cut = 0.2;
+    std::vector<double> bond_tolerances; // source pair rules, resolved before growth
+    bool tolerance_inclusive = true;
+
+    double tolerance(int a, int b, double uniform) const {
+        return bond_tolerances.empty() ? uniform : bond_tolerances[(size_t)a * n + b];
+    }
 
     bool has_edge(int a, int b) const { return edge[(size_t)a * n + b] != 0; }
     // primitives._edge_wbo: 0.0 on the diagonal, else the matrix value
@@ -131,8 +137,9 @@ struct Graph {
 inline long wbo_bucket(double w) { return (long)std::nearbyint(w * 5.0); }
 
 // primitives._growth_edge_supported
-inline bool growth_edge_supported(double w_R, double w_P, double iso_tol, double floor) {
-    return w_P >= floor && std::fabs(w_R - w_P) <= iso_tol;
+inline bool growth_edge_supported(double w_R, double w_P, double iso_tol, double floor, bool inclusive = true) {
+    double difference = std::fabs(w_R - w_P);
+    return w_P >= floor && (inclusive ? difference <= iso_tol : difference < iso_tol);
 }
 
 struct VecHash {
@@ -555,8 +562,9 @@ bool support_assignments_for_value(const Cand& c, const Context& ctx, int v_n, i
     const double floor = P.bond_cut;
     auto pair_ok = [&](int r_atom, double w_R, int p_atom) {
         double w_P = P.wbo(p_atom, v_n);
-        if (r_atom == ctx.strict_r) return growth_edge_supported(ctx.strict_w, w_P, ctx.iso_tol, floor);
-        return growth_edge_supported(w_R, w_P, ctx.iso_tol, floor);
+        double limit = ctx.R->tolerance(r_atom, ctx.n, ctx.iso_tol);
+        return growth_edge_supported(r_atom == ctx.strict_r ? ctx.strict_w : w_R,
+                                     w_P, limit, floor, ctx.R->tolerance_inclusive);
     };
     // fixed_used: images of atoms outside every block
     for (int r : c.mapped)
@@ -646,9 +654,9 @@ bool r_compatible_with_block(const Cand& c, int bidx, const Context& ctx) {
     for (int r = 0; r < R.n; ++r)
         if (ctx.fragment_old[r] && !contains(b.r, r) && c.has(r)) outside.push_back(r);
     auto rel_sig = [&](int r) {
-        std::vector<std::pair<int, double>> out;
+        std::vector<std::tuple<int, double, double>> out;
         for (int x : outside)
-            if (R.has_edge(r, x)) out.push_back({x, R.wbo(r, x)});
+            if (R.has_edge(r, x)) out.push_back({x, R.wbo(r, x), R.tolerance(r, x, ctx.iso_tol)});
         return out;
     };
     auto n_sig = rel_sig(ctx.n);
@@ -1727,8 +1735,20 @@ void fill_graph(Graph& g, const std::vector<std::string>& elements,
 struct PySource {
     Source g;
     PySource(const std::vector<std::string>& elements, const std::vector<std::vector<double>>& wbo,
-             double bond_cut, const std::vector<Pair>& edges) {
+             double bond_cut, const std::vector<Pair>& edges,
+             const std::vector<std::tuple<int, int, double>>& tolerances, bool inclusive) {
         fill_graph(g, elements, wbo, bond_cut, edges);
+        g.tolerance_inclusive = inclusive;
+        if (!tolerances.empty()) {
+            g.bond_tolerances.assign((size_t)g.n * g.n, -1.0);
+            for (auto [a,b,value] : tolerances) {
+                if (a < 0 || b < 0 || a >= g.n || b >= g.n || !std::isfinite(value) || value < 0)
+                    throw std::invalid_argument("invalid source bond tolerance");
+                g.bond_tolerances[(size_t)a*g.n+b] = g.bond_tolerances[(size_t)b*g.n+a] = value;
+            }
+            for (auto [a,b] : edges)
+                if (g.tolerance(a,b,0) < 0) throw std::invalid_argument("missing source bond tolerance");
+        }
     }
 };
 
@@ -1945,7 +1965,11 @@ PYBIND11_MODULE(_engine, mod) {
         .def_readonly("n", &DenseGraph::n);
     py::class_<PySource>(mod, "SourceGraph")
         .def(py::init<const std::vector<std::string>&, const std::vector<std::vector<double>>&,
-                      double, const std::vector<Pair>&>());
+                      double, const std::vector<Pair>&,
+                      const std::vector<std::tuple<int,int,double>>&, bool>(),
+             py::arg("elements"), py::arg("wbo"), py::arg("bond_cut"), py::arg("edges"),
+             py::arg("tolerances")=std::vector<std::tuple<int,int,double>>{},
+             py::arg("inclusive")=true);
     py::class_<PyTarget>(mod, "TargetGraph")
         .def(py::init<const std::vector<std::string>&, const std::vector<std::vector<double>>&,
                       double, const std::vector<Pair>&, const std::vector<int>&,

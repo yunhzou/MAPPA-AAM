@@ -21,10 +21,11 @@ class CutReplayView:
 
 
 class _CutSession:
-    def __init__(self, source, target, target_orbits):
+    def __init__(self, source, target, target_orbits, bond_tolerance=None):
         self.source = source
         self.target = target
-        self.source_view = native.source_graph(source)
+        self.source_view = native.source_graph(source,
+            None if bond_tolerance is None else bond_tolerance.resolve(source))
         self.target_view = native.target_graph(target, target_orbits)
         if self.source_view is None or self.target_view is None:
             raise ValueError("cut replay requires native WBO graphs and exact target orbits")
@@ -42,8 +43,8 @@ class _CutSession:
 
 class CutReplay(_CutSession):
     def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,
-                 checkpoints=True, reference_only=False):
-        super().__init__(source, target, target_orbits)
+                 checkpoints=True, reference_only=False, bond_tolerance=None):
+        super().__init__(source, target, target_orbits, bond_tolerance)
         self.engine = native._engine.GrowthReplay(
             self.source_view.graph, self.target_view.graph, cache_bytes, checkpoints, reference_only)
 
@@ -56,7 +57,7 @@ class FragmentRepair(_CutSession):
     independent fragment. Search ordering and admission remain the caller's.
     """
     def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,
-                 extension_cache_bytes=0):
-        super().__init__(source, target, target_orbits)
+                 extension_cache_bytes=0, bond_tolerance=None):
+        super().__init__(source, target, target_orbits, bond_tolerance)
         self.engine = native._engine.FragmentRepair(
             self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes)

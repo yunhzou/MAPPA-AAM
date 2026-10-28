@@ -125,7 +125,7 @@ def pool_by_frag_atom(heap, used_edges, fragment, mapping, g_R):
 
 
 def why_extend_failed(cands, fragment, n_atom, anchor_atom, anchor_wbo,
-                      g_R, g_P, locked_mapping, iso_tol, node_policy=None):
+                      g_R, g_P, locked_mapping, iso_tol, node_policy=None, bond_tolerance=None):
     """Per-candidate explanation of why extension to n_atom failed."""
     node_policy = as_node_match_policy(node_policy)
     locked_p_atoms = set((locked_mapping or {}).values())
@@ -157,20 +157,19 @@ def why_extend_failed(cands, fragment, n_atom, anchor_atom, anchor_wbo,
                 support = _support_witness_for_value(
                     cand, n_atom, v, bonded, r_wbos, g_P, iso_tol,
                     join_block_idx=join_idx,
-                    strict_r_wbos=strict_r_wbos)
+                    strict_r_wbos=strict_r_wbos, bond_tolerance=bond_tolerance)
                 if support is None:
                     bad = []
                     for u, w in r_wbos:
                         if u not in cm:
                             continue
                         wp = _edge_wbo(g_P, cm[u], v)
-                        if u in strict_r_wbos:
-                            if not _growth_edge_supported(
-                                    strict_r_wbos[u], wp, iso_tol, graph_floor):
-                                bad.append(f'R[{u}]: active edge needs target WBO>={graph_floor:.3f} and |{w:.3f}-{wp:.3f}|={abs(w-wp):.3f}<={iso_tol}')
-                        elif not _growth_edge_supported(
-                                w, wp, iso_tol, graph_floor):
-                            bad.append(f'R[{u}]: active edge needs target WBO>={graph_floor:.3f} and |{w:.3f}-{wp:.3f}|={abs(w-wp):.3f}<={iso_tol}')
+                        weight = strict_r_wbos.get(u, w)
+                        limit = iso_tol if bond_tolerance is None else bond_tolerance.limit(u, n_atom)
+                        inclusive = True if bond_tolerance is None else bond_tolerance.inclusive
+                        if not _growth_edge_supported(weight, wp, limit, graph_floor, inclusive=inclusive):
+                            operator = '<=' if inclusive else '<'
+                            bad.append(f'R[{u}]: target WBO>={graph_floor:.3f} and |{weight:.3f}-{wp:.3f}| {operator} {limit}')
                     why.append('; '.join(bad[:5]) if bad else 'no block witness')
                 tried.append({'v': int(v), 'rejected': bool(why),
                               'reason': '; '.join(why) if why else 'OK'})
@@ -191,7 +190,7 @@ def why_extend_failed(cands, fragment, n_atom, anchor_atom, anchor_wbo,
 
 
 def why_merge_failed(cands, fragment, n_atom, mapping, islands_R,
-                     g_R, g_P, iso_tol):
+                     g_R, g_P, iso_tol, bond_tolerance=None):
     """Per-candidate explanation of why whole-island merge failed."""
     graph_floor = float(g_P.graph.get("bond_cut", 0.2))
     if islands_R is None or n_atom not in islands_R:
@@ -223,10 +222,14 @@ def why_merge_failed(cands, fragment, n_atom, mapping, islands_R,
                     continue
                 if r >= r2 and r2 in island_atoms:
                     continue
+                if not g_R.has_edge(r, r2):
+                    continue
                 wR = _edge_wbo(g_R, r, r2)
                 p, p2 = nc[r], nc[r2]
                 wP = _edge_wbo(g_P, p, p2)
-                if not _growth_edge_supported(wR, wP, iso_tol, graph_floor):
+                limit = iso_tol if bond_tolerance is None else bond_tolerance.limit(r, r2)
+                inclusive = True if bond_tolerance is None else bond_tolerance.inclusive
+                if not _growth_edge_supported(wR, wP, limit, graph_floor, inclusive=inclusive):
                     why.append(f'R[{r}]-R[{r2}]: target WBO must be >= {graph_floor:.3f}; |{wR:.3f}-{wP:.3f}|={abs(wR-wP):.3f} (P[{p}]-P[{p2}])')
         out.append({'cand_idx': ci, 'reasons': why[:8]})
     return out

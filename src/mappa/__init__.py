@@ -8,6 +8,7 @@ from .search_orientation import AAMSearchPlan, plan_aam_search
 from .family_query import query_path
 from .analytical import compile_mapping_families, compile_mechanism_families
 from .mechanisms import group_mechanisms
+from .matcher.bond_policy import BondTolerance
 from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
 from .search_graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
 from .search_symmetry import finalize_graph_symmetry
@@ -63,7 +64,7 @@ __all__ = [
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
     "group_mechanisms", "compile_mechanism_families", "MechanismResult", "MappingFamilyResult",
-    "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",
+    "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",
     "AAMSearchGraph", "SearchState", "FragmentTransition", "SearchPath", "SearchBranch",
     "SearchContext", "SearchStop",
     "PathRealization", "finalize_graph_symmetry", "SubgraphSearchResult",

@@ -37,6 +37,7 @@ class _NativeGraphView:
     graph: object
     nodes: tuple[int, ...]
     index: dict[int, int]
+    bond_tolerance: object = None
 
 
 def _graph_edges(g, index):
@@ -53,10 +54,10 @@ def _wbo_rows(g, nodes):
     return [[float(matrix[a][b]) for b in nodes] for a in nodes]
 
 
-def source_graph(g_R):
+def source_graph(g_R, bond_tolerance=None):
     """Native view of the (possibly cut) reactant graph, cached on the graph."""
     cached = g_R.graph.get("_native_source")
-    if cached is not None and cached[0] is g_R:
+    if cached is not None and cached[0] is g_R and cached[1].bond_tolerance == bond_tolerance:
         return cached[1]
     nodes = tuple(sorted(map(int, g_R.nodes())))
     index = {atom: position for position, atom in enumerate(nodes)}
@@ -66,8 +67,10 @@ def source_graph(g_R):
         return None
     elements = [str(g_R.nodes[v].get("element")) for v in nodes]
     native = _engine.SourceGraph(elements, rows, float(g_R.graph.get("bond_cut", 0.2)),
-                                 edges)
-    view = _NativeGraphView(native, nodes, index)
+                                 edges,
+                                 [] if bond_tolerance is None else bond_tolerance.native_values(nodes),
+                                 True if bond_tolerance is None else bond_tolerance.inclusive)
+    view = _NativeGraphView(native, nodes, index, bond_tolerance)
     g_R.graph["_native_source"] = (g_R, view)
     return view
 
@@ -149,12 +152,18 @@ def applicable(g_R, g_P, p_orbits, node_policy, events, defer=False):
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, p_orbits, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, replay=None, random_seed=42):
+                allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None):
     """Run the native engine; returns None when the inputs are not covered."""
     if replay is not None and (replay.source is not g_R or replay.target is not g_P):
         raise ValueError("cut replay view belongs to different source/target graphs")
-    source_view = replay.source_view if replay is not None else source_graph(g_R)
+    source_view = replay.source_view if replay is not None else source_graph(g_R, bond_tolerance)
     target_view = replay.target_view if replay is not None else target_graph(g_P, p_orbits)
+    if replay is not None:
+        recorded = source_view.bond_tolerance
+        if (recorded is None) != (bond_tolerance is None) or (
+                recorded is not None and (recorded.inclusive != bond_tolerance.inclusive or
+                any(recorded.limit(a, b) != value for (a, b), value in bond_tolerance.values.items()))):
+            raise ValueError("cut replay bond tolerances differ from its source policy")
     if source_view is None or target_view is None:
         return None
     source_index = source_view.index

@@ -8,7 +8,7 @@ from .primitives import SYM_SUPPORT_MAX_STATES, _edge_wbo, _growth_edge_supporte
 from .state import _SymBlock, _SymCand, _sym_block_indexes
 
 
-def _r_compatible_with_block(cand, block_idx, n, fragment, g_R, r_orbits):
+def _r_compatible_with_block(cand, block_idx, n, fragment, g_R, r_orbits, bond_tolerance=None):
     if not isinstance(cand, _SymCand):
         return False
     b = cand.blocks[block_idx]
@@ -21,7 +21,8 @@ def _r_compatible_with_block(cand, block_idx, n, fragment, g_R, r_orbits):
         out = []
         for x in outside:
             if g_R.has_edge(r, x):
-                out.append((x, _edge_wbo(g_R, r, x)))
+                out.append((x, _edge_wbo(g_R, r, x),
+                            None if bond_tolerance is None else bond_tolerance.limit(r, x)))
         return tuple(out)
 
     n_sig = rel_sig(n)
@@ -99,7 +100,7 @@ def _support_assignments_for_value(cand, n, v_n, bonded_in_frag, r_wbos,
                                g_P, iso_tol, join_block_idx=None,
                                strict_r_wbos=None,
                                max_states=SYM_SUPPORT_MAX_STATES,
-                               block_indexes=None):
+                               block_indexes=None, bond_tolerance=None):
     """Return every constrained pool assignment supporting the new target.
 
     Unrestricted pools stay symbolic. Only assignments whose domains shrink
@@ -110,6 +111,9 @@ def _support_assignments_for_value(cand, n, v_n, bonded_in_frag, r_wbos,
 
     def _pair_ok(r_atom, w_R, p_atom):
         w_P = _edge_wbo(g_P, p_atom, v_n)
+        if bond_tolerance is not None:
+            return bond_tolerance.supports(r_atom, n, strict_by_r.get(r_atom, w_R),
+                                           w_P, graph_floor)
         if r_atom in strict_by_r:
             return _growth_edge_supported(
                 strict_by_r[r_atom], w_P, iso_tol, graph_floor)
