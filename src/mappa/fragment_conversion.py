@@ -15,6 +15,7 @@ from .matcher.bond_policy import BondTolerance
 from .matcher import _nauty_orbits
 from .frag import bond_event_threshold, build_graph, classify_bonds
 from .event_patterns import SignedEventIndex
+from .event_certificates import EventFamilyCertificates
 from .final_branches import FinalBranchCatalogue
 
 
@@ -27,10 +28,15 @@ class ConvertedFragmentBranch:
     formed: tuple
     complete: bool
     reason: str = ''
+    partition_complete: bool = True
 
     @property
     def events(self):
         return len(self.broken) + len(self.formed) if self.complete else None
+
+    @property
+    def representative_events(self):
+        return len(self.broken) + len(self.formed)
 
 
 @dataclass
@@ -55,7 +61,10 @@ class ConvertedFragments:
         from dataclasses import asdict
         return dict(schema='mappa.fragment_conversion/v1',
                     original_catalogue=self.catalogue.to_record(),
-                    branches=[asdict(b) | {'events': b.events} for b in self.branches],
+                    partition_scope='saved representative; correlated assignments remain in original_catalogue',
+                    branches=[asdict(b) | {'events': b.events,
+                                          'representative_events': b.representative_events}
+                              for b in self.branches],
                     statistics=self.statistics, complete=self.complete,
                     minimum=self.minimum, threshold=self.threshold,
                     metal_threshold=self.metal_threshold)
@@ -136,6 +145,7 @@ def convert_aam_fragments(aam, *, threshold=.5, metal_threshold=.3):
     catalogue = aam if isinstance(aam, FinalBranchCatalogue) else FinalBranchCatalogue(aam.problem).add_aam(aam)
     problem = catalogue.problem
     index = SignedEventIndex(problem, threshold=threshold, metal_threshold=metal_threshold)
+    certificates = EventFamilyCertificates(index)
     rematcher = FragmentRematcher(problem, threshold, metal_threshold)
     branches, invariance = [], {}
     entries = [(policy, pairs, family_id) for (policy, pairs), ids in catalogue.branches.items()
@@ -146,11 +156,9 @@ def convert_aam_fragments(aam, *, threshold=.5, metal_threshold=.3):
         family = catalogue.families[family_id]
         if family_id not in invariance:
             family.validate_representative(problem)
-            invariance[family_id] = index.invariant_path(family.as_path(problem))
-        if not invariance[family_id]:
-            branches.append(ConvertedFragmentBranch(family_id, pairs, (), (), (), False,
-                'saved symmetry still has event-dependent alternatives'))
-            continue
+            path = family.as_path(problem)
+            invariance[family_id] = certificates.invariant_class(
+                index.vector(dict(family.mapping)), certificates.actions(path))
         mapping = dict(family.mapping)
         refined = tuple(sorted(piece for pair in pairs
                                for piece in rematcher.refine(policy, pair, mapping)))
@@ -162,12 +170,10 @@ def convert_aam_fragments(aam, *, threshold=.5, metal_threshold=.3):
         internal = any(a in owners and b in owners and owners[a] == owners[b]
                        for events, owners in ((broken, r_owner), (formed, p_owner))
                        for a, b, _, _ in events)
-        if internal:
-            branches.append(ConvertedFragmentBranch(family_id, pairs, refined, (), (), False,
-                'rematched fragment contains a target-only or weak-pair event'))
-        else:
-            branches.append(ConvertedFragmentBranch(family_id, pairs, refined,
-                tuple(broken), tuple(formed), True))
+        reason = ('rematched fragment contains a target-only or weak-pair event' if internal else
+                  'saved symmetry still has event-dependent alternatives' if not invariance[family_id] else '')
+        branches.append(ConvertedFragmentBranch(family_id, pairs, refined,
+            tuple(broken), tuple(formed), not internal and invariance[family_id], reason, not internal))
     statistics = dict(families=len(catalogue.families), original_branches=len(entries),
         converted_branches=sum(b.complete for b in branches),
         distinct_fragment_pairs=len(rematcher.pairs), matching_calls=rematcher.calls,
