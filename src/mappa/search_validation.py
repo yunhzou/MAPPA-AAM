@@ -9,8 +9,8 @@ class RepresentativeValidationWorkspace:
 
     All histories ending at a state share its representative mapping. Checking
     that mapping against the union of ancestor preservation constraints proves
-    every incoming path valid. A failed union is checked pathwise so rejection
-    counts and diagnostics agree with the original validator.
+    every incoming path valid. Otherwise, the same cached constraint checker
+    evaluates each history to distinguish valid and invalid paths.
     """
 
     def __init__(self, problem, *, cache_entries=4096):
@@ -107,15 +107,13 @@ class RepresentativeValidationWorkspace:
         )
 
     def _pathwise(self, graph, terminal=None):
-        from .family_scoring import validate_representative
-
         valid, invalid = 0, []
         for path in graph.paths(terminal):
             if len(path.mapping) != self.n:
                 continue
-            self.stats["fallback_path_checks"] += 1
+            self.stats["individual_path_checks"] += 1
             try:
-                validate_representative(path, self.problem)
+                self.validate_path(path)
                 valid += 1
             except AssertionError:
                 invalid.append(path.terminal)
@@ -123,8 +121,8 @@ class RepresentativeValidationWorkspace:
 
     def validate_graph(self, graph):
         """Return (valid full-path count, invalid terminal IDs with multiplicity)."""
-        # Native scheduling numbers states topologically. Other graph layouts
-        # use the existing oracle; this optimization never repairs their order.
+        # Union certificates require one context and topological state IDs.
+        # Other layouts use the same path checker without this certificate.
         if len(graph.contexts) != 1 or any(
             e.source >= e.target for e in graph.transitions
         ):

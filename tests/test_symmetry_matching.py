@@ -8,10 +8,6 @@ from mappa import classify_bonds
 from mappa import build_graph
 
 from mappa.alignment import (
-    cut_sweep,
-    match_wbo_graphs,
-    run_cut_sweep_chunk,
-    select_min_mechanisms,
     _generate_seed_orders,
     symmetry_repair_mapping,
 )
@@ -135,40 +131,6 @@ def test_partial_mapping_certificate_requires_exact_endpoint_transporter():
     assert not canonicalizer.equivalent({0: 0}, {0: 1})
 
 
-def test_cut_sweep_compact_metrics_are_opt_in_and_respect_branch_cap():
-    elements = ["C", "C"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-
-    ordinary = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=2,
-        symmetry_repair=False)
-    measured, metrics = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=2,
-        symmetry_repair=False, return_metrics=True)
-
-    assert measured == ordinary
-    assert metrics["configured_max_branches"] == 2
-    assert metrics["cuts"] == 2
-    assert metrics["seed_orders"] == 2
-    assert metrics["growth_calls"] > 0
-    assert metrics["max_live_branches"] <= 2
-    assert metrics["max_growth_candidates"] <= 2
-
-    parallel, parallel_metrics = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=2, n_seeds=1, max_branches=2,
-        symmetry_repair=False, return_metrics=True)
-    # Multiprocessing may return a different symmetry-equivalent witness;
-    # mechanism-family keys and compact metrics are the invariant objects.
-    assert set(parallel) == set(ordinary)
-    assert parallel_metrics["cuts"] == metrics["cuts"]
-    assert parallel_metrics["seed_orders"] == metrics["seed_orders"]
-    assert parallel_metrics["max_live_branches"] <= 2
-
-
 def test_heavy_only_cut_items_keep_hydrogens_but_do_not_cut_xh_edges():
     from mappa.alignment.sweep import cut_sweep_items
 
@@ -179,81 +141,6 @@ def test_heavy_only_cut_items_keep_hydrogens_but_do_not_cut_xh_edges():
 
     assert cut_sweep_items(
         wbo, elements=elements, heavy_only=True) == [(), ((0, 1),)]
-
-
-def test_worker_local_cut_compression_is_exactly_serial_equivalent():
-    elements = ["C", "O", "N"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-    kwargs = {
-        "n_seeds": 2,
-        "max_branches": 100,
-        "symmetry_repair": False,
-    }
-
-    serial = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=0, **kwargs)
-    compressed_parallel = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=2, **kwargs)
-
-    assert compressed_parallel == serial
-
-
-def test_parallel_cut_sweep_persists_disjoint_reduction_buckets(tmp_path):
-    elements = ["C", "O", "N"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-    kwargs = {
-        "n_seeds": 2,
-        "max_branches": 100,
-        "symmetry_repair": False,
-    }
-
-    serial = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=0, **kwargs)
-    parallel = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=2,
-        intermediate_dir=tmp_path, **kwargs)
-
-    assert parallel == serial
-    manifest = json.loads((tmp_path / "manifest.json").read_text())
-    assert manifest["mechanism_count"] == len(serial)
-    assert manifest["worker_pool_entries"] >= len(serial)
-    assert list(tmp_path.glob("raw_bucket_*.pkl"))
-    assert list(tmp_path.glob("reduced_bucket_*.pkl"))
-
-
-def test_one_cut_chunk_parallelizes_across_seed_orders(monkeypatch):
-    import mappa.alignment.sweep as sweep_module
-
-    observed = {}
-
-    def fake_parallel(_el_r, _wbo_r, _el_t, _wbo_t, cfg, workers,
-                      _core_r, cuts, **_kwargs):
-        observed["workers"] = workers
-        observed["seeds"] = cfg["n_seeds"]
-        observed["cuts"] = cuts
-        return {}
-
-    monkeypatch.setattr(
-        sweep_module, "_cut_sweep_chunk_parallel", fake_parallel)
-    elements = ["C", "C"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-
-    result = run_cut_sweep_chunk(
-        elements, wbo, elements, wbo, [((0, 1),)],
-        n_workers=10, n_seeds=3, max_branches=10,
-        symmetry_repair=False)
-
-    assert result == {}
-    assert observed == {
-        "workers": 3,
-        "seeds": 3,
-        "cuts": [((0, 1),)],
-    }
 
 
 def test_parallel_cut_sweep_consumes_results_in_cut_seed_order(monkeypatch):
@@ -505,15 +392,11 @@ def test_planar_metal_tetramethyl_metal_carbon_branch_is_fourfold():
 def test_core_alignment_expands_internal_branch_degeneracy():
     elements, wbo = _tetramethyl_metal_graph()
 
-    pool = run_cut_sweep_chunk(
-        elements, wbo, elements, wbo, [()],
-        core_R=[1, 5], n_workers=1, n_seeds=1,
-        max_branches=100, iso_tol=0.5, symmetry_wbo_tol=0.2)
-
-    mappings = {
-        tuple(sorted(info["mapping"].items()))
-        for info in pool.values()
-    }
+    from mappa import MolecularEndpoint, AAMSearchConfig, search_core_assignments
+    endpoint = MolecularEndpoint(tuple(elements), np.zeros((len(elements), 3)), wbo)
+    result = search_core_assignments(endpoint, endpoint, [1, 5],
+        config=AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=.5))
+    mappings = {assignment.pairs for assignment in result.assignments}
     expected_targets = {1, 5, 9, 13}
 
     assert len(mappings) == 12
@@ -551,15 +434,12 @@ def test_core_alignment_does_not_filter_nonmatching_core_edges():
     wbo_t[0, 1] = wbo_t[1, 0] = 0.0
     wbo_t[1, 2] = wbo_t[2, 1] = 1.67
 
-    pool = run_cut_sweep_chunk(
-        el_r, wbo_r, el_t, wbo_t, [()],
-        core_R=[0, 1, 2], n_workers=1, n_seeds=1,
-        graph_floor=0.2, iso_tol=0.1, max_branches=100)
-
-    assert {
-        tuple(sorted(info["mapping"].items()))
-        for info in pool.values()
-    } == {((0, 0), (1, 1), (2, 2))}
+    from mappa import MolecularEndpoint, AAMSearchConfig, search_core_assignments
+    result = search_core_assignments(
+        MolecularEndpoint(tuple(el_r), np.zeros((3, 3)), wbo_r),
+        MolecularEndpoint(tuple(el_t), np.zeros((3, 3)), wbo_t), [0, 1, 2],
+        config=AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=.1))
+    assert {assignment.pairs for assignment in result.assignments} == {((0, 0), (1, 1), (2, 2))}
 
 
 def test_nauty_orbits_group_near_wbo_by_tolerance():
@@ -1267,24 +1147,6 @@ def test_core_atoms_do_not_reorder_seed_sequence(monkeypatch):
     assert seen == [0, 1, 2]
 
 
-def test_match_wbo_graphs_uses_three_seed_contract():
-    elements = ["C", "C", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    result = match_wbo_graphs(
-        elements, wbo, elements, wbo,
-        n_seeds=3, graph_floor=0.2, iso_tol=0.5,
-        repair_symmetry=False,
-    )
-
-    assert result.n_seeds == 3
-    assert result.best is not None
-    assert result.best.score == (0, 0)
-    assert (len(result.best.broken), len(result.best.formed)) == (0, 0)
-
-
 def test_find_islands_reuses_precomputed_orbits(monkeypatch):
     wbo = np.zeros((2, 2))
     wbo[0, 1] = wbo[1, 0] = 1.0
@@ -1313,91 +1175,6 @@ def test_removed_overlap_scorers_are_not_public():
     assert not hasattr(mappa, 'rxn_overlap_per_mode')
 
 
-def test_cut_sweep_is_core_mechanism_discovery_api():
-    elements = ["C", "C", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=False,
-    )
-    minimal = select_min_mechanisms(pool)
-
-    assert minimal
-    assert all(len(sig[0]) + len(sig[1]) == 0 for sig in minimal)
-
-
-def test_cut_sweep_respects_hard_anchor_map():
-    elements = ["O", "C", "O"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=True,
-        anchor_map={0: 2},
-    )
-    minimal = select_min_mechanisms(pool)
-
-    assert minimal
-    assert all(info["mapping"][0] == 2 for info in minimal.values())
-    assert all(info["mapping"][2] == 0 for info in minimal.values())
-
-    incompatible = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=True,
-        anchor_map={0: 1},
-    )
-
-    assert incompatible == {}
-
-
-def test_cut_sweep_preserves_branch_exact_automorph_group():
-    elements = ["H", "H"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 0.9
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=False,
-    )
-    info = next(iter(pool.values()))
-    branch_symmetry = info["branch_symmetry"]
-
-    assert branch_symmetry["rule"] == "selected_analytical_branch"
-    assert branch_symmetry["analytical_branch_count"] == 2
-    assert any(
-        block == {
-            "fragment_index": 0,
-            "block_index": 0,
-            "island_idx": 1,
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "extendable": False,
-            "open": False,
-            "assignments": "exact_group",
-            "source": "exact_automorph_group",
-        }
-        for block in branch_symmetry["blocks"]
-    )
-    assert branch_symmetry["color_groups"] == [{
-        "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "sources": ["exact_automorph_group"],
-    }]
-    fragment_symmetry = branch_symmetry["fragments"][0]["symmetry"]
-    assert fragment_symmetry["automorph_blocks"][0]["source"] == (
-        "exact_automorph_group")
-    assert "automorph_generators" not in fragment_symmetry
-
-
 def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
     elements = ["C", "C", "C"]
     wbo_r = np.zeros((3, 3))
@@ -1423,3 +1200,13 @@ def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
     assert all(branch.mapping[0] == 0 for branch in branches.paths())
     assert [e["seed"] for e in events if e.get("type") == "seed_start"][:2] == [1, 0]
     assert sum(1 for e in events if e.get("type") == "pass_start") == 2
+
+
+def test_explicit_symmetry_repair_cannot_silently_revert_anchor_violation(monkeypatch):
+    from mappa.alignment import sweep
+    graph = build_graph(['C', 'C'], np.zeros((2, 2)), bond_cut=.2)
+    monkeypatch.setattr(sweep, 'symmetry_repair_mapping', lambda *a, **k: {0: 1, 1: 0})
+    config = sweep._cut_sweep_cfg(n_atoms=2, anchor_map={0: 0})
+    with pytest.raises(ValueError, match='violated fixed anchors'):
+        sweep._score_branch_mapping({0: 0, 1: 1}, graph, graph, np.zeros((2, 2)),
+            np.zeros((2, 2)), graph, {}, {}, (), config)

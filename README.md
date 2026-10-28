@@ -292,7 +292,14 @@ Target NPZ files additionally contain `frequencies` and `modes`. See the
 chosen decoded event witness and serializing it with `reaction_record`.
 
 The legacy orientation-selection APIs and CLI stages `rp` and `full` have been
-removed. They have no compatibility aliases or fallback dispatch.
+removed. They have no compatibility aliases or fallback dispatch. The old
+`alignment.api` and `cut_sweep` execution entry points are also removed; use
+`search_aam` followed by `decode_events`.
+
+`MAPPA_NATIVE=1` is the default native selection. A missing or broken native
+extension raises an error. Set `MAPPA_NATIVE=0` to explicitly select Python.
+Custom node policies and growth tracing use the Python implementation because
+those capabilities are not implemented by the native growth engine.
 
 ## Result hierarchy
 

@@ -381,7 +381,7 @@ def compete_fragments(a, config=None):
                     workspace=symmetry_workspace,
                 )
                 # A shared terminal witness can satisfy all ancestor constraints
-                # at once; invalid unions fall back to checking each history.
+                # at once; otherwise the same validator checks each history.
                 validated, invalid = validation_workspace.validate_graph(graph)
                 counts["validated_paths"] += validated
                 if invalid:

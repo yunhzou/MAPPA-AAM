@@ -1,26 +1,11 @@
-"""Molecule-level WBO graph alignment.
+"""Shared branch scheduling and typed hierarchy structures.
 
-This package owns the public alignment API and branch-level scheduling. Lower
-layers handle fragment growth (`mappa.growth`) and symmetry-compressed
-candidate state (`mappa.matcher`).
+Public reaction search belongs to mappa.aam; conversion and event counting to
+mappa.postprocessing. This package does not expose another end-to-end pipeline.
 """
 from __future__ import annotations
 
-from .api import (
-    MatchCandidate,
-    MatchResult,
-    align_from_arrays,
-    analyze_alignment,
-    cut_edges_above_floor,
-    match_wbo_graphs,
-)
-from .sweep import (
-    cut_sweep_items,
-    cut_sweep,
-    merge_cut_sweep_pools,
-    run_cut_sweep_chunk,
-    select_min_mechanisms,
-)
+from .sweep import cut_sweep_items
 from .branch import (
     SYM_REPAIR_MAX_EVALS,
     _Branch,
@@ -44,16 +29,9 @@ from .mapping_families import (
 from .post_aam import (
     AAMBranch,
     AAMHierarchy,
-    AffineChiralityConstraint,
     AtomBijection,
     AtomPermutation,
-    ConstraintEvaluation,
-    FixedMappingRMSD,
     FragmentMatch,
-    MappingEvaluation,
-    OrientedSimplex,
     PermutationGroup,
-    PostAAMMechanism,
-    PostAAMSelectionProblem,
     SymmetryDomain,
 )

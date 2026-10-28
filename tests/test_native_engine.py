@@ -176,3 +176,24 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
     assert result is not None
     assert [dict(match) for match in result] == [{10: 100, 20: 110}]
     assert result[0].fragment == frozenset({10, 20})
+
+
+@pytest.mark.parametrize('selection', [None, '1'])
+def test_missing_selected_engine_is_an_error(selection, monkeypatch):
+    from mappa.growth import native
+    monkeypatch.setattr(native, '_engine', None)
+    if selection is None:
+        monkeypatch.delenv('MAPPA_NATIVE', raising=False)
+    else:
+        monkeypatch.setenv('MAPPA_NATIVE', selection)
+    with pytest.raises(ImportError, match='not built'):
+        native.available()
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
+    assert not native.available()
+
+
+def test_invalid_backend_is_not_an_implicit_selection(monkeypatch):
+    from mappa.growth import native
+    monkeypatch.setenv('MAPPA_NATIVE', 'auto')
+    with pytest.raises(ValueError, match='must be 0'):
+        native.available()

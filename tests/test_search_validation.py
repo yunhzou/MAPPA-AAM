@@ -84,14 +84,14 @@ def test_join_certifies_both_histories_with_one_terminal_check():
     ws = RepresentativeValidationWorkspace(p)
     assert ws.validate_graph(g) == (2, [])
     assert ws.stats["terminal_checks"] == 1 and ws.stats["certified_paths"] == 2
-    assert ws.stats["fallback_path_checks"] == 0
+    assert ws.stats["individual_path_checks"] == 0
 
 
 def test_one_invalid_history_does_not_mark_the_other_invalid():
     p, g = example(0.0)
     ws = RepresentativeValidationWorkspace(p)
     assert ws.validate_graph(g) == (1, [3])
-    assert ws.stats["fallback_path_checks"] == 2
+    assert ws.stats["individual_path_checks"] == 2
 
 
 def test_wrong_elements_and_duplicate_images_fail():
@@ -105,3 +105,12 @@ def test_wrong_elements_and_duplicate_images_fail():
         assert RepresentativeValidationWorkspace(pp).validate_graph(gg) == oracle(
             gg, pp
         )
+
+
+def test_graph_validation_uses_one_constraint_checker(monkeypatch):
+    import mappa.family_scoring as historical
+    def forbidden(*args, **kwargs):
+        pytest.fail('graph validation invoked the historical scoring validator')
+    monkeypatch.setattr(historical, 'validate_representative', forbidden)
+    problem, graph = example(0.0)
+    assert RepresentativeValidationWorkspace(problem).validate_graph(graph) == (1, [3])

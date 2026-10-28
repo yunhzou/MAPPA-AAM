@@ -2,15 +2,17 @@
 
 The native engine is a C++ port of :func:`mappa.growth.island.grow_island`
 and the matcher step it drives.  It is used only when the extension is
-importable, ``MAPPA_NATIVE`` is not ``0`` (enabled by default), and the call is one the port
+importable, ``MAPPA_NATIVE=1`` (the default), and the call is one the port
 covers (default element policy, exact nauty orbit map with a structural zero
 bucket, no trace events).  Its outputs are the same ``_IsoResult`` objects the
-Python engine returns. ``tests/test_native_engine.py`` compares growth calls,
+Python engine returns. A missing or broken selected extension is an error;
+``MAPPA_NATIVE=0`` explicitly selects Python. ``tests/test_native_engine.py`` compares growth calls,
 symmetry state, cap behavior, and typed AAM outputs against the Python engine.
 """
 from __future__ import annotations
 
 import os
+from importlib import import_module
 import time
 from dataclasses import dataclass
 
@@ -19,8 +21,10 @@ from ..matcher.policy import ElementNodeMatchPolicy
 from .result import IslandBranchLimitExceeded, _IsoResult
 
 try:  # pragma: no cover - depends on the build
-    from .. import _engine
-except ImportError:  # pragma: no cover
+    _engine = import_module('mappa._engine')
+except ModuleNotFoundError as exc:  # pragma: no cover
+    if exc.name != 'mappa._engine':
+        raise
     _engine = None
 
 
@@ -29,7 +33,15 @@ def built():
 
 
 def available():
-    return built() and os.environ.get("MAPPA_NATIVE", "1") != "0"
+    selected = os.environ.get("MAPPA_NATIVE", "1")
+    if selected not in ('0', '1'):
+        raise ValueError('MAPPA_NATIVE must be 0 (Python) or 1 (native)')
+    if selected == '0':
+        return False
+    if not built():
+        raise ImportError('Native growth is selected but mappa._engine is not built; '
+                          'build it or explicitly select MAPPA_NATIVE=0')
+    return True
 
 
 @dataclass(frozen=True)

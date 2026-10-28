@@ -197,3 +197,19 @@ use the existing owners, remove superseded paths, and update this one design.
 
 Standalone examples are removed. Paper witness inputs stay beside the relevant
 manuscript evidence. Keep `skills/` unchanged pending a separate review.
+
+## Removed competing paths
+
+`alignment.api` and its search/ranking wrappers are removed. The old sweep
+executor, worker pool, reduction and minimum-selection entry points are removed;
+`alignment/sweep.py` retains only cut planning and helpers used by current AAM,
+explicit analytical grouping and TS core assignment. `aam.py` owns reaction
+search and `postprocessing.py` owns anchored conversion/counting.
+
+The unused post-AAM chirality/RMSD selection framework is removed. Fragment,
+permutation, hierarchy and branch types remain. Native selection fails explicitly
+when the selected engine is missing or broken; `MAPPA_NATIVE=0` explicitly selects
+Python. Capability selection for custom node policies and recorded growth traces
+remains deliberate, before execution; a failed native call cannot switch engines.
+Explicit symmetry repair may not silently revert an anchor violation. Graph
+validation uses one constraint checker for both shared and individual histories.
