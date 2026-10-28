@@ -809,62 +809,6 @@ def find_islands(g_R, g_P, seed_order,
     return graph.finish()
 
 
-def _chirality_violations(mapping, coords_R, coords_P,
-                          broken, formed, elements_R, min_deg=4):
-    """Count spectator-stereocenter chirality flips.
-    Spectator = atom whose 4+ mapped neighbors are all preserved
-    (no incident broken/formed bond). Sign = sign(det) of first-3
-    neighbor displacement vectors against the 4th. Skip near-coplanar."""
-    bad_atoms = set()
-    for (i, j, _, _) in broken:
-        bad_atoms.add(i); bad_atoms.add(j)
-    inv = {v: k for k, v in mapping.items()}
-    for (ip, jp, _, _) in formed:
-        if ip in inv: bad_atoms.add(inv[ip])
-        if jp in inv: bad_atoms.add(inv[jp])
-
-    # Build neighbor lists from R-coords (assume bond-graph already filtered)
-    # We use "any atom within reasonable bond distance" — use the bond-graph
-    # caller passes us implicitly through coords ordering. For correctness
-    # we re-derive from coords by looking up close neighbors.
-    # Simpler: just take all atoms within 1.9 Å in R as "neighbors".
-    n_R = len(elements_R)
-    diff = coords_R[:, None, :] - coords_R[None, :, :]
-    dist = np.linalg.norm(diff, axis=2)
-    np.fill_diagonal(dist, np.inf)
-    violations = 0
-    checked = 0
-    for u in range(n_R):
-        if u in bad_atoms: continue
-        if u not in mapping: continue
-        nbrs = np.where(dist[u] < 1.9)[0].tolist()
-        # all must be mapped + spectator
-        if len(nbrs) < min_deg: continue
-        if any(nb not in mapping for nb in nbrs): continue
-        if any(nb in bad_atoms for nb in nbrs): continue
-        # take first 4 neighbors
-        nb4 = nbrs[:4]
-        # signed volume in R-frame
-        ru = coords_R[u]
-        v1 = coords_R[nb4[1]] - coords_R[nb4[0]]
-        v2 = coords_R[nb4[2]] - coords_R[nb4[0]]
-        v3 = coords_R[nb4[3]] - coords_R[nb4[0]]
-        det_R = float(np.linalg.det(np.stack([v1, v2, v3])))
-        # corresponding atoms in P-frame
-        pu = coords_P[mapping[u]]
-        pn = [coords_P[mapping[nb]] for nb in nb4]
-        v1p = pn[1] - pn[0]
-        v2p = pn[2] - pn[0]
-        v3p = pn[3] - pn[0]
-        det_P = float(np.linalg.det(np.stack([v1p, v2p, v3p])))
-        if abs(det_R) < 0.05 or abs(det_P) < 0.05:
-            continue  # near-coplanar; sign unstable
-        checked += 1
-        if np.sign(det_R) != np.sign(det_P):
-            violations += 1
-    return violations
-
-
 def _ordered_seed_nodes(g_R, rng, common_element_threshold=3):
     nodes = list(g_R.nodes())
     element_counts = Counter(g_R.nodes[n].get('element') for n in nodes)

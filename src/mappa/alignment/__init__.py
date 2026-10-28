@@ -11,7 +11,6 @@ from .branch import (
     _Branch,
     _alignment_state_signature,
     _chemistry_orbit_signature,
-    _chirality_violations,
     _generate_seed_orders,
     _mapping_change_score,
     _orbit_pair,

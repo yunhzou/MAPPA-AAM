@@ -113,7 +113,8 @@ def test_retired_alignment_and_geometry_selection_are_not_exported():
     import mappa.alignment as alignment
     import mappa.alignment.post_aam as structures
     for name in ('match_wbo_graphs', 'align_from_arrays', 'analyze_alignment',
-                 'cut_sweep', 'run_cut_sweep_chunk', 'select_min_mechanisms'):
+                 'cut_sweep', 'run_cut_sweep_chunk', 'select_min_mechanisms',
+                 '_chirality_violations'):
         assert not hasattr(alignment, name)
     for name in ('PostAAMSelectionProblem', 'PostAAMMechanism',
                  'AffineChiralityConstraint', 'FixedMappingRMSD'):
