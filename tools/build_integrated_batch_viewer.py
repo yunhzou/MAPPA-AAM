@@ -173,7 +173,7 @@ document.getElementById('search').oninput=e=>{{const q=e.target.value.trim().toL
 renderList();const requested=decodeURIComponent(location.hash.slice(1));openCase(CASES.find(c=>c.id===requested)||CASES[0]);
 </script></body></html>"""
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(style_document(html, 'catalog', 'batch'), encoding="utf-8")
+    output.write_text(style_document(html, 'batch', 'batch'), encoding="utf-8")
     return {
         "output": str(output),
         "cases": len(cases),

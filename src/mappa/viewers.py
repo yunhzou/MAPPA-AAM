@@ -1,4 +1,4 @@
-"""Shared molecular and catalog presentation; search code does not depend on it.
+"""Shared molecular and batch presentation; search code does not depend on it.
 
 The molecular layout is the original white R/P/TS viewer from stable/legacy-aam.
 Adapters supply recorded data, rather than introducing report-specific skins.
@@ -15,8 +15,8 @@ ASSETS = Path(__file__).with_name('static')
 
 
 def stylesheet(family='reaction'):
-    if family not in ('reaction', 'catalog'):
-        raise ValueError('Supported viewer styles are reaction and catalog')
+    if family not in ('reaction', 'batch'):
+        raise ValueError('Supported viewer styles are reaction and batch')
     return (ASSETS / f'{family}_viewer.css').read_text()
 
 

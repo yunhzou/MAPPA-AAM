@@ -378,40 +378,6 @@ def test_capped_sibling_does_not_discard_a_successful_path(monkeypatch):
     assert [p.mapping for p in result.paths()] == [{0: 1, 1: 0}]
 
 
-def test_fragment_archive_and_target_action_preserve_evidence():
-    from mappa.smiles import smiles_to_weighted_graph
-    from mappa.fragment_matching import detect_fragments, materialize_target_coverage_orbit
-    from mappa.fragment_matching.serialization import (
-        fragment_candidate_from_record, fragment_candidate_to_record,
-        fragment_detection_to_record)
-    source = smiles_to_weighted_graph('CO')
-    target = smiles_to_weighted_graph('COC')
-    result = detect_fragments(source, target)
-    candidate = result.candidates[0]
-    variants = materialize_target_coverage_orbit(candidate, target)
-    assert {dict(v.mapping)[0] for v in variants} == {0, 2}
-    for variant in variants:
-        assignments = {a: b for fragment in variant.aam_hierarchy.fragments
-                        for a, b in fragment.representative_assignments if a in variant.retained_atoms}
-        assert assignments == dict(variant.mapping)
-        record = json.loads(json.dumps(fragment_candidate_to_record(variant)))
-        restored = fragment_candidate_from_record(record)
-        assert restored.mapping == variant.mapping
-        assert restored.aam_hierarchy == variant.aam_hierarchy
-        derivation = restored.derivations[0]
-        action = dict(derivation.target_action)
-        witness = {a: b for path in derivation.initial_paths[:1] + derivation.residual_paths
-                   for a, b in path.mapping.items() if a in variant.retained_atoms}
-        assert {a: action.get(b, b) for a, b in witness.items()} == assignments
-    record = json.loads(json.dumps(fragment_detection_to_record(
-        result, row_index=0, representation='CO')))
-    from mappa.fragment_matching.serialization import fragment_archive_from_record
-    graphs, fragments = fragment_archive_from_record(record)
-    assert all('search_graphs' not in c for c in record['candidates'])
-    restored = fragment_candidate_from_record(record['candidates'][0], search_graphs=graphs,
-                                              hierarchy_fragments=fragments)
-    graph_id = record['candidates'][0]['derivations'][0]['initial_paths'][0]['graph']
-    assert restored.derivations[0].initial_paths[0].graph is graphs[graph_id]
 
 
 def test_offline_viewer_uses_saved_graph_without_new_matching(tmp_path, monkeypatch):

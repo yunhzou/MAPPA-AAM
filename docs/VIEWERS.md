@@ -6,7 +6,7 @@ adapter; they do not introduce another stylesheet or benchmark-specific skin.
 | Style | Purpose | Authoritative files |
 | --- | --- | --- |
 | `reaction` | R/P comparison, TS structures/modes, mapping diagnostics and recorded growth | `src/mappa/static/reaction_viewer.css`; original R/P/TS layout in `reaction_viewer.html` |
-| `catalog` | Catalog search, precursor/results lists and batch navigation | `src/mappa/static/catalog_viewer.css` |
+| `batch` | AAM and TS result navigation | `src/mappa/static/batch_viewer.css` |
 
 The molecular presentation restores the original white panels, yellow mechanism
 buttons, thin molecular sticks, R-order/spatial-alignment controls and TS mode
@@ -18,7 +18,7 @@ were rejected and removed. Its reports now use the shared original renderer.
 case selector with one shared copy of the renderer and libraries. Existing
 diagnostic layouts use `style_document` / `viewer_style`. Golden 2D diagrams
 remain 2D where the evidence has no native geometry; they use the same reaction
-style. Catalog layouts retain their existing result-navigation behavior.
+style. Batch layouts retain their existing result-navigation behavior.
 Different layouts and chemical highlight colors are not independent skins.
 
 The reusable **algorithm search trajectory** pipeline is documented in
@@ -55,6 +55,6 @@ figures and molecular highlight colors do not define additional viewer skins.
 Standalone pages embed the shared CSS for offline viewing.
 
 `tools/check_viewer_consolidation.py` checks saved witnesses, geometry,
-catalog/growth layouts and offline operation. Its output goes under
+batch/growth layouts and offline operation. Its output goes under
 `reports/viewer_validation/`. Historical migrations are recorded in Git; no
 migration script is part of the current rendering workflow.

@@ -9,7 +9,7 @@ from mappa.viewers import ASSETS, align_product, stylesheet
 
 def test_only_two_shared_viewer_styles():
     assert sorted(p.name for p in ASSETS.glob('*viewer.css')) == [
-        'catalog_viewer.css', 'reaction_viewer.css']
+        'batch_viewer.css', 'reaction_viewer.css']
     assert '#ffd700' in stylesheet('reaction')
     assert 'background:#fafafa' in stylesheet('reaction')
 
@@ -37,3 +37,15 @@ def test_display_fit_is_a_proper_rigid_transform():
         np.linalg.norm(fitted[:, None] - fitted[None, :], axis=-1),
         np.linalg.norm(mirrored[:, None] - mirrored[None, :], axis=-1), atol=1e-12)
     assert np.sign(np.linalg.det(fitted[1:] - fitted[0])) == np.sign(np.linalg.det(mirrored[1:] - mirrored[0]))
+
+
+def test_batch_style_keeps_navigation_without_precursor_catalog():
+    import pytest
+
+    css = stylesheet('batch')
+    assert 'data-viewer-layout="batch"' in css
+    assert 'data-viewer-layout="typed_batch"' in css
+    assert 'data-viewer-layout="catalog"' not in css
+    assert 'data-viewer-layout="precursor"' not in css
+    with pytest.raises(ValueError):
+        stylesheet('catalog')

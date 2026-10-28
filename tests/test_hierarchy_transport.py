@@ -2,12 +2,6 @@ from itertools import permutations
 
 from mappa.alignment.post_aam import (
     AAMHierarchy, AAMHierarchyView, AAMHierarchyChain, AtomPermutation, FragmentMatch)
-from mappa.fragment_matching import FragmentCandidate
-from mappa.fragment_matching.serialization import (
-    fragment_candidate_to_record, fragment_candidate_from_record,
-    fragment_archive_from_record, repack_fragment_detection_v4,
-    repack_fragment_detection_v6,
-)
 
 
 def base():
@@ -16,9 +10,6 @@ def base():
         representative_assignments=((i, i),), target_generators=(generator,)) for i in (0, 1)))
 
 
-def candidate(hierarchy):
-    return FragmentCandidate("source", ((0, 0), (1, 1)), (0, 1), (0, 1),
-        (), (), (), (), (), 4, retained_fragments=((0,), (1,)), aam_hierarchy=hierarchy)
 
 
 def test_lazy_transport_equals_naive_conjugation_for_every_four_atom_action():
@@ -46,90 +37,3 @@ def test_composed_views_flatten_and_pad_augmentation_frames():
     combined = {a: second[first[a]] for a in first}
     assert view.to_record() == hierarchy._materialize_target(combined).to_record()
     assert view.fragments[0].target_generators[0].degree == 5
-
-
-def test_archive_does_not_materialize_views_and_interns_generators():
-    view = base().relabel_target({0: 1, 1: 0})
-    record = fragment_candidate_to_record(candidate(view))
-    assert "materialized" not in view.__dict__
-    assert len(record["hierarchy_fragments"]) == 2
-    assert len(record["generators"]) == 1
-    restored = fragment_candidate_from_record(record)
-    assert restored.aam_hierarchy == view
-    assert restored.aam_hierarchy.to_record() == view.to_record()
-    assert restored.aam_hierarchy.base.fragments[0].target_generators[0] is restored.aam_hierarchy.base.fragments[1].target_generators[0]
-
-
-def test_archive_shares_encoded_arrays_without_mutating_typed_input():
-    from mappa.fragment_matching.serialization import _GraphArchive
-    original = candidate(base())
-    archive = _GraphArchive()
-    first = fragment_candidate_to_record(original, archive=archive)
-    second = fragment_candidate_to_record(original, archive=archive)
-    assert first['mapping'] is second['mapping']
-    assert first['retained_fragments'] is second['retained_fragments']
-    first['mapping'][0][1] = 99
-    assert original.mapping == ((0, 0), (1, 1))
-
-
-def test_archive_state_records_reuse_immutable_fields_and_match_asdict():
-    from dataclasses import asdict
-    from mappa.search_graph import AAMSearchGraph, SearchContext, SearchState
-    from mappa.fragment_matching.serialization import _GraphArchive
-    state = SearchState(0, 0, ((0, 1),), ((0, 0),), ())
-    context = SearchContext((0,), (0, 1), (0,))
-    graph = AAMSearchGraph((context,), (0,), (state,), (), ())
-    record = _GraphArchive((graph,)).records()[0]
-    assert record['states'][0] == asdict(state)
-    assert record['states'][0]['mapping'] is state.mapping
-    assert record['contexts'][0] == asdict(context)
-    record['states'][0]['mapping'] = ()
-    assert state.mapping == ((0, 1),)
-
-
-def test_v4_repacking_preserves_full_hierarchy_without_search():
-    original = candidate(base())
-    record = fragment_candidate_to_record(original)
-    legacy_candidate = {k: v for k, v in record.items()
-                        if k not in ("search_graphs", "generators", "hierarchy_fragments")}
-    legacy_candidate["aam_hierarchy"] = original.aam_hierarchy.to_record()
-    legacy = {"schema": "rxn_core.fragment_detection/v4", "search_graphs": [],
-              "candidates": [legacy_candidate], "source_id": "source"}
-    upgraded = repack_fragment_detection_v4(legacy)
-    graphs, fragments = fragment_archive_from_record(upgraded)
-    restored = fragment_candidate_from_record(upgraded["candidates"][0],
-        search_graphs=graphs, hierarchy_fragments=fragments)
-    assert restored.aam_hierarchy == original.aam_hierarchy
-    assert legacy["candidates"][0]["aam_hierarchy"] == original.aam_hierarchy.to_record()
-
-
-def test_chain_archive_preserves_independent_frames_without_materialization():
-    prefix = base()
-    residual = base().relabel_target({0: 1, 1: 0})
-    chain = AAMHierarchyChain((prefix, residual))
-    record = fragment_candidate_to_record(candidate(chain))
-    assert "fragments" not in chain.__dict__
-    assert "materialized" not in residual.__dict__
-    assert len(record["generators"]) == 1
-    assert len(record["hierarchy_fragments"]) == 2
-    restored = fragment_candidate_from_record(record).aam_hierarchy
-    assert restored == chain
-    expected = AAMHierarchy(prefix.fragments + residual.fragments)
-    assert restored.to_record() == expected.to_record()
-    action = dict(enumerate((4, 1, 2, 3, 0)))
-    assert chain.relabel_target(action).to_record() == expected.relabel_target(action).to_record()
-
-
-def test_v6_repacking_changes_only_reference_envelope():
-    original = candidate(base().relabel_target({0: 1, 1: 0}))
-    record = fragment_candidate_to_record(original)
-    legacy_candidate = {k: v for k, v in record.items()
-                        if k not in ("search_graphs", "generators", "hierarchy_fragments")}
-    legacy_candidate["aam_hierarchy"] = record["aam_hierarchy"]["segments"][0]
-    legacy = {"schema": "rxn_core.fragment_detection/v6", "candidates": [legacy_candidate],
-              **{k: record[k] for k in ("search_graphs", "generators", "hierarchy_fragments")}}
-    migrated = repack_fragment_detection_v6(legacy)
-    graphs, fragments = fragment_archive_from_record(migrated)
-    restored = fragment_candidate_from_record(migrated["candidates"][0],
-        search_graphs=graphs, hierarchy_fragments=fragments)
-    assert restored.aam_hierarchy.to_record() == original.aam_hierarchy.to_record()

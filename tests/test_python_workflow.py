@@ -138,3 +138,12 @@ def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
     reference_ids = {c.id for c in decode_events(search_aam(reaction, cfg)).candidates}
     shared = search_aam(reaction, cfg, execution="shared_policies")
     assert {c.id for c in decode_events(shared).candidates} == reference_ids
+
+
+def test_aam_distribution_excludes_separate_retrosynthesis_packages():
+    from importlib.util import find_spec
+    import mappa.fragment
+
+    assert find_spec("mappa.retrosynthesis") is None
+    assert find_spec("mappa.fragment_matching") is None
+    assert callable(mappa.fragment.match_fragment)

@@ -91,7 +91,6 @@ def main():
         page.set_viewport_size({'width':1440, 'height':950})
         for relative, layout in [
             ('reports/holdout_forward_cap1000_seed1_20260910/viewer.html', 'minimum'),
-            ('reports/eight_case_studies/t02_chloro_quinoline_alcohol/viewer.html', 'catalog'),
             ('reports/pr7_search_trajectory_20260911/algorithm_trajectory.html', 'growth_trace'),
         ]:
             page.goto((ROOT / relative).as_uri())
@@ -99,9 +98,6 @@ def main():
             if layout == 'minimum':
                 page.locator('#case').select_option('64')
                 assert page.locator('#cards .card').count() >= 3
-            elif layout == 'catalog':
-                assert page.locator('canvas').count() >= 2
-                page.screenshot(path=str(OUT / 'catalog.png'))
             else:
                 page.evaluate('searchTrajectory.setFrame(1)')
                 assert page.evaluate('searchTrajectory.getState().frame') == 1

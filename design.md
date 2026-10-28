@@ -15,8 +15,6 @@ flowchart LR
     Conversion --> Events[Bond-event counts and classes]
     Search --> Matcher[Shared fragment matcher]
     Conversion --> Matcher
-    Detection[Precursor fragment detection] --> Matcher
-    Detection --> Assembly[Retrosynthesis assembly]
     Result --> View[Viewers and saved artifacts]
     Events --> View
     Events --> Reaction[Explicitly selected reaction context]
@@ -33,7 +31,6 @@ flowchart LR
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `family_query.py`, `reference_constraints.py` |
 | Execution | Task dependencies, workers, budgets and verified publication | `execution/` |
-| Retrosynthesis | Detection, coverage ownership, assembly and ranking | `fragment_matching/`, `retrosynthesis/` |
 | TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `core_aam.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
 | Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
 
@@ -154,26 +151,6 @@ A user-requested shuffle or reference-membership query is separate from decoding
 It may use the optional solver on saved choices. The public conversion/counting
 path does not call solver enumeration or use a solver decoder as a fallback.
 
-## Retrosynthesis
-
-Detection calls the shared matcher; assembly consumes saved fragment candidates.
-Explicit hydrogens participate in both detection and coverage. Augmented residual
-copies are competitors, not hard anchors, and projected fragments must respect
-the original cut attachment. The beta big-block/gap-first workflow is an explicit
-recommendation policy, not automatic failure recovery for full-bank detection.
-
-`fragment_matching/` owns candidate generation, augmentation, projection,
-serialization and optional RDKit adaptation. `retrosynthesis/` owns candidate
-indexes, bounded coverage search, assembly validation and ranking. Catalog I/O
-and launchers call these modules rather than duplicating their algorithms.
-
-An assembled target atom has at most one owner. Repeated precursor copies retain
-separate occurrence identities. Coverage, exact ownership and geometry are
-separate checks; geometric assembly is not proof of chemical feasibility.
-Chirality-insensitive screening cannot reject solely on stereochemistry;
-explicit chirality-sensitive refinement may rerank or reject. Preserve cap and
-incomplete diagnostics and write expensive results before discarding them.
-
 ## Transition states and presentation
 
 TS analysis requires an explicit `ReactionContext`: selected mappings and bond
@@ -184,7 +161,7 @@ claim a general stereochemistry guarantee from element/WBO inputs.
 Viewers consume recorded mappings, fragments and symmetry. Display alignment
 must not alter scientific correspondences. Saved traces show actual search
 choices; compressed alternatives must not be presented as independently
-selectable atom pairs. Shared reaction/catalog renderers own presentation.
+selectable atom pairs. Shared reaction/batch renderers own presentation.
 
 ## Execution, storage and evidence
 

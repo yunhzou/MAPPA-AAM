@@ -70,7 +70,7 @@ function render(){{list.innerHTML='';for(const c of filtered){{const b=document.
 async function openCase(c){{const mine=++token;selected=c.id;render();loading.classList.add('show');current.textContent=`${{c.id}} — ${{c.atoms}} atoms, ${{c.mechanisms}} mechanisms, ${{c.ranked}} ranked rows`;location.hash=encodeURIComponent(c.id);try{{const [lib,body]=await Promise.all([common,unzip(c.payload)]);if(mine!==token)return;frame.srcdoc=body.replace(MARKER,lib)}}catch(e){{frame.srcdoc='<pre style="color:#b91c1c;padding:20px">'+String(e)+'</pre>'}}finally{{if(mine===token)loading.classList.remove('show')}}}}
 document.getElementById('search').oninput=e=>{{const q=e.target.value.trim().toLowerCase();filtered=CASES.filter(c=>c.id.toLowerCase().includes(q)||String(c.atoms)===q);render()}};render();const wanted=decodeURIComponent(location.hash.slice(1));openCase(CASES.find(c=>c.id===wanted)||CASES[0]);</script></body></html>"""
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(style_document(html, 'catalog', 'typed_batch'))
+    output.write_text(style_document(html, 'batch', 'typed_batch'))
     return {"output": str(output), "cases": len(records),
             "bytes": output.stat().st_size}
 

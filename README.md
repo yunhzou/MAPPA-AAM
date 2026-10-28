@@ -188,9 +188,9 @@ The search stores fragment choices and correlated symmetry operations without ex
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 
 See [design.md](design.md) for the shared data architecture, matching invariants,
-branch identity, decoding and retrosynthesis responsibilities. The
-[Python guide](docs/PYTHON_API.md) documents current calls; the
-[retro beta guide](docs/RETRO_BETA.md) covers the explicit gap-first workflow.
+branch identity and decoding responsibilities. The
+[Python guide](docs/PYTHON_API.md) documents current calls.
+Retrosynthesis is maintained separately on [codex/retrosynthesis](https://github.com/yunhzou/MAPPA-AAM/tree/codex/retrosynthesis).
 
 ## Python API
 
