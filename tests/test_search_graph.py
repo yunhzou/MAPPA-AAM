@@ -310,10 +310,10 @@ def test_tiny_exact_symmetry_matches_exhaustive_ring_automorphisms():
 
 
 def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
-    import mappa.mechanisms as mechanisms
+    import mappa.postprocessing as postprocessing
     def forbidden(*args, **kwargs):
         raise AssertionError('raw search must not score mechanisms')
-    monkeypatch.setattr(mechanisms, '_score_branch_mapping', forbidden)
+    monkeypatch.setattr(postprocessing, 'decode_events', forbidden)
     base = problem()
     enriched = AAMProblem(replace(base.reactant, energy=-1.2, metadata={'origin': 'saved-test'}),
                           base.product)

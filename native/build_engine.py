@@ -3,7 +3,7 @@
     .venv/bin/python native/build_engine.py
 
 Compiles the vendored nauty core (native/nauty, Apache-2.0) together with
-native/src/engine.cpp, freeze.cpp, autgrp.cpp and repair.cpp into
+native/src/engine.cpp, freeze.cpp and autgrp.cpp into
 src/mappa/_engine.<abi>.so.  Requires pybind11
 and a C++17 compiler.  The extension is optional: mappa falls back to the
 pure-Python engine when the extension is absent or MAPPA_NATIVE=0.
@@ -29,7 +29,6 @@ ext = Extension(
     sources=[str(NATIVE / "src" / "engine.cpp"),
              str(NATIVE / "src" / "freeze.cpp"),
              str(NATIVE / "src" / "autgrp.cpp"),
-             str(NATIVE / "src" / "repair.cpp"),
              *nauty_sources],
     include_dirs=[pybind11.get_include(), str(NAUTY)],
     language="c++",

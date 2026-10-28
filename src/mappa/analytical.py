@@ -8,8 +8,7 @@ import time
 
 import numpy as np
 
-from .mechanisms import _branch_from_record
-from .alignment.post_aam import AAMHierarchy
+from .alignment.post_aam import AAMBranch, AAMHierarchy, AtomBijection, PermutationGroup
 from .search_graph import frozen_value
 from .alignment.mapping_families import (
     analytical_family_static_context,
@@ -17,27 +16,24 @@ from .alignment.mapping_families import (
 )
 from .domain import (
     AAMResult,
-    MechanismResult,
     MappingFamilyResult,
-    AnalyticalAAMResult,
     AnalyticalBranch,
-    AnalyticalMechanism,
 )
 
 
-def _hierarchy_record(hierarchy: AAMHierarchy):
-    return hierarchy.to_record()
-
-
-def _branch_record(branch):
-    return {
-        "mapping": branch.representative.as_dict(),
-        "cuts": [list(cut) for cut in branch.cuts],
-        "encounter_count": int(branch.encounter_count),
-        "covered_path_count": int(branch.covered_path_count),
-        "hierarchy": _hierarchy_record(branch.hierarchy),
-        "path_provenance": [dict(item) for item in branch.path_provenance],
-    }
+def _branch_from_record(raw):
+    mapping_family = dict(raw.get('mapping_family') or {})
+    generators = raw.get('target_group_generators', mapping_family.get('target_generators'))
+    return AAMBranch(
+        representative=AtomBijection.from_mapping(raw['mapping']),
+        hierarchy=AAMHierarchy.from_record(raw['hierarchy']),
+        encounter_count=int(raw.get('encounter_count', 1)),
+        cuts=tuple(tuple(cut) for cut in raw.get('cuts', ())),
+        covered_path_count=int(raw.get('covered_path_count', 1)),
+        mapping_family=mapping_family,
+        path_provenance=tuple(raw.get('path_provenance', ())),
+        target_group=None if generators is None else PermutationGroup.from_generator_mappings(
+            len(raw['mapping']), generators))
 
 
 def _payload_key(record):
@@ -176,44 +172,6 @@ def _maximal_families(records, aam, workers, static_context, *, include_event_re
         else:
             maximal.append(entry)
     return maximal
-
-
-def compile_mechanism_families(
-        grouped: MechanismResult, *, workers: int = 1,
-        minimum_events_only: bool = False) -> AnalyticalAAMResult:
-    """Compile and maximally deduplicate exact cosets for AAM mechanisms.
-
-    Geometry, chirality, and RMSD do not participate in this transformation.
-    """
-    if not isinstance(grouped, MechanismResult):
-        raise TypeError("compile_mechanism_families requires group_mechanisms(aam)")
-    aam = grouped.aam
-    started = time.perf_counter()
-    problem = aam.problem
-    static_context = analytical_family_static_context(
-        problem.reactant.elements, problem.reactant.wbo,
-        problem.product.elements, problem.product.wbo,
-        graph_floor=aam.config.graph_floor,
-        dwbo_threshold=aam.config.event_threshold,
-        metal_dwbo_threshold=aam.config.metal_event_threshold)
-    sources = (
-        grouped.minimum_event_mechanisms()
-        if minimum_events_only else grouped.mechanisms)
-    mechanisms = []
-    for mechanism in sources:
-        completed = [_branch_record(branch) for branch in mechanism.branches]
-        maximal = _maximal_families(
-            completed, aam, workers, static_context)
-        branches = []
-        for record, family in maximal:
-            typed_branch = _branch_from_record(record)
-            branches.append(AnalyticalBranch(typed_branch, family))
-        mechanisms.append(AnalyticalMechanism(
-            source=mechanism, branches=tuple(branches)))
-    return AnalyticalAAMResult(
-        aam=aam,
-        mechanisms=tuple(mechanisms),
-        elapsed_seconds=time.perf_counter() - started)
 
 
 def compile_mapping_families(aam: AAMResult, *, workers: int = 1):

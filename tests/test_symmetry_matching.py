@@ -9,15 +9,12 @@ from mappa import build_graph
 
 from mappa.alignment import (
     _generate_seed_orders,
-    symmetry_repair_mapping,
 )
 from mappa.alignment.sweep import (
     attach_completed_candidate_groups,
     _branch_symmetry_record,
     _color_groups_from_blocks,
     _core_mapping_variants,
-    _mechanism_signature,
-    _pool_add,
     complete_chosen_automorphism_groups,
 )
 import mappa.alignment.branch as branch_mod
@@ -849,50 +846,6 @@ def test_deferred_boundary_prevents_false_orbit_dedup():
     assert len(with_boundary) == 2
 
 
-def test_symmetry_repair_rejects_non_automorphic_orbit_swap():
-    elements = ["C", "O", "C", "O"]
-    wbo = np.zeros((4, 4))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[2, 3] = wbo[3, 2] = 1.0
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-
-    bad = {0: 0, 1: 3, 2: 2, 3: 1}
-    before = classify_bonds(bad, wbo, wbo)
-    repaired, stats = symmetry_repair_mapping(
-        bad, wbo, wbo, g_r, g_p,
-        p_orbits={0: 0, 1: 1, 2: 2, 3: 1},
-        min_changes=1,
-        return_stats=True,
-    )
-    after = classify_bonds(repaired, wbo, wbo)
-
-    assert (len(before[0]), len(before[1])) == (2, 2)
-    assert (len(after[0]), len(after[1])) == (2, 2)
-    assert repaired == bad
-    assert stats["repaired"] is False
-
-
-def test_symmetry_repair_accepts_strict_local_automorphism():
-    elements = ["C", "H", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 0.3
-    wbo[0, 2] = wbo[2, 0] = 1.0
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=1.0)
-
-    bad = {0: 0, 1: 2, 2: 1}
-    repaired, stats = symmetry_repair_mapping(
-        bad, wbo, wbo, g_r, g_p, p_orbits,
-        min_changes=1, return_stats=True)
-    after = classify_bonds(repaired, wbo, wbo)
-
-    assert repaired == {0: 0, 1: 1, 2: 2}
-    assert (len(after[0]), len(after[1])) == (0, 0)
-    assert stats["repaired"] is True
-
-
 def test_classify_bonds_uses_lower_metal_event_threshold():
     wbo_r = np.zeros((2, 2))
     wbo_p = np.zeros((2, 2))
@@ -935,81 +888,20 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     assert (r_orbits[0], r_orbits[1]) == (r_orbits[0], r_orbits[2])
     mapping = {atom: atom for atom in range(n)}
 
+    from mappa.domain import AAMProblem, MolecularEndpoint
+    from mappa.event_patterns import SignedEventIndex
+
     def signature(product_wbo):
-        graph_p = build_graph(elements, product_wbo, bond_cut=0.2)
-        return _mechanism_signature(
-            mapping, wbo_r, product_wbo, r_orbits,
-            _nauty_orbits(graph_p, wbo_tol=0.2),
-            elements_R=elements, elements_P=elements,
-            g_R_full=graph_r, symmetry_wbo_tol=0.2)
+        coordinates = np.zeros((n, 3))
+        problem = AAMProblem(MolecularEndpoint(tuple(elements), coordinates, wbo_r),
+                             MolecularEndpoint(tuple(elements), coordinates, product_wbo))
+        index = SignedEventIndex(problem)
+        return index.describe(index.vector(mapping))
 
     cycle_signature = signature(wbo_cycle)
     diagonal_signature = signature(wbo_diagonal)
-    assert len(cycle_signature[0]) == len(diagonal_signature[0]) == 1
-    assert cycle_signature != diagonal_signature
-
-
-def test_cut_sweep_pool_prefers_no_cut_representative():
-    pool = {}
-    sig = (("broken",), ("formed",))
-
-    _pool_add(pool, sig, {0: 1}, ((0, 1),))
-    _pool_add(pool, sig, {0: 0}, ())
-
-    assert pool[sig]["mapping"] == {0: 0}
-    assert pool[sig]["has_no_cut"] is True
-    assert pool[sig]["cuts"] == frozenset({(0, 1)})
-    assert pool[sig]["dedup_count"] == 2
-    assert pool[sig]["branch_symmetry"]["analytical_branch_count"] == 2
-    assert {
-        tuple(sorted(branch["mapping"].items()))
-        for branch in pool[sig]["branches"]
-    } == {((0, 1),), ((0, 0),)}
-
-
-def test_pool_keeps_distinct_completed_branches_under_one_mechanism():
-    pool = {}
-    sig = ((), ())
-
-    _pool_add(pool, sig, {0: 0, 1: 1}, ())
-    _pool_add(pool, sig, {0: 1, 1: 0}, ())
-
-    assert pool[sig]["branch_symmetry"]["analytical_branch_count"] == 2
-    assert len(pool[sig]["branches"]) == 2
-    assert "matching_generators" not in pool[sig]["branch_symmetry"]
-    assert "dedup_witnesses" not in pool[sig]
-
-
-def test_display_symmetry_uses_only_selected_final_candidate_blocks():
-    pool = {}
-    sig = ((), ())
-    selected_local = {
-        "blocks": [
-            {"r_atoms": [0, 1], "p_atoms": [10, 11]},
-            {
-                "r_atoms": [2, 3],
-                "p_atoms": [12, 13],
-                "source": "island_automorph",
-            },
-        ],
-        "fragments": [],
-    }
-    other_local = {
-        "blocks": [{"r_atoms": [4, 5], "p_atoms": [14, 15]}],
-        "fragments": [],
-    }
-
-    _pool_add(pool, sig, {0: 10, 1: 11}, (), selected_local)
-    _pool_add(pool, sig, {0: 11, 1: 10}, (), other_local)
-
-    symmetry = pool[sig]["branch_symmetry"]
-    assert symmetry["selected_branch_index"] == 0
-    assert symmetry["analytical_branch_count"] == 2
-    assert symmetry["color_groups"] == [{
-        "r_atoms": [0, 1],
-        "p_atoms": [10, 11],
-        "sources": ["sym_block"],
-    }]
+    assert cycle_signature['total'] == diagonal_signature['total'] == 1
+    assert cycle_signature['id'] != diagonal_signature['id']
 
 
 def test_color_groups_do_not_transitively_merge_overlapping_blocks():
@@ -1155,27 +1047,6 @@ def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
     assert sum(1 for e in events if e.get("type") == "pass_start") == 2
 
 
-def test_explicit_symmetry_repair_cannot_silently_revert_anchor_violation(monkeypatch):
-    from mappa.alignment import sweep
-    graph = build_graph(['C', 'C'], np.zeros((2, 2)), bond_cut=.2)
-    monkeypatch.setattr(sweep, 'symmetry_repair_mapping', lambda *a, **k: {0: 1, 1: 0})
-    config = sweep._cut_sweep_cfg(n_atoms=2, anchor_map={0: 0})
-    with pytest.raises(ValueError, match='violated fixed anchors'):
-        sweep._score_branch_mapping({0: 0, 1: 1}, graph, graph, np.zeros((2, 2)),
-            np.zeros((2, 2)), graph, {}, {}, (), config)
-
-
-def test_exact_mechanism_identity_rejects_missing_graph():
-    with pytest.raises(ValueError, match='full reactant graph'):
-        _mechanism_signature({0: 0}, np.zeros((1, 1)), np.zeros((1, 1)),
-                             {0: 0}, {0: 0}, g_R_full=None)
-
-
-def test_symmetry_repair_requires_orbit_evidence():
-    graph = build_graph(['C'], np.zeros((1, 1)), bond_cut=.2)
-    with pytest.raises(ValueError, match='exact product orbits'):
-        symmetry_repair_mapping({0: 0}, np.zeros((1, 1)), np.zeros((1, 1)),
-                                graph, graph, None)
 
 
 def test_approximate_orbits_are_not_an_exact_symmetry_backend():

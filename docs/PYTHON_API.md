@@ -96,7 +96,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 
 The library and this notebook use the branch-limit default of 100. A cap bounds a growth call's live alternatives, not the number of saved histories or all permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
-For compatibility, `AAMSearchConfig` also retains `event_threshold`, `metal_event_threshold`, `symmetry_repair`, `symmetry_repair_min_changes`, and `symmetry_repair_max_evaluations`. The raw search does not classify or repair events. These fields configure explicit mechanism grouping/repair; competition also uses its event thresholds for parent ordering. The separate signed-event decoder uses **only its own `EventDecodeConfig`**, not these legacy event fields. `group_mechanisms`, `compile_mapping_families`, and `compile_mechanism_families` remain explicit family-analysis utilities. TS analysis requires a `ReactionContext` supplied by the caller.
+Raw search does not classify or repair events. `decode_events` owns event conversion and counting through `EventDecodeConfig`. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering and explicit raw-family analysis; they do not configure decoding. `compile_mapping_families` compiles raw mapping relations. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed.
 
 ## Experimental fragment competition (optional; default off)
 

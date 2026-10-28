@@ -121,3 +121,21 @@ def test_retired_alignment_and_geometry_selection_are_not_exported():
         assert not hasattr(structures, name)
     with pytest.raises(ModuleNotFoundError):
         importlib.import_module('mappa.alignment.api')
+
+
+def test_removed_mechanism_pipeline_has_no_api_or_options():
+    import mappa.analytical as analytical
+    import mappa.alignment as alignment
+    from mappa import AAMSearchConfig
+    for name in ('group_mechanisms', 'compile_mechanism_families', 'AAMMechanism',
+                 'MechanismResult', 'AnalyticalMechanism', 'AnalyticalAAMResult'):
+        assert not hasattr(mappa, name)
+    assert not hasattr(analytical, 'compile_mechanism_families')
+    assert not hasattr(alignment, 'symmetry_repair_mapping')
+    with pytest.raises(ModuleNotFoundError) as exc:
+        importlib.import_module('mappa.mechanisms')
+    assert exc.value.name == 'mappa.mechanisms'
+    for option in ('symmetry_repair', 'symmetry_repair_min_changes',
+                   'symmetry_repair_max_evaluations'):
+        with pytest.raises(TypeError, match=option):
+            AAMSearchConfig(**{option: 1})

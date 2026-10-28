@@ -190,7 +190,7 @@ code is recovered from its recorded Git revision, not kept as runnable fallback
 copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
 
 This document does not claim all consolidation is finished. Adaptive/shared
-schedulers, explicit analytical/mechanism APIs and historical benchmark scorers
+schedulers, explicit raw-family analysis APIs and historical benchmark scorers
 still have callers. Their removal requires migrating those consumers together;
 changing directory names does not establish equivalent behavior. New code must
 use the existing owners, remove superseded paths, and update this one design.
@@ -203,7 +203,7 @@ manuscript evidence. Keep `skills/` unchanged pending a separate review.
 `alignment.api` and its search/ranking wrappers are removed. The old sweep
 executor, worker pool, reduction and minimum-selection entry points are removed;
 `alignment/sweep.py` retains only cut planning and helpers used by current AAM,
-explicit analytical grouping and TS core assignment. `aam.py` owns reaction
+TS core assignment and group reconstruction. `aam.py` owns reaction
 search and `postprocessing.py` owns anchored conversion/counting.
 
 The unused post-AAM chirality/RMSD selection framework is removed. Fragment,
@@ -211,9 +211,12 @@ permutation, hierarchy and branch types remain. Native selection fails explicitl
 when the selected engine is missing or broken; `MAPPA_NATIVE=0` explicitly selects
 Python. Capability selection for custom node policies and recorded growth traces
 remains deliberate, before execution; a failed native call cannot switch engines.
-Explicit symmetry repair may not silently revert an anchor violation. Graph
+Graph
 validation uses one constraint checker for both shared and individual histories.
 
-Exact mechanism identity requires the full reactant graph; the weaker per-atom
-orbit-key substitute is removed. The unused approximate color-refinement orbit
-implementation is removed. Missing required orbit evidence is an error.
+The old `group_mechanisms` pipeline and its mechanism-family compiler are removed,
+along with their result types, pool reduction, event signatures and Python/native
+symmetry-repair scoring. `decode_events` is the sole public event-result pipeline.
+Raw mapping-family compilation remains separate and does not select events.
+Search configurations no longer accept symmetry-repair options. Exact fragment
+symmetry and TS core assignment keep their shared helpers.

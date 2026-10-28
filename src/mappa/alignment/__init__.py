@@ -7,15 +7,12 @@ from __future__ import annotations
 
 from .sweep import cut_sweep_items
 from .branch import (
-    SYM_REPAIR_MAX_EVALS,
     _Branch,
     _alignment_state_signature,
     _chemistry_orbit_signature,
     _generate_seed_orders,
-    _mapping_change_score,
     _orbit_pair,
     find_islands,
-    symmetry_repair_mapping,
 )
 from .mapping_families import (
     AnalyticalMappingFamily,

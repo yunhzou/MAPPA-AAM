@@ -9,7 +9,6 @@ AAM public objects, search orchestration, and result hierarchy.
 | `_engine.grow_island` | `growth.island.grow_island` through `growth.native` | Active for supported calls: default element policy, exact orbit map, no trace events, and compatible graph data |
 | `_native.paired_mapping_invariant` | `fragment_matching.detection._paired_mapping_invariant` | Active when both orbit maps provide structural zero buckets |
 | `_engine.freeze_analytical` | Potential replacement for `alignment.sweep._freeze_analytical` | Exported by the extension; not called by the current Python pipeline |
-| `_engine.repair_group` | Potential replacement for the per-group search in `alignment.branch.symmetry_repair_mapping` | Exported; not called by the current Python pipeline |
 | `_engine.AutGraph` | Potential replacement for standalone `pynauty.autgrp` calls | Exported; current `matcher.canonical` still calls pynauty |
 
 The C++ growth implementation ports the growth loop, candidate extension,
@@ -54,16 +53,8 @@ AAMResult
     metrics: AAMSearchMetrics
 ```
 
-`group_mechanisms(aam)` is a separate optional Python stage. Its `AAMBranch`
-records use `AtomBijection` representatives and hierarchy/group information.
-Using C++ does not remove those Python objects.
-The public objects are defined in `src/mappa/domain.py` and
-`src/mappa/alignment/post_aam.py`.
-
-Fragment detection is a separate consumer of the same `grow_island` entry
-point. Its augmentation and detection orchestration remain Python, as do
-retrosynthesis assembly, ranking, and visualization. The separate `_native`
-extension accelerates the mapping invariant used during detection.
+Anchored conversion and direct event counting remain in Python and reuse the
+fragment matcher. The retired mechanism-grouping symmetry-repair kernel is removed.
 
 ## Build
 
@@ -74,8 +65,8 @@ extension accelerates the mapping invariant used during detection.
 This compiles `native/src/*.cpp` and the vendored nauty sources in
 `native/nauty/` and copies `_engine.cpython-*.so` into `src/mappa/`.
 Requirements: a C/C++ compiler, `pybind11` and `setuptools` in the
-environment. The `_engine` binary is not committed; when unavailable, growth
-uses the Python implementation. The separate `_native` extension is built by
+environment. The `_engine` binary is not committed; missing selected native
+execution raises an error. Use `MAPPA_NATIVE=0` to select Python explicitly. The separate `_native` extension is built by
 `setup.py` during package installation and is imported by fragment detection.
 
 ## Switches

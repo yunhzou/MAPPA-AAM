@@ -7,12 +7,10 @@ from __future__ import annotations
 import copy
 from collections import deque
 
-from ..frag import classify_bonds
 from ..matcher import _SymBlock, _atom_tuple_orbit, _nauty_atom_generators, _nauty_orbits, _sym_block_assignment_expr
 from ..matcher.canonical import _CandidateAutomorphismCanonicalizer
 from ..matcher.state import candidate_from_record
-from ..matcher.orbits import _nauty_colored_wbo_graph
-from .branch import BranchLimitExceeded, symmetry_repair_mapping
+from .branch import BranchLimitExceeded
 
 
 def _canon_pair(a, b):
@@ -23,13 +21,6 @@ def _strong_edges(wboR, cut_floor):
     n = int(wboR.shape[0])
     return [(i, j) for i in range(n) for j in range(i + 1, n)
             if float(wboR[i, j]) >= cut_floor]
-
-
-def _core_mapping_key(mapping, core_R):
-    return (
-        tuple((int(r), int(mapping[r])) for r in sorted(core_R)),
-        (),
-    )
 
 
 def _core_mapping_variants(branch, core_R, max_variants, *,
@@ -105,114 +96,6 @@ def _core_mapping_variants(branch, core_R, max_variants, *,
     return out
 
 
-class _MechanismEventCanonicalizer:
-    """Reuse one full-R pynauty graph across concrete event sets."""
-
-    def __init__(self, graph_R, wbo_tol):
-        _nodes, self.atom_index, base, _buckets, _zero = (
-            _nauty_colored_wbo_graph(
-                graph_R, wbo_tol=float(wbo_tol)))
-        self.base_adjacency = {
-            int(vertex): set(neighbors)
-            for vertex, neighbors in base._adjacency_dict.items()
-        }
-        self.base_colors = [set(cell) for cell in base._vertex_coloring]
-        self.base_vertex_count = int(base.number_of_vertices)
-        self.cache = {}
-
-    def certificate(self, broken_pairs, formed_pairs):
-        broken_pairs = tuple(sorted(tuple(sorted(map(int, pair)))
-                                    for pair in broken_pairs))
-        formed_pairs = tuple(sorted(tuple(sorted(map(int, pair)))
-                                    for pair in formed_pairs))
-        key = broken_pairs, formed_pairs
-        cached = self.cache.get(key)
-        if cached is not None:
-            return cached
-        import pynauty
-
-        adjacency = {vertex: set(neighbors)
-                     for vertex, neighbors in self.base_adjacency.items()}
-        colors = [set(cell) for cell in self.base_colors]
-        next_vertex = self.base_vertex_count
-        type_markers = {}
-        for event_name in ('broken', 'formed'):
-            type_markers[event_name] = next_vertex
-            adjacency[next_vertex] = set()
-            colors.append({next_vertex})
-            next_vertex += 1
-        for event_name, pairs in (
-                ('broken', broken_pairs), ('formed', formed_pairs)):
-            event_vertices = set()
-            for left, right in pairs:
-                vertex = next_vertex
-                next_vertex += 1
-                a = self.atom_index[left]
-                b = self.atom_index[right]
-                adjacency.setdefault(a, set()).add(vertex)
-                adjacency.setdefault(b, set()).add(vertex)
-                marker = type_markers[event_name]
-                adjacency[marker].add(vertex)
-                adjacency[vertex] = {a, b, marker}
-                event_vertices.add(vertex)
-            if event_vertices:
-                colors.append(event_vertices)
-        graph = pynauty.Graph(
-            next_vertex, directed=False,
-            adjacency_dict={
-                vertex: sorted(adjacency.get(vertex, ()))
-                for vertex in range(next_vertex)
-            },
-            vertex_coloring=colors)
-        certificate = pynauty.certificate(graph).hex()
-        self.cache[key] = certificate
-        return certificate
-
-
-def _mechanism_signature(mapping, wboR, wboT, r_orbits, p_orbits, *,
-                         g_R_full, dwbo_threshold=0.5,
-                         elements_R=None, elements_P=None,
-                         metal_dwbo_threshold=None,
-                         symmetry_wbo_tol=0.2,
-                         event_canonicalizer=None):
-    """Exact symmetry-canonical mechanism-event certificate.
-
-    Individual vertex-orbit IDs do not identify an edge orbit: two pairs can
-    have endpoints in the same vertex orbits without one graph automorphism
-    transporting the complete pair.  Canonicalize all event edges jointly on
-    the full colored reactant graph instead.
-    """
-    broken, formed, _, _ = classify_bonds(
-        mapping, wboR, wboT, dwbo_threshold=dwbo_threshold,
-        elements_R=elements_R, elements_P=elements_P,
-        metal_dwbo_threshold=metal_dwbo_threshold)
-    inv = {v: k for k, v in mapping.items()}
-    br_pairs = [(a, b) for (a, b, _, _) in broken]
-    fm_r_pairs = []
-    fm_p_pairs = []
-    for a, b, _, _ in formed:
-        if a in inv and b in inv:
-            fm_r_pairs.append((inv[a], inv[b]))
-        else:
-            fm_p_pairs.append((a, b))
-    if fm_p_pairs:
-        # Complete R-P mappings should always pull formed edges into R.  Keep
-        # an explicit failure instead of silently producing a weaker key.
-        raise ValueError("mechanism signature received an unmapped formed edge")
-    if g_R_full is None:
-        raise ValueError("Exact mechanism identity requires the full reactant graph")
-
-    event_canonicalizer = event_canonicalizer or (
-        _MechanismEventCanonicalizer(
-            g_R_full, wbo_tol=float(symmetry_wbo_tol)))
-    certificate = event_canonicalizer.certificate(br_pairs, fm_r_pairs)
-    return (
-        tuple('broken' for _ in br_pairs),
-        tuple('formed' for _ in fm_r_pairs),
-        ('event_certificate_v1', certificate),
-    )
-
-
 def _branch_symmetry_record(branch, symmetry_fragments=None):
     fragments = []
     blocks = []
@@ -276,20 +159,6 @@ def _branch_symmetry_record(branch, symmetry_fragments=None):
         'fragments': fragments,
         'blocks': blocks,
     }
-
-
-def _mapping_key(mapping):
-    return tuple(
-        (int(r), int(p))
-        for r, p in sorted(dict(mapping).items())
-    )
-
-
-def _cut_record(cuts):
-    return [
-        [int(a), int(b)]
-        for a, b in sorted(tuple(tuple(pair) for pair in cuts))
-    ]
 
 
 def _color_groups_from_blocks(blocks):
@@ -669,130 +538,6 @@ def _freeze_analytical(value):
     return value
 
 
-def _analytical_branch(mapping, cuts, branch_symmetry=None, count=1):
-    """One unique completed branch family retained below a mechanism."""
-    return {
-        'mapping': {int(r): int(p) for r, p in dict(mapping).items()},
-        'cuts': _cut_record(cuts),
-        'encounter_count': int(count),
-        'hierarchy': copy.deepcopy(branch_symmetry or {
-            'rule': 'branch_symmetry_blocks',
-            'fragments': [],
-            'blocks': [],
-        }),
-    }
-
-
-def _analytical_branch_key(branch):
-    # Cut/seed provenance is deliberately excluded.  Until a coupled
-    # transporter is stored, only literal equality of the complete mapping
-    # and hierarchy proves that two completed branch families are identical.
-    return (
-        _mapping_key(branch.get('mapping') or {}),
-        _freeze_analytical(branch.get('hierarchy') or {}),
-    )
-
-
-def _merge_analytical_branch(branches, incoming, key_index=None):
-    key = _analytical_branch_key(incoming)
-    if key_index is not None:
-        branch = key_index.get(key)
-        candidates = () if branch is None else (branch,)
-    else:
-        candidates = (
-            branch for branch in branches
-            if _analytical_branch_key(branch) == key
-        )
-    for branch in candidates:
-        branch['encounter_count'] = (
-            int(branch.get('encounter_count', 1))
-            + int(incoming.get('encounter_count', 1)))
-        cuts = {
-            tuple(map(int, cut))
-            for cut in branch.get('cuts', ())
-        } | {
-            tuple(map(int, cut))
-            for cut in incoming.get('cuts', ())
-        }
-        branch['cuts'] = _cut_record(cuts)
-        branch.setdefault('path_provenance', []).extend(incoming.get('path_provenance', ()))
-        return False
-    branches.append(incoming)
-    if key_index is not None:
-        key_index[key] = incoming
-    return True
-
-
-def _refresh_entry_branch_symmetry(entry):
-    branches = list(entry.get('branches') or ())
-    representative_key = _mapping_key(entry.get('mapping') or {})
-    selected = next((
-        branch for branch in branches
-        if _mapping_key(branch.get('mapping') or {}) == representative_key
-    ), branches[0] if branches else None)
-    hierarchy = copy.deepcopy(
-        (selected or {}).get('hierarchy') or {
-            'fragments': [], 'blocks': [],
-        })
-    hierarchy['rule'] = 'selected_analytical_branch'
-    hierarchy['analytical_branch_count'] = len(branches)
-    hierarchy['selected_branch_index'] = (
-        branches.index(selected) if selected in branches else None)
-    hierarchy['blocks'] = [
-        block for block in hierarchy.get('blocks') or ()
-        if (block.get('source') or 'sym_block') in {
-            'sym_block', 'exact_automorph_group',
-        }
-    ]
-    hierarchy['color_groups'] = _color_groups_from_blocks(hierarchy['blocks'])
-    # Branch representatives are provenance, never a sampled permutation
-    # group.
-    hierarchy.pop('witnesses', None)
-    hierarchy.pop('matching_generators', None)
-    hierarchy.pop('matching_blocks', None)
-    hierarchy.pop('dedup_witness_count', None)
-    entry['branch_symmetry'] = hierarchy
-
-
-def _pool_add(pool, sig, mapping, cuts, branch_symmetry=None, *, provenance=None):
-    cuts = frozenset(cuts)
-    no_cut = not cuts
-    branch = _analytical_branch(mapping, cuts, branch_symmetry)
-    if provenance is not None:
-        branch['path_provenance'] = [provenance]
-    entry = pool.get(sig)
-    if entry is None:
-        pool[sig] = {
-            'mapping': dict(mapping),
-            'cuts': cuts,
-            'has_no_cut': bool(no_cut),
-            'dedup_count': 1,
-            'branches': [branch],
-            '_branch_key_index': {_analytical_branch_key(branch): branch},
-        }
-        _refresh_entry_branch_symmetry(pool[sig])
-    else:
-        representative_changed = bool(
-            no_cut and not entry.get('has_no_cut', False))
-        if no_cut and not entry.get('has_no_cut', False):
-            entry['mapping'] = dict(mapping)
-        entry['has_no_cut'] = bool(entry.get('has_no_cut', False) or no_cut)
-        entry['cuts'] = entry['cuts'] | cuts
-        entry['dedup_count'] = entry.get('dedup_count', 1) + 1
-        branches = entry.setdefault('branches', [])
-        key_index = entry.get('_branch_key_index')
-        if key_index is None:
-            key_index = {
-                _analytical_branch_key(existing): existing
-                for existing in branches
-            }
-            entry['_branch_key_index'] = key_index
-        added = _merge_analytical_branch(
-            branches, branch, key_index=key_index)
-        if added or representative_changed:
-            _refresh_entry_branch_symmetry(entry)
-
-
 def attach_completed_candidate_groups(branches, g_P, *, wbo_tol,
                                       node_policy=None, return_metrics=False):
     """Attach exact groups after completed branch-family reduction.
@@ -845,65 +590,6 @@ def attach_completed_candidate_groups(branches, g_P, *, wbo_tol,
     return (completed, metrics) if return_metrics else completed
 
 
-def _anchor_mapping_ok(mapping, anchor_map):
-    return all(
-        int(mapping.get(int(r), -1)) == int(p)
-        for r, p in dict(anchor_map or {}).items()
-    )
-
-
-def _score_branch_mapping(mapping, g_R, g_P, wboR, wboT,
-                          g_R_full, p_orbits, r_orbits, core_R, cfg,
-                          elR=None, elT=None,
-                          event_canonicalizer=None,
-                          return_repair_stats=False):
-    anchor_map = cfg.get('anchor_map') or {}
-    if core_R:
-        if not all(r in mapping for r in core_R):
-            return None
-        if not _anchor_mapping_ok(mapping, anchor_map):
-            return None
-        scored = (_core_mapping_key(mapping, core_R), mapping)
-        return (*scored, None) if return_repair_stats else scored
-
-    if len(mapping) < int(cfg['n_atoms']) - 2:
-        return None
-    if not _anchor_mapping_ok(mapping, anchor_map):
-        return None
-    repair_stats = None
-    if cfg['symmetry_repair']:
-        if return_repair_stats:
-            mapping, repair_stats = symmetry_repair_mapping(
-                mapping, wboR, wboT, g_R_full, g_P, p_orbits,
-                dwbo_threshold=float(cfg['dwbo_threshold']),
-                metal_dwbo_threshold=cfg.get('metal_dwbo_threshold'),
-                min_changes=int(cfg['symmetry_repair_min_changes']),
-                max_evals=int(cfg['symmetry_repair_max_evals']),
-                return_stats=True,
-            )
-        else:
-            mapping = symmetry_repair_mapping(
-                mapping, wboR, wboT, g_R_full, g_P, p_orbits,
-                dwbo_threshold=float(cfg['dwbo_threshold']),
-                metal_dwbo_threshold=cfg.get('metal_dwbo_threshold'),
-                min_changes=int(cfg['symmetry_repair_min_changes']),
-                max_evals=int(cfg['symmetry_repair_max_evals']),
-            )
-        if not _anchor_mapping_ok(mapping, anchor_map):
-            raise ValueError("Symmetry repair violated fixed anchors")
-    sig = _mechanism_signature(
-        mapping, wboR, wboT, r_orbits, p_orbits,
-        dwbo_threshold=float(cfg['dwbo_threshold']),
-        elements_R=elR,
-        elements_P=elT,
-        metal_dwbo_threshold=cfg.get('metal_dwbo_threshold'),
-        g_R_full=g_R_full,
-        symmetry_wbo_tol=float(cfg['symmetry_wbo_tol']),
-        event_canonicalizer=event_canonicalizer)
-    scored = (sig, mapping)
-    return (*scored, repair_stats) if return_repair_stats else scored
-
-
 def cut_sweep_items(wboR, cut_floor=0.2, *, elements=None,
                     heavy_only=False):
     """Return independent no-cut plus one-edge cut work items.
@@ -920,39 +606,3 @@ def cut_sweep_items(wboR, cut_floor=0.2, *, elements=None,
             if str(elements[i]) != 'H' and str(elements[j]) != 'H'
         ]
     return [()] + [((int(i), int(j)),) for i, j in edges]
-
-
-def _cut_sweep_cfg(*, cut_floor=0.2, graph_floor=0.2, iso_tol=1.0,
-                   dwbo_threshold=0.5, metal_dwbo_threshold=0.3,
-                   symmetry_wbo_tol=0.2,
-                   n_seeds=3, max_branches=100,
-                   chunksize=1,
-                   symmetry_repair=True,
-                   symmetry_repair_min_changes=1,
-                   symmetry_repair_max_evals=20000,
-                   n_atoms=0,
-                   anchor_map=None):
-    anchor_map = {
-        int(r): int(p)
-        for r, p in dict(anchor_map or {}).items()
-    }
-    return {
-        'cut_floor': float(cut_floor),
-        'graph_floor': float(graph_floor),
-        'iso_tol': float(iso_tol),
-        'dwbo_threshold': float(dwbo_threshold),
-        'metal_dwbo_threshold': (
-            None if metal_dwbo_threshold is None
-            else float(metal_dwbo_threshold)
-        ),
-        # One tolerance governs both edge verification and pynauty colors.
-        'symmetry_wbo_tol': float(iso_tol),
-        'n_seeds': int(n_seeds),
-        'max_branches': int(max_branches),
-        'chunksize': int(chunksize),
-        'symmetry_repair': bool(symmetry_repair),
-        'symmetry_repair_min_changes': int(symmetry_repair_min_changes),
-        'symmetry_repair_max_evals': int(symmetry_repair_max_evals),
-        'n_atoms': int(n_atoms),
-        'anchor_map': anchor_map,
-    }

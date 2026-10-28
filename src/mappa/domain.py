@@ -114,9 +114,6 @@ class AAMSearchConfig:
     seed_count: int = 1
     branch_limit: int = 100
     task_chunksize: int = 1
-    symmetry_repair: bool = True
-    symmetry_repair_min_changes: int = 1
-    symmetry_repair_max_evaluations: int = 20_000
     anchors: tuple[tuple[int, int], ...] = ()
     seed_selection: str = 'random'
     random_seed: int = 42
@@ -202,34 +199,6 @@ class AAMSearchMetrics:
 
 
 @dataclass(frozen=True)
-class AAMMechanism:
-    """One exact event class and every completed AAM branch that realizes it."""
-
-    key: tuple
-    representative: AtomBijection
-    branches: tuple[AAMBranch, ...]
-    cuts: tuple[tuple[int, int], ...]
-    includes_uncut_search: bool
-    encounter_count: int
-
-    def __post_init__(self):
-        if not self.branches:
-            raise ValueError("an AAM mechanism must retain at least one branch")
-        if any(branch.representative.degree != self.representative.degree
-               for branch in self.branches):
-            raise ValueError("AAM mechanism branches disagree on atom count")
-        object.__setattr__(self, "key", tuple(self.key))
-        object.__setattr__(self, "branches", tuple(self.branches))
-        object.__setattr__(self, "cuts", tuple(sorted(
-            tuple(sorted(map(int, cut))) for cut in self.cuts)))
-        object.__setattr__(self, "encounter_count", int(self.encounter_count))
-
-    @property
-    def event_count(self):
-        return len(self.key[0]) + len(self.key[1])
-
-
-@dataclass(frozen=True)
 class AAMResult:
     """Grouped final fragment sets and their unmodified search alternatives."""
 
@@ -250,23 +219,6 @@ class AAMResult:
         """Unordered branches and unique flat families for exact postprocessing."""
         from .final_branches import deduplicate_final_branches
         return deduplicate_final_branches(self)
-
-
-@dataclass(frozen=True)
-class MechanismResult:
-    """Optional event grouping with a reference to the unmodified search."""
-
-    aam: AAMResult
-    mechanisms: tuple[AAMMechanism, ...]
-    elapsed_seconds: float
-
-    def minimum_event_mechanisms(self):
-        if not self.mechanisms:
-            return ()
-        minimum = min(mechanism.event_count for mechanism in self.mechanisms)
-        return tuple(
-            mechanism for mechanism in self.mechanisms
-            if mechanism.event_count == minimum)
 
 
 @dataclass(frozen=True)
@@ -294,38 +246,6 @@ class AnalyticalBranch:
     @property
     def representative(self):
         return AtomBijection.from_mapping(self.family.representative_mapping)
-
-
-@dataclass(frozen=True)
-class AnalyticalMechanism:
-    source: AAMMechanism
-    branches: tuple[AnalyticalBranch, ...]
-
-    def __post_init__(self):
-        branches = tuple(self.branches)
-        if not branches:
-            raise ValueError("an analytical mechanism must contain families")
-        object.__setattr__(self, "branches", branches)
-
-    @property
-    def key(self):
-        return self.source.key
-
-
-@dataclass(frozen=True)
-class AnalyticalAAMResult:
-    """AAM mechanisms after exact maximal-coset compilation."""
-
-    aam: AAMResult
-    mechanisms: tuple[AnalyticalMechanism, ...]
-    elapsed_seconds: float
-
-    def __post_init__(self):
-        mechanisms = tuple(self.mechanisms)
-        if len({mechanism.key for mechanism in mechanisms}) != len(mechanisms):
-            raise ValueError("analytical mechanism keys must be unique")
-        object.__setattr__(self, "mechanisms", mechanisms)
-        object.__setattr__(self, "elapsed_seconds", float(self.elapsed_seconds))
 
 
 @dataclass(frozen=True)

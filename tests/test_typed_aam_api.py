@@ -3,8 +3,7 @@ import pytest
 import mappa
 
 from mappa.aam import search_aam
-from mappa.analytical import compile_mechanism_families
-from mappa.mechanisms import group_mechanisms
+from mappa.analytical import compile_mapping_families
 from mappa.alignment.post_aam import AtomBijection
 from mappa.ts import analyze_transition_state
 from mappa.domain import (
@@ -162,31 +161,25 @@ def test_search_aam_returns_complete_typed_hierarchy():
     result = search_aam(
         problem,
         AAMSearchConfig(
-            seed_count=1, branch_limit=100, symmetry_repair=False),
+            seed_count=1, branch_limit=100),
         workers=1)
 
     assert result.problem is problem
     assert result.graph.transitions
     assert result.branches
-    grouped = group_mechanisms(result)
-    assert grouped.minimum_event_mechanisms()
-    mechanism = grouped.minimum_event_mechanisms()[0]
-    assert mechanism.representative.degree == 2
-    assert mechanism.branches
-    assert mechanism.encounter_count >= 1
-    assert all(branch.hierarchy.fragments for branch in mechanism.branches)
-    fragment = mechanism.branches[0].hierarchy.fragments[0]
+    branch = result.branches[0]
+    assert branch.hierarchy.fragments
+    fragment = branch.hierarchy.fragments[0]
     assert fragment.representative_assignments
     assert fragment.multiplicity >= 1
-    assert mechanism.branches[0].hierarchy.has_complete_exact_target_groups
+    assert branch.hierarchy.has_complete_exact_target_groups
     assert result.metrics.completed_group_requests >= 1
     assert result.metrics.completed_group_calculations >= 1
-    assert result.metrics.retained_branch_count == len(result.graph.terminals)
+    assert result.metrics.retained_branch_count == len(result.branches)
 
-    analytical = compile_mechanism_families(
-        grouped, workers=1, minimum_events_only=True)
-    assert analytical.mechanisms
-    family = analytical.mechanisms[0].branches[0]
+    analytical = compile_mapping_families(result, workers=1)
+    assert analytical.branches
+    family = analytical.branches[0]
     assert family.family.contains(family.representative.as_dict())
     assert family.aam_branch.hierarchy.has_complete_exact_target_groups
 
@@ -216,7 +209,7 @@ def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
         bonds(((0, 1, 0.5), (2, 3, 0.5),
                (0, 2, 0.5), (1, 3, 0.5))), label="TS")
     config = AAMSearchConfig(
-        seed_count=1, branch_limit=100, symmetry_repair=False)
+        seed_count=1, branch_limit=100)
     rp = ReactionContext(AAMProblem(reactant, product), config, (
         ResolvedMechanism(AtomBijection((0, 1, 2, 3)),
                           ((0, 1), (2, 3)), ((0, 2), (1, 3)), (0, 1, 2, 3)),
@@ -241,7 +234,7 @@ def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
 def test_no_event_mechanism_has_explicit_unscorable_ts_status():
     problem = AAMProblem(_endpoint("R"), _endpoint("P"), name="no_event")
     config = AAMSearchConfig(
-        seed_count=1, branch_limit=100, symmetry_repair=False)
+        seed_count=1, branch_limit=100)
     rp = ReactionContext(problem, config, (
         ResolvedMechanism(AtomBijection((0, 1)), (), (), ()),
     ))

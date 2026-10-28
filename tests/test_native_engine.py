@@ -35,26 +35,11 @@ def _iso_key(isos):
 def _search(case, workers=1):
     from native_cases import CASES
     from mappa.aam import search_aam
-    from mappa.mechanisms import group_mechanisms
     from mappa.domain import AAMProblem, AAMSearchConfig
 
     R, P = CASES[case]()
-    return group_mechanisms(search_aam(AAMProblem(R, P, name=case), AAMSearchConfig(),
-                      workers=workers))
-
-
-def _result_key(result):
-    return [
-        (mechanism.key,
-         tuple(sorted(mechanism.representative.as_dict().items())),
-         len(mechanism.branches),
-         tuple(branch.hierarchy.to_record()["fragments"][0]["symmetry"].get(
-             "automorph_generators") is not None
-             for branch in mechanism.branches),
-         tuple(tuple(sorted(branch.representative.as_dict().items()))
-               for branch in mechanism.branches))
-        for mechanism in result.mechanisms
-    ]
+    return search_aam(AAMProblem(R, P, name=case), AAMSearchConfig(),
+                      workers=workers)
 
 
 def test_every_growth_call_agrees_with_python(monkeypatch):
@@ -98,7 +83,7 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
 
     monkeypatch.setattr(fragment_mod, "grow_island", both)
     result = _search("tetraphenyl")
-    assert result.mechanisms
+    assert result.branches
     # Search policy changes can change the call count. Require differential
     # coverage of every actual growth request, not a historical count floor.
     assert stats["calls"] > 0
@@ -107,9 +92,9 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
 
 def test_search_results_agree_between_engines(monkeypatch):
     monkeypatch.setenv("MAPPA_NATIVE", "1")
-    with_native = _result_key(_search("tetraphenyl"))
+    with_native = _search("tetraphenyl").graph.to_record()
     monkeypatch.setenv("MAPPA_NATIVE", "0")
-    with_python = _result_key(_search("tetraphenyl"))
+    with_python = _search("tetraphenyl").graph.to_record()
     assert with_native == with_python
 
 
@@ -197,3 +182,10 @@ def test_invalid_backend_is_not_an_implicit_selection(monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', 'auto')
     with pytest.raises(ValueError, match='must be 0'):
         native.available()
+
+
+def test_retired_symmetry_repair_kernel_is_not_exported():
+    from mappa import _engine
+    assert not hasattr(_engine, 'repair_group')
+    assert not hasattr(_engine, 'repair_scores')
+    assert not hasattr(_engine, 'round12')

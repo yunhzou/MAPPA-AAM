@@ -1948,14 +1948,11 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
 void register_freeze(pybind11::module_&);
 // native/src/autgrp.cpp
 void register_autgrp(pybind11::module_&);
-// native/src/repair.cpp
-void register_repair(pybind11::module_&);
 
 PYBIND11_MODULE(_engine, mod) {
     mod.doc() = "Native AAM growth engine";
     register_freeze(mod);
     register_autgrp(mod);
-    register_repair(mod);
     py::class_<DenseGraph>(mod, "DenseGraph")
         .def(py::init<int, const std::vector<Pair>&>())
         .def("certificate", [](DenseGraph& g, const std::vector<std::vector<int>>& cells) {
