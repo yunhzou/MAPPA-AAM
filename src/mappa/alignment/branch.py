@@ -348,7 +348,9 @@ def symmetry_repair_mapping(mapping, wbo_R, wbo_P, g_R, g_P, p_orbits,
     pynauty while all atoms outside that local target set are fixed; sharing a
     coarse orbit alone is never treated as permission to swap.
     """
-    if not mapping or p_orbits is None:
+    if p_orbits is None:
+        raise ValueError('Symmetry repair requires exact product orbits')
+    if not mapping:
         return (mapping, {'enabled': False}) if return_stats else mapping
     mapping0 = dict(mapping)
     elements_R = [g_R.nodes[i].get('element') for i in range(wbo_R.shape[0])]

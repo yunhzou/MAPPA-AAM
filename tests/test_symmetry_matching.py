@@ -17,7 +17,6 @@ from mappa.alignment.sweep import (
     _color_groups_from_blocks,
     _core_mapping_variants,
     _mechanism_signature,
-    _orbit_bond_key,
     _pool_add,
     complete_chosen_automorphism_groups,
 )
@@ -933,8 +932,7 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     graph_r = build_graph(elements, wbo_r, bond_cut=0.2)
     r_orbits = _nauty_orbits(graph_r, wbo_tol=0.2)
     assert len(set(r_orbits.values())) == 1
-    assert _orbit_bond_key([(0, 1)], r_orbits, "R") == (
-        _orbit_bond_key([(0, 2)], r_orbits, "R"))
+    assert (r_orbits[0], r_orbits[1]) == (r_orbits[0], r_orbits[2])
     mapping = {atom: atom for atom in range(n)}
 
     def signature(product_wbo):
@@ -1165,3 +1163,23 @@ def test_explicit_symmetry_repair_cannot_silently_revert_anchor_violation(monkey
     with pytest.raises(ValueError, match='violated fixed anchors'):
         sweep._score_branch_mapping({0: 0, 1: 1}, graph, graph, np.zeros((2, 2)),
             np.zeros((2, 2)), graph, {}, {}, (), config)
+
+
+def test_exact_mechanism_identity_rejects_missing_graph():
+    with pytest.raises(ValueError, match='full reactant graph'):
+        _mechanism_signature({0: 0}, np.zeros((1, 1)), np.zeros((1, 1)),
+                             {0: 0}, {0: 0}, g_R_full=None)
+
+
+def test_symmetry_repair_requires_orbit_evidence():
+    graph = build_graph(['C'], np.zeros((1, 1)), bond_cut=.2)
+    with pytest.raises(ValueError, match='exact product orbits'):
+        symmetry_repair_mapping({0: 0}, np.zeros((1, 1)), np.zeros((1, 1)),
+                                graph, graph, None)
+
+
+def test_approximate_orbits_are_not_an_exact_symmetry_backend():
+    import mappa.matcher as matcher
+    import mappa.matcher.orbits as orbits
+    assert not hasattr(matcher, '_color_refine_orbits')
+    assert not hasattr(orbits, '_color_refine_orbits')

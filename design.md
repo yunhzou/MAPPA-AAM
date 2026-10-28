@@ -213,3 +213,7 @@ Python. Capability selection for custom node policies and recorded growth traces
 remains deliberate, before execution; a failed native call cannot switch engines.
 Explicit symmetry repair may not silently revert an anchor violation. Graph
 validation uses one constraint checker for both shared and individual histories.
+
+Exact mechanism identity requires the full reactant graph; the weaker per-atom
+orbit-key substitute is removed. The unused approximate color-refinement orbit
+implementation is removed. Missing required orbit evidence is an error.

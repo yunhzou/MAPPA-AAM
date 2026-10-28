@@ -31,54 +31,6 @@ def _orbit_wbo_bucket(orbits, a, b, w):
     return _wbo_bucket(w)
 
 
-def _color_refine_orbits(g, iters=20):
-    """Iterated color refinement (1-WL / Morgan extended connectivity) on
-    an UNLABELED graph. Returns dict node -> int orbit_id such that two
-    nodes have the same orbit_id iff they're indistinguishable under
-    iterated neighbor-multiset refinement.
-
-    Used to detect symmetric P-atom orbits: bijections that differ only
-    by swapping P-atoms in the same orbit produce identical chemistry
-    signatures and can be safely collapsed in the cand list.
-
-    For molecules with little symmetry, every atom ends up in its own
-    orbit (no collapse). For benzene rings, methyl Hs, B12 carborane,
-    etc., symmetric atoms share an orbit and the K-factorial cand
-    explosion is avoided.
-
-    Algorithmic correctness: this is the standard 1-WL test used in
-    InChI / RDKit canonical SMILES. It's exact for almost all molecular
-    graphs and known to fail only on a small class of regular graphs
-    (where 2-WL or full automorphism check is needed). For chemistry
-    we're safe.
-    """
-    elements = nx.get_node_attributes(g, 'element')
-    # Initial color: just element
-    colors = {v: elements.get(v, '') for v in g.nodes()}
-    # WBO bucket width: 0.2 so atoms whose WBO differs by ≤0.1 from xtb
-    # noise (or geometry distortion at TS) end up in the same orbit.
-    # round(x / 0.2) * 0.2 → bucket centers at 0.0, 0.2, 0.4, ...
-    def _bucket(w):
-        return int(round(w * 5))   # 0.2-wide buckets, integer-keyed
-    for _ in range(iters):
-        new = {}
-        for v in g.nodes():
-            nbr = tuple(sorted(
-                (colors[w], _bucket(_edge_wbo(g, v, w)))
-                for w in g.nodes()
-                if w != v
-            ))
-            new[v] = (colors[v], nbr)
-        # Compact to small ints (cheap downstream hashing)
-        unique = {c: i for i, c in
-                  enumerate(sorted(set(new.values()), key=str))}
-        new_int = {v: unique[new[v]] for v in g.nodes()}
-        if new_int == colors:
-            break
-        colors = new_int
-    return colors
-
-
 def _wbo_tolerance_bucket_lookup(g, tolerance):
     """Return a pair->bucket lookup for the complete WBO graph.
 
@@ -131,7 +83,7 @@ def _nauty_colored_wbo_graph(g, wbo_tol=0.2, atom_color_tags=None,
     except ImportError as exc:
         raise RuntimeError(
             "pynauty is required for nauty symmetry operations; install "
-            "pynauty or use _color_refine_orbits"
+            "pynauty to compute exact automorphisms"
         ) from exc
 
     atom_color_tags = dict(atom_color_tags or {})
@@ -177,7 +129,7 @@ def _nauty_colored_wbo_graph(g, wbo_tol=0.2, atom_color_tags=None,
 def _nauty_orbits(g, wbo_tol=0.2, node_policy=None):
     """Exact automorphism orbits for a tolerance-bucketed WBO graph.
 
-    Returns the same shape as :func:`_color_refine_orbits`: ``dict[node] ->
+    Returns ``dict[node] ->
     orbit_id``.  Atom elements are vertex colors.  WBO edge colors are encoded
     by subdivision vertices colored by WBO bucket; the baseline 0-WBO bucket is
     represented by absence of a subdivision vertex.

@@ -25,13 +25,6 @@ def _strong_edges(wboR, cut_floor):
             if float(wboR[i, j]) >= cut_floor]
 
 
-def _orbit_bond_key(pairs, orbits, tag):
-    return tuple(sorted(
-        (tag, *_canon_pair(int(orbits[a]), int(orbits[b])))
-        for a, b in pairs
-    ))
-
-
 def _core_mapping_key(mapping, core_R):
     return (
         tuple((int(r), int(mapping[r])) for r in sorted(core_R)),
@@ -176,11 +169,11 @@ class _MechanismEventCanonicalizer:
         return certificate
 
 
-def _mechanism_signature(mapping, wboR, wboT, r_orbits, p_orbits,
-                         dwbo_threshold=0.5,
+def _mechanism_signature(mapping, wboR, wboT, r_orbits, p_orbits, *,
+                         g_R_full, dwbo_threshold=0.5,
                          elements_R=None, elements_P=None,
                          metal_dwbo_threshold=None,
-                         g_R_full=None, symmetry_wbo_tol=0.2,
+                         symmetry_wbo_tol=0.2,
                          event_canonicalizer=None):
     """Exact symmetry-canonical mechanism-event certificate.
 
@@ -207,11 +200,7 @@ def _mechanism_signature(mapping, wboR, wboT, r_orbits, p_orbits,
         # an explicit failure instead of silently producing a weaker key.
         raise ValueError("mechanism signature received an unmapped formed edge")
     if g_R_full is None:
-        # Compatibility for direct unit calls; production always supplies the
-        # full reactant graph.
-        br = _orbit_bond_key(br_pairs, r_orbits, 'R')
-        fm = _orbit_bond_key(fm_r_pairs, r_orbits, 'R')
-        return br, tuple(sorted(fm))
+        raise ValueError("Exact mechanism identity requires the full reactant graph")
 
     event_canonicalizer = event_canonicalizer or (
         _MechanismEventCanonicalizer(

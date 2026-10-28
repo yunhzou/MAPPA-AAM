@@ -23,7 +23,6 @@ from .policy import (
 from .orbits import (
     _atom_tuple_orbit,
     _cand_canon_signature,
-    _color_refine_orbits,
     _dedup_cands_by_orbit,
     _group_nodes_by_signature,
     _nauty_atom_generators,
