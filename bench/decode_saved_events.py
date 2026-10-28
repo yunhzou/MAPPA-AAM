@@ -103,8 +103,6 @@ def child(args):
     exhausted = True
     with (args.output / 'families.jsonl').open('w', buffering=1) as journal:
         for path in aam.graph.paths():
-            if len(path.mapping) != index.n:
-                continue
             visited += 1
             if time.perf_counter() >= deadline:
                 exhausted = False
@@ -134,7 +132,7 @@ def child(args):
             active = None
             checkpoint()
     complete = exhausted and incomplete == 0
-    checkpoint(True, complete, 'all_retained_full_paths_checked' if complete
+    checkpoint(True, complete, 'all_retained_paths_checked' if complete
                else 'watchdog_budget' if not exhausted else 'solver_unknown')
 
 

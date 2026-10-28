@@ -1,7 +1,7 @@
 """Separate signed bond-event decoding and conditional symmetry inspection.
 
 Candidates are event classes, not all atom bijections. A completeness flag only
-covers the retained complete families within the requested event window.
+covers the retained mapping families within the requested event window.
 """
 
 from dataclasses import dataclass, field
@@ -43,8 +43,8 @@ class EventCandidate:
     mapping: dict[int, int]
     events: dict
     total: int
-    endpoint_events: dict = field(default_factory=dict)
     family_ids: list[int] = field(default_factory=list)
+    endpoint_events: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

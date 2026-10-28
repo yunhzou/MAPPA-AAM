@@ -44,9 +44,9 @@ def _response_bounds(values, weight, threshold):
 class SignedEventIndex:
     """Reaction-local event identity; IDs are versioned separately from legacy.
 
-    The raw problem must have equal element multisets and nonnegative, exactly
-    symmetric WBOs. Partial mappings and historical floor-based events require
-    their own output policy and are deliberately rejected here.
+    Endpoints have nonnegative, exactly symmetric WBOs. Mappings are injective
+    and element-preserving; endpoint compositions may differ. Count differences
+    touching mapped atoms and ignore bonds entirely within unmatched material.
     """
     schema = 'mappa.signed_events/v2'
 
@@ -138,6 +138,8 @@ class SignedEventIndex:
     def _vectors(self, vectors):
         values = np.asarray(vectors)
         if values.size == 0:
+            if values.ndim == 2 and values.shape[1] == self.n == 0:
+                return values.astype(int)
             if values.shape == (0,) or values.shape == (0, self.n):
                 return np.empty((0, self.n), dtype=int)
         if values.ndim != 2 or values.shape[1] != self.n or values.dtype.kind not in 'iu':
@@ -504,7 +506,7 @@ def _same_event_orbit(terms, objective, pattern, index):
 
 def extract_path_events(path, search_problem, index, *, max_events=None, seconds=2.0,
                         max_patterns=32, on_pattern=None):
-    """Bounded signed-event projection of one complete saved path.
+    """Bounded signed-event projection of one saved partial or complete path.
 
     Completeness concerns this path/window, not the archive or global search.
     Time is a soft budget; native canonicalization and path compilation require

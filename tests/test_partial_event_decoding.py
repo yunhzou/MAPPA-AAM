@@ -129,3 +129,10 @@ def test_saved_partial_graph_survives_catalogue_and_artifact():
     assert record['candidates'][0]['endpoint_events']['formed']==((0,2),)
     candidate=decoded.candidates[0]
     assert decoded.query(candidate,{0:0,1:1}).status=='allowed'
+
+
+def test_empty_mapping_has_no_events_and_creates_no_atoms():
+    problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CCC',[(0,1,1),(1,2,1)]))
+    decoded=decode_events(catalogue(problem,{}),EventDecodeConfig(event_slack=0))
+    assert decoded.complete and decoded.minimum_proven and decoded.observed_minimum==0
+    assert decoded.candidates[0].mapping=={}

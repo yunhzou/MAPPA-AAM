@@ -6,17 +6,17 @@ from .search import _endpoint, _restore_problem
 
 
 def plan_event_decoding(case, problem, families, config, writer, *, case_seconds=3600., memory_bytes=2**30):
-    """Schedule existing balanced-family decoder calls, retaining incomplete reports.
+    """Schedule existing signed-event decoder calls, retaining incomplete reports.
 
     A caller deriving minimum+n windows must first establish a valid absolute
     bound for each requested seed prefix. A bound from only the ten-seed minimum
     is not silently reused for other prefixes. None means unbounded decoding.
-    Partial-mapping benchmark policies must use their own existing decoder.
+    Complete and partial families use the same mapped-boundary event rule.
     """
     if config.event_slack is not None:
         raise ValueError('Supply an absolute window established for the requested prefix')
     from ..final_branches import FinalBranchCatalogue
-    FinalBranchCatalogue(problem)  # retain the production decoder's domain check
+    FinalBranchCatalogue(problem)
     reference = writer.put(dict(reactant=_endpoint(problem.reactant), product=_endpoint(problem.product),
         name=problem.name))
     tasks = []

@@ -395,3 +395,19 @@ workflows; arbitrary file ordering is never assumed. Without that mapping the
 report says `mapped_core_pairs_only` and `outside_core_assessed=false`.
 Disagreement between the declared identity and a core assignment is reported.
 Bond diagnostics do not alter the score or impose a rejection threshold.
+
+### Partial mappings and unbalanced endpoints
+
+The same event decoder handles both complete and partial mappings. It counts
+bond differences touching mapped atoms, including bonds across the mapped/unmapped
+boundary, and ignores bonds whose atoms are both unmatched. Existing WBO-change
+and metal thresholds apply in both directions. No missing atoms are invented.
+
+`decode_events(..., EventDecodeConfig(event_slack=n))` returns the retained
+minimum+n event window and reports whether the minimum and window are proven.
+There is no separate minimum-scoring pass. Each candidate's `mapping` contains
+only actual correspondences. `endpoint_events` gives broken bonds in native R
+indices and formed bonds in native P indices. Internal `events` retain the R
+frame, using `nR+p` for an unmatched product boundary atom; serialized records
+include this convention in `event_policy`. Event IDs use version2 so old output
+policies cannot be mixed with the new unmatched-region semantics.

@@ -39,7 +39,7 @@ def test_cached_pair_tables_and_boolean_counts_equal_scalar_tables():
         # Deliberately allow broad supports; element restrictions need not be
         # assumed by the local table cache to preserve exact signed responses.
         values = [(z3.Int(f'image_{i}'), frozenset(range(4))) for i in range(4)]
-        compiled = SimpleNamespace(values=values, solver=z3.Solver())
+        compiled = SimpleNamespace(values=values, solver=z3.Solver(), representative=dict(enumerate(range(4))))
         compiled.solver.add(z3.Distinct(*(v[0] for v in values)),
                             *(z3.And(v[0] >= 0, v[0] < 4) for v in values))
         old, total, metrics = reference_event_model(compiled, index, time.perf_counter()+5)
@@ -58,7 +58,7 @@ def test_cached_pair_tables_and_boolean_counts_equal_scalar_tables():
         assert index._pair_tables
 
 
-def test_sparse_scalar_validation_matches_original_dense_rule():
+def test_sparse_scalar_validation_matches_dense_mapped_boundary_rule():
     rng = np.random.default_rng(718)
     elements = tuple('COHVOO')
     weights = [0., .3, np.nextafter(.3, 0), .5, np.nextafter(.5, 1), 1.]
@@ -77,6 +77,7 @@ def test_sparse_scalar_validation_matches_original_dense_rule():
             def events(source, target, m):
                 out=[]
                 for a,b in edges:
+                    if a not in m and b not in m:continue
                     tau = metal if metal is not None and any(is_metal_element(elements[i]) for i in (a,b)) else .5
                     w=source[a,b]
                     if w < tau:continue
