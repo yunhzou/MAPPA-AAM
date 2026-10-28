@@ -294,22 +294,19 @@ and cannot replace a completed evaluation. The 366 missing Golden checks all
 completed with this adapter; the updated report has all 1,851 cases in each
 ranking denominator. This completes reference checking, not event decoding.
 
-`rebenchmark.minima` calls the existing partial-aware Golden event scorer. It
-preserves the best heavy/all-atom coverage tier independently for each seed and
-records exact lower/upper bounds and solver queries. A parallel metadata pass
-indexes each saved archive once; workers then receive individual cuts through
-the common queue. Pilot task identities are checked before their completed
-results are reused. The production balanced signed-event decoder is not silently
-used for partial Golden mappings. Minimum proofs establish later decoding bounds;
-they do not establish event-class counts or completed minimum+n windows.
+Event minima and minimum+n windows come from the public
+`mappa.postprocessing.decode_events` API with `EventDecodeConfig(event_slack=n)`.
+It scores representatives, tightens the event bound as lower witnesses appear,
+and reports `observed_minimum` and `minimum_proven`. A separate minimum-scoring
+pass is not a prerequisite and must not be scheduled.
 
-```mermaid
-flowchart LR
-    Archive[Verified saved graphs] --> Index[Cut byte-range index]
-    Index --> Queue[Shared execution queue]
-    Queue --> Checks[Only missing reference checks]
-    Queue --> Minima[Original Golden minimum scorer]
-    Checks --> Report[Hashed report additions]
-    Minima --> Bounds[Seed-prefix decoding bounds]
-    Bounds --> Windows[Event-window decoding and evidence audit]
-```
+This decoder currently accepts balanced endpoints and complete mappings only.
+Golden partial mappings must be recorded as unsupported by this output policy;
+never drop them from the dataset denominator, fabricate balancing atoms, or
+substitute another scoring algorithm. Any extension of this policy requires an
+explicit design decision. Seed-prefix decoding must use each prefix's own
+retained catalogue and preserve direction, cut and seed provenance.
+
+The pre-existing `family_scoring` utilities remain for their existing callers;
+they are not the Golden decoding pipeline. The standalone minimum-stage planner,
+its indexed-task dispatch and its query-recording hook have been removed.

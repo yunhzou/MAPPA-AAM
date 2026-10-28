@@ -4,7 +4,7 @@ The shared executor handles CPU placement and the directional wall budget.
 Archive byte ranges avoid copying old solver logs or extracting shared trees.
 """
 import argparse
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict
 import hashlib
 import json
 import os
@@ -125,56 +125,22 @@ def execute(args):
         return
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         queue = TaskQueue(Path(scratch)/'queue.sqlite', identity)
-        if 'task_index' in specification:
-            from mappa.execution.bundles import Blob
-            from .evidence import sha
-            reference = specification['task_index']
-            assert sha(reference['path']) == reference['sha256']
-            index = read(reference['path'])
-            reused = {}
-            for receipt in specification.get('reuse', []):
-                assert sha(receipt['results']) == receipt['results_sha256']
-                assert sha(receipt['tasks']) == receipt['tasks_sha256']
-                old_tasks = {task['key']: task for task in read(receipt['tasks'])}
-                for key, record in read(receipt['results']).items():
-                    assert record['state'] == 'complete' and key not in reused
-                    reused[key] = old_tasks[key]
-            count, skipped = 0, set()
-            for entry in index['tasks']:
-                planned = read_blob(Blob(**entry['blob']), scratch)
-                pending = []
-                for task in planned:
-                    if task.key in reused:
-                        assert json.loads(json.dumps(asdict(task))) == reused[task.key], task.key
-                        skipped.add(task.key)
-                    else:
-                        pending.append(task)
-                queue.add(pending)
-                count += len(pending)
-            assert skipped == set(reused)
-            save(output/'tasks.json', dict(index=reference, scheduled=count, reused=sorted(skipped)))
-        else:
-            tasks = []
-            planner = plan_missing
-            if specification.get('stage') == 'minima':
-                from .minima import plan_minima
-                planner = plan_minima
-            for row in specification['archives']:
-                tasks.extend(planner(row['path'], row['task'],
-                    seconds=specification['case_seconds'], memory_bytes=memory))
-            if specification.get('selected_keys') is not None:
-                selected = set(specification['selected_keys'])
-                tasks = [task for task in tasks if task.key in selected]
-                assert {task.key for task in tasks} == selected
-            queue.add(tasks)
-            count = len(tasks)
-            save(output/'tasks.json', [asdict(task) for task in tasks])
+        tasks = []
+        for row in specification['archives']:
+            tasks.extend(plan_missing(row['path'], row['task'],
+                seconds=specification['case_seconds'], memory_bytes=memory))
+        if specification.get('selected_keys') is not None:
+            selected = set(specification['selected_keys'])
+            tasks = [task for task in tasks if task.key in selected]
+            assert {task.key for task in tasks} == selected
+        queue.add(tasks)
+        save(output/'tasks.json', [asdict(task) for task in tasks])
         secret = secrets.token_bytes(32)
         with (output/'worker.key').open('xb') as stream:
             os.chmod(output/'worker.key', 0o600)
             stream.write(secret)
         with coordinator(queue, (socket.gethostname(), 0), secret) as address:
-            save(output/'endpoint.json', dict(host=address[0], port=address[1], tasks=count))
+            save(output/'endpoint.json', dict(host=address[0], port=address[1], tasks=len(tasks)))
             # This process owns the queue; separate allocations execute tasks.
             last_backup = 0.
             while any(n for state, n in queue.snapshot().items() if state in ('running', 'pending')):
@@ -190,19 +156,17 @@ def execute(args):
                 record = dict(state=row['state'], resource=row['result'])
                 if row['state'] == 'complete':
                     value = read_blob(row['result']['blob'], scratch)
-                    record.update(value)
+                    record['evaluation'] = value['evaluation']
+                    record['classes'] = value['classes']
+                    record['evidence'] = asdict(value['evidence'])
+                    record['source'] = value['source']
+                    record['raw'] = value['raw']
+                    record['graph'] = value['graph']
+                    record['finalized'] = asdict(value['finalized']) if value['finalized'] else None
                 if record['resource'] and 'blob' in record['resource']:
                     record['resource'] = dict(record['resource'], blob=asdict(record['resource']['blob']))
                 merged[key] = record
-            def serializable(value):
-                if is_dataclass(value):
-                    return serializable(asdict(value))
-                if isinstance(value, dict):
-                    return {k: serializable(v) for k, v in value.items()}
-                if isinstance(value, (tuple, list)):
-                    return [serializable(v) for v in value]
-                return value
-            save(output/'results.json', serializable(merged))
+            save(output/'results.json', merged)
             save(output/'progress.json', dict(states=queue.snapshot(), utc=time.time(), finished=True))
             # Let remote workers receive the terminal queue state before closing.
             time.sleep(5)
