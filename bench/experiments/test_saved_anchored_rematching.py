@@ -50,6 +50,7 @@ def run(archive, expected_sha, output):
                 for fid, pairs_list in catalogue.coupled_branches.items() for pairs in sorted(pairs_list)]
     started, cpu = time.perf_counter(), time.process_time()
     histogram, best, rows = Counter(), [], []
+    timings = Counter()
     calls = reused = internal_events = incomplete = 0
     for policy, pairs, fid in entries:
         family = catalogue.families[fid]
@@ -72,9 +73,12 @@ def run(archive, expected_sha, output):
                 states = tuple(result.states[p.terminal] for p in paths)
                 complete = not result.capped and bool(states) and all(len(s.mapping) == len(rs) for s in states)
                 cache[key] = states
+                serialize_start = time.perf_counter()
+                record = result.to_record()
+                timings['graph_serialization_seconds'] += time.perf_counter()-serialize_start
                 pair_rows.append(dict(source_atoms=rs, target_atoms=ps, anchors=fixed,
                     branches=len(states), capped=result.capped, complete=complete,
-                    seconds=time.perf_counter()-pair_start, search=result.to_record()))
+                    seconds=serialize_start-pair_start, search=record))
                 incomplete += not complete
                 calls += 1
             else:
@@ -85,10 +89,13 @@ def run(archive, expected_sha, output):
             assert len(mapping) == sum(len(s.mapping) for s in states)
             assert len(set(mapping.values())) == len(mapping)
             assert all(mapping[r] == p for r, p in anchors.items())
+            count_start = time.perf_counter()
             broken, formed, _, _ = classify_bonds(mapping, problem.reactant.wbo, problem.product.wbo,
                 dwbo_threshold=threshold, metal_dwbo_threshold=metal,
                 elements_R=problem.reactant.elements, elements_P=problem.product.elements)
+            timings['bond_classification_seconds'] += time.perf_counter()-count_start
             # Independent dense subtraction, including mapped/unmapped boundaries.
+            check_start = time.perf_counter()
             direct = []
             for left, right, assignment in ((problem.reactant, problem.product, mapping),
                                             (problem.product, problem.reactant, {p:r for r,p in mapping.items()})):
@@ -103,6 +110,7 @@ def run(archive, expected_sha, output):
                             events.add((a,b))
                 direct.append(events)
             assert direct == [set((a,b) for a,b,*_ in broken), set((a,b) for a,b,*_ in formed)]
+            timings['independent_check_seconds'] += time.perf_counter()-check_start
             owners = {r:(i,island) for i,s in enumerate(states) for r,island in s.islands}
             target_owners = {mapping[r]:owner for r,owner in owners.items()}
             internal = sum(a in own and b in own and own[a] == own[b]
@@ -119,6 +127,11 @@ def run(archive, expected_sha, output):
             if not best or count == best[0]['events']:
                 best.append(dict(row, mapping=mapping, broken=sorted(direct[0]), formed=sorted(direct[1])))
     rematch_seconds, rematch_cpu = time.perf_counter()-started, time.process_time()-cpu
+    timings['conversion_seconds'] = (rematch_seconds - timings['independent_check_seconds']
+                                    - timings['graph_serialization_seconds'])
+    timings['matching_seconds'] = sum(r['seconds'] for r in pair_rows)
+    timings['preparation_recombination_seconds'] = (timings['conversion_seconds']
+        - timings['matching_seconds'] - timings['bond_classification_seconds'])
     index = SignedEventIndex(problem, threshold=threshold, metal_threshold=metal)
     old_classes = {index.describe(index.vector({int(a):int(b) for a,b in c['mapping'].items()}))['id']
                    for c in prior['candidates'] if c['total'] == prior['observed_minimum']}
@@ -139,6 +152,7 @@ def run(archive, expected_sha, output):
         all_branches_map_all_source_atoms=all(r['mapped_atoms'] == problem.source_atom_count for r in rows),
         incomplete_pair_rematches=incomplete, internal_events=internal_events,
         wall_seconds_including_independent_checks=rematch_seconds,
+        timings=dict(timings),
         cpu_seconds_including_independent_checks=rematch_cpu,
         pair_matching_seconds=sum(r['seconds'] for r in pair_rows), solver_queries=0,
         job_id=os.environ.get('SLURM_JOB_ID'), archive_sha256=expected_sha,
