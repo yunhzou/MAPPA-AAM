@@ -20,8 +20,9 @@ from rebenchmark.campaign import load_plan
 @pytest.mark.parametrize('reverse', [False, True])
 @pytest.mark.parametrize('finalized', [False, True])
 def test_saved_continuation_matches_direct_evaluation(tmp_path, monkeypatch, reverse, finalized):
-    from mappa import AAMProblem
-    from rebenchmark.campaign import endpoint
+    def endpoint(e):
+        return dict(elements=e.elements, coordinates=e.coordinates.tolist(), wbo=e.wbo.tolist(),
+                    label=e.label, metadata=dict(e.metadata))
     folder = tmp_path/'source'
     problem, features, reference = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2].[Cl-]')
     config = AAMSearchConfig(seed_count=2, branch_limit=100, iso_tolerance=1)
