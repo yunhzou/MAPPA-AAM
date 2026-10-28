@@ -54,7 +54,8 @@ def decode_seed(payload, workspace):
             elements_R=plan.problem.reactant.elements, elements_P=plan.problem.product.elements,
             metal_dwbo_threshold=result.config.metal_threshold)
         assert candidate.total == len(broken)+len(formed)
-        assert candidate.endpoint_events == dict(broken=tuple(sorted(broken)), formed=tuple(sorted(formed)))
+        assert candidate.endpoint_events == dict(broken=tuple(sorted((a,b) for a,b,*_ in broken)),
+                                                 formed=tuple(sorted((a,b) for a,b,*_ in formed)))
     record = decoded_events_record(result)
     return dict(task_id=payload['task_id'], cut=payload['cut'], seed=payload['seed']+1,
         coverage=tier, all_families=all_families, selected_families=len(catalogue.families),

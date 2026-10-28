@@ -63,3 +63,19 @@ def test_tasks_share_direction_budget_and_keep_seed_cut_identity():
     assert {t.case for t in tasks}=={'00012'}
     assert {t.payload['seed'] for t in tasks}==set(range(10))
     assert all(t.case_seconds==3600 for t in tasks)
+
+
+def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypatch,tmp_path):
+    from types import SimpleNamespace
+    from mappa.execution.runtime import Workspace
+    from rebenchmark.decoding import decode_seed
+    problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CON',[(0,2,1)]))
+    cat=catalogue(problem,{0:0,1:1})
+    graph=cat.families[0].as_path(problem).graph
+    monkeypatch.setattr('rebenchmark.decoding.prepare_cut',lambda payload,workspace:
+        (SimpleNamespace(problem=problem),{},graph,'checked',None))
+    workspace=Workspace(tmp_path,tmp_path/'bundles')
+    value=decode_seed(dict(seed=0,slack=5,family_seconds=10,task_id=0,cut=0,
+        source={},raw={},graph={}),workspace)
+    assert value['decoded']['complete'] and value['decoded']['observed_minimum']==2
+    assert value['coverage']==(2,2) and value['search_rerun'] is False
