@@ -271,7 +271,7 @@ The default stage is signed-event decoding. NPZ endpoints contain `elements`,
 ```bash
 mappa --stage events \
   --reactant-npz R.npz --product-npz P.npz \
-  --workers 4 --seconds-per-family 30 --output mapping
+  --workers 4 --output mapping
 ```
 
 Use `--stage aam` for raw search only. Both stages write `aam.json` and the
