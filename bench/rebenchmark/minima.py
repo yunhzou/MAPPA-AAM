@@ -55,6 +55,8 @@ def family_key(path):
 
 def selected_families(plan, graph):
     """Use Golden's best heavy/all-atom coverage tier independently per seed."""
+    if len(graph.contexts) != plan.config.seed_count:
+        raise ValueError("Expected one saved cut with all recorded seed contexts")
     tiers = {}
     for terminal in graph.terminals:
         state = graph.states[terminal]

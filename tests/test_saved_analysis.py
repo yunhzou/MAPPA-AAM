@@ -79,7 +79,7 @@ def test_minimum_tasks_preserve_partial_score_and_prefixes(tmp_path, reverse):
     from rebenchmark.minima import selected_families, seed_bounds
     from rebenchmark.search import select_contexts
     problem, _, _ = prepare('[OH2:1]>>[OH2:1].O')
-    config = AAMSearchConfig(seed_count=3, branch_limit=100, iso_tolerance=1)
+    config = AAMSearchConfig(seed_count=3, branch_limit=100, iso_tolerance=1, sweep_cuts=False)
     directed = AAMProblem(problem.product, problem.reactant) if reverse else problem
     plan = AAMSearchPlan(problem, directed, config, reverse)
     graph = search_aam(directed, config).graph
