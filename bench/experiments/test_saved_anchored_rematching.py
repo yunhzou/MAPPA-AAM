@@ -67,7 +67,7 @@ def run(archive, expected_sha, output):
                 result = find_islands(source, target, sorted(rs),
                     graph_floor=policy[0], iso_tol=threshold, max_branches=100,
                     anchor_map=dict(fixed), bond_tolerance=rule, random_seed=42)
-                result = finalize_graph_symmetry(result, target, iso_tolerance=threshold)
+                result, _ = finalize_graph_symmetry(result, target, iso_tolerance=threshold)
                 paths = list(result.paths())
                 states = tuple(result.states[p.terminal] for p in paths)
                 complete = not result.capped and bool(states) and all(len(s.mapping) == len(rs) for s in states)
