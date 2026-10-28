@@ -40,12 +40,14 @@ def run(archive, expected_sha, output,
         prior = json.loads(gzip.decompress(read(result_member)))
         assert prior['complete'] and prior['minimum_proven']
 
+    print(f'{problem.name}: verified saved archive; starting conversion', flush=True)
     from mappa.postprocessing import decode_events, EventDecodeConfig
     threshold, metal = prior['config']['threshold'], prior['config']['metal_threshold']
     started, cpu = time.perf_counter(), time.process_time()
     decoded = decode_events(catalogue, EventDecodeConfig(threshold=threshold, metal_threshold=metal))
     conversion = decoded.conversion
     conversion_seconds = time.perf_counter()-started
+    print(f'{problem.name}: conversion {conversion_seconds:.3f}s; checking every distinct map', flush=True)
     pair_rows = []
     serialize_start = time.perf_counter()
     for pair in conversion.rematches:

@@ -70,7 +70,7 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
     converted = FinalBranchCatalogue(problem)
     converted.mode = 'anchored_fragment_conversion'
     result = FragmentConversion(source, converted)
-    graphs, cache = {}, {}
+    graphs, cache, programs = {}, {}, {}
     started = time.perf_counter()
 
     def tolerance(graph, a, b):
@@ -105,7 +105,17 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                 families = []
                 for path in paths:
                     local = FinalBranchCatalogue(problem).add_graph(graph, paths=(path,))
-                    families.append(local.families[0])
+                    family = local.families[0]
+                    # Pad local actions once per rematch, then share identical
+                    # immutable factors across recombined branches.
+                    factors = []
+                    for kind, data in family.actions:
+                        if kind == 'group':
+                            data = tuple(tuple(g) + tuple(range(len(g), problem.target_atom_count))
+                                         for g in data)
+                        factors.append(converted._intern(converted._factors, (kind, data)))
+                    family.actions = tuple(factors)
+                    families.append(family)
                 complete = (not graph.capped and bool(paths)
                             and all(len(path.mapping) == len(rs) for path in paths))
                 cache[key] = len(result.rematches)
@@ -125,12 +135,12 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                 raise ValueError('Rematching changed a saved fixed assignment')
             owners = tuple(sorted((r, (i, island)) for i, state in enumerate(states)
                                   for r, island in state.islands))
-            required = tuple(sorted({edge for family in families for edge in family.required_edges}))
-            actions = canonical_actions(tuple(action for family in families for action in family.actions))
-            # Local target graphs can omit the highest indexed endpoint atoms.
-            actions = tuple((kind, tuple(tuple(g) + tuple(range(len(g), problem.target_atom_count))
-                                         for g in data) if kind == 'group' else data)
-                            for kind, data in actions)
+            required = converted._intern(converted._required,
+                tuple(sorted({edge for family in families for edge in family.required_edges})))
+            program = tuple(action for family in families for action in family.actions)
+            if program not in programs:
+                programs[program] = converted._intern(converted._programs, canonical_actions(program))
+            actions = programs[program]
             family_id = len(converted.families)
             refs = tuple(zip(pair_ids, selected))
             provenance = [dict(source_family_id=fid, fragment_paths=refs)]
