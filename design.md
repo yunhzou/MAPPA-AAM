@@ -283,3 +283,33 @@ flowchart LR
     Propagation --> Solver[Exact Boolean choices]
     Solver --> Witness[Validate full atom witness]
 ```
+
+### Saved Golden postprocessing
+
+`rebenchmark.saved_analysis` adapts immutable archive members to the shared
+executor. It reads verified byte ranges, schedules only missing cut/seed checks,
+and retains exact query evidence in worker bundles. Report overlays must match
+the original input and graph hashes, agree with any previously saved ranking,
+and cannot replace a completed evaluation. The 366 missing Golden checks all
+completed with this adapter; the updated report has all 1,851 cases in each
+ranking denominator. This completes reference checking, not event decoding.
+
+`rebenchmark.minima` calls the existing partial-aware Golden event scorer. It
+preserves the best heavy/all-atom coverage tier independently for each seed and
+records exact lower/upper bounds and solver queries. A parallel metadata pass
+indexes each saved archive once; workers then receive individual cuts through
+the common queue. Pilot task identities are checked before their completed
+results are reused. The production balanced signed-event decoder is not silently
+used for partial Golden mappings. Minimum proofs establish later decoding bounds;
+they do not establish event-class counts or completed minimum+n windows.
+
+```mermaid
+flowchart LR
+    Archive[Verified saved graphs] --> Index[Cut byte-range index]
+    Index --> Queue[Shared execution queue]
+    Queue --> Checks[Only missing reference checks]
+    Queue --> Minima[Original Golden minimum scorer]
+    Checks --> Report[Hashed report additions]
+    Minima --> Bounds[Seed-prefix decoding bounds]
+    Bounds --> Windows[Event-window decoding and evidence audit]
+```
