@@ -10,7 +10,7 @@ import pytest
 
 from mappa import FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.alignment.branch import find_islands
-from mappa.frag import classify_bonds
+from mappa.frag import bond_event_threshold, classify_bonds
 from mappa.matcher.state import candidate_from_record
 from test_growth_compression_exactness import graph, represented
 
@@ -79,3 +79,42 @@ def test_matching_threshold_equality_is_not_event_invariance(native, monkeypatch
     assert event_count(source, target, result.matches[0].mapping) == 1
     print(json.dumps(dict(native=native, delta=.5,
                           accepted_internal_bond=True, events=1)), flush=True)
+
+
+@pytest.mark.parametrize('elements', [('C', 'O'), ('Co', 'O')])
+@pytest.mark.parametrize('delta', [.25, .4, .6])
+def test_ordinary_and_metal_anchored_pair_thresholds(elements, delta, monkeypatch):
+    # Select the existing pair-specific event policy, then reuse the public
+    # matcher. This two-atom check does not implement mixed-fragment policy.
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
+    source = graph(elements, [(0, 1, 1.)])
+    target = graph(elements, [(0, 1, 1. + delta)])
+    threshold = bond_event_threshold(elements, 0, 1,
+                                     default_threshold=.5, metal_threshold=.3)
+    result = anchored_match(source, target, threshold)
+    assert not result.capped
+    intact = any(match.fragment == frozenset((0, 1)) for match in result.matches)
+    events = event_count(source, target, {0: 0, 1: 1})
+    assert intact == (delta < threshold)
+    assert events == int(delta >= threshold)
+    print(json.dumps(dict(elements=elements, delta=delta, threshold=threshold,
+                          intact_match=intact, events=events)), flush=True)
+
+
+def test_mixed_fragment_needs_pair_specific_matching_policy(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
+    source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])
+    target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
+    result = anchored_match(source, target, .5)
+    assert not result.capped and len(result.matches) == 1
+    assert result.matches[0].fragment == frozenset((0, 1, 2))
+    broken, formed, _, _ = classify_bonds(
+        {0: 0, 1: 1, 2: 2}, source.graph['wbo_matrix'], target.graph['wbo_matrix'],
+        dwbo_threshold=.5, metal_dwbo_threshold=.3,
+        elements_R=['Co', 'C', 'O'], elements_P=['Co', 'C', 'O'])
+    assert not broken
+    assert [(a, b) for a, b, _, _ in formed] == [(0, 1)]
+    print(json.dumps(dict(mixed_fragment=['Co', 'C', 'O'], delta=.4,
+                          uniform_iso_tol=.5, intact_match=True,
+                          event_pairs=[[0, 1]],
+                          needs_pair_specific_matching_policy=True)), flush=True)
