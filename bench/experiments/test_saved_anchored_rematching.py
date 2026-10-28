@@ -20,8 +20,13 @@ from mappa.frag import bond_event_threshold, build_graph, classify_bonds
 from mappa.search_symmetry import finalize_graph_symmetry
 
 
-def run(archive, expected_sha, output):
-    assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected_sha
+def run(archive, expected_sha, output,
+        result_member='decoding/definitive-decode-v1/result.json.gz'):
+    digest = hashlib.sha256()
+    with archive.open('rb') as stream:
+        for block in iter(lambda: stream.read(8 * 1024 * 1024), b''):
+            digest.update(block)
+    assert digest.hexdigest() == expected_sha
     with tarfile.open(archive) as saved:
         manifest = json.load(saved.extractfile('__mappa_archive_manifest__.json'))['files']
         def read(name):
@@ -35,7 +40,7 @@ def run(archive, expected_sha, output):
         catalogue = FinalBranchCatalogue(problem)
         assert fields['problem_sha256'] == catalogue.problem_sha256
         vars(catalogue).update(fields)
-        prior = json.loads(gzip.decompress(read('decoding/definitive-decode-v1/result.json.gz')))
+        prior = json.loads(gzip.decompress(read(result_member)))
         assert prior['complete'] and prior['minimum_proven']
 
     threshold, metal = prior['config']['threshold'], prior['config']['metal_threshold']
@@ -182,5 +187,6 @@ if __name__ == '__main__':
     parser.add_argument('archive', type=Path)
     parser.add_argument('--archive-sha256', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--result-member', default='decoding/definitive-decode-v1/result.json.gz')
     args = parser.parse_args()
-    run(args.archive, args.archive_sha256, args.output)
+    run(args.archive, args.archive_sha256, args.output, args.result_member)
