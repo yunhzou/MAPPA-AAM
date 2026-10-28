@@ -81,7 +81,16 @@ def compare(archive, archive_sha256, output):
                 event_class=description['id']))
         lowest = min(row['events'] for row in rows)
         best = [row for row in rows if row['events'] == lowest]
-        old_classes = {c['id'] for c in prior['candidates'] if c['total'] == prior['observed_minimum']}
+        # Event identifiers include a policy/schema version. Compare old and
+        # new concrete witnesses using the same current classifier.
+        old_classes = set()
+        for candidate in prior['candidates']:
+            if candidate['total'] != prior['observed_minimum']:
+                continue
+            mapping = {int(a): int(b) for a, b in candidate['mapping'].items()}
+            description = index.describe(index.vector(mapping))
+            assert description['total'] == candidate['total']
+            old_classes.add(description['id'])
         summary = dict(case=problem.name, source_atoms=problem.source_atom_count,
             target_atoms=problem.target_atom_count, cuts=source['total_cuts'],
             saved_fragment_branches=catalogue.branch_count, saved_mapping_families=len(catalogue.families),
