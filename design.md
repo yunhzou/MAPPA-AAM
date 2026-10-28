@@ -447,3 +447,68 @@ flowchart LR
     Group --> AAM[Return grouped AAM with all alternatives]
     AAM --> Decode[Decoder applies each alternative's anchors]
 ```
+
+
+## Source ownership audit — 2026-10-28
+
+This audit describes cde2a40, not a completed refactor. All 104 Python modules
+were inventoried with their purpose, definitions, direct imports, in-repository
+importers, and introduction commit following renames. The machine-readable
+[whole-source inventory](docs/validation/source_inventory_20261028.json) preserves
+that evidence. Static import relationships are not runtime call counts and do
+not establish the absence of external or dynamic consumers.
+
+The existing functional boundaries are recoverable:
+
+| Responsibility | Current code | Current connection |
+|---|---|---|
+| Bond/node matching and symmetry | `matcher/`, `growth/`, native engine | Shared primitive used by fragment growth |
+| Fragment matching | `fragment.py` | `alignment/branch.py` and standalone fragment detection call it |
+| AAM search and seed/cut scheduling | `aam.py`, `alignment/branch.py`, `native_search.py`, search scheduling helpers | Produces the persistent search graph; native scheduling has a separate orchestration route |
+| Saved AAM representation | `domain.py`, `search_graph.py`, `final_branches.py`, `artifacts.py` | Holds graph paths, atom-set branch groups and compressed mapping alternatives |
+| Event conversion/counting | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` | Rematches through the existing fragment matcher and counts retained branches |
+| Execution and storage | `execution/` | Calls search/conversion operations; owns task queues, bundles and resource limits |
+| Retrosynthesis | `fragment_matching/`, `retrosynthesis/` | Uses the shared fragment matcher for detection and assembles coverage |
+| TS analysis and chemistry | `ts.py`, `core_aam.py`, `scoring.py`, `chemistry_computations/`, `modes.py`, `bond_diagnostics.py` | Separate consumer of the same matching core |
+| Presentation | `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` | Reads saved results and traces |
+
+History confirms the standalone fragment/search-graph split was introduced in
+4e74cb7 (September 4). Adaptive fragment, seed and cut schedulers appeared on
+September 9–10; their introduction messages describe prototypes and alternative
+scheduling research. The current anchored converter began in 8242d01 (October 28).
+These dates describe file ancestry, not proof that every present behavior dates
+to that commit.
+
+Concrete cleanup findings, ordered by dependency risk:
+
+1. `align.py` is a re-export facade for `chemistry_computations`; no static
+   in-repository importer was found. `coordinate_orientation.py` is referenced
+   only by its test in the scanned Python code. Verify text/dynamic consumers,
+   then remove obsolete facades/helpers and their obsolete-only tests.
+2. `growth/native.py` still reads the former `RXN_CORE_NATIVE` environment name
+   as a fallback. Remove this superseded option and update callers/docs to the
+   single supported setting; distinguish this from the supported Python/native
+   implementation choice.
+3. `family_scoring.py` mixes historical bond scoring and solver objectives with
+   `validate_representative`, which current validation uses. Its functions need
+   different treatment: retain and consolidate the live validation primitive;
+   remove retired scoring consumers and their now-unneeded implementation
+   together. Deleting the whole file immediately would break live callers.
+4. `pattern_collection.py` is used by benchmark tools and tests, not the current
+   public converter. `benchmark_regression.py` is imported only by a test in the
+   scanned source. These are candidates for removal or benchmark ownership,
+   subject to retaining required paper verification functionality.
+5. `analytical.py` and `mechanisms.py` remain publicly exported and tested; they
+   are not proven dead. They preserve an older hierarchy-processing route and
+   need an explicit consumer migration before removal. Likewise adaptive/shared
+   scheduling modules have real callers: `aam.py` exposes shared-policy search.
+
+The cleanup sequence is to remove proven obsolete paths first, consolidate live
+helpers into their existing owners, then reconcile overlapping public consumers.
+The ownership table is an audit map, not authorization for a new algorithm or a
+new package hierarchy. Before any broader structural move, record the agreed
+boundaries. Validate unchanged saved graphs, mappings, counts and incomplete
+flags after each coherent change. Do not create a second decoder, wrapper layer,
+or compatibility fallback while retiring the old one. Native/Python equivalence
+and optional research modes must be evaluated explicitly, not inferred from
+similar names or the number of files.

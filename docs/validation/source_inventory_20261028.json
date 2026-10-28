@@ -1,0 +1,3766 @@
+{
+  "source_commit": "cde2a4023d2c42414e493a012bb1c99f80ba02b8",
+  "scope": "Static imports and Git history, following renames. Imports do not establish runtime invocation. External consumers and dynamic imports are not fully captured.",
+  "modules": [
+    {
+      "module": "mappa",
+      "path": "src/mappa/__init__.py",
+      "lines": 95,
+      "purpose": "Composable atom mapping and signed-event decoding.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.aam",
+        "mappa.alignment.post_aam",
+        "mappa.analytical",
+        "mappa.artifacts",
+        "mappa.core_aam",
+        "mappa.domain",
+        "mappa.family_query",
+        "mappa.frag",
+        "mappa.fragment",
+        "mappa.fragment_conversion",
+        "mappa.matcher.bond_policy",
+        "mappa.mechanisms",
+        "mappa.scoring",
+        "mappa.search_graph",
+        "mappa.search_orientation",
+        "mappa.search_symmetry",
+        "mappa.subgraph",
+        "mappa.ts"
+      ],
+      "imported_by": [
+        "bench/aam_resource_regression.py",
+        "bench/aam_small_graph_oracle.py",
+        "bench/adaptive_default_regression.py",
+        "bench/adaptive_fragment_pilot.py",
+        "bench/adaptive_full_benchmark.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/verify_saved_cases.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/run.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/elementary140_output_comparison_20260908/refine_driver.py",
+        "bench/archive/campaigns/golden_controlled_20260915/run.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/probe_small.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/multicandidate_discussion_20260914/audit_outputs.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_fragment_choices.py",
+        "bench/archive/manuscript_visuals/prepare_evidence.py",
+        "bench/audit_aam_slap_overlap.py",
+        "bench/audit_search_revision.py",
+        "bench/benchmark_event_extraction.py",
+        "bench/build_elementary_comparison_data.py",
+        "bench/compare_elementary_outputs.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/complete_golden_campaign.py",
+        "bench/elementary_family_overlap.py",
+        "bench/elementary_feasibility.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/experiments/final_fragment_dedup/upgrade_final_exports.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/final_end_to_end.py",
+        "bench/finish_shared_benchmark.py",
+        "bench/golden_aam_smoke.py",
+        "bench/golden_campaign.py",
+        "bench/golden_direction_probe.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_full_node.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_more_seeds.py",
+        "bench/golden_policy_campaign.py",
+        "bench/golden_publication.py",
+        "bench/golden_remaining.py",
+        "bench/holdout_minimum_events.py",
+        "bench/holdout_missing_pattern_seeds.py",
+        "bench/measure_fragment_search.py",
+        "bench/metal_binary_events.py",
+        "bench/missing_pattern_display_data.py",
+        "bench/profile_shared_cut.py",
+        "bench/public_reuse_pilot.py",
+        "bench/publication_timing.py",
+        "bench/publish_holdout_cap_seed.py",
+        "bench/publish_holdout_slap_sweep.py",
+        "bench/publish_minimum_event_analysis.py",
+        "bench/publish_missing_pattern_seeds.py",
+        "bench/publish_real_ts_comparison.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/campaign.py",
+        "bench/rebenchmark/capture_fragment.py",
+        "bench/rebenchmark/decoder_metrics.py",
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/rebenchmark/pilot.py",
+        "bench/rebenchmark/profile_seed.py",
+        "bench/rebenchmark/search.py",
+        "bench/rebenchmark/shared.py",
+        "bench/score_real_ts_families.py",
+        "bench/search_graph_regression.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/time_phases.py",
+        "bench/view_golden_mapping.py",
+        "docs/notebook_helpers.py",
+        "src/mappa/growth/native.py",
+        "tests/test_aam_checkpoint_transport.py",
+        "tests/test_aam_search_policy.py",
+        "tests/test_adaptive_cut_search.py",
+        "tests/test_adaptive_full_benchmark.py",
+        "tests/test_adaptive_seed_search.py",
+        "tests/test_anchored_fragment_refinement.py",
+        "tests/test_bond_diagnostics.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_collection_sharing.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_current_cli.py",
+        "tests/test_decoder_evidence.py",
+        "tests/test_decoder_metrics.py",
+        "tests/test_distance_seeds.py",
+        "tests/test_elementary_output_comparison.py",
+        "tests/test_event_patterns.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_family_query.py",
+        "tests/test_family_scoring.py",
+        "tests/test_fragment_choices.py",
+        "tests/test_fragment_conversion.py",
+        "tests/test_golden_anchor_policy.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_golden_evaluation.py",
+        "tests/test_golden_fast_rerank.py",
+        "tests/test_golden_more_seeds.py",
+        "tests/test_golden_remaining_viewer.py",
+        "tests/test_golden_singleton_domains.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_metal_binary_benchmark.py",
+        "tests/test_molecule_verification_example.py",
+        "tests/test_native_engine.py",
+        "tests/test_package_rename.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_pattern_archive_collection.py",
+        "tests/test_pattern_collection.py",
+        "tests/test_pattern_parallel_baseline.py",
+        "tests/test_post_aam.py",
+        "tests/test_publication_benchmark.py",
+        "tests/test_python_workflow.py",
+        "tests/test_random_growth.py",
+        "tests/test_ranked_reference_check.py",
+        "tests/test_real_ts_comparison.py",
+        "tests/test_rebenchmark.py",
+        "tests/test_retro.py",
+        "tests/test_retrosynthesis_architecture.py",
+        "tests/test_reused_aam_api.py",
+        "tests/test_saved_analysis.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_saved_path_retention.py",
+        "tests/test_search_graph.py",
+        "tests/test_search_trajectory.py",
+        "tests/test_search_validation.py",
+        "tests/test_shared_execution.py",
+        "tests/test_shared_seed_search.py",
+        "tests/test_single_ts_scorer.py",
+        "tests/test_slap_guided_pilot.py",
+        "tests/test_symmetry_matching.py",
+        "tests/test_target_action_growth.py",
+        "tests/test_typed_aam_api.py",
+        "tests/test_weighted_subgraph.py",
+        "tools/build_aam_search_viewer.py",
+        "tools/build_search_trajectory.py",
+        "tools/run_typed_ts_case.py"
+      ],
+      "introduced": {
+        "commit": "3e621dfa32f1202d8468da9ae1c8cdae45fd8931",
+        "date": "2026-05-10",
+        "subject": "Make rxn_core a proper installable Python package"
+      }
+    },
+    {
+      "module": "mappa.aam",
+      "path": "src/mappa/aam.py",
+      "lines": 449,
+      "purpose": "Mechanism-independent AAM search with persistent fragment-decision graphs.",
+      "public_definitions": [
+        "cut_seed",
+        "checkpoint_manifest",
+        "SearchSession",
+        "search_aam",
+        "AAMCheckpointResult",
+        "search_aam_checkpoints"
+      ],
+      "imports": [
+        "mappa.adaptive_search",
+        "mappa.alignment.branch",
+        "mappa.alignment.sweep",
+        "mappa.artifacts",
+        "mappa.conditioned_symmetry",
+        "mappa.cut_replay",
+        "mappa.domain",
+        "mappa.frag",
+        "mappa.growth.native",
+        "mappa.matcher",
+        "mappa.native_search",
+        "mappa.search_graph",
+        "mappa.search_symmetry",
+        "mappa.shared_seed_search"
+      ],
+      "imported_by": [
+        "bench/adaptive_default_regression.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/golden_controlled_20260915/run.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/golden_unswept_20260913/score_uncut.py",
+        "bench/audit_search_revision.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/complete_golden_campaign.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "bench/golden_anchor_policy.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_cut_cause.py",
+        "bench/golden_full_node.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_memory_probe.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/profile_shared_cut.py",
+        "bench/publication_timing.py",
+        "bench/rebenchmark/capture_fragment.py",
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/rebenchmark/profile_seed.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/time_phases.py",
+        "src/mappa/__init__.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/cli.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/search_orientation.py",
+        "src/mappa/shared_seed_search.py",
+        "tests/test_aam_checkpoint_transport.py",
+        "tests/test_aam_search_policy.py",
+        "tests/test_aam_seed_ablation.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_distance_seeds.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_golden_more_seeds.py",
+        "tests/test_native_engine.py",
+        "tests/test_python_workflow.py",
+        "tests/test_random_growth.py",
+        "tests/test_rebenchmark.py",
+        "tests/test_reused_aam_api.py",
+        "tests/test_saved_analysis.py",
+        "tests/test_search_graph.py",
+        "tests/test_shared_execution.py",
+        "tests/test_shared_seed_search.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "61afb023635a6a8d20e458a7aab7926ecd42785a",
+        "date": "2026-08-02",
+        "subject": "Introduce immutable typed AAM domain API"
+      }
+    },
+    {
+      "module": "mappa.action_reduction",
+      "path": "src/mappa/action_reduction.py",
+      "lines": 64,
+      "purpose": "Exact absorption of adjacent nested action subgroups, without enumeration.",
+      "public_definitions": [
+        "absorb_subgroups"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/final_branches.py",
+        "tests/test_action_reduction.py"
+      ],
+      "introduced": {
+        "commit": "3a9ef9a8aec3e129ea5f4ee67df47ce2c25ade3c",
+        "date": "2026-09-12",
+        "subject": "Absorb nested symmetry actions before final event decoding"
+      }
+    },
+    {
+      "module": "mappa.adaptive_cut_search",
+      "path": "src/mappa/adaptive_cut_search.py",
+      "lines": 86,
+      "purpose": "Shared conditional growth with fair exploration of source-cut conditions.",
+      "public_definitions": [
+        "AdaptiveCutSearch"
+      ],
+      "imports": [
+        "mappa.aam",
+        "mappa.adaptive_search",
+        "mappa.adaptive_seed_search",
+        "mappa.alignment.branch",
+        "mappa.alignment.sweep",
+        "mappa.conditioned_symmetry",
+        "mappa.cut_replay",
+        "mappa.domain",
+        "mappa.frag",
+        "mappa.matcher",
+        "mappa.search_graph",
+        "mappa.shared_seed_search"
+      ],
+      "imported_by": [
+        "bench/adaptive_full_benchmark.py",
+        "tests/test_adaptive_cut_search.py",
+        "tests/test_shared_seed_search.py"
+      ],
+      "introduced": {
+        "commit": "386f688cefc2f607114f52f58e41aef6ca968904",
+        "date": "2026-09-10",
+        "subject": "Restore cut-conditioned adaptive search with shared exact growth and fair scheduling"
+      }
+    },
+    {
+      "module": "mappa.adaptive_search",
+      "path": "src/mappa/adaptive_search.py",
+      "lines": 229,
+      "purpose": "Experimental persistent sequential fragment agenda; no external sweep cuts.",
+      "public_definitions": [
+        "AdaptiveResult",
+        "AdaptiveSearchCondition",
+        "AdaptiveFragmentSearch"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.conditioned_symmetry",
+        "mappa.domain",
+        "mappa.frag",
+        "mappa.fragment",
+        "mappa.fragment_choices",
+        "mappa.matcher",
+        "mappa.search_graph",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "bench/adaptive_fragment_pilot.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_fragment_choices.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_seed_search.py",
+        "src/mappa/shared_seed_search.py",
+        "tests/test_fragment_choices.py"
+      ],
+      "introduced": {
+        "commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
+        "date": "2026-09-09",
+        "subject": "Prototype lazy compressed fragment closures and persistent adaptive agenda"
+      }
+    },
+    {
+      "module": "mappa.adaptive_seed_search",
+      "path": "src/mappa/adaptive_seed_search.py",
+      "lines": 126,
+      "purpose": "Experimental shared-state alternatives for the next sequential fragment seed.",
+      "public_definitions": [
+        "AdaptiveSeedSearch"
+      ],
+      "imports": [
+        "mappa.adaptive_search",
+        "mappa.fragment",
+        "mappa.matcher",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/adaptive_fragment_pilot.py",
+        "bench/adaptive_full_benchmark.py",
+        "src/mappa/adaptive_cut_search.py",
+        "tests/test_adaptive_cut_search.py",
+        "tests/test_adaptive_seed_search.py"
+      ],
+      "introduced": {
+        "commit": "cf270d02b5709fba0fc9d867b19015d7c0cce794",
+        "date": "2026-09-09",
+        "subject": "Explore conditional seed alternatives and recover all four pilot minimum scores"
+      }
+    },
+    {
+      "module": "mappa.align",
+      "path": "src/mappa/align.py",
+      "lines": 9,
+      "purpose": "Compatibility facade for cache loading and R-frame coordinate helpers.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.chemistry_computations"
+      ],
+      "imported_by": [],
+      "introduced": {
+        "commit": "29ffdc79aec1ec252d6b193bbacdfec51a0f4784",
+        "date": "2026-05-10",
+        "subject": "Clean main: paper / debug / BGCP-tooling removed; pipeline.py is the entry point"
+      }
+    },
+    {
+      "module": "mappa.alignment",
+      "path": "src/mappa/alignment/__init__.py",
+      "lines": 59,
+      "purpose": "Molecule-level WBO graph alignment.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.alignment.api",
+        "mappa.alignment.branch",
+        "mappa.alignment.mapping_families",
+        "mappa.alignment.post_aam",
+        "mappa.alignment.sweep"
+      ],
+      "imported_by": [
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.alignment.api",
+      "path": "src/mappa/alignment/api.py",
+      "lines": 219,
+      "purpose": "Public API for WBO graph matching.",
+      "public_definitions": [
+        "MatchCandidate",
+        "MatchResult",
+        "cut_edges_above_floor",
+        "match_wbo_graphs",
+        "align_from_arrays",
+        "analyze_alignment"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.chemistry_computations",
+        "mappa.frag",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "src/mappa/alignment/__init__.py",
+        "tests/test_alignment_api.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.alignment.branch",
+      "path": "src/mappa/alignment/branch.py",
+      "lines": 959,
+      "purpose": "Fragment-decision scheduling, exact frontier admission, and symmetry repair.",
+      "public_definitions": [
+        "BranchLimitExceeded",
+        "symmetry_repair_mapping",
+        "find_islands"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.fragment",
+        "mappa.matcher",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/aam_resource_regression.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/archive/manuscript_visuals/prepare_evidence.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/core_aam_regression.py",
+        "bench/cut_replay_pilot.py",
+        "bench/golden_cause_probe.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_memory_probe.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/slap_guided_pilot.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/alignment/__init__.py",
+        "src/mappa/alignment/api.py",
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/fragment_conversion.py",
+        "src/mappa/fragment_matching/augmentation.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/native_search.py",
+        "src/mappa/shared_seed_search.py",
+        "src/mappa/subgraph.py",
+        "tests/test_aam_search_policy.py",
+        "tests/test_aam_seed_ablation.py",
+        "tests/test_anchored_fragment_refinement.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_cut_replay.py",
+        "tests/test_distance_seeds.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_golden_evaluation.py",
+        "tests/test_golden_more_seeds.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_search_graph.py",
+        "tests/test_shared_seed_search.py",
+        "tests/test_symmetry_matching.py",
+        "tests/test_target_action_growth.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.alignment.interpolation",
+      "path": "src/mappa/alignment/interpolation.py",
+      "lines": 1415,
+      "purpose": "Direct mapped bond-angle-dihedral interpolation for viewer diagnostics.",
+      "public_definitions": [
+        "proper_align_coordinates",
+        "internal_coordinate_interpolation"
+      ],
+      "imports": [],
+      "imported_by": [
+        "tests/test_interpolation.py",
+        "tools/compile_aligned_xyz_batch.py"
+      ],
+      "introduced": {
+        "commit": "838c30ebb0fa829aaef70503e2de2279c6077210",
+        "date": "2026-07-28",
+        "subject": "Implement exact hierarchical symmetry and index chirality"
+      }
+    },
+    {
+      "module": "mappa.alignment.mapping_families",
+      "path": "src/mappa/alignment/mapping_families.py",
+      "lines": 704,
+      "purpose": "Exact structural and event-conditioned mapping families, without 3D selection.",
+      "public_definitions": [
+        "MappingFamilyError",
+        "MappingFamilyConflict",
+        "validate_mapping",
+        "mapping_event_signature",
+        "analytical_family_static_context",
+        "AnalyticalMappingFamily",
+        "compile_analytical_mapping_family"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.matcher.orbits"
+      ],
+      "imported_by": [
+        "src/mappa/alignment/__init__.py",
+        "src/mappa/analytical.py",
+        "tests/test_mapping_families.py",
+        "tests/test_post_aam.py"
+      ],
+      "introduced": {
+        "commit": "cf0e15cdbc6a64b6d86fe769470b9fd544214c55",
+        "date": "2026-10-23",
+        "subject": "Use signed-event decoding and correct bond-change highlights"
+      }
+    },
+    {
+      "module": "mappa.alignment.post_aam",
+      "path": "src/mappa/alignment/post_aam.py",
+      "lines": 816,
+      "purpose": "Typed symmetry objects shared by AAM and optional mechanism post-processing.",
+      "public_definitions": [
+        "AtomPermutation",
+        "AtomBijection",
+        "PermutationGroup",
+        "SymmetryDomain",
+        "FragmentMatch",
+        "AAMHierarchy",
+        "AAMHierarchyView",
+        "AAMHierarchyChain",
+        "AAMBranch",
+        "PostAAMMechanism",
+        "ConstraintEvaluation",
+        "MappingConstraint",
+        "MappingObjective",
+        "OrientedSimplex",
+        "AffineChiralityConstraint",
+        "FixedMappingRMSD",
+        "MappingEvaluation",
+        "PostAAMSelectionProblem"
+      ],
+      "imports": [
+        "mappa.matcher.orbits"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/alignment/__init__.py",
+        "src/mappa/analytical.py",
+        "src/mappa/artifacts.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/domain.py",
+        "src/mappa/fragment_matching/augmentation.py",
+        "src/mappa/fragment_matching/models.py",
+        "src/mappa/fragment_matching/serialization.py",
+        "src/mappa/fragment_matching/symmetry.py",
+        "src/mappa/mechanisms.py",
+        "src/mappa/search_graph.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_hierarchy_transport.py",
+        "tests/test_post_aam.py",
+        "tests/test_retrosynthesis_architecture.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "284cb7dc41f5f63a65997a92307447128d157724",
+        "date": "2026-07-30",
+        "subject": "Refactor AAM symmetry families and chiral alignment"
+      }
+    },
+    {
+      "module": "mappa.alignment.sweep",
+      "path": "src/mappa/alignment/sweep.py",
+      "lines": 1888,
+      "purpose": "Sweep-cut mechanism discovery for WBO graph alignment.",
+      "public_definitions": [
+        "complete_chosen_automorphism_groups",
+        "attach_completed_candidate_groups",
+        "cut_sweep_items",
+        "run_cut_sweep_chunk",
+        "merge_cut_sweep_pools",
+        "cut_sweep",
+        "select_min_mechanisms"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.frag",
+        "mappa.matcher",
+        "mappa.matcher.canonical",
+        "mappa.matcher.orbits",
+        "mappa.matcher.state"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/audit.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_full_node.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/verify_saved_path_retention.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/alignment/__init__.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/mechanisms.py",
+        "tests/test_shared_execution.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.analytical",
+      "path": "src/mappa/analytical.py",
+      "lines": 245,
+      "purpose": "Compile completed AAM branches into exact analytical mapping families.",
+      "public_definitions": [
+        "compile_mechanism_families",
+        "compile_mapping_families"
+      ],
+      "imports": [
+        "mappa.alignment.mapping_families",
+        "mappa.alignment.post_aam",
+        "mappa.domain",
+        "mappa.mechanisms",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "tests/test_search_graph.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "b7e3d0df85bba8b21f86794c6769e7f4c7c49003",
+        "date": "2026-08-02",
+        "subject": "Expose complete typed analytical AAM families"
+      }
+    },
+    {
+      "module": "mappa.artifacts",
+      "path": "src/mappa/artifacts.py",
+      "lines": 308,
+      "purpose": "Serialization and self-contained views for typed computational results.",
+      "public_definitions": [
+        "aam_record",
+        "aam_from_record",
+        "write_aam_checkpoint",
+        "read_aam_checkpoint",
+        "write_graph_checkpoint",
+        "read_graph_checkpoint",
+        "read_aam",
+        "raw_cut_paths",
+        "write_raw_cut",
+        "read_raw_cut",
+        "aam_json",
+        "write_aam_bundle",
+        "decoded_events_record",
+        "ts_record",
+        "reaction_record",
+        "reaction_from_record",
+        "write_ts_record"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.domain",
+        "mappa.postprocessing",
+        "mappa.scoring",
+        "mappa.search_graph",
+        "mappa.viewers"
+      ],
+      "imported_by": [
+        "bench/aam_resource_regression.py",
+        "bench/adaptive_default_regression.py",
+        "bench/adaptive_fragment_pilot.py",
+        "bench/adaptive_full_benchmark.py",
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/colored_alternatives_20260914/extract_case.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/audit_coordinate.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/dynamic_reuse_20260915/verify_outputs.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/archive/campaigns/golden_unswept_20260913/score_uncut.py",
+        "bench/archive/campaigns/metal_binary_20260911/analysis_profile/profile.py",
+        "bench/archive/campaigns/prefix_competition_20260915/check_control.py",
+        "bench/archive/campaigns/prefix_competition_20260915/verify_candidates.py",
+        "bench/archive/campaigns/published_baseline_20260915/film/verify.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/check_control.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/verify_candidates.py",
+        "bench/audit_search_revision.py",
+        "bench/benchmark_pattern_collection.py",
+        "bench/benchmark_saved_decoding.py",
+        "bench/compare_pattern_exclusion.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/complete_golden_campaign.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "bench/elementary_cap_probe.py",
+        "bench/elementary_family_overlap.py",
+        "bench/elementary_feasibility.py",
+        "bench/experiments/competition_checkpoint/count_aam_branches.py",
+        "bench/experiments/competition_checkpoint/count_competition_paths.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/finish_shared_benchmark.py",
+        "bench/golden_aam_smoke.py",
+        "bench/golden_anchor_policy.py",
+        "bench/golden_campaign.py",
+        "bench/golden_cap_campaign.py",
+        "bench/golden_cause_probe.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_cut_cause.py",
+        "bench/golden_direction_probe.py",
+        "bench/golden_domain_rescore.py",
+        "bench/golden_fast_rerank.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_full_node.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_policy_campaign.py",
+        "bench/golden_publication.py",
+        "bench/golden_reference_filter_probe.py",
+        "bench/golden_remaining.py",
+        "bench/golden_singleton_probe.py",
+        "bench/golden_topk.py",
+        "bench/holdout_minimum_events.py",
+        "bench/investigate_golden_mapping.py",
+        "bench/metal_binary_benchmark.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/public_reuse_pilot.py",
+        "bench/publication_analysis.py",
+        "bench/publication_timing.py",
+        "bench/publish_holdout_cap_seed.py",
+        "bench/query_adaptive_patterns.py",
+        "bench/query_golden_tolerance_archive.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/capture_fragment.py",
+        "bench/rebenchmark/checker_pilot.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/rebenchmark/decoding.py",
+        "bench/rebenchmark/pilot.py",
+        "bench/rebenchmark/profile_seed.py",
+        "bench/rebenchmark/saved_analysis.py",
+        "bench/rebenchmark/search.py",
+        "bench/recover_golden_archive.py",
+        "bench/report_golden_cause.py",
+        "bench/score_real_ts_families.py",
+        "bench/search_graph_regression.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/trace_adaptive_reference_paths.py",
+        "bench/trace_missing_adaptive_pattern.py",
+        "bench/verify_saved_path_retention.py",
+        "bench/view_golden_alternatives.py",
+        "bench/view_golden_mapping.py",
+        "bench/view_golden_remaining.py",
+        "src/mappa/__init__.py",
+        "src/mappa/aam.py",
+        "src/mappa/cli.py",
+        "src/mappa/execution/decoding.py",
+        "src/mappa/search_trajectory.py",
+        "tests/test_aam_checkpoint_transport.py",
+        "tests/test_decoder_evidence.py",
+        "tests/test_fragment_conversion.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_package_rename.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_publication_benchmark.py",
+        "tests/test_rebenchmark.py",
+        "tests/test_saved_analysis.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_search_graph.py",
+        "tests/test_search_trajectory.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "756e91674970b4b0c483f81268143d46c9dc0486",
+        "date": "2026-08-02",
+        "subject": "Replace legacy pipeline with typed CLI"
+      }
+    },
+    {
+      "module": "mappa.benchmark_regression",
+      "path": "src/mappa/benchmark_regression.py",
+      "lines": 161,
+      "purpose": "Validate one AAM benchmark record against versioned regression metadata.",
+      "public_definitions": [
+        "load_contract",
+        "evaluate_record"
+      ],
+      "imports": [],
+      "imported_by": [
+        "tests/test_aam_regression_contract.py"
+      ],
+      "introduced": {
+        "commit": "912e3cdb84ea8d978708eeb9c2e087905c41fe9c",
+        "date": "2026-07-31",
+        "subject": "Define AAM regression contracts"
+      }
+    },
+    {
+      "module": "mappa.bond_diagnostics",
+      "path": "src/mappa/bond_diagnostics.py",
+      "lines": 55,
+      "purpose": "Descriptive endpoint-to-target WBO changes; never a scoring gate.",
+      "public_definitions": [
+        "endpoint_bond_changes"
+      ],
+      "imports": [
+        "mappa.frag"
+      ],
+      "imported_by": [
+        "src/mappa/ts.py",
+        "tests/test_bond_diagnostics.py"
+      ],
+      "introduced": {
+        "commit": "590d0a7cc230cf07ed694e8e736f723082eba7f1",
+        "date": "2026-10-15",
+        "subject": "Use sole asynchronous TS scorer and report both endpoint bond changes"
+      }
+    },
+    {
+      "module": "mappa.chemistry_computations",
+      "path": "src/mappa/chemistry_computations/__init__.py",
+      "lines": 35,
+      "purpose": "Chemistry computation IO and execution helpers.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.chemistry_computations.frames",
+        "mappa.chemistry_computations.xtb",
+        "mappa.chemistry_computations.xyz"
+      ],
+      "imported_by": [
+        "src/mappa/align.py",
+        "src/mappa/alignment/api.py",
+        "src/mappa/cli.py",
+        "src/mappa/frag.py",
+        "tools/build_typed_ts_views.py",
+        "tools/run_typed_ts_case.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.chemistry_computations.frames",
+      "path": "src/mappa/chemistry_computations/frames.py",
+      "lines": 19,
+      "purpose": "Coordinate frame helpers.",
+      "public_definitions": [
+        "reindex_to_R_frame"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/chemistry_computations/__init__.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.chemistry_computations.xtb",
+      "path": "src/mappa/chemistry_computations/xtb.py",
+      "lines": 116,
+      "purpose": "Cached xtb execution and WBO loading.",
+      "public_definitions": [
+        "read_wbo_file",
+        "load_cached_xtb",
+        "run_xtb",
+        "run_xtb_hess"
+      ],
+      "imports": [
+        "mappa.chemistry_computations.xyz",
+        "mappa.modes"
+      ],
+      "imported_by": [
+        "bench/audit_ts_weight_information.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/elementary_feasibility.py",
+        "src/mappa/chemistry_computations/__init__.py",
+        "tools/run_typed_ts_case.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.chemistry_computations.xyz",
+      "path": "src/mappa/chemistry_computations/xyz.py",
+      "lines": 58,
+      "purpose": "XYZ parsing and formatting utilities.",
+      "public_definitions": [
+        "parse_xyz",
+        "parse_xyz_file",
+        "read_first_xyz",
+        "write_xyz_str",
+        "xyz_block",
+        "xyz_with_disp"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/elementary_feasibility.py",
+        "src/mappa/chemistry_computations/__init__.py",
+        "src/mappa/chemistry_computations/xtb.py",
+        "tools/appendix_rerank.py",
+        "tools/compile_aligned_xyz_batch.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.cli",
+      "path": "src/mappa/cli.py",
+      "lines": 133,
+      "purpose": "Command-line composition of the typed mappa API.",
+      "public_definitions": [
+        "main"
+      ],
+      "imports": [
+        "mappa.aam",
+        "mappa.artifacts",
+        "mappa.chemistry_computations",
+        "mappa.domain",
+        "mappa.postprocessing",
+        "mappa.ts"
+      ],
+      "imported_by": [
+        "bench/cases.py",
+        "tests/test_cli_artifacts.py",
+        "tests/test_current_cli.py"
+      ],
+      "introduced": {
+        "commit": "756e91674970b4b0c483f81268143d46c9dc0486",
+        "date": "2026-08-02",
+        "subject": "Replace legacy pipeline with typed CLI"
+      }
+    },
+    {
+      "module": "mappa.competition",
+      "path": "src/mappa/competition.py",
+      "lines": 468,
+      "purpose": "Experimental, opt-in fragment competition; disabled in the default pipeline.",
+      "public_definitions": [
+        "CompetitionConfig",
+        "CompetitionResult",
+        "takeover_plan",
+        "compete_fragments"
+      ],
+      "imports": [
+        "mappa.conditioned_symmetry",
+        "mappa.domain",
+        "mappa.event_patterns",
+        "mappa.final_branches",
+        "mappa.frag",
+        "mappa.fragment",
+        "mappa.growth.native",
+        "mappa.matcher",
+        "mappa.native_search",
+        "mappa.search_symmetry",
+        "mappa.search_validation"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/prefix_competition_20260915/check_control.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/check_control.py",
+        "tests/test_python_workflow.py"
+      ],
+      "introduced": {
+        "commit": "5879628c14fe8738a065703957a7e694040bd6c1",
+        "date": "2026-09-14",
+        "subject": "Add simple AAM notebook and importable candidate inspection APIs"
+      }
+    },
+    {
+      "module": "mappa.conditioned_symmetry",
+      "path": "src/mappa/conditioned_symmetry.py",
+      "lines": 60,
+      "purpose": "Opt-in native conditioning over one immutable target symmetry graph.",
+      "public_definitions": [
+        "ConditionedSymmetryWorkspace"
+      ],
+      "imports": [
+        "mappa.matcher.canonical",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "bench/adaptive_default_regression.py",
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/audit_search_revision.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/saved_analysis.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/competition.py",
+        "src/mappa/execution/search.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_golden_checkpoint_evaluation.py"
+      ],
+      "introduced": {
+        "commit": "446d82a1b665594d0a7c7f609c53a17ca802d211",
+        "date": "2026-09-09",
+        "subject": "Prototype exact conditioned symmetry and extension reuse; retain paired pilot evidence"
+      }
+    },
+    {
+      "module": "mappa.coordinate_orientation",
+      "path": "src/mappa/coordinate_orientation.py",
+      "lines": 116,
+      "purpose": "Coordinate orientation measurements; no mapping search or witness selection.",
+      "public_definitions": [
+        "OrientationError"
+      ],
+      "imports": [],
+      "imported_by": [
+        "tests/test_mapping_families.py"
+      ],
+      "introduced": {
+        "commit": "cf0e15cdbc6a64b6d86fe769470b9fd544214c55",
+        "date": "2026-10-23",
+        "subject": "Use signed-event decoding and correct bond-change highlights"
+      }
+    },
+    {
+      "module": "mappa.core_aam",
+      "path": "src/mappa/core_aam.py",
+      "lines": 106,
+      "purpose": "Exact partial AAM for mechanism-local endpoint/TS core assignments.",
+      "public_definitions": [
+        "search_core_assignments"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.alignment.post_aam",
+        "mappa.alignment.sweep",
+        "mappa.domain",
+        "mappa.frag",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/ts.py"
+      ],
+      "introduced": {
+        "commit": "93486cd567c511603025ab0980be7c10603bbf16",
+        "date": "2026-08-02",
+        "subject": "Add exact typed transition state processing"
+      }
+    },
+    {
+      "module": "mappa.cut_replay",
+      "path": "src/mappa/cut_replay.py",
+      "lines": 63,
+      "purpose": "Experimental dependency-checked cut replay, separate from search policy.",
+      "public_definitions": [
+        "CutReplayView",
+        "CutReplay",
+        "FragmentRepair"
+      ],
+      "imports": [
+        "mappa.growth",
+        "mappa.growth.native"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_cut_replay.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_random_growth.py"
+      ],
+      "introduced": {
+        "commit": "3a4d4590b53e6000026cd2d0c2a3422c9088ad4f",
+        "date": "2026-09-09",
+        "subject": "Experiment with exact compressed cut replay and paired performance audits"
+      }
+    },
+    {
+      "module": "mappa.domain",
+      "path": "src/mappa/domain.py",
+      "lines": 534,
+      "purpose": "Public immutable domain objects for atom mapping and reaction analysis.",
+      "public_definitions": [
+        "MolecularEndpoint",
+        "AAMProblem",
+        "AAMSearchConfig",
+        "AAMSearchMetrics",
+        "AAMMechanism",
+        "AAMResult",
+        "MechanismResult",
+        "MappingFamilyResult",
+        "AnalyticalBranch",
+        "AnalyticalMechanism",
+        "AnalyticalAAMResult",
+        "ResolvedMechanism",
+        "ReactionContext",
+        "VibrationalModes",
+        "TransitionStateTarget",
+        "AtomAssignment",
+        "CoreAAMBranch",
+        "CoreAAMResult",
+        "TSScore",
+        "TSScoringConfig",
+        "TSMechanismResult",
+        "TSResult"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.final_branches",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/aam_small_graph_oracle.py",
+        "bench/adaptive_default_regression.py",
+        "bench/adaptive_fragment_pilot.py",
+        "bench/adaptive_full_benchmark.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/elementary140_output_comparison_20260908/refine_driver.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/golden_unswept_20260913/score_uncut.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_fragment_choices.py",
+        "bench/audit_aam_slap_overlap.py",
+        "bench/build_elementary_comparison_data.py",
+        "bench/cases.py",
+        "bench/compare_elementary_outputs.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/complete_golden_campaign.py",
+        "bench/cut_replay_pilot.py",
+        "bench/elementary_family_overlap.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/golden_aam_smoke.py",
+        "bench/golden_anchor_policy.py",
+        "bench/golden_campaign.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_cut_cause.py",
+        "bench/golden_direction_probe.py",
+        "bench/golden_domain_rescore.py",
+        "bench/golden_evaluation.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_full_node.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_policy_campaign.py",
+        "bench/holdout_minimum_events.py",
+        "bench/holdout_missing_pattern_seeds.py",
+        "bench/missing_pattern_display_data.py",
+        "bench/public_reuse_pilot.py",
+        "bench/publish_holdout_cap_seed.py",
+        "bench/publish_holdout_slap_sweep.py",
+        "bench/publish_minimum_event_analysis.py",
+        "bench/publish_missing_pattern_seeds.py",
+        "bench/publish_real_ts_comparison.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/score_real_ts_families.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/time_phases.py",
+        "bench/view_golden_mapping.py",
+        "src/mappa/__init__.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/analytical.py",
+        "src/mappa/artifacts.py",
+        "src/mappa/cli.py",
+        "src/mappa/competition.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/mechanisms.py",
+        "src/mappa/search_graph.py",
+        "src/mappa/search_orientation.py",
+        "src/mappa/shared_seed_search.py",
+        "src/mappa/ts.py",
+        "tests/test_aam_search_policy.py",
+        "tests/test_adaptive_full_benchmark.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_current_cli.py",
+        "tests/test_elementary_output_comparison.py",
+        "tests/test_family_query.py",
+        "tests/test_family_scoring.py",
+        "tests/test_final_branches.py",
+        "tests/test_fragment_choices.py",
+        "tests/test_golden_evaluation.py",
+        "tests/test_golden_fast_rerank.py",
+        "tests/test_golden_singleton_domains.py",
+        "tests/test_metal_binary_benchmark.py",
+        "tests/test_native_engine.py",
+        "tests/test_real_ts_comparison.py",
+        "tests/test_reused_aam_api.py",
+        "tests/test_shared_execution.py",
+        "tests/test_shared_seed_search.py",
+        "tests/test_single_ts_scorer.py",
+        "tests/test_slap_guided_pilot.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "61afb023635a6a8d20e458a7aab7926ecd42785a",
+        "date": "2026-08-02",
+        "subject": "Introduce immutable typed AAM domain API"
+      }
+    },
+    {
+      "module": "mappa.event_certificates",
+      "path": "src/mappa/event_certificates.py",
+      "lines": 161,
+      "purpose": "Exact event-class certificates over the recorded, possibly looser, search family.",
+      "public_definitions": [
+        "EventFamilyCertificates"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/event_patterns.py",
+        "tests/test_event_certificates.py"
+      ],
+      "introduced": {
+        "commit": "312fff76c7a56ad497fd144025a2ea5c43fae4a6",
+        "date": "2026-09-12",
+        "subject": "Checkpoint exact event decoding and bounded fragment competition experiment"
+      }
+    },
+    {
+      "module": "mappa.event_patterns",
+      "path": "src/mappa/event_patterns.py",
+      "lines": 505,
+      "purpose": "Signed-event decoding on the mapped region and its boundary.",
+      "public_definitions": [
+        "SignedEventIndex"
+      ],
+      "imports": [
+        "mappa.event_certificates",
+        "mappa.family_query",
+        "mappa.frag"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/colored_alternatives_20260914/extract_case.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/prefix_competition_20260915/verify_candidates.py",
+        "bench/archive/campaigns/published_baseline_20260915/film/verify.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/verify_candidates.py",
+        "bench/benchmark_event_extraction.py",
+        "bench/experiments/competition_checkpoint/count_competition_paths.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/metal_binary_events.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/rebenchmark/decoder_metrics.py",
+        "bench/rebenchmark/decoding.py",
+        "src/mappa/competition.py",
+        "src/mappa/postprocessing.py",
+        "tests/legacy_decoder_records.py",
+        "tests/reference_event_decoder.py",
+        "tests/test_action_reduction.py",
+        "tests/test_decoder_metrics.py",
+        "tests/test_decoder_optimizations.py",
+        "tests/test_event_certificates.py",
+        "tests/test_event_patterns.py",
+        "tests/test_final_branches.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_relative_event_window.py"
+      ],
+      "introduced": {
+        "commit": "312fff76c7a56ad497fd144025a2ea5c43fae4a6",
+        "date": "2026-09-12",
+        "subject": "Checkpoint exact event decoding and bounded fragment competition experiment"
+      }
+    },
+    {
+      "module": "mappa.execution",
+      "path": "src/mappa/execution/__init__.py",
+      "lines": 7,
+      "purpose": "Portable dependency scheduling; scientific operations are ordinary callables.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.execution.bundles",
+        "mappa.execution.queue",
+        "mappa.execution.runtime"
+      ],
+      "imported_by": [
+        "bench/rebenchmark/check_conversion_outputs.py",
+        "bench/rebenchmark/decoder_campaign.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/rebenchmark/decoder_metrics.py",
+        "bench/rebenchmark/decoder_resume.py",
+        "bench/rebenchmark/decoding.py",
+        "bench/rebenchmark/evidence_campaign.py",
+        "bench/rebenchmark/evidence_report.py",
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/rebenchmark/metrics_campaign.py",
+        "bench/rebenchmark/relocate_index.py",
+        "bench/rebenchmark/saved_analysis.py",
+        "bench/rebenchmark/shared.py",
+        "src/mappa/execution/__main__.py",
+        "tests/test_decoder_evidence.py",
+        "tests/test_decoder_inventory.py",
+        "tests/test_decoder_resume.py",
+        "tests/test_evidence_campaign.py",
+        "tests/test_evidence_report.py",
+        "tests/test_metrics_campaign.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "3530c67dd4f9888103b6272d63b5b0aa7808288b",
+        "date": "2026-10-27",
+        "subject": "Extract prepared search sessions and shared task execution for validation"
+      }
+    },
+    {
+      "module": "mappa.execution.__main__",
+      "path": "src/mappa/execution/__main__.py",
+      "lines": 55,
+      "purpose": "Launch the common worker locally or inside an existing Slurm allocation.",
+      "public_definitions": [
+        "main"
+      ],
+      "imports": [
+        "mappa.execution"
+      ],
+      "imported_by": [],
+      "introduced": {
+        "commit": "13840a42541d8ea3968006ffadc8d6971213fafb",
+        "date": "2026-10-27",
+        "subject": "Share per-seed evaluation and add portable worker entry point"
+      }
+    },
+    {
+      "module": "mappa.execution.bundles",
+      "path": "src/mappa/execution/bundles.py",
+      "lines": 115,
+      "purpose": "Verified byte ranges in a bounded number of append-only worker bundles.",
+      "public_definitions": [
+        "Blob",
+        "read_blob",
+        "read_blobs",
+        "BundleWriter"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/rebenchmark/evidence_report.py",
+        "src/mappa/execution/__init__.py",
+        "src/mappa/execution/runtime.py",
+        "src/mappa/execution/search.py",
+        "tests/test_evidence_report.py"
+      ],
+      "introduced": {
+        "commit": "3530c67dd4f9888103b6272d63b5b0aa7808288b",
+        "date": "2026-10-27",
+        "subject": "Extract prepared search sessions and shared task execution for validation"
+      }
+    },
+    {
+      "module": "mappa.execution.decoding",
+      "path": "src/mappa/execution/decoding.py",
+      "lines": 25,
+      "purpose": "Run the public fragment conversion through the common portable executor.",
+      "public_definitions": [
+        "plan_event_decoding",
+        "decode_catalogue"
+      ],
+      "imports": [
+        "mappa.artifacts",
+        "mappa.execution.queue",
+        "mappa.execution.search",
+        "mappa.final_branches",
+        "mappa.postprocessing"
+      ],
+      "imported_by": [
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "146327c32e81fb16c74d80ef3ca23d84e396f2fd",
+        "date": "2026-10-27",
+        "subject": "Bound queue planning overhead and expose independent family decoding"
+      }
+    },
+    {
+      "module": "mappa.execution.queue",
+      "path": "src/mappa/execution/queue.py",
+      "lines": 208,
+      "purpose": "One coordinator owns task metadata; workers never open its SQLite file.",
+      "public_definitions": [
+        "Task",
+        "TaskQueue"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/execution/__init__.py",
+        "src/mappa/execution/decoding.py",
+        "src/mappa/execution/search.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "3530c67dd4f9888103b6272d63b5b0aa7808288b",
+        "date": "2026-10-27",
+        "subject": "Extract prepared search sessions and shared task execution for validation"
+      }
+    },
+    {
+      "module": "mappa.execution.resources",
+      "path": "src/mappa/execution/resources.py",
+      "lines": 25,
+      "purpose": "Process-tree memory accounting without a machine-wide scan on Linux.",
+      "public_definitions": [
+        "tree_rss"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/execution/runtime.py"
+      ],
+      "introduced": {
+        "commit": "ba12951ce5ac189d6aa5be8de088f7d928df8f53",
+        "date": "2026-10-27",
+        "subject": "Avoid whole-node process scans in per-task resource monitoring"
+      }
+    },
+    {
+      "module": "mappa.execution.runtime",
+      "path": "src/mappa/execution/runtime.py",
+      "lines": 238,
+      "purpose": "The same supervised worker consumes an in-process or remote task queue.",
+      "public_definitions": [
+        "Workspace",
+        "worker",
+        "run",
+        "coordinator",
+        "connect"
+      ],
+      "imports": [
+        "mappa.execution.bundles",
+        "mappa.execution.resources"
+      ],
+      "imported_by": [
+        "src/mappa/execution/__init__.py",
+        "tests/test_saved_analysis.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "3530c67dd4f9888103b6272d63b5b0aa7808288b",
+        "date": "2026-10-27",
+        "subject": "Extract prepared search sessions and shared task execution for validation"
+      }
+    },
+    {
+      "module": "mappa.execution.search",
+      "path": "src/mappa/execution/search.py",
+      "lines": 106,
+      "purpose": "Deterministic cut/seed tasks calling the same prepared search as public APIs.",
+      "public_definitions": [
+        "plan_search",
+        "search_batch",
+        "finalize_cut",
+        "iter_cuts"
+      ],
+      "imports": [
+        "mappa.aam",
+        "mappa.alignment.branch",
+        "mappa.alignment.sweep",
+        "mappa.conditioned_symmetry",
+        "mappa.domain",
+        "mappa.execution.bundles",
+        "mappa.execution.queue",
+        "mappa.frag",
+        "mappa.search_graph",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/rebenchmark/shared.py",
+        "src/mappa/execution/decoding.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "3530c67dd4f9888103b6272d63b5b0aa7808288b",
+        "date": "2026-10-27",
+        "subject": "Extract prepared search sessions and shared task execution for validation"
+      }
+    },
+    {
+      "module": "mappa.family_query",
+      "path": "src/mappa/family_query.py",
+      "lines": 204,
+      "purpose": "Symbolic realization of compressed AAM paths: domains plus correlated groups.",
+      "public_definitions": [
+        "group_factors",
+        "SymbolicActions",
+        "compile_path",
+        "CompiledFamily",
+        "query_path"
+      ],
+      "imports": [
+        "mappa.reference_constraints"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/colored_alternatives_20260914/extract_case.py",
+        "bench/archive/campaigns/prefix_competition_20260915/verify_candidates.py",
+        "bench/archive/campaigns/published_baseline_20260915/film/verify.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/verify_candidates.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/elementary_family_overlap.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/golden_evaluation.py",
+        "bench/holdout_minimum_event_families.py",
+        "bench/metal_binary_events.py",
+        "bench/query_adaptive_patterns.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/checker_pilot.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/score_real_ts_families.py",
+        "bench/verify_saved_path_retention.py",
+        "src/mappa/__init__.py",
+        "src/mappa/event_patterns.py",
+        "src/mappa/pattern_collection.py",
+        "src/mappa/postprocessing.py",
+        "src/mappa/reference_constraints.py",
+        "tests/reference_event_decoder.py",
+        "tests/test_action_reduction.py",
+        "tests/test_decoder_optimizations.py",
+        "tests/test_event_certificates.py",
+        "tests/test_final_branches.py",
+        "tests/test_metal_binary_benchmark.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_target_action_growth.py"
+      ],
+      "introduced": {
+        "commit": "f3f5bce86a9bbf00e6fe9e8f5aaaf767ede2abf4",
+        "date": "2026-09-07",
+        "subject": "Verify complete AAM assignment families and rescore Golden coverage"
+      }
+    },
+    {
+      "module": "mappa.family_scoring",
+      "path": "src/mappa/family_scoring.py",
+      "lines": 119,
+      "purpose": "Historical ranking criteria and path validation for saved benchmark records.",
+      "public_definitions": [
+        "bond_events",
+        "invariant_score",
+        "validate_representative",
+        "event_objective"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/elementary140_output_comparison_20260908/refine_driver.py",
+        "bench/audit_aam_slap_overlap.py",
+        "bench/build_elementary_comparison_data.py",
+        "bench/compare_elementary_outputs.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/holdout_minimum_event_families.py",
+        "bench/holdout_missing_pattern_seeds.py",
+        "bench/missing_pattern_display_data.py",
+        "bench/publish_holdout_cap_seed.py",
+        "bench/publish_holdout_slap_sweep.py",
+        "bench/publish_minimum_event_analysis.py",
+        "bench/publish_missing_pattern_seeds.py",
+        "bench/publish_real_ts_comparison.py",
+        "bench/query_adaptive_patterns.py",
+        "bench/score_real_ts_families.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "src/mappa/pattern_collection.py",
+        "src/mappa/search_validation.py",
+        "tests/test_elementary_output_comparison.py",
+        "tests/test_family_scoring.py",
+        "tests/test_real_ts_comparison.py",
+        "tests/test_search_validation.py"
+      ],
+      "introduced": {
+        "commit": "4c205e278d36c4d4db38891d06d37a5223797ed0",
+        "date": "2026-09-08",
+        "subject": "Prototype certified invariant and bounded symbolic family event scoring"
+      }
+    },
+    {
+      "module": "mappa.final_branches",
+      "path": "src/mappa/final_branches.py",
+      "lines": 351,
+      "purpose": "Unordered final fragment pairs with a lossless union of mapping families.",
+      "public_definitions": [
+        "final_fragment_pairs",
+        "canonical_actions",
+        "conditioned_fragment_actions",
+        "FinalFamily",
+        "FinalBranchCatalogue",
+        "deduplicate_final_branches"
+      ],
+      "imports": [
+        "mappa.action_reduction",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/colored_alternatives_20260914/extract_case.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/audit_coordinate.py",
+        "bench/archive/campaigns/prefix_competition_20260915/verify_candidates.py",
+        "bench/archive/campaigns/published_baseline_20260915/film/verify.py",
+        "bench/archive/campaigns/unrestricted_competition_20260915/verify_candidates.py",
+        "bench/benchmark_saved_decoding.py",
+        "bench/experiments/final_fragment_dedup/rebuild_intrinsic.py",
+        "bench/experiments/final_fragment_dedup/upgrade_final_exports.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/final_end_to_end.py",
+        "bench/rebenchmark/check_conversion_outputs.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/rebenchmark/decoding.py",
+        "src/mappa/competition.py",
+        "src/mappa/domain.py",
+        "src/mappa/execution/decoding.py",
+        "src/mappa/fragment_conversion.py",
+        "src/mappa/fragment_matching/symmetry.py",
+        "src/mappa/postprocessing.py",
+        "src/mappa/search_graph.py",
+        "tests/test_action_reduction.py",
+        "tests/test_decoder_optimizations.py",
+        "tests/test_final_branches.py",
+        "tests/test_fragment_conversion.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_relative_event_window.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "eb1a7d150e9c3c80da79639ea59c300d8f834038",
+        "date": "2026-09-12",
+        "subject": "Deduplicate final fragment combinations while retaining mapping alternatives"
+      }
+    },
+    {
+      "module": "mappa.frag",
+      "path": "src/mappa/frag.py",
+      "lines": 268,
+      "purpose": "Low-level utilities used by mappa:",
+      "public_definitions": [
+        "is_metal_element",
+        "bond_event_threshold",
+        "WeightedNode",
+        "WeightedGraph",
+        "build_weighted_graph",
+        "build_graph",
+        "expand_mapping",
+        "classify_bonds"
+      ],
+      "imports": [
+        "mappa.chemistry_computations"
+      ],
+      "imported_by": [
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/prefix_competition_20260915/test_prefix.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/archive/manuscript_visuals/prepare_evidence.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_kernel_probe.py",
+        "bench/cut_replay_pilot.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/golden_anchor_policy.py",
+        "bench/golden_cause_probe.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_cut_cause.py",
+        "bench/golden_domain_rescore.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_mapping_probe.py",
+        "bench/golden_memory_probe.py",
+        "bench/metal_binary_events.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/check_conversion_outputs.py",
+        "bench/rebenchmark/decoding.py",
+        "bench/rebenchmark/saved_analysis.py",
+        "bench/reference_dense_events.py",
+        "bench/scan_beta_catalog.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/trace_missing_adaptive_pattern.py",
+        "src/mappa/__init__.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/alignment/api.py",
+        "src/mappa/alignment/branch.py",
+        "src/mappa/alignment/mapping_families.py",
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/bond_diagnostics.py",
+        "src/mappa/competition.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/event_patterns.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/fragment_conversion.py",
+        "src/mappa/fragment_matching/graph_ops.py",
+        "src/mappa/fragment_matching/progressive.py",
+        "src/mappa/fragment_matching/rdkit_adapter.py",
+        "src/mappa/growth_display.py",
+        "src/mappa/mechanisms.py",
+        "src/mappa/postprocessing.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "src/mappa/search_trajectory.py",
+        "src/mappa/smiles.py",
+        "src/mappa/subgraph.py",
+        "tests/test_aam_search_policy.py",
+        "tests/test_anchored_fragment_refinement.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_collection_sharing.py",
+        "tests/test_cut_replay.py",
+        "tests/test_decoder_optimizations.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_golden_evaluation.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_random_growth.py",
+        "tests/test_search_graph.py"
+      ],
+      "introduced": {
+        "commit": "71b6bea3962dd61e539f1f156457e3639b479988",
+        "date": "2026-05-04",
+        "subject": "WBO-anchor reaction-core finder: fragment grow + symmetry-aware island merge"
+      }
+    },
+    {
+      "module": "mappa.fragment",
+      "path": "src/mappa/fragment.py",
+      "lines": 125,
+      "purpose": "Reusable conditional fragment matching over the native-enabled AAM kernel.",
+      "public_definitions": [
+        "FragmentPlacement",
+        "FragmentMatchContext",
+        "FragmentMatchConfig",
+        "FragmentMatchResult",
+        "match_fragment"
+      ],
+      "imports": [
+        "mappa.growth",
+        "mappa.matcher",
+        "mappa.matcher.bond_policy",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/prefix_competition_20260915/test_prefix.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_fragment_choices.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "src/mappa/__init__.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/adaptive_seed_search.py",
+        "src/mappa/alignment/branch.py",
+        "src/mappa/competition.py",
+        "src/mappa/fragment_choices.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/shared_seed_search.py",
+        "tests/test_fragment_choices.py",
+        "tests/test_native_engine.py",
+        "tests/test_retro_defaults.py",
+        "tests/test_search_graph.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "4e74cb7a93345ffe5bdb207c668461342d85ce1c",
+        "date": "2026-09-04",
+        "subject": "Separate fragment matching, AAM search graph, and optional mechanism processing"
+      }
+    },
+    {
+      "module": "mappa.fragment_choices",
+      "path": "src/mappa/fragment_choices.py",
+      "lines": 78,
+      "purpose": "Conditional greedy fragments and lazy early closures, without bijections.",
+      "public_definitions": [
+        "FragmentClosure",
+        "FragmentChoices"
+      ],
+      "imports": [
+        "mappa.fragment",
+        "mappa.growth",
+        "mappa.growth.native",
+        "mappa.growth.result",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/prefix_competition_20260915/test_prefix.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_fragment_choices.py",
+        "src/mappa/adaptive_search.py",
+        "tests/test_fragment_choices.py"
+      ],
+      "introduced": {
+        "commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
+        "date": "2026-09-09",
+        "subject": "Prototype lazy compressed fragment closures and persistent adaptive agenda"
+      }
+    },
+    {
+      "module": "mappa.fragment_conversion",
+      "path": "src/mappa/fragment_conversion.py",
+      "lines": 166,
+      "purpose": "Convert saved fragment pairs to the bond-event matching thresholds.",
+      "public_definitions": [
+        "FragmentRematch",
+        "ConvertedBranch",
+        "FragmentConversion",
+        "convert_fragments"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.final_branches",
+        "mappa.frag",
+        "mappa.matcher.bond_policy",
+        "mappa.postprocessing",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/postprocessing.py",
+        "tests/test_fragment_conversion.py"
+      ],
+      "introduced": {
+        "commit": "8242d01a20964378a0e6ab22f96045b05655bd4b",
+        "date": "2026-10-28",
+        "subject": "Prototype anchored saved-fragment conversion with explicit completeness gates"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching",
+      "path": "src/mappa/fragment_matching/__init__.py",
+      "lines": 42,
+      "purpose": "Reusable augmented fragment detection.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.fragment_matching.connected",
+        "mappa.fragment_matching.detection",
+        "mappa.fragment_matching.models",
+        "mappa.fragment_matching.parallel",
+        "mappa.fragment_matching.progressive",
+        "mappa.fragment_matching.symmetry"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/benchmark_fragment_detection.py",
+        "bench/benchmark_fragment_seed.py",
+        "bench/benchmark_initial_fragment_stage.py",
+        "bench/capture_occupation_calls.py",
+        "bench/compare_detection_archive.py",
+        "bench/native_retro_acceleration.py",
+        "bench/principled_retro.py",
+        "bench/run_beta_distributed.py",
+        "bench/scan_beta_catalog.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "src/mappa/retrosynthesis/compressed_coverage.py",
+        "src/mappa/retrosynthesis/coverage.py",
+        "tests/test_beta_retro.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_fragment_parallel.py",
+        "tests/test_hierarchy_transport.py",
+        "tests/test_retro.py",
+        "tests/test_retro_defaults.py",
+        "tests/test_retrosynthesis_architecture.py",
+        "tests/test_search_graph.py",
+        "tools/build_fragment_matching_report.py",
+        "tools/search_mcule_retro.py",
+        "tools/search_retro_beta.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.augmentation",
+      "path": "src/mappa/fragment_matching/augmentation.py",
+      "lines": 130,
+      "purpose": "Competitive residual matching through the shared AAM search engine.",
+      "public_definitions": [
+        "AugmentedFragmentPlacement",
+        "AugmentedMatchResult",
+        "match_augmented_residuals",
+        "project_augmented_placement"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.alignment.post_aam",
+        "mappa.fragment_matching.graph_ops",
+        "mappa.fragment_matching.models",
+        "mappa.fragment_matching.symmetry",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "src/mappa/fragment_matching/detection.py",
+        "tests/test_retro.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.connected",
+      "path": "src/mappa/fragment_matching/connected.py",
+      "lines": 60,
+      "purpose": "Connected-fragment discovery without residual augmentation.",
+      "public_definitions": [
+        "ConnectedFragmentResult",
+        "find_connected_fragments"
+      ],
+      "imports": [
+        "mappa.fragment_matching.detection",
+        "mappa.fragment_matching.graph_ops",
+        "mappa.fragment_matching.models"
+      ],
+      "imported_by": [
+        "bench/scan_beta_catalog.py",
+        "src/mappa/fragment_matching/__init__.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "tests/test_beta_retro.py"
+      ],
+      "introduced": {
+        "commit": "b78e180659d9d7ba281abc03ce4dfb38cd8faaae",
+        "date": "2026-09-06",
+        "subject": "Add opt-in big-block gap-first beta recommendation workflow"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.detection",
+      "path": "src/mappa/fragment_matching/detection.py",
+      "lines": 626,
+      "purpose": "Detect target-owned fragments from one source graph.",
+      "public_definitions": [
+        "prepare_fragment_target",
+        "detect_fragments"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.fragment",
+        "mappa.fragment_matching.augmentation",
+        "mappa.fragment_matching.graph_ops",
+        "mappa.fragment_matching.models",
+        "mappa.matcher",
+        "mappa.search_graph",
+        "mappa.search_symmetry",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/benchmark_fragment_seed.py",
+        "bench/benchmark_initial_fragment_stage.py",
+        "bench/benchmark_orbit_preparation.py",
+        "bench/retro_archive_profile.py",
+        "src/mappa/fragment_matching/__init__.py",
+        "src/mappa/fragment_matching/connected.py",
+        "src/mappa/fragment_matching/parallel.py",
+        "src/mappa/fragment_matching/progressive.py",
+        "tests/test_beta_retro.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_fragment_parallel.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.graph_ops",
+      "path": "src/mappa/fragment_matching/graph_ops.py",
+      "lines": 47,
+      "purpose": "Graph operations used by augmented fragment detection.",
+      "public_definitions": [
+        "weight_matrix",
+        "weighted_graph_from_nx",
+        "partition_at_retained_fragment",
+        "fragment_equivalence_classes"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "src/mappa/fragment_matching/augmentation.py",
+        "src/mappa/fragment_matching/connected.py",
+        "src/mappa/fragment_matching/detection.py",
+        "tests/test_exact_retro_assembly.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.models",
+      "path": "src/mappa/fragment_matching/models.py",
+      "lines": 115,
+      "purpose": "Immutable records for augmented fragment detection.",
+      "public_definitions": [
+        "FragmentDerivation",
+        "FragmentDetectionConfig",
+        "FragmentTargetContext",
+        "FragmentCandidate",
+        "FragmentDetectionResult"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/retro_archive_profile.py",
+        "src/mappa/fragment_matching/__init__.py",
+        "src/mappa/fragment_matching/augmentation.py",
+        "src/mappa/fragment_matching/connected.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/fragment_matching/parallel.py",
+        "src/mappa/fragment_matching/progressive.py",
+        "src/mappa/fragment_matching/serialization.py",
+        "src/mappa/retrosynthesis/models.py",
+        "tests/test_fragment_parallel.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.parallel",
+      "path": "src/mappa/fragment_matching/parallel.py",
+      "lines": 197,
+      "purpose": "Parallel execution policy for exact R\u2013P fragment detection.",
+      "public_definitions": [
+        "FragmentDetectionExecution",
+        "detect_fragments_parallel"
+      ],
+      "imports": [
+        "mappa.fragment_matching.detection",
+        "mappa.fragment_matching.models",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "bench/benchmark_initial_fragment_stage.py",
+        "src/mappa/fragment_matching/__init__.py",
+        "tests/test_fragment_parallel.py"
+      ],
+      "introduced": {
+        "commit": "394e2ef189d998e804175a8e67ab3cd914ce6463",
+        "date": "2026-09-02",
+        "subject": "Parallelize exact R-P seed execution"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.progressive",
+      "path": "src/mappa/fragment_matching/progressive.py",
+      "lines": 129,
+      "purpose": "Progressive multi-precursor matching against uncovered target atoms.",
+      "public_definitions": [
+        "ProgressiveSelection",
+        "ProgressiveFragmentPlacement",
+        "ProgressiveFragmentMatchingResult",
+        "progressive_fragment_matching"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.fragment_matching.detection",
+        "mappa.fragment_matching.models"
+      ],
+      "imported_by": [
+        "src/mappa/fragment_matching/__init__.py"
+      ],
+      "introduced": {
+        "commit": "999cefca5635a6aad078ba0d9c103d209020edc9",
+        "date": "2026-09-03",
+        "subject": "Preserve full AAM fragment occupations"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.rdkit_adapter",
+      "path": "src/mappa/fragment_matching/rdkit_adapter.py",
+      "lines": 26,
+      "purpose": "RDKit conversion for fragment detection.",
+      "public_definitions": [
+        "molecule_to_weighted_graph"
+      ],
+      "imports": [
+        "mappa.frag"
+      ],
+      "imported_by": [
+        "bench/benchmark_fragment_detection.py",
+        "bench/benchmark_fragment_seed.py",
+        "bench/benchmark_initial_fragment_stage.py",
+        "bench/benchmark_orbit_preparation.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "tests/test_exact_retro_assembly.py",
+        "tools/search_mcule_retro.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.serialization",
+      "path": "src/mappa/fragment_matching/serialization.py",
+      "lines": 260,
+      "purpose": "Strict serialization for fragment-detection records.",
+      "public_definitions": [
+        "fragment_archive_from_record",
+        "repack_fragment_detection_v4",
+        "repack_fragment_detection_v6",
+        "fragment_candidate_to_record",
+        "fragment_candidate_from_record",
+        "fragment_detection_to_record"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.fragment_matching.models",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/benchmark_fragment_detection.py",
+        "bench/compare_detection_archive.py",
+        "bench/native_retro_acceleration.py",
+        "bench/principled_retro.py",
+        "bench/retro_archive_profile.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "tests/test_hierarchy_transport.py",
+        "tests/test_retrosynthesis_architecture.py",
+        "tests/test_search_graph.py",
+        "tools/repack_fragment_records.py",
+        "tools/search_mcule_retro.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.fragment_matching.symmetry",
+      "path": "src/mappa/fragment_matching/symmetry.py",
+      "lines": 115,
+      "purpose": "Exact correlated actions projected to fragment occupations, not bijections.",
+      "public_definitions": [
+        "FragmentOrbitLimitExceeded",
+        "materialize_target_coverage_orbit"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.final_branches",
+        "mappa.matcher",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/capture_occupation_calls.py",
+        "bench/scan_beta_catalog.py",
+        "src/mappa/fragment_matching/__init__.py",
+        "src/mappa/fragment_matching/augmentation.py",
+        "tests/test_exact_retro_assembly.py"
+      ],
+      "introduced": {
+        "commit": "54c234e4fffd1d82cb5bf5b2d6a510180ed8f65c",
+        "date": "2026-09-01",
+        "subject": "Preserve AAM symmetry through fragment assembly"
+      }
+    },
+    {
+      "module": "mappa.growth",
+      "path": "src/mappa/growth/__init__.py",
+      "lines": 6,
+      "purpose": "Fragment-growth implementations for WBO graph matching.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.growth.frontier",
+        "mappa.growth.island",
+        "mappa.growth.result"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/cut_replay_kernel_probe.py",
+        "bench/rebenchmark/capture_fragment.py",
+        "src/mappa/cut_replay.py",
+        "src/mappa/fragment.py",
+        "src/mappa/fragment_choices.py",
+        "src/mappa/growth/island.py",
+        "src/mappa/native_search.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_cut_replay.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_native_engine.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_package_rename.py",
+        "tests/test_random_growth.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.growth.frontier",
+      "path": "src/mappa/growth/frontier.py",
+      "lines": 85,
+      "purpose": "Random boundary-atom frontier utilities for fragment growth.",
+      "public_definitions": [
+        "GrowthRandom"
+      ],
+      "imports": [
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "src/mappa/growth/__init__.py",
+        "src/mappa/growth/island.py",
+        "tests/test_random_growth.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.growth.island",
+      "path": "src/mappa/growth/island.py",
+      "lines": 444,
+      "purpose": "Seeded random-boundary fragment growth loop.",
+      "public_definitions": [
+        "grow_island"
+      ],
+      "imports": [
+        "mappa.growth",
+        "mappa.growth.frontier",
+        "mappa.growth.native",
+        "mappa.growth.result",
+        "mappa.growth.trace",
+        "mappa.matcher",
+        "mappa.matcher.policy"
+      ],
+      "imported_by": [
+        "src/mappa/growth/__init__.py",
+        "tests/test_native_engine.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.growth.native",
+      "path": "src/mappa/growth/native.py",
+      "lines": 231,
+      "purpose": "Bridge to the optional native growth engine (``mappa._engine``).",
+      "public_definitions": [
+        "built",
+        "available",
+        "source_graph",
+        "target_graph",
+        "applicable",
+        "grow_island"
+      ],
+      "imports": [
+        "mappa",
+        "mappa.growth.result",
+        "mappa.matcher.orbits",
+        "mappa.matcher.policy"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/cut_replay_kernel_probe.py",
+        "bench/golden_memory_probe.py",
+        "bench/rebenchmark/capture_fragment.py",
+        "src/mappa/aam.py",
+        "src/mappa/competition.py",
+        "src/mappa/cut_replay.py",
+        "src/mappa/fragment_choices.py",
+        "src/mappa/growth/island.py",
+        "src/mappa/native_search.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_cut_replay.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_native_engine.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_package_rename.py",
+        "tests/test_python_workflow.py",
+        "tests/test_random_growth.py",
+        "tests/test_saved_fragment_anchors.py"
+      ],
+      "introduced": {
+        "commit": "3bc53d2a0b38a8ef8436ea7fa52f37481b08b47f",
+        "date": "2026-09-02",
+        "subject": "Integrate FABLE native growth engine"
+      }
+    },
+    {
+      "module": "mappa.growth.result",
+      "path": "src/mappa/growth/result.py",
+      "lines": 26,
+      "purpose": "Result containers for fragment growth.",
+      "public_definitions": [
+        "IslandBranchLimitExceeded"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/fragment_choices.py",
+        "src/mappa/growth/__init__.py",
+        "src/mappa/growth/island.py",
+        "src/mappa/growth/native.py",
+        "tests/test_native_engine.py",
+        "tests/test_random_growth.py",
+        "tests/test_search_graph.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.growth.trace",
+      "path": "src/mappa/growth/trace.py",
+      "lines": 235,
+      "purpose": "Trace/event helpers for random-boundary fragment growth.",
+      "public_definitions": [
+        "cands_sample",
+        "cand_possible_values",
+        "cand_assignment_expr",
+        "represented_assignment_expr",
+        "cands_pattern_sample",
+        "heap_snapshot",
+        "pool_by_frag_atom",
+        "why_extend_failed",
+        "why_merge_failed"
+      ],
+      "imports": [
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "src/mappa/growth/island.py",
+        "src/mappa/search_trajectory.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.growth_display",
+      "path": "src/mappa/growth_display.py",
+      "lines": 58,
+      "purpose": "Display domains derived from recorded candidates, never global atom orbits.",
+      "public_definitions": [
+        "with_represented_targets"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.matcher.state",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "src/mappa/viewers.py",
+        "tests/test_growth_display.py"
+      ],
+      "introduced": {
+        "commit": "444534285363279e9e5149ab697e3016147cfe22",
+        "date": "2026-10-27",
+        "subject": "Preserve exact fragment matches through growth and symmetry finalization"
+      }
+    },
+    {
+      "module": "mappa.matcher",
+      "path": "src/mappa/matcher/__init__.py",
+      "lines": 54,
+      "purpose": "Symmetry-aware WBO graph matching internals.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.canonical",
+        "mappa.matcher.dedupe",
+        "mappa.matcher.extend",
+        "mappa.matcher.orbits",
+        "mappa.matcher.policy",
+        "mappa.matcher.primitives",
+        "mappa.matcher.state",
+        "mappa.matcher.support"
+      ],
+      "imported_by": [
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/archive/manuscript_visuals/prepare_evidence.py",
+        "bench/benchmark_fragment_seed.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_kernel_probe.py",
+        "bench/cut_replay_pilot.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/rebenchmark/profile_seed.py",
+        "bench/slap_guided_pilot.py",
+        "bench/trace_missing_adaptive_pattern.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/adaptive_seed_search.py",
+        "src/mappa/alignment/api.py",
+        "src/mappa/alignment/branch.py",
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/competition.py",
+        "src/mappa/core_aam.py",
+        "src/mappa/fragment.py",
+        "src/mappa/fragment_choices.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/fragment_matching/graph_ops.py",
+        "src/mappa/fragment_matching/parallel.py",
+        "src/mappa/fragment_matching/symmetry.py",
+        "src/mappa/growth/frontier.py",
+        "src/mappa/growth/island.py",
+        "src/mappa/growth/trace.py",
+        "src/mappa/mechanisms.py",
+        "src/mappa/native_search.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "src/mappa/search_trajectory.py",
+        "src/mappa/shared_seed_search.py",
+        "src/mappa/subgraph.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_candidate_canonical.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_cut_replay.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_random_growth.py",
+        "tests/test_search_graph.py",
+        "tests/test_symmetry_matching.py",
+        "tests/test_target_action_growth.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.bond_policy",
+      "path": "src/mappa/matcher/bond_policy.py",
+      "lines": 47,
+      "purpose": "Conditional bond tolerances shared by Python and native fragment matching.",
+      "public_definitions": [
+        "BondTolerance",
+        "ResolvedBondTolerance"
+      ],
+      "imports": [
+        "mappa.matcher.primitives"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/fragment.py",
+        "src/mappa/fragment_conversion.py"
+      ],
+      "introduced": {
+        "commit": "36e36dc45aa52a44dc538204a40121d133d94df6",
+        "date": "2026-10-28",
+        "subject": "Support conditional bond tolerances in shared fragment matcher"
+      }
+    },
+    {
+      "module": "mappa.matcher.canonical",
+      "path": "src/mappa/matcher/canonical.py",
+      "lines": 519,
+      "purpose": "Exact automorphism certificates for hierarchical partial mappings.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.orbits",
+        "mappa.matcher.policy",
+        "mappa.matcher.primitives",
+        "mappa.matcher.state"
+      ],
+      "imported_by": [
+        "bench/audit_search_revision.py",
+        "bench/benchmark_initial_fragment_stage.py",
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/conditioned_symmetry.py",
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/dedupe.py",
+        "src/mappa/search_symmetry.py",
+        "tests/test_candidate_canonical.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "838c30ebb0fa829aaef70503e2de2279c6077210",
+        "date": "2026-07-28",
+        "subject": "Implement exact hierarchical symmetry and index chirality"
+      }
+    },
+    {
+      "module": "mappa.matcher.dedupe",
+      "path": "src/mappa/matcher/dedupe.py",
+      "lines": 243,
+      "purpose": "Boundary-aware dedupe signatures for compressed candidates.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.canonical",
+        "mappa.matcher.orbits",
+        "mappa.matcher.policy",
+        "mappa.matcher.primitives",
+        "mappa.matcher.state"
+      ],
+      "imported_by": [
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/extend.py",
+        "tests/test_candidate_canonical.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.extend",
+      "path": "src/mappa/matcher/extend.py",
+      "lines": 520,
+      "purpose": "Single-atom extension for symmetry-compressed fragment matches.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.dedupe",
+        "mappa.matcher.policy",
+        "mappa.matcher.primitives",
+        "mappa.matcher.state",
+        "mappa.matcher.support"
+      ],
+      "imported_by": [
+        "src/mappa/matcher/__init__.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.orbits",
+      "path": "src/mappa/matcher/orbits.py",
+      "lines": 286,
+      "purpose": "Orbit grouping for WBO graphs.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.policy",
+        "mappa.matcher.primitives"
+      ],
+      "imported_by": [
+        "bench/benchmark_orbit_preparation.py",
+        "src/mappa/alignment/mapping_families.py",
+        "src/mappa/alignment/post_aam.py",
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/growth/native.py",
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/canonical.py",
+        "src/mappa/matcher/dedupe.py",
+        "tests/test_candidate_canonical.py",
+        "tests/test_native_engine.py",
+        "tests/test_symmetry_matching.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.policy",
+      "path": "src/mappa/matcher/policy.py",
+      "lines": 103,
+      "purpose": "Node-level compatibility policy for weighted graph matching.",
+      "public_definitions": [
+        "ElementNodeMatchPolicy",
+        "AttributeNodeMatchPolicy",
+        "CallableNodeMatchPolicy",
+        "as_node_match_policy"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/golden_cause_probe.py",
+        "src/mappa/growth/island.py",
+        "src/mappa/growth/native.py",
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/canonical.py",
+        "src/mappa/matcher/dedupe.py",
+        "src/mappa/matcher/extend.py",
+        "src/mappa/matcher/orbits.py",
+        "src/mappa/subgraph.py",
+        "tests/test_native_engine.py"
+      ],
+      "introduced": {
+        "commit": "b2056ff2564190a458007be3ffaf36f4ab2f7468",
+        "date": "2026-06-05",
+        "subject": "Add policy-driven weighted subgraph matching"
+      }
+    },
+    {
+      "module": "mappa.matcher.primitives",
+      "path": "src/mappa/matcher/primitives.py",
+      "lines": 38,
+      "purpose": "Low-level WBO and orbit-id primitives for graph matching.",
+      "public_definitions": [],
+      "imports": [],
+      "imported_by": [
+        "bench/audit_ts_weight_information.py",
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/bond_policy.py",
+        "src/mappa/matcher/canonical.py",
+        "src/mappa/matcher/dedupe.py",
+        "src/mappa/matcher/extend.py",
+        "src/mappa/matcher/orbits.py",
+        "src/mappa/matcher/state.py",
+        "src/mappa/matcher/support.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.state",
+      "path": "src/mappa/matcher/state.py",
+      "lines": 333,
+      "purpose": "Compressed symmetry candidate state.",
+      "public_definitions": [
+        "candidate_from_record"
+      ],
+      "imports": [
+        "mappa.matcher.primitives"
+      ],
+      "imported_by": [
+        "src/mappa/alignment/sweep.py",
+        "src/mappa/growth_display.py",
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/canonical.py",
+        "src/mappa/matcher/dedupe.py",
+        "src/mappa/matcher/extend.py",
+        "src/mappa/matcher/support.py",
+        "src/mappa/search_symmetry.py",
+        "tests/test_anchored_fragment_refinement.py",
+        "tests/test_bond_tolerance.py",
+        "tests/test_candidate_canonical.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_saved_fragment_anchors.py",
+        "tests/test_target_action_growth.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.matcher.support",
+      "path": "src/mappa/matcher/support.py",
+      "lines": 222,
+      "purpose": "Exact extension support inside compressed fragment matches.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.matcher.primitives",
+        "mappa.matcher.state"
+      ],
+      "imported_by": [
+        "src/mappa/matcher/__init__.py",
+        "src/mappa/matcher/extend.py",
+        "src/mappa/search_trajectory.py",
+        "tests/test_growth_compression_exactness.py"
+      ],
+      "introduced": {
+        "commit": "2a3e4d758c966e56e88829d3f19457f26a4c1515",
+        "date": "2026-05-13",
+        "subject": "Refactor symmetry-aware alignment core"
+      }
+    },
+    {
+      "module": "mappa.mechanisms",
+      "path": "src/mappa/mechanisms.py",
+      "lines": 73,
+      "purpose": "Optional balanced-reaction event grouping of recorded AAM paths.",
+      "public_definitions": [
+        "group_mechanisms"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.alignment.sweep",
+        "mappa.domain",
+        "mappa.frag",
+        "mappa.matcher"
+      ],
+      "imported_by": [
+        "bench/search_graph_regression.py",
+        "src/mappa/__init__.py",
+        "src/mappa/analytical.py",
+        "tests/test_native_engine.py",
+        "tests/test_search_graph.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "4e74cb7a93345ffe5bdb207c668461342d85ce1c",
+        "date": "2026-09-04",
+        "subject": "Separate fragment matching, AAM search graph, and optional mechanism processing"
+      }
+    },
+    {
+      "module": "mappa.modes",
+      "path": "src/mappa/modes.py",
+      "lines": 108,
+      "purpose": "Mode parsing and coordinate reindexing; scoring lives only in mappa.scoring.",
+      "public_definitions": [
+        "parse_g98_modes",
+        "bond_reaction_vector",
+        "core_atoms_in_R_frame",
+        "reindex_modes_to_R"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/chemistry_computations/xtb.py",
+        "tests/test_symmetry_matching.py",
+        "tools/run_typed_ts_case.py"
+      ],
+      "introduced": {
+        "commit": "0672e0b2835a3dcdca2c6385ce8a03e6586ae804",
+        "date": "2026-05-06",
+        "subject": "Core-atom mode analysis + per-step vibration viewer"
+      }
+    },
+    {
+      "module": "mappa.native_search",
+      "path": "src/mappa/native_search.py",
+      "lines": 68,
+      "purpose": "Experimental native scheduling with the unchanged Python search-graph API.",
+      "public_definitions": [
+        "find_islands_native"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.growth",
+        "mappa.growth.native",
+        "mappa.matcher",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/rebenchmark/profile_seed.py",
+        "bench/rebenchmark/search.py",
+        "bench/trace_missing_adaptive_pattern.py",
+        "src/mappa/aam.py",
+        "src/mappa/competition.py",
+        "tests/test_completed_branch_cap.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_shared_seed_search.py"
+      ],
+      "introduced": {
+        "commit": "e923b248c3148c8a0f27aaa6d04c84420be151fd",
+        "date": "2026-09-09",
+        "subject": "Prototype dependency-aware fragment repair and native AAM scheduling with exact audits"
+      }
+    },
+    {
+      "module": "mappa.pattern_collection",
+      "path": "src/mappa/pattern_collection.py",
+      "lines": 191,
+      "purpose": "Resumable extraction of exact-symmetry mapping classes from a path.",
+      "public_definitions": [
+        "PatternEquivalence",
+        "extract_path_patterns"
+      ],
+      "imports": [
+        "mappa.family_query",
+        "mappa.family_scoring",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/benchmark_pattern_collection.py",
+        "bench/collect_golden_patterns.py",
+        "bench/compare_pattern_exclusion.py",
+        "tests/test_pattern_collection.py",
+        "tests/test_pattern_parallel_baseline.py"
+      ],
+      "introduced": {
+        "commit": "7eec906c4c4bac70a386a3e8e2098b7b91decb19",
+        "date": "2026-09-08",
+        "subject": "Extract resumable exact mapping patterns from compressed AAM families"
+      }
+    },
+    {
+      "module": "mappa.postprocessing",
+      "path": "src/mappa/postprocessing.py",
+      "lines": 257,
+      "purpose": "Anchored fragment conversion, direct bond counts, and explicit shuffle queries.",
+      "public_definitions": [
+        "EventDecodeConfig",
+        "EventCandidate",
+        "ShuffleQuery",
+        "DecodedEvents",
+        "decode_events"
+      ],
+      "imports": [
+        "mappa.event_patterns",
+        "mappa.family_query",
+        "mappa.final_branches",
+        "mappa.frag",
+        "mappa.fragment_conversion"
+      ],
+      "imported_by": [
+        "bench/archive/campaigns/multicandidate_discussion_20260914/audit_outputs.py",
+        "bench/benchmark_saved_decoding.py",
+        "bench/experiments/test_saved_anchored_rematching.py",
+        "bench/final_end_to_end.py",
+        "bench/rebenchmark/decoding.py",
+        "src/mappa/artifacts.py",
+        "src/mappa/cli.py",
+        "src/mappa/execution/decoding.py",
+        "src/mappa/fragment_conversion.py",
+        "tests/test_decoder_evidence.py",
+        "tests/test_fragment_conversion.py",
+        "tests/test_package_rename.py",
+        "tests/test_partial_event_decoding.py",
+        "tests/test_python_workflow.py",
+        "tests/test_relative_event_window.py",
+        "tests/test_saved_event_decoding.py",
+        "tests/test_shared_execution.py"
+      ],
+      "introduced": {
+        "commit": "5879628c14fe8738a065703957a7e694040bd6c1",
+        "date": "2026-09-14",
+        "subject": "Add simple AAM notebook and importable candidate inspection APIs"
+      }
+    },
+    {
+      "module": "mappa.reference_constraints",
+      "path": "src/mappa/reference_constraints.py",
+      "lines": 155,
+      "purpose": "Finite reference constraints, reduced before constructing the exact solver query.",
+      "public_definitions": [
+        "Choice",
+        "ReferenceConstraints"
+      ],
+      "imports": [
+        "mappa.family_query"
+      ],
+      "imported_by": [
+        "src/mappa/family_query.py",
+        "tests/test_family_query.py"
+      ],
+      "introduced": {
+        "commit": "592ddf8d73be02a321db893d61396ff1e2980adb",
+        "date": "2026-10-27",
+        "subject": "Propagate reference constraints through correlated fragment choices before solving"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis",
+      "path": "src/mappa/retrosynthesis/__init__.py",
+      "lines": 14,
+      "purpose": "Assembly of detected fragment candidates into target covers.",
+      "public_definitions": [],
+      "imports": [
+        "mappa.retrosynthesis.assembly",
+        "mappa.retrosynthesis.coverage",
+        "mappa.retrosynthesis.decision_graph",
+        "mappa.retrosynthesis.models"
+      ],
+      "imported_by": [
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_retro.py",
+        "tests/test_retro_defaults.py",
+        "tools/build_fragment_matching_report.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.assembly",
+      "path": "src/mappa/retrosynthesis/assembly.py",
+      "lines": 149,
+      "purpose": "Assembly over saved occupations; no matching, chemistry, or search budgets.",
+      "public_definitions": [
+        "construction_pattern",
+        "AssemblyProblem"
+      ],
+      "imports": [
+        "mappa.retrosynthesis.compressed_coverage",
+        "mappa.retrosynthesis.decision_graph",
+        "mappa.retrosynthesis.ranking",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "src/mappa/retrosynthesis/__init__.py",
+        "src/mappa/retrosynthesis/beta_assembly.py",
+        "tests/test_exact_retro_assembly.py",
+        "tools/merge_retro_catalog.py"
+      ],
+      "introduced": {
+        "commit": "831e5aefe8f2fb385de949deb8c0500c9fed7148",
+        "date": "2026-09-05",
+        "subject": "Separate augmented fragment detection from exact geometric assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.beta",
+      "path": "src/mappa/retrosynthesis/beta.py",
+      "lines": 281,
+      "purpose": "Opt-in, largest-block-first recommendation; not the exact full workflow.",
+      "public_definitions": [
+        "BetaPlacement",
+        "BetaRecommendation",
+        "BetaResult",
+        "FragmentQueryBank",
+        "proposal_rank",
+        "recommend_big_blocks"
+      ],
+      "imports": [
+        "mappa.frag",
+        "mappa.fragment_matching",
+        "mappa.fragment_matching.connected",
+        "mappa.retrosynthesis.beta_assembly",
+        "mappa.retrosynthesis.config",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "bench/assemble_beta_known_sources.py",
+        "bench/run_beta_distributed.py",
+        "bench/scan_beta_catalog.py",
+        "bench/view_beta_failure.py",
+        "tests/test_beta_assembly.py",
+        "tests/test_beta_disk_queries.py",
+        "tests/test_beta_retro.py",
+        "tools/search_retro_beta.py"
+      ],
+      "introduced": {
+        "commit": "b78e180659d9d7ba281abc03ce4dfb38cd8faaae",
+        "date": "2026-09-06",
+        "subject": "Add opt-in big-block gap-first beta recommendation workflow"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.beta_assembly",
+      "path": "src/mappa/retrosynthesis/beta_assembly.py",
+      "lines": 161,
+      "purpose": "Assembly of whole beta occupations, independent of fragment discovery.",
+      "public_definitions": [
+        "assembly_metrics",
+        "assembly_key",
+        "dominates",
+        "pareto_assembly_ranks",
+        "rank_complete_assemblies",
+        "placement_pattern",
+        "assemble_supplier_copies"
+      ],
+      "imports": [
+        "mappa.retrosynthesis.assembly",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/assemble_beta_known_sources.py",
+        "bench/rerank_beta_saved.py",
+        "bench/run_beta_distributed.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "tests/test_beta_assembly.py"
+      ],
+      "introduced": {
+        "commit": "03fda29b46259d3074e7286625cd4edf4d5b8f74",
+        "date": "2026-09-06",
+        "subject": "Assemble complete beta covers across construction patterns and validate saved supplier occupations"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.catalog_index",
+      "path": "src/mappa/retrosynthesis/catalog_index.py",
+      "lines": 242,
+      "purpose": "Lossless coverage index from persisted fragment-search records.",
+      "public_definitions": [
+        "candidate_entry",
+        "exact_source_copy_capacity",
+        "CandidateIndexConfig",
+        "CandidateIndex",
+        "merge_candidate_indexes",
+        "build_candidate_index"
+      ],
+      "imports": [
+        "mappa.fragment_matching.rdkit_adapter",
+        "mappa.fragment_matching.serialization",
+        "mappa.matcher",
+        "mappa.retrosynthesis.compressed_coverage",
+        "mappa.retrosynthesis.config",
+        "mappa.retrosynthesis.ranking",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "bench/view_beta_result.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_retro_catalog_ranking.py",
+        "tests/test_retro_defaults.py",
+        "tools/merge_retro_catalog.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.compressed_coverage",
+      "path": "src/mappa/retrosynthesis/compressed_coverage.py",
+      "lines": 133,
+      "purpose": "Correlated fragment occupations and exact target-union construction.",
+      "public_definitions": [
+        "candidate_target_domains",
+        "candidate_target_occupations",
+        "coverage_signature",
+        "place_item",
+        "iter_candidate_assignments",
+        "assign_candidate_items",
+        "assign_occupation_signatures",
+        "iter_placed_candidate_items",
+        "place_candidate_items",
+        "CoverageRecommendationConfig",
+        "CoverageRecommendationResult",
+        "recommend_compressed_coverage_patterns"
+      ],
+      "imports": [
+        "mappa.fragment_matching",
+        "mappa.retrosynthesis.config",
+        "mappa.retrosynthesis.decision_graph"
+      ],
+      "imported_by": [
+        "bench/check_retro_ground_truth.py",
+        "bench/view_beta_result.py",
+        "src/mappa/retrosynthesis/assembly.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "tests/test_retrosynthesis_architecture.py"
+      ],
+      "introduced": {
+        "commit": "d304fa74db22e0f0d90a08591d2e90b5b57a87b8",
+        "date": "2026-09-02",
+        "subject": "Keep retro assembly automorphisms compressed"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.config",
+      "path": "src/mappa/retrosynthesis/config.py",
+      "lines": 3,
+      "purpose": "Recommendation defaults, separate from reusable AAM/fragment matching.",
+      "public_definitions": [],
+      "imports": [],
+      "imported_by": [
+        "bench/check_retro_ground_truth.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "src/mappa/retrosynthesis/compressed_coverage.py",
+        "src/mappa/retrosynthesis/coverage.py",
+        "tests/test_retro_defaults.py",
+        "tools/merge_retro_catalog.py",
+        "tools/search_mcule_retro.py",
+        "tools/search_retro_beta.py"
+      ],
+      "introduced": {
+        "commit": "388ad755674b2b9c4e37a10b728cd032b6dd2094",
+        "date": "2026-09-05",
+        "subject": "Default retro matching to tolerance 1.0 and launch guarded full-bank scan"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.coverage",
+      "path": "src/mappa/retrosynthesis/coverage.py",
+      "lines": 70,
+      "purpose": "Public typed assembly API using the common exact coverage decision graph.",
+      "public_definitions": [
+        "assemble_fragment_cover"
+      ],
+      "imports": [
+        "mappa.fragment_matching",
+        "mappa.retrosynthesis.config",
+        "mappa.retrosynthesis.decision_graph",
+        "mappa.retrosynthesis.models",
+        "mappa.retrosynthesis.ranking",
+        "mappa.subgraph"
+      ],
+      "imported_by": [
+        "src/mappa/retrosynthesis/__init__.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.decision_graph",
+      "path": "src/mappa/retrosynthesis/decision_graph.py",
+      "lines": 105,
+      "purpose": "Exact, shared decision graph for fragment-region covers.",
+      "public_definitions": [
+        "CoverageDecision",
+        "CoverageDecisionGraph"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/retrosynthesis/__init__.py",
+        "src/mappa/retrosynthesis/assembly.py",
+        "src/mappa/retrosynthesis/compressed_coverage.py",
+        "src/mappa/retrosynthesis/coverage.py",
+        "src/mappa/retrosynthesis/enumeration.py",
+        "tests/test_exact_retro_assembly.py"
+      ],
+      "introduced": {
+        "commit": "831e5aefe8f2fb385de949deb8c0500c9fed7148",
+        "date": "2026-09-05",
+        "subject": "Separate augmented fragment detection from exact geometric assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.enumeration",
+      "path": "src/mappa/retrosynthesis/enumeration.py",
+      "lines": 23,
+      "purpose": "Exact region-cover enumeration backed by the shared decision graph.",
+      "public_definitions": [
+        "CoverageEnumerationConfig",
+        "CoverageEnumerationResult",
+        "enumerate_coverage_patterns"
+      ],
+      "imports": [
+        "mappa.retrosynthesis.decision_graph"
+      ],
+      "imported_by": [
+        "tests/test_retrosynthesis_architecture.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.models",
+      "path": "src/mappa/retrosynthesis/models.py",
+      "lines": 29,
+      "purpose": "Immutable records for precursor assembly.",
+      "public_definitions": [
+        "RetroAssembly",
+        "RetroAssemblySearchResult"
+      ],
+      "imports": [
+        "mappa.fragment_matching.models"
+      ],
+      "imported_by": [
+        "src/mappa/retrosynthesis/__init__.py",
+        "src/mappa/retrosynthesis/coverage.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.ranking",
+      "path": "src/mappa/retrosynthesis/ranking.py",
+      "lines": 148,
+      "purpose": "Pure structural ranking and assembly construction.",
+      "public_definitions": [
+        "matched_fragment_count",
+        "precursor_cost",
+        "candidate_entry_rank",
+        "validate_atom_ownership",
+        "build_ranked_assembly",
+        "assembly_rank"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/check_retro_ground_truth.py",
+        "bench/view_beta_result.py",
+        "src/mappa/retrosynthesis/assembly.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "src/mappa/retrosynthesis/coverage.py",
+        "tests/test_exact_retro_assembly.py",
+        "tests/test_retro_catalog_ranking.py",
+        "tools/merge_retro_catalog.py"
+      ],
+      "introduced": {
+        "commit": "710e96c9f11711a92125c735499d162e6a85e04b",
+        "date": "2026-08-31",
+        "subject": "Refactor fragment detection and retrosynthesis assembly"
+      }
+    },
+    {
+      "module": "mappa.retrosynthesis.slurm_budget",
+      "path": "src/mappa/retrosynthesis/slurm_budget.py",
+      "lines": 27,
+      "purpose": "CPU admission control for one retro run; Slurm supplies available capacity.",
+      "public_definitions": [
+        "SlurmBudget"
+      ],
+      "imports": [],
+      "imported_by": [
+        "bench/run_beta_distributed.py",
+        "tests/test_slurm_budget.py"
+      ],
+      "introduced": {
+        "commit": "7baa94db9be4febd99effdf1a3c2bcd98f2c35a5",
+        "date": "2026-09-06",
+        "subject": "Budget Slurm beta execution by actual core allocation and measure CPU work"
+      }
+    },
+    {
+      "module": "mappa.scoring",
+      "path": "src/mappa/scoring.py",
+      "lines": 120,
+      "purpose": "The sole MAPPA TS scorer: significant asynchronous event-subset motion.",
+      "public_definitions": [
+        "activity_balance",
+        "pair_geometry",
+        "prepare_contacts",
+        "contact_score",
+        "restrict_contacts",
+        "evaluate_subset",
+        "subset_score"
+      ],
+      "imports": [],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/artifacts.py",
+        "src/mappa/ts.py",
+        "tests/test_single_ts_scorer.py"
+      ],
+      "introduced": {
+        "commit": "590d0a7cc230cf07ed694e8e736f723082eba7f1",
+        "date": "2026-10-15",
+        "subject": "Use sole asynchronous TS scorer and report both endpoint bond changes"
+      }
+    },
+    {
+      "module": "mappa.search_graph",
+      "path": "src/mappa/search_graph.py",
+      "lines": 536,
+      "purpose": "Mechanism-independent fragment-decision DAG and deterministic persistence.",
+      "public_definitions": [
+        "frozen_value",
+        "SearchContext",
+        "SearchState",
+        "FragmentTransition",
+        "SearchStop",
+        "SearchPath",
+        "PathRealization",
+        "SearchBranch",
+        "AAMSearchGraph",
+        "SearchGraphBuilder"
+      ],
+      "imports": [
+        "mappa.alignment.post_aam",
+        "mappa.domain",
+        "mappa.final_branches"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/audit_coordinate.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/audit_search_revision.py",
+        "bench/benchmark_pattern_collection.py",
+        "bench/collect_golden_patterns.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/cut_replay_pilot.py",
+        "bench/experiments/competition_checkpoint/count_aam_branches.py",
+        "bench/golden_direction_probe.py",
+        "bench/golden_evaluation.py",
+        "bench/golden_memory_probe.py",
+        "bench/holdout_minimum_event_families.py",
+        "bench/metal_binary_events.py",
+        "bench/publication_timing.py",
+        "bench/query_adaptive_patterns.py",
+        "bench/rebenchmark/checker_pilot.py",
+        "bench/rebenchmark/decoder_evidence.py",
+        "bench/score_real_ts_families.py",
+        "bench/verify_saved_path_retention.py",
+        "bench/view_golden_alternatives.py",
+        "bench/view_golden_mapping.py",
+        "src/mappa/__init__.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/adaptive_seed_search.py",
+        "src/mappa/alignment/branch.py",
+        "src/mappa/analytical.py",
+        "src/mappa/artifacts.py",
+        "src/mappa/domain.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/final_branches.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/fragment_matching/models.py",
+        "src/mappa/fragment_matching/serialization.py",
+        "src/mappa/native_search.py",
+        "src/mappa/pattern_collection.py",
+        "src/mappa/retrosynthesis/assembly.py",
+        "src/mappa/retrosynthesis/beta_assembly.py",
+        "src/mappa/search_symmetry.py",
+        "src/mappa/shared_seed_search.py",
+        "src/mappa/subgraph.py",
+        "tests/test_aam_checkpoint_transport.py",
+        "tests/test_collection_sharing.py",
+        "tests/test_event_patterns.py",
+        "tests/test_family_query.py",
+        "tests/test_final_branches.py",
+        "tests/test_fragment_conversion.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_hierarchy_transport.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_random_growth.py",
+        "tests/test_search_graph.py",
+        "tests/test_search_validation.py",
+        "tests/test_shared_execution.py",
+        "tests/test_shared_seed_search.py"
+      ],
+      "introduced": {
+        "commit": "4e74cb7a93345ffe5bdb207c668461342d85ce1c",
+        "date": "2026-09-04",
+        "subject": "Separate fragment matching, AAM search graph, and optional mechanism processing"
+      }
+    },
+    {
+      "module": "mappa.search_orientation",
+      "path": "src/mappa/search_orientation.py",
+      "lines": 76,
+      "purpose": "Direction selection outside the directed, symmetry-compressed AAM engine.",
+      "public_definitions": [
+        "AAMSearchPlan",
+        "plan_aam_search",
+        "DirectedAAMResult",
+        "search_aam_directions"
+      ],
+      "imports": [
+        "mappa.aam",
+        "mappa.domain"
+      ],
+      "imported_by": [
+        "bench/adaptive_full_benchmark.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/run.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/golden_controlled_20260915/run.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/probe_small.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_publication.py",
+        "src/mappa/__init__.py",
+        "tests/test_adaptive_full_benchmark.py",
+        "tests/test_pattern_archive_collection.py",
+        "tests/test_ranked_reference_check.py"
+      ],
+      "introduced": {
+        "commit": "58e85c947e552ba93e8fc4c5ab2fcf7a67c57d9a",
+        "date": "2026-09-07",
+        "subject": "Diversify sweep seeds and plan smaller-first AAM with original-orientation scoring"
+      }
+    },
+    {
+      "module": "mappa.search_symmetry",
+      "path": "src/mappa/search_symmetry.py",
+      "lines": 123,
+      "purpose": "Finalize exact symmetry on recorded fragment transitions, without events.",
+      "public_definitions": [
+        "SymmetryWorkspace",
+        "finalize_graph_symmetry"
+      ],
+      "imports": [
+        "mappa.matcher.canonical",
+        "mappa.matcher.state",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/adaptive_default_regression.py",
+        "bench/adaptive_gap_probe.py",
+        "bench/archive/campaigns/checkpoint_memory_fix_20260913/original-score-checkpoints.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/competition.py",
+        "bench/archive/campaigns/current_validation_20260912/drivers/score_checkpoints.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/audit_retained.py",
+        "bench/archive/campaigns/golden_miss_analysis_20260913/trace_causes.py",
+        "bench/archive/campaigns/prefix_competition_20260915/tests/test_cut_replay.py",
+        "bench/archive/manuscript_visuals/prepare_evidence.py",
+        "bench/compare_real_ts_mappings.py",
+        "bench/conditioned_reuse_pilot.py",
+        "bench/cut_replay_pilot.py",
+        "bench/experiments/competition_checkpoint/fragment_competition_optimized.py",
+        "bench/golden_anchor_policy.py",
+        "bench/golden_checkpoint_evaluation.py",
+        "bench/golden_cut_cause.py",
+        "bench/golden_domain_rescore.py",
+        "bench/golden_forced_direction.py",
+        "bench/golden_mapping_probe.py",
+        "bench/profile_fragment_pipeline.py",
+        "bench/rebenchmark/analysis.py",
+        "bench/rebenchmark/execution_pilot.py",
+        "bench/rebenchmark/saved_analysis.py",
+        "bench/slap_guided_pilot.py",
+        "bench/slap_local_workflow.py",
+        "bench/trace_missing_adaptive_pattern.py",
+        "src/mappa/__init__.py",
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_search.py",
+        "src/mappa/competition.py",
+        "src/mappa/conditioned_symmetry.py",
+        "src/mappa/execution/search.py",
+        "src/mappa/fragment_conversion.py",
+        "src/mappa/fragment_matching/augmentation.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/growth_display.py",
+        "src/mappa/shared_seed_search.py",
+        "tests/test_collection_sharing.py",
+        "tests/test_conditioned_reuse.py",
+        "tests/test_cut_replay.py",
+        "tests/test_fragment_repair.py",
+        "tests/test_golden_checkpoint_evaluation.py",
+        "tests/test_growth_compression_exactness.py",
+        "tests/test_native_scheduler.py",
+        "tests/test_search_graph.py",
+        "tests/test_shared_execution.py",
+        "tests/test_target_action_growth.py"
+      ],
+      "introduced": {
+        "commit": "4e74cb7a93345ffe5bdb207c668461342d85ce1c",
+        "date": "2026-09-04",
+        "subject": "Separate fragment matching, AAM search graph, and optional mechanism processing"
+      }
+    },
+    {
+      "module": "mappa.search_trajectory",
+      "path": "src/mappa/search_trajectory.py",
+      "lines": 285,
+      "purpose": "Reusable, verified replay of fragment calls along saved AAM search paths.",
+      "public_definitions": [
+        "snapshot",
+        "replay",
+        "bond_events",
+        "frames_for",
+        "endpoint_record",
+        "read_archive",
+        "build_trajectory"
+      ],
+      "imports": [
+        "mappa.artifacts",
+        "mappa.frag",
+        "mappa.growth.trace",
+        "mappa.matcher",
+        "mappa.matcher.support"
+      ],
+      "imported_by": [
+        "src/mappa/viewers.py",
+        "tests/test_random_growth.py",
+        "tests/test_search_trajectory.py"
+      ],
+      "introduced": {
+        "commit": "fbfe403799ff8a7b861dc27042db2483a2abd8b7",
+        "date": "2026-09-11",
+        "subject": "Publish PR7 search replay with reusable trajectory pipeline"
+      }
+    },
+    {
+      "module": "mappa.search_validation",
+      "path": "src/mappa/search_validation.py",
+      "lines": 160,
+      "purpose": "Share exact representative-constraint checks without unfolding valid DAG paths.",
+      "public_definitions": [
+        "RepresentativeValidationWorkspace"
+      ],
+      "imports": [
+        "mappa.family_scoring"
+      ],
+      "imported_by": [
+        "src/mappa/competition.py",
+        "tests/reference_event_decoder.py",
+        "tests/test_search_validation.py"
+      ],
+      "introduced": {
+        "commit": "9d3994e5783b0859004a774d61d68bfb27b9a8bf",
+        "date": "2026-09-15",
+        "subject": "Reuse symmetry and validation across competition branches; record sweep ablations"
+      }
+    },
+    {
+      "module": "mappa.shared_seed_search",
+      "path": "src/mappa/shared_seed_search.py",
+      "lines": 204,
+      "purpose": "Exact policy sharing for sequential AAM, without rerunning common decisions.",
+      "public_definitions": [
+        "SharedSeedSearch"
+      ],
+      "imports": [
+        "mappa.aam",
+        "mappa.adaptive_search",
+        "mappa.alignment.branch",
+        "mappa.domain",
+        "mappa.fragment",
+        "mappa.matcher",
+        "mappa.search_graph",
+        "mappa.search_symmetry"
+      ],
+      "imported_by": [
+        "src/mappa/aam.py",
+        "src/mappa/adaptive_cut_search.py",
+        "tests/test_shared_seed_search.py"
+      ],
+      "introduced": {
+        "commit": "90878bbc75d1f67e5b211bad197a0194ad6540cf",
+        "date": "2026-09-10",
+        "subject": "Share exact sequential seed-policy decisions and fragment DAGs while preserving original cap and continuation orders"
+      }
+    },
+    {
+      "module": "mappa.smiles",
+      "path": "src/mappa/smiles.py",
+      "lines": 171,
+      "purpose": "Formal-bond-order graph adapters for SMILES/CXSMILES inputs.",
+      "public_definitions": [
+        "FormalWBOEndpoint",
+        "smiles_to_formal_wbo",
+        "smiles_to_weighted_graph"
+      ],
+      "imports": [
+        "mappa.frag"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/aam_resource_regression.py",
+        "bench/compare_detection_archive.py",
+        "bench/native_retro_acceleration.py",
+        "bench/principled_retro.py",
+        "bench/rerank_beta_saved.py",
+        "bench/run_beta_distributed.py",
+        "bench/scan_beta_catalog.py",
+        "bench/view_beta_result.py",
+        "tests/test_beta_disk_queries.py",
+        "tests/test_beta_retro.py",
+        "tests/test_retro.py",
+        "tests/test_search_graph.py",
+        "tools/build_fragment_matching_report.py",
+        "tools/search_retro_beta.py"
+      ],
+      "introduced": {
+        "commit": "874477ec3a8d503f02d3e7db2b78a33ef3c34792",
+        "date": "2026-06-11",
+        "subject": "Add SMILES input mode and AAM webapp"
+      }
+    },
+    {
+      "module": "mappa.subgraph",
+      "path": "src/mappa/subgraph.py",
+      "lines": 141,
+      "purpose": "General weighted-subgraph matching API.",
+      "public_definitions": [
+        "SubgraphMatch",
+        "SubgraphSearchResult",
+        "match_weighted_subgraph"
+      ],
+      "imports": [
+        "mappa.alignment.branch",
+        "mappa.frag",
+        "mappa.matcher",
+        "mappa.matcher.policy",
+        "mappa.search_graph"
+      ],
+      "imported_by": [
+        "bench/aam_memory_boundary.py",
+        "bench/aam_resource_regression.py",
+        "bench/rerank_beta_saved.py",
+        "bench/view_beta_result.py",
+        "src/mappa/__init__.py",
+        "src/mappa/fragment.py",
+        "src/mappa/fragment_matching/detection.py",
+        "src/mappa/fragment_matching/symmetry.py",
+        "src/mappa/retrosynthesis/beta.py",
+        "src/mappa/retrosynthesis/catalog_index.py",
+        "src/mappa/retrosynthesis/coverage.py",
+        "tests/test_beta_retro.py"
+      ],
+      "introduced": {
+        "commit": "b2056ff2564190a458007be3ffaf36f4ab2f7468",
+        "date": "2026-06-05",
+        "subject": "Add policy-driven weighted subgraph matching"
+      }
+    },
+    {
+      "module": "mappa.ts",
+      "path": "src/mappa/ts.py",
+      "lines": 187,
+      "purpose": "Typed transition-state processing composed from partial AAM and scoring.",
+      "public_definitions": [
+        "analyze_transition_state"
+      ],
+      "imports": [
+        "mappa.bond_diagnostics",
+        "mappa.core_aam",
+        "mappa.domain",
+        "mappa.scoring"
+      ],
+      "imported_by": [
+        "src/mappa/__init__.py",
+        "src/mappa/cli.py",
+        "tests/test_typed_aam_api.py"
+      ],
+      "introduced": {
+        "commit": "93486cd567c511603025ab0980be7c10603bbf16",
+        "date": "2026-08-02",
+        "subject": "Add exact typed transition state processing"
+      }
+    },
+    {
+      "module": "mappa.viewers",
+      "path": "src/mappa/viewers.py",
+      "lines": 177,
+      "purpose": "Shared molecular and catalog presentation; search code does not depend on it.",
+      "public_definitions": [
+        "stylesheet",
+        "style_document",
+        "viewer_style",
+        "align_product",
+        "comparison_document",
+        "reaction_html",
+        "aam_growth_html",
+        "growth_trace_html",
+        "collection_html"
+      ],
+      "imports": [
+        "mappa.growth_display",
+        "mappa.search_trajectory"
+      ],
+      "imported_by": [
+        "bench/archive/manuscript_visuals/build_animations.py",
+        "bench/beta_suite_status.py",
+        "bench/experiments/competition_checkpoint/report_competition140.py",
+        "bench/golden_campaign.py",
+        "bench/publish_holdout_forward_analysis.py",
+        "bench/publish_minimum_event_analysis.py",
+        "bench/publish_real_ts_comparison.py",
+        "bench/view_golden_alternatives.py",
+        "bench/view_golden_closest.py",
+        "bench/view_golden_mapping.py",
+        "bench/view_golden_remaining.py",
+        "src/mappa/artifacts.py",
+        "tests/test_search_trajectory.py",
+        "tests/test_viewer_styles.py",
+        "tools/appendix_rerank.py",
+        "tools/build_chirality_conflict_view.py",
+        "tools/build_integrated_batch_viewer.py",
+        "tools/build_precursor_mapping_viewer.py",
+        "tools/build_retro_db_viewer.py",
+        "tools/build_search_trajectory.py",
+        "tools/build_typed_ts_integrated_viewer.py",
+        "tools/build_typed_ts_views.py",
+        "tools/render_mapping_comparison.py",
+        "tools/render_search_trajectory.py",
+        "tools/sync_viewer_styles.py"
+      ],
+      "introduced": {
+        "commit": "9633bb3a273ce3aeca60ba54abbc20a3576d1ec4",
+        "date": "2026-09-11",
+        "subject": "Restore original R/P/TS viewer and consolidate presentation into two shared styles"
+      }
+    }
+  ]
+}
