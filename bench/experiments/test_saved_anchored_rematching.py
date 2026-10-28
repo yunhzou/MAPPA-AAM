@@ -44,7 +44,7 @@ def run(archive, expected_sha, output,
     from mappa.postprocessing import decode_events, EventDecodeConfig
     threshold, metal = prior['config']['threshold'], prior['config']['metal_threshold']
     started, cpu = time.perf_counter(), time.process_time()
-    decoded = decode_events(catalogue, EventDecodeConfig(threshold=threshold, metal_threshold=metal))
+    decoded = decode_events(catalogue, EventDecodeConfig(threshold=threshold, metal_threshold=metal, event_slack=0))
     conversion = decoded.conversion
     conversion_seconds = time.perf_counter()-started
     print(f'{problem.name}: conversion {conversion_seconds:.3f}s; checking every distinct map', flush=True)
@@ -67,11 +67,10 @@ def run(archive, expected_sha, output,
         for ep in (problem.reactant, problem.product))
     verified, histogram, rows, best = {}, Counter(), [], []
     reports = {r['family_id']:r for r in decoded.family_reports}
-    candidates = {fid:c for c in decoded.candidates for fid in c.family_ids}
     for branch in conversion.branches:
         family = conversion.catalogue.families[branch.family_id]
         mapping = dict(family.mapping)
-        candidate = candidates[branch.family_id]
+        count = reports[branch.family_id]['total']
         if family.mapping not in verified:
             direct = []
             for pairs_to_check, right, assignment in ((check_pairs[0], problem.product, mapping),
@@ -90,10 +89,9 @@ def run(archive, expected_sha, output,
                 dwbo_threshold=threshold, metal_dwbo_threshold=metal,
                 elements_R=problem.reactant.elements, elements_P=problem.product.elements)
             assert direct == [set((a,b) for a,b,*_ in broken), set((a,b) for a,b,*_ in formed)]
-            assert sum(map(len,direct)) == candidate.total
+            assert sum(map(len,direct)) == count
             verified[family.mapping] = direct
         direct = verified[family.mapping]
-        count = candidate.total
         histogram[count] += 1
         old = catalogue.families[branch.source_family_id]
         row = dict(family=branch.source_family_id, events=count, mapped_atoms=len(mapping),
@@ -121,7 +119,7 @@ def run(archive, expected_sha, output,
         distinct_fragment_pairs=len({(p.source_atoms,p.target_atoms) for p in conversion.rematches}), distinct_anchored_rematches=len(conversion.rematches),
         reused_pair_results=conversion.reused_pairs, unique_counted_mappings=len(verified),
         reused_mapping_counts=len(rows)-len(verified), new_branch_combinations=len(rows), event_histogram=dict(sorted(histogram.items())),
-        minimum_new_branch_events=min(histogram, default=None), prior_minimum=prior['observed_minimum'],
+        requested_event_slack=0, minimum_new_branch_events=min(histogram, default=None), prior_minimum=prior['observed_minimum'],
         best_branches_matching_prior_minimum_event_class=sum(r['event_class'] in old_classes for r in best),
         branches_with_changed_free_assignments=sum(r['changed_assignments'] > 0 for r in rows),
         all_branches_map_all_source_atoms=all(r['mapped_atoms'] == problem.source_atom_count for r in rows),

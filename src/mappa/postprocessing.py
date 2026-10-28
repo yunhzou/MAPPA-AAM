@@ -9,6 +9,7 @@ import math
 import time
 
 from .event_patterns import SignedEventIndex
+from .frag import classify_bonds
 from .fragment_conversion import FragmentConversion, convert_fragments
 from .final_branches import FinalBranchCatalogue
 
@@ -214,28 +215,43 @@ def decode_events(aam, config=None):
     index = SignedEventIndex(catalogue.problem, threshold=config.threshold,
                              metal_threshold=config.metal_threshold)
     candidates, reports, counted = {}, [], {}
+    problem = catalogue.problem
     for branch in conversion.branches:
         family = catalogue.families[branch.family_id]
         if family.mapping not in counted:
-            counted[family.mapping] = index.describe(index.vector(dict(family.mapping)))
-        pattern = counted[family.mapping]
+            broken, formed, _, _ = classify_bonds(dict(family.mapping),
+                problem.reactant.wbo, problem.product.wbo,
+                dwbo_threshold=config.threshold, metal_dwbo_threshold=config.metal_threshold,
+                elements_R=problem.reactant.elements, elements_P=problem.product.elements)
+            counted[family.mapping] = dict(broken=tuple((a,b) for a,b,*_ in broken),
+                                          formed=tuple((a,b) for a,b,*_ in formed))
+        events = counted[family.mapping]
+        total = sum(map(len, events.values()))
         owners = dict(branch.islands)
         target_owners = {p: owners[r] for r, p in family.mapping}
         internal = sum(a in own and b in own and own[a] == own[b]
             for kind, own in (('broken', owners), ('formed', target_owners))
-            for a, b in pattern['endpoint_events'][kind])
+            for a, b in events[kind])
         complete = internal == 0 and all(conversion.rematches[i].complete
                                         for i, _ in branch.fragment_paths)
         reports.append(dict(family_id=branch.family_id, source_family_id=branch.source_family_id,
-            complete=complete, internal_events=internal, total=pattern['total'], solver_queries=0,
+            complete=complete, internal_events=internal, total=total, solver_queries=0,
             reason='converted_branch' if complete else 'incomplete_fragment_conversion'))
+    best = min((r['total'] for r in reports), default=None)
+    bound = (best + config.event_slack if best is not None and config.event_slack is not None
+             else config.max_events)
+    descriptions = {}
+    for report in reports:
+        if bound is not None and report['total'] > bound:
+            continue
+        family = catalogue.families[report['family_id']]
+        if family.mapping not in descriptions:
+            descriptions[family.mapping] = index.describe(index.vector(dict(family.mapping)))
+        pattern = descriptions[family.mapping]
         candidate = candidates.setdefault(pattern['id'], EventCandidate(pattern['id'],
             dict(family.mapping), pattern['events'], pattern['total'],
             endpoint_events=pattern['endpoint_events']))
-        candidate.family_ids.append(branch.family_id)
-    best = min((c.total for c in candidates.values()), default=None)
-    bound = (best + config.event_slack if best is not None and config.event_slack is not None
-             else config.max_events)
-    selected = [c for c in candidates.values() if bound is None or c.total <= bound]
+        candidate.family_ids.append(report['family_id'])
+    selected = list(candidates.values())
     return DecodedEvents(sorted(selected, key=lambda c: (c.total, c.id)),
                          catalogue, index, reports, config, conversion)

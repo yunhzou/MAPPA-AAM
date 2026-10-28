@@ -36,3 +36,17 @@ def test_invalid_or_ambiguous_configuration_rejected():
     for kwargs in ({'event_slack':-1},{'event_slack':1.5},{'event_slack':5,'max_events':9},
                    {'branch_limit':0},{'threshold':0},{'random_seed':.1}):
         with pytest.raises(ValueError):EventDecodeConfig(**kwargs)
+
+
+def test_event_ids_are_only_built_for_the_requested_window(monkeypatch):
+    from mappa.event_patterns import SignedEventIndex
+    original = SignedEventIndex.describe
+    observed = []
+    def describe(index, vector):
+        count = int(index.counts([vector]).sum())
+        observed.append(count)
+        return original(index, vector)
+    monkeypatch.setattr(SignedEventIndex, 'describe', describe)
+    result = decode_events(catalogue(), EventDecodeConfig(event_slack=0))
+    assert sorted(r['total'] for r in result.family_reports) == [0,2]
+    assert observed == [0]
