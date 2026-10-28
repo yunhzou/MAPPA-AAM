@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import gzip
 import hashlib
+from itertools import groupby
 import os
 from pathlib import Path
 import pickle
@@ -19,22 +20,41 @@ class Blob:
 
 def read_blob(blob, scratch):
     """Only load trusted internal results; verify bytes before unpickling."""
+    return next(read_blobs([blob], scratch))[1]
+
+
+def read_blobs(blobs, scratch):
+    """Read adjacent ranges from each bundle through one shared-file handle.
+
+    Callers can order metadata by path and offset without scanning other bytes.
+    The reusable temporary file stays on local scratch.
+    """
+    with tempfile.TemporaryFile(dir=scratch) as local:
+        for path, group in groupby(blobs, key=lambda blob: blob.path):
+            with open(path, 'rb') as stream:
+                for blob in group:
+                    yield blob, _read_verified(stream, local, blob)
+
+
+def _read_verified(stream, local, blob):
+    if blob.offset < 0 or blob.size <= 0:
+        raise ValueError('Invalid result bundle range')
     digest = hashlib.sha256()
-    with tempfile.TemporaryFile(dir=scratch) as local, open(blob.path, 'rb') as stream:
-        stream.seek(blob.offset)
-        remaining = blob.size
-        while remaining:
-            block = stream.read(min(2**20, remaining))
-            if not block:
-                raise ValueError('Truncated result bundle')
-            digest.update(block)
-            local.write(block)
-            remaining -= len(block)
-        if digest.hexdigest() != blob.sha256:
-            raise ValueError('Result bundle checksum differs')
-        local.seek(0)
-        with gzip.GzipFile(fileobj=local, mode='rb') as compressed:
-            return pickle.load(compressed)
+    local.seek(0); local.truncate()
+    stream.seek(blob.offset)
+    remaining = blob.size
+    while remaining:
+        block = stream.read(min(2**20, remaining))
+        if not block:
+            raise ValueError('Truncated result bundle')
+        digest.update(block)
+        local.write(block)
+        remaining -= len(block)
+    if digest.hexdigest() != blob.sha256:
+        raise ValueError('Result bundle checksum differs')
+    local.seek(0)
+    with gzip.GzipFile(fileobj=local, mode='rb') as compressed:
+        return pickle.load(compressed)
 
 
 class BundleWriter:
