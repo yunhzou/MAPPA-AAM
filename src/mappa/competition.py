@@ -113,7 +113,7 @@ def compete_fragments(a, config=None):
 
     if not available():
         raise RuntimeError(
-            "Fragment competition requires the optional native engine; see native/README.md"
+            "Fragment competition requires the optional native engine; see src/mappa/native/README.md"
         )
     config = config or CompetitionConfig()
     problem, cfg = (a.problem, a.config)

@@ -1,24 +1,21 @@
-"""Build the native AAM engine extension (mappa._engine).
+"""Build mappa._engine from this checkout.
 
-    .venv/bin/python native/build_engine.py
+Run: python src/mappa/native/build_engine.py
 
-Compiles the vendored nauty core (native/nauty, Apache-2.0) together with
-native/src/engine.cpp, freeze.cpp and autgrp.cpp into
-src/mappa/_engine.<abi>.so.  Requires pybind11
-and a C++17 compiler.  The extension is optional: mappa falls back to the
-pure-Python engine when the extension is absent or MAPPA_NATIVE=0.
+Requires pybind11 and a C++17 compiler. Vendored nauty lives separately under
+third_party/nauty. MAPPA_NATIVE=0 explicitly selects the Python engine; a missing
+selected native engine is an error.
 """
 import shutil
-import sys
 from pathlib import Path
 
 import pybind11
 from setuptools import Distribution, Extension
 from setuptools.command.build_ext import build_ext
 
-ROOT = Path(__file__).resolve().parents[1]
-NATIVE = ROOT / "native"
-NAUTY = NATIVE / "nauty"
+NATIVE = Path(__file__).resolve().parent
+ROOT = NATIVE.parents[2]
+NAUTY = NATIVE / "third_party" / "nauty"
 BUILD = ROOT / "build" / "engine"
 
 nauty_sources = [str(NAUTY / name) for name in (
@@ -26,9 +23,9 @@ nauty_sources = [str(NAUTY / name) for name in (
 
 ext = Extension(
     "mappa._engine",
-    sources=[str(NATIVE / "src" / "engine.cpp"),
-             str(NATIVE / "src" / "freeze.cpp"),
-             str(NATIVE / "src" / "autgrp.cpp"),
+    sources=[str(NATIVE / "engine.cpp"),
+             str(NATIVE / "freeze.cpp"),
+             str(NATIVE / "autgrp.cpp"),
              *nauty_sources],
     include_dirs=[pybind11.get_include(), str(NAUTY)],
     language="c++",

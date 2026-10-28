@@ -75,8 +75,8 @@ def prepare(args):
             tasks.extend(dict(index=index,direction=d,config=config) for d in DIRECTIONS)
         except Exception:
             inputs.append(dict(index=index,status='preparation_error',traceback=traceback.format_exc()))
-    source={str(p.relative_to(REPO)):sha(p) for folder in ['src/mappa','native/src','bench/rebenchmark']
-            for p in (REPO/folder).rglob('*') if p.is_file() and p.suffix in ('.py','.h','.cpp','.so')}
+    source={str(p.relative_to(REPO)):sha(p) for folder in ['src/mappa','bench/rebenchmark']
+            for p in (REPO/folder).rglob('*') if p.is_file() and p.suffix in ('.py','.c','.h','.cpp','.so')}
     for name in ['golden_evaluation.py','publication_analysis.py','publication_timing.py','prepare_golden_benchmark.py']:
         source['bench/'+name]=sha(REPO/'bench'/name)
     save(args.run/'manifest.json',dict(schema='mappa.rebenchmark/v1',dataset='Golden',total=1851,

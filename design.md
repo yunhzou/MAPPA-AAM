@@ -180,7 +180,7 @@ missing outputs and unattempted tasks are never algorithmic negatives.
 
 ## Repository boundaries and remaining cleanup
 
-`src/` and `native/` contain reusable algorithms; `tests/` contains their checks.
+`src/` contains the reusable Python and native algorithms; `tests/` contains their checks.
 `docs/` contains current usage guides and executable examples. `bench/` owns
 the current Golden pipeline and its shared evaluators; retired experiment and
 campaign scripts are removed. Test-only inputs and reference oracles live under
@@ -220,3 +220,19 @@ symmetry-repair scoring. `decode_events` is the sole public event-result pipelin
 Raw mapping-family compilation remains separate and does not select events.
 Search configurations no longer accept symmetry-repair options. Exact fragment
 symmetry and TS core assignment keep their shared helpers.
+
+## Native implementation ownership
+
+`src/mappa/native/` owns our C++ implementations, headers and engine build script.
+Vendored nauty sources and licenses are isolated under
+`src/mappa/native/third_party/nauty/`. There is no top-level native source tree.
+The compiled interfaces remain `mappa._engine`, `mappa._group_ops` and
+`mappa._native`; moving source files does not change their algorithms or imports.
+
+```mermaid
+flowchart LR
+    Matcher[Python fragment matcher] --> Bridge[growth/native.py]
+    Bridge --> Engine[mappa._engine]
+    Source[src/mappa/native] --> Engine
+    Vendor[third_party/nauty] --> Engine
+```

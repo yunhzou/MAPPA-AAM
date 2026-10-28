@@ -296,6 +296,9 @@ removed. They have no compatibility aliases or fallback dispatch. The old
 `alignment.api` and `cut_sweep` execution entry points are also removed; use
 `search_aam` followed by `decode_events`.
 
+Build the engine with `python src/mappa/native/build_engine.py`; see the
+[native build guide](src/mappa/native/README.md).
+
 `MAPPA_NATIVE=1` is the default native selection. A missing or broken native
 extension raises an error. Set `MAPPA_NATIVE=0` to explicitly select Python.
 Custom node policies and growth tracing use the Python implementation because
