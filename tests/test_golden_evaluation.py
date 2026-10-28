@@ -72,19 +72,17 @@ def test_reference_recovery_queries_real_compressed_aam_not_only_representative(
     import numpy as np
     from mappa import AAMProblem,AAMSearchConfig,search_aam
     from mappa.domain import MolecularEndpoint
-    bonds=np.array([[0.,1.,0.],[1.,0.,2.],[0.,2.,0.]])
-    endpoint=MolecularEndpoint(('C','C','C'),np.zeros((3,3)),bonds)
-    result=search_aam(AAMProblem(endpoint,endpoint),AAMSearchConfig(seed_count=1,cut_floor=10))
     from dataclasses import replace
+    from itertools import permutations
+    def endpoint(n):return MolecularEndpoint(('O',)*n,np.zeros((n,3)),np.zeros((n,n)))
+    result=search_aam(AAMProblem(endpoint(2),endpoint(4)),AAMSearchConfig(seed_count=1))
     terminal=result.graph.terminals[0]
-    # Test membership inside this branch; another retained branch can already
-    # contain the desired mapping as its explicit representative.
     result=replace(result,graph=replace(result.graph,stops=tuple(
         stop for stop in result.graph.stops if stop.state==terminal)))
     mapping=dict(result.graph.states[terminal].mapping)
-    reference={a:(2,1,0)[b] for a,b in mapping.items()}
-    f=feature(3,True)
-    evaluated=E.evaluate(result,[f,f],reference,seconds=10)
+    reference=next(dict(enumerate(p)) for p in permutations(range(4),2) if dict(enumerate(p))!=mapping)
+    features=[feature(2,True),feature(4,True)]
+    evaluated=E.evaluate(result,features,reference,seconds=10)
     assert not evaluated['representative_recovery']
     assert evaluated['reference_recovery']=='recovered'
     assert evaluated['symbolic_queries']>0

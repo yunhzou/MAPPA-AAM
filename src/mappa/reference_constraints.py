@@ -108,24 +108,48 @@ class ReferenceConstraints:
             for index in changed:
                 for other in neighbors[index]-queued:queue.append(other);queued.add(other)
 
+    def predicate(self, value, item):
+        import z3
+        domain=self.domain(value)
+        if item not in domain:return False
+        if len(domain)==1:return True
+        return z3.Bool(f'q{value.index}_{item}')
+
     def expression(self, value):
         import z3
         domain=self.domain(value)
         if len(domain)==1:return next(iter(domain))
-        return z3.Int(f'q{value.index}') if isinstance(value,Choice) else value
+        return z3.Sum(*(z3.If(self.predicate(value,item),item,0) for item in sorted(domain)))
 
     def emit(self, solver):
         import z3
+        from itertools import product
         self.propagate()
         if self.failed:solver.add(False);return
         for i,domain in enumerate(self.domains):
-            if len(domain)>1:solver.add(z3.Or(*(z3.Int(f'q{i}')==v for v in sorted(domain))))
+            if len(domain)>1:
+                solver.add(z3.PbEq([(self.predicate(Choice(i),v),1) for v in sorted(domain)],1))
         for kind,values,data in self.constraints:
-            expressions=[self.expression(v) for v in values]
             if kind=='table':
-                solver.add(z3.Or(*(z3.And(*(v==x for v,x in zip(expressions,row))) for row in data)))
+                # A local implication per input tuple avoids asking the solver
+                # to select from a large disjunction of complete assignments.
+                supported={}
+                for row in data:supported.setdefault(row[:-1],set()).add(row[-1])
+                for inputs in product(*(sorted(self.domain(v)) for v in values[:-1])):
+                    premise=[z3.Not(self.predicate(v,x)) for v,x in zip(values[:-1],inputs)]
+                    outputs=[self.predicate(values[-1],x) for x in sorted(supported.get(inputs,()))]
+                    solver.add(z3.Or(*premise,*outputs))
             elif kind=='lookup':
-                selector,output=expressions
-                solver.add(z3.Or(*(z3.And(selector==p,output==self.expression(data[p]))
-                                  for p in sorted(self.domain(values[0])))))
-            else:solver.add(z3.Distinct(*(z3.IntVal(v) if isinstance(v,int) else v for v in expressions)))
+                selector,output=values
+                for item in sorted(self.domain(selector)):
+                    entry=data[item]
+                    for result in sorted(self.domain(output)|self.domain(entry)):
+                        solver.add(z3.Implies(self.predicate(selector,item),
+                            self.predicate(output,result)==self.predicate(entry,result)))
+            else:
+                for item in sorted(set().union(*(self.domain(v) for v in values))):
+                    flags=[self.predicate(v,item) for v in values]
+                    fixed=sum(flag is True for flag in flags)
+                    choices=[flag for flag in flags if not isinstance(flag,bool)]
+                    if fixed>1:solver.add(False)
+                    elif choices:solver.add(z3.PbLe([(flag,1) for flag in choices],1-fixed))
