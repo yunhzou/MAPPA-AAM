@@ -160,31 +160,38 @@ def validate_record(value, problem, read_query, replay):
                 scope='Saved-record evidence only; task coverage and catalogue/source identity must also be verified.')
 
 
+def verify_task(value, task, expected_signature):
+    """Use the immutable task, including metadata not repeated in its output."""
+    from .decoder_inventory import signature
+    key = f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
+    if (task.key != key or task.operation != 'rebenchmark.decoding:decode_seed' or
+            signature(task) != expected_signature or value['search_rerun'] is not False):
+        raise ValueError('Published output or expected task identity differs')
+    actual = dict(source=value['source'], graph=value['graph'], raw=value['raw'],
+        finalized=value['finalized'] is None, cut=value['cut'], task_id=value['task_id'],
+        seed=value['seed']-1, slack=value['window_basis']['slack'],
+        family_seconds=value['decoded']['config']['seconds_per_family'])
+    if any(frozen_value(task.payload[k]) != frozen_value(v) for k,v in actual.items()):
+        raise ValueError('Output differs from the expected scientific task')
+    return key
+
+
 def audit_output(payload, workspace):
     """Shared-executor operation for one accepted saved output, with provenance."""
     from mappa.artifacts import read_graph_checkpoint
     from mappa.execution import Blob, Task, read_blob
     from mappa.final_branches import FinalBranchCatalogue
     from .campaign import load_plan
-    from .decoder_inventory import signature
     from .decoding import coverage, representative_bound
     from .saved_analysis import read_member
     from .search import select_contexts
 
     blob = Blob(**payload['blob'])
     value = read_blob(blob, workspace.scratch)
-    key = f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
-    if key != payload['key'] or value['search_rerun'] is not False:
+    key = verify_task(value, Task(**payload['specification']), payload['specification_signature'])
+    if key != payload['key']:
         raise ValueError('Published output identity differs')
     config = value['decoded']['config']
-    specification = Task(key, 'rebenchmark.decoding:decode_seed', dict(
-        source=value['source'], graph=value['graph'], raw=value['raw'],
-        finalized=value['finalized'] is None, cut=value['cut'], task_id=value['task_id'],
-        seed=value['seed']-1, slack=value['window_basis']['slack'],
-        family_seconds=config['seconds_per_family']), case=f'{value["task_id"]:05d}',
-        memory_bytes=payload['memory_bytes'])
-    if signature(specification) != payload['specification_signature']:
-        raise ValueError('Output differs from the expected scientific task')
 
     def prepare():
         with tempfile.TemporaryDirectory(dir=workspace.scratch) as td:

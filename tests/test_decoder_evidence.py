@@ -72,3 +72,22 @@ def test_inconclusive_replay_leaves_audit_unresolved():
     result = validate_record(v,p,q.__getitem__,Unresolved())
     assert result['decoded_complete']
     assert not result['verified'] and result['unresolved_proof_checks'] > 0
+
+
+def test_original_task_metadata_is_not_reconstructed_from_output():
+    from dataclasses import replace
+    from mappa.execution import Task
+    from rebenchmark.decoder_evidence import verify_task
+    from rebenchmark.decoder_inventory import signature
+    _,v,_ = example()
+    v.update(task_id=0,cut=0,seed=1,search_rerun=False,source={},graph={},raw={},finalized=None,
+             window_basis=dict(slack=5))
+    t = Task('00000/cut/00000/seed/00','rebenchmark.decoding:decode_seed',dict(
+        task_id=0,cut=0,seed=0,source={},graph={},raw={},finalized=True,slack=5,
+        family_seconds=30,cut_seconds=3000.),case='00000')
+    assert verify_task(v,t,signature(t)) == t.key
+    with pytest.raises(ValueError,match='identity'):
+        verify_task(v,replace(t,payload=dict(t.payload,cut_seconds=2999.)),signature(t))
+    v['window_basis']['slack']=6
+    with pytest.raises(ValueError,match='scientific'):
+        verify_task(v,t,signature(t))
