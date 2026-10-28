@@ -87,7 +87,7 @@ def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
     catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
     first = catalogue.families[0]
-    catalogue.families += [replace(first), replace(first, actions=())]
+    catalogue.families += [replace(first, mapping=((0, 0), (1, 1), (2, 2))), replace(first, actions=())]
     next(iter(catalogue.branches.values())).update((1, 2))
     result = convert_fragments(catalogue)
     assert len(result.rematches) == 2 and result.reused_pairs == 0
