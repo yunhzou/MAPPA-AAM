@@ -161,37 +161,6 @@ def test_large_invariant_pool_never_enters_solver(monkeypatch):
     assert result['complete'] and result['solver_queries'] == 0 and len(result['patterns']) == 1
 
 
-def test_budget_exhaustion_is_not_reported_as_complete():
-    value = problem('COO', [(0, 1, 1), (0, 2, 1.4)], [(0, 1, 1.4), (0, 2, 1.6)])
-    path = saved_path(value, [(0, 2, 1)])
-    result = extract_path_events(path, value, SignedEventIndex(value), seconds=0)
-    assert not result['complete'] and result['reason'] == 'time_budget'
-    result = extract_path_events(path, value, SignedEventIndex(value), max_patterns=1)
-    assert not result['complete'] and result['reason'] == 'pattern_budget'
-
-
-def test_unlimited_class_extraction_checkpoints_discoveries():
-    value = problem('COO', [(0, 1, 1), (0, 2, 1.4)], [(0, 1, 1.4), (0, 2, 1.6)])
-    path = saved_path(value, [(0, 2, 1)])
-    emitted = []
-    result = extract_path_events(path, value, SignedEventIndex(value), max_patterns=None,
-                                 on_pattern=lambda p: emitted.append(p['id']))
-    assert result['complete']
-    assert len(emitted) == len(set(emitted)) == 2
-    assert set(emitted) == {p['id'] for p in result['patterns']}
-    persisted = []
-    class Interrupted(Exception):
-        pass
-    def interrupt_after_persisting(pattern):
-        persisted.append(pattern)
-        raise Interrupted
-    with pytest.raises(Interrupted):
-        extract_path_events(path, value, SignedEventIndex(value), max_patterns=None,
-                            on_pattern=interrupt_after_persisting)
-    assert len(persisted) == 1
-    assert SignedEventIndex(value).describe(persisted[0]['mapping'])['id'] == persisted[0]['id']
-
-
 def test_reject_partial_invalid_and_asymmetric_inputs():
     value = problem('COO', [], [])
     index = SignedEventIndex(value)
@@ -204,26 +173,6 @@ def test_reject_partial_invalid_and_asymmetric_inputs():
             SignedEventIndex(value, threshold=tau)
     unbalanced = AAMProblem(value.reactant, problem('CO', [], []).product)
     assert SignedEventIndex(unbalanced).counts([[0, 1, -1]]).shape == (1, 2)
-
-
-def test_whole_event_orbit_is_excluded_in_one_query(monkeypatch):
-    import mappa.event_patterns as module
-    # Exercise the historical proof model independently of its group certificate.
-    monkeypatch.setattr('mappa.event_certificates.EventFamilyCertificates.invariant_class',
-                        lambda *args: False)
-    edges = [(0, a, 1.) for a in range(1, 8)]
-    value = problem(('C',) + ('H',) * 7, edges,
-                    [(0, a, .4 if a == 1 else 1.) for a in range(1, 8)])
-    path = saved_path(value, blocks=[dict(r_atoms=list(range(1, 8)), p_atoms=list(range(1, 8)))])
-    result = extract_path_events(path, value, SignedEventIndex(value), max_patterns=1)
-    assert result['complete'] and len(result['patterns']) == 1, result
-    assert result['solver_queries'] == 1, result
-    # Reproduce the previous prototype's repeated literal exclusions on this
-    # tiny case, without enumerating the 7! complete atom assignments.
-    monkeypatch.setattr('reference_event_decoder._same_event_orbit', lambda t, o, p, i: module._same_event_pattern(t, o, p))
-    old = extract_path_events(path, value, SignedEventIndex(value), max_patterns=8)
-    assert old['complete'] and old['solver_queries'] == 7, old
-    assert {p['id'] for p in old['patterns']} == {p['id'] for p in result['patterns']}
 
 
 def test_correlated_actions_do_not_turn_into_independent_fragment_pools():

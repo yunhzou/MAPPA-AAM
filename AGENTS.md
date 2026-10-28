@@ -51,3 +51,14 @@ Version control is not limited to preserving code. It must also support effectiv
 Development often takes place locally and on a cluster. Whenever development spans multiple machines, always use Git to synchronize the work.
 
 There must be a single source of truth for the project, and communication with the user must consistently refer to it. Each machine must have only one copy of the codebase. Enforce this, and use Git to reconcile changes whenever the copies become unsynchronized.
+
+## 6. Validation scope
+
+Use the test commands in README.md. For routine code refactors, run the smoke
+checks and tests for affected modules once. Keep exhaustive chemistry tests for
+matching/counting changes and the full suite for releases or changes spanning
+core algorithms. Documentation-only changes need content/link checks, not runtime
+tests. Do not repeat passing tests unless code changed or a specific unresolved
+risk requires it. Do not rerun benchmarks to validate a structural cleanup.
+Report the actual test scope. Retain independent scientific oracles; remove tests
+that only exercise retired test helpers rather than supported behavior.

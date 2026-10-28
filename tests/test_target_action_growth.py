@@ -46,6 +46,7 @@ def test_ring_every_prefix_preserves_all_768_matches(order):
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
+@pytest.mark.smoke
 def test_public_ring_match_is_one_branch_with_768_assignments(native, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
     source, target = rings()

@@ -48,6 +48,8 @@ mappa = ["static/*.js", "static/*.html", "static/*.css", "static/LICENSES/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = ["smoke: small public-workflow and scientific-contract checks for routine refactoring"]
 
 # Note: xtb (Grimme) is a runtime requirement but not a Python dependency;
 # install it via your system package manager (e.g. conda install -c conda-forge xtb).

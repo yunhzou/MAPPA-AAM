@@ -58,6 +58,7 @@ def test_aam_problem_accepts_composition_mismatch():
     assert max(len(result.graph.states[t].mapping) for t in result.graph.terminals) == 1
 
 
+@pytest.mark.smoke
 def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
     import json
     from mappa.artifacts import aam_record, aam_from_record
@@ -190,6 +191,7 @@ def test_search_aam_returns_complete_typed_hierarchy():
     assert family.aam_branch.hierarchy.has_complete_exact_target_groups
 
 
+@pytest.mark.smoke
 def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
     elements = ("C", "N", "O", "H")
     coordinates = np.array([

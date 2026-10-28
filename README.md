@@ -319,13 +319,33 @@ TSResult
 
 ## Tests
 
+For routine refactoring, run the small set of existing contract checks:
+
 ```bash
+python -m pytest -q -m smoke
+```
+
+This covers the public CLI, partial AAM and saved-result round trips, compressed
+ring matches, branch grouping/caps, randomized growth, anchored conversion,
+ordinary/metal thresholds, incomplete results and explicit TS processing.
+It is a smoke check, not exhaustive scientific validation.
+
+Also run the tests for the module changed; select files or individual tests
+instead of repeatedly running everything. For example:
+
+```bash
+# Conversion/counting changes
+python -m pytest -q tests/test_fragment_conversion.py tests/test_partial_event_decoding.py tests/test_relative_event_window.py tests/test_saved_fragment_anchors.py
+# Full regression suite for releases or changes spanning core algorithms
 python -m pytest -q
 ```
 
-The suite includes a non-empty TS integration case that consumes explicit endpoint
-mappings and events and performs two partial core searches,
-endpoint-consensus merging, and imaginary-mode scoring.
+Matcher changes require the exhaustive compression and Python/native comparison
+tests (`test_growth_compression_exactness.py`, `test_target_action_growth.py`,
+`test_bond_tolerance.py`, plus the affected growth tests). Scheduling changes
+require the execution tests. Documentation-only edits need link/content checks,
+not molecular calculations. Run computational checks on NRT CPU nodes. Record
+which tests ran; passing smoke checks does not mean the full suite passed.
 
 ## Repository layout
 

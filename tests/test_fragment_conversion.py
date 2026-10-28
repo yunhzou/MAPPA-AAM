@@ -33,6 +33,7 @@ def backend(request, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', request.param)
 
 
+@pytest.mark.smoke
 def test_free_mapping_is_rediscovered_and_input_untouched(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
     catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
@@ -44,6 +45,7 @@ def test_free_mapping_is_rediscovered_and_input_untouched(backend):
     assert catalogue.to_record() == before
 
 
+@pytest.mark.smoke
 def test_direct_anchors_split_a_bond_at_the_exact_threshold(backend):
     r = endpoint('CO', [(0, 1, 1.)])
     p = endpoint('CO', [(0, 1, 1.5)])
@@ -55,6 +57,7 @@ def test_direct_anchors_split_a_bond_at_the_exact_threshold(backend):
     assert decoded.conversion.rematches[0].anchors == ((0, 0), (1, 1))
 
 
+@pytest.mark.smoke
 def test_native_conditional_metal_rule_is_used(backend):
     r = endpoint(('Co', 'C', 'O'), [(0, 1, 1.), (1, 2, 1.)])
     p = endpoint(('Co', 'C', 'O'), [(0, 1, 1.4), (1, 2, 1.4)])
@@ -96,6 +99,7 @@ def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
     assert result.catalogue.families[0].provenance[0]['source_family_ids'] == (0, 1)
 
 
+@pytest.mark.smoke
 def test_partial_boundary_and_wholly_unmatched_material(backend):
     r = endpoint('COHH', [(0, 1, 1), (2, 3, 1)])
     p = endpoint('C', [])
@@ -105,6 +109,7 @@ def test_partial_boundary_and_wholly_unmatched_material(backend):
         assert decoded.candidates[0].mapping == {0: 0}
 
 
+@pytest.mark.smoke
 def test_rematching_stays_inside_original_pairs_and_recombines(backend):
     ep = endpoint('HHHH', [])
     pairs = (((0, 1), (2, 3)), ((2, 3), (0, 1)))
@@ -164,6 +169,7 @@ def test_artifact_preserves_converted_compression_and_scope(backend):
     assert record['rematches'][0]['search']
 
 
+@pytest.mark.smoke
 def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
     import mappa.fragment_conversion as module
     from mappa.search_graph import SearchStop

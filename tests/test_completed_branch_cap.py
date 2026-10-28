@@ -56,6 +56,7 @@ def test_completed_fragment_still_obeys_cap(engine):
     assert (exc.value.count, exc.value.limit) == (4, 3)
 
 
+@pytest.mark.smoke
 def test_frontier_limit_combines_children_from_different_parents(engine):
     # Two distinct C placements, each with two distinct O placements. Each
     # completed fragment fits cap 3; their combined four leaves do not.

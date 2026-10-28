@@ -18,6 +18,7 @@ def endpoints(tmp_path):
     return ['--reactant-npz', str(paths[0]), '--product-npz', str(paths[1])]
 
 
+@pytest.mark.smoke
 def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatch):
     assert not hasattr(mappa, 'select_rp_mappings')
     output = tmp_path / 'events'
@@ -34,6 +35,7 @@ def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatc
     assert not (output / 'reaction.json').exists()
 
 
+@pytest.mark.smoke
 def test_raw_cli_does_not_decode(tmp_path, monkeypatch):
     import mappa.cli as cli
     def forbidden(*args, **kwargs):

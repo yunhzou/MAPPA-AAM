@@ -138,6 +138,7 @@ def test_flat_archive_roundtrip_needs_no_original_search_graph():
 
 
 
+@pytest.mark.smoke
 def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatch):
     from mappa.domain import AAMResult, AAMSearchConfig, AAMSearchMetrics
     value = problem('COO', [], [])
@@ -161,6 +162,7 @@ def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatc
     assert len(result.branches) == 1
 
 
+@pytest.mark.smoke
 def test_aam_grouping_distinguishes_target_atom_sets():
     a = independent_path((0,1))
     b = independent_path((1,0), mapping={0:2,1:3,2:0,3:1})

@@ -13,6 +13,7 @@ from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.aam import checkpoint_manifest
 
 
+@pytest.mark.smoke
 def test_selection_ignores_weights_and_samples_atoms_not_edges():
     # Atom 3 has three incident edges, atom 4 only one. Equal atom probability.
     pool=[(-3.,0,3),(-2.,1,3),(-1.,2,3),(-.5,0,4)]
