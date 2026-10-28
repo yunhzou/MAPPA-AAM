@@ -128,4 +128,4 @@ class ReferenceConstraints:
                 selector,output=expressions
                 solver.add(z3.Or(*(z3.And(selector==p,output==self.expression(data[p]))
                                   for p in sorted(self.domain(values[0])))))
-            else:solver.add(z3.Distinct(*expressions))
+            else:solver.add(z3.Distinct(*(z3.IntVal(v) if isinstance(v,int) else v for v in expressions)))
