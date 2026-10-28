@@ -1,21 +1,15 @@
-# Frozen research source
+# Historical campaign source
 
-`campaigns/<report-name>/` contains original drivers previously stored alongside
-`reports/<report-name>/`. `manuscript_visuals/` contains replaced movie builders
-and early evidence-preparation scripts. Their bytes are unchanged, so recorded
-source hashes still identify the original code.
+Retired campaign drivers and replaced visualization builders are removed from
+the current checkout. Their exact source remains in [Git history](https://github.com/yunhzou/MAPPA-AAM/tree/34f6ada83adf73745d426857e088335efcd5d77a/bench/archive).
+Use that revision together with the original campaign's recorded input and
+environment pins for historical reproduction. Current library defaults are not
+a substitute for historical settings.
 
-These scripts expect their recorded frozen-engine and staging layouts; this
-archive is not a portable current-API entry point. Use the [benchmark guide](../README.md)
-for new work. Do not run old evidence-preparation scripts into the current paper.
-For exact historical reproduction, use a separate checkout of the manifest's
-base revision and the original campaign's input/environment records:
+The [removal manifest](../../docs/validation/repository_cleanup_20261028.json)
+records each removed path, SHA256 and size, verified against that revision before
+removal. The earlier [relocation manifest](../../docs/publication_cleanup_20260916.json)
+retains the original report-to-archive path mapping. Measurements, witnesses and
+publication artifacts remain in their established locations.
 
-```sh
-git worktree add --detach ../mappa-historical 59f55e4
-```
-
-The [relocation manifest](../../docs/publication_cleanup_20260916.json) maps every
-original source path to its current location and checksum. Numerical evidence
-and witnesses stay in `reports/`. Old visual artifacts can be recovered from
-the same Git revision; no history was rewritten.
+Use the [benchmark guide](../README.md) for maintained entry points.

@@ -27,9 +27,10 @@ The default branch cap is 100. The original Golden tables use cap 100; the origi
 ## Benchmark source layout
 
 The current entry points and evaluators are indexed in `bench/README.md`.
-Historical campaign drivers are preserved byte-for-byte under
-`bench/archive/campaigns/`; original paths and SHA256 hashes are recorded in
-`docs/publication_cleanup_20260916.json`. Measurements and witnesses remain in
+Historical campaign drivers are preserved in Git at the revision linked in
+[historical source](../bench/archive/README.md). Original paths and SHA256 hashes
+are recorded in `docs/publication_cleanup_20260916.json`; the later removal
+manifest is `docs/validation/repository_cleanup_20261028.json`. Measurements and witnesses remain in
 `reports/`. For historical reproduction use the recorded source/input pins;
 current library defaults are not a substitute. Superseded visual artifacts
 remain available at the Git revision recorded in the cleanup manifest.

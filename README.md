@@ -338,7 +338,8 @@ endpoint-consensus merging, and imaginary-mode scoring.
 | `docs/` | Executed notebooks and public API documentation |
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `bench/experiments/` | Optional research experiments, excluded from the published default |
-| `bench/archive/`, `bench/contracts/` | Frozen campaign source and regression contracts |
+| `bench/contracts/` | Versioned regression contracts |
+| `bench/archive/README.md` | Links to retired campaign source in Git history |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
 | `tests/`, `native/`, `tools/`, `hpc/` | Tests, native implementation, user utilities, batch launch examples |

@@ -1,9 +1,9 @@
 # Benchmark code and reproduction guide
 
 Results and provenance: [paper index](../reports/README.md). Current entry
-points live here; saved data live in `reports/`. Frozen campaign drivers
-previously mixed with the results are now in [archive/](archive/README.md),
-unchanged byte-for-byte. Their original staging requirements still apply.
+points live here; saved data live in `reports/`. Retired campaign drivers are available at the exact revision linked in
+[historical source](archive/README.md), rather than shipped beside current code.
+Their original staging requirements still apply.
 No benchmark needs rerunning merely to inspect saved mappings or metrics.
 
 Use the [two shared viewer styles](../docs/VIEWERS.md). R/P and TS comparisons
@@ -24,7 +24,7 @@ retired. `missing_pattern_display_data.py` prepares the three-case witnesses and
 | `benchmark_saved_decoding.py`, `decode_saved_events.py` | Separate decoder measurement and saved-result inspection |
 | `contracts/` | Versioned regression expectations |
 | `experiments/` | Optional research variants outside the published default |
-| `archive/campaigns/` | Original historical campaign drivers, with unchanged hashes |
+| `archive/README.md` | Exact Git revision for retired campaign drivers |
 
 The four profiling scripts `benchmark_fragment_detection.py`,
 `benchmark_fragment_seed.py`, `benchmark_initial_fragment_stage.py`, and

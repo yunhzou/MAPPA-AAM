@@ -6,7 +6,7 @@
 
 Start here when querying results or preparing the paper. Existing reports and
 numerical evidence and raw-run references are preserved in place; this index
-does not merge experimental protocols. Historical driver code is stored in
+does not merge experimental protocols. Historical driver code is available in Git at the exact revision linked in
 [bench/archive](../bench/archive/README.md). Old generated viewer links resolve
 to their preserved Git revision after publication cleanup.
 
