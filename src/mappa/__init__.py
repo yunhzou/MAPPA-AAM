@@ -5,6 +5,7 @@ TS analysis consumes an explicitly supplied ReactionContext.
 """
 from .aam import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from .search_orientation import AAMSearchPlan, plan_aam_search
+from .fragment_conversion import convert_fragments, FragmentConversion
 from .family_query import query_path
 from .analytical import compile_mapping_families, compile_mechanism_families
 from .mechanisms import group_mechanisms
@@ -60,7 +61,7 @@ from .scoring import POLICY as TS_SCORING_POLICY, subset_score
 from .subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
-    "query_path",
+    "query_path", "convert_fragments", "FragmentConversion",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
     "group_mechanisms", "compile_mechanism_families", "MechanismResult", "MappingFamilyResult",

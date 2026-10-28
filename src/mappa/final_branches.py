@@ -170,10 +170,10 @@ class FinalBranchCatalogue:
             raise ValueError('Cannot combine different endpoint problems')
         return self.add_graph(aam.graph, archive)
 
-    def add_graph(self, graph, archive='in_memory'):
+    def add_graph(self, graph, archive='in_memory', *, paths=None):
         n = self.problem.source_atom_count
         constraints, actions, pairs = {}, {}, {}
-        for path in graph.paths():
+        for path in graph.paths() if paths is None else paths:
             state = graph.states[path.terminal]
             self.path_count += 1
             context = path.context

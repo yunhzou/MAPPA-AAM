@@ -1,14 +1,15 @@
-"""Separate signed bond-event decoding and conditional symmetry inspection.
+"""Anchored fragment conversion, direct bond counts, and explicit shuffle queries.
 
-Candidates are event classes, not all atom bijections. A completeness flag only
-covers the retained mapping families within the requested event window.
+Minimum and completeness concern retained converted branches. Decoding does not
+optimize over hidden bijections or call a constraint solver.
 """
 
 from dataclasses import dataclass, field
 import math
 import time
 
-from .event_patterns import SignedEventIndex, extract_path_events
+from .event_patterns import SignedEventIndex
+from .fragment_conversion import FragmentConversion, convert_fragments
 from .final_branches import FinalBranchCatalogue
 
 
@@ -17,8 +18,8 @@ class EventDecodeConfig:
     threshold: float = 0.5
     metal_threshold: float | None = 0.3
     max_events: int | None = None
-    seconds_per_family: float = 10.0
-    max_patterns_per_family: int | None = None
+    branch_limit: int = 100
+    random_seed: int = 42
     event_slack: int | None = None
 
     def __post_init__(self):
@@ -27,9 +28,11 @@ class EventDecodeConfig:
                 raise ValueError("event thresholds must be finite and positive")
         if self.threshold is None:
             raise ValueError("ordinary event threshold is required")
-        if not math.isfinite(self.seconds_per_family) or self.seconds_per_family < 0:
-            raise ValueError("seconds_per_family must be finite and nonnegative")
-        for name, minimum in [("max_events", 0), ("max_patterns_per_family", 1), ("event_slack", 0)]:
+        if not isinstance(self.branch_limit, int) or self.branch_limit < 1:
+            raise ValueError("branch_limit must be a positive integer")
+        if not isinstance(self.random_seed, int):
+            raise ValueError("random_seed must be an integer")
+        for name, minimum in [("max_events", 0), ("event_slack", 0)]:
             value = getattr(self, name)
             if value is not None and (not isinstance(value, int) or value < minimum):
                 raise ValueError(f"invalid {name}")
@@ -63,6 +66,7 @@ class DecodedEvents:
     index: SignedEventIndex
     family_reports: list[dict]
     config: EventDecodeConfig
+    conversion: FragmentConversion
 
     @property
     def observed_minimum(self):
@@ -70,10 +74,8 @@ class DecodedEvents:
 
     @property
     def minimum_proven(self):
-        """Proof within retained families, never a claim about pruned searches."""
-        return self.observed_minimum is not None and self.catalogue.incomplete_paths == 0 and (
-            self.observed_minimum == 0 or self.complete
-        )
+        """Minimum across converted branches, not exhaustive old-family decoding."""
+        return self.observed_minimum is not None and self.complete
 
     @property
     def event_window(self):
@@ -83,13 +85,13 @@ class DecodedEvents:
 
     @property
     def complete(self):
-        return self.catalogue.incomplete_paths == 0 and all(
+        return self.conversion.complete and all(
             r["complete"] for r in self.family_reports
         )
 
     @property
     def minimum_candidates(self):
-        """Observed minima; proven within the saved window only if complete."""
+        """Lowest direct event counts among retained converted branches."""
         return (
             [c for c in self.candidates if c.total == self.candidates[0].total]
             if self.candidates
@@ -123,8 +125,7 @@ class DecodedEvents:
 
         Unspecified atoms may move jointly. To test exactly one swap, supply
         the entire modified witness. By default retain the candidate's event
-        class. Search all catalogue families, including families not yet fully
-        decoded. Negative answers concern this saved catalogue only. Budgets
+        class. Search the converted catalogue, never the old free-choice program. Negative answers concern this saved catalogue only. Budgets
         are soft (encoding and native calls are not preemptible).
         """
         import z3
@@ -197,85 +198,44 @@ class DecodedEvents:
         )
 
 
-def decode_events(aam, config=None, *, query_log=None):
-    """Deduplicate final branches and return one witness per signed-event class.
+def decode_events(aam, config=None):
+    """Convert saved fragment branches and count their bond differences.
 
-    Accept one AAMResult or a FinalBranchCatalogue containing multiple searches
-    of the *same directed problem*. Search settings are never modified. This
-    event_slack limits decoding to the best feasible event count plus its
-    allowance. Score every representative first, then tighten the solver window
-    as lower witnesses are found. Every earlier window contains the final one,
-    so completed family reports certify the final window without a full decode.
-    If interrupted, the minimum is only observed and completeness stays false.
-
-    Count signed bond differences touching mapped atoms, including explicit H.
-    Bonds wholly within unmatched material contribute nothing on either side.
+    Accept an AAMResult or a FinalBranchCatalogue with saved fragment atom sets.
+    Distinct pair/anchor contexts are rematched once at the event thresholds.
+    Counts and optional minimum+n filtering apply to the new retained branches;
+    no hidden-permutation optimization or solver enumeration is performed.
     """
     config = config or EventDecodeConfig()
-    catalogue = (
-        aam
-        if isinstance(aam, FinalBranchCatalogue)
-        else FinalBranchCatalogue(aam.problem).add_aam(aam)
-    )
-    index = SignedEventIndex(
-        catalogue.problem,
-        threshold=config.threshold,
-        metal_threshold=config.metal_threshold,
-    )
-    candidates, reports = {}, []
-    best = None
-    if config.event_slack is not None:
-        # Bounded batches avoid an O(families * atoms**2) allocation. Validate
-        # these witnesses before using their scores to discard any alternatives.
-        for start in range(0, len(catalogue.families), 32):
-            vectors = []
-            for family in catalogue.families[start:start + 32]:
-                family.validate_representative(catalogue.problem)
-                mapping = dict(family.mapping)
-                vectors.append(index.vector(mapping))
-            value = int(index.counts(vectors).sum(axis=1).min())
-            best = value if best is None else min(best, value)
-    source_edges = {}
-    for i, family in enumerate(catalogue.families):
-        floor = family.policy[0]
-        if floor not in source_edges:
-            source_edges[floor] = tuple((int(a), int(b)) for a, b in zip(index.a, index.b)
-                                       if index.r[a, b] >= floor)
-        report = extract_path_events(
-            family.as_path(catalogue.problem, source_edges[floor]),
-            catalogue.problem,
-            index,
-            max_events=(best + config.event_slack if best is not None else config.max_events),
-            seconds=config.seconds_per_family,
-            max_patterns=config.max_patterns_per_family,
-            query_log=query_log,
-        )
-        if config.event_slack is not None:
-            best = min(best, min((p['total'] for p in report['patterns']), default=best))
-            # A later family can lower the minimum; release candidates outside
-            # the tightened global window while keeping all ties in the window.
-            candidates = {k: c for k, c in candidates.items() if c.total <= best + config.event_slack}
-        for pattern in report["patterns"]:
-            if config.event_slack is not None and pattern['total'] > best + config.event_slack:
-                continue
-            candidate = candidates.setdefault(
-                pattern["id"],
-                EventCandidate(
-                    pattern["id"],
-                    index.mapping(pattern["mapping"]),
-                    pattern["events"],
-                    pattern["total"],
-                    endpoint_events=pattern["endpoint_events"],
-                ),
-            )
-            candidate.family_ids.append(i)
-        reports.append(
-            dict(family_id=i, **{k: v for k, v in report.items() if k != "patterns"})
-        )
-    return DecodedEvents(
-        sorted(candidates.values(), key=lambda c: (c.total, c.id)),
-        catalogue,
-        index,
-        reports,
-        config,
-    )
+    conversion = convert_fragments(aam, threshold=config.threshold,
+        metal_threshold=config.metal_threshold, branch_limit=config.branch_limit,
+        random_seed=config.random_seed)
+    catalogue = conversion.catalogue
+    index = SignedEventIndex(catalogue.problem, threshold=config.threshold,
+                             metal_threshold=config.metal_threshold)
+    candidates, reports, counted = {}, [], {}
+    for branch in conversion.branches:
+        family = catalogue.families[branch.family_id]
+        if family.mapping not in counted:
+            counted[family.mapping] = index.describe(index.vector(dict(family.mapping)))
+        pattern = counted[family.mapping]
+        owners = dict(branch.islands)
+        target_owners = {p: owners[r] for r, p in family.mapping}
+        internal = sum(a in own and b in own and own[a] == own[b]
+            for kind, own in (('broken', owners), ('formed', target_owners))
+            for a, b in pattern['endpoint_events'][kind])
+        complete = internal == 0 and all(conversion.rematches[i].complete
+                                        for i, _ in branch.fragment_paths)
+        reports.append(dict(family_id=branch.family_id, source_family_id=branch.source_family_id,
+            complete=complete, internal_events=internal, total=pattern['total'], solver_queries=0,
+            reason='converted_branch' if complete else 'incomplete_fragment_conversion'))
+        candidate = candidates.setdefault(pattern['id'], EventCandidate(pattern['id'],
+            dict(family.mapping), pattern['events'], pattern['total'],
+            endpoint_events=pattern['endpoint_events']))
+        candidate.family_ids.append(branch.family_id)
+    best = min((c.total for c in candidates.values()), default=None)
+    bound = (best + config.event_slack if best is not None and config.event_slack is not None
+             else config.max_events)
+    selected = [c for c in candidates.values() if bound is None or c.total <= bound]
+    return DecodedEvents(sorted(selected, key=lambda c: (c.total, c.id)),
+                         catalogue, index, reports, config, conversion)

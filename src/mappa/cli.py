@@ -70,8 +70,6 @@ def _parser():
     parser.add_argument("--output", default="mappa_output")
     parser.add_argument("--workers", type=int, default=1,
                         help="CPU processes used by the cut sweep")
-    parser.add_argument("--seconds-per-family", type=float, default=10.0,
-                        help="event-decoder time budget per saved family")
     parser.add_argument("--max-events", type=int)
     parser.add_argument("--cut-floor", type=float, default=0.2)
     parser.add_argument("--graph-floor", type=float, default=0.2)
@@ -113,7 +111,7 @@ def main(argv=None):
                 threshold=args.event_threshold,
                 metal_threshold=args.metal_event_threshold,
                 max_events=args.max_events,
-                seconds_per_family=args.seconds_per_family))
+                branch_limit=args.branch_limit))
             (output / "events.json").write_text(
                 json.dumps(decoded_events_record(decoded), indent=2))
         print(output.resolve())

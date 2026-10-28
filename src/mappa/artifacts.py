@@ -198,7 +198,12 @@ def decoded_events_record(result):
     if not isinstance(result, DecodedEvents):
         raise TypeError("decoded_events_record requires DecodedEvents")
     return {
-        "schema": "mappa.decoded_events/v1",
+        "schema": "mappa.decoded_events/v2",
+        "method": "anchored_fragment_conversion",
+        "scope": "Direct counts across retained converted branches",
+        "converted_catalogue": result.catalogue.to_record(),
+        "rematches": [item.to_record() for item in result.conversion.rematches],
+        "converted_branches": [vars(branch) for branch in result.conversion.branches],
         "complete": result.complete,
         "minimum_proven": result.minimum_proven,
         "observed_minimum": result.observed_minimum,
