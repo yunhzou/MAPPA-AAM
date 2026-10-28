@@ -563,7 +563,8 @@ def find_islands(g_R, g_P, seed_order,
                  p_orbits=None, r_orbits=None,
                  node_policy=None,
                  anchor_map=None,
-                 profile=None, cuts=(), growth_replay=None, random_seed=42):
+                 profile=None, cuts=(), growth_replay=None, random_seed=42,
+                 bond_tolerance=None):
     """Run growth over a single seed ordering, branching on
     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
 
@@ -585,6 +586,9 @@ def find_islands(g_R, g_P, seed_order,
     anchor_map: optional exact R->P constraints.  Anchors are preloaded as
     locked single-atom islands, but their R atoms may still be used as growth
     seeds so the surrounding subgraph can be discovered from the constraint.
+
+    bond_tolerance: optional conditional bond rule forwarded unchanged to the
+    shared fragment matcher, including during anchored internal rematching.
     """
     # Orbit equivalence and edge compatibility must describe the same
     # tolerance model.  Keep symmetry_wbo_tol in the signature for callers
@@ -736,7 +740,8 @@ def find_islands(g_R, g_P, seed_order,
                             graph_floor=graph_floor, iso_tolerance=iso_tol,
                             branch_limit=max_branches, node_policy=node_policy,
                             orbit_dedup=orbit_dedup, random_seed=random_seed,
-                            allow_mapped_seed=seed_is_mapped_anchor),
+                            allow_mapped_seed=seed_is_mapped_anchor,
+                            bond_tolerance=bond_tolerance),
                         events=ev_arg,
                         profile=profile,
                         profile_context={

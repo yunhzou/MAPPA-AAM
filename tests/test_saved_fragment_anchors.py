@@ -6,6 +6,8 @@ import pytest
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.alignment.post_aam import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
 from mappa.growth import native
+from mappa.final_branches import FinalFamily
+from mappa.alignment.branch import find_islands
 from mappa.matcher.state import candidate_from_record
 from test_bond_tolerance import event_threshold
 from test_growth_compression_exactness import graph, represented
@@ -73,6 +75,29 @@ def test_unfinalized_symmetry_is_not_assumed_fixed():
     fragment = replace(saved_fragment({0: 0}), target_generators=None)
     with pytest.raises(ValueError, match='Finalize saved fragment symmetry'):
         FragmentMatchContext.from_saved_fragment(fragment)
+
+
+def test_final_family_uses_saved_actions_without_freezing_the_witness():
+    family = FinalFamily(tuple(enumerate(range(6))), (),
+        (('pool', (1, 2)), ('group', ((0, 1, 2, 4, 3, 5),))), (.2, 1.))
+    assert family.fixed_assignments == ((0, 0), (5, 5))
+
+
+@pytest.mark.parametrize('backend', ['0', '1'])
+def test_scheduler_splits_mixed_threshold_fragment(backend, monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', backend)
+    if backend == '1':
+        assert native.built()
+    source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])
+    target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
+    result = find_islands(source, target, [1, 0, 2], iso_tol=.5,
+        anchor_map={1: 1}, bond_tolerance=BondTolerance(event_threshold, inclusive=False))
+    paths = list(result.paths())
+    assert paths and not any(stop.reason == 'capped' for stop in result.stops)
+    for path in paths:
+        assert path.mapping == {0: 0, 1: 1, 2: 2}
+        owners = dict(result.states[path.terminal].islands)
+        assert owners[1] == owners[2] != owners[0]
 
 
 @pytest.mark.parametrize('backend', ['0', '1'])

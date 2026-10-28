@@ -75,6 +75,15 @@ class FinalFamily:
     policy: tuple
     provenance: list = field(default_factory=list)
 
+    @property
+    def fixed_assignments(self):
+        """Read direct anchors from the saved, already conditioned actions."""
+        moving = set()
+        for action in self.actions:
+            if action[0] != 'pool' or len(action[1]) > 1:
+                moving.update(_support(action))
+        return tuple((r, p) for r, p in self.mapping if p not in moving)
+
     def validate_representative(self, problem):
         mapping = dict(self.mapping)
         assert set(mapping) <= set(range(problem.source_atom_count))
