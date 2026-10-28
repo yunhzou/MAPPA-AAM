@@ -77,8 +77,9 @@ class FinalFamily:
 
     def validate_representative(self, problem):
         mapping = dict(self.mapping)
-        assert set(mapping) == set(range(problem.source_atom_count))
-        assert set(mapping.values()) == set(range(problem.target_atom_count))
+        assert set(mapping) <= set(range(problem.source_atom_count))
+        assert set(mapping.values()) <= set(range(problem.target_atom_count))
+        assert len(set(mapping.values())) == len(mapping)
         assert all(problem.reactant.elements[r] == problem.product.elements[p] for r, p in mapping.items())
         floor, iso = self.policy
         assert all(problem.product.wbo[mapping[a], mapping[b]] >= floor and
@@ -96,16 +97,16 @@ class FinalFamily:
             source_edges = tuple((a, b) for a, b in combinations(range(n), 2)
                                  if problem.reactant.wbo[a, b] >= floor)
         cuts = tuple(pair for pair in source_edges if pair not in required)
-        context = SearchContext(tuple(range(n)), tuple(range(n)), (), cuts=cuts,
+        context = SearchContext(tuple(range(n)), tuple(range(problem.target_atom_count)), (), cuts=cuts,
                                 graph_floor=floor, iso_tolerance=iso,
                                 objective='final_family_postprocessing')
         def match(atoms, blocks=(), generators=(), witness=()):
             return dict(fragment=atoms, deferred_edges=(), symmetry=dict(
                 witness=dict(witness), blocks=blocks, exact_fixed=[],
                 automorph_blocks=[], automorph_generators=generators))
-        records = [match(tuple(range(n)), witness=self.mapping)]
+        records = [match(tuple(r for r, _ in self.mapping), witness=self.mapping)]
         from .action_reduction import absorb_subgroups
-        for kind, data in reversed(absorb_subgroups(self.actions, n)):
+        for kind, data in reversed(absorb_subgroups(self.actions, problem.target_atom_count)):
             records.append(match((), blocks=(dict(r_atoms=(), p_atoms=data),))
                            if kind == 'pool' else match((), generators=data))
         states = [SearchState(i, 0, self.mapping if i == len(records) else (),
@@ -136,9 +137,6 @@ class FinalBranchCatalogue:
     schema = 'rxn_core.final_fragment_branches/v1'
 
     def __init__(self, problem):
-        if (problem.source_atom_count != problem.target_atom_count or
-                Counter(problem.reactant.elements) != Counter(problem.product.elements)):
-            raise ValueError('Final-family postprocessing requires balanced endpoints')
         self.problem = problem
         self.problem_sha256 = _problem_fingerprint(problem)
         self.branches = {}
@@ -168,9 +166,6 @@ class FinalBranchCatalogue:
         constraints, actions, pairs = {}, {}, {}
         for path in graph.paths():
             state = graph.states[path.terminal]
-            if len(state.mapping) != n:
-                self.incomplete_paths += 1
-                continue
             self.path_count += 1
             context = path.context
             policy = context.graph_floor, context.iso_tolerance

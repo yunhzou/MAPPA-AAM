@@ -43,6 +43,7 @@ class EventCandidate:
     mapping: dict[int, int]
     events: dict
     total: int
+    endpoint_events: dict = field(default_factory=dict)
     family_ids: list[int] = field(default_factory=list)
 
 
@@ -152,7 +153,7 @@ class DecodedEvents:
             )
         deadline = time.perf_counter() + seconds
         pattern = self.index.describe(
-            [candidate.mapping[a] for a in range(self.index.n)]
+            self.index.vector(candidate.mapping)
         )
         unknown = False
         for i, family in enumerate(self.catalogue.families):
@@ -184,7 +185,7 @@ class DecodedEvents:
                 assert all(mapping[a] == b for a, b in fixed.items())
                 if same_events:
                     assert (
-                        self.index.describe([mapping[a] for a in range(self.index.n)])[
+                        self.index.describe(self.index.vector(mapping))[
                             "id"
                         ]
                         == candidate.id
@@ -207,8 +208,8 @@ def decode_events(aam, config=None):
     so completed family reports certify the final window without a full decode.
     If interrupted, the minimum is only observed and completeness stays false.
 
-    This balanced, complete-mapping policy includes explicit H; partial mappings
-    remain available through the raw AAM graph, not this decoder.
+    Count signed bond differences touching mapped atoms, including explicit H.
+    Bonds wholly within unmatched material contribute nothing on either side.
     """
     config = config or EventDecodeConfig()
     catalogue = (
@@ -231,7 +232,7 @@ def decode_events(aam, config=None):
             for family in catalogue.families[start:start + 32]:
                 family.validate_representative(catalogue.problem)
                 mapping = dict(family.mapping)
-                vectors.append([mapping[a] for a in range(index.n)])
+                vectors.append(index.vector(mapping))
             value = int(index.counts(vectors).sum(axis=1).min())
             best = value if best is None else min(best, value)
     source_edges = {}
@@ -260,9 +261,10 @@ def decode_events(aam, config=None):
                 pattern["id"],
                 EventCandidate(
                     pattern["id"],
-                    dict(enumerate(pattern["mapping"])),
+                    index.mapping(pattern["mapping"]),
                     pattern["events"],
                     pattern["total"],
+                    endpoint_events=pattern["endpoint_events"],
                 ),
             )
             candidate.family_ids.append(i)

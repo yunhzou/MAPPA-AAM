@@ -205,11 +205,13 @@ def decoded_events_record(result):
         "event_window": result.event_window,
         "config": vars(result.config),
         "incomplete_paths": result.catalogue.incomplete_paths,
+        "event_policy": result.index.policy,
         "family_reports": result.family_reports,
         "candidates": [{
             "id": candidate.id,
             "mapping": {str(a): int(b) for a, b in candidate.mapping.items()},
             "events": candidate.events,
+            "endpoint_events": candidate.endpoint_events,
             "total": candidate.total,
             "family_ids": candidate.family_ids,
         } for candidate in result.candidates],

@@ -202,8 +202,7 @@ def test_reject_partial_invalid_and_asymmetric_inputs():
         with pytest.raises(ValueError):
             SignedEventIndex(value, threshold=tau)
     unbalanced = AAMProblem(value.reactant, problem('CO', [], []).product)
-    with pytest.raises(ValueError):
-        SignedEventIndex(unbalanced)
+    assert SignedEventIndex(unbalanced).counts([[0, 1, -1]]).shape == (1, 2)
 
 
 def test_whole_event_orbit_is_excluded_in_one_query(monkeypatch):

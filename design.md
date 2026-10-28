@@ -300,13 +300,30 @@ It scores representatives, tightens the event bound as lower witnesses appear,
 and reports `observed_minimum` and `minimum_proven`. A separate minimum-scoring
 pass is not a prerequisite and must not be scheduled.
 
-This decoder currently accepts balanced endpoints and complete mappings only.
-Golden partial mappings must be recorded as unsupported by this output policy;
-never drop them from the dataset denominator, fabricate balancing atoms, or
-substitute another scoring algorithm. Any extension of this policy requires an
-explicit design decision. Seed-prefix decoding must use each prefix's own
-retained catalogue and preserve direction, cut and seed provenance.
+The decoder uses one bond-difference rule for partial and complete mappings.
+Count an R bond touching the mapped region as broken when its counterpart is
+absent or weaker by the configured threshold; count P bonds symmetrically as
+formed. Ignore bonds whose endpoints are both unmatched. Existing bond-order
+and metal thresholds stay unchanged. No atom padding, composition repair,
+fragment-count ranking or separate minimization pass is introduced.
 
-The pre-existing `family_scoring` utilities remain for their existing callers;
-they are not the Golden decoding pipeline. The standalone minimum-stage planner,
-its indexed-task dispatch and its query-recording hook have been removed.
+The catalogue retains partial branches and their correlated symmetry actions.
+The event model keeps source-pair differences and adds only mapped/unmapped
+product boundary terms. Exact target/source symmetry certificates and bounded
+relative windows remain in the existing decoder. Event classes preserve the
+mapped source region and shared boundary endpoints; ignored unmatched material
+does not add event edges. Internally, a boundary P atom is named by nR+p, with
+explicit endpoint-native bond lists in serialized results. No physical atom is
+created by this index notation. Each seed prefix uses its own saved catalogue.
+
+```mermaid
+flowchart LR
+    Saved[Saved complete or partial branches] --> Catalogue[Lossless family catalogue]
+    Catalogue --> Decoder[Existing signed-event decoder]
+    Decoder --> Difference[Mapped bonds and boundary differences]
+    Difference --> Output[Event classes, minimum and minimum+n window]
+```
+
+Historical `family_scoring` utilities are not the production decoder; their
+pre-existing benchmark reports remain historical. The redundant standalone
+minimum-stage pipeline has been removed and its jobs cancelled by the user.

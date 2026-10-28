@@ -210,9 +210,9 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
     (wR - wP) >= pair_threshold automatically implies wR >= pair_threshold
     (wP >= 0), so a single
     threshold both gates "is this a bond worth considering" and "did
-    its order change enough." For pairs with one or both endpoints
-    unmapped (no image bond defined) we treat the missing wP as 0 and
-    apply the same threshold to wR.
+    its order change enough." For pairs with exactly one endpoint unmapped, compare the bond with
+    zero on the other side. Ignore pairs whose endpoints are both unmapped,
+    symmetrically in R and P.
 
     Returns (broken_list, formed_list, core_R, core_P) where each bond
     record is (i, j, wbo_R_or_None, wbo_P_or_None)."""
@@ -240,6 +240,8 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
 
     broken, formed = [], []
     for i, j in eligible(wbo_R, metal_R):
+        if i not in mapping and j not in mapping:
+            continue
         threshold = (metal_threshold if metal_R is not None and (metal_R[i] or metal_R[j])
                      else default_threshold)
         wR = wbo_R[i, j]
@@ -249,6 +251,8 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
         if wR - wP >= threshold:
             broken.append((i, j, float(wR), float(wP)))
     for ip, jp in eligible(wbo_P, metal_P):
+        if ip not in inv and jp not in inv:
+            continue
         threshold = (metal_threshold if metal_P is not None and (metal_P[ip] or metal_P[jp])
                      else default_threshold)
         wP = wbo_P[ip, jp]

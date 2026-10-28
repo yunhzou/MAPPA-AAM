@@ -62,7 +62,7 @@ class EventFamilyCertificates:
 
     def group_orbits(self, generators):
         if generators not in self._orbits:
-            parent = list(range(self.index.n))
+            parent = list(range(self.index.m))
 
             def root(a):
                 while parent[a] != a:
@@ -76,10 +76,10 @@ class EventFamilyCertificates:
                     if ra != rb:
                         parent[ra] = rb
             groups = {}
-            for a in range(self.index.n):
+            for a in range(self.index.m):
                 groups.setdefault(root(a), set()).add(a)
             self._remember(self._orbits, generators,
-                           tuple(frozenset(groups[root(a)]) for a in range(self.index.n)))
+                           tuple(frozenset(groups[root(a)]) for a in range(self.index.m)))
         return self._orbits[generators]
 
     def lower_bound(self, vector, actions, stop_above):
@@ -93,9 +93,10 @@ class EventFamilyCertificates:
         vector = tuple(vector)
         if vector not in self._events:
             values = np.asarray(vector)
-            delta = index.p[values[index.a], values[index.b]] - index.r[index.a, index.b]
+            delta = index.padded_product[values[index.a], values[index.b]] - index.r[index.a, index.b]
             self._remember(self._events, vector,
-                           tuple(np.flatnonzero((delta <= -index.tau) | (delta >= index.tau))))
+                           tuple(np.flatnonzero(((delta <= -index.tau) | (delta >= index.tau))
+                                               & ((values[index.a] >= 0) | (values[index.b] >= 0)))))
         pairs = self._events[vector]
         if len(pairs) <= stop_above:
             return 0
@@ -106,12 +107,12 @@ class EventFamilyCertificates:
                 supports = [(s - free) | free if s & free else s for s in supports]
             else:
                 orbits = self.group_orbits(action[1])
-                supports = [frozenset().union(*(orbits[p] for p in s)) for s in supports]
+                supports = [frozenset().union(*(orbits[p] if p >= 0 else frozenset((-1,)) for p in s)) for s in supports]
         lower = 0
         for pair in pairs:
             a, b = int(index.a[pair]), int(index.b[pair])
             xs, ys = tuple(supports[a]), tuple(supports[b])
-            delta = index.p[np.ix_(xs, ys)] - index.r[a, b]
+            delta = index.padded_product[np.ix_(xs, ys)] - index.r[a, b]
             tau = index.tau[pair]
             if np.all((delta <= -tau) | (delta >= tau)):
                 lower += 1
@@ -127,12 +128,12 @@ class EventFamilyCertificates:
         Arbitrary interleaving is unsafe because the groups need not commute.
         """
         index = self.index
-        inverse = [0] * index.n
-        for a, p in enumerate(vector):
-            inverse[p] = a
+        inverse = {p: a for a, p in enumerate(vector) if p >= 0}
 
         def source_preserves(generator):
-            images = tuple(inverse[generator[p]] for p in vector)
+            if any(generator[p] not in inverse for p in inverse):
+                return False
+            images = tuple(inverse[generator[p]] if p >= 0 else a for a, p in enumerate(vector))
             if images not in self._source_actions:
                 labels = index.response_data[0]['labels']
                 preserves = (all(index.elements[a] == index.elements[b] for a, b in enumerate(images))
@@ -148,7 +149,7 @@ class EventFamilyCertificates:
                 free = sorted(set(action[1]) - set(action[2]))
                 generators = []
                 for a, b in zip(free, free[1:]):
-                    images = list(range(index.n))
+                    images = list(range(index.m))
                     images[a], images[b] = b, a
                     generators.append(tuple(images))
             if not outer_target and all(source_preserves(g) for g in generators):

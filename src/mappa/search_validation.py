@@ -89,15 +89,18 @@ class RepresentativeValidationWorkspace:
 
     def _valid(self, state, mask, context):
         pairs = dict(state.mapping)
-        if set(pairs) != set(range(self.n)):
+        if not set(pairs) <= set(range(self.n)):
             return False
-        values = np.asarray([pairs[i] for i in range(self.n)], dtype=int)
-        if len(set(values)) != self.n:
+        atoms = np.asarray(sorted(pairs), dtype=int)
+        values = np.asarray([pairs[i] for i in atoms], dtype=int)
+        if len(set(values)) != len(values) or np.any(values < 0) or np.any(values >= self.problem.target_atom_count):
             return False
-        if not np.all(self.r_elements == self.p_elements[values]):
+        if not np.all(self.r_elements[atoms] == self.p_elements[values]):
             return False
         a, b, weights = self._arrays(mask)
-        target = self.problem.product.wbo[values[a], values[b]]
+        relevant = np.asarray([int(x) in pairs and int(y) in pairs for x, y in zip(a, b)], dtype=bool)
+        a, b, weights = a[relevant], b[relevant], weights[relevant]
+        target = self.problem.product.wbo[[pairs[int(x)] for x in a], [pairs[int(y)] for y in b]]
         return bool(
             np.all(target >= context.graph_floor)
             and np.all(np.abs(weights - target) <= context.iso_tolerance + 1e-9)
