@@ -6,7 +6,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'docs/viewer-validation'
+OUT = ROOT / 'reports/viewer_validation'
 
 
 def check_endpoint_overlays(frame):

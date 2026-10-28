@@ -28,7 +28,7 @@ The default branch cap is 100. The original Golden tables use cap 100; the origi
 
 The current entry points and evaluators are indexed in `bench/README.md`.
 Historical campaign drivers are preserved in Git at the revision linked in
-[historical source](../bench/archive/README.md). Original paths and SHA256 hashes
+[historical source](https://github.com/yunhzou/MAPPA-AAM/blob/a4e8bed6500744b0251bea1ccd5b205ed7741086/bench/archive/README.md). Original paths and SHA256 hashes
 are recorded in `docs/publication_cleanup_20260916.json`; the later removal
 manifest is `docs/validation/repository_cleanup_20261028.json`. Measurements and witnesses remain in
 `reports/`. For historical reproduction use the recorded source/input pins;

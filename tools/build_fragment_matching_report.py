@@ -1167,7 +1167,7 @@ def _references_page(report):
     refs = [
         "1. PubChem PUG REST: https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
         "2. RDKit documentation: https://www.rdkit.org/docs/",
-        "3. Project design specification: RETROSYNTHESIS_DESIGN.md in the coordinate_alignment repository.",
+        "3. Project design specification: design.md, Retrosynthesis section, in the MAPPA-AAM repository.",
     ]
     y = 290
     for ref in refs:

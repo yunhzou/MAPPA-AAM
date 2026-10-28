@@ -187,13 +187,10 @@ The search stores fragment choices and correlated symmetry operations without ex
 
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 
-See [the search-graph API](docs/AAM_SEARCH_GRAPH_API.md) for the object model,
-conditional fragment API, persistence, and path replay;
-[ALGORITHM.md](ALGORITHM.md) covers downstream algorithms.
-See [retro detection and assembly](docs/RETRO_ASSEMBLY.md) for geometric
-building-block recommendation using the same matcher and saved AAM graphs.
-The separate [big-block / gap-first beta](docs/RETRO_BETA.md) defers augmentation
-until a reactant is selected; it does not replace the full workflow.
+See [design.md](design.md) for the shared data architecture, matching invariants,
+branch identity, decoding and retrosynthesis responsibilities. The
+[Python guide](docs/PYTHON_API.md) documents current calls; the
+[retro beta guide](docs/RETRO_BETA.md) covers the explicit gap-first workflow.
 
 ## Python API
 
@@ -339,20 +336,14 @@ endpoint-consensus merging, and imaginary-mode scoring.
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `bench/experiments/` | Optional research experiments, excluded from the published default |
 | `bench/contracts/` | Versioned regression contracts |
-| `bench/archive/README.md` | Links to retired campaign source in Git history |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
 | `tests/`, `native/`, `tools/`, `hpc/` | Tests, native implementation, user utilities, batch launch examples |
 
-See the [cleanup record](docs/PUBLICATION_CLEANUP.md) for source relocations,
-removed superseded artifacts, and recovery paths.
-
-## Current work and stable versions
-
-See the [branch guide](docs/BRANCHES.md) for preserved pre-acceleration baselines,
-active development, and archived experiments. The
-[manuscript folder](manuscript) on `main`
-contains the manuscript PDF, figures, animations, and reproducible figure data.
+The architecture and ownership rules are in [design.md](design.md). Historical
+source revisions are recorded with their benchmark reports; old implementations
+are not shipped as fallback copies. The [manuscript](manuscript) contains the paper
+and its reproducibility index.
 
 ## Compatibility
 

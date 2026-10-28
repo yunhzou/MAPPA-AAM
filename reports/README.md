@@ -7,7 +7,7 @@
 Start here when querying results or preparing the paper. Existing reports and
 numerical evidence and raw-run references are preserved in place; this index
 does not merge experimental protocols. Historical driver code is available in Git at the exact revision linked in
-[bench/archive](../bench/archive/README.md). Old generated viewer links resolve
+[bench/archive](https://github.com/yunhzou/MAPPA-AAM/blob/a4e8bed6500744b0251bea1ccd5b205ed7741086/bench/archive/README.md). Old generated viewer links resolve
 to their preserved Git revision after publication cleanup.
 
 ## Current published method

@@ -100,40 +100,20 @@ decoding. Reporting must audit those results separately. In particular, the
 Golden adapter runs search and reference analysis; it does not claim that
 full-event decoding or all benchmark-report metrics are complete.
 
-`execution.decoding.plan_event_decoding` schedules the existing balanced-family
-decoder with an explicit absolute bound (or unbounded enumeration). It preserves
-incomplete family reports. It rejects relative minimum+n configurations until
-the caller supplies the proper bound for the requested prefix. It does not
-replace Golden's partial-mapping decoding policy.
+`execution.decoding.plan_event_decoding` schedules one saved case/cut catalogue
+through the public anchored-fragment converter. It accepts partial mappings and
+the ordinary `EventDecodeConfig`, including relative minimum+n filtering. It
+retains converted branch records, direct counts and explicit incomplete flags.
+There is no separate solver/minimum stage or cluster-specific decoder.
 
 Additional stages use `Task(operation='module:function', dependencies=(...))`.
 The function receives its payload and a `Workspace`; `workspace.dependency(key)`
-loads a verified predecessor result. Other family solvers can use this interface after catalogue construction
-and valid bounds for the requested seed prefixes. No decoder semantics or minimum/window policies are changed here.
+loads a verified predecessor result. The operation owns its scientific policy;
+the executor does not change thresholds, mapping coverage or result scope.
 
-## Validation and performance
+## Verification
 
-`tests/test_shared_execution.py` checks original graph and seed-prefix equality,
-finite balanced decoded-set equality, partial mappings, reference evaluation,
-deadlines, actual memory interruption, worker exit, dependency ordering, identity,
-leases, explicit recovery and bundle checksums. Computational tests run on NRT.
-
-`python -m rebenchmark.execution_pilot` is a two-node Slurm validation on two
-small reactions in both directions. It compares seed batch sizes 1, 2, 5 and 10,
-checks every cut graph and seed verdict against the original operations, and
-records actual task distribution, CPU, wall, publication and memory. It is an
-execution control, not a Golden or EnzymeMap coverage benchmark. Production-scale
-throughput and the final EnzymeMap launch remain separate acceptance gates.
-
-Validated on NRT on 2026-10-27/28: commit `146327c` passed 58 checks
-(job 7700833) and the two-node pilot (7700834). Across seed batches 1/2/5/10,
-120 cut graphs and 1,200 seed evaluations matched the original operations.
-Each variant used 11 shared files for 360–630 tasks. These small controls
-establish execution equivalence, not production throughput.
-
-The final process-tree monitoring change, `ba12951`, passed the same 58 checks
-(job 7703082, 81.95 s). On that node, 30 samples averaged 20.94 ms with the
-previous whole-node process scan and 0.070 ms with the worker-tree scan.
-This measures monitoring alone. The two-node end-to-end pilot predates this
-last monitoring change; no production speedup is inferred from these numbers.
-Its repeat and campaign rollout require restored shared-project file capacity.
+`tests/test_shared_execution.py` covers graph and seed-prefix equivalence,
+partial mappings, deadlines, process memory interruption, dependencies, identity,
+leases, explicit recovery and bundles. `tests/test_saved_event_decoding.py` covers
+the public conversion adapter. Historical performance records belong in `reports/`.

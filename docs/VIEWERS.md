@@ -50,31 +50,12 @@ is used when provided. No search result is replaced by display fitting.
 
 ## Maintenance and validation
 
-- Edit a shared stylesheet, then refresh affected generated HTML. Keep benchmark
-  inputs, mappings, scores and timing records unchanged.
-- `tools/sync_viewer_styles.py` migrates historical HTML using the source hashes
-  recorded in `viewer-style-migration.json`; it verifies script/data preservation.
-- `viewer-style-output-migration.json` records generated-page changes.
-- `viewer-bundle-migration.json` records presentation-only archive changes; all
-  other archive members were verified byte-for-byte.
-- `tools/check_viewer_consolidation.py` checks the nine saved witnesses, native
-  and aligned geometry, retained catalog/growth layouts and offline
-  operation. Results and review images are under `docs/viewer-validation/`.
-- Frozen stable branches are retained as historical algorithm baselines. This
-  cleanup does not rewrite Git history or alter those baselines.
+Edit the shared renderer/styles and generate new output through the public viewer
+functions. Preserve source mappings, metrics and provenance. Static manuscript
+figures and molecular highlight colors do not define additional viewer skins.
+Standalone pages embed the shared CSS for offline viewing.
 
-Static manuscript figures, molecular highlight colors and vendor-library internals
-are not separate viewer styles. Standalone report pages embed the shared CSS so
-they still work offline.
-
-Validation on 11 September 2026: 20 relevant unit tests passed on the paper and
-acceleration checkouts (CLI artifacts, catalog and Golden viewers, shared style
-policy and proper rigid fitting). Browser checks passed for all nine saved
-witnesses, mobile layout, offline use, and representative diagnostic/catalog/
-recorded-growth pages. The tracked HTML audit found no private styles.
-
-Superseded Golden diagnostic viewers and the early manuscript movies were
-removed from the current checkout during publication cleanup. Their numerical
-evidence and historical Git revision are retained in the
-[cleanup record](PUBLICATION_CLEANUP.md). The viewer checker now uses the
-retained PR7 search trajectory instead of the retired movie.
+`tools/check_viewer_consolidation.py` checks saved witnesses, geometry,
+catalog/growth layouts and offline operation. Its output goes under
+`reports/viewer_validation/`. Historical migrations are recorded in Git; no
+migration script is part of the current rendering workflow.

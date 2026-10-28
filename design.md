@@ -1,514 +1,217 @@
-# Fragment matching: preservation under growth
+# MAPPA architecture
 
-The existing public boundary is `mappa.match_fragment`, implemented in
-`src/mappa/fragment.py`. AAM and standalone fragment detection compose this
-same primitive. `src/mappa/matcher/` owns the incremental isomorphism relation;
-`growth/island.py` chooses the next atom and decides when to lock a fragment.
-The native engine implements the same operations. This repair does not change
-node compatibility, bond acceptance, random growth, seed selection, cuts,
-branch admission, or event scoring.
+This is the authoritative design for the current code. Usage belongs in
+[the Python guide](docs/PYTHON_API.md), [execution guide](docs/shared-execution.md),
+and [viewer guide](docs/VIEWERS.md). Measurements and validation records belong
+in `reports/`; historical implementations and superseded designs remain in Git.
 
-```mermaid
-flowchart TD
-    A[AAM / standalone fragment detection] --> B[match_fragment]
-    B --> C[Growth: choose next atom / lock fragment]
-    C --> D[Matcher: extend all represented matches]
-    D --> E[Support: restrict pools by the new bonds]
-    E --> F[Compression: preserve the resulting relation]
-    F --> C
-```
-
-## Invariant and induction
-
-For a fixed source fragment F, locked assignment L, and retained source bonds E,
-let M(F,L,E) be every injective mapping satisfying the configured node policy,
-target availability, and the existing WBO test on E. Source nonedges impose
-no induced-isomorphism condition. Let R(C) be the relation represented by the
-candidate collection C, including its pools and automorphism actions.
-The invariant is **R(C) = M(F,L,E)**, conditional on the chosen fragment and
-locked context. It does not assert that greedy growth discovers every possible
-fragment, or that a capped search is exhaustive.
-
-**Base.** Seed initialization includes every compatible unlocked target.
-Grouping a single source atom into a pool preserves exactly that union.
-
-**Extension.** Every mapping of F plus atom n restricts to a mapping of F.
-For each permitted target v for n, restrict old pool domains by all new active
-bond checks and injectivity. Enumerate all constrained support assignments;
-leave unrestricted pool assignments symbolic. Thus every returned child is
-valid, and every valid extension has a supporting child. Equal support
-assignments can share a new target pool. Enlarging an existing pool is allowed
-only when *every* target choice is interchangeable and the source atoms have
-identical external bond requirements. Otherwise refine that pool by the
-supported assignments. An exhausted support budget raises an error, never an
-empty match relation.
-
-**Locked islands.** Add their fixed atom images through the same restriction
-operation, one atom at a time, checking every newly introduced bond. Induction
-therefore covers the whole island; a representative-only check is unnecessary.
-
-**Compression.** Fix one target group G for the growing fragment: automorphisms
-of the full exact weighted matrix and active adjacency, preserving node labels,
-each target component, and all locked images. A candidate denotes G applied to
-its witness and local pools. For extension E, **E(G C) = G E(C)**: transport both
-the existing mapping and the next target atom by the same action. The inverse
-action proves completeness. Thus we extend the representative pools and keep
-G symbolic; neither group elements nor complete bijections need enumeration.
-
-Equivalent candidate relations have equal exact colored-graph certificates.
-Mapped source roles and local pool roles identify the relation for this test;
-past moved-atom summaries are metadata, not restrictions on the group. The
-group is independent of which duplicate witnesses happened to be encountered.
-At fragment locking, exact generators are recorded. Later fragments are grown
-in that witness frame; existing reverse-order decoding transports the whole
-later assignment through the earlier action, including its outside atoms.
-Different target components remain separate placements. Locks fix individual
-atoms; tolerance buckets never prove symmetry. Exact weak weights below the
-active threshold are retained in the target symmetry graph too.
-
-## Implementation and evidence
-
-- `matcher/support.py`: one support calculation shared by ordinary extension,
-  locked-island extension, and trace witness selection.
-- `matcher/extend.py`: support refinement, independent pools, and safe pool joins.
-- `matcher/canonical.py`: exact continuation-preserving compression.
-- `native/src/engine.cpp`: the corresponding native implementation; extension
-  caching retains the same result and topology dependencies.
-- No alternate deduplication mode remains in the matcher.
-
-New symmetry records carry `compression_version: 3`. Version 3 records the
-fixed target action above; old version-1/2 archives retain their historical
-group interpretation. Reading those archives does not rerun an old matcher.
-The standard and reused native finalizers use the same version-specific graph
-and roles, with separate bounded caches. Checkpoint manifests identify
-`exact_fragment_target_action_v3` and reject mixing old searches into new ones.
-
-`tests/test_growth_compression_exactness.py` checks equality of the *complete
-represented relation* with independent injective enumeration after each step.
-It covers all connected unlabelled graph topologies through five vertices,
-weighted source-target fixtures, correlated pools, locked islands, duplicated
-components, and retained hydrogen compression. Native differential tests and
-standalone API tests cover the execution boundary. Case 31164 evidence is kept
-separately from the historical benchmark. Publication validation is recorded in
-`reports/exact_fragment_publication_20261027/report.txt`.
-
-## Search policies carried with this publication
-
-Growth samples boundary atoms uniformly, without a bond-order priority. The
-branch cap applies to completed fragment placements and the combined live
-frontier, rather than intermediate embedding counts. These are the previously
-approved policies; the matching repair above preserves them. The seed-order
-generator already on GitHub main is retained: later seeds use its shared shuffled
-pool. Earlier local experiments with independently reshuffled seed orders are
-historical evidence, not timings for this published revision.
-
-## Historical archive interpretation
-
-Version-2 groups fixed every outside/pool target pointwise. Their saved records
-still use those roles and exact active-edge colors. Their empty-automorph-block
-identity shortcut is restricted to version 2. Version 3 always derives the
-locked target group, including actions moving future atoms. Version 1 retains
-its original colors. This compatibility exists only for reading evidence;
-there is one live matching policy.
-
-## Cyclic collection during native record construction
-
-The native exporter creates nested acyclic containers, and `from_record` turns
-them into an acyclic decision graph. Cyclic garbage collection is suspended only
-across these two operations, avoiding repeated scans of previously retained cut
-graphs while allocating the next record. Reference counting remains active. The
-record wrapper is released before restoring the caller's collection state in a
-`finally` block, including on exceptions. Normal collection remains enabled
-between calls when it was enabled on entry. This changes neither graph contents
-nor matching, branching, decoding, or memory limits.
-
-Fresh-process measurements, full graph comparisons, peak process memory, and
-validation are recorded in `reports/revision_cpu_audit_20261027/report.txt`.
-
-## Rebenchmark evidence and scheduling
-
-The benchmark uses the public disk-checkpoint search, with eight cut workers per
-claimed reaction/direction and up to 100 simultaneous claims on NRT CPU-short.
-A shared claim list balances reactions across allocations; cut workers balance
-sweep work inside each reaction. Numerical libraries use one thread. Search
-semantics, branch cap, cut order identities and seed generation are unchanged.
-
-One ten-seed archive retains ten independent contexts per cut. Prefix reports
-select the first n contexts; this is validated against independent n-seed runs.
-Per-seed CPU reflects shared runtime caches, not independent-run latency. Total
-CPU includes children and reports persistence separately from computation.
-
-Node-local raw cuts, seed records, finalized cuts, ranking, exact reference
-queries and outcomes are verified into per-direction archives after each stage.
-A resource interruption preserves saved work and remains incomplete. The input
-manifest retains all 1,851 Golden rows and separates preparation errors. Raw
-family membership, representative ranking, and completed event decoding remain
-distinct metrics. Historical campaigns are immutable. A pilot must pass full
-serial/parallel graph equality, seed-prefix equality and archive restore before
-any full run is submitted.
-
-Each directional task has a 3,600-second work budget shared by search and
-analysis. After a limit, the supervisor publishes saved evidence and releases
-the worker for another task. Archive publication may finish after the work
-deadline; it is allowed to preserve evidence. The thirty-minute monitor checks
-stalls, memory failures and publication failures but does not enforce timing
-in place of the worker. Limited tasks remain unresolved and require separate
-diagnosis before continuation; they must not hold up the rest of Golden.
-
-## Shared execution across single CPU, local pools and Slurm
-
-Design accepted 2026-10-27. The shared execution layer, prepared search sessions
-and independent seed evaluation are implemented; validation is recorded in
-[shared execution](docs/shared-execution.md) and tracker ticket 7. Running Golden
-jobs retain their frozen code. An EnzymeMap production launch still needs explicit
-permission after Golden completion.
-
-The scientific task and its implementation must be identical in every environment.
-Only worker allocation and connection change. Do not maintain separate local and
-cluster matching or evaluation implementations.
+## Workflow and ownership
 
 ```mermaid
 flowchart LR
-    Inputs[Inputs and scientific configuration] --> Planner[Deterministic task planner]
-    Planner --> Queue[Ready queue and dependency records]
-    Queue --> Runtime[Common worker runtime]
-    Local[Single CPU or local processes] --> Runtime
-    Slurm[Slurm allocations] --> Runtime
-    Runtime --> Search[Existing fragment search]
-    Runtime --> Finalize[Existing symmetry finalization]
-    Runtime --> Evaluate[Reference evaluation]
-    Runtime --> Decode[Existing family solver]
-    Runtime --> Bundles[Verified result bundles]
-    Bundles --> Reduce[Deterministic reducers and audits]
-    Reduce --> Queue
-    Reduce --> Report[Complete metrics with explicit unknowns]
+    Input[Endpoint graphs and settings] --> Search[AAM search]
+    Search --> Result[Search graph and grouped branches]
+    Result --> Conversion[Fragment rematching and recombination]
+    Conversion --> Events[Bond-event counts and classes]
+    Search --> Matcher[Shared fragment matcher]
+    Conversion --> Matcher
+    Detection[Precursor fragment detection] --> Matcher
+    Detection --> Assembly[Retrosynthesis assembly]
+    Result --> View[Viewers and saved artifacts]
+    Events --> View
+    Events --> Reaction[Explicitly selected reaction context]
+    Reaction --> TS[Transition-state analysis]
 ```
 
-Responsibilities:
-
-- Planner: derive directions, cuts and the full ordered seed list once, assign
-  stable task identities, and declare dependencies. A search task contains explicit
-  seed indices/orders; independently rerunning seed_count=1 with different random
-  seeds is not equivalent to splitting the existing ten-seed run.
-- Scientific operations: expose prepared-session search of a cut/seed batch,
-  finalization of the merged cut, evaluation of one seed context, and existing
-  family scoring/decoding. Extract these from current orchestration, without
-  changing matching, locking, symmetry, branching or solver semantics.
-- Worker runtime: claim ready work, reuse bounded local preparation/matching
-  caches, enforce resources, checkpoint completed units, and publish verified
-  bundles. Related tasks have a locality preference, not exclusive ownership by
-  one worker. Unstarted work can be claimed elsewhere.
-- Queue: own dependencies, leases, heartbeats and completed task identities.
-  Duplicate execution after a worker failure must not duplicate accepted results.
-  Keep one writer for queue metadata on a local filesystem; do not put a shared
-  SQLite writer or millions of claim files on Lustre. Local execution accesses the
-  same queue operations directly; cluster workers use a coordinator connection.
-- Reducers: restore canonical direction/cut/seed order and verify expected
-  coverage. Completion order must not affect seed prefixes, representative order,
-  event minima or the interpretation of missing results.
-- Storage: retain inputs once, cache materialized inputs per worker, and publish
-  bounded bundles containing many task results. Keep individual temporary files
-  node-local. Record hashes and task-to-bundle indexes in queue metadata.
-
-Initial work units and boundaries:
-
-| Stage | Claimable work | Dependency and reuse |
-| --- | --- | --- |
-| Search | reaction × direction × cut × seed batch | Explicit original seed orders; reuse prepared matching session |
-| Finalization | merged cut graph | All required seed batches for that cut; finalize once |
-| Reference evaluation | cut × seed context | Read finalized cut; reuse immutable graph preparation locally |
-| Family minimum | retained family | Same production family solver |
-| Event-window enumeration | retained family and declared bound | Verified minimum/bound reduction for every requested seed prefix |
-| Reporting | case or bounded case batch | Audit expected task identities and completion evidence |
-
-A seed batch is a scheduling choice, not a scientific policy. Start by measuring
-1, 2, 5 and 10 seeds per search batch on fixed controls. Compare total CPU, wall,
-peak memory and data transfer. Single-seed tasks offer more parallelism but may
-repeat expensive preparation or lose useful caches. Never promise that the
-smallest unit has the best throughput. Split pending batches to reduce the tail;
-do not interrupt a running solver merely to redistribute work.
-
-Workers must not launch nested CPU pools. The outer scheduler owns concurrency
-and admits work against both available CPUs and measured memory. Numerical
-libraries use one thread unless explicitly budgeted. Preserve a case deadline
-across redistributed tasks rather than granting each task a fresh hour. Record
-queue wait, setup, compute, I/O, retries and allocated resources separately.
-
-Prepared computation now lives in `aam.SearchSession`, shared by existing public
-APIs and `execution.search` tasks. `rebenchmark.analysis.analyze_seed` is the one
-reference evaluator used by both campaign frontends. `execution.queue` owns
-metadata/dependencies, `execution.runtime` owns supervision/transport and
-`execution.bundles` owns publication. Single-CPU and remote queue workers call
-the same runtime. Existing standalone cut-pool APIs remain convenience entry
-points to the same scientific session, not a second matcher. Slurm submission is a launcher for that same worker, not a scientific
-backend or a fallback. Campaign adoption and full report/decoder task planning remain integration gates;
-historical frozen job code is not a second supported implementation.
-
-Acceptance gates: identical canonical search graphs and seed prefixes for one
-CPU/local pool/multiple workers; identical family membership, scores and decoded
-sets on finite controls; bounded caches and memory admission; safe worker loss,
-resume and duplicate claims; no repeated completed work; verified bundled storage;
-and measured end-to-end overhead/throughput including a deliberately uneven tail.
-A Slurm pilot must pass before this becomes the production EnzymeMap runner.
-
-### Reference membership checking
-
-The reference checker uses finite constraints for saved fragment permutations and
-atom pools. It propagates the known reference backward and forward before emitting
-an exact solver query. Every fragment group factor retains one shared choice;
-all-different pool constraints, fixed slots, explicit hydrogens, fragment bonds,
-and endpoint chemical equivalence remain enforced. Propagation removes only
-values without local support; the remaining constraints are still solved jointly.
-This replaces nested permutation expressions in reference-query compilation and
-also serves the existing reference-free feasibility caller. MAPPA growth, branch
-selection, symmetry compression, and search settings are unchanged.
-
-Flow: saved branch + reference → finite constraints → supported choices → exact
-SAT/UNSAT/unknown → independently checked explicit-atom witness. Runtime and
-correctness require NRT validation; this design does not itself establish speedup.
-
-NRT validation of the Boolean implementation (`aacb165`): 58 focused tests and
-38 decoder/execution regressions passed; 102 old/new membership comparisons
-agreed, including negative and explicit-hydrogen cases. Three saved Golden194
-reverse queries retained independently checked reference witnesses. Their solver
-CPU times changed from 2371.318/1474.645/1310.405 seconds to
-1.518/1.328/1.469 seconds. New total wall times, including constraint construction,
-were 14.788/13.513/13.588 seconds. Prior total construction times were not recorded;
-these measurements are query-level validation, not full-benchmark speedups.
-
-```mermaid
-flowchart LR
-    Saved[Saved branch and reference] --> Constraints[Correlated finite constraints]
-    Constraints --> Propagation[Propagate supported values]
-    Propagation --> Solver[Exact Boolean choices]
-    Solver --> Witness[Validate full atom witness]
-```
-
-### Saved Golden postprocessing
-
-`rebenchmark.saved_analysis` adapts immutable archive members to the shared
-executor. It reads verified byte ranges, schedules only missing cut/seed checks,
-and retains exact query evidence in worker bundles. Report overlays must match
-the original input and graph hashes, agree with any previously saved ranking,
-and cannot replace a completed evaluation. The 366 missing Golden checks all
-completed with this adapter; the updated report has all 1,851 cases in each
-ranking denominator. This completes reference checking, not event decoding.
-
-Event minima and minimum+n windows come from the public
-`mappa.postprocessing.decode_events` API with `EventDecodeConfig(event_slack=n)`.
-It converts saved fragment pairs to event thresholds, counts the resulting
-branches and filters their counts. There is no separate minimization stage.
-
-Count bond differences touching mapped atoms, including mapped/unmapped
-boundaries; ignore bonds wholly between unmatched atoms. Event classes preserve
-the mapped source region and shared boundary endpoints. A boundary P atom is
-named internally by nR+p; serialized endpoint bond lists retain native indices.
-This notation creates no physical atom.
-
-### Saved Golden decoding
-
-The adapter uses the public decoder for each saved seed/cut at the original best
-heavy/all-atom coverage tier. It retains each local minimum+n window; their union
-covers the prefix minimum+n window at that tier. Conversion tasks explicitly
-record their method, branch cap and random seed. They cannot resume old solver
-tasks or mix old solver-window records with converted-branch records.
-
-The common executor distributes seed/cut tasks and enforces the shared directional
-budget. A verified final queue permits continuation of never-attempted tasks with
-remaining time. Completed work is reused. Interrupted work requires diagnosis.
-The old campaigns remain stopped; this API change starts no dataset campaign.
-
-### Conditional bond tolerance in fragment matching (2026-10-28)
-
-The fragment matcher owns bond compatibility. `FragmentMatchConfig.bond_tolerance`
-accepts `BondTolerance(value, inclusive=True)`, where `value` is either a constant
-or a deterministic, endpoint-symmetric function of the source graph and a bond's
-atom indices. A rule can use element labels, node features, or bond attributes.
-The caller can reuse `bond_event_threshold` for ordinary/metal event criteria;
-the matching kernel contains no metal-specific branch.
-
-```mermaid
-flowchart LR
-  A[Constant or conditional bond rule] --> B[Resolve once per source bond]
-  B --> C[Python fragment matcher]
-  B --> D[Native fragment matcher]
-  C --> E[Compressed matches and anchors]
-  D --> E
-```
-
-Both engines consume the same resolved thresholds. Pool compression compares
-source bond thresholds as well as weights before combining source roles. Exact
-target automorphisms, locked assignments, growth selection and branch caps retain
-their existing behavior. Cut replay fixes the policy for its session and rejects
-calls with changed tolerances. Trace explanations use the same comparisons.
-
-Without this setting, the existing inclusive `iso_tolerance` behavior remains.
-`inclusive=False` supports the strict unchanged-bond condition needed when events
-start at equality. This capability applies to the reusable `match_fragment` API
-and its growth kernel. It is consumed by the saved-fragment conversion pipeline below; original search
-records and their policies remain unchanged. Matching still
-checks active source bonds and the target graph floor; this alone is not a proof
-that all internal target-only/weak-pair events have been resolved.
-
-### Saved anchors for internal rematching (2026-10-28)
-
-Use the saved fragment's R/P atom sets and fixed assignments. The existing
-iso matcher rediscovers free assignments and symmetry at the tighter bond
-thresholds. Do not constrain the rematch to the old free-choice program or
-pin its representative mapping. Only directly fixed assignments become anchors;
-a local pool lock transported by a recorded joint symmetry is still movable.
-
-`FragmentMatch.fixed_assignments` reads the existing pools, fixed flags and
-finalized generators without enumerating mappings. The context constructor
-`FragmentMatchContext.from_saved_fragment` transfers these anchors and deferred
-edges to the existing matcher. Callers supply graphs restricted to the original
-fragment pair and the conditional ordinary/metal bond tolerance. Anchor islands
-are singletons so an anchor does not lock its entire former fragment.
-
-```mermaid
-flowchart LR
-    Saved[Saved fragment pair and fixed assignments] --> Context[Anchor context]
-    Context --> Matcher[Existing conditional iso matcher]
-    Matcher --> Result[New compressed fragment matches]
-```
-
-The representative-only conversion module and its comparison scripts have been
-removed. The saved-EnzymeMap experiment uses `FinalFamily.fixed_assignments`
-and the existing `find_islands` scheduler with the conditional bond rule. It
-groups identical atom sets and anchors before rematching, then recombines the
-resulting fragment branches and counts their actual bond differences.
-
-Event counts may be shared by identical complete mapping records, including
-the source domain for partial mappings. Fragment partitions and branch histories
-remain separate. The experiment prepares verification thresholds once and checks
-each distinct mapping independently; it still checks each branch's internal
-events against that branch's own partition. Matching and event thresholds do not
-change. Timings separate conversion, graph serialization, and independent checks.
-
-### Official decoder and validation (2026-10-28)
-
-`convert_fragments` owns distinct pair/anchor rematching and recombination.
-`decode_events` uses it and owns direct event counts, event-class grouping and
-optional minimum+n filtering. The CLI and portable execution operation use this
-same public API. Count all converted branches before assigning symmetry-class
-IDs within the requested window. `event_slack=0` selects minimum results without
-constructing IDs for higher-event branches; it retains all branch counts and
-compressed records. Immutable action factors are shared across recombinations.
-The experiment only loads saved inputs and performs independent
-checks; it contains no second rematcher. Converted catalogue actions, rematched
-graphs and source provenance are retained in the result and v2 artifact.
-
-There is no solver event-enumeration path in the installed package. Explicit
-conditional shuffle queries remain a separate operation. Historical solver
-proofs and reference oracles cannot certify the new converted-branch scope.
-No automatic decoder fallback or silently ignored legacy budget option exists.
-
-The accepted one-process EnzymeMap28666 prototype converted all 14,446 saved
-branches over 303 atoms in 50.869 seconds, with 2,486 uncapped complete rematches and
-minimum 8, agreeing with the previous completed result. Independent dense checks
-took 161.691 seconds. Job 63284 on the new NRT cluster completed 0:0. This validates
-direct converted-branch counts, not exhaustive old minimum+5 window equivalence.
-Official refactor equality and regression validation are recorded in ticket 21.
-
-The official refactor was checked on NRT job 64049: all 15,062 branch rows,
-best witnesses and rematched graphs equal the accepted saved experiments.
-EnzymeMap 446/28666 retain minima 10/8. Conversion with minimum-class output
-took 1.670/72.582 seconds; independent dense checks took 1.231/179.705 seconds.
-See [validation evidence](docs/validation/anchored_conversion_20261028.json).
-
-
-### Group conversion inputs before returning converted AAM (2026-10-28)
-
-Group source branches by the unordered R/P fragment-pair set, direct fixed
-assignments and matching policy before rematching or recombination. Free choices
-are rediscovered by the existing matcher, so different saved representatives with
-these same inputs require only one conversion. Different anchors, atom pools or
-policies remain separate. Store each group's source family IDs together as
-provenance; return its converted branches once, before event counting or saving.
-This grouping does not change growth, tolerance, allowed rematch choices or the
-retained-branch minimum. It avoids repeating Cartesian recombination per source
-representative. Historical result records and measurements remain unchanged.
-
-
-### AAM return boundary: atom-set branch identity (2026-10-28 clarification)
-
-A branch is the unordered collection of fragment pairs, each identified only by
-its R atom set and P atom set. AAMResult groups these before its constructor
-returns and retains every saved mapping/context inside the group. Neither
-anchors nor matching policies split a public branch. They remain attached to the
-alternatives for later decoding. The retained-branch metric counts these groups,
-not terminal paths. Original search graphs remain intact for replay and evidence.
-The earlier anchor-key grouping is only an internal conversion-work cache; it
-was not the user's requested AAM branch identity or a count of unique fragments.
-
-```mermaid
-flowchart LR
-    Search[Completed search alternatives] --> Group[Group by unordered R/P atom-set pairs]
-    Group --> AAM[Return grouped AAM with all alternatives]
-    AAM --> Decode[Decoder applies each alternative's anchors]
-```
-
-
-## Source ownership audit — 2026-10-28
-
-This audit describes cde2a40, not a completed refactor. All 104 Python modules
-were inventoried with their purpose, definitions, direct imports, in-repository
-importers, and introduction commit following renames. The machine-readable
-[whole-source inventory](docs/validation/source_inventory_20261028.json) preserves
-that evidence. Static import relationships are not runtime call counts and do
-not establish the absence of external or dynamic consumers.
-
-The existing functional boundaries are recoverable:
-
-| Responsibility | Current code | Current connection |
+| Owner | Responsibility | Current implementation |
 |---|---|---|
-| Bond/node matching and symmetry | `matcher/`, `growth/`, native engine | Shared primitive used by fragment growth |
-| Fragment matching | `fragment.py` | `alignment/branch.py` and standalone fragment detection call it |
-| AAM search and seed/cut scheduling | `aam.py`, `alignment/branch.py`, `native_search.py`, search scheduling helpers | Produces the persistent search graph; native scheduling has a separate orchestration route |
-| Saved AAM representation | `domain.py`, `search_graph.py`, `final_branches.py`, `artifacts.py` | Holds graph paths, atom-set branch groups and compressed mapping alternatives |
-| Event conversion/counting | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` | Rematches through the existing fragment matcher and counts retained branches |
-| Execution and storage | `execution/` | Calls search/conversion operations; owns task queues, bundles and resource limits |
-| Retrosynthesis | `fragment_matching/`, `retrosynthesis/` | Uses the shared fragment matcher for detection and assembles coverage |
-| TS analysis and chemistry | `ts.py`, `core_aam.py`, `scoring.py`, `chemistry_computations/`, `modes.py`, `bond_diagnostics.py` | Separate consumer of the same matching core |
-| Presentation | `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` | Reads saved results and traces |
+| Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `frag.py`, `chemistry_computations/`, `smiles.py` |
+| Fragment matcher | Conditional injective matches with compressed correlated choices | `fragment.py`, `matcher/`, `growth/`, native engine |
+| AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `aam.py`, `alignment/branch.py`, `alignment/sweep.py`, `native_search.py` |
+| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `domain.py`, `search_graph.py`, `alignment/post_aam.py`, `final_branches.py` |
+| Symmetry | Conditioned group reconstruction and action reduction | `search_symmetry.py`, `conditioned_symmetry.py`, `action_reduction.py` |
+| Decoding | Anchored rematching, recombination, direct counts and event classes | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` |
+| Explicit queries | Membership of a supplied mapping in saved correlated choices | `family_query.py`, `reference_constraints.py` |
+| Execution | Task dependencies, workers, budgets and verified publication | `execution/` |
+| Retrosynthesis | Detection, coverage ownership, assembly and ranking | `fragment_matching/`, `retrosynthesis/` |
+| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `core_aam.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
+| Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
 
-History confirms the standalone fragment/search-graph split was introduced in
-4e74cb7 (September 4). Adaptive fragment, seed and cut schedulers appeared on
-September 9–10; their introduction messages describe prototypes and alternative
-scheduling research. The current anchored converter began in 8242d01 (October 28).
-These dates describe file ancestry, not proof that every present behavior dates
-to that commit.
+CLIs, benchmark adapters and viewers consume these owners. They must not contain
+another matcher or decoder. Scheduling changes do not change scientific settings.
 
-Concrete cleanup findings, ordered by dependency risk:
+## Data architecture
 
-1. Completed first cleanup: removed the unused `align.py` re-export facade and
-   `coordinate_orientation.py`, whose only code consumer was its own test.
-   Removed that test while preserving the analytical mapping-family tests.
-   Cache loading and frame helpers remain in `chemistry_computations`.
-2. Completed first cleanup: removed the `RXN_CORE_NATIVE` alias; only
-   `MAPPA_NATIVE` controls engine selection. The current Python/native engines
-   remain supported. Updated the setting regression and current documentation.
-   Historical benchmark commands and the source inventory remain dated evidence.
-3. `family_scoring.py` mixes historical bond scoring and solver objectives with
-   `validate_representative`, which current validation uses. Its functions need
-   different treatment: retain and consolidate the live validation primitive;
-   remove retired scoring consumers and their now-unneeded implementation
-   together. Deleting the whole file immediately would break live callers.
-4. `pattern_collection.py` is used by benchmark tools and tests, not the current
-   public converter. `benchmark_regression.py` is imported only by a test in the
-   scanned source. These are candidates for removal or benchmark ownership,
-   subject to retaining required paper verification functionality.
-5. `analytical.py` and `mechanisms.py` remain publicly exported and tested; they
-   are not proven dead. They preserve an older hierarchy-processing route and
-   need an explicit consumer migration before removal. Likewise adaptive/shared
-   scheduling modules have real callers: `aam.py` exposes shared-policy search.
+```text
+AAMProblem
+  reactant, product: MolecularEndpoint
+    elements, coordinates, bond-order matrix
+AAMResult
+  problem, config, metrics
+  graph: AAMSearchGraph
+    contexts: seed/cut/settings/anchor provenance
+    roots: context -> initial state
+    states: cumulative mapping, island ownership, continuation position
+    transitions: source/target state references and committed fragment evidence
+      placement: FragmentMatch
+        witness, pools, fixed assignments, automorphism domains/generators
+    stops: completion, stall or explicit limit
+  branches: SearchBranch[]
+    unordered R/P fragment atom-set pairs
+    paths: all retained alternatives referencing the graph
+```
 
-The cleanup sequence is to remove proven obsolete paths first, consolidate live
-helpers into their existing owners, then reconcile overlapping public consumers.
-The ownership table is an audit map, not authorization for a new algorithm or a
-new package hierarchy. Before any broader structural move, record the agreed
-boundaries. Validate unchanged saved graphs, mappings, counts and incomplete
-flags after each coherent change. Do not create a second decoder, wrapper layer,
-or compatibility fallback while retiring the old one. Native/Python equivalence
-and optional research modes must be evaluated explicitly, not inferred from
-similar names or the number of files.
+The graph shares prefixes and exact reconvergence. A path references committed
+fragment decisions; it is not a list of enumerated atom bijections. A viewer may
+unfold the graph into a tree without changing the stored relation.
+
+`FragmentMatch`, `SymmetryDomain`, `PermutationGroup` and `AAMHierarchy` are
+existing typed views of fragment choices. Graph parsing caches these views and
+shares exact permutations. A representative is one valid witness, not the entire
+represented mapping set. Encounter multiplicity is not a mapping cardinality.
+
+`FinalBranchCatalogue` is a downstream view of saved paths. `FinalFamily` retains
+a representative, required bonds, ordered pool/group actions, matching policy
+and provenance. Its policy-qualified storage buckets are not the public AAM
+branch identity. Reading a catalogue must preserve correlations and coverage.
+
+## Matching and growth invariants
+
+For a fixed fragment, locked context and retained source bonds, the compressed
+candidate union must represent every permitted injective match under that
+context. This is representation fidelity; it does not assert that greedy search
+or a capped frontier discovers every possible fragment.
+
+A candidate stores a witness, set-valued pools, fixed roles and exact correlated
+symmetry actions. Equal per-atom orbit labels do not establish equality of whole
+mapping relations. Compression requires a relation-preserving certificate and
+transporter. Moving a fragment transports dependent assignments consistently;
+independent Cartesian products of atom destinations are invalid.
+
+Growth selects boundary atoms uniformly without a bond-order preference. It
+extends the represented relation and locks completed fragment placements. The
+branch cap applies to the completed-fragment frontier/subtrees, not intermediate
+one-to-many iso matches. A cap is a recorded loss of search completeness, not
+an equivalence rule or an algorithmic absence result.
+
+Live-state sharing requires compatible continuation contexts and equal state.
+It retains incoming histories. Do not merge live states solely because final
+atom sets or endpoint automorphisms agree. Separate cuts and seed runs retain
+provenance; their contexts are not interchangeable continuation states.
+
+`match_fragment` is the reusable boundary. The Python and native implementations
+must preserve the same mapping relation for supported inputs. Explicit native
+execution requires the built engine. Node policy, pair-dependent bond tolerance
+and trace requirements determine applicable implementations. No failure may
+silently select another scientific policy or relax a constraint.
+
+## Final branch identity
+
+A fragment pair is identified by its R atom set and P atom set. A public AAM
+branch is the unordered collection of these pairs. Atom ordering, island labels,
+seed, history, anchors and representative mappings do not split that identity.
+Different labelled atom sets or different pairings remain different branches.
+
+`AAMResult` groups before returning and retains every path/context alternative
+inside each group. `retained_branch_count` counts these groups; raw terminal/path
+counts remain separate. The first representative or hierarchy is only a witness.
+Grouping must not discard other allowed mappings or manufacture new ones.
+
+## Event conversion and counting
+
+AAM matching tolerance and bond-event thresholds serve different purposes.
+`convert_fragments` rematches inside the saved R/P fragment atom sets at the event
+thresholds. Only directly fixed assignments become anchors. A role moved by a
+joint symmetry remains free. The matcher rediscovers free choices; it does not
+pin the old representative or require the old free-choice program.
+
+Distinct pair/anchor contexts share rematching work. Identical full conversion
+inputs share recombination work and retain every source-family reference. This
+work cache is not branch identity. Rematching can split a fragment; compatible
+results are recombined into converted compressed branches.
+
+The ordinary event threshold is 0.5 and the metal threshold is 0.3 by default.
+An unchanged bond differs by strictly less than its threshold; equality is an
+event. Count breaking/weakening and forming/strengthening differences touching
+mapped atoms, including mapped/unmapped boundaries. Ignore bonds wholly between
+unmatched atoms. Do not invent atoms or correspondences.
+
+`decode_events` counts all retained converted branches, then constructs event
+classes within the requested window. The minimum is the lowest count among
+these branches. `event_slack=0` selects the minimum; minimum+n and absolute bounds
+filter retained results. These are not hidden-bijection optimization bounds.
+Identical literal mappings share count work; partition/provenance checks remain
+attached to each branch.
+
+Completeness requires uncapped completed rematches, retained mapped atoms and no
+counted events internal to a converted fragment. Incomplete internal-event cases
+must remain flagged. Neither completion nor `minimum_proven` establishes a global
+minimum across unexplored AAM branches or exhaustive old-family enumeration.
+Event-class identity uses the correlated decorated-graph relation, not a union
+of per-atom orbit IDs.
+
+A user-requested shuffle or reference-membership query is separate from decoding.
+It may use the optional solver on saved choices. The public conversion/counting
+path does not call solver enumeration or use a solver decoder as a fallback.
+
+## Retrosynthesis
+
+Detection calls the shared matcher; assembly consumes saved fragment candidates.
+Explicit hydrogens participate in both detection and coverage. Augmented residual
+copies are competitors, not hard anchors, and projected fragments must respect
+the original cut attachment. The beta big-block/gap-first workflow is an explicit
+recommendation policy, not automatic failure recovery for full-bank detection.
+
+`fragment_matching/` owns candidate generation, augmentation, projection,
+serialization and optional RDKit adaptation. `retrosynthesis/` owns candidate
+indexes, bounded coverage search, assembly validation and ranking. Catalog I/O
+and launchers call these modules rather than duplicating their algorithms.
+
+An assembled target atom has at most one owner. Repeated precursor copies retain
+separate occurrence identities. Coverage, exact ownership and geometry are
+separate checks; geometric assembly is not proof of chemical feasibility.
+Chirality-insensitive screening cannot reject solely on stereochemistry;
+explicit chirality-sensitive refinement may rerank or reject. Preserve cap and
+incomplete diagnostics and write expensive results before discarding them.
+
+## Transition states and presentation
+
+TS analysis requires an explicit `ReactionContext`: selected mappings and bond
+events. `core_aam.py` serves endpoint-to-TS core assignment, not a replacement
+full-reaction search. Raw AAM and event conversion do not select 3D orientation or
+claim a general stereochemistry guarantee from element/WBO inputs.
+
+Viewers consume recorded mappings, fragments and symmetry. Display alignment
+must not alter scientific correspondences. Saved traces show actual search
+choices; compressed alternatives must not be presented as independently
+selectable atom pairs. Shared reaction/catalog renderers own presentation.
+
+## Execution, storage and evidence
+
+One operation runs on a single CPU, local workers or cluster workers through
+`execution/`. Decompose independent case/direction/seed/cut work using original
+seed identities; do not create a second cluster implementation. Shared queues
+own leases, dependencies and original case deadlines. Scheduling cannot reset
+scientific budgets or silently retry completed/failed work.
+
+Use node-local scratch and SQLite writes. Publish verified bounded bundles and
+consistent queue backups; do not copy a live WAL database's main file alone or
+create a shared file for every tiny intermediate. Preserve source/input hashes,
+settings, timings, memory, attempts, output provenance and incomplete flags.
+Execution success is not scientific completeness. Resource limits, unknowns,
+missing outputs and unattempted tasks are never algorithmic negatives.
+
+## Repository boundaries and remaining cleanup
+
+`src/` and `native/` contain reusable algorithms; `tests/` contains their checks.
+`docs/` contains current usage guides and executable examples. `bench/` owns
+benchmark adapters; `reports/` owns measurements and provenance. `tools/` and
+`hpc/` provide user/launch adapters; `manuscript/` owns paper artifacts. Historical
+code is recovered from its recorded Git revision, not kept as runnable fallback
+copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
+
+This document does not claim all consolidation is finished. Adaptive/shared
+schedulers, explicit analytical/mechanism APIs and historical benchmark scorers
+still have callers. Their removal requires migrating those consumers together;
+changing directory names does not establish equivalent behavior. New code must
+use the existing owners, remove superseded paths, and update this one design.

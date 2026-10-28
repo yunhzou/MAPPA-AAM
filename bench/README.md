@@ -1,9 +1,7 @@
 # Benchmark code and reproduction guide
 
 Results and provenance: [paper index](../reports/README.md). Current entry
-points live here; saved data live in `reports/`. Retired campaign drivers are available at the exact revision linked in
-[historical source](archive/README.md), rather than shipped beside current code.
-Their original staging requirements still apply.
+points live here; saved data live in `reports/`. Historical campaigns retain their source/input revisions in their reports.
 No benchmark needs rerunning merely to inspect saved mappings or metrics.
 
 Use the [two shared viewer styles](../docs/VIEWERS.md). R/P and TS comparisons
@@ -24,7 +22,6 @@ retired. `missing_pattern_display_data.py` prepares the three-case witnesses and
 | `benchmark_saved_decoding.py`, `decode_saved_events.py` | Separate decoder measurement and saved-result inspection |
 | `contracts/` | Versioned regression expectations |
 | `experiments/` | Optional research variants outside the published default |
-| `archive/README.md` | Exact Git revision for retired campaign drivers |
 
 The four profiling scripts `benchmark_fragment_detection.py`,
 `benchmark_fragment_seed.py`, `benchmark_initial_fragment_stage.py`, and
@@ -75,9 +72,8 @@ must not be substituted for an older campaign's configuration.
 
 The other Golden scripts record diagnostic experiments (seeds, caps, direction,
 anchors, ranking, memory, viewers). They are retained for provenance, not silently
-included in the fixed-policy paper protocol. Source relocations and removal of superseded visual artifacts are recorded in
-[the cleanup manifest](../docs/publication_cleanup_20260916.json). Numerical
-evidence, witness archives, and recorded source hashes are preserved.
+included in the fixed-policy paper protocol. Numerical evidence, witness archives and recorded source revisions remain in
+`reports/`. Use the recorded revision for historical reproduction.
 
 ## Reproduce safely
 
