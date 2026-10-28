@@ -113,3 +113,13 @@ def test_relative_pilot_window_has_explicit_policy_and_same_proofs():
     changed=deepcopy(value);changed['window_basis']=dict(slack=5)
     with pytest.raises(ValueError,match='conflicting'):
         window_slack(changed)
+
+
+def test_conversion_cannot_be_presented_as_legacy_solver_proof():
+    from mappa.postprocessing import decode_events
+    problem = AAMProblem(endpoint('CO', [(0,1,1)]), endpoint('CO', []))
+    cat = catalogue(problem, {0:0,1:1})
+    value = dict(decoded=decoded_events_record(decode_events(cat)),
+                 families=[f.to_record() for f in cat.families],selected_families=1)
+    with pytest.raises(ValueError, match='conversion evidence'):
+        validate_record(value, problem, None, ProofReplay())

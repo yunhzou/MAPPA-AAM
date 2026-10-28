@@ -3,8 +3,6 @@
 Each seed/cut converts its saved fragment pairs and counts the resulting branches.
 Local minimum+slack windows contain the corresponding prefix-union window.
 """
-from dataclasses import asdict
-import hashlib
 import time
 
 from mappa.execution import Task
@@ -12,11 +10,12 @@ from .saved_analysis import prepare_cut
 from .search import select_contexts
 
 
-def seed_tasks(cut_tasks, *, seeds=10, slack=5, family_seconds=10., case_seconds=3600., memory_bytes=4*2**30):
+def seed_tasks(cut_tasks, *, seeds=10, slack=5, branch_limit=100, random_seed=42, case_seconds=3600., memory_bytes=4*2**30):
     """Reuse the verified cut index; one independent seed/cut per queue task."""
     for cut in cut_tasks:
         for seed in range(seeds):
-            payload = dict(cut.payload, seed=seed, slack=slack, family_seconds=family_seconds)
+            payload = dict(cut.payload, seed=seed, slack=slack, branch_limit=branch_limit, random_seed=random_seed,
+                           decoder='anchored_fragment_conversion')
             yield Task(f'{payload["task_id"]:05d}/cut/{payload["cut"]:05d}/seed/{seed:02d}',
                        'rebenchmark.decoding:decode_seed', payload,
                        case=f'{payload["task_id"]:05d}', case_seconds=case_seconds,
@@ -56,6 +55,8 @@ def decode_seed(payload, workspace):
     from mappa.final_branches import FinalBranchCatalogue
     from mappa.frag import classify_bonds
     from mappa.postprocessing import EventDecodeConfig, decode_events
+    if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:
+        raise ValueError('Create conversion tasks explicitly; retired solver tasks cannot be resumed here')
     started, cpu = time.perf_counter(), time.process_time()
     plan, _, graph, digest, finalized = prepare_cut(payload, workspace)
     one = select_contexts(graph, [payload['seed']])
@@ -69,7 +70,8 @@ def decode_seed(payload, workspace):
                                   if i in selected_ids}
     setup = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
     started, cpu = time.perf_counter(), time.process_time()
-    result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack']))
+    result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack'],
+        branch_limit=payload['branch_limit'], random_seed=payload['random_seed']))
     timing = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
     for candidate in result.candidates:
         broken, formed, *_ = classify_bonds(candidate.mapping, plan.problem.reactant.wbo,
@@ -118,6 +120,6 @@ def merge_windows(rows, *, slack=5):
             if candidate['total'] <= window:
                 candidates.setdefault(candidate['id'], candidate)
     complete = minimum is not None and bool(selected) and all(row['decoded']['complete'] for row in selected)
-    return dict(coverage=tier, minimum=minimum, minimum_proven=minimum is not None and (minimum == 0 or complete),
+    return dict(coverage=tier, minimum=minimum, minimum_proven=minimum is not None and complete,
         complete=complete, event_window=window, candidates=sorted(candidates.values(),key=lambda c:(c['total'],c['id'])),
         rows=len(rows), selected_rows=len(selected))

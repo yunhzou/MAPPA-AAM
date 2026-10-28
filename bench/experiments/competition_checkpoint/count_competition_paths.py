@@ -32,7 +32,7 @@ def child(case):
  save(OUT/f'case{case}.json',d)
 
 def main():
- from run_event_campaign import MemoryGuard,bounded_process
+ from resources import MemoryGuard,bounded_process
  OUT.mkdir(exist_ok=True);guard=MemoryGuard(2048,6144,6144);start=time.perf_counter();env=dict(os.environ,OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',VECLIB_MAXIMUM_THREADS='1')
  def run(c):
   with (OUT/f'case{c}.log').open('w') as log:status,peak=bounded_process([sys.executable,str(Path(__file__).resolve()),str(c)],env,log,300,guard)

@@ -175,7 +175,7 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
             if not cut and case.balanced:
                 def decode(graph):
                     result = AAMResult(case, config, graph, AAMSearchMetrics.from_record({}, 0))
-                    decoded = decode_events(result, EventDecodeConfig(max_events=8, seconds_per_family=10))
+                    decoded = decode_events(result, EventDecodeConfig(max_events=8))
                     assert decoded.complete
                     return {str(sorted(c.events.items())) for c in decoded.candidates}
                 assert decode(original) == decode(observed['graph'])

@@ -200,7 +200,7 @@ def child(case):
  save(folder/'result.json',result)
 
 def main():
- from run_event_campaign import MemoryGuard,bounded_process
+ from resources import MemoryGuard,bounded_process
  guard=MemoryGuard(3072,8192,6144);env=dict(os.environ,OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',VECLIB_MAXIMUM_THREADS='1',NUMEXPR_NUM_THREADS='1',PYTHONHASHSEED='0',PYTHONDONTWRITEBYTECODE='1')
  def run(case):
   folder=OUT/f'case{case}';folder.mkdir(parents=True,exist_ok=True);start=time.perf_counter()

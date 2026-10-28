@@ -40,7 +40,8 @@ def test_event_classes_and_conditional_shuffles(searched):
     assert len({c.id for c in decoded.candidates}) == 2
     candidate, other = decoded.candidates
     mapping = dict(candidate.mapping)
-    mapping[2], mapping[3] = mapping[3], mapping[2]
+    # These two H atoms are inside one converted fragment.
+    mapping[3], mapping[4] = mapping[4], mapping[3]
     assert decoded.query(candidate, mapping).mapping == mapping
     assert decoded.query(candidate, {2: mapping[2]}).status == "allowed"
     assert decoded.query(candidate, other.mapping).status == "forbidden"
@@ -59,7 +60,6 @@ def test_thresholds_are_separate_and_partial_results_are_marked(searched):
         c.total
         for c in decode_events(searched, EventDecodeConfig(threshold=1.1)).candidates
     ] == [0]
-    from dataclasses import replace
     incomplete = decode_events(searched)
     incomplete.conversion.rematches[0].complete = False
     assert not incomplete.complete and not incomplete.minimum_proven

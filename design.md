@@ -296,53 +296,27 @@ ranking denominator. This completes reference checking, not event decoding.
 
 Event minima and minimum+n windows come from the public
 `mappa.postprocessing.decode_events` API with `EventDecodeConfig(event_slack=n)`.
-It scores representatives, tightens the event bound as lower witnesses appear,
-and reports `observed_minimum` and `minimum_proven`. A separate minimum-scoring
-pass is not a prerequisite and must not be scheduled.
+It converts saved fragment pairs to event thresholds, counts the resulting
+branches and filters their counts. There is no separate minimization stage.
 
-The decoder uses one bond-difference rule for partial and complete mappings.
-Count an R bond touching the mapped region as broken when its counterpart is
-absent or weaker by the configured threshold; count P bonds symmetrically as
-formed. Ignore bonds whose endpoints are both unmatched. Existing bond-order
-and metal thresholds stay unchanged. No atom padding, composition repair,
-fragment-count ranking or separate minimization pass is introduced.
-
-The catalogue retains partial branches and their correlated symmetry actions.
-The event model keeps source-pair differences and adds only mapped/unmapped
-product boundary terms. Exact target/source symmetry certificates and bounded
-relative windows remain in the existing decoder. Event classes preserve the
-mapped source region and shared boundary endpoints; ignored unmatched material
-does not add event edges. Internally, a boundary P atom is named by nR+p, with
-explicit endpoint-native bond lists in serialized results. No physical atom is
-created by this index notation. Each seed prefix uses its own saved catalogue.
-
-```mermaid
-flowchart LR
-    Saved[Saved complete or partial branches] --> Catalogue[Lossless family catalogue]
-    Catalogue --> Decoder[Existing signed-event decoder]
-    Decoder --> Difference[Mapped bonds and boundary differences]
-    Difference --> Output[Event classes, minimum and minimum+n window]
-```
-
-Historical `family_scoring` utilities are not the production decoder; their
-pre-existing benchmark reports remain historical. The redundant standalone
-minimum-stage pipeline has been removed and its jobs cancelled by the user.
+Count bond differences touching mapped atoms, including mapped/unmapped
+boundaries; ignore bonds wholly between unmatched atoms. Event classes preserve
+the mapped source region and shared boundary endpoints. A boundary P atom is
+named internally by nR+p; serialized endpoint bond lists retain native indices.
+This notation creates no physical atom.
 
 ### Saved Golden decoding
 
-The benchmark adapter calls the public event decoder separately for each saved
-seed/cut within the original best heavy/all-atom coverage tier. Score saved
-representatives from that cut and seed prefix to obtain a feasible upper bound,
-then decode through that bound+5. Every later prefix containing this seed also
-contains those witnesses; adding cuts can only lower the minimum at that tier.
-Thus the union covers every requested prefix window without decoding high-event
-alternatives already excluded by an earlier feasible witness. This avoids a separate
-minimum stage and never substitutes the ten-seed bound for earlier prefixes.
-The common queue distributes independent seed/cut tasks with one shared
-directional deadline. Exact queries, family reports and witnesses are bundled
-for audit; saved graphs and search settings remain unchanged.
+The adapter uses the public decoder for each saved seed/cut at the original best
+heavy/all-atom coverage tier. It retains each local minimum+n window; their union
+covers the prefix minimum+n window at that tier. Conversion tasks explicitly
+record their method, branch cap and random seed. They cannot resume old solver
+tasks or mix old solver-window records with converted-branch records.
 
-Scheduler continuations use a verified final queue checkpoint after the prior coordinator and active workers retire. Only pending tasks with no attempt history enter the next allocation. Preserve completed, interrupted and limited outcomes in the original run for aggregation and separate diagnosis. Carry the original remaining directional budget; never reset it. The original and continuation coordinators share endpoint publication and snapshot handling. Scientific decoding and saved input identities remain unchanged.
+The common executor distributes seed/cut tasks and enforces the shared directional
+budget. A verified final queue permits continuation of never-attempted tasks with
+remaining time. Completed work is reused. Interrupted work requires diagnosis.
+The old campaigns remain stopped; this API change starts no dataset campaign.
 
 ### Conditional bond tolerance in fragment matching (2026-10-28)
 
@@ -425,9 +399,9 @@ conditional shuffle queries remain a separate operation. Historical solver
 proofs and reference oracles cannot certify the new converted-branch scope.
 No automatic decoder fallback or silently ignored legacy budget option exists.
 
-The accepted one-process EnzymeMap28666 prototype converted all14,446saved
-branches over303atoms in50.869seconds, with2,486uncapped complete rematches and
-minimum8, agreeing with the previous completed result. Independent dense checks
-took161.691seconds. Job63284 on the new NRT cluster completed0:0. This validates
+The accepted one-process EnzymeMap28666 prototype converted all 14,446 saved
+branches over 303 atoms in 50.869 seconds, with 2,486 uncapped complete rematches and
+minimum 8, agreeing with the previous completed result. Independent dense checks
+took 161.691 seconds. Job 63284 on the new NRT cluster completed 0:0. This validates
 direct converted-branch counts, not exhaustive old minimum+5 window equivalence.
-Official refactor equality and regression validation are recorded in task21.
+Official refactor equality and regression validation are recorded in ticket 21.

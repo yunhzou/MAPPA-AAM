@@ -35,4 +35,4 @@ The event count is the number of bond differences touching mapped atoms, includi
 
 `result.symmetry(candidate)` returns compressed choices from the converted catalogue. `result.query(...)` is a separate, explicitly requested constraint query over those choices. Only that query requires the optional solver dependency. Conversion does not call it or use it as a fallback.
 
-The retired solver enumeration is retained outside the installed package as a reference oracle for historical evidence and regression tests. Historical benchmark proofs use their recorded source revisions; the old proof auditor rejects converted-branch records rather than interpreting them as solver certificates.
+The executable solver decoders and their launch scripts are removed. A test-only oracle verifies historical signed-event certificates; production code never imports it. Historical benchmark proofs use their recorded source revisions; the old proof auditor rejects converted-branch records rather than interpreting them as solver certificates.

@@ -5,7 +5,7 @@ from dataclasses import asdict
 from concurrent.futures import ThreadPoolExecutor,as_completed
 ROOT=Path(__file__).resolve().parent; ENGINE=ROOT/'engine'; WORK=ROOT.parent
 sys.path[:0]=[str(ENGINE/'src'),str(ENGINE/'bench')]
-from run_event_campaign import MemoryGuard,bounded_process,save,read,sha
+from resources import MemoryGuard,bounded_process,save,read,sha
 
 def prepare_inputs():
  from golden_evaluation import prepare

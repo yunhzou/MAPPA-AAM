@@ -208,7 +208,7 @@ def test_reject_partial_invalid_and_asymmetric_inputs():
 
 def test_whole_event_orbit_is_excluded_in_one_query(monkeypatch):
     import mappa.event_patterns as module
-    # Exercise the exact solver fallback separately from the faster group certificate.
+    # Exercise the historical proof model independently of its group certificate.
     monkeypatch.setattr('mappa.event_certificates.EventFamilyCertificates.invariant_class',
                         lambda *args: False)
     edges = [(0, a, 1.) for a in range(1, 8)]
@@ -220,7 +220,7 @@ def test_whole_event_orbit_is_excluded_in_one_query(monkeypatch):
     assert result['solver_queries'] == 1, result
     # Reproduce the previous prototype's repeated literal exclusions on this
     # tiny case, without enumerating the 7! complete atom assignments.
-    monkeypatch.setattr(module, '_same_event_orbit', lambda t, o, p, i: module._same_event_pattern(t, o, p))
+    monkeypatch.setattr('reference_event_decoder._same_event_orbit', lambda t, o, p, i: module._same_event_pattern(t, o, p))
     old = extract_path_events(path, value, SignedEventIndex(value), max_patterns=8)
     assert old['complete'] and old['solver_queries'] == 7, old
     assert {p['id'] for p in old['patterns']} == {p['id'] for p in result['patterns']}
@@ -275,14 +275,3 @@ def test_saved_legacy_ids_and_scores_are_recomputed():
     assert expected['id'] != old['id']
     assert migrated[expected['id']]['total'] == 1
     assert saved[old['id']]['total'] == 99
-
-
-def test_comparison_never_claims_absence_outside_decoded_window():
-    from validate_event_examples import compare_saved_slap
-    slap = {'saved': dict(minimum=7, minimum_ids=['old'], patterns={'old': dict(total=7)})}
-    result = compare_saved_slap(slap, {}, window=5, complete=True)
-    assert result['saved']['unrecovered_status']['old'] == 'outside_event_window'
-    result = compare_saved_slap(slap, {}, window=7, complete=False)
-    assert result['saved']['unrecovered_status']['old'] == 'unresolved'
-    result = compare_saved_slap(slap, {}, window=7, complete=True)
-    assert result['saved']['unrecovered_status']['old'] == 'absent_from_this_saved_forward_graph'

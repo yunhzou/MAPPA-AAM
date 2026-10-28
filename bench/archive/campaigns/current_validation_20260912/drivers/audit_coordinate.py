@@ -8,7 +8,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT = Path(__file__).resolve().parent
 sys.path[:0] = [str(ROOT/'optimized/src'), str(ROOT/'optimized/bench')]
-from run_event_campaign import read, save, sha, MemoryGuard, bounded_process
+from resources import read, save, sha, MemoryGuard, bounded_process
 OUT = ROOT/'coordinate-audit'
 
 def child(case):

@@ -28,6 +28,9 @@ def test_old_checkpoint_globals_resolve_to_mappa_and_preserve_events(tmp_path):
     assert isinstance(result, mappa.AAMResult)
     assert isinstance(result.graph, mappa.AAMSearchGraph)
     assert type(result.graph).__module__.startswith("mappa.")
+    # Pre-randomized checkpoints carry explicit historical growth metadata now.
+    for context in archived['graph']['contexts']:
+        context.update(growth_policy='legacy_wbo_priority', random_seed=42)
     # JSON-normalize tuple/list differences, without changing the payload.
     assert json.loads(json.dumps(aam_record(result))) == archived
     assert json.loads(json.dumps(aam_record(aam_from_record(archived)))) == archived

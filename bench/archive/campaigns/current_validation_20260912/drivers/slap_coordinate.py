@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parent;RUN=ROOT/'slap-coordinate';REPO=Path('/Users/yunhengz/Desktop/AAM Writing')
 sys.path[:0]=[str(ROOT/'slap-upstream/src'),str(ROOT/'engine/src'),str(ROOT/'engine/bench')]
-from run_event_campaign import read,save,sha,MemoryGuard,bounded_process
+from resources import read,save,sha,MemoryGuard,bounded_process
 
 def prepare():
  from rdkit import Chem

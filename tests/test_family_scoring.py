@@ -3,7 +3,7 @@ import numpy as np
 
 from mappa import AAMProblem,AAMSearchConfig,search_aam
 from mappa.domain import MolecularEndpoint
-from mappa.family_scoring import minimize_events,bond_events
+from mappa.family_scoring import invariant_score,validate_representative,bond_events
 from golden_evaluation import prepare
 from view_golden_remaining import ranker
 
@@ -14,7 +14,7 @@ def endpoint(elements,edges):
     return MolecularEndpoint(tuple(elements),np.zeros((len(elements),3)),w)
 
 
-def test_tolerant_symmetry_minimum_matches_tiny_exhaustive_oracle():
+def test_tolerant_symmetry_retains_all_small_query_mappings():
     mol=endpoint('CCCHHH',[(0,1,2),(1,2,1),(0,2,1),(0,3,1),(1,4,1),(2,5,1)])
     problem=AAMProblem(mol,mol)
     aam=search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1))
@@ -29,29 +29,17 @@ def test_tolerant_symmetry_minimum_matches_tiny_exhaustive_oracle():
         mapping=dict(enumerate((*p,*(i+3 for i in p))))
         assert any(query_path(path,problem,mapping,source_atoms=tuple(range(6)),
                               timeout_ms=2000)[0]=='recovered' for path in paths)
-    results=[minimize_events(path,problem,seconds=5) for path in paths]
-    assert all(result['optimal'] for result in results)
-    assert min(result['upper_bound'] for result in results)==min(scores)
-    assert all(bond_events(problem,result['mapping'])['total']==result['upper_bound']
-               for result in results)
+    for path in paths:
+        validate_representative(path,problem)
 
-
-def test_partial_mapping_both_orientations_match_exhaustive_oracle():
-    problem=AAMProblem(endpoint('OO',[]),endpoint('OOOO',[(0,1,1),(2,3,1)]))
-    path=next(search_aam(problem,AAMSearchConfig(seed_count=1)).graph.paths())
-    for reverse in (False,True):
-        oracle=min(bond_events(problem,dict(enumerate(p)),reverse=reverse)['total']
-                   for p in permutations(range(4),2))
-        result=minimize_events(path,problem,reverse=reverse,seconds=5)
-        assert result['optimal'] and result['upper_bound']==oracle
 
 
 def test_explicit_h_symmetry_certified_without_solver():
     problem,_,_=prepare('CC(C)(C)C>>CC(C)(C)C')
     path=next(search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10)).graph.paths())
-    result=minimize_events(path,problem)
-    assert result['method']=='invariance_certificate' and result['solver_queries']==0
-    assert result['upper_bound']==0 and len(result['mapping'])==17
+    invariant, tested = invariant_score(path,problem)
+    assert invariant and tested > 0
+    assert bond_events(problem,path.mapping)['total']==0 and len(path.mapping)==17
 
 
 def test_event_score_matches_existing_ranker_including_unmatched_atoms():

@@ -24,6 +24,8 @@ def save(path,value):
 def execute(args):
     out=args.output
     plan=json.loads((out/'plan.json').read_text())
+    if plan.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in plan:
+        raise ValueError('A new anchored-fragment conversion plan is required')
     if args.mode=='worker':
         endpoint=json.loads((out/'endpoint.json').read_text())
         queue=connect((endpoint['host'],endpoint['port']),(out/'worker.key').read_bytes())
@@ -60,7 +62,7 @@ def execute(args):
             cuts=read_blob(Blob(**row['blob']),scratch)
             if selected is not None:
                 cuts=[cut for cut in cuts if (row['task'],cut.payload['cut']) in selected]
-            tasks=list(seed_tasks(cuts,slack=plan['slack'],family_seconds=plan['family_seconds'],
+            tasks=list(seed_tasks(cuts,slack=plan['slack'],branch_limit=plan['branch_limit'],random_seed=plan['random_seed'],
                 case_seconds=plan['case_seconds'],memory_bytes=plan['memory_bytes']))
             pending=[]
             for task in tasks:

@@ -1,5 +1,5 @@
 """Saved seed/cut windows must agree with direct public decoding of their union."""
-import z3
+import pytest
 
 from mappa.artifacts import decoded_events_record
 from mappa.execution import Task
@@ -69,7 +69,7 @@ def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypa
     monkeypatch.setattr('rebenchmark.decoding.prepare_cut',lambda payload,workspace:
         (SimpleNamespace(problem=problem),{},graph,'checked',None))
     workspace=Workspace(tmp_path,tmp_path/'bundles')
-    value=decode_seed(dict(seed=0,slack=5,family_seconds=10,task_id=0,cut=0,
+    value=decode_seed(dict(seed=0,slack=5,branch_limit=100,random_seed=42,decoder='anchored_fragment_conversion',task_id=0,cut=0,
         source={},raw={},graph={}),workspace)
     assert value['decoded']['complete'] and value['decoded']['observed_minimum']==2
     assert value['coverage']==(2,2) and value['search_rerun'] is False
@@ -102,3 +102,9 @@ def test_prefix_representatives_bound_later_seed_without_minimum_stage():
         assert merged['complete'] and merged['minimum']==expected.observed_minimum
         assert {r['id'] for r in merged['candidates']}=={r.id for r in expected.candidates}
     assert bounds[2]==bounds[1]<bounds[0]
+
+
+def test_retired_solver_tasks_cannot_run_as_conversion(tmp_path):
+    from rebenchmark.decoding import decode_seed
+    with pytest.raises(ValueError, match='retired solver tasks'):
+        decode_seed(dict(family_seconds=10), None)

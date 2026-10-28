@@ -16,7 +16,7 @@ A tolerance test by itself need not define a transitive equivalence relation. Mo
 
 The shared intrinsic groups are metadata in the default catalogue. They do not expand the saved mapping relation. Event thresholds remain decoder parameters; matching-response symmetry is not a promise of event invariance. Experimental broader reconstruction is isolated in `bench/experiments/final_fragment_dedup/rebuild_intrinsic.py`. It can introduce matching-admissible alternatives and was not adopted as the default optimization.
 
-## API and CLI
+## API
 
 ```python
 catalogue = aam.final_catalogue()
@@ -25,17 +25,10 @@ catalogue.rebuild_all_symmetries()  # optional shared pair metadata
 record = catalogue.to_record()
 restored = FinalBranchCatalogue.from_record(aam.problem, record)
 path = restored.families[0].as_path(aam.problem)
-# Pass path to extract_path_events or query_path.
+# Use query_path for an explicit mapping query.
+# Event conversion requires the full catalogue with its fragment pairs.
 ```
 
-Import `FinalBranchCatalogue` from `mappa.final_branches`. The flat archive fingerprint checks endpoint elements and WBO matrices. Reloading requires the endpoint problem but no original search graph. Endpoints must be balanced. Catalogue construction skips partial mappings and reports their count.
+Import `FinalBranchCatalogue` from `mappa.final_branches`. The archive fingerprint checks endpoint elements and WBO matrices. Partial mappings are retained. Reloading requires the endpoint problem but no original search graph.
 
-From an environment with this package and its native extensions installed:
-
-```sh
-python bench/final_fragment_branches.py --archives run/aam.pkl.gz --output final
-python bench/final_fragment_branches.py --catalogue final/final_branches.json.gz \
-  --problem input.json --output decoded --decode --max-events 8
-```
-
-The CLI has a five-minute watchdog and sampled memory limits. A complete result applies only to the requested event window, and every family must finish. Inspect `complete_window` and `unfinished`; a timeout is never a completeness certificate. Very large JSON catalogues can require substantial memory to reload; the CLI guard stops them if needed. Family count, branch count, explicit mapping count, and event-class count are different quantities.
+For event decoding, pass the full catalogue to `decode_events(restored)`. The decoder needs both atom sets and directly fixed assignments to rematch each distinct fragment pair at the event thresholds. See [Anchored fragment event decoding](SIGNED_EVENT_DECODING.md). Family count, fragment branch count, concrete mapping count, and event-class count describe different objects.

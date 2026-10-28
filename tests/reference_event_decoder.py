@@ -1,8 +1,4 @@
-"""Retired solver decoder used only as a reference oracle for saved-family tests.
-
-Not part of the installed package or the supported conversion workflow.
-Historical experiments must use their recorded source revision.
-"""
+"""Test-only oracle for historical signed-event certificates; never imported by MAPPA."""
 import math
 import time
 from mappa.event_patterns import _event_model, _event_count_constraint, _same_event_orbit

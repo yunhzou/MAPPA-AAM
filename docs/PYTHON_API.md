@@ -2,7 +2,7 @@
 
 Start with [AAM_SIMPLE.ipynb](AAM_SIMPLE.ipynb): a self-contained six-atom reaction with embedded coordinates, bond orders, and display helpers. It inspects the raw AAM, unique event candidates, certified shuffles, anchors, both search directions, conditional matching, serialization, and one growth animation per sweep. It uses one worker and can run outside the checkout after installation. Saved tables and static molecule drawings render on GitHub; interactive views require a trusted Jupyter notebook. The longer [TUTORIAL.ipynb](TUTORIAL.ipynb) covers R/P geometry and TS analysis.
 
-Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for symbolic event decoding without notebook packages. A C++17 compiler builds the bookkeeping extensions. The optional fast growth engine requires `python native/build_engine.py`; see [native installation](../native/README.md). Ordinary `search_aam` can use the Python reference growth implementation. `compete_fragments` and `execution="reused_native"` / `"shared_policies"` require that optional engine and fail explicitly if unavailable. No xTB is needed when coordinates and bond-order matrices are supplied.
+Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for optional symbolic mapping queries without notebook packages. Event conversion itself needs no solver. A C++17 compiler builds the bookkeeping extensions. The optional fast growth engine requires `python native/build_engine.py`; see [native installation](../native/README.md). Ordinary `search_aam` can use the Python reference growth implementation. `compete_fragments` and `execution="reused_native"` / `"shared_policies"` require that optional engine and fail explicitly if unavailable. No xTB is needed when coordinates and bond-order matrices are supplied.
 
 ## Default pipeline; separate post-processing
 
@@ -22,9 +22,9 @@ witness = candidates[0].mapping if candidates else None
 
 Default MAPPA uses one-seed cut sweep followed by separate event decoding. Competition is off by default; the standard search and decoding functions never invoke it.
 
-Matrices must be symmetric and coordinates finite. The event decoder additionally requires balanced elements, complete bijections, nonnegative and exactly symmetric raw matrices. Search supports unbalanced/partial mappings; inspect `aam.graph.paths()` and stop reasons for those cases. Do not silently treat a partial mapping as a complete event candidate.
+Matrices must be nonnegative and symmetric, and coordinates finite. Both search and event conversion support partial mappings and unequal endpoint sizes. Counts include differences touching mapped atoms and their boundaries, while wholly unmatched bonds are ignored. A completed conversion does not imply all endpoint atoms were mapped.
 
-A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Event edges use source atom indices. This is different from a unique mapping modulo exact molecular symmetry (`PatternEquivalence` / `extract_path_patterns` in `mappa.pattern_collection`) and from a deduplicated final fragment branch (`aam.final_catalogue()`). None of these APIs enumerates every atom bijection.
+A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Use `endpoint_events` for bond lists in the original reactant/product indices. This is different from a unique mapping modulo exact molecular symmetry (`PatternEquivalence` / `extract_path_patterns` in `mappa.pattern_collection`) and from a deduplicated final fragment branch (`aam.final_catalogue()`). None of these APIs enumerates every atom bijection.
 
 `decoded.complete` covers conversion of the retained fragment contexts, including preservation of mapped atoms and absence of internal counted events. A capped rematch remains incomplete. `decoded.minimum_candidates` selects the lowest direct branch counts. This is not an exhaustive old-family or global-search claim. The decoder uses the existing fragment matcher and no solver enumeration. `decoded.conversion` retains the rematched compressed graphs and recombination provenance. Hard wall/memory limits belong to the caller's process or shared executor.
 
@@ -39,9 +39,9 @@ if answer.status == "allowed":
     certificate = answer.actions
 ```
 
-This is a conditional existence query over the saved family union. Unspecified atoms may move together. Supply the entire modified mapping to test exactly one swap while fixing everything else. `same_events=True` preserves the selected signed-event class; `False` asks only about the broader saved matching relation. Answers are `allowed`, `forbidden` within these saved families, or `unknown`. A timeout is never a negative proof.
+This is a conditional existence query over the converted family union. Unspecified atoms may move together. Supply the entire modified mapping to test exactly one swap while fixing everything else. `same_events=True` preserves the selected signed-event class; `False` asks only about the converted matching relation. Answers are `allowed`, `forbidden` within these saved families, or `unknown`. A timeout is never a negative proof.
 
-The evidence retains ordered target generators/pools, required fragment edges, matching policy, and archive/path provenance. Individual orbit memberships are not independent shuffle permissions. Intrinsic fragment automorphisms and event-preserving equivalences are different objects. Final event symmetry uses exact response labels at the selected thresholds, rather than a second approximate tolerance. Changing event thresholds never changes the saved search. Advanced callers can use `SignedEventIndex`, `extract_path_events`, and `query_path` directly.
+The evidence retains ordered target generators/pools, required fragment edges, matching policy, and archive/path provenance. Individual orbit memberships are not independent shuffle permissions. Intrinsic fragment automorphisms and event-preserving equivalences are different objects. Final event symmetry uses exact response labels at the selected thresholds, rather than a second approximate tolerance. Changing event thresholds never changes the saved search. Advanced callers can use `convert_fragments` to retain converted branches before event grouping, and `query_path` for explicitly requested mapping queries.
 
 ## Inspect growth directly from a result
 

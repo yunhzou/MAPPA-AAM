@@ -1,13 +1,10 @@
-"""Exact bounded event scoring of one compressed path, without orbit expansion.
+"""Historical ranking criteria and path validation for saved benchmark records.
 
-This is an optional postprocessor. Matching and the stored search graph are
-unchanged. Score invariance is certified before constructing a solver model.
+The public event decoder is mappa.postprocessing.decode_events.
 """
 from collections import defaultdict
 from itertools import combinations
-import time
 
-from .family_query import compile_path
 
 
 def bond_events(problem,mapping,*,reverse=False,bond_floor=.2,event_tolerance=.5):
@@ -120,53 +117,3 @@ def event_objective(compiled,*,reverse=False,bond_floor=.2,event_tolerance=.5):
         terms.append(term)
     objective=z3.IntVal(int(constant))+z3.Sum(terms)
     return objective,max(0,lower),dict(variable_bond_terms=len(terms),constant_bond_terms=removed)
-
-
-def minimize_events(path,problem,*,reverse=False,seconds=10.,bond_floor=.2,event_tolerance=.5):
-    """Return a proven minimum or explicit bounds and an achievable witness.
-
-    ``seconds`` budgets encoding and solver checks; a completed SAT check's
-    witness decoding/validation can extend beyond that soft deadline. Use an
-    external process watchdog when a hard wall-clock limit is required.
-    """
-    import z3
-    start=time.perf_counter();deadline=start+seconds
-    validate_representative(path,problem)
-    witness=path.mapping;events=bond_events(problem,witness,reverse=reverse,
-        bond_floor=bond_floor,event_tolerance=event_tolerance);upper=events['total']
-    invariant,tested=invariant_score(path,problem,bond_floor=bond_floor,event_tolerance=event_tolerance)
-    invariant_seconds=time.perf_counter()-start
-    result=dict(representative_score=upper,generators_tested=tested,invariant_seconds=invariant_seconds,
-                method='invariance_certificate' if invariant else 'bounded_symbolic',solver_queries=0,
-                solver_seconds=0.,witness_seconds=0.)
-    if invariant:
-        result.update(lower_bound=upper,upper_bound=upper,optimal=True,events=events,
-                      mapping=sorted(witness.items()),seconds=time.perf_counter()-start)
-        return result
-    compiled=compile_path(path,problem,{},source_atoms=(),complete_reference=False)
-    result['constraint_encoding_seconds']=compiled.encoding_seconds
-    stamp=time.perf_counter()
-    objective,lower,metrics=event_objective(compiled,reverse=reverse,
-        bond_floor=bond_floor,event_tolerance=event_tolerance)
-    result.update(metrics,objective_encoding_seconds=time.perf_counter()-stamp)
-    assert lower<=upper
-    while lower<upper and time.perf_counter()<deadline:
-        mid=(lower+upper)//2;solver=compiled.solver;solver.push();solver.add(objective<=mid)
-        solver.set(timeout=max(1,int(1000*(deadline-time.perf_counter()))))
-        stamp=time.perf_counter();status=solver.check()
-        result['solver_seconds']+=time.perf_counter()-stamp;result['solver_queries']+=1
-        if status==z3.sat:
-            stamp=time.perf_counter()
-            model=solver.model();realized=compiled.realize(model)
-            witness=dict(realized['mapping'])
-            events=bond_events(problem,witness,reverse=reverse,bond_floor=bond_floor,event_tolerance=event_tolerance)
-            upper=events['total'];assert upper==model.eval(objective).as_long() and upper<=mid
-            result['witness_seconds']+=time.perf_counter()-stamp
-        elif status==z3.unsat:lower=mid+1
-        else:result['unknown_reason']=solver.reason_unknown()
-        solver.pop()
-        if status==z3.unknown:break
-    result.update(lower_bound=lower,upper_bound=upper,optimal=lower==upper,events=events,
-                  mapping=sorted(witness.items()),seconds=time.perf_counter()-start)
-    if lower<upper and 'unknown_reason' not in result:result['unknown_reason']='time budget'
-    return result

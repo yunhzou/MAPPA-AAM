@@ -75,7 +75,7 @@ def child():
 if __name__=='__main__':
  if '--child' in sys.argv:child()
  else:
-  from run_event_campaign import MemoryGuard,bounded_process
+  from resources import MemoryGuard,bounded_process
   with (RUN/'export_validation.log').open('w') as log:status,peak=bounded_process([sys.executable,str(Path(__file__).resolve()),'--child'],dict(os.environ,OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1'),log,300,MemoryGuard(3072,6144,6144))
   (RUN/'export_validation_execution.json').write_text(json.dumps(dict(status=status,peak_mib=peak)))
   print(status,peak)
