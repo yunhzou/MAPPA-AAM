@@ -49,6 +49,17 @@ class FragmentMatchContext:
     target_orbits: object = None
     growth_replay: object = None
 
+    @classmethod
+    def from_saved_fragment(cls, fragment):
+        """Use recorded fixed assignments as anchors in the fragment's frame.
+
+        Within the supplied R/P fragment graphs, the matcher rediscovers free
+        assignments and symmetry under its new bond tolerance.
+        """
+        anchors = dict(fragment.fixed_assignments)
+        return cls(locked_mapping=anchors, islands={r: r for r in anchors},
+                   deferred_edges=fragment.deferred_edges)
+
 
 @dataclass(frozen=True)
 class FragmentMatchConfig:

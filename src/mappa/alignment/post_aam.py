@@ -228,6 +228,31 @@ class FragmentMatch:
         """Whether AAM supplied the exact group (including a trivial one)."""
         return self.target_generators is not None
 
+    @property
+    def fixed_assignments(self):
+        """Assignments fixed by both saved pools and correlated target actions.
+
+        ``exact_fixed`` locks an assignment inside the local pools. A recorded
+        target action can still transport it together with the whole fragment.
+        This is local to this fragment's recorded frame, not a whole-path lock.
+        """
+        if self.target_generators is None:
+            raise ValueError('Finalize saved fragment symmetry before reading anchors')
+        pools = tuple(d for d in self.symmetry_domains
+                      if d.source != 'exact_automorph_group')
+        pooled = {r for d in pools for r in d.r_atoms}
+        fixed_targets = {p for r, p in self.representative_assignments
+                         if r in self.exact_fixed or r not in pooled}
+        moving = set()
+        for domain in pools:
+            free = set(domain.p_atoms) - fixed_targets
+            if len(free) > 1:
+                moving.update(free)
+        for generator in self.target_generators:
+            moving.update(p for p, q in enumerate(generator.images) if p != q)
+        return tuple((r, p) for r, p in self.representative_assignments
+                     if p not in moving)
+
 
 @dataclass(frozen=True)
 class AAMHierarchy:
