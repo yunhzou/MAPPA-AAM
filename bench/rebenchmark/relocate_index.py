@@ -33,6 +33,7 @@ def prepare(source, destination, old, new, expected_sha256):
     original = json.loads(data)
     destination.mkdir(parents=True, exist_ok=False)
     result = dict(original, tasks=[])
+    checked_archives = set()
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         writer = BundleWriter(destination/'bundles', scratch)
         for row in original['tasks']:
@@ -43,8 +44,11 @@ def prepare(source, destination, old, new, expected_sha256):
             for task in changed:
                 # Check addresses without rescanning or extracting archive trees.
                 for member in [*task.payload['source'].values(), task.payload['raw'], task.payload['graph']]:
-                    if not Path(member['archive']).is_file():
-                        raise FileNotFoundError(member['archive'])
+                    archive = member['archive']
+                    if archive not in checked_archives:
+                        if not Path(archive).is_file():
+                            raise FileNotFoundError(archive)
+                        checked_archives.add(archive)
             result['tasks'].append(dict(row, blob=asdict(writer.put(changed))))
     result['relocation'] = dict(source=str(source), sha256=expected_sha256,
                                 old_root=old, new_root=new, scientific_work_repeated=False)
