@@ -197,7 +197,7 @@ class DecodedEvents:
         )
 
 
-def decode_events(aam, config=None):
+def decode_events(aam, config=None, *, query_log=None):
     """Deduplicate final branches and return one witness per signed-event class.
 
     Accept one AAMResult or a FinalBranchCatalogue containing multiple searches
@@ -248,6 +248,7 @@ def decode_events(aam, config=None):
             max_events=(best + config.event_slack if best is not None else config.max_events),
             seconds=config.seconds_per_family,
             max_patterns=config.max_patterns_per_family,
+            query_log=query_log,
         )
         if config.event_slack is not None:
             best = min(best, min((p['total'] for p in report['patterns']), default=best))

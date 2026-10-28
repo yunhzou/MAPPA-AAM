@@ -505,7 +505,7 @@ def _same_event_orbit(terms, objective, pattern, index):
 
 
 def extract_path_events(path, search_problem, index, *, max_events=None, seconds=2.0,
-                        max_patterns=32, on_pattern=None):
+                        max_patterns=32, on_pattern=None, query_log=None):
     """Bounded signed-event projection of one saved partial or complete path.
 
     Completeness concerns this path/window, not the archive or global search.
@@ -515,6 +515,8 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
     ``max_patterns=None`` removes the class-count limit. ``on_pattern`` receives
     each newly discovered class so callers can persist witnesses before a
     process watchdog interrupts an expensive completeness proof.
+    Optional query_log(text, status, cpu_seconds) persists exact solver evidence;
+    its returned references are retained in the family report.
     """
     import z3
     from .family_query import compile_path
@@ -539,6 +541,8 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
     queries = 0
     metrics = {}
     metrics['exclusion'] = 'signed_event_orbits'
+    if query_log is not None:
+        metrics['query_evidence'] = []
 
     def finish(complete, reason):
         return dict(patterns=sorted(patterns.values(), key=lambda p: (p['total'], p['id'])),
@@ -589,7 +593,12 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
         compiled.solver.add(z3.Not(_same_event_orbit(terms, objective, seed, index)))
     while time.perf_counter() < deadline:
         compiled.solver.set(timeout=max(1, int(1000 * (deadline - time.perf_counter()))))
+        query_text = compiled.solver.to_smt2() if query_log is not None else None
+        query_started = time.process_time()
         status = compiled.solver.check()
+        query_seconds = time.process_time() - query_started
+        if query_log is not None:
+            metrics['query_evidence'].append(query_log(query_text, str(status), query_seconds))
         queries += 1
         if status == z3.unsat:
             return finish(True, 'all_event_orbits_excluded')

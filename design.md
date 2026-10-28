@@ -327,3 +327,14 @@ flowchart LR
 Historical `family_scoring` utilities are not the production decoder; their
 pre-existing benchmark reports remain historical. The redundant standalone
 minimum-stage pipeline has been removed and its jobs cancelled by the user.
+
+### Saved Golden decoding
+
+The benchmark adapter calls the public event decoder separately for each saved
+seed/cut at its own minimum+5, within the original best heavy/all-atom coverage
+tier. A prefix or sweep minimum is no larger than any included local minimum,
+so the union covers that prefix's required window. This avoids a separate
+minimum stage and never substitutes the ten-seed bound for earlier prefixes.
+The common queue distributes independent seed/cut tasks with one shared
+directional deadline. Exact queries, family reports and witnesses are bundled
+for audit; saved graphs and search settings remain unchanged.
