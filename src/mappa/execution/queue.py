@@ -179,6 +179,16 @@ class TaskQueue:
                           for key in keys))
             return {k: dict(state=s, result=pickle.loads(r) if r else None) for k, s, r in rows}
 
+    def optimize(self):
+        """Prepare planner statistics after bulk task insertion, before workers.
+
+        Without cardinalities SQLite can scan every pending task for an empty
+        dependency update. Analysis changes query plans, never queue outcomes.
+        """
+        with self.lock, self.db:
+            self.db.execute('PRAGMA analysis_limit=1000')
+            self.db.execute('ANALYZE')
+
     def backup(self, path):
         """One compact consistent checkpoint, never a shared database writer."""
         path = Path(path)

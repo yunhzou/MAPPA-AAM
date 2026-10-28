@@ -83,6 +83,7 @@ def execute(args):
         secret=secrets.token_bytes(32)
         with (out/'worker.key').open('xb') as stream:
             os.chmod(out/'worker.key',0o600);stream.write(secret)
+        queue.optimize()
         queue.backup(out/'queue.sqlite')
         with coordinator(queue,(socket.gethostname(),0),secret) as address:
             save(out/'endpoint.json',dict(host=address[0],port=address[1],identity=plan['identity']))

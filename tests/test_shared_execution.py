@@ -292,3 +292,15 @@ def test_queue_backup_is_one_complete_copyable_file(tmp_path):
     assert restored.snapshot()=={'complete':1}
     assert restored.results()['one']['result']=={'value':42}
     restored.close();queue.close()
+
+
+def test_queue_optimization_preserves_dependency_and_claim_results(tmp_path):
+    queue=TaskQueue(tmp_path/'queue.sqlite',IDENTITY)
+    queue.add([task('parent'),task('child',dependencies=('parent',))])
+    queue.optimize()
+    claim=queue.claim('worker',MEMORY,IDENTITY)
+    assert claim['task'].key=='parent'
+    queue.finish('parent',claim['token'],'error',{'reason':'test'})
+    assert queue.claim('worker',MEMORY,IDENTITY)['state']=='finished'
+    assert queue.snapshot()=={'error':1,'blocked':1}
+    queue.close()
