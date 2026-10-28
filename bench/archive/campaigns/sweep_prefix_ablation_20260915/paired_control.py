@@ -6,7 +6,8 @@ from run import save
 from mappa.artifacts import read_aam_checkpoint
 from mappa.paired_competition import compete_fragments,CompetitionConfig
 from mappa.final_branches import FinalBranchCatalogue
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 base=PACKAGE.parent/'unrestricted_competition_20260915'
 def family_key(f):
  r=f.to_record();r.pop('provenance',None);return hashlib.sha256(json.dumps(r,sort_keys=True).encode()).hexdigest()

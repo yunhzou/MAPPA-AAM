@@ -19,7 +19,10 @@ def test_each_seed_window_preserves_earlier_prefixes_and_cut_unions():
     assert rows[0]['decoded']['observed_minimum'] > rows[1]['decoded']['observed_minimum']
     for count in (1,2,3):
         cat=FinalBranchCatalogue(problem)
-        cat.families=[f for c in groups[:count] for f in c.families]
+        for c in groups[:count]:
+            offset=len(cat.families)
+            cat.families.extend(c.families)
+            for key,ids in c.branches.items():cat.branches.setdefault(key,set()).update(offset+i for i in ids)
         direct=decode_events(cat,EventDecodeConfig(event_slack=1))
         merged=merge_windows(rows[:count],slack=1)
         assert merged['complete'] and merged['minimum_proven']
@@ -40,20 +43,11 @@ def test_original_coverage_tier_and_unknown_are_preserved():
     assert not merge_windows([],slack=0)['complete']
 
 
-def test_public_decoder_query_evidence_replays():
-    problem=AAMProblem(endpoint('CCC',[(0,1,1),(1,2,1)]),
-        endpoint('CCCC',[(0,1,1),(1,2,.6),(2,3,1.8),(0,3,.4)]))
-    cat=catalogue(problem,{0:0,2:1},range(4))
-    evidence=[]
-    def log(text,status,seconds):
-        evidence.append((text,status,seconds))
-        return len(evidence)-1
-    result=decode_events(cat,EventDecodeConfig(event_slack=1,seconds_per_family=30),query_log=log)
-    assert result.complete and evidence
-    assert result.family_reports[0]['query_evidence']==list(range(len(evidence)))
-    for text,status,seconds in evidence:
-        solver=z3.Solver();solver.from_string(text)
-        assert str(solver.check())==status and seconds>=0
+def test_converted_record_does_not_emit_solver_evidence():
+    problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CO',[]))
+    result=decode_events(catalogue(problem,{0:0,1:1}))
+    assert result.complete
+    assert all(r['solver_queries']==0 and 'query_evidence' not in r for r in result.family_reports)
 
 
 def test_tasks_share_direction_budget_and_keep_seed_cut_identity():
@@ -99,7 +93,11 @@ def test_prefix_representatives_bound_later_seed_without_minimum_stage():
         rows.append(dict(coverage=tier,decoded=decoded_events_record(result)))
         merged=merge_windows(rows,slack=1)
         direct=FinalBranchCatalogue(problem)
-        direct.families=[catalogue(problem,m).families[0] for m in maps[:seed+1]]
+        for m in maps[:seed+1]:
+            c=catalogue(problem,m)
+            offset=len(direct.families)
+            direct.families.extend(c.families)
+            for key,ids in c.branches.items():direct.branches.setdefault(key,set()).update(offset+i for i in ids)
         expected=decode_events(direct,EventDecodeConfig(event_slack=1))
         assert merged['complete'] and merged['minimum']==expected.observed_minimum
         assert {r['id'] for r in merged['candidates']}=={r.id for r in expected.candidates}

@@ -371,8 +371,8 @@ calls with changed tolerances. Trace explanations use the same comparisons.
 Without this setting, the existing inclusive `iso_tolerance` behavior remains.
 `inclusive=False` supports the strict unchanged-bond condition needed when events
 start at equality. This capability applies to the reusable `match_fragment` API
-and its growth kernel. It is not yet a saved AAM conversion pipeline, and it does
-not change the serialized search policy or restart any benchmark. Matching still
+and its growth kernel. It is consumed by the saved-fragment conversion pipeline below; original search
+records and their policies remain unchanged. Matching still
 checks active source bonds and the target graph floor; this alone is not a proof
 that all internal target-only/weak-pair events have been resolved.
 
@@ -410,3 +410,24 @@ remain separate. The experiment prepares verification thresholds once and checks
 each distinct mapping independently; it still checks each branch's internal
 events against that branch's own partition. Matching and event thresholds do not
 change. Timings separate conversion, graph serialization, and independent checks.
+
+### Official decoder and validation (2026-10-28)
+
+`convert_fragments` owns distinct pair/anchor rematching and recombination.
+`decode_events` uses it and owns direct event counts, event-class grouping and
+optional minimum+n filtering. The CLI and portable execution operation use this
+same public API. The experiment only loads saved inputs and performs independent
+checks; it contains no second rematcher. Converted catalogue actions, rematched
+graphs and source provenance are retained in the result and v2 artifact.
+
+There is no solver event-enumeration path in the installed package. Explicit
+conditional shuffle queries remain a separate operation. Historical solver
+proofs and reference oracles cannot certify the new converted-branch scope.
+No automatic decoder fallback or silently ignored legacy budget option exists.
+
+The accepted one-process EnzymeMap28666 prototype converted all14,446saved
+branches over303atoms in50.869seconds, with2,486uncapped complete rematches and
+minimum8, agreeing with the previous completed result. Independent dense checks
+took161.691seconds. Job63284 on the new NRT cluster completed0:0. This validates
+direct converted-branch counts, not exhaustive old minimum+5 window equivalence.
+Official refactor equality and regression validation are recorded in task21.

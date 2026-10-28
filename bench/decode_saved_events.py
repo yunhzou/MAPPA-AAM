@@ -48,7 +48,8 @@ def certificate_rows(path):
 def child(args):
     import json
     from mappa.artifacts import read_aam_checkpoint
-    from mappa.event_patterns import SignedEventIndex, extract_path_events
+    from mappa.event_patterns import SignedEventIndex
+    from reference_event_decoder import extract_path_events
     from validate_event_examples import compare_saved_slap
     start, cpu = time.perf_counter(), time.process_time()
     deadline = start + max(0., args.seconds - 2.)

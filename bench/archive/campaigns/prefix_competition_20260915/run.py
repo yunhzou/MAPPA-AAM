@@ -13,7 +13,8 @@ def save(p,v):
 def worker(case,mode,stage):
  from mappa.artifacts import read_aam_checkpoint,write_aam_checkpoint
  from mappa.final_branches import FinalBranchCatalogue
- from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.event_patterns import SignedEventIndex
+ from reference_event_decoder import extract_path_events
  from mappa.competition import compete_fragments,CompetitionConfig
  out=S/'runs'/str(case)/mode;out.mkdir(parents=True,exist_ok=True)
  start=time.perf_counter();cpu=time.process_time()

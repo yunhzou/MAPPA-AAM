@@ -2,7 +2,8 @@ from dataclasses import replace
 from mappa.action_reduction import absorb_subgroups
 from mappa.final_branches import FinalFamily
 from mappa.family_query import query_path
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 from test_event_patterns import problem
 
 S3=('group',((1,0,2),(1,2,0)))

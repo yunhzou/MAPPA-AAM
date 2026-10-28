@@ -12,7 +12,8 @@ from mappa.search_graph import AAMSearchGraph
 from mappa.search_symmetry import finalize_graph_symmetry
 from mappa.domain import AAMResult,AAMSearchMetrics
 from mappa.final_branches import FinalBranchCatalogue
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 from mappa.competition import compete_fragments,CompetitionConfig
 
 def run(case):

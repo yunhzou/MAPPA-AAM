@@ -9,7 +9,8 @@ S=Path(__file__).resolve().parent
 sys.path.insert(0,str(S.parents[1]/'src'))
 from mappa.artifacts import aam_from_record
 from mappa.final_branches import FinalBranchCatalogue
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 from mappa.competition import takeover_plan
 
 read=lambda name:json.loads(gzip.decompress((S/name).read_bytes()))

@@ -31,7 +31,8 @@ def worker(case,sweep,stage):
   result=dict(config=asdict(cfg),counts=r.counts,repairs=len(r.repairs),pending=r.pending,offers=r.offers)
  elif stage=='decode':
   from mappa.final_branches import FinalBranchCatalogue
-  from mappa.event_patterns import SignedEventIndex,extract_path_events
+  from mappa.event_patterns import SignedEventIndex
+  from reference_event_decoder import extract_path_events
   a=read_aam_checkpoint(out/'baseline.pkl.gz');p=a.problem;cat=FinalBranchCatalogue(p).add_aam(a,'baseline');modes=['none','local','prefix'];family_ids={};counts={}
   def group_ids(mode):
    return [i for i,f in enumerate(cat.families) if any(x['archive']=='baseline' or x['archive'].startswith(mode+':') for x in f.provenance)]

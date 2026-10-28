@@ -59,8 +59,10 @@ def test_thresholds_are_separate_and_partial_results_are_marked(searched):
         c.total
         for c in decode_events(searched, EventDecodeConfig(threshold=1.1)).candidates
     ] == [0]
-    incomplete = decode_events(searched, EventDecodeConfig(seconds_per_family=0))
-    assert not incomplete.complete
+    from dataclasses import replace
+    incomplete = decode_events(searched)
+    incomplete.conversion.rematches[0].complete = False
+    assert not incomplete.complete and not incomplete.minimum_proven
     assert incomplete.candidates
     assert before == searched.graph.to_record()
     with pytest.raises(ValueError):
@@ -81,8 +83,9 @@ def test_bidirectional_anchors_and_unequal_sizes():
     assert search_aam_directions(AAMProblem(r, p), config, direction="smaller_first")[
         0
     ].plan.reversed
-    with pytest.raises(ValueError):
-        decode_events(runs[0].aam)
+    partial = decode_events(runs[0].aam)
+    assert partial.complete
+    assert all(len(c.mapping) == 2 for c in partial.candidates)
 
 
 def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):

@@ -50,7 +50,8 @@ def child(args):
     import numpy as np
     from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
     from mappa.artifacts import read_aam_checkpoint
-    from mappa.event_patterns import SignedEventIndex, extract_path_events
+    from mappa.event_patterns import SignedEventIndex
+    from reference_event_decoder import extract_path_events
     from validate_event_examples import compare_saved_slap
     case = args.case
     folder = args.run / f'case{case}'

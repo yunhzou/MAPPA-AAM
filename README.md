@@ -2,7 +2,7 @@
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. A separate decoder turns those families into distinct bond-change candidates, each with an explicit atom mapping and queryable symmetry information.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder rematches saved fragments at the bond-event thresholds, retains their compressed branches, and counts bond changes directly. Each returned event candidate has a concrete atom mapping and supporting converted branches.
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
@@ -183,7 +183,7 @@ search_aam -> AAMResult -> decode_events -> DecodedEvents
 
 TS analysis consumes an explicit `ReactionContext`. It is not run automatically by AAM or event decoding.
 
-The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding groups the retained alternatives by their signed bond events. You can inspect a candidate's witness, ask which shuffles are allowed, or replay the search that produced it.
+The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding groups distinct fragment pairs with their direct anchors, rematches them at the event thresholds, and recombines the resulting compressed branches. It counts the bond differences of these branches and groups equal event classes. You can inspect a candidate's witness, ask which shuffles are allowed, or replay the search that produced it.
 
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 
@@ -219,7 +219,7 @@ decoded = decode_events(
     aam, EventDecodeConfig(threshold=0.5, metal_threshold=0.3),
 )
 print("Search capped:", aam.graph.capped)
-print("Saved-family decoding complete:", decoded.complete)
+print("Fragment conversion complete:", decoded.complete)
 for candidate in decoded.candidates:
     print(candidate.total, candidate.events, candidate.mapping)
 
@@ -231,11 +231,14 @@ if decoded.candidates:
     print(answer.status)  # allowed, forbidden, or unknown within saved families
 ```
 
-A candidate is one signed bond-event class with a witness mapping and supporting
-family IDs. `decoded.complete` certifies decoding of retained complete families
-in the requested window; it does not certify exhaustive AAM search. The decoder
-retains all represented event counts by default, including nonminimum
-alternatives. Search and final event tolerances are configured independently.
+A candidate groups converted branch witnesses by signed event class; it retains
+their family IDs. `decoded.conversion` exposes the rematched search graphs and
+branch provenance. `decoded.complete` means the retained fragment contexts were
+converted without caps, missing assignments, or counted events inside a new
+fragment. It does not certify exhaustive AAM search or enumerate every symmetry
+bijection. The minimum is the lowest direct count across converted branches.
+There is no solver minimization or fallback decoder. Search and final event
+tolerances remain separate; ordinary events start at 0.5 and metal events at 0.3.
 
 Anchors use `AAMSearchConfig(anchors=((r_atom, p_atom),))`.
 `from mappa import search_aam_directions` exposes forward, reverse,
@@ -404,7 +407,8 @@ boundary, and ignores bonds whose atoms are both unmatched. Existing WBO-change
 and metal thresholds apply in both directions. No missing atoms are invented.
 
 `decode_events(..., EventDecodeConfig(event_slack=n))` returns the retained
-minimum+n event window and reports whether the minimum and window are proven.
+minimum+n window across converted branches. `minimum_proven` is scoped to those
+branches when conversion is complete; it is not an exhaustive old-family claim.
 There is no separate minimum-scoring pass. Each candidate's `mapping` contains
 only actual correspondences. `endpoint_events` gives broken bonds in native R
 indices and formed bonds in native P indices. Internal `events` retain the R

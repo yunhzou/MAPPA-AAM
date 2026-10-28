@@ -6,7 +6,8 @@ S=Path(__file__).resolve().parent
 repo=S.parents[1];sys.path.insert(0,str(repo/'src'))
 from mappa import AAMProblem,MolecularEndpoint
 from mappa.final_branches import FinalBranchCatalogue
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 source=json.loads((S/'input.json').read_text())
 problem=AAMProblem(*(MolecularEndpoint(**source[k]) for k in ['reactant','product']))
 cat=FinalBranchCatalogue.from_record(problem,json.loads(gzip.decompress((S/'final-catalogue.json.gz').read_bytes())))

@@ -26,7 +26,7 @@ Matrices must be symmetric and coordinates finite. The event decoder additionall
 
 A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Event edges use source atom indices. This is different from a unique mapping modulo exact molecular symmetry (`PatternEquivalence` / `extract_path_patterns` in `mappa.pattern_collection`) and from a deduplicated final fragment branch (`aam.final_catalogue()`). None of these APIs enumerates every atom bijection.
 
-`decoded.complete` only certifies all retained complete families in the requested window; it is false when a family times out or a partial path was skipped. It does not certify exhaustive search. `decoded.minimum_candidates` selects the lowest **observed** event count. With no candidates, inspect family reports and search stops. Budgets are soft; production callers needing a hard wall limit should isolate the call in a process. The default decoder has no class-count cap but a ten-second budget per family.
+`decoded.complete` covers conversion of the retained fragment contexts, including preservation of mapped atoms and absence of internal counted events. A capped rematch remains incomplete. `decoded.minimum_candidates` selects the lowest direct branch counts. This is not an exhaustive old-family or global-search claim. The decoder uses the existing fragment matcher and no solver enumeration. `decoded.conversion` retains the rematched compressed graphs and recombination provenance. Hard wall/memory limits belong to the caller's process or shared executor.
 
 ## Ask about symmetry after choosing a witness
 
@@ -88,7 +88,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 |---|---|
 | `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
-| `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `seconds_per_family=10`; `max_patterns_per_family=None` |
+| `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `decoded.query` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |

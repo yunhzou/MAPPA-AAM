@@ -18,7 +18,8 @@ def child(case):
  from mappa.artifacts import read_aam_checkpoint
  from mappa.final_branches import FinalBranchCatalogue
  from rebuild_intrinsic import rebuild_intrinsic_catalogue
- from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.event_patterns import SignedEventIndex
+ from reference_event_decoder import extract_path_events
  from mappa.family_scoring import validate_representative
  start=time.perf_counter();cpu=time.process_time();folder=OUT/f'case{case}';folder.mkdir(parents=True,exist_ok=True)
  row=next(r for r in json.loads((BASE/'summary.json').read_text())['cases'] if r['case']==case)

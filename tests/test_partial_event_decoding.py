@@ -11,6 +11,7 @@ from mappa.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.postprocessing import EventDecodeConfig, decode_events
 from mappa.family_query import compile_path
 from mappa.frag import classify_bonds
+from reference_event_decoder import extract_path_events
 
 
 def endpoint(elements, edges):
@@ -39,6 +40,8 @@ def catalogue(problem, mapping, pool=()):
     cat = FinalBranchCatalogue(problem)
     cat.families = [FinalFamily(tuple(sorted(mapping.items())), (),
         (('pool', tuple(pool)),) if pool else (), (.2, 1.))]
+    pairs = ((tuple(sorted(mapping)), tuple(sorted(mapping.values()))),) if mapping else ()
+    cat.branches[((.2, 1.), pairs)] = {0}
     return cat
 
 
@@ -95,14 +98,9 @@ def test_partial_symbolic_events_and_classes_match_all_injections(nr, np_, mappe
                 assert (compiled.solver.check()==z3.sat)==(expected['id']==pattern['id'])
                 compiled.solver.pop()
             compiled.solver.pop()
-        result = decode_events(cat,EventDecodeConfig(seconds_per_family=30))
-        assert result.complete
-        assert {p.id for p in result.candidates} == {p['id'] for p in patterns}
-        for slack in (0,1):
-            limited=decode_events(cat,EventDecodeConfig(event_slack=slack,seconds_per_family=30))
-            minimum=min(p['total'] for p in patterns)
-            assert limited.minimum_proven and limited.observed_minimum==minimum
-            assert {p.id for p in limited.candidates}=={p['id'] for p in patterns if p['total']<=minimum+slack}
+        result = extract_path_events(path, problem, index, seconds=30, max_patterns=None)
+        assert result['complete']
+        assert {p['id'] for p in result['patterns']} == {p['id'] for p in patterns}
 
 
 def test_partial_target_symmetry_needs_no_solver(monkeypatch):
@@ -169,9 +167,9 @@ def test_correlated_and_overlapping_actions_preserve_partial_event_union(actions
         vectors={tuple(g[p] for p in v) for v in vectors for g in permutations_}
     index=SignedEventIndex(problem)
     expected={index.describe(index.vector(dict(zip(sorted(mapping),v))))['id'] for v in vectors}
-    decoded=decode_events(cat,EventDecodeConfig(seconds_per_family=30))
-    assert decoded.complete
-    assert {c.id for c in decoded.candidates}==expected
+    decoded=extract_path_events(cat.families[0].as_path(problem), problem, index, seconds=30, max_patterns=None)
+    assert decoded['complete']
+    assert {c['id'] for c in decoded['patterns']}==expected
 
 
 def test_distinct_fixed_boundary_elements_match_exhaustive_events():
@@ -181,9 +179,11 @@ def test_distinct_fixed_boundary_elements_match_exhaustive_events():
     cat = catalogue(problem, {0: 0}, (0, 1))
     index = SignedEventIndex(problem)
     expected = {index.describe(index.vector({0: p}))['id'] for p in (0, 1)}
-    result = decode_events(cat, EventDecodeConfig(seconds_per_family=30))
-    assert result.complete and result.minimum_proven and result.observed_minimum == 1
-    assert {candidate.id for candidate in result.candidates} == expected
-    assert sorted(candidate.total for candidate in result.candidates) == [1, 2]
+    result = decode_events(cat)
+    # Conversion keeps this saved singleton target set; it does not enumerate
+    # the old pool's alternative target regions.
+    assert result.complete and result.minimum_proven and result.observed_minimum == 2
+    assert {candidate.id for candidate in result.candidates} <= expected
+    assert [candidate.total for candidate in result.candidates] == [2]
     for candidate in result.candidates:
         assert candidate.total == sum(oracle(problem, candidate.mapping))

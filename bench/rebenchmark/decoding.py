@@ -1,7 +1,7 @@
 """Decode saved Golden seed/cut graphs through the public event decoder.
 
-Each seed/cut uses a feasible representative bound from its own seed prefix.
-Their union contains every prefix minimum+slack window, without a minimum stage.
+Each seed/cut converts its saved fragment pairs and counts the resulting branches.
+Local minimum+slack windows contain the corresponding prefix-union window.
 """
 from dataclasses import asdict
 import hashlib
@@ -62,15 +62,14 @@ def decode_seed(payload, workspace):
     catalogue = FinalBranchCatalogue(plan.problem).add_graph(one)
     all_families = len(catalogue.families)
     tier = max((coverage(plan.problem, f) for f in catalogue.families), default=None)
-    catalogue.families = [f for f in catalogue.families if coverage(plan.problem, f) == tier]
-    bound = representative_bound(plan.problem, graph, payload['seed'], tier, payload['slack'])
+    selected_ids = {i for i, f in enumerate(catalogue.families) if coverage(plan.problem, f) == tier}
+    catalogue.branches = {key: ids & selected_ids for key, ids in catalogue.branches.items()
+                          if ids & selected_ids}
+    catalogue.coupled_branches = {i: pairs for i, pairs in catalogue.coupled_branches.items()
+                                  if i in selected_ids}
     setup = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
-    def query_log(text, status, seconds):
-        return asdict(workspace.writer.put(dict(smt2=text, status=status, cpu_seconds=seconds,
-            sha256=hashlib.sha256(text.encode()).hexdigest())))
     started, cpu = time.perf_counter(), time.process_time()
-    result = decode_events(catalogue, EventDecodeConfig(max_events=bound,
-        seconds_per_family=payload['family_seconds']), query_log=query_log)
+    result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack']))
     timing = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
     for candidate in result.candidates:
         broken, formed, *_ = classify_bonds(candidate.mapping, plan.problem.reactant.wbo,
@@ -82,9 +81,9 @@ def decode_seed(payload, workspace):
                                                  formed=tuple(sorted((a,b) for a,b,*_ in formed)))
     record = decoded_events_record(result)
     return dict(task_id=payload['task_id'], cut=payload['cut'], seed=payload['seed']+1,
-        coverage=tier, window_basis=dict(seed_prefix=payload['seed']+1, slack=payload['slack'],
-            bound=bound, source='feasible_same_tier_representatives'), all_families=all_families, selected_families=len(catalogue.families),
-        decoded=record, families=[f.to_record() for f in catalogue.families],
+        coverage=tier, conversion_scope='retained_converted_branches',
+        all_families=all_families, selected_families=len(selected_ids),
+        decoded=record, families=[f.to_record() for f in result.catalogue.families],
         source=payload['source'], raw=payload['raw'], graph=payload['graph'],
         finalized=finalized, finalized_sha256=digest, search_rerun=False,
         timing=dict(setup=setup, decoding=timing))
@@ -97,6 +96,8 @@ def merge_windows(rows, *, slack=5):
     completeness flag here concerns exactly the provided rows, never a dataset.
     """
     rows = list(rows)
+    if len({r['decoded'].get('schema', 'mappa.decoded_events/v1') for r in rows}) > 1:
+        raise ValueError('Cannot combine solver-decoded windows with converted-branch windows')
     eligible = [row for row in rows if row['coverage'] is not None]
     tier = max((tuple(row['coverage']) for row in eligible), default=None)
     selected = [row for row in eligible if tuple(row['coverage']) == tier]

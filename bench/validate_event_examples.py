@@ -47,7 +47,7 @@ def compare_saved_slap(slap, patterns, window, complete):
 
 def finish_saved(args, aam, canonical, folder):
     """Retry only unfinished families and unvisited paths from the same archive."""
-    from mappa.event_patterns import extract_path_events
+    from reference_event_decoder import extract_path_events
     record = read(folder / 'comparison.json')
     if (folder / 'comparison_initial.json').exists():
         raise ValueError('finish is a single bounded follow-up, not an unlimited retry loop')
@@ -94,7 +94,8 @@ def child(args):
     import numpy as np
     from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
     from mappa.artifacts import read_aam_checkpoint, write_aam_checkpoint
-    from mappa.event_patterns import SignedEventIndex, extract_path_events
+    from mappa.event_patterns import SignedEventIndex
+    from reference_event_decoder import extract_path_events
     raw = read(args.repo / f'manuscript/evidence/case{args.case}_input.json')
     problem = AAMProblem(*(MolecularEndpoint(**raw[s]) for s in ('reactant', 'product')))
     folder = args.output / f'case{args.case}'

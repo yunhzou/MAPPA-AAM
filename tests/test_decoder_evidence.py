@@ -3,7 +3,7 @@ import hashlib
 import pytest
 from mappa import AAMProblem
 from mappa.artifacts import decoded_events_record
-from mappa.postprocessing import decode_events, EventDecodeConfig
+from legacy_decoder_records import record as legacy_record
 from rebenchmark.decoder_evidence import ProofReplay, validate_record
 from test_partial_event_decoding import endpoint, catalogue
 
@@ -16,8 +16,8 @@ def example(symbolic=False):
     def log(text, status, seconds):
         queries.append(dict(smt2=text,status=status,sha256=hashlib.sha256(text.encode()).hexdigest()))
         return len(queries)-1
-    result = decode_events(cat, EventDecodeConfig(max_events=10,seconds_per_family=30), query_log=log)
-    return problem, dict(decoded=decoded_events_record(result), families=[f.to_record() for f in cat.families],selected_families=1), queries
+    result = legacy_record(cat, max_events=10, query_log=log)
+    return problem, dict(decoded=result, families=[f.to_record() for f in cat.families],selected_families=1), queries
 
 
 @pytest.mark.parametrize('symbolic', [False, True])
@@ -102,8 +102,8 @@ def test_relative_pilot_window_has_explicit_policy_and_same_proofs():
     def log(text,status,seconds):
         queries.append(dict(smt2=text,status=status,sha256=hashlib.sha256(text.encode()).hexdigest()))
         return len(queries)-1
-    result=decode_events(cat,EventDecodeConfig(event_slack=5,seconds_per_family=30),query_log=log)
-    value=dict(decoded=decoded_events_record(result),families=[f.to_record() for f in cat.families],selected_families=1)
+    result=legacy_record(cat,event_slack=5,query_log=log)
+    value=dict(decoded=result,families=[f.to_record() for f in cat.families],selected_families=1)
     assert window_slack(value)==5
     verify_window(value,problem,None,None)
     assert validate_record(value,problem,queries.__getitem__,ProofReplay())['verified']

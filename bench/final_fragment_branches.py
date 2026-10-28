@@ -25,7 +25,8 @@ def run(args):
     from mappa import AAMProblem, MolecularEndpoint
     from mappa.artifacts import read_aam_checkpoint
     from mappa.final_branches import FinalBranchCatalogue
-    from mappa.event_patterns import SignedEventIndex, extract_path_events
+    from mappa.event_patterns import SignedEventIndex
+    from reference_event_decoder import extract_path_events
     start = time.perf_counter()
     args.output.mkdir(parents=True, exist_ok=True)
     inputs = {}

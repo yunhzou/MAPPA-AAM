@@ -4,7 +4,8 @@ from dataclasses import replace
 import random
 
 from mappa.event_certificates import EventFamilyCertificates
-from mappa.event_patterns import SignedEventIndex, extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 from test_event_patterns import problem, saved_path
 
 

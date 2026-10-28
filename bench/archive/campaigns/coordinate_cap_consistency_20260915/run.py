@@ -32,7 +32,8 @@ def competition(case,cap,out):
 def decode(case,cap,out,passno):
  from mappa.artifacts import read_aam_checkpoint
  from mappa.final_branches import FinalBranchCatalogue
- from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.event_patterns import SignedEventIndex
+ from reference_event_decoder import extract_path_events
  c=time.process_time();w=time.perf_counter();deadline=w+275
  a=read_aam_checkpoint(out/'cuts/aam.pkl.gz');p=a.problem;idx=SignedEventIndex(p,threshold=.5,metal_threshold=.3)
  cat=FinalBranchCatalogue(p).add_aam(a,'baseline');del a

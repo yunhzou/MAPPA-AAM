@@ -61,6 +61,8 @@ def validate_record(value, problem, read_query, replay):
     from mappa.family_query import compile_path
     decoded = value['decoded']
     config = decoded['config']
+    if value['decoded'].get('schema') == 'mappa.decoded_events/v2':
+        raise ValueError('Converted branches require conversion evidence, not legacy solver proofs')
     index = SignedEventIndex(problem, threshold=config['threshold'],
                              metal_threshold=config['metal_threshold'])
     if frozen_value(decoded['event_policy']) != frozen_value(index.policy):

@@ -232,7 +232,7 @@ def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
     queue.close()
 
 
-def test_independent_family_decoding_equals_production(tmp_path):
+def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
     from golden_evaluation import prepare
     from mappa import search_aam
     from mappa.final_branches import FinalBranchCatalogue
@@ -241,12 +241,12 @@ def test_independent_family_decoding_equals_production(tmp_path):
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')
     catalogue = FinalBranchCatalogue(case).add_aam(aam)
-    config = EventDecodeConfig(max_events=5, seconds_per_family=10)
+    config = EventDecodeConfig(event_slack=5)
     expected = decode_events(catalogue, config)
     assert expected.complete
     writer = BundleWriter(tmp_path/'inputs', tmp_path)
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
-    tasks = plan_event_decoding('decode', case, catalogue.families, config, writer)
+    tasks = plan_event_decoding('decode', case, catalogue, config, writer)
     queue.add(tasks)
     run(queue, workers=2, identity=IDENTITY, scratch=tmp_path,
         bundles=tmp_path/'bundles', memory_bytes=MEMORY)
@@ -254,11 +254,9 @@ def test_independent_family_decoding_equals_production(tmp_path):
     patterns = set()
     for row in queue.results().values():
         result = read_blob(row['result']['blob'], tmp_path)
-        assert result['report']['complete']
-        patterns.update(p['id'] for p in result['report']['patterns'])
+        assert result['complete']
+        patterns.update(p['id'] for p in result['candidates'])
     assert patterns == {candidate.id for candidate in expected.candidates}
-    with pytest.raises(ValueError, match='absolute window'):
-        plan_event_decoding('bad', case, catalogue.families, EventDecodeConfig(event_slack=5), writer)
     queue.close()
 
 

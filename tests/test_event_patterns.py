@@ -11,7 +11,8 @@ import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.event_patterns import SignedEventIndex, _response_bounds, extract_path_events
+from mappa.event_patterns import SignedEventIndex, _response_bounds
+from reference_event_decoder import extract_path_events
 from mappa.search_graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))

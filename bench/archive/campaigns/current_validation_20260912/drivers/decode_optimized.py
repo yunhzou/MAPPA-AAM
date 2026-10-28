@@ -8,7 +8,8 @@ REPO=Path('/Users/yunhengz/Desktop/AAM Writing')
 def child(case):
  from mappa.artifacts import read_aam_checkpoint
  from mappa.final_branches import FinalBranchCatalogue
- from mappa.event_patterns import SignedEventIndex,extract_path_events
+ from mappa.event_patterns import SignedEventIndex
+ from reference_event_decoder import extract_path_events
  from validate_event_examples import compare_saved_slap
  start=time.perf_counter();cpu=time.process_time();folder=ROOT/'decoded-optimized'/f'case{case}';folder.mkdir(parents=True,exist_ok=True)
  base=ROOT/'runs/coordinate/seed1'/f'case{case}'/'R_to_P/cuts/aam.pkl.gz'

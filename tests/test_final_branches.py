@@ -5,7 +5,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench/experiments/
 from test_event_patterns import problem,saved_path
 from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
 from mappa.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
-from mappa.event_patterns import SignedEventIndex,extract_path_events
+from mappa.event_patterns import SignedEventIndex
+from reference_event_decoder import extract_path_events
 from mappa.family_query import query_path
 
 
