@@ -503,5 +503,3 @@ def _same_event_orbit(terms, objective, pattern, index):
             conditions.append(encoder.lookup(va, rows)[0] == sign)
     equality = z3.And(*solver.assertions(), *conditions)
     return z3.Exists(encoder.variables, equality) if encoder.variables else equality
-
-

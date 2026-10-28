@@ -409,3 +409,9 @@ minimum 8, agreeing with the previous completed result. Independent dense checks
 took 161.691 seconds. Job 63284 on the new NRT cluster completed 0:0. This validates
 direct converted-branch counts, not exhaustive old minimum+5 window equivalence.
 Official refactor equality and regression validation are recorded in ticket 21.
+
+The official refactor was checked on NRT job 64049: all 15,062 branch rows,
+best witnesses and rematched graphs equal the accepted saved experiments.
+EnzymeMap 446/28666 retain minima 10/8. Conversion with minimum-class output
+took 1.670/72.582 seconds; independent dense checks took 1.231/179.705 seconds.
+See [validation evidence](docs/validation/anchored_conversion_20261028.json).
