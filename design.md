@@ -266,3 +266,20 @@ selection, symmetry compression, and search settings are unchanged.
 Flow: saved branch + reference → finite constraints → supported choices → exact
 SAT/UNSAT/unknown → independently checked explicit-atom witness. Runtime and
 correctness require NRT validation; this design does not itself establish speedup.
+
+NRT validation of the Boolean implementation (`aacb165`): 58 focused tests and
+38 decoder/execution regressions passed; 102 old/new membership comparisons
+agreed, including negative and explicit-hydrogen cases. Three saved Golden194
+reverse queries retained independently checked reference witnesses. Their solver
+CPU times changed from 2371.318/1474.645/1310.405 seconds to
+1.518/1.328/1.469 seconds. New total wall times, including constraint construction,
+were 14.788/13.513/13.588 seconds. Prior total construction times were not recorded;
+these measurements are query-level validation, not full-benchmark speedups.
+
+```mermaid
+flowchart LR
+    Saved[Saved branch and reference] --> Constraints[Correlated finite constraints]
+    Constraints --> Propagation[Propagate supported values]
+    Propagation --> Solver[Exact Boolean choices]
+    Solver --> Witness[Validate full atom witness]
+```
