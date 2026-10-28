@@ -93,9 +93,9 @@ def run(archive, expected_sha, output,
             verified[family.mapping] = direct
         direct = verified[family.mapping]
         histogram[count] += 1
-        old = catalogue.families[branch.source_family_id]
-        row = dict(family=branch.source_family_id, events=count, mapped_atoms=len(mapping),
-                   changed_assignments=sum(mapping.get(r) != p for r,p in old.mapping),
+        row = dict(families=branch.source_family_ids, events=count, mapped_atoms=len(mapping),
+                   changed_assignments=max(sum(mapping.get(r) != p for r,p in catalogue.families[fid].mapping)
+                                           for fid in branch.source_family_ids),
                    internal_events=reports[branch.family_id]['internal_events'])
         rows.append(row)
         if not best or count < best[0]['events']:

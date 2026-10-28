@@ -1,6 +1,6 @@
 """Convert saved fragment pairs to the bond-event matching thresholds."""
 from dataclasses import dataclass, field
-from itertools import product
+from itertools import chain, product
 import time
 
 from .alignment.branch import find_islands
@@ -31,7 +31,7 @@ class FragmentRematch:
 
 @dataclass(frozen=True)
 class ConvertedBranch:
-    source_family_id: int
+    source_family_ids: tuple[int, ...]
     family_id: int
     fragment_paths: tuple
     islands: tuple
@@ -78,12 +78,18 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
             default_threshold=threshold, metal_threshold=metal_threshold)
 
     rule = BondTolerance(tolerance, inclusive=False)
-    entries = [(policy, pairs, fid) for (policy, pairs), ids in source.branches.items()
-               for fid in sorted(ids)]
-    entries += [(source.families[fid].policy, pairs, fid)
-                for fid, pairs_list in source.coupled_branches.items() for pairs in sorted(pairs_list)]
-    for policy, pairs, fid in entries:
-        anchors = dict(source.families[fid].fixed_assignments)
+    entries = ((policy, pairs, fid) for (policy, pairs), ids in source.branches.items()
+               for fid in sorted(ids))
+    coupled = ((source.families[fid].policy, pairs, fid)
+               for fid, pairs_list in source.coupled_branches.items() for pairs in sorted(pairs_list))
+    groups = {}
+    for policy, pairs, fid in chain(entries, coupled):
+        pairs = tuple(sorted((tuple(sorted(rs)), tuple(sorted(ps))) for rs, ps in pairs))
+        fixed = tuple(sorted(source.families[fid].fixed_assignments))
+        groups.setdefault((policy, pairs, fixed), set()).add(fid)
+    for (policy, pairs, fixed), ids in groups.items():
+        source_ids = tuple(sorted(ids))
+        anchors = dict(fixed)
         if policy[0] not in graphs:
             graphs[policy[0]] = tuple(build_graph(ep.elements, ep.wbo, bond_cut=policy[0])
                                     for ep in (problem.reactant, problem.product))
@@ -143,17 +149,17 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
             actions = programs[program]
             family_id = len(converted.families)
             refs = tuple(zip(pair_ids, selected))
-            provenance = [dict(source_family_id=fid, fragment_paths=refs)]
+            provenance = [dict(source_family_ids=source_ids, fragment_paths=refs)]
             family = FinalFamily(mapping, required, actions, (policy[0], threshold), provenance)
             converted.families.append(family)
-            groups = {}
+            islands = {}
             for r, owner in owners:
-                groups.setdefault(owner, []).append(r)
+                islands.setdefault(owner, []).append(r)
             assignment = dict(mapping)
             new_pairs = tuple(sorted((tuple(atoms), tuple(sorted(assignment[r] for r in atoms)))
-                                     for atoms in groups.values()))
+                                     for atoms in islands.values()))
             converted.branches.setdefault((family.policy, new_pairs), set()).add(family_id)
-            result.branches.append(ConvertedBranch(fid, family_id, refs, owners))
+            result.branches.append(ConvertedBranch(source_ids, family_id, refs, owners))
     converted.path_count = len(result.branches)
     converted.incomplete_paths = source.incomplete_paths + sum(not item.complete for item in result.rematches)
     result.seconds = time.perf_counter()-started

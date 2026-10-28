@@ -90,9 +90,10 @@ def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
     catalogue.families += [replace(first), replace(first, actions=())]
     next(iter(catalogue.branches.values())).update((1, 2))
     result = convert_fragments(catalogue)
-    assert len(result.rematches) == 2 and result.reused_pairs == 1
-    assert len(result.branches) == 3
-    assert result.branches[0].fragment_paths == result.branches[1].fragment_paths
+    assert len(result.rematches) == 2 and result.reused_pairs == 0
+    assert len(result.branches) == 2
+    assert [b.source_family_ids for b in result.branches] == [(0, 1), (2,)]
+    assert result.catalogue.families[0].provenance[0]['source_family_ids'] == (0, 1)
 
 
 def test_partial_boundary_and_wholly_unmatched_material(backend):
@@ -175,3 +176,54 @@ def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
     decoded = decode_events(saved(ep, ep, {0: 0}))
     assert decoded.observed_minimum == 0 and not decoded.minimum_proven
     assert not decoded.complete
+
+
+def test_grouping_precedes_recombination_and_result_return(backend, monkeypatch):
+    import mappa.fragment_conversion as module
+    ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
+    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
+    baseline = decode_events(catalogue)
+    catalogue.families.extend(replace(catalogue.families[0]) for _ in range(99))
+    next(iter(catalogue.branches.values())).update(range(100))
+    original = module.product
+    calls = []
+    def counted(*args):
+        calls.append(1)
+        return original(*args)
+    monkeypatch.setattr(module, 'product', counted)
+    result = decode_events(catalogue)
+    assert len(calls) == 1
+    assert len(result.conversion.branches) == len(result.catalogue.families) == 1
+    assert result.conversion.branches[0].source_family_ids == tuple(range(100))
+    assert result.complete == baseline.complete and result.observed_minimum == baseline.observed_minimum
+    assert [(c.id, c.mapping, c.total) for c in result.candidates] == [(c.id, c.mapping, c.total) for c in baseline.candidates]
+    record = decoded_events_record(result)
+    assert record['converted_branches'][0]['source_family_ids'] == tuple(range(100))
+    assert len(record['family_reports']) == 1
+
+
+def test_fragment_order_is_irrelevant_but_atom_pools_and_policy_are_not(backend):
+    ep = endpoint('HHHH', [])
+    pairs = (((0, 1), (0, 1)), ((2, 3), (2, 3)))
+    catalogue = saved(ep, ep, dict(enumerate(range(4))), pairs=pairs,
+                      actions=(('pool', (0, 1, 2, 3)),))
+    catalogue.families.append(replace(catalogue.families[0]))
+    catalogue.branches[((.2, 1.), tuple(reversed(pairs)))] = {1}
+    catalogue.families.append(replace(catalogue.families[0]))
+    other_pairs = (((0, 2), (0, 2)), ((1, 3), (1, 3)))
+    catalogue.branches[((.2, 1.), other_pairs)] = {2}
+    catalogue.families.append(replace(catalogue.families[0], policy=(.4, 1.)))
+    catalogue.branches[((.4, 1.), pairs)] = {3}
+    result = convert_fragments(catalogue)
+    assert {b.source_family_ids for b in result.branches} == {(0, 1), (2,), (3,)}
+
+
+def test_same_pairs_in_coupled_and_regular_inputs_share_conversion(backend):
+    ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
+    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
+    pairs = next(iter(catalogue.branches))[1]
+    catalogue.families.append(replace(catalogue.families[0]))
+    catalogue.coupled_branches[1] = {pairs}
+    result = convert_fragments(catalogue)
+    assert len(result.branches) == 1
+    assert result.branches[0].source_family_ids == (0, 1)

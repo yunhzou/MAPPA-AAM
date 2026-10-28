@@ -415,3 +415,16 @@ best witnesses and rematched graphs equal the accepted saved experiments.
 EnzymeMap 446/28666 retain minima 10/8. Conversion with minimum-class output
 took 1.670/72.582 seconds; independent dense checks took 1.231/179.705 seconds.
 See [validation evidence](docs/validation/anchored_conversion_20261028.json).
+
+
+### Group conversion inputs before returning converted AAM (2026-10-28)
+
+Group source branches by the unordered R/P fragment-pair set, direct fixed
+assignments and matching policy before rematching or recombination. Free choices
+are rediscovered by the existing matcher, so different saved representatives with
+these same inputs require only one conversion. Different anchors, atom pools or
+policies remain separate. Store each group's source family IDs together as
+provenance; return its converted branches once, before event counting or saving.
+This grouping does not change growth, tolerance, allowed rematch choices or the
+retained-branch minimum. It avoids repeating Cartesian recombination per source
+representative. Historical result records and measurements remain unchanged.

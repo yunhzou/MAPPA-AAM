@@ -234,7 +234,7 @@ def decode_events(aam, config=None):
             for a, b in events[kind])
         complete = internal == 0 and all(conversion.rematches[i].complete
                                         for i, _ in branch.fragment_paths)
-        reports.append(dict(family_id=branch.family_id, source_family_id=branch.source_family_id,
+        reports.append(dict(family_id=branch.family_id, source_family_ids=branch.source_family_ids,
             complete=complete, internal_events=internal, total=total, solver_queries=0,
             reason='converted_branch' if complete else 'incomplete_fragment_conversion'))
     best = min((r['total'] for r in reports), default=None)
