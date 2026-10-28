@@ -331,9 +331,12 @@ minimum-stage pipeline has been removed and its jobs cancelled by the user.
 ### Saved Golden decoding
 
 The benchmark adapter calls the public event decoder separately for each saved
-seed/cut at its own minimum+5, within the original best heavy/all-atom coverage
-tier. A prefix or sweep minimum is no larger than any included local minimum,
-so the union covers that prefix's required window. This avoids a separate
+seed/cut within the original best heavy/all-atom coverage tier. Score saved
+representatives from that cut and seed prefix to obtain a feasible upper bound,
+then decode through that bound+5. Every later prefix containing this seed also
+contains those witnesses; adding cuts can only lower the minimum at that tier.
+Thus the union covers every requested prefix window without decoding high-event
+alternatives already excluded by an earlier feasible witness. This avoids a separate
 minimum stage and never substitutes the ten-seed bound for earlier prefixes.
 The common queue distributes independent seed/cut tasks with one shared
 directional deadline. Exact queries, family reports and witnesses are bundled

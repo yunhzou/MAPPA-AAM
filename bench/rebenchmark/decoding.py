@@ -1,7 +1,7 @@
 """Decode saved Golden seed/cut graphs through the public event decoder.
 
-Each seed/cut gets its own minimum+slack window. Their union therefore contains
-that window for every seed prefix and any union of cuts, without a minimum stage.
+Each seed/cut uses a feasible representative bound from its own seed prefix.
+Their union contains every prefix minimum+slack window, without a minimum stage.
 """
 from dataclasses import asdict
 import hashlib
@@ -28,6 +28,29 @@ def coverage(problem, family):
     return (sum(problem.reactant.elements[a] != 'H' for a, _ in family.mapping), len(family.mapping))
 
 
+def representative_bound(problem, graph, seed, tier, slack):
+    """Earlier same-tier witnesses bound this prefix without any optimization.
+
+    Every requested prefix containing this seed also contains these witnesses.
+    A larger cut union can only lower the minimum within its chosen tier.
+    """
+    from mappa.event_patterns import SignedEventIndex
+    index = SignedEventIndex(problem)
+    vectors, best = [], None
+    for terminal in graph.terminals:
+        state = graph.states[terminal]
+        if state.context <= seed and coverage(problem, state) == tier:
+            vectors.append(index.vector(dict(state.mapping)))
+            if len(vectors) == 32:
+                value = int(index.counts(vectors).sum(axis=1).min())
+                best = value if best is None else min(best, value)
+                vectors = []
+    if vectors:
+        value = int(index.counts(vectors).sum(axis=1).min())
+        best = value if best is None else min(best, value)
+    return None if best is None else best+slack
+
+
 def decode_seed(payload, workspace):
     from mappa.artifacts import decoded_events_record
     from mappa.final_branches import FinalBranchCatalogue
@@ -40,12 +63,13 @@ def decode_seed(payload, workspace):
     all_families = len(catalogue.families)
     tier = max((coverage(plan.problem, f) for f in catalogue.families), default=None)
     catalogue.families = [f for f in catalogue.families if coverage(plan.problem, f) == tier]
+    bound = representative_bound(plan.problem, graph, payload['seed'], tier, payload['slack'])
     setup = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
     def query_log(text, status, seconds):
         return asdict(workspace.writer.put(dict(smt2=text, status=status, cpu_seconds=seconds,
             sha256=hashlib.sha256(text.encode()).hexdigest())))
     started, cpu = time.perf_counter(), time.process_time()
-    result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack'],
+    result = decode_events(catalogue, EventDecodeConfig(max_events=bound,
         seconds_per_family=payload['family_seconds']), query_log=query_log)
     timing = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
     for candidate in result.candidates:
@@ -58,7 +82,8 @@ def decode_seed(payload, workspace):
                                                  formed=tuple(sorted((a,b) for a,b,*_ in formed)))
     record = decoded_events_record(result)
     return dict(task_id=payload['task_id'], cut=payload['cut'], seed=payload['seed']+1,
-        coverage=tier, all_families=all_families, selected_families=len(catalogue.families),
+        coverage=tier, window_basis=dict(seed_prefix=payload['seed']+1, slack=payload['slack'],
+            bound=bound, source='feasible_same_tier_representatives'), all_families=all_families, selected_families=len(catalogue.families),
         decoded=record, families=[f.to_record() for f in catalogue.families],
         source=payload['source'], raw=payload['raw'], graph=payload['graph'],
         finalized=finalized, finalized_sha256=digest, search_rerun=False,
@@ -75,17 +100,23 @@ def merge_windows(rows, *, slack=5):
     eligible = [row for row in rows if row['coverage'] is not None]
     tier = max((tuple(row['coverage']) for row in eligible), default=None)
     selected = [row for row in eligible if tuple(row['coverage']) == tier]
-    if any(row['decoded']['config']['event_slack'] < slack for row in selected):
-        raise ValueError('Saved local windows are too narrow')
     minima = [row['decoded']['observed_minimum'] for row in selected if row['decoded']['observed_minimum'] is not None]
     minimum = min(minima, default=None)
     window = minimum+slack if minimum is not None else None
+    for row in selected:
+        config = row['decoded']['config']
+        if config['event_slack'] is not None:
+            sufficient = config['event_slack'] >= slack
+        else:
+            sufficient = config['max_events'] is None or (window is not None and config['max_events'] >= window)
+        if not sufficient:
+            raise ValueError('Saved windows do not cover this prefix; include its earlier witnesses')
     candidates = {}
     for row in selected:
         for candidate in row['decoded']['candidates']:
             if candidate['total'] <= window:
                 candidates.setdefault(candidate['id'], candidate)
-    complete = bool(selected) and all(row['decoded']['complete'] for row in selected)
+    complete = minimum is not None and bool(selected) and all(row['decoded']['complete'] for row in selected)
     return dict(coverage=tier, minimum=minimum, minimum_proven=minimum is not None and (minimum == 0 or complete),
         complete=complete, event_window=window, candidates=sorted(candidates.values(),key=lambda c:(c['total'],c['id'])),
         rows=len(rows), selected_rows=len(selected))
