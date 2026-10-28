@@ -34,7 +34,6 @@ The geometry is an **initial TS guess, not an optimized or validated TS**. The s
 From the repository root with MAPPA installed:
 
 ```bash
-python examples/ts_mode_selection/replay.py
 python manuscript/scripts/ts_mode_film/build.py \
   --source manuscript/animations/ts_mode_selection/inputs/recorded-case.json \
   --library src/mappa/static/3Dmol-min.js \

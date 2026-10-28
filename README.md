@@ -108,7 +108,7 @@ MAPPA searches for alternative correspondences so you can turn those differences
 
 In this gold-catalyzed rearrangement, MAPPA recovers two possible destinations for the original epoxide oxygen: the ester link or the ketone. They are consistent with different pathways considered in the published study. The video follows the actual fragment growth that finds both oxygen assignments in the 65-atom system.
 
-[3D film](manuscript/animations/gold_rearrangement/gold-oxygen-3d.mp4) · [Film viewer](manuscript/animations/gold_rearrangement/index.html) · [Full growth trajectory](manuscript/animations/gold_rearrangement/trajectory.html) · [Reproduce and inspect the witnesses](examples/gold_rearrangement/README.md)
+[3D film](manuscript/animations/gold_rearrangement/gold-oxygen-3d.mp4) · [Film viewer](manuscript/animations/gold_rearrangement/index.html) · [Full growth trajectory](manuscript/animations/gold_rearrangement/trajectory.html)
 
 
 <details open>
@@ -146,7 +146,7 @@ MAPPA matches the generated structure to the target and checks whether the infer
 
 This controlled demonstration uses a 135-atom target with a changed conformation and shuffled atom order to illustrate the check. MAPPA matches it as one complete fragment and preserves all 148 inferred connections.
 
-[3D video](manuscript/animations/molecule_verification/molecule-verification.mp4) · [Interactive film](manuscript/animations/molecule_verification/index.html) · [Try it with your XYZ files](examples/molecule_verification/README.md)
+[3D video](manuscript/animations/molecule_verification/molecule-verification.mp4) · [Interactive film](manuscript/animations/molecule_verification/index.html)
 
 ### Detect a broken structure
 
@@ -156,7 +156,7 @@ A generated structure can contain every expected atom and still have a disconnec
 
 Here we deliberately disconnect a 21-atom group. MAPPA still assigns all 135 atoms, but now needs two fragments and finds one missing connection. The video shows why complete atom coverage alone is insufficient for structure verification.
 
-[Broken-molecule video and evidence](manuscript/animations/molecule_verification_broken/README.md) · [Run the negative control](examples/molecule_verification/README.md#negative-control-break-one-connection)
+[Broken-molecule video and evidence](manuscript/animations/molecule_verification_broken/README.md)
 
 ## Use AAM to guide TS mode selection
 
@@ -168,7 +168,7 @@ MAPPA first maps the reactant and product to identify their bond changes, then m
 
 The video illustrates an O–H → N–H transfer in a 57-atom guess. The selected imaginary mode moves the highlighted hydrogen along the mapped bond changes; a stable mode is shown for contrast. This particular guess has one imaginary mode. The geometry remains a **TS guess, not an optimized TS**.
 
-[3D video and scoring evidence](manuscript/animations/ts_mode_selection/README.md) · [Interactive film](manuscript/animations/ts_mode_selection/index.html) · [Self-contained Python replay](examples/ts_mode_selection/README.md)
+[3D video and scoring evidence](manuscript/animations/ts_mode_selection/README.md) · [Interactive film](manuscript/animations/ts_mode_selection/index.html)
 
 ## Design
 
@@ -356,7 +356,8 @@ which tests ran; passing smoke checks does not mean the full suite passed.
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
-| `tests/`, `native/`, `tools/`, `hpc/` | Tests, native implementation, user utilities, batch launch examples |
+| `tests/`, `native/`, `tools/` | Tests, native implementation and user utilities |
+| `skills/` | Reusable viewer instructions |
 
 The architecture and ownership rules are in [design.md](design.md). Historical
 source revisions are recorded with their benchmark reports; old implementations

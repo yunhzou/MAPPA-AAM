@@ -1,4 +1,4 @@
-# Golden benchmark
+# Benchmarks
 
 This directory contains the current Golden search, anchored-fragment conversion,
 and saved-result analysis pipeline. Both reaction directions and seed prefixes
@@ -19,6 +19,8 @@ and saved-result analysis pipeline. Both reaction directions and seed prefixes
 | `rebenchmark/report.py`, `timings.py` | Search/reference and timing aggregation |
 | `rebenchmark/evidence.py`, `relocate_index.py` | Verified archives and explicit input mount relocation |
 | `rebenchmark/run_conversion.sbatch` | Shared pilot/coordinator/worker launcher |
+| `rebenchmark.sbatch` | Golden search drain launcher |
+| `run_typed_ts_array.sbatch` | Explicit-reaction TS batch launcher |
 
 Use `PYTHONPATH=src:bench`. Launches require explicit plans, source hashes and
 new output directories. Saved results and paper provenance remain in `reports/`;
@@ -32,3 +34,6 @@ Missing outputs and limits are unresolved, never negative results.
 No retired solver campaign, experiment runner or benchmark-specific viewer is
 kept here. Viewers use the shared MAPPA tools. Independent test fixtures live
 under `tests/`.
+
+Cluster launchers live here. Their partition, QoS, account and resource settings
+must match the destination cluster; moving a launcher does not change its settings.

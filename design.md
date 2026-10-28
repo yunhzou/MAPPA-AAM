@@ -184,8 +184,8 @@ missing outputs and unattempted tasks are never algorithmic negatives.
 `docs/` contains current usage guides and executable examples. `bench/` owns
 the current Golden pipeline and its shared evaluators; retired experiment and
 campaign scripts are removed. Test-only inputs and reference oracles live under
-`tests/`. `reports/` owns measurements and provenance. `tools/` and
-`hpc/` provide user/launch adapters; `manuscript/` owns paper artifacts. Historical
+`tests/`. `reports/` owns measurements and provenance. `tools/` provides
+user adapters; cluster launch settings live under `bench/`; `manuscript/` owns paper artifacts. Historical
 code is recovered from its recorded Git revision, not kept as runnable fallback
 copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
 
@@ -194,3 +194,6 @@ schedulers, explicit analytical/mechanism APIs and historical benchmark scorers
 still have callers. Their removal requires migrating those consumers together;
 changing directory names does not establish equivalent behavior. New code must
 use the existing owners, remove superseded paths, and update this one design.
+
+Standalone examples are removed. Paper witness inputs stay beside the relevant
+manuscript evidence. Keep `skills/` unchanged pending a separate review.

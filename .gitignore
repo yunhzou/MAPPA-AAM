@@ -65,6 +65,3 @@ dist/
 *.egg
 *.so
 .nfs*
-
-# Small, self-contained scientific example inputs
-!examples/gold_rearrangement/data/
