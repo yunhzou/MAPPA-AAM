@@ -4,8 +4,11 @@ The caller must separately establish the expected task grid and saved-graph
 catalogue identity. Solver limits here leave audit obligations unresolved.
 """
 from collections import OrderedDict
+from dataclasses import asdict
 from functools import lru_cache
 import hashlib
+from pathlib import Path
+import tempfile
 import time
 
 from mappa.event_patterns import SignedEventIndex
@@ -155,3 +158,75 @@ def validate_record(value, problem, read_query, replay):
                 incomplete_families=[r['family_id'] for r in reports if not r['complete']],
                 proof_checks=proof_rows, unresolved_proof_checks=len(unknown),
                 scope='Saved-record evidence only; task coverage and catalogue/source identity must also be verified.')
+
+
+def audit_output(payload, workspace):
+    """Shared-executor operation for one accepted saved output, with provenance."""
+    from mappa.artifacts import read_graph_checkpoint
+    from mappa.execution import Blob, Task, read_blob
+    from mappa.final_branches import FinalBranchCatalogue
+    from .campaign import load_plan
+    from .decoder_inventory import signature
+    from .decoding import coverage, representative_bound
+    from .saved_analysis import read_member
+    from .search import select_contexts
+
+    blob = Blob(**payload['blob'])
+    value = read_blob(blob, workspace.scratch)
+    key = f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
+    if key != payload['key'] or value['search_rerun'] is not False:
+        raise ValueError('Published output identity differs')
+    config = value['decoded']['config']
+    specification = Task(key, 'rebenchmark.decoding:decode_seed', dict(
+        source=value['source'], graph=value['graph'], raw=value['raw'],
+        finalized=value['finalized'] is None, cut=value['cut'], task_id=value['task_id'],
+        seed=value['seed']-1, slack=value['window_basis']['slack'],
+        family_seconds=config['seconds_per_family']), case=f'{value["task_id"]:05d}',
+        memory_bytes=payload['memory_bytes'])
+    if signature(specification) != payload['specification_signature']:
+        raise ValueError('Output differs from the expected scientific task')
+
+    def prepare():
+        with tempfile.TemporaryDirectory(dir=workspace.scratch) as td:
+            folder = Path(td)
+            for name, member in value['source'].items():
+                (folder/name).write_bytes(read_member(member))
+            plan = load_plan(folder)
+            read_member(value['raw'])  # Verify the immutable raw-cut source too.
+            if value['finalized'] is None:
+                data = read_member(value['graph'])
+                if hashlib.sha256(data).hexdigest() != value['finalized_sha256']:
+                    raise ValueError('Finalized graph checksum differs')
+                path = folder/'graph.pkl.gz'; path.write_bytes(data)
+                graph = read_graph_checkpoint(path)
+            else:
+                final = value['finalized']
+                if final.sha256 != value['finalized_sha256']:
+                    raise ValueError('Saved finalized graph identity differs')
+                schema, graph = read_blob(final, workspace.scratch)
+                if schema != 'rxn_core.finalized_cut/v1':
+                    raise ValueError('Unexpected finalized graph schema')
+            return plan, graph
+    plan, graph = workspace.prepared(
+        ('audit-cut', value['source']['task.json']['sha256'], value['raw']['sha256'],
+         value['finalized_sha256']), prepare)
+    catalogue = FinalBranchCatalogue(plan.problem).add_graph(select_contexts(graph,[value['seed']-1]))
+    tier = max((coverage(plan.problem,f) for f in catalogue.families), default=None)
+    families = [f.to_record() for f in catalogue.families if coverage(plan.problem,f) == tier]
+    if (len(catalogue.families) != value['all_families'] or
+            frozen_value(families) != frozen_value(value['families']) or
+            frozen_value(tier) != frozen_value(value['coverage']) or
+            catalogue.incomplete_paths != value['decoded']['incomplete_paths']):
+        raise ValueError('Saved family catalogue differs from the saved search graph')
+    bound = representative_bound(plan.problem, graph, value['seed']-1, tier, value['window_basis']['slack'])
+    if bound != value['window_basis']['bound'] or bound != config['max_events'] or config['event_slack'] is not None:
+        raise ValueError('Seed-prefix decoding bound differs')
+    if not hasattr(workspace, 'proof_replay'):
+        workspace.proof_replay = ProofReplay(seconds=payload['proof_seconds'],
+            save=lambda record: asdict(workspace.writer.put(record)))
+    result = validate_record(value, plan.problem,
+        lambda ref: read_blob(Blob(**ref), workspace.scratch), workspace.proof_replay)
+    result.update(key=key, blob=payload['blob'], specification_signature=payload['specification_signature'],
+                  catalogue_verified=True, prefix_bound_verified=True,
+                  scope='This accepted output only; dataset coverage requires every expected key.')
+    return result
