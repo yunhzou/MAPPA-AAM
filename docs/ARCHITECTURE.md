@@ -126,14 +126,11 @@ symmetry state. A block with two R atoms and four P atoms represents
 - `frag.py`: WBO graph construction, `classify_bonds`, and local witness
   materialization. It re-exports old XYZ/xtb names only for compatibility.
 - `modes.py`: normal-mode parsing and score-feature vectors.
-- `align.py`: compatibility facade for cache loading and coordinate reindex
-  helpers now owned by `chemistry_computations`.
 - `cli.py`: explicit `aam`, `events` (default), and `ts` stages. Search and
   event decoding never call a geometry selector. TS processing requires a
   caller-supplied resolved-reaction record.
 - `alignment/mapping_families.py`: exact structural and event-conditioned
   family compilation and membership. It performs no 3D witness selection.
-- `coordinate_orientation.py`: scalar signed-volume measurements.
 
 The legacy R/P selector, its public wrappers, and its CLI modes are removed.
 There are no compatibility aliases or automatic replacements.

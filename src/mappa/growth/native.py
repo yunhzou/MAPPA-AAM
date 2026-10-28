@@ -29,7 +29,7 @@ def built():
 
 
 def available():
-    return built() and os.environ.get("MAPPA_NATIVE", os.environ.get("RXN_CORE_NATIVE", "1")) != "0"
+    return built() and os.environ.get("MAPPA_NATIVE", "1") != "0"
 
 
 @dataclass(frozen=True)

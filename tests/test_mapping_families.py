@@ -1,35 +1,8 @@
 import numpy as np
-from itertools import permutations
-from mappa.coordinate_orientation import _simplex_measure
 from mappa.alignment.mapping_families import (
     _masked_relation_data, analytical_family_static_context,
     compile_analytical_mapping_family, mapping_event_signature,
 )
-
-
-def test_four_ligand_simplex_degeneracy_is_permutation_invariant():
-    coords = np.array([
-        [0.0, 0.0, 0.0],
-        [1.1, 0.0, 0.0],
-        [0.1, 1.7, 0.0],
-        [0.2, 0.3, 1.3],
-        [3.0, 3.0, 3.0],  # unused center for the affine four-point frame
-    ])
-    measures = [
-        _simplex_measure(
-            coords, 4, order, 0.1)
-        for order in permutations((0, 1, 2, 3))
-    ]
-
-    assert all(measure.sign in {-1, 1} for measure in measures)
-    assert len({round(abs(measure.normalized), 14)
-                for measure in measures}) == 1
-    canonical_sign = measures[0].sign
-    for order, measure in zip(permutations((0, 1, 2, 3)), measures):
-        inversions = sum(
-            order[left] > order[right]
-            for left in range(4) for right in range(left + 1, 4))
-        assert measure.sign == canonical_sign * (-1 if inversions % 2 else 1)
 
 
 def test_event_relation_uses_lossless_sparse_baseline_encoding():

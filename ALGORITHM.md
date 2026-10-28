@@ -22,8 +22,7 @@ AAMProblem + AAMSearchConfig
 `group_mechanisms`, `compile_mapping_families`, and
 `compile_mechanism_families` are separate family-analysis utilities. They do not
 implicitly select a 3D orientation. Their exact relational code lives in
-`alignment/mapping_families.py`. Scalar coordinate measurements live in
-`coordinate_orientation.py`; that module performs no mapping selection.
+`alignment/mapping_families.py`.
 
 The legacy R/P orientation-graph selector and its convenience wrappers have
 been removed. There is no compatibility route that invokes them. The CLI

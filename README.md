@@ -358,7 +358,7 @@ contains the manuscript PDF, figures, animations, and reproducible figure data.
 <details>
 <summary>Upgrading from the former rxn_core package</summary>
 
-The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.postprocessing import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth; the former `RXN_CORE_NATIVE` setting is still accepted as a fallback.
+The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.postprocessing import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
 
 </details>
 

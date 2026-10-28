@@ -58,13 +58,13 @@ def test_installed_viewer_assets_are_available_under_mappa():
     assert files("mappa").joinpath("static/aam_search.html").is_file()
 
 
-def test_native_setting_accepts_legacy_fallback_and_prefers_new_name(monkeypatch):
+def test_native_setting_uses_only_current_name(monkeypatch):
     monkeypatch.setattr(native, "_engine", object())
     monkeypatch.delenv("MAPPA_NATIVE", raising=False)
     monkeypatch.delenv("RXN_CORE_NATIVE", raising=False)
     assert native.available()
     monkeypatch.setenv("RXN_CORE_NATIVE", "0")
-    assert not native.available()
+    assert native.available()
     monkeypatch.setenv("MAPPA_NATIVE", "1")
     assert native.available()
     monkeypatch.setenv("MAPPA_NATIVE", "0")

@@ -481,14 +481,14 @@ to that commit.
 
 Concrete cleanup findings, ordered by dependency risk:
 
-1. `align.py` is a re-export facade for `chemistry_computations`; no static
-   in-repository importer was found. `coordinate_orientation.py` is referenced
-   only by its test in the scanned Python code. Verify text/dynamic consumers,
-   then remove obsolete facades/helpers and their obsolete-only tests.
-2. `growth/native.py` still reads the former `RXN_CORE_NATIVE` environment name
-   as a fallback. Remove this superseded option and update callers/docs to the
-   single supported setting; distinguish this from the supported Python/native
-   implementation choice.
+1. Completed first cleanup: removed the unused `align.py` re-export facade and
+   `coordinate_orientation.py`, whose only code consumer was its own test.
+   Removed that test while preserving the analytical mapping-family tests.
+   Cache loading and frame helpers remain in `chemistry_computations`.
+2. Completed first cleanup: removed the `RXN_CORE_NATIVE` alias; only
+   `MAPPA_NATIVE` controls engine selection. The current Python/native engines
+   remain supported. Updated the setting regression and current documentation.
+   Historical benchmark commands and the source inventory remain dated evidence.
 3. `family_scoring.py` mixes historical bond scoring and solver objectives with
    `validate_representative`, which current validation uses. Its functions need
    different treatment: retain and consolidate the live validation primitive;
