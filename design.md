@@ -375,3 +375,32 @@ and its growth kernel. It is not yet a saved AAM conversion pipeline, and it doe
 not change the serialized search policy or restart any benchmark. Matching still
 checks active source bonds and the target graph floor; this alone is not a proof
 that all internal target-only/weak-pair events have been resolved.
+
+### Anchored conversion pilot (2026-10-28)
+
+Group saved fragment pairs by atom sets and original policy. Prepare each pair
+once, then reuse its partition for identical saved assignments. Rematch with
+the public conditional matcher at strict ordinary/metal event thresholds.
+Refinement stays inside each saved pair. Actual bond differences, including
+mapped/unmapped boundaries, determine counts; the number of fragments does not.
+
+```mermaid
+flowchart LR
+  A[Saved AAM graph] --> B[Original compressed families]
+  B --> C[Distinct fragment pairs]
+  C --> D[Anchored representative rematching]
+  D --> E[Refined representative partitions and event counts]
+  B --> F[Retained correlated alternatives]
+  F --> G[Independent family count certificate]
+  E --> G
+```
+
+This first pilot anchors all atoms of each saved representative. It tests the
+internal conversion, not a complete rematching of its free compressed choices.
+The original action program remains unchanged alongside the representative
+partition. A shared partition is not asserted for other assignments. Existing
+symmetry certificates may prove a family count without expanding permutations;
+otherwise its minimum remains unknown. Internal target-only/weak-pair events
+also prevent a completed partition claim. Refining these event-varying actions
+under the original correlations is still required before this can replace the
+decoder. No solver or reaction-wide search is invoked by this pilot.

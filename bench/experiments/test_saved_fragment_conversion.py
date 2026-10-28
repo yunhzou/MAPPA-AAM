@@ -38,8 +38,6 @@ def run(archive, cut, seed, output):
         # Independent dense bond-difference check, including partial boundaries.
         verified = 0
         for branch in result.branches:
-            if not branch.complete:
-                continue
             mapping = dict(catalogue.families[branch.family_id].mapping)
             problem = catalogue.problem
             from mappa.frag import bond_event_threshold
@@ -61,12 +59,15 @@ def run(archive, cut, seed, output):
                     tau = bond_event_threshold(problem.product.elements, a, b,
                                                default_threshold=.5, metal_threshold=.3)
                     events += problem.product.wbo[a, b] >= tau
-            assert branch.events == events
+            assert branch.representative_events == events
             verified += 1
         record = result.to_record()
         record.update(input_archive=str(archive), input_hashes=hashes, cut=cut, seed_index=seed,
                       job_id=os.environ.get('SLURM_JOB_ID'),
                       independent_counts_verified=verified,
+                      representative_results=dict(Counter(
+                          f'{len(b.original_pairs)}->{len(b.fragment_pairs)} fragments; '
+                          f'{b.representative_events} events' for b in result.branches)),
                       unresolved_reasons=dict(Counter(b.reason for b in result.branches if not b.complete)))
         output.write_text(json.dumps(record, indent=2) + '\n')
         print(json.dumps({k: v for k, v in record.items() if k not in ('original_catalogue', 'branches')}, indent=2))

@@ -1,10 +1,10 @@
 """Refine saved fragment boundaries without replacing their mapping relation.
 
 The saved families remain the authority for allowed assignments. Rematching
-chooses a finer partition in a representative coordinate frame; the original
-correlated actions travel with that partition. A boundary count is certified
-only when those actions preserve the event responses and no event is internal.
-Unresolved families are retained explicitly, never sent to another decoder.
+chooses a finer partition for each saved representative. That partition must
+not be applied unchanged to every compressed alternative. Original correlated
+actions remain attached, and family counts require an independent invariance
+certificate. This prototype does not yet refine event-varying actions.
 """
 from dataclasses import dataclass, field
 from functools import partial
@@ -135,7 +135,7 @@ class FragmentRematcher:
 
 
 def convert_aam_fragments(aam, *, threshold=.5, metal_threshold=.3):
-    """Convert saved families with certified event-invariant actions.
+    """Refine representatives and certify invariant family counts when possible.
 
     Families whose event responses still vary stay explicit and unresolved.
     This initial conversion does not enumerate permutations or use SMT. It
@@ -175,7 +175,8 @@ def convert_aam_fragments(aam, *, threshold=.5, metal_threshold=.3):
         branches.append(ConvertedFragmentBranch(family_id, pairs, refined,
             tuple(broken), tuple(formed), not internal and invariance[family_id], reason, not internal))
     statistics = dict(families=len(catalogue.families), original_branches=len(entries),
-        converted_branches=sum(b.complete for b in branches),
+        refined_representatives=sum(b.partition_complete for b in branches),
+        certified_family_counts=sum(b.complete for b in branches),
         distinct_fragment_pairs=len(rematcher.pairs), matching_calls=rematcher.calls,
         reused_partitions=rematcher.cache_hits, solver_queries=0,
         expanded_permutations=0, wall_seconds=time.perf_counter()-started,
