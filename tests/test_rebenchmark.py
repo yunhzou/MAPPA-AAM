@@ -196,3 +196,29 @@ def test_report_uncut_complete_does_not_make_incomplete_sweep_negative(tmp_path)
     assert serial['modes']['uncut/bidirectional/seeds1']['not_recovered']==1
     assert serial['modes']['bidirectional/seeds1']['unknown']==1
     assert serial['modes']['bidirectional/seeds1']['ranking_complete']==0
+
+
+def test_report_continuation_requires_same_task_and_preserved_cuts(tmp_path):
+    import pytest
+    from rebenchmark.report import resolve_archives
+    from rebenchmark.evidence import sha
+    run=tmp_path/'run'
+    task=dict(index=17,direction='P_to_R',config={'seed_count':10})
+    manifest={'tasks':[task]}
+    save(run/'manifest.json',manifest)
+    old=tmp_path/'old';new=tmp_path/'new'
+    for folder in (old,new):
+        save(folder/'task.json',task)
+        save(folder/'cuts/cut_00000.raw.pkl.gz',{'saved':'unchanged'})
+    publish(old,run/'archives/00000.tar')
+    target=tmp_path/'continuation.tar';publish(new,target)
+    spec={'source_manifest_sha256':sha(run/'manifest.json'),
+          'replacements':[{'task':0,'archive':str(target),'sha256':sha(target)}]}
+    assert resolve_archives(run,manifest,spec)[0]==target
+    save(new/'cuts/cut_00000.raw.pkl.gz',{'saved':'changed'})
+    publish(new,target);spec['replacements'][0]['sha256']=sha(target)
+    with pytest.raises(AssertionError):resolve_archives(run,manifest,spec)
+    save(new/'cuts/cut_00000.raw.pkl.gz',{'saved':'unchanged'})
+    save(new/'task.json',{**task,'direction':'R_to_P'})
+    publish(new,target);spec['replacements'][0]['sha256']=sha(target)
+    with pytest.raises(AssertionError):resolve_archives(run,manifest,spec)

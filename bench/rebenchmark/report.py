@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import tarfile
 
-from .evidence import read,save
+from .evidence import read,save,sha
 from publication_analysis import union_outcome,representative_metrics,certificate_id
 
 
@@ -30,6 +30,34 @@ def archive_results(path):
         return result
 
 
+def resolve_archives(run, manifest, replacements=None):
+    """Accept a continuation only for the same task with all saved cuts intact."""
+    paths={n:run/'archives'/f'{n:05d}.tar' for n in range(len(manifest['tasks']))}
+    if replacements is None:
+        return paths
+    assert replacements['source_manifest_sha256']==sha(run/'manifest.json')
+    seen=set()
+    for row in replacements['replacements']:
+        task=row['task']
+        assert task not in seen and task in paths
+        seen.add(task)
+        replacement=Path(row['archive'])
+        assert sha(replacement)==row['sha256']
+        with tarfile.open(paths[task]) as old, tarfile.open(replacement) as new:
+            before=json.load(old.extractfile('archive-manifest.json'))['files']
+            after=json.load(new.extractfile('archive-manifest.json'))['files']
+            data=new.extractfile('task.json').read()
+            assert hashlib.sha256(data).hexdigest()==after['task.json']['sha256']
+            recorded=json.loads(data)
+            for field in ('index','direction','config'):
+                assert recorded[field]==manifest['tasks'][task][field], field
+            for name,entry in before.items():
+                if name.startswith('cuts/') and name.endswith('.raw.pkl.gz'):
+                    assert after[name]==entry, name
+        paths[task]=replacement
+    return paths
+
+
 def merge(rows):
     groups={}
     for row in rows:
@@ -52,7 +80,7 @@ def case_metrics(payload):
         assert hashlib.sha256(reference_bytes).hexdigest()==case['reference_sha256']
     reference=json.loads(reference_bytes)
     expected=certificate_id(**{k:v for k,v in reference.items() if k in ('features','mapping')})
-    directed={d:archive_results(run/'archives'/f'{task_ids[d]:05d}.tar') for d in ('R_to_P','P_to_R')}
+    directed={d:archive_results(Path(task_ids[d])) for d in ('R_to_P','P_to_R')}
     smaller='R_to_P' if case['reactant_atoms']<=case['product_atoms'] else 'P_to_R'
     for scope in ('sweep','uncut'):
         for n in range(1,11):
@@ -79,10 +107,11 @@ def case_metrics(payload):
     return dict(**case,modes=modes,coverage=coverage)
 
 
-def summarize(run,output,workers=1):
+def summarize(run,output,workers=1,replacements=None):
     import concurrent.futures
     run,output=Path(run),Path(output);manifest=read(run/'manifest.json')
-    tasks={(r['index'],r['direction']):n for n,r in enumerate(manifest['tasks'])}
+    archives=resolve_archives(run,manifest,replacements)
+    tasks={(r['index'],r['direction']):str(archives[n]) for n,r in enumerate(manifest['tasks'])}
     keys=[prefix+f'{mode}/seeds{n}' for prefix in ('','uncut/') for n in range(1,11)
           for mode in ('R_to_P','P_to_R','smaller_first','bidirectional')]
     totals={key:Counter() for key in keys}
@@ -108,7 +137,7 @@ def summarize(run,output,workers=1):
             consume(pool.map(case_metrics,payloads,chunksize=1))
     summary=dict(total=manifest['total'],modes={k:dict(v) for k,v in totals.items()},
         scope='Raw compressed-family recovery and terminal-representative ranking; no claim of completed event decoding.',
-        timing_scope=manifest['timing'],source_manifest_sha256=hashlib.sha256((run/'manifest.json').read_bytes()).hexdigest())
+        replacements=replacements, timing_scope=manifest['timing'],source_manifest_sha256=hashlib.sha256((run/'manifest.json').read_bytes()).hexdigest())
     save(output/'summary.json',summary)
     return summary
 
@@ -116,4 +145,5 @@ def summarize(run,output,workers=1):
 if __name__=='__main__':
     import argparse
     p=argparse.ArgumentParser();p.add_argument('run');p.add_argument('output');p.add_argument('--workers',type=int,default=1)
-    a=p.parse_args();summarize(a.run,a.output,a.workers)
+    p.add_argument('--replacements',type=Path)
+    a=p.parse_args();summarize(a.run,a.output,a.workers,read(a.replacements) if a.replacements else None)
