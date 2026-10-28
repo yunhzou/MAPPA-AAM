@@ -124,3 +124,16 @@ checks every cut graph and seed verdict against the original operations, and
 records actual task distribution, CPU, wall, publication and memory. It is an
 execution control, not a Golden or EnzymeMap coverage benchmark. Production-scale
 throughput and the final EnzymeMap launch remain separate acceptance gates.
+
+Validated on NRT on 2026-10-27/28: commit `146327c` passed 58 checks
+(job 7700833) and the two-node pilot (7700834). Across seed batches 1/2/5/10,
+120 cut graphs and 1,200 seed evaluations matched the original operations.
+Each variant used 11 shared files for 360–630 tasks. These small controls
+establish execution equivalence, not production throughput.
+
+The final process-tree monitoring change, `ba12951`, passed the same 58 checks
+(job 7703082, 81.95 s). On that node, 30 samples averaged 20.94 ms with the
+previous whole-node process scan and 0.070 ms with the worker-tree scan.
+This measures monitoring alone. The two-node end-to-end pilot predates this
+last monitoring change; no production speedup is inferred from these numbers.
+Its repeat and campaign rollout require restored shared-project file capacity.
