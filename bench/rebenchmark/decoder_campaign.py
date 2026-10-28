@@ -80,26 +80,30 @@ def execute(args):
         assert verified==set(reused)
         save(out/'reused.json',{k:v[1] for k,v in reused.items()})
         save(out/'inventory.json',dict(total=total,reused=len(reused),exhausted=exhausted,directions=directions))
-        secret=secrets.token_bytes(32)
-        with (out/'worker.key').open('xb') as stream:
-            os.chmod(out/'worker.key',0o600);stream.write(secret)
         queue.optimize()
-        queue.backup(out/'queue.sqlite')
-        with coordinator(queue,(socket.gethostname(),0),secret) as address:
-            save(out/'endpoint.json',dict(host=address[0],port=address[1],identity=plan['identity']))
-            last=0.
-            while True:
-                states=queue.snapshot()
-                stamp=time.monotonic()
-                if stamp-last>=300:
-                    queue.backup(out/'queue.sqlite');last=stamp
-                save(out/'progress.json',dict(states=states,utc=time.time(),reused=len(reused),exhausted=len(exhausted)))
-                if not any(states.get(k,0) for k in ('pending','running')):break
-                time.sleep(10)
-            queue.backup(out/'queue.sqlite')
-            save(out/'progress.json',dict(states=queue.snapshot(),utc=time.time(),reused=len(reused),exhausted=len(exhausted),finished=True))
-            time.sleep(5)
+        serve_queue(queue,out,dict(reused=len(reused),exhausted=len(exhausted)))
         queue.close()
+
+
+def serve_queue(queue,out,metadata):
+    """Publish one endpoint and consistent snapshots for a prepared queue."""
+    secret=secrets.token_bytes(32)
+    with (out/'worker.key').open('xb') as stream:
+        os.chmod(out/'worker.key',0o600);stream.write(secret)
+    queue.backup(out/'queue.sqlite')
+    with coordinator(queue,(socket.gethostname(),0),secret) as address:
+        save(out/'endpoint.json',dict(host=address[0],port=address[1],identity=queue.identity))
+        last=0.
+        while True:
+            states=queue.snapshot();stamp=time.monotonic()
+            if stamp-last>=300:
+                queue.backup(out/'queue.sqlite');last=stamp
+            save(out/'progress.json',dict(metadata,states=states,utc=time.time()))
+            if not any(states.get(k,0) for k in ('pending','running')):break
+            time.sleep(10)
+        queue.backup(out/'queue.sqlite')
+        save(out/'progress.json',dict(metadata,states=queue.snapshot(),utc=time.time(),finished=True))
+        time.sleep(5)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()

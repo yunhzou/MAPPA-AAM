@@ -341,3 +341,5 @@ minimum stage and never substitutes the ten-seed bound for earlier prefixes.
 The common queue distributes independent seed/cut tasks with one shared
 directional deadline. Exact queries, family reports and witnesses are bundled
 for audit; saved graphs and search settings remain unchanged.
+
+Scheduler continuations use a verified final queue checkpoint after the prior coordinator and active workers retire. Only pending tasks with no attempt history enter the next allocation. Preserve completed, interrupted and limited outcomes in the original run for aggregation and separate diagnosis. Carry the original remaining directional budget; never reset it. The original and continuation coordinators share endpoint publication and snapshot handling. Scientific decoding and saved input identities remain unchanged.
