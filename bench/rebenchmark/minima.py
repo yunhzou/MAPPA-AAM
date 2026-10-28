@@ -131,3 +131,65 @@ def minimum_cut(payload, workspace):
             evidence=workspace.writer.put_file(evidence), search_rerun=False,
             scope='Proven minima/bounds only; not completed event-class enumeration')
         return report
+
+
+def index_direction(payload):
+    archive, task_id, expected, inputs = payload
+    tasks = plan_minima(archive, task_id)
+    if not tasks:
+        raise ValueError('Saved direction has no cuts')
+    source = tasks[0].payload['source']
+    recorded = json.loads(read_member(source['task.json']))
+    for field in ('index', 'direction', 'config'):
+        assert recorded[field] == expected[field], field
+    assert source['input.json']['sha256'] == inputs['input_sha256']
+    assert source['reference.json']['sha256'] == inputs['reference_sha256']
+    return task_id, tasks
+
+
+def index_campaign(run, output, replacements, workers):
+    """Index each archive once on CPUs; publish a bounded number of task bundles."""
+    from concurrent.futures import ProcessPoolExecutor
+    from mappa.execution import BundleWriter
+    from .evidence import read, save, sha
+    from .report import resolve_archives
+    import os
+    run, output = Path(run), Path(output)
+    assert not (output/'index.json').exists(), 'A saved index must be reused'
+    manifest = read(run/'manifest.json')
+    archives = resolve_archives(run, manifest, replacements)
+    inputs = {row['index']: row for row in manifest['inputs']}
+    payloads = [(str(archives[n]), n, row, inputs[row['index']])
+                for n, row in enumerate(manifest['tasks'])]
+    output.mkdir(exist_ok=True, parents=True)
+    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
+        writer = BundleWriter(output/'bundles', scratch)
+        rows = []
+        started = time.monotonic()
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            for task_id, tasks in pool.map(index_direction, payloads, chunksize=1):
+                blob = writer.put(tasks)
+                rows.append(dict(task=task_id, count=len(tasks), blob=asdict(blob)))
+                if len(rows) % 100 == 0:
+                    save(output/'progress.json', dict(indexed_directions=len(rows),
+                        cut_tasks=sum(row['count'] for row in rows), wall_seconds=time.monotonic()-started))
+        result = dict(source_manifest_sha256=sha(run/'manifest.json'), replacements=replacements,
+            directions=len(rows), cut_tasks=sum(row['count'] for row in rows),
+            tasks=rows, wall_seconds=time.monotonic()-started,
+            scope='Verified saved-cut task index only; no search or minimization executed')
+        save(output/'index.json', result)
+        print(dict(directions=result['directions'], cut_tasks=result['cut_tasks'],
+                   wall_seconds=result['wall_seconds']), flush=True)
+
+
+if __name__ == '__main__':
+    import argparse
+    from .evidence import read
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('run', type=Path)
+    parser.add_argument('output', type=Path)
+    parser.add_argument('--replacements', type=Path)
+    parser.add_argument('--workers', type=int, default=8)
+    args = parser.parse_args()
+    index_campaign(args.run, args.output,
+        read(args.replacements) if args.replacements else None, args.workers)
