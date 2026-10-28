@@ -222,3 +222,63 @@ def test_report_continuation_requires_same_task_and_preserved_cuts(tmp_path):
     save(new/'task.json',{**task,'direction':'R_to_P'})
     publish(new,target);spec['replacements'][0]['sha256']=sha(target)
     with pytest.raises(AssertionError):resolve_archives(run,manifest,spec)
+
+
+def test_report_overlay_rejects_replacement_of_completed_rows(tmp_path):
+    from rebenchmark.report import archive_results, load_overlays
+    folder = tmp_path/'case'
+    save(folder/'search.json', dict(metrics=dict(cut_count=1)))
+    save(folder/'input.json', {})
+    save(folder/'reference.json', {})
+    save(folder/'task.json', {})
+    save(folder/'cuts/cut_00000.raw.pkl.gz', {})
+    save(folder/'finalized/00000.pkl.gz', {})
+    digest = sha(folder/'cuts/cut_00000.raw.pkl.gz')
+    row = dict(cut=0,seed=1,reference_recovery='recovered',raw_sha256=digest,finalized_sha256=digest)
+    overlay = dict(state='complete',evaluation=row,classes=[],raw=dict(sha256=digest),
+        source={n:dict(sha256=sha(folder/n)) for n in ('input.json','reference.json','task.json')})
+    publish(folder,tmp_path/'before.tar')
+    assert archive_results(tmp_path/'before.tar',[overlay])['seeds'][0,1]['evaluation']==row
+    save(folder/'analysis/00000/00/evaluation.json',row)
+    save(folder/'analysis/00000/00/classes.json',[])
+    publish(folder,tmp_path/'after.tar')
+    with pytest.raises(AssertionError):
+        archive_results(tmp_path/'after.tar',[overlay])
+    save(tmp_path/'delta.json',{'00000/cut/00000/seed/00':overlay})
+    specification=[dict(path=str(tmp_path/'delta.json'),sha256=sha(tmp_path/'delta.json'))]
+    assert len(load_overlays(specification)[0])==1
+    with pytest.raises(AssertionError):load_overlays(specification*2)
+
+
+def test_incremental_report_matches_complete_rebuild(tmp_path):
+    from collections import Counter
+    from rebenchmark.report import summarize, refresh
+    run = tmp_path/'run'
+    _, features, reference = prepare('[OH2:1]>>[OH2:1]')
+    save(run/'inputs/0/reference.json',dict(features=features,mapping=sorted(reference.items())))
+    save(run/'manifest.json',dict(total=1,inputs=[dict(index=0,status='prepared',reactant_atoms=3,product_atoms=3)],
+        tasks=[dict(index=0,direction=d) for d in ('R_to_P','P_to_R')],timing='test'))
+    for task in range(2):
+        folder = tmp_path/f'worker{task}'
+        save(folder/'search.json', dict(metrics=dict(cut_count=1)))
+        for name in ('input.json','reference.json','task.json','cuts/cut_00000.raw.pkl.gz','finalized/00000.pkl.gz'):
+            save(folder/name,{})
+        for seed in range(10):
+            if task == 0 and seed == 0:continue
+            save(folder/f'analysis/00000/{seed:02d}/evaluation.json',dict(cut=0,seed=seed+1,reference_recovery='not_recovered'))
+            save(folder/f'analysis/00000/{seed:02d}/classes.json',[])
+        publish(folder,run/'archives'/f'{task:05d}.tar')
+    summarize(run,tmp_path/'old')
+    publish(tmp_path/'old',tmp_path/'base-report.tar')
+    folder = tmp_path/'worker0';digest=sha(folder/'input.json')
+    row = dict(cut=0,seed=1,reference_recovery='recovered',raw_sha256=digest,finalized_sha256=digest)
+    delta = dict(state='complete',evaluation=row,classes=[],raw=dict(sha256=digest),
+        source={n:dict(sha256=digest) for n in ('input.json','reference.json','task.json')})
+    save(tmp_path/'delta.json',{'00000/cut/00000/seed/00':delta})
+    actual = refresh(tmp_path/'base-report.tar',run,tmp_path/'updated',
+        [dict(path=str(tmp_path/'delta.json'),sha256=sha(tmp_path/'delta.json'))])
+    save(folder/'analysis/00000/00/evaluation.json',row)
+    save(folder/'analysis/00000/00/classes.json',[])
+    publish(folder,run/'archives/00000.tar')
+    expected = summarize(run,tmp_path/'complete')
+    assert {k:Counter(v) for k,v in actual['modes'].items()} == {k:Counter(v) for k,v in expected['modes'].items()}

@@ -9,7 +9,7 @@ from .evidence import read,save,sha
 from publication_analysis import union_outcome,representative_metrics,certificate_id
 
 
-def archive_results(path):
+def archive_results(path, overlays=()):
     if not path.exists():return None
     with tarfile.open(path) as tar:
         manifest=json.load(tar.extractfile('archive-manifest.json'))['files']
@@ -27,7 +27,43 @@ def archive_results(path):
                                      ('finalized_sha256',f'finalized/{row["cut"]:05d}.pkl.gz')]:
                     if field in row:assert row[field]==manifest[member]['sha256'], (name,field)
                 result['seeds'][key]=dict(evaluation=row,classes=checked(name.replace('evaluation.json','classes.json')))
+        for saved in overlays:
+            row = saved['evaluation']
+            key = (row['cut'], row['seed'])
+            assert saved['state'] == 'complete' and key not in result['seeds'], key
+            for name, descriptor in saved['source'].items():
+                assert descriptor['sha256'] == manifest[name]['sha256'], name
+            raw = f'cuts/cut_{row["cut"]:05d}.raw.pkl.gz'
+            assert row['raw_sha256'] == saved['raw']['sha256'] == manifest[raw]['sha256']
+            final = f'finalized/{row["cut"]:05d}.pkl.gz'
+            if final in manifest:
+                assert row['finalized_sha256'] == manifest[final]['sha256']
+            else:
+                assert saved['finalized'] is not None
+                assert row['finalized_sha256'] == saved['finalized']['sha256']
+            previous_classes = f'analysis/{row["cut"]:05d}/{row["seed"]-1:02d}/classes.json'
+            if previous_classes in manifest:
+                assert saved['classes'] == checked(previous_classes), previous_classes
+            result['seeds'][key] = dict(evaluation=row, classes=saved['classes'])
         return result
+
+
+def load_overlays(specification):
+    """Accept hashed continuation records once, with no duplicate task/seed keys."""
+    outputs, seen = {}, set()
+    for source in specification:
+        assert sha(source['path']) == source['sha256']
+        for key, record in read(source['path']).items():
+            if record['state'] != 'complete':
+                continue
+            task, _, cut, _, seed = key.split('/')
+            row = record['evaluation']
+            identity = (int(task), int(cut), int(seed)+1)
+            assert identity not in seen
+            assert identity[1:] == (row['cut'], row['seed'])
+            seen.add(identity)
+            outputs.setdefault(int(task), []).append(record)
+    return outputs
 
 
 def resolve_archives(run, manifest, replacements=None):
@@ -72,7 +108,8 @@ def merge(rows):
 
 
 def case_metrics(payload):
-    run,case,task_ids=payload
+    run,case,task_ids,*extra=payload
+    overlays = extra[0] if extra else {}
     run=Path(run);index=case['index'];modes={}
     if case['status']!='prepared':return dict(**case,modes={})
     reference_bytes=(run/'inputs'/str(index)/'reference.json').read_bytes()
@@ -80,7 +117,7 @@ def case_metrics(payload):
         assert hashlib.sha256(reference_bytes).hexdigest()==case['reference_sha256']
     reference=json.loads(reference_bytes)
     expected=certificate_id(**{k:v for k,v in reference.items() if k in ('features','mapping')})
-    directed={d:archive_results(Path(task_ids[d])) for d in ('R_to_P','P_to_R')}
+    directed={d:archive_results(Path(task_ids[d]), overlays.get(d, ())) for d in ('R_to_P','P_to_R')}
     smaller='R_to_P' if case['reactant_atoms']<=case['product_atoms'] else 'P_to_R'
     for scope in ('sweep','uncut'):
         for n in range(1,11):
@@ -107,6 +144,60 @@ def case_metrics(payload):
     return dict(**case,modes=modes,coverage=coverage)
 
 
+def count_record(record, counters, sign=1):
+    for key, counter in counters.items():
+        row = record['modes'].get(key)
+        if row is None:
+            counter['unknown'] += sign
+            continue
+        counter[row['reference_recovery']] += sign
+        counter['ranking_complete'] += sign * row['ranking_complete']
+        if row['ranking_complete']:
+            metric = row['representative']
+            for k, hit in metric['topk'].items():
+                counter['top'+k] += sign * hit
+            counter['top5_tie_inclusive'] += sign * metric['top5_tie_inclusive']['recovered']
+            for gap, item in metric['event_windows'].items():
+                counter['representative_window_'+gap] += sign * item['recovered']
+
+
+def refresh(source, run, output, specifications):
+    """Update only cases affected by validated new checks; preserve the base report."""
+    run, output = Path(run), Path(output)
+    manifest = read(run/'manifest.json')
+    overlays = load_overlays(specifications)
+    changed = {manifest['tasks'][task]['index'] for task in overlays}
+    task_ids = {(row['index'], row['direction']): task for task, row in enumerate(manifest['tasks'])}
+    with tarfile.open(source) as tar:
+        members = json.load(tar.extractfile('archive-manifest.json'))['files']
+        def checked(name):
+            data = tar.extractfile(name).read()
+            assert hashlib.sha256(data).hexdigest() == members[name]['sha256']
+            return json.loads(data)
+        summary = checked('summary.json')
+        assert summary['source_manifest_sha256'] == sha(run/'manifest.json')
+        counters = {k: Counter(v) for k, v in summary['modes'].items()}
+        archives = resolve_archives(run, manifest, summary.get('replacements'))
+        for case in manifest['inputs']:
+            index = case['index']
+            if index not in changed:
+                continue
+            ids = {d: task_ids[index, d] for d in ('R_to_P', 'P_to_R')}
+            paths = {d: str(archives[task]) for d, task in ids.items()}
+            additions = {d: overlays.get(task, ()) for d, task in ids.items()}
+            before = checked(f'cases/{index:05d}.json')
+            after = case_metrics((str(run), case, paths, additions))
+            count_record(before, counters, -1)
+            count_record(after, counters)
+            save(output/'cases'/f'{index:05d}.json', after)
+        summary.update(modes={k:dict(v) for k,v in counters.items()},
+            continued_checks=specifications, changed_cases=sorted(changed),
+            base_report=dict(path=str(source), sha256=sha(source)))
+        assert all(v >= 0 for counts in counters.values() for v in counts.values())
+        save(output/'summary.json', summary)
+        return summary
+
+
 def summarize(run,output,workers=1,replacements=None):
     import concurrent.futures
     run,output=Path(run),Path(output);manifest=read(run/'manifest.json')
@@ -119,16 +210,7 @@ def summarize(run,output,workers=1,replacements=None):
                if case['status']=='prepared' else {}) for case in manifest['inputs']]
     def consume(records):
         for number,record in enumerate(records,1):
-            for key,counter in totals.items():
-                row=record['modes'].get(key)
-                if row is None:counter['unknown']+=1;continue
-                counter[row['reference_recovery']]+=1
-                counter['ranking_complete']+=row['ranking_complete']
-                if row['ranking_complete']:
-                    metric=row['representative']
-                    for k,hit in metric['topk'].items():counter['top'+k]+=hit
-                    counter['top5_tie_inclusive']+=metric['top5_tie_inclusive']['recovered']
-                    for gap,item in metric['event_windows'].items():counter['representative_window_'+gap]+=item['recovered']
+            count_record(record, totals)
             save(output/'cases'/f'{record["index"]:05d}.json',record)
             if number%100==0:print(f'{number}/{len(payloads)} cases summarized',flush=True)
     if workers==1:consume(map(case_metrics,payloads))
