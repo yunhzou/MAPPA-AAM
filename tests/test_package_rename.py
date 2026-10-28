@@ -35,7 +35,13 @@ def test_old_checkpoint_globals_resolve_to_mappa_and_preserve_events(tmp_path):
     assert json.loads(json.dumps(aam_record(result))) == archived
     assert json.loads(json.dumps(aam_record(aam_from_record(archived)))) == archived
     expected = json.loads((FIXTURES / "legacy-events.json").read_text())
-    assert sorted(candidate.id for candidate in decode_events(result).candidates) == expected
+    assert all(key.startswith('rxn_core.signed_events/v1:') for key in expected)
+    current_events = decode_events(result)
+    json_events = decode_events(aam_from_record(archived))
+    assert current_events.complete and json_events.complete
+    assert [(c.id,c.mapping,c.endpoint_events) for c in current_events.candidates] == [
+        (c.id,c.mapping,c.endpoint_events) for c in json_events.candidates]
+    assert all(c.id.startswith('mappa.signed_events/v2:') for c in current_events.candidates)
     current = tmp_path / "mappa.pkl.gz"
     write_aam_checkpoint(result, current)
     assert read_aam_checkpoint(current).graph == result.graph

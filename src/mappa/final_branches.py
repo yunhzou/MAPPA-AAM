@@ -67,6 +67,27 @@ def canonical_actions(actions):
     return tuple(result)
 
 
+def conditioned_fragment_actions(fragment, locked_targets=()):
+    """Read the saved ordered pool/group actions with earlier locks applied."""
+    if fragment.target_generators is None:
+        raise ValueError('Finalize saved symmetry before reading fragment actions')
+    blocks = [d for d in fragment.symmetry_domains if d.source != 'exact_automorph_group']
+    pooled = {r for d in blocks for r in d.r_atoms}
+    fixed = set(locked_targets)
+    fixed.update(p for r,p in fragment.representative_assignments
+                 if r in fragment.exact_fixed or r not in pooled)
+    actions = []
+    for block in blocks:
+        free = tuple(sorted(set(block.p_atoms)-fixed))
+        if len(free)>1:
+            actions.append(('pool',free))
+    generators = tuple(sorted({g.images for g in fragment.target_generators
+                               if any(i!=p for i,p in enumerate(g.images))}))
+    if generators:
+        actions.append(('group',generators))
+    return tuple(actions)
+
+
 @dataclass
 class FinalFamily:
     mapping: tuple
@@ -202,26 +223,10 @@ class FinalBranchCatalogue:
                 if edge.match is None:
                     continue
                 if eid not in actions:
-                    raw = edge.match['symmetry']
-                    if raw.get('automorph_generators') is None:
-                        raise ValueError('Finalize saved symmetry before final-branch deduplication')
-                    blocks = [b for b in raw.get('blocks', ())
-                              if b.get('source') != 'exact_automorph_group']
-                    block_atoms = {r for b in blocks for r in b.get('r_atoms', ())}
-                    witness = dict(raw.get('witness', {}))
-                    fixed = set(dict(graph.states[edge.source].mapping).values())
-                    fixed.update(witness[r] for r in raw.get('exact_fixed', ()))
-                    fixed.update(p for r, p in witness.items() if r not in block_atoms)
-                    factors = []
-                    for b in blocks:
-                        free = tuple(sorted(set(b.get('p_atoms', ())) - fixed))
-                        if len(free) > 1:
-                            factors.append(self._intern(self._factors, ('pool', free)))
-                    generators = tuple(sorted({tuple(g) for g in raw['automorph_generators']
-                                               if any(i != p for i, p in enumerate(g))}))
-                    if generators:
-                        factors.append(self._intern(self._factors, ('group', generators)))
-                    actions[eid] = tuple(factors)
+                    fragment = graph.fragment_placement(eid)
+                    locked = dict(graph.states[edge.source].mapping).values()
+                    actions[eid] = tuple(self._intern(self._factors, action)
+                        for action in conditioned_fragment_actions(fragment, locked))
                 program.extend(actions[eid])
             required = self._intern(self._required, tuple(sorted(required)))
             program = self._intern(self._programs, canonical_actions(program))

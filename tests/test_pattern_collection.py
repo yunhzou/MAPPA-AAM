@@ -9,15 +9,18 @@ from golden_evaluation import prepare
 def test_exact_classes_match_small_exhaustive_oracle():
     mol=endpoint('CCCHHH',[(0,1,2),(1,2,1),(0,2,1),(0,3,1),(1,4,1),(2,5,1)])
     problem=AAMProblem(mol,mol)
-    path=next(search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1)).graph.paths())
+    paths=list(search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1)).graph.paths())
     equivalence=PatternEquivalence(problem)
     expected={equivalence.key(dict(enumerate((*p,*(i+3 for i in p))))) for p in permutations(range(3))}
-    result=extract_path_patterns(path,problem,equivalence,seconds=5)
-    assert result['complete'],result
-    assert {p['key'] for p in result['patterns']}==expected
+    # Randomized growth can retain several families. Compare their union.
+    results=[extract_path_patterns(path,problem,equivalence,seconds=5) for path in paths]
+    assert all(result['complete'] for result in results)
+    assert {p['key'] for result in results for p in result['patterns']}==expected
     assert len(expected)==2
-    resumed=extract_path_patterns(path,problem,equivalence,previous=result['patterns'],seconds=5)
-    assert resumed['complete'] and len(resumed['patterns'])==2
+    for path,result in zip(paths,results):
+        resumed=extract_path_patterns(path,problem,equivalence,previous=result['patterns'],seconds=5)
+        assert resumed['complete']
+        assert {p['key'] for p in resumed['patterns']}=={p['key'] for p in result['patterns']}
 
 
 def test_hydrogen_symmetry_is_certified_without_enumeration():

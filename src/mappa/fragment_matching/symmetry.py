@@ -2,6 +2,7 @@
 from dataclasses import replace
 
 from ..alignment.post_aam import AAMHierarchy
+from ..final_branches import conditioned_fragment_actions
 from ..matcher import _nauty_atom_generators
 from ..subgraph import _coerce_graph
 from .._group_ops import occupation_orbit, OccupationLimitExceeded
@@ -56,8 +57,22 @@ def materialize_target_coverage_orbit(candidate, target, *, iso_tolerance=0.5,
         bonds = tuple((positions[a], positions[b]) for a, b in family.preserved_source_bonds)
         local = (() if family.derivations and family.derivations[0].occupation_projected
                  else family.aam_hierarchy.fragments)
-        stages = [tuple(dict(enumerate(g.images)) for g in (f.target_generators or ()))
-                  for f in reversed(local)] + [generators]
+        # Pool choices are part of the saved relation, just like joint groups.
+        # Reuse the catalogue reader instead of treating only generators as free.
+        mapping = dict(family.mapping)
+        assigned = set(mapping) - {a for f in local for a in f.r_atoms}
+        fragment_stages = []
+        for fragment in local:
+            stages_for_fragment = []
+            for kind, data in conditioned_fragment_actions(fragment,
+                    (mapping[a] for a in assigned)):
+                if kind == 'pool':
+                    stages_for_fragment.append(tuple({a:b,b:a} for a,b in zip(data,data[1:])))
+                else:
+                    stages_for_fragment.append(tuple(dict(enumerate(g)) for g in data))
+            fragment_stages.append(stages_for_fragment)
+            assigned.update(fragment.r_atoms)
+        stages = [stage for item in reversed(fragment_stages) for stage in item] + [generators]
         degree = max([max(graph.nodes(), default=-1) + 1,
                       max(family.covered_target_atoms, default=-1) + 1]
                      + [max(g, default=-1) + 1 for stage in stages for g in stage])

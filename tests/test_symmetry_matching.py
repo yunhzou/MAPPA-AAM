@@ -791,10 +791,11 @@ def test_planar_metal_tetramethyl_child_h_keeps_parent_degeneracy():
         anchor_u=1, anchor_wbo=1.0,
     )
 
-    assert len(hydrogen) == 4
-    assert {cand.mapping[1] for cand in hydrogen} == {1, 5, 9, 13}
-    assert all(len(cand.blocks[0].p_atoms) == 3 for cand in hydrogen)
-    assert sum(_represented_count(cand) for cand in hydrogen) == 12
+    from test_growth_compression_exactness import represented
+    assert len(hydrogen) == 1
+    expected = {((0,0),(1,c),(2,h)) for c in (1,5,9,13) for h in (c+1,c+2,c+3)}
+    assert represented(hydrogen,g_p,.5) == expected
+    assert len(expected) == 12
 
 
 def test_planar_metal_tetramethyl_two_metal_carbon_edges_are_correlated():
@@ -866,9 +867,11 @@ def test_exact_certificate_preserves_coupled_group_action_not_just_orbits():
         r_orbits=orbits, p_orbits=orbits,
     )
 
-    # Different occupied atom sets remain separate during growth.
-    assert len(deduped) == 3
-    assert all(cand.multiplicity == 1 for cand in deduped)
+    # Adjacent rotations share an exact action; opposite pairs stay distinct.
+    from test_growth_compression_exactness import represented
+    assert len(deduped) == 2
+    assert represented(deduped,graph,.2) == represented([adjacent,rotated,opposite],graph,.2)
+    assert {graph.has_edge(*cand.mapping.values()) for cand in deduped} == {True,False}
 
 
 def test_successful_primary_extension_preserves_exact_group_evidence():
