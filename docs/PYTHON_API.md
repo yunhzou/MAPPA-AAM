@@ -15,7 +15,7 @@ problem = AAMProblem(
     MolecularEndpoint(elements_P, xyz_P, wbo_P))
 aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0), workers=1)
 decoded = decode_events(aam,
-                        EventDecodeConfig(threshold=0.5, metal_threshold=0.3))
+                        EventDecodeConfig(threshold=0.5, metal_threshold=0.3, event_slack=0))
 candidates = decoded.candidates
 witness = candidates[0].mapping if candidates else None
 ```

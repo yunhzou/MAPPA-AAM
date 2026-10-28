@@ -18,7 +18,7 @@ Only assignments fixed by the saved compressed representation are anchors. Joint
 from mappa.postprocessing import EventDecodeConfig, decode_events
 from mappa.artifacts import decoded_events_record
 
-result = decode_events(aam, EventDecodeConfig(event_slack=5))
+result = decode_events(aam, EventDecodeConfig(event_slack=0))
 print(result.observed_minimum, result.complete)
 for candidate in result.candidates:
     print(candidate.total, candidate.mapping, candidate.endpoint_events)
@@ -30,6 +30,8 @@ record = decoded_events_record(result)
 `result.conversion.rematches` retains the compressed rematched graphs. `result.conversion.branches` links each recombined branch to its saved family and fragment paths. `result.catalogue` contains the converted mapping families. Event records use schema `mappa.decoded_events/v2` and preserve this representation and the explicit scope.
 
 The event count is the number of bond differences touching mapped atoms, including mapped/unmapped boundaries. Bonds wholly between unmatched atoms are ignored. No atoms are invented. Identical literal mappings share classification work; branch partitions and provenance remain distinct. Event-class grouping does not enumerate symmetry bijections.
+
+`event_slack=0` returns the minimum-count event classes. Every converted branch and its direct count remains in `conversion` and `family_reports`. Counts are computed before symmetry-class IDs, so high-event branches outside the requested window require no canonicalization. Requesting all event classes can cost substantially more than conversion and counting.
 
 `max_events` and `event_slack` filter the converted branch results; they are not solver search bounds. The minimum is the lowest count among these branches. `complete` requires completed uncapped rematches, retained mapped atoms, and no counted events internal to a new fragment. `minimum_proven` uses this same converted-branch scope. Neither flag certifies exhaustive original-family decoding or global AAM search.
 

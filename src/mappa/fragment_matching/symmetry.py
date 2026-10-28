@@ -18,6 +18,8 @@ def materialize_target_coverage_orbit(candidate, target, *, iso_tolerance=0.5,
                                       limit=None, generators=None, observed_atoms=None):
     """One witness per correlated fragment-region relation.
 
+    Local fragment symmetry must be finalized; an empty generator tuple
+    explicitly records pool-only choices.
     The orbit walk transports only integer images. Hierarchy/generator objects
     are transported once for each final region, never on every group edge.
     Proven equivalent source fragment units form an unordered multiset.

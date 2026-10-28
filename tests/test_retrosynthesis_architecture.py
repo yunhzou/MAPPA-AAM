@@ -123,6 +123,7 @@ def test_repeated_symmetric_ligand_assembles_without_bijection_expansion():
                 source="sym_block",
             ),),
             representative_assignments=((0, 1),),
+            target_generators=(),  # This explicit fixture has only the declared pool.
         ),)),
     )
     target_matrix = np.zeros((4, 4), dtype=float)

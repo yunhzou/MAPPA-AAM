@@ -390,7 +390,11 @@ change. Timings separate conversion, graph serialization, and independent checks
 `convert_fragments` owns distinct pair/anchor rematching and recombination.
 `decode_events` uses it and owns direct event counts, event-class grouping and
 optional minimum+n filtering. The CLI and portable execution operation use this
-same public API. The experiment only loads saved inputs and performs independent
+same public API. Count all converted branches before assigning symmetry-class
+IDs within the requested window. `event_slack=0` selects minimum results without
+constructing IDs for higher-event branches; it retains all branch counts and
+compressed records. Immutable action factors are shared across recombinations.
+The experiment only loads saved inputs and performs independent
 checks; it contains no second rematcher. Converted catalogue actions, rematched
 graphs and source provenance are retained in the result and v2 artifact.
 

@@ -216,7 +216,7 @@ aam = search_aam(
     workers=1,
 )
 decoded = decode_events(
-    aam, EventDecodeConfig(threshold=0.5, metal_threshold=0.3),
+    aam, EventDecodeConfig(threshold=0.5, metal_threshold=0.3, event_slack=0),
 )
 print("Search capped:", aam.graph.capped)
 print("Fragment conversion complete:", decoded.complete)
