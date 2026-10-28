@@ -91,3 +91,25 @@ def test_original_task_metadata_is_not_reconstructed_from_output():
     v['window_basis']['slack']=6
     with pytest.raises(ValueError,match='scientific'):
         verify_task(v,t,signature(t))
+
+
+def test_relative_pilot_window_has_explicit_policy_and_same_proofs():
+    from rebenchmark.decoder_evidence import window_slack, verify_window
+    problem = AAMProblem(endpoint('CCC', [(0,1,1),(1,2,1)]),
+                        endpoint('CCCC', [(0,1,1),(1,2,.6),(2,3,1.8),(0,3,.4)]))
+    cat = catalogue(problem, {0:0,2:1}, range(4))
+    queries=[]
+    def log(text,status,seconds):
+        queries.append(dict(smt2=text,status=status,sha256=hashlib.sha256(text.encode()).hexdigest()))
+        return len(queries)-1
+    result=decode_events(cat,EventDecodeConfig(event_slack=5,seconds_per_family=30),query_log=log)
+    value=dict(decoded=decoded_events_record(result),families=[f.to_record() for f in cat.families],selected_families=1)
+    assert window_slack(value)==5
+    verify_window(value,problem,None,None)
+    assert validate_record(value,problem,queries.__getitem__,ProofReplay())['verified']
+    changed=deepcopy(value);changed['decoded']['event_window']+=1
+    with pytest.raises(ValueError,match='Relative'):
+        verify_window(changed,problem,None,None)
+    changed=deepcopy(value);changed['window_basis']=dict(slack=5)
+    with pytest.raises(ValueError,match='conflicting'):
+        window_slack(changed)

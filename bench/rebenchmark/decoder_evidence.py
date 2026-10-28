@@ -160,6 +160,31 @@ def validate_record(value, problem, read_query, replay):
                 scope='Saved-record evidence only; task coverage and catalogue/source identity must also be verified.')
 
 
+def window_slack(value):
+    """Both recorded decoder window policies have explicit, exclusive settings."""
+    config = value['decoded']['config']
+    if config['event_slack'] is not None:
+        if config['max_events'] is not None or 'window_basis' in value:
+            raise ValueError('Relative window contains conflicting absolute metadata')
+        return config['event_slack']
+    return value['window_basis']['slack']
+
+
+def verify_window(value, problem, graph, tier):
+    from .decoding import representative_bound
+    config = value['decoded']['config']
+    slack = window_slack(value)
+    if config['event_slack'] is not None:
+        minimum = value['decoded']['observed_minimum']
+        bound = None if minimum is None else minimum + slack
+        if value['decoded']['event_window'] != bound:
+            raise ValueError('Relative minimum window differs')
+    else:
+        bound = representative_bound(problem, graph, value['seed']-1, tier, slack)
+        if bound != value['window_basis']['bound'] or bound != config['max_events']:
+            raise ValueError('Seed-prefix decoding bound differs')
+
+
 def verify_task(value, task, expected_signature):
     """Use the immutable task, including metadata not repeated in its output."""
     from .decoder_inventory import signature
@@ -169,7 +194,7 @@ def verify_task(value, task, expected_signature):
         raise ValueError('Published output or expected task identity differs')
     actual = dict(source=value['source'], graph=value['graph'], raw=value['raw'],
         finalized=value['finalized'] is None, cut=value['cut'], task_id=value['task_id'],
-        seed=value['seed']-1, slack=value['window_basis']['slack'],
+        seed=value['seed']-1, slack=window_slack(value),
         family_seconds=value['decoded']['config']['seconds_per_family'])
     if any(frozen_value(task.payload[k]) != frozen_value(v) for k,v in actual.items()):
         raise ValueError('Output differs from the expected scientific task')
@@ -182,7 +207,7 @@ def audit_output(payload, workspace):
     from mappa.execution import Blob, Task, read_blob
     from mappa.final_branches import FinalBranchCatalogue
     from .campaign import load_plan
-    from .decoding import coverage, representative_bound
+    from .decoding import coverage
     from .saved_analysis import read_member
     from .search import select_contexts
 
@@ -225,9 +250,7 @@ def audit_output(payload, workspace):
             frozen_value(tier) != frozen_value(value['coverage']) or
             catalogue.incomplete_paths != value['decoded']['incomplete_paths']):
         raise ValueError('Saved family catalogue differs from the saved search graph')
-    bound = representative_bound(plan.problem, graph, value['seed']-1, tier, value['window_basis']['slack'])
-    if bound != value['window_basis']['bound'] or bound != config['max_events'] or config['event_slack'] is not None:
-        raise ValueError('Seed-prefix decoding bound differs')
+    verify_window(value, plan.problem, graph, tier)
     if not hasattr(workspace, 'proof_replay'):
         workspace.proof_replay = ProofReplay(seconds=payload['proof_seconds'],
             save=lambda record: asdict(workspace.writer.put(record)))
