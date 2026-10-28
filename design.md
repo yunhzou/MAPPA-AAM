@@ -250,3 +250,19 @@ sets on finite controls; bounded caches and memory admission; safe worker loss,
 resume and duplicate claims; no repeated completed work; verified bundled storage;
 and measured end-to-end overhead/throughput including a deliberately uneven tail.
 A Slurm pilot must pass before this becomes the production EnzymeMap runner.
+
+### Reference membership checking
+
+The reference checker uses finite constraints for saved fragment permutations and
+atom pools. It propagates the known reference backward and forward before emitting
+an exact solver query. Every fragment group factor retains one shared choice;
+all-different pool constraints, fixed slots, explicit hydrogens, fragment bonds,
+and endpoint chemical equivalence remain enforced. Propagation removes only
+values without local support; the remaining constraints are still solved jointly.
+This replaces nested permutation expressions in reference-query compilation and
+also serves the existing reference-free feasibility caller. MAPPA growth, branch
+selection, symmetry compression, and search settings are unchanged.
+
+Flow: saved branch + reference → finite constraints → supported choices → exact
+SAT/UNSAT/unknown → independently checked explicit-atom witness. Runtime and
+correctness require NRT validation; this design does not itself establish speedup.

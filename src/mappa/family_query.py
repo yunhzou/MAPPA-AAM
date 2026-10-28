@@ -70,7 +70,8 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     is conclusive for the full model, but its SAT result requires a full query.
     """
     import z3
-    start=time.perf_counter();solver=z3.Solver();encoder=SymbolicActions(solver);program=encoder.program
+    from .reference_constraints import ReferenceConstraints
+    start=time.perf_counter();solver=z3.Solver();encoder=ReferenceConstraints();program=encoder.program
     nr,np_=problem.source_atom_count,problem.target_atom_count
     representative=path.mapping
     if projected_atoms is not None:
@@ -93,14 +94,14 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
             if len(pool)<2:continue
             if not set(pool).intersection(set().union(*(v[1] for v in values))):continue
             table={p:symbol(pool) for p in pool}
-            solver.add(z3.Distinct(*(v[0] for v in table.values())))
+            encoder.distinct(v[0] for v in table.values())
             locked=dict(path.graph.states[path.graph.transitions[edge].source].mapping)
             block_atoms={r for block in placement.symmetry_domains for r in block.r_atoms
                          if block.source!='exact_automorph_group'}
             fixed=set(locked.values())|{dict(placement.representative_assignments)[r]
                 for r in placement.exact_fixed}|{p for r,p in placement.representative_assignments
                                                 if r not in block_atoms}
-            for p in fixed.intersection(pool):solver.add(table[p][0]==p)
+            for p in fixed.intersection(pool):encoder.restrict(table[p][0],{p})
             values=[lookup(v,table) for v in values]
             program.append(('domain',edge,{p:v[0] for p,v in table.items()},pool))
         values=act(values,[g.images for g in placement.target_generators],edge)
@@ -110,10 +111,10 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     # A global Distinct over the nested image expressions is redundant and
     # forces the solver to rediscover that group-theoretic fact for each family.
     if len(set(representative.values())) != len(representative):
-        solver.add(False)
+        encoder.failed=True
     for r in mapped:
-        solver.add(z3.Or(*(values[r][0]==p for p in values[r][1]
-                          if p<np_ and problem.reactant.elements[r]==problem.product.elements[p])))
+        encoder.restrict(values[r][0],{p for p in values[r][1]
+                          if p<np_ and problem.reactant.elements[r]==problem.product.elements[p]})
     cuts={tuple(sorted(e)) for e in path.context.cuts}
     required={}
     for _,fragment in placements:
@@ -128,14 +129,18 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
         allowed=[(x,y) for x in va[1] for y in vb[1]
             if x!=y and x<np_ and y<np_ and problem.product.wbo[x,y]>=path.context.graph_floor
             and abs(w-problem.product.wbo[x,y])<=path.context.iso_tolerance+1e-9]
-        solver.add(z3.Or(*(z3.And(va[0]==x,vb[0]==y) for x,y in allowed)))
+        encoder.relation((va[0],vb[0]),allowed)
     raw_values=values
     # Normalize endpoint equivalence without touching the physical witness.
     source_choices=act([constant(r) for r in source_atoms],source_generators,'source_equivalence')
     normalized=[lookup(v,dict(enumerate(raw_values))) for v in source_choices]
     normalized=act(normalized,target_generators,'target_equivalence')
     for atom,value in zip(source_atoms,normalized):
-        if complete_reference or atom in reference:solver.add(value[0]==reference.get(atom,np_))
+        if complete_reference or atom in reference:encoder.restrict(value[0],{reference.get(atom,np_)})
+    encoder.emit(solver)
+    raw_values=[(encoder.expression(v),frozenset(encoder.domain(v))) for v,_ in raw_values]
+    program=[(kind,edge,{p:encoder.expression(v) for p,v in choice.items()} if kind=='domain'
+              else encoder.expression(choice),data) for kind,edge,choice,data in program]
     return CompiledFamily(solver,raw_values,representative,program,required,path,problem,
                           projected_atoms,time.perf_counter()-start)
 

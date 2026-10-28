@@ -85,3 +85,33 @@ def test_heavy_projection_positive_cannot_replace_full_H_check():
     path=synthetic_path([dict(r_atoms=[0],p_atoms=[0,2])])
     assert query_path(path,problem,{0:2},source_atoms=(0,),projected_atoms=(0,))[0]=='recovered'
     assert query_path(path,problem,{0:2},source_atoms=(0,))[0]=='not_recovered'
+
+
+def test_reference_propagation_keeps_correlated_permutation_choices():
+    import z3
+    from mappa.reference_constraints import ReferenceConstraints
+    for target in permutations(range(3)):
+        constraints=ReferenceConstraints()
+        values=constraints.act([constraints.constant(i) for i in range(3)],[(1,2,0)],'ring')
+        for value,wanted in zip(values,target):constraints.restrict(value[0],{wanted})
+        solver=z3.Solver();constraints.emit(solver)
+        expected=target in ((0,1,2),(1,2,0),(2,0,1))
+        assert (solver.check()==z3.sat)==expected
+
+
+def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
+    import z3
+    from mappa.reference_constraints import ReferenceConstraints
+    # The reference fixes the output, not a freely chosen input slot.
+    for selector in (0,1):
+        for left in (2,3):
+            for right in (2,3):
+                constraints=ReferenceConstraints()
+                choice=constraints.symbol((0,1))
+                a=constraints.symbol((2,3));b=constraints.symbol((2,3))
+                output=constraints.lookup(choice,{0:a,1:b})
+                constraints.restrict(output[0],{2})
+                constraints.restrict(choice[0],{selector})
+                constraints.restrict(a[0],{left});constraints.restrict(b[0],{right})
+                solver=z3.Solver();constraints.emit(solver)
+                assert (solver.check()==z3.sat)==((left,right)[selector]==2)
