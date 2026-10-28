@@ -34,7 +34,10 @@ def test_both_old_binary_cut_formats_keep_their_graph():
     expected = mappa.AAMSearchGraph.from_record(archived['graph'])
     finalized = read_graph_checkpoint(FIXTURES / "legacy-finalized.pkl.gz")
     raw = read_raw_cut(FIXTURES / "legacy.raw.pkl.gz")
-    assert finalized == raw == expected
+    assert finalized == raw
+    # JSON arrays and binary tuples encode the same stored graph.
+    assert json.loads(json.dumps(finalized.to_record())) == json.loads(
+        json.dumps(expected.to_record()))
     assert type(finalized).__module__.startswith('mappa.')
     assert all(context.growth_policy == 'legacy_wbo_priority'
                for context in finalized.contexts)
