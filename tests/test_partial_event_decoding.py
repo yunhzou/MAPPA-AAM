@@ -172,3 +172,18 @@ def test_correlated_and_overlapping_actions_preserve_partial_event_union(actions
     decoded=decode_events(cat,EventDecodeConfig(seconds_per_family=30))
     assert decoded.complete
     assert {c.id for c in decoded.candidates}==expected
+
+
+def test_distinct_fixed_boundary_elements_match_exhaustive_events():
+    # N and O each have one possible image: both are plain integer constants.
+    problem = AAMProblem(endpoint('C', []),
+                         endpoint('CCNO', [(0, 2, 1), (0, 3, 1), (1, 2, 1)]))
+    cat = catalogue(problem, {0: 0}, (0, 1))
+    index = SignedEventIndex(problem)
+    expected = {index.describe(index.vector({0: p}))['id'] for p in (0, 1)}
+    result = decode_events(cat, EventDecodeConfig(seconds_per_family=30))
+    assert result.complete and result.minimum_proven and result.observed_minimum == 1
+    assert {candidate.id for candidate in result.candidates} == expected
+    assert sorted(candidate.total for candidate in result.candidates) == [1, 2]
+    for candidate in result.candidates:
+        assert candidate.total == sum(oracle(problem, candidate.mapping))

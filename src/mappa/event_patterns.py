@@ -492,7 +492,8 @@ def _same_event_orbit(terms, objective, pattern, index):
         conditions.append(z3.Or(*(z3.And(images[a][0] == index.n+p, terms.unmapped[p])
                                   for p, e in enumerate(index.problem.product.elements) if e == element)))
     if len(extras) > 1:
-        conditions.append(z3.Distinct(*(images[a][0] for a in extras)))
+        values = [images[a][0] for a in extras]
+        conditions.append(z3.Distinct(*(z3.IntVal(v) if isinstance(v, int) else v for v in values)))
     for kind, sign in (('broken', -1), ('formed', 1)):
         for a, b in pattern['events'][kind]:
             va, vb = images[a], images[b]
