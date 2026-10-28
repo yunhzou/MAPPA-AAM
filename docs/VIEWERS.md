@@ -37,10 +37,9 @@ panels. Event names and numerical WBO changes remain in the details.
 ## Saved comparisons
 
 `tools/render_mapping_comparison.py INPUT.json OUTPUT.html` renders saved full
-mapping records. `bench/build_elementary_comparison_data.py` exports the older
-elementary-step comparison records. `bench/missing_pattern_display_data.py`
-exports and independently rescores the nine witnesses for cases 11, 64 and 101.
-None of these commands starts a benchmark search.
+mapping records without starting a benchmark search. Historical comparison
+exports remain with their saved reports; their retired generators are available
+at the reports’ recorded source revisions.
 
 The active missing-pattern comparison is
 `reports/holdout_missing_pattern_seeds_20260910/viewer.html`.
