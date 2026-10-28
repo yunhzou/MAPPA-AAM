@@ -399,6 +399,14 @@ flowchart LR
 ```
 
 The representative-only conversion module and its comparison scripts have been
-removed. They did not implement free rematching. This change provides the anchor
-setup; a complete branch conversion still needs to schedule the remaining atoms
-and combine the resulting fragment matches before reporting branch event counts.
+removed. The saved-EnzymeMap experiment uses `FinalFamily.fixed_assignments`
+and the existing `find_islands` scheduler with the conditional bond rule. It
+groups identical atom sets and anchors before rematching, then recombines the
+resulting fragment branches and counts their actual bond differences.
+
+Event counts may be shared by identical complete mapping records, including
+the source domain for partial mappings. Fragment partitions and branch histories
+remain separate. The experiment prepares verification thresholds once and checks
+each distinct mapping independently; it still checks each branch's internal
+events against that branch's own partition. Matching and event thresholds do not
+change. Timings separate conversion, graph serialization, and independent checks.
