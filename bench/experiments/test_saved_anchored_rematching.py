@@ -51,6 +51,14 @@ def run(archive, expected_sha, output):
     started, cpu = time.perf_counter(), time.process_time()
     histogram, best, rows = Counter(), [], []
     timings = Counter()
+    counted_mappings = {}
+    count_cache_hits = 0
+    check_start = time.perf_counter()
+    check_pairs = tuple(tuple((a, b, ep.wbo[a, b],
+        bond_event_threshold(ep.elements, a, b, default_threshold=threshold, metal_threshold=metal))
+        for a in range(ep.atom_count) for b in range(a+1, ep.atom_count))
+        for ep in (problem.reactant, problem.product))
+    timings['independent_check_seconds'] += time.perf_counter()-check_start
     calls = reused = internal_events = incomplete = 0
     for policy, pairs, fid in entries:
         family = catalogue.families[fid]
@@ -89,28 +97,33 @@ def run(archive, expected_sha, output):
             assert len(mapping) == sum(len(s.mapping) for s in states)
             assert len(set(mapping.values())) == len(mapping)
             assert all(mapping[r] == p for r, p in anchors.items())
-            count_start = time.perf_counter()
-            broken, formed, _, _ = classify_bonds(mapping, problem.reactant.wbo, problem.product.wbo,
-                dwbo_threshold=threshold, metal_dwbo_threshold=metal,
-                elements_R=problem.reactant.elements, elements_P=problem.product.elements)
-            timings['bond_classification_seconds'] += time.perf_counter()-count_start
-            # Independent dense subtraction, including mapped/unmapped boundaries.
-            check_start = time.perf_counter()
-            direct = []
-            for left, right, assignment in ((problem.reactant, problem.product, mapping),
-                                            (problem.product, problem.reactant, {p:r for r,p in mapping.items()})):
-                events = set()
-                for a in range(left.atom_count):
-                    for b in range(a+1, left.atom_count):
+            # Event lists depend on the exact mapping, not its branch history.
+            mapping_key = tuple(sorted(mapping.items()))
+            if mapping_key in counted_mappings:
+                broken, formed, direct = counted_mappings[mapping_key]
+                count_cache_hits += 1
+            else:
+                count_start = time.perf_counter()
+                broken, formed, _, _ = classify_bonds(mapping, problem.reactant.wbo, problem.product.wbo,
+                    dwbo_threshold=threshold, metal_dwbo_threshold=metal,
+                    elements_R=problem.reactant.elements, elements_P=problem.product.elements)
+                timings['bond_classification_seconds'] += time.perf_counter()-count_start
+                # Independent dense subtraction, including mapped/unmapped boundaries.
+                check_start = time.perf_counter()
+                direct = []
+                for pairs_to_check, right, assignment in ((check_pairs[0], problem.product, mapping),
+                                                (check_pairs[1], problem.reactant, {p:r for r,p in mapping.items()})):
+                    events = set()
+                    for a, b, weight, limit in pairs_to_check:
                         if a not in assignment and b not in assignment:
                             continue
                         other = right.wbo[assignment[a], assignment[b]] if a in assignment and b in assignment else 0.
-                        limit = bond_event_threshold(left.elements, a, b, default_threshold=threshold, metal_threshold=metal)
-                        if left.wbo[a,b] - other >= limit:
+                        if weight - other >= limit:
                             events.add((a,b))
-                direct.append(events)
-            assert direct == [set((a,b) for a,b,*_ in broken), set((a,b) for a,b,*_ in formed)]
-            timings['independent_check_seconds'] += time.perf_counter()-check_start
+                    direct.append(events)
+                assert direct == [set((a,b) for a,b,*_ in broken), set((a,b) for a,b,*_ in formed)]
+                timings['independent_check_seconds'] += time.perf_counter()-check_start
+                counted_mappings[mapping_key] = broken, formed, direct
             owners = {r:(i,island) for i,s in enumerate(states) for r,island in s.islands}
             target_owners = {mapping[r]:owner for r,owner in owners.items()}
             internal = sum(a in own and b in own and own[a] == own[b]
@@ -145,7 +158,8 @@ def run(archive, expected_sha, output):
         threshold=threshold, metal_threshold=metal, inclusive=False, branch_cap=100,
         saved_families=len(catalogue.families), original_branch_entries=len(entries),
         distinct_fragment_pairs=len({(k[1],k[2]) for k in cache}), distinct_anchored_rematches=calls,
-        reused_pair_results=reused, new_branch_combinations=len(rows), event_histogram=dict(sorted(histogram.items())),
+        reused_pair_results=reused, unique_counted_mappings=len(counted_mappings),
+        reused_mapping_counts=count_cache_hits, new_branch_combinations=len(rows), event_histogram=dict(sorted(histogram.items())),
         minimum_new_branch_events=min(histogram, default=None), prior_minimum=prior['observed_minimum'],
         best_branches_matching_prior_minimum_event_class=sum(r['event_class'] in old_classes for r in best),
         branches_with_changed_free_assignments=sum(r['changed_assignments'] > 0 for r in rows),
