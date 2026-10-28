@@ -136,3 +136,39 @@ def test_empty_mapping_has_no_events_and_creates_no_atoms():
     decoded=decode_events(catalogue(problem,{}),EventDecodeConfig(event_slack=0))
     assert decoded.complete and decoded.minimum_proven and decoded.observed_minimum==0
     assert decoded.candidates[0].mapping=={}
+
+
+@pytest.mark.parametrize('actions', [
+    (('group', ((1,2,3,0),)),),
+    (('pool', (0,1,2)), ('pool', (1,2,3))),
+    (('group', ((1,2,3,0),)), ('pool', (0,1))),
+])
+def test_correlated_and_overlapping_actions_preserve_partial_event_union(actions):
+    problem=AAMProblem(endpoint('CCC',[(0,1,1),(1,2,1)]),
+                       endpoint('CCCC',[(0,1,1),(1,2,.6),(2,3,1.8),(0,3,.4)]))
+    mapping={0:0,2:1}
+    cat=catalogue(problem,mapping)
+    cat.families[0].actions=actions
+    vectors={tuple(mapping[a] for a in sorted(mapping))}
+    for kind,data in actions:
+        if kind=='pool':
+            permutations_=[]
+            for order in permutations(data):
+                g=list(range(4))
+                for a,b in zip(data,order):g[a]=b
+                permutations_.append(g)
+        else:
+            group={tuple(range(4))}
+            pending=list(group)
+            while pending:
+                old=pending.pop()
+                for generator in data:
+                    new=tuple(generator[p] for p in old)
+                    if new not in group:group.add(new);pending.append(new)
+            permutations_=group
+        vectors={tuple(g[p] for p in v) for v in vectors for g in permutations_}
+    index=SignedEventIndex(problem)
+    expected={index.describe(index.vector(dict(zip(sorted(mapping),v))))['id'] for v in vectors}
+    decoded=decode_events(cat,EventDecodeConfig(seconds_per_family=30))
+    assert decoded.complete
+    assert {c.id for c in decoded.candidates}==expected
