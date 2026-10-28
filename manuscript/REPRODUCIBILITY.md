@@ -7,7 +7,7 @@ Use this guide for implementation settings and archived protocol details. The pa
 - [Public Python API and simple notebook](../docs/AAM_SIMPLE.ipynb): matching, unique event candidates, and conditional symmetry queries.
 - [Source-to-result index](evidence/paper_sources.json): the exact evidence snapshots and report paths used by the paper. Follow these records rather than choosing an older experiment from the reports directory.
 - [Golden campaign and coordinate pipeline](../reports/current_validation_20260912/): recorded configurations, component identities, and final-stage results.
-- [Golden reference evaluator](../bench/golden_evaluation.py), [checkpoint evaluator](../bench/golden_checkpoint_evaluation.py), and [released-mapper adapters](../bench/golden_competitors.py).
+- [Golden reference evaluator](../bench/golden_evaluation.py), [checkpoint evaluator](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/golden_checkpoint_evaluation.py), and [released-mapper adapters](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/golden_competitors.py).
 - [No-sweep controls](../reports/golden_unswept_20260913/), [directional recovery](../reports/golden_direction_size_20260914/), [timing analysis](../reports/golden_timing_detail_20260914/), and [published coordinate minima](../reports/published_baseline_20260915/).
 
 These paths are relative to the repository. In the compact manuscript bundle, use the same paths in the linked code repository to access benchmark scripts and reports. The bundle contains the evidence needed to regenerate the paper's tables and figures, not every raw search archive. The coordinate WBO-generation method and redistribution permissions remain unspecified; the current evaluation does not establish regeneration of those inputs from molecular structures.
@@ -98,3 +98,6 @@ At caps 100/2,000, confirmed swept recovery is 1,834/1,834 for one seed, 1,834/1
 `reports/final_end_to_end_optimized_20260916/` records the fresh search-through-decoding pass used in the paper. All 140 coordinate inputs complete at one seed and cap 2,000, reproducing all 300 archived event classes and all saved family counts. The script `bench/final_end_to_end.py` uses the public decoder and published event windows, with four single-thread processes, no class-count cap, and five-minute per-reaction watchdogs. `bench/summarize_final_timing.py` reconstructs stage distributions from per-case records.
 
 The earlier run in `reports/final_end_to_end_20260916/` had two decoder watchdogs and is retained as historical evidence. `reports/decoder_optimization_20260916/` compares identical completed cases and verifies all 110,477 previously completed family-support records. Exact timed source changes and hashes are supplied with the new report.
+
+Historical benchmark commands above refer to their recorded source revisions.
+The current tree retains the Golden pipeline documented in [bench/README.md](../bench/README.md); old experiment runners are available only at those revisions.

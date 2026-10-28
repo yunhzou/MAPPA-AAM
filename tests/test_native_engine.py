@@ -33,7 +33,7 @@ def _iso_key(isos):
 
 
 def _search(case, workers=1):
-    from cases import CASES
+    from native_cases import CASES
     from mappa.aam import search_aam
     from mappa.mechanisms import group_mechanisms
     from mappa.domain import AAMProblem, AAMSearchConfig

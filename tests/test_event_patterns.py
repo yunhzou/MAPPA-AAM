@@ -259,19 +259,3 @@ def test_symbolic_orbit_equality_matches_canonical_identity():
         solver.set(timeout=1000)
         solver.add(_same_event_orbit(reversed_terms, z3.IntVal(candidate['total']), pattern, index))
         assert solver.check() == z3.unsat
-
-
-def test_saved_legacy_ids_and_scores_are_recomputed():
-    from metal_binary_events import DeltaPatterns as ActiveIndex, recanonicalize_patterns
-    value = problem('CHH', [(0, 1, 1.), (0, 2, 1.)], [(0, 1, .1), (0, 2, 1.)])
-    raw = raw_record(value)
-    old = DeltaPatterns(raw).describe([0, 1, 2])
-    active = ActiveIndex(raw)
-    saved = {old['id']: dict(old, total=99)}
-    migrated = recanonicalize_patterns(active, saved)
-    expected = active.describe([0, 1, 2])
-    assert list(migrated) == [expected['id']]
-    assert expected['id'].startswith(SignedEventIndex.schema)
-    assert expected['id'] != old['id']
-    assert migrated[expected['id']]['total'] == 1
-    assert saved[old['id']]['total'] == 99

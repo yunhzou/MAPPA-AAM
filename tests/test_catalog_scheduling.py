@@ -84,31 +84,6 @@ def test_search_orchestration_keeps_detection_independent_from_archiving(monkeyp
     assert calls == [('detect', row, 47), ('archive', row, detection)]
 
 
-def test_progress_audit_counts_flushed_rows_without_claiming_complete_scan(tmp_path):
-    audit_spec = importlib.util.spec_from_file_location("catalog_progress",
-        Path(__file__).parents[1] / "bench/catalog_scan_progress.py")
-    progress = importlib.util.module_from_spec(audit_spec)
-    audit_spec.loader.exec_module(progress)
-    (tmp_path / "logs").mkdir()
-    (tmp_path / "parts").mkdir()
-    inventory = tmp_path / "bank.csv.gz"
-    with gzip.open(inventory, "wt") as stream:
-        stream.write("SMILES,Inventory ID\nC,a\nO,b\n")
-    row = {"precursor_id": "a", "pair_elapsed_seconds": 1.0}
-    (tmp_path / "logs/1_0.out").write_text(json.dumps(row) + '\n{\n  "counts": {}\n}\n')
-    report = progress.audit(tmp_path, inventory, "Inventory ID")
-    assert report["saved_rows"] == 1
-    assert not report["scan_complete"]
-    assert report["unfinished_sources"] == [{"source_id": "b", "smiles": "O", "row_index": 1}]
-
-    tail = tmp_path / 'tail'
-    (tail / 'logs').mkdir(parents=True)
-    (tail / 'logs/2_0.out').write_text(json.dumps({
-        'source_id': 'b', 'elapsed_seconds': 2., 'counts': {'rows': 1},
-        'output': 'part_0.jsonl.gz'}) + '\n')
-    combined = progress.audit(tmp_path, inventory, 'Inventory ID', [tail])
-    assert combined['scan_complete'] and not combined['initial_scan_complete']
-    assert combined['saved_rows'] == 2 and not combined['unfinished_sources']
 def test_detection_checkpoint_precedes_archive(monkeypatch, tmp_path):
     row = (4, 'C', 'source-4')
     detection = ({'rows': 1}, {'complete_typed_result': [1, 2, 3]}, 0.25)

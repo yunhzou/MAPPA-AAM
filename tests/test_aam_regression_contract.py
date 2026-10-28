@@ -4,7 +4,7 @@ from pathlib import Path
 from mappa.benchmark_regression import evaluate_record, load_contract
 
 
-CONTRACT = Path(__file__).parents[1] / "bench" / "contracts" / "aam_regression_contract.json"
+CONTRACT = Path(__file__).parent / "fixtures" / "aam_regression_contract.json"
 CASE = "pr15.Fe_crosscoupling_ACScat2023_TS8_step2_reductive_elimination_mult2"
 
 

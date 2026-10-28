@@ -64,19 +64,3 @@ def test_reverse_evaluation_keeps_original_reference_completeness_and_ranking():
     assert score['best_target_heavy_coverage']==score['best_target_all_atom_coverage']==1
     mapping=plan.to_input_mapping(result.graph.states[score['top_terminal']].mapping)
     assert score['top_events']==rank_key(mapping,problem)[1]
-
-
-def test_partial_campaign_scores_saved_cuts_without_claiming_full_search(tmp_path):
-    import json
-    from types import SimpleNamespace
-    sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'bench'))
-    from golden_policy_campaign import initialize,search,partial
-    audit=tmp_path/'audit.jsonl'
-    audit.write_text(json.dumps(dict(index=0,mapped_reaction='[CH3:1][OH:2].[Na+]>>[CH3:1][OH:2]'))+'\n')
-    args=SimpleNamespace(run=tmp_path/'run',audit=audit,indices=None,cpu_budget=1,index=0)
-    initialize(args)
-    search(args)
-    partial(args)
-    score=json.loads((args.run/'0/evaluation.json').read_text())
-    assert score['reference_recovery']=='recovered'
-    assert score['search_incomplete'] and score['top1_correct'] is None

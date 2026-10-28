@@ -1,16 +1,8 @@
 """Reference-blind class ranking and separate publication accuracy queries."""
-from dataclasses import replace
 import hashlib
-import json
-from pathlib import Path
-import time
 
 import pynauty
-from golden_evaluation import colored_graph, project, evaluate_planned
-from golden_topk import summarize_classes
-from golden_policy_campaign import save
-from mappa.artifacts import read_aam_checkpoint
-from view_golden_remaining import ranker
+from golden_evaluation import colored_graph, project
 
 
 def certificate_id(features, mapping):
@@ -73,32 +65,40 @@ def union_outcome(outcomes):
     return 'unknown'
 
 
-def top_five_family(run, index, classes, plans, reference, *, seconds=220):
-    """Bounded verification of selected classes, not reference-guided ranking."""
-    start = time.monotonic()
-    expected = certificate_id(reference['features'], reference['mapping'])
-    if any(c['id'] == expected for c in classes[:5]):
-        return dict(outcome='recovered',reason='representative',seconds=time.monotonic()-start)
-    eligible = {}
-    for c in classes[:5]:
-        for origin in c['origins']:
-            eligible.setdefault(origin['direction'],set()).update(origin['terminals'])
-    outcomes = []
-    checks = []
-    for direction, terminals in sorted(eligible.items()):
-        if time.monotonic()-start >= seconds:
-            outcomes.append('unknown')
-            break
-        archive = run/'directions'/str(index)/direction/'cuts/aam.pkl.gz'
-        aam = read_aam_checkpoint(archive)
-        view = replace(aam,graph=replace(aam.graph,stops=tuple(s for s in aam.graph.stops
-            if s.reason not in {'objective_met','stalled'} or s.state in terminals)))
-        left = max(.01,seconds-(time.monotonic()-start))
-        check = evaluate_planned(view,plans[direction],reference['features'],reference['mapping'],
-                                  seconds=left,query_timeout_ms=5000)
-        outcomes.append(check['reference_recovery'])
-        checks.append(dict(direction=direction,evaluation=check))
-        if outcomes[-1] == 'recovered':
-            break
-        del view,aam
-    return dict(outcome=union_outcome(outcomes),checks=checks,seconds=time.monotonic()-start)
+
+
+def summarize_classes(classes):
+    """Event windows retain the best heavy/all-atom coverage tier."""
+    best=classes[0]['score'][:3] if classes else None
+    reference=next((c for c in classes if c['reference_equivalent']),None)
+    windows={}
+    for tolerance in (0,1,2,3,5):
+        allowed=[c for c in classes if c['score'][:2]==best[:2]
+                 and c['score'][2]<=best[2]+tolerance] if best else []
+        windows[str(tolerance)]=dict(count=len(allowed),recovered=any(c['reference_equivalent'] for c in allowed))
+    boundary=classes[min(5,len(classes))-1]['score'][:3] if classes else None
+    tied=[c for c in classes if c['score'][:3]<=boundary] if boundary else []
+    return dict(reference_class_rank=None if reference is None else reference['rank'],
+        reference_event_gap=None if reference is None or reference['score'][:2]!=best[:2] else reference['score'][2]-best[2],
+        top5_tie_inclusive=dict(count=len(tied),recovered=any(c['reference_equivalent'] for c in tied)),
+        event_windows=windows)
+
+
+def ranker(problem,heavy_only=False):
+    endpoints=(problem.reactant,problem.product)
+    edges=[[(a,b,float(e.wbo[a,b])) for a in range(e.atom_count) for b in range(a+1,e.atom_count)
+        if e.wbo[a,b]>.2 and (not heavy_only or e.elements[a]!='H' and e.elements[b]!='H')]
+        for e in endpoints]
+    def score(mapping):
+        mapping=dict(mapping)
+        if heavy_only:mapping={r:p for r,p in mapping.items() if endpoints[0].elements[r]!='H' and endpoints[1].elements[p]!='H'}
+        inverse={p:r for r,p in mapping.items()};broken=formed=changed=0
+        for a,b,w in edges[0]:
+            if a not in mapping or b not in mapping:broken+=int(a in mapping or b in mapping)
+            elif endpoints[1].wbo[mapping[a],mapping[b]]<=.2:broken+=1
+            elif abs(w-endpoints[1].wbo[mapping[a],mapping[b]])>.5:changed+=1
+        for a,b,w in edges[1]:
+            if a not in inverse or b not in inverse or endpoints[0].wbo[inverse.get(a,0),inverse.get(b,0)]<=.2:formed+=1
+        heavy=sum(endpoints[1].elements[p]!='H' for p in mapping.values())
+        return (-heavy,-len(mapping),broken+formed+changed,tuple(sorted(mapping.items()))),dict(broken=broken,formed=formed,order_changed=changed)
+    return score

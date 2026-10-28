@@ -10,7 +10,7 @@ import numpy as np
 import pynauty
 from mappa.frag import is_metal_element
 from golden_evaluation import colored_graph
-from metal_binary_events import scalar_events
+from mappa.frag import classify_bonds
 
 class DeltaPatterns:
     """Signed delta events modulo exact symmetry of the score-response graph.
@@ -95,3 +95,13 @@ class DeltaPatterns:
         assert set(scalar['formed_on_R']) == set(events[1])
         return result
 
+
+
+def scalar_events(raw, mapping):
+    r, p = raw['reactant'], raw['product']
+    broken, formed, _, _ = classify_bonds(dict(mapping), np.asarray(r['wbo']), np.asarray(p['wbo']),
+        dwbo_threshold=.5, elements_R=r['elements'], elements_P=p['elements'], metal_dwbo_threshold=.3)
+    inverse = {p: r for r, p in dict(mapping).items()}
+    return dict(broken=broken, formed=formed, total=len(broken)+len(formed),
+                formed_on_R=[tuple(sorted((inverse[a], inverse[b]))) for a,b,*_ in formed
+                             if a in inverse and b in inverse])

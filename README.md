@@ -38,7 +38,7 @@ Unmarked CPU times are paired search averages over the same 1,403 completed reac
 
 MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines searches starting from each endpoint. The cut sweep is part of default MAPPA; **SLAP + our sweep** applies our search extension to SLAP and is not its original published score. The bidirectional SLAP rows combine its binary and weighted modes; the released default row uses binary only. All numbers above come from our strict re-evaluation, including LocalMapper, the prior accuracy-SOTA baseline discussed in the paper.
 
-[Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](bench/publish_readme_coverage.py)
+[Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/publish_readme_coverage.py)
 
 ## EnzymeMap: final benchmark results
 
@@ -334,8 +334,6 @@ endpoint-consensus merging, and imaginary-mode scoring.
 | `src/mappa/` | Importable matching, search, separate decoding, geometry, and viewers |
 | `docs/` | Executed notebooks and public API documentation |
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
-| `bench/experiments/` | Optional research experiments, excluded from the published default |
-| `bench/contracts/` | Versioned regression contracts |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
 | `tests/`, `native/`, `tools/`, `hpc/` | Tests, native implementation, user utilities, batch launch examples |

@@ -205,7 +205,9 @@ missing outputs and unattempted tasks are never algorithmic negatives.
 
 `src/` and `native/` contain reusable algorithms; `tests/` contains their checks.
 `docs/` contains current usage guides and executable examples. `bench/` owns
-benchmark adapters; `reports/` owns measurements and provenance. `tools/` and
+the current Golden pipeline and its shared evaluators; retired experiment and
+campaign scripts are removed. Test-only inputs and reference oracles live under
+`tests/`. `reports/` owns measurements and provenance. `tools/` and
 `hpc/` provide user/launch adapters; `manuscript/` owns paper artifacts. Historical
 code is recovered from its recorded Git revision, not kept as runnable fallback
 copies in the current tree. Task status belongs in the MAPPA_AAM tracker.

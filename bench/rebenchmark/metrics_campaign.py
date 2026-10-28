@@ -1,6 +1,6 @@
 """Distribute per-case saved-output metrics, preserving every expected key."""
 import argparse
-from dataclasses import asdict
+from dataclasses import asdict, is_dataclass
 import json
 import os
 from pathlib import Path
@@ -12,8 +12,11 @@ import tempfile
 from mappa.execution import Task, TaskQueue, read_blob
 from .decoder_campaign import save, serve_queue
 from .decoder_inventory import signature
-from .decoder_resume import digest
-from .evidence_campaign import blob_record
+from .evidence import sha
+
+
+def blob_record(blob):
+    return asdict(blob) if is_dataclass(blob) else blob
 
 
 def case_tasks(inventory, manifest, matching, *, memory_bytes, case_seconds):
@@ -68,11 +71,11 @@ def execute(out):
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         scratch=Path(scratch);local=scratch/'inventory.sqlite'
         shutil.copyfile(plan['inventory'],local)
-        if digest(local)!=plan['inventory_sha256']:
+        if sha(local)!=plan['inventory_sha256']:
             raise ValueError('Final inventory checksum differs')
         inventory=sqlite3.connect('file:'+str(local)+'?mode=ro&immutable=1',uri=True)
         matching=Path(plan['matching']);manifest_path=matching/'manifest.json'
-        if digest(manifest_path)!=plan['manifest_sha256']:
+        if sha(manifest_path)!=plan['manifest_sha256']:
             raise ValueError('Matching manifest checksum differs')
         manifest=json.loads(manifest_path.read_text())
         reused={}

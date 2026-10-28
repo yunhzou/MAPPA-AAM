@@ -1,7 +1,6 @@
 from dataclasses import replace
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench/experiments/final_fragment_dedup'))
 from test_event_patterns import problem,saved_path
 from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
 from mappa.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
@@ -104,50 +103,12 @@ def test_intrinsic_group_is_not_mistaken_for_observed_family_coverage():
     assert status=='not_recovered'
 
 
-def test_intrinsic_reconstruction_merges_seed_orbits_and_adds_only_valid_shuffles():
-    from rebuild_intrinsic import rebuild_intrinsic_catalogue
-    value=problem('COO',[(0,1,1),(0,2,.9)],[(0,1,.51),(0,2,.49)])
-    a=saved_path(value);b=replace(a.graph,states=(a.graph.states[0],replace(a.graph.states[1],mapping=((0,0),(1,2),(2,1)))))
-    saved=FinalBranchCatalogue(value).add_graph(a.graph).add_graph(b)
-    rebuilt=rebuild_intrinsic_catalogue(saved)
-    assert len(saved.branches)==len(rebuilt.branches)==1
-    assert len(saved.families)==2 and len(rebuilt.families)==1
-    decoded=extract_path_events(rebuilt.families[0].as_path(value),value,SignedEventIndex(value),max_patterns=None)
-    assert decoded['complete'] and {p['total'] for p in decoded['patterns']}=={0,1}
-    assert rebuilt.reconstruction['retained_original_families']==0
 
 
-def test_cross_fragment_actions_are_preserved_as_original_alternatives():
-    from rebuild_intrinsic import rebuild_intrinsic_catalogue
-    value=problem('HHHH',[],[]);old=independent_path((0,1))
-    raw=dict(old.graph.transitions[0].match);raw['symmetry']=dict(raw['symmetry'],automorph_generators=[(2,3,0,1)])
-    graph=replace(old.graph,transitions=(replace(old.graph.transitions[0],match=raw),old.graph.transitions[1]))
-    saved=FinalBranchCatalogue(value).add_graph(graph);rebuilt=rebuild_intrinsic_catalogue(saved)
-    assert len(rebuilt.branches)==1 and rebuilt.reconstruction['retained_original_families']==0
-    mapping={0:2,1:3,2:0,3:1}
-    assert any(query_path(f.as_path(value),value,mapping,source_atoms=(0,1,2,3))[0]=='recovered' for f in rebuilt.families)
 
 
-def test_equivalent_target_set_labels_merge_after_global_alignment():
-    from rebuild_intrinsic import rebuild_intrinsic_catalogue
-    value=problem('HHHH',[],[]);a=independent_path((0,1));b=independent_path((0,1),{0:2,1:3,2:0,3:1})
-    saved=FinalBranchCatalogue(value).add_graph(a.graph).add_graph(b.graph)
-    assert len(saved.branches)==2
-    rebuilt=rebuild_intrinsic_catalogue(saved)
-    assert rebuilt.branch_count==1 and len(rebuilt.families)==1
-    for mapping in ({0:0,1:1,2:2,3:3},{0:2,1:3,2:0,3:1}):
-        assert query_path(rebuilt.families[0].as_path(value),value,mapping,source_atoms=(0,1,2,3))[0]=='recovered'
 
 
-def test_nonautomorphic_cross_fragment_choice_is_retained():
-    from rebuild_intrinsic import rebuild_intrinsic_catalogue
-    value=problem('HHHH',[],[(0,1,1)]);old=independent_path((0,1))
-    raw=dict(old.graph.transitions[0].match);raw['symmetry']=dict(raw['symmetry'],automorph_generators=[(2,1,0,3)])
-    graph=replace(old.graph,transitions=(replace(old.graph.transitions[0],match=raw),old.graph.transitions[1]))
-    saved=FinalBranchCatalogue(value).add_graph(graph);rebuilt=rebuild_intrinsic_catalogue(saved)
-    assert rebuilt.reconstruction['retained_original_families']==1
-    mapping={0:2,1:1,2:0,3:3}
-    assert any(query_path(f.as_path(value),value,mapping,source_atoms=(0,1,2,3))[0]=='recovered' for f in rebuilt.families)
 
 
 def test_public_branch_grouping_preserves_distinct_mapping_alternatives():
@@ -175,19 +136,6 @@ def test_flat_archive_roundtrip_needs_no_original_search_graph():
         FinalBranchCatalogue.from_record(other,record)
 
 
-def test_same_fragment_pair_can_have_two_intrinsic_mapping_orbits():
-    from rebuild_intrinsic import rebuild_intrinsic_catalogue
-    from sympy.combinatorics import Permutation,PermutationGroup
-    value=problem('CCC',[(0,1,1),(0,2,1.5),(1,2,2)],[(0,1,1.1),(0,2,1.6),(1,2,2.1)])
-    a=saved_path(value);b=replace(a.graph,states=(a.graph.states[0],replace(a.graph.states[1],mapping=((0,1),(1,0),(2,2)))))
-    catalogue=FinalBranchCatalogue(value).add_graph(a.graph).add_graph(b)
-    assert len(catalogue.branches)==1 and len(catalogue.families)==2
-    symmetry=catalogue.rebuild_symmetry((.2,1.),((0,1,2),(0,1,2)))
-    group=PermutationGroup([Permutation(g) for g in symmetry['generators']])
-    assert not group.contains(Permutation([1,0,2]))
-    for family in catalogue.families:family.validate_representative(value)
-    rebuilt=rebuild_intrinsic_catalogue(catalogue)
-    assert rebuilt.branch_count==1 and len(rebuilt.families)==2
 
 
 def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatch):

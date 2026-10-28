@@ -1,9 +1,4 @@
-import importlib.util
-from pathlib import Path
-
-spec=importlib.util.spec_from_file_location('golden_topk',Path(__file__).parents[1]/'bench/golden_topk.py')
-module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-
+import publication_analysis as module
 
 def test_event_windows_do_not_trade_coverage_for_fewer_events():
     rows=[dict(rank=1,score=[-10,-20,4],reference_equivalent=False),

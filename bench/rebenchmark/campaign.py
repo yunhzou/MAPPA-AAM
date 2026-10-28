@@ -77,7 +77,7 @@ def prepare(args):
             inputs.append(dict(index=index,status='preparation_error',traceback=traceback.format_exc()))
     source={str(p.relative_to(REPO)):sha(p) for folder in ['src/mappa','native/src','bench/rebenchmark']
             for p in (REPO/folder).rglob('*') if p.is_file() and p.suffix in ('.py','.h','.cpp','.so')}
-    for name in ['golden_evaluation.py','publication_analysis.py','publication_timing.py','golden_topk.py','view_golden_remaining.py']:
+    for name in ['golden_evaluation.py','publication_analysis.py','publication_timing.py','prepare_golden_benchmark.py']:
         source['bench/'+name]=sha(REPO/'bench'/name)
     save(args.run/'manifest.json',dict(schema='mappa.rebenchmark/v1',dataset='Golden',total=1851,
         rdf_sha256=RDF_SHA,dataset_sha256=sha(args.dataset),config=config,inputs=inputs,tasks=tasks,

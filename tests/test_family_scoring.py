@@ -5,7 +5,7 @@ from mappa import AAMProblem,AAMSearchConfig,search_aam
 from mappa.domain import MolecularEndpoint
 from mappa.family_scoring import invariant_score,validate_representative,bond_events
 from golden_evaluation import prepare
-from view_golden_remaining import ranker
+from publication_analysis import ranker
 
 
 def endpoint(elements,edges):
