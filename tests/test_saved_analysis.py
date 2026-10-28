@@ -107,3 +107,32 @@ def test_missing_families_do_not_prove_positive_minimum():
     assert rows['1']['lower_bound'] == 0 and rows['1']['upper_bound'] == 4
     assert not rows['1']['minimum_proven'] and not rows['2']['minimum_proven']
     assert rows['2']['upper_bound'] is None
+
+
+def test_indexed_coordinator_reuses_only_identical_completed_tasks(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from mappa.execution import Task, BundleWriter
+    from rebenchmark.saved_analysis import execute
+    from rebenchmark.evidence import sha
+    monkeypatch.setenv('TMPDIR', str(tmp_path))
+    task = Task('00001/minimum/00000', 'must_not_run:operation', dict(saved='graph'), case='00001')
+    writer = BundleWriter(tmp_path/'bundles', tmp_path)
+    blob = writer.put([task])
+    save(tmp_path/'index.json', dict(tasks=[dict(task=1,count=1,blob=asdict(blob))]))
+    save(tmp_path/'pilot-tasks.json', [asdict(task)])
+    save(tmp_path/'pilot-results.json', {task.key:dict(state='complete')})
+    spec = dict(identity='test', memory_bytes=2**30,
+        task_index=dict(path=str(tmp_path/'index.json'),sha256=sha(tmp_path/'index.json')),
+        reuse=[dict(results=str(tmp_path/'pilot-results.json'),results_sha256=sha(tmp_path/'pilot-results.json'),
+                    tasks=str(tmp_path/'pilot-tasks.json'),tasks_sha256=sha(tmp_path/'pilot-tasks.json'))])
+    save(tmp_path/'out/plan.json', spec)
+    execute(SimpleNamespace(output=tmp_path/'out',mode='coordinator',workers=1))
+    assert read(tmp_path/'out/tasks.json')['scheduled'] == 0
+    assert read(tmp_path/'out/tasks.json')['reused'] == [task.key]
+    assert read(tmp_path/'out/progress.json')['finished']
+    changed = asdict(task);changed['payload']['saved']='different'
+    save(tmp_path/'pilot-tasks.json', [changed])
+    spec['reuse'][0]['tasks_sha256'] = sha(tmp_path/'pilot-tasks.json')
+    save(tmp_path/'invalid/plan.json', spec)
+    with pytest.raises(AssertionError):
+        execute(SimpleNamespace(output=tmp_path/'invalid',mode='coordinator',workers=1))
