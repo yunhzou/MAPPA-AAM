@@ -24,7 +24,6 @@ nauty_sources = [str(NAUTY / name) for name in (
 ext = Extension(
     "mappa._engine",
     sources=[str(NATIVE / "engine.cpp"),
-             str(NATIVE / "freeze.cpp"),
              str(NATIVE / "autgrp.cpp"),
              *nauty_sources],
     include_dirs=[pybind11.get_include(), str(NAUTY)],

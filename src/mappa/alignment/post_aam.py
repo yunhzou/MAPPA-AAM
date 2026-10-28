@@ -1,7 +1,7 @@
-"""Typed symmetry objects shared by AAM and optional mechanism post-processing."""
+"""Typed symmetry objects shared by mapping, conversion and TS processing."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import cached_property
 from typing import Mapping, Sequence
 
@@ -465,32 +465,3 @@ class AAMHierarchyChain:
 
     def to_record(self):
         return AAMHierarchy(self.fragments).to_record()
-
-
-@dataclass(frozen=True)
-class AAMBranch:
-    """One unique completed hierarchical branch under a mechanism."""
-
-    representative: AtomBijection
-    hierarchy: AAMHierarchy
-    encounter_count: int = 1
-    cuts: tuple[tuple[int, int], ...] = ()
-    covered_path_count: int = 1
-    mapping_family: Mapping = field(default_factory=dict)
-    path_provenance: tuple[Mapping, ...] = ()
-    target_group: PermutationGroup | None = None
-
-    def __post_init__(self):
-        object.__setattr__(self, "encounter_count", int(self.encounter_count))
-        object.__setattr__(self, "cuts", tuple(sorted(
-            tuple(sorted(map(int, cut))) for cut in self.cuts)))
-        object.__setattr__(
-            self, "covered_path_count", int(self.covered_path_count))
-        object.__setattr__(
-            self, "mapping_family", dict(self.mapping_family or {}))
-        object.__setattr__(self, "path_provenance", tuple(
-            dict(item) for item in self.path_provenance))
-
-    @property
-    def has_exact_mapping_family(self):
-        return self.target_group is not None

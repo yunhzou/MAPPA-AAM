@@ -10,7 +10,24 @@ from mappa.search_graph import (
     SearchStop,
 )
 from mappa.search_validation import RepresentativeValidationWorkspace
-from mappa.family_scoring import validate_representative
+from itertools import combinations
+
+
+def validate_representative(path,problem):
+    mapping=path.mapping
+    assert len(set(mapping.values()))==len(mapping)
+    assert all(problem.reactant.elements[r]==problem.product.elements[p] for r,p in mapping.items())
+    cuts={tuple(sorted(e)) for e in path.context.cuts}
+    for edge in path.transitions:
+        fragment=path.graph.fragment_placement(edge)
+        if fragment is None:continue
+        deferred={tuple(sorted(e)) for e in fragment.deferred_edges}
+        for a,b in combinations(fragment.r_atoms,2):
+            if a not in mapping or b not in mapping:continue
+            w=problem.reactant.wbo[a,b]
+            if tuple(sorted((a,b))) in cuts|deferred or w<path.context.graph_floor:continue
+            assert problem.product.wbo[mapping[a],mapping[b]]>=path.context.graph_floor
+            assert abs(w-problem.product.wbo[mapping[a],mapping[b]])<=path.context.iso_tolerance+1e-9
 
 
 def example(target_weight=1.0, cuts=(), deferred=()):
@@ -105,12 +122,3 @@ def test_wrong_elements_and_duplicate_images_fail():
         assert RepresentativeValidationWorkspace(pp).validate_graph(gg) == oracle(
             gg, pp
         )
-
-
-def test_graph_validation_uses_one_constraint_checker(monkeypatch):
-    import mappa.family_scoring as historical
-    def forbidden(*args, **kwargs):
-        pytest.fail('graph validation invoked the historical scoring validator')
-    monkeypatch.setattr(historical, 'validate_representative', forbidden)
-    problem, graph = example(0.0)
-    assert RepresentativeValidationWorkspace(problem).validate_graph(graph) == (1, [3])

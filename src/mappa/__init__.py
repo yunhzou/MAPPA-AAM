@@ -7,7 +7,6 @@ from .aam import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from .search_orientation import AAMSearchPlan, plan_aam_search
 from .fragment_conversion import convert_fragments, FragmentConversion
 from .family_query import query_path
-from .analytical import compile_mapping_families
 from .matcher.bond_policy import BondTolerance
 from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
 from .search_graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
@@ -16,10 +15,8 @@ from .core_aam import search_core_assignments
 from .domain import (
     AAMProblem,
     AAMResult,
-    MappingFamilyResult,
     AAMSearchConfig,
     AAMSearchMetrics,
-    AnalyticalBranch,
     AtomAssignment,
     CoreAAMBranch,
     CoreAAMResult,
@@ -40,7 +37,7 @@ from .artifacts import (
     write_ts_record,
 )
 from .alignment.post_aam import (
-    AAMBranch, AAMHierarchy, AtomBijection, AtomPermutation,
+    AAMHierarchy, AtomBijection, AtomPermutation,
     FragmentMatch, PermutationGroup, SymmetryDomain,
 )
 
@@ -59,22 +56,21 @@ __all__ = [
     "query_path", "convert_fragments", "FragmentConversion",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
-    "MappingFamilyResult",
     "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",
     "AAMSearchGraph", "SearchState", "FragmentTransition", "SearchPath", "SearchBranch",
     "SearchContext", "SearchStop",
     "PathRealization", "finalize_graph_symmetry", "SubgraphSearchResult",
     "AAMProblem", "AAMResult", "AAMSearchConfig",
-    "AAMSearchMetrics", "AnalyticalBranch",
+    "AAMSearchMetrics",
     "AtomAssignment", "CoreAAMBranch",
     "CoreAAMResult", "MolecularEndpoint",
     "ReactionContext", "ResolvedMechanism",
     "TSMechanismResult", "TSResult", "TSScore", "TSScoringConfig",
     "TransitionStateTarget", "VibrationalModes",
-    "AAMBranch", "AAMHierarchy", "AtomBijection", "AtomPermutation",
+    "AAMHierarchy", "AtomBijection", "AtomPermutation",
     "FragmentMatch", "PermutationGroup", "SymmetryDomain",
     "search_aam_checkpoints", "AAMCheckpointResult",
-    "search_aam", "compile_mapping_families", "search_core_assignments",
+    "search_aam", "search_core_assignments",
     "analyze_transition_state",
     "ts_record", "write_ts_record",
     "reaction_record", "reaction_from_record",

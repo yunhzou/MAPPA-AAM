@@ -1,4 +1,4 @@
-"""Test-only oracle for historical signed-event certificates; never imported by MAPPA."""
+"""Test-only signed-event enumeration oracle; never imported by MAPPA."""
 import math
 import time
 from mappa.event_patterns import _event_model, _event_count_constraint, _same_event_orbit
@@ -65,18 +65,6 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
         return finish(False, 'time_budget')
     if index.invariant_path(path):
         return finish(True, 'signed_event_invariance')
-    if time.perf_counter() >= deadline:
-        return finish(False, 'time_budget')
-    certificates = index.family_certificates
-    actions = certificates.actions(path)
-    vector = tuple(index.vector(representative))
-    if max_events is not None:
-        lower = certificates.lower_bound(vector, actions, max_events)
-        metrics['reachable_image_event_lower_bound'] = lower
-        if lower > max_events:
-            return finish(True, 'reachable_image_event_lower_bound')
-    if certificates.invariant_class(vector, actions):
-        return finish(True, 'source_target_class_invariance')
     if time.perf_counter() >= deadline:
         return finish(False, 'time_budget')
     compiled = compile_path(path, search_problem, {}, source_atoms=(), complete_reference=False)

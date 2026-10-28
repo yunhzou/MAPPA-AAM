@@ -11,7 +11,6 @@ from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.aam import finalize_graph_symmetry
 from mappa.artifacts import aam_from_record, aam_record
 from mappa.alignment.branch import _Branch, find_islands
-from mappa.analytical import _payload_key, compile_mapping_families
 from mappa.frag import build_graph
 from mappa.fragment import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.growth.result import IslandBranchLimitExceeded
@@ -325,19 +324,6 @@ def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
         json.loads(json.dumps(aam_record(result)))).graph.to_record()
     assert list(tmp_path.glob('cut_*.json'))
     assert len(restored.branches) == len(result.branches)
-    compiled = compile_mapping_families(restored)
-    assert compiled.branches
-    assert compiled.branches[0].aam_branch.path_provenance[0]['search_paths']
-
-
-def test_same_source_atoms_are_not_an_exact_relation_dedup_key():
-    fragment = {'fragment': [0], 'deferred_edges': [],
-                'symmetry': {'witness': {0: 0}, 'blocks': []}}
-    left = {'mapping': {0: 0}, 'hierarchy': {'fragments': [fragment]}}
-    right = {'mapping': {0: 0}, 'hierarchy': {'fragments': [
-        {**fragment, 'symmetry': {**fragment['symmetry'],
-          'blocks': [{'r_atoms': [0], 'p_atoms': [0, 1]}]}}]}}
-    assert _payload_key(left) != _payload_key(right)
 
 
 def test_serial_and_workers_produce_identical_search_graphs():
@@ -376,8 +362,6 @@ def test_capped_sibling_does_not_discard_a_successful_path(monkeypatch):
     result = find_islands(graph, graph, [0, 1], max_branches=2)
     assert result.capped
     assert [p.mapping for p in result.paths()] == [{0: 1, 1: 0}]
-
-
 
 
 def test_offline_viewer_uses_saved_graph_without_new_matching(tmp_path, monkeypatch):

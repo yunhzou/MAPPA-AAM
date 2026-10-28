@@ -1,16 +1,14 @@
 # Native MAPPA implementations
 
 This directory owns MAPPA's C++ code beside the Python package. The compiled
-imports stay `mappa._engine`, `mappa._group_ops` and `mappa._native`.
+imports are `mappa._engine` and `mappa._group_ops`.
 
 - `engine.cpp` and the fragment/growth headers implement compressed matching,
   growth, conditioned symmetry and reusable search work. Python calls these
   through `growth/native.py` and the native search adapters.
 - `group_ops.cpp` implements permutation projection and conjugation used by
   the shared matcher and hierarchy types.
-- `paired_mapping.cpp` provides the separately built `_native` extension.
-- `freeze.cpp` and `autgrp.cpp` provide additional engine exports; their
-  standalone freeze/AutGraph operations are not called by the Python pipeline.
+- `autgrp.cpp` implements the automorphism graph used by conditioned symmetry.
 - `third_party/nauty/` holds the vendored dependency, separate from MAPPA code.
 
 ## Build from the repository root
@@ -23,8 +21,8 @@ python -m pip install pybind11
 python src/mappa/native/build_engine.py
 ```
 
-Package installation builds `_group_ops` and `_native` through `setup.py`.
-The engine build compiles `engine.cpp`, `freeze.cpp`, `autgrp.cpp` and the nauty
+Package installation builds `_group_ops` through `setup.py`.
+The engine build compiles `engine.cpp`, `autgrp.cpp` and the nauty
 core, then places `_engine.<abi>.so` in `src/mappa/`. It requires a C++17 compiler.
 Build products live under `build/engine/` and are not committed.
 

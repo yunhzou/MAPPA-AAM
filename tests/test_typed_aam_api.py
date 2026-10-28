@@ -3,7 +3,6 @@ import pytest
 import mappa
 
 from mappa.aam import search_aam
-from mappa.analytical import compile_mapping_families
 from mappa.alignment.post_aam import AtomBijection
 from mappa.ts import analyze_transition_state
 from mappa.domain import (
@@ -176,12 +175,6 @@ def test_search_aam_returns_complete_typed_hierarchy():
     assert result.metrics.completed_group_requests >= 1
     assert result.metrics.completed_group_calculations >= 1
     assert result.metrics.retained_branch_count == len(result.branches)
-
-    analytical = compile_mapping_families(result, workers=1)
-    assert analytical.branches
-    family = analytical.branches[0]
-    assert family.family.contains(family.representative.as_dict())
-    assert family.aam_branch.hierarchy.has_complete_exact_target_groups
 
 
 @pytest.mark.smoke

@@ -1944,14 +1944,11 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
 
 }  // namespace
 
-// native/src/freeze.cpp
-void register_freeze(pybind11::module_&);
 // native/src/autgrp.cpp
 void register_autgrp(pybind11::module_&);
 
 PYBIND11_MODULE(_engine, mod) {
     mod.doc() = "Native AAM growth engine";
-    register_freeze(mod);
     register_autgrp(mod);
     py::class_<DenseGraph>(mod, "DenseGraph")
         .def(py::init<int, const std::vector<Pair>&>())

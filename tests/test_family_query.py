@@ -139,3 +139,19 @@ def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
         for value,wanted in zip(values,target):constraints.restrict(value[0],{wanted})
         solver=z3.Solver();constraints.emit(solver)
         assert (solver.check()==z3.sat)==(target in expected)
+
+
+def test_tolerant_symmetry_retains_all_small_query_mappings():
+    mol=endpoint('CCCHHH',[(0,1),(1,2),(0,2),(0,3),(1,4),(2,5)])
+    weights=mol.wbo.copy()
+    weights[0,1]=weights[1,0]=2
+    mol=MolecularEndpoint(mol.elements,mol.coordinates,weights)
+    problem=AAMProblem(mol,mol)
+    aam=search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1))
+    paths=list(aam.graph.paths())
+    # Every tolerance-compatible placement must remain in the union.
+    from mappa import query_path
+    for p in permutations(range(3)):
+        mapping=dict(enumerate((*p,*(i+3 for i in p))))
+        assert any(query_path(path,problem,mapping,source_atoms=tuple(range(6)),
+                              timeout_ms=2000)[0]=='recovered' for path in paths)

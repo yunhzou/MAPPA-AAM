@@ -122,11 +122,6 @@ class SignedEventIndex:
                     event_frame="R indices; unmatched P atom p is encoded as source_atom_count+p",
                     source_atom_count=self.n, target_atom_count=self.m)
 
-    @cached_property
-    def family_certificates(self):
-        from .event_certificates import EventFamilyCertificates
-        return EventFamilyCertificates(self)
-
     def vector(self, mapping):
         """A missing source image is -1; this is bookkeeping, never an atom."""
         return [mapping.get(a, -1) for a in range(self.n)]

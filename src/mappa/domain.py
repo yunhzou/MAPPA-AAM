@@ -14,7 +14,7 @@ from typing import Any, Mapping
 import numpy as np
 import math
 
-from .alignment.post_aam import AAMBranch, AAMHierarchy, AtomBijection
+from .alignment.post_aam import AAMHierarchy, AtomBijection
 from .search_graph import AAMSearchGraph, SearchBranch
 
 
@@ -219,33 +219,6 @@ class AAMResult:
         """Unordered branches and unique flat families for exact postprocessing."""
         from .final_branches import deduplicate_final_branches
         return deduplicate_final_branches(self)
-
-
-@dataclass(frozen=True)
-class MappingFamilyResult:
-    """Compiled branch relations without mechanism grouping."""
-
-    aam: AAMResult
-    branches: tuple[AnalyticalBranch, ...]
-    elapsed_seconds: float
-
-
-@dataclass(frozen=True)
-class AnalyticalBranch:
-    """One maximal exact mapping coset compiled from completed AAM paths."""
-
-    aam_branch: AAMBranch
-    family: Any
-
-    def __post_init__(self):
-        if self.family is None:
-            raise ValueError("an analytical branch requires an exact family")
-        if int(self.family.degree) != self.aam_branch.representative.degree:
-            raise ValueError("analytical family degree differs from AAM branch")
-
-    @property
-    def representative(self):
-        return AtomBijection.from_mapping(self.family.representative_mapping)
 
 
 @dataclass(frozen=True)

@@ -189,9 +189,8 @@ user adapters; cluster launch settings live under `bench/`; `manuscript/` owns p
 code is recovered from its recorded Git revision, not kept as runnable fallback
 copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
 
-This document does not claim all consolidation is finished. Adaptive/shared
-schedulers, explicit raw-family analysis APIs and historical benchmark scorers
-still have callers. Their removal requires migrating those consumers together;
+This document does not claim all consolidation is finished. Shared search scheduling and its supporting condition/result types
+remain in use. Further consolidation must migrate their consumers together;
 changing directory names does not establish equivalent behavior. New code must
 use the existing owners, remove superseded paths, and update this one design.
 
@@ -217,7 +216,10 @@ validation uses one constraint checker for both shared and individual histories.
 The old `group_mechanisms` pipeline and its mechanism-family compiler are removed,
 along with their result types, pool reduction, event signatures and Python/native
 symmetry-repair scoring. `decode_events` is the sole public event-result pipeline.
-Raw mapping-family compilation remains separate and does not select events.
+The unused analytical mapping-family compiler, historical scoring/pattern
+utilities, adaptive cut/seed runners and event certificates are removed with
+their obsolete exports and dedicated tests. Explicit mapping queries retain
+`family_query.py`; shared fragment and hierarchy types remain in use.
 Search configurations no longer accept symmetry-repair options. Exact fragment
 symmetry and TS core assignment keep their shared helpers.
 
@@ -226,8 +228,9 @@ symmetry and TS core assignment keep their shared helpers.
 `src/mappa/native/` owns our C++ implementations, headers and engine build script.
 Vendored nauty sources and licenses are isolated under
 `src/mappa/native/third_party/nauty/`. There is no top-level native source tree.
-The compiled interfaces remain `mappa._engine`, `mappa._group_ops` and
-`mappa._native`; moving source files does not change their algorithms or imports.
+The compiled interfaces are `mappa._engine` and `mappa._group_ops`.
+The unused paired-mapping extension and freeze exports are removed.
+`autgrp.cpp` remains required by conditioned symmetry.
 
 ```mermaid
 flowchart LR

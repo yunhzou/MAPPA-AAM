@@ -5,13 +5,22 @@ import numpy as np
 import pytest
 
 from mappa import AAMSearchConfig
-from mappa.aam import cut_seed
-from mappa.adaptive_cut_search import AdaptiveCutSearch
-from mappa.alignment.branch import _generate_seed_orders
+from mappa.adaptive_search import AdaptiveSearchCondition
+from mappa.alignment.sweep import cut_sweep_items
+from mappa.cut_replay import FragmentRepair
 from mappa.domain import AAMProblem, MolecularEndpoint
 from mappa.native_search import find_islands_native
 from mappa.search_graph import frozen_value
 from mappa.shared_seed_search import SharedSeedSearch
+
+
+def cut_sessions(problem, config):
+    condition = AdaptiveSearchCondition.uncut(problem, config)
+    repair = FragmentRepair(condition.source, condition.target, condition.orbits)
+    for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
+        view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
+        yield SharedSeedSearch(problem, config, condition=replace(condition,
+            source=view.source, cuts=tuple(cut), growth_replay=view))
 
 
 def state_key(state):
@@ -41,8 +50,8 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
             endpoints.append(MolecularEndpoint(elements, np.zeros((n,3)), w+w.T, str(side)))
         problem = AAMProblem(*endpoints)
         config = AAMSearchConfig(seed_count=3, branch_limit=cap, iso_tolerance=tol)
-        outer = AdaptiveCutSearch(problem, config, policy='shared')
-        child = outer._session(trial % len(outer.cuts))
+        sessions = list(cut_sessions(problem, config))
+        child = sessions[trial % len(sessions)]
         while child.advance():
             pass
         actual = contents(child.builder.finish())
@@ -63,22 +72,21 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
 
 def test_shared_growth_cache_and_saved_snapshot_preserve_groups():
     from test_fragment_choices import problem
-    outer = AdaptiveCutSearch(problem(6), AAMSearchConfig(seed_count=3, iso_tolerance=1.), policy='shared')
-    for _ in range(25):
-        outer.advance()
-    prefix = outer.snapshot()
-    record = prefix.aam.graph.to_record()
-    while outer.advance():
-        pass
-    outer.snapshot()
-    assert prefix.aam.graph.to_record() == record
-    for child in outer.sessions.values():
+    sessions = list(cut_sessions(problem(6), AAMSearchConfig(seed_count=3, iso_tolerance=1.)))
+    for child in sessions:
+        for _ in range(25):
+            child.advance()
+        prefix = child.snapshot()
+        record = prefix.aam.graph.to_record()
+        while child.advance():
+            pass
+        assert prefix.aam.graph.to_record() == record
         plain = SharedSeedSearch(child.problem, child.config,
             condition=replace(child.condition, growth_replay=None))
         while plain.advance():
             pass
         assert plain.snapshot().aam.graph == child.snapshot().aam.graph
-    assert sum(c.reused_states for c in outer.sessions.values()) > 0
+    assert sum(c.reused_states for c in sessions) > 0
 
 
 @pytest.mark.parametrize('cap', [1, 3, 100])
@@ -88,8 +96,7 @@ def test_element_exhaustion_skips_only_impossible_growth(cap, monkeypatch):
     target = MolecularEndpoint(('C','O','N'), np.zeros((3,3)), np.zeros((3,3)))
     problem = AAMProblem(source,target)
     config = AAMSearchConfig(seed_count=3, branch_limit=cap, iso_tolerance=1.)
-    outer = AdaptiveCutSearch(problem,config,policy='shared')
-    pruned = outer._session(0)
+    pruned = next(cut_sessions(problem, config))
     while pruned.advance():
         pass
     reference = SharedSeedSearch(problem,config,condition=pruned.condition)

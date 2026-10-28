@@ -11,11 +11,5 @@ setup(
             language="c++",
             extra_compile_args=["-O3", "-std=c++17"],
         ),
-        Extension(
-            "mappa._native",
-            sources=["src/mappa/native/paired_mapping.cpp"],
-            language="c++",
-            extra_compile_args=["-O3", "-std=c++17"],
-        )
     ]
 )
