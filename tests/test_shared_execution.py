@@ -302,3 +302,15 @@ def test_queue_optimization_preserves_dependency_and_claim_results(tmp_path):
     assert queue.claim('worker',MEMORY,IDENTITY)['state']=='finished'
     assert queue.snapshot()=={'error':1,'blocked':1}
     queue.close()
+
+
+def test_stop_tolerates_child_exit_before_final_signal(monkeypatch):
+    from mappa.execution.runtime import _stop
+    from types import SimpleNamespace
+    import mappa.execution.runtime as runtime
+    child = SimpleNamespace(pid=12345, is_alive=lambda: True, join=lambda *args: None)
+    monkeypatch.setattr(runtime.os, 'getpgid', lambda pid: pid)
+    def gone(*args):
+        raise ProcessLookupError()
+    monkeypatch.setattr(runtime.os, 'killpg', gone)
+    _stop(child)

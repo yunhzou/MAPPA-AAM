@@ -14,7 +14,9 @@ def seed_tasks(cut_tasks, *, seeds=10, slack=5, branch_limit=100, random_seed=42
     """Reuse the verified cut index; one independent seed/cut per queue task."""
     for cut in cut_tasks:
         for seed in range(seeds):
-            payload = dict(cut.payload, seed=seed, slack=slack, branch_limit=branch_limit, random_seed=random_seed,
+            saved = {name: cut.payload[name] for name in
+                     ('task_id', 'cut', 'source', 'raw', 'graph', 'finalized')}
+            payload = dict(saved, seed=seed, slack=slack, branch_limit=branch_limit, random_seed=random_seed,
                            decoder='anchored_fragment_conversion')
             yield Task(f'{payload["task_id"]:05d}/cut/{payload["cut"]:05d}/seed/{seed:02d}',
                        'rebenchmark.decoding:decode_seed', payload,

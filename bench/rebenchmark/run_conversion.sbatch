@@ -35,7 +35,11 @@ if [[ "$mode" == pilot ]]; then
         kill -0 "$coordinator_pid"
         sleep 1
     done
-    "$python" -u -m rebenchmark.decoder_campaign worker "$output" --workers "$workers"
+    if ! "$python" -u -m rebenchmark.decoder_campaign worker "$output" --workers "$workers"; then
+        kill -TERM "$coordinator_pid"
+        wait "$coordinator_pid" || true
+        exit 1
+    fi
     wait "$coordinator_pid"
 elif [[ "$mode" == coordinator ]]; then
     "$python" -u -m rebenchmark.decoder_campaign coordinator "$output"

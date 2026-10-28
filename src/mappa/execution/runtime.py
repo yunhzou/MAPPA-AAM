@@ -81,7 +81,10 @@ def _stop(process):
             pass
         process.join(2)
         if process.is_alive():
-            os.killpg(process.pid, signal.SIGKILL)
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass  # The child may exit between is_alive() and killpg().
     process.join()
 
 
@@ -150,6 +153,7 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                               elapsed_seconds=time.perf_counter()-start)
                 queue.finish(task.key, token, state, result)
                 if state != 'complete':
+                    print(f'{task.key}: {state}: {result}', flush=True)
                     # Reset only the worker after a failed computation, never
                     # resubmit the task or substitute a different algorithm.
                     return 'failed'

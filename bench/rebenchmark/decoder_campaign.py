@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import pickle
 import secrets
+import signal
 import socket
 import sqlite3
 import tempfile
@@ -32,6 +33,9 @@ def execute(args):
         run(queue,workers=args.workers,identity=plan['identity'],scratch=os.environ['TMPDIR'],
             bundles=out/'bundles',memory_bytes=plan['memory_bytes'])
         return
+    def terminate(signum, frame):
+        raise SystemExit(128 + signum)
+    signal.signal(signal.SIGTERM, terminate)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         reused={};charged={}
         for pilot in plan['pilots']:
@@ -96,15 +100,19 @@ def serve_queue(queue,out,metadata):
     with coordinator(queue,(socket.gethostname(),0),secret) as address:
         save(out/'endpoint.json',dict(host=address[0],port=address[1],identity=queue.identity))
         last=0.
-        while True:
-            states=queue.snapshot();stamp=time.monotonic()
-            if stamp-last>=300:
-                queue.backup(out/'queue.sqlite');last=stamp
-            save(out/'progress.json',dict(metadata,states=states,utc=time.time()))
-            if not any(states.get(k,0) for k in ('pending','running')):break
-            time.sleep(10)
-        queue.backup(out/'queue.sqlite')
-        save(out/'progress.json',dict(metadata,states=queue.snapshot(),utc=time.time(),finished=True))
+        try:
+            while True:
+                states=queue.snapshot();stamp=time.monotonic()
+                if stamp-last>=300:
+                    queue.backup(out/'queue.sqlite');last=stamp
+                save(out/'progress.json',dict(metadata,states=states,utc=time.time()))
+                if not any(states.get(k,0) for k in ('pending','running')):break
+                time.sleep(10)
+        finally:
+            queue.backup(out/'queue.sqlite')
+            states=queue.snapshot()
+            save(out/'progress.json',dict(metadata,states=states,utc=time.time(),
+                finished=not any(states.get(k,0) for k in ('pending','running'))))
         time.sleep(5)
 
 if __name__=='__main__':

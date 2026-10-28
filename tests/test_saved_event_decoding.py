@@ -51,12 +51,15 @@ def test_converted_record_does_not_emit_solver_evidence():
 
 
 def test_tasks_share_direction_budget_and_keep_seed_cut_identity():
-    cut=Task('old','unused',dict(task_id=12,cut=3))
+    cut=Task('old','unused',dict(task_id=12,cut=3,source={},raw={},graph={},finalized=True,
+                               family_seconds=10,cut_seconds=60))
     tasks=list(seed_tasks([cut],seeds=10))
     assert len({t.key for t in tasks})==10
     assert {t.case for t in tasks}=={'00012'}
     assert {t.payload['seed'] for t in tasks}==set(range(10))
     assert all(t.case_seconds==3600 for t in tasks)
+    assert all('family_seconds' not in t.payload and 'cut_seconds' not in t.payload for t in tasks)
+    assert cut.payload['family_seconds'] == 10
 
 
 def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypatch,tmp_path):
