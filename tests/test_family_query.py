@@ -115,3 +115,27 @@ def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
                 constraints.restrict(a[0],{left});constraints.restrict(b[0],{right})
                 solver=z3.Solver();constraints.emit(solver)
                 assert (solver.check()==z3.sat)==((left,right)[selector]==2)
+
+
+def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
+    import z3
+    from mappa.reference_constraints import ReferenceConstraints
+    # Two correlated permutations on overlapping target pools, with one slot
+    # fixed in the second operation. Compare every output, including negatives.
+    expected=set()
+    for first in permutations((0,1,2)):
+        for second in permutations((1,2,3)):
+            table=dict(zip((1,2,3),second))
+            if table[3]!=3:continue
+            expected.add(tuple(table.get(v,v) for v in (*first,3)))
+    for target in permutations(range(4)):
+        constraints=ReferenceConstraints()
+        values=[constraints.constant(i) for i in range(4)]
+        for pool,fixed in (((0,1,2),()),((1,2,3),(3,))):
+            table={p:constraints.symbol(pool) for p in pool}
+            constraints.distinct(v[0] for v in table.values())
+            for p in fixed:constraints.restrict(table[p][0],{p})
+            values=[constraints.lookup(v,table) for v in values]
+        for value,wanted in zip(values,target):constraints.restrict(value[0],{wanted})
+        solver=z3.Solver();constraints.emit(solver)
+        assert (solver.check()==z3.sat)==(target in expected)

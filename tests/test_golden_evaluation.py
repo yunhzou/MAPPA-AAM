@@ -75,7 +75,13 @@ def test_reference_recovery_queries_real_compressed_aam_not_only_representative(
     bonds=np.array([[0.,1.,0.],[1.,0.,2.],[0.,2.,0.]])
     endpoint=MolecularEndpoint(('C','C','C'),np.zeros((3,3)),bonds)
     result=search_aam(AAMProblem(endpoint,endpoint),AAMSearchConfig(seed_count=1,cut_floor=10))
-    mapping=dict(result.graph.states[result.graph.terminals[0]].mapping)
+    from dataclasses import replace
+    terminal=result.graph.terminals[0]
+    # Test membership inside this branch; another retained branch can already
+    # contain the desired mapping as its explicit representative.
+    result=replace(result,graph=replace(result.graph,stops=tuple(
+        stop for stop in result.graph.stops if stop.state==terminal)))
+    mapping=dict(result.graph.states[terminal].mapping)
     reference={a:(2,1,0)[b] for a,b in mapping.items()}
     f=feature(3,True)
     evaluated=E.evaluate(result,[f,f],reference,seconds=10)
