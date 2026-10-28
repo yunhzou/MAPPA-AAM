@@ -188,3 +188,34 @@ def test_same_fragment_pair_can_have_two_intrinsic_mapping_orbits():
     for family in catalogue.families:family.validate_representative(value)
     rebuilt=rebuild_intrinsic_catalogue(catalogue)
     assert rebuilt.branch_count==1 and len(rebuilt.families)==2
+
+
+def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatch):
+    from mappa.domain import AAMResult, AAMSearchConfig, AAMSearchMetrics
+    value = problem('COO', [], [])
+    a = saved_path(value)
+    # Different fixed mappings and policies belong to one atom-set branch.
+    b = replace(a.graph,
+        contexts=(replace(a.graph.contexts[0], iso_tolerance=.5),),
+        states=(a.graph.states[0], replace(a.graph.states[1], mapping=((0,0),(1,2),(2,1)))))
+    graph = AAMSearchGraph.combine((a.graph, b))
+    result = AAMResult(value, AAMSearchConfig(), graph,
+                       AAMSearchMetrics.from_record({'retained_branch_count': 2}, 0.))
+    assert 'branches' in vars(result)  # constructed eagerly, before access/decoding
+    assert len(result.branches) == result.metrics.retained_branch_count == 1
+    assert result.branches[0].fragment_pairs == (((0,1,2),(0,1,2)),)
+    assert {tuple(sorted(p.mapping.items())) for p in result.branches[0].paths} == {
+        ((0,0),(1,1),(2,2)), ((0,0),(1,2),(2,1))}
+    assert {p.context.iso_tolerance for p in result.branches[0].paths} == {1., .5}
+    def forbidden(*args):
+        raise AssertionError('returned branch groups must not be rebuilt on access')
+    monkeypatch.setattr(AAMSearchGraph, 'branches', forbidden)
+    assert len(result.branches) == 1
+
+
+def test_aam_grouping_distinguishes_target_atom_sets():
+    a = independent_path((0,1))
+    b = independent_path((1,0), mapping={0:2,1:3,2:0,3:1})
+    graph = AAMSearchGraph.combine((a.graph,b.graph))
+    assert len(graph.branches()) == 2
+    assert len({branch.fragment_pairs for branch in graph.branches()}) == 2

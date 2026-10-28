@@ -222,6 +222,13 @@ class SearchBranch:
     paths: tuple[SearchPath, ...]
 
     @property
+    def fragment_pairs(self):
+        """Atom-set identity; mapping choices and matching settings are contents."""
+        from .final_branches import final_fragment_pairs
+        path = self.paths[0]
+        return final_fragment_pairs(path.graph.states[path.terminal])
+
+    @property
     def representative(self):
         from .domain import AtomAssignment
         return AtomAssignment.from_mapping(self.paths[0].mapping)
@@ -310,9 +317,7 @@ class AAMSearchGraph:
         groups, keys = {}, {}
         for path in self.paths():
             if path.terminal not in keys:
-                context = path.context
-                keys[path.terminal] = (context.graph_floor, context.iso_tolerance,
-                    final_fragment_pairs(self.states[path.terminal]))
+                keys[path.terminal] = final_fragment_pairs(self.states[path.terminal])
             groups.setdefault(keys[path.terminal], []).append(path)
         return tuple(SearchBranch(tuple(paths)) for paths in groups.values())
 

@@ -428,3 +428,22 @@ provenance; return its converted branches once, before event counting or saving.
 This grouping does not change growth, tolerance, allowed rematch choices or the
 retained-branch minimum. It avoids repeating Cartesian recombination per source
 representative. Historical result records and measurements remain unchanged.
+
+
+### AAM return boundary: atom-set branch identity (2026-10-28 clarification)
+
+A branch is the unordered collection of fragment pairs, each identified only by
+its R atom set and P atom set. AAMResult groups these before its constructor
+returns and retains every saved mapping/context inside the group. Neither
+anchors nor matching policies split a public branch. They remain attached to the
+alternatives for later decoding. The retained-branch metric counts these groups,
+not terminal paths. Original search graphs remain intact for replay and evidence.
+The earlier anchor-key grouping is only an internal conversion-work cache; it
+was not the user's requested AAM branch identity or a count of unique fragments.
+
+```mermaid
+flowchart LR
+    Search[Completed search alternatives] --> Group[Group by unordered R/P atom-set pairs]
+    Group --> AAM[Return grouped AAM with all alternatives]
+    AAM --> Decode[Decoder applies each alternative's anchors]
+```

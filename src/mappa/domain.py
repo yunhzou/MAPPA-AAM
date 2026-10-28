@@ -7,7 +7,7 @@ module's public contracts.
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -15,7 +15,7 @@ import numpy as np
 import math
 
 from .alignment.post_aam import AAMBranch, AAMHierarchy, AtomBijection
-from .search_graph import AAMSearchGraph
+from .search_graph import AAMSearchGraph, SearchBranch
 
 
 def _readonly_array(value, *, shape=None, ndim=None):
@@ -231,16 +231,20 @@ class AAMMechanism:
 
 @dataclass(frozen=True)
 class AAMResult:
-    """Raw fragment-decision graph, independent of mechanism classification."""
+    """Grouped final fragment sets and their unmodified search alternatives."""
 
     problem: AAMProblem
     config: AAMSearchConfig
     graph: AAMSearchGraph
     metrics: AAMSearchMetrics
 
-    @property
-    def branches(self):
-        return self.graph.branches()
+    branches: tuple[SearchBranch, ...] = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self):
+        branches = self.graph.branches()
+        object.__setattr__(self, 'branches', branches)
+        object.__setattr__(self, 'metrics', replace(self.metrics,
+            retained_branch_count=len(branches)))
 
     def final_catalogue(self):
         """Unordered branches and unique flat families for exact postprocessing."""
