@@ -2,6 +2,9 @@
 from dataclasses import dataclass
 from graphlib import TopologicalSorter
 import pickle
+import os
+import tempfile
+from pathlib import Path
 import sqlite3
 import threading
 import time
@@ -178,8 +181,18 @@ class TaskQueue:
 
     def backup(self, path):
         """One compact consistent checkpoint, never a shared database writer."""
-        with self.lock, sqlite3.connect(str(path)) as destination:
-            self.db.backup(destination)
+        path = Path(path)
+        with self.lock, tempfile.TemporaryDirectory(dir=path.parent) as temporary:
+            snapshot = Path(temporary)/'queue.sqlite'
+            destination = sqlite3.connect(snapshot)
+            try:
+                self.db.backup(destination)
+                # The backup inherits WAL mode. Consolidate it before publishing
+                # so copying this single file preserves every committed row.
+                destination.execute('PRAGMA journal_mode=DELETE')
+            finally:
+                destination.close()
+            os.replace(snapshot, path)
 
     def close(self):
         self.db.close()

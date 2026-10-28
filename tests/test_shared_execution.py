@@ -275,3 +275,20 @@ def test_incremental_queue_plan_keeps_history_and_fetches_selected_results(tmp_p
     assert queue.claim('worker', MEMORY, IDENTITY)['task'].key == 'second'
     assert queue.db.execute("SELECT state FROM attempts WHERE task='first' ORDER BY started").fetchall() == [('error',), ('complete',)]
     queue.close()
+
+
+def test_queue_backup_is_one_complete_copyable_file(tmp_path):
+    import shutil
+    queue=TaskQueue(tmp_path/'live.sqlite',IDENTITY)
+    queue.add([task('one')])
+    target=tmp_path/'snapshot.sqlite'
+    queue.backup(target)
+    claim=queue.claim('worker',MEMORY,IDENTITY)
+    queue.finish('one',claim['token'],'complete',{'value':42})
+    queue.backup(target)
+    assert not target.with_name(target.name+'-wal').exists()
+    copied=tmp_path/'copied.sqlite';shutil.copyfile(target,copied)
+    restored=TaskQueue(copied,IDENTITY)
+    assert restored.snapshot()=={'complete':1}
+    assert restored.results()['one']['result']=={'value':42}
+    restored.close();queue.close()
