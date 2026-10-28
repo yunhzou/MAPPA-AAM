@@ -1,4 +1,5 @@
 from dataclasses import replace
+import pytest
 import sys
 from pathlib import Path
 from test_event_patterns import problem,saved_path
@@ -122,7 +123,6 @@ def test_public_branch_grouping_preserves_distinct_mapping_alternatives():
 
 def test_flat_archive_roundtrip_needs_no_original_search_graph():
     import json
-    import pytest
     value=problem('COO',[(0,1,1),(0,2,.9)],[(0,1,.51),(0,2,.49)])
     catalogue=FinalBranchCatalogue(value).add_graph(saved_path(value,[(0,2,1)]).graph)
     record=json.loads(json.dumps(catalogue.to_record()))
