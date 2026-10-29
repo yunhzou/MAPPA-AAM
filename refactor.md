@@ -1,6 +1,6 @@
 # MAPPA source refactoring plan
 
-Status: all ownership stages implemented; final native build and integration validation in progress.
+Status: all ownership stages implemented. Final repository suite: 616 passed on NRT.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
@@ -227,7 +227,8 @@ including their unchanged static assets. Rigid fitting uses the existing shared
 coordinate routine; trajectory capture and represented-choice display share one
 module. Native sources and build configuration now live under `mappa_core/native/`;
 all 36 C/C++/header/license files are byte-identical across that relocation.
-Final integration verification is in progress.
+The native engine rebuild, full repository suite and installed-package checks
+have passed on NRT.
 
 ## Files to dismantle rather than simply relocate
 
@@ -287,22 +288,43 @@ workflow smoke checks. Fix failures and record the exact tested revision, counts
 skips and scope. Do not rerun dataset benchmarks or restart monitoring for this
 validation. Preserve the core algorithm while fixing refactoring regressions.
 
-## Completed-stage functional validation
+## Functional validation
 
-Matching and reaction search have passed 492 selected functional tests across
-39 files on NRT, with no skips. Production source is `fa67d7a`; test corrections
-are `657f742` and `a8aee6c`. The main run passed 491 tests; the one failing test
-passed after correcting its moved patch target. An earlier collection failure
-was fixed by retaining a shared molecule fixture in the test-input module.
-Production source did not change during these corrections.
+Each stage passed its affected checks on NRT CPU nodes before the next stage.
+The final source `3ded484` passed **all 616 repository tests with zero skips** in
+69.89 seconds. The native engine was rebuilt from the relocated source first.
+These are software checks, not dataset benchmarks or new coverage measurements.
 
-Coverage includes exhaustive small-graph compression, Python/native matching,
-ordinary/metal tolerances, branch caps, partial mapping, shared seed policies,
-cut reuse, parallel execution, checkpoint resume, saved hierarchies and public
-workflow integration. This is module-level functional validation, not a full
-repository test run or dataset benchmark. NRT jobs: `68515` and `68563`.
-Logs and exact test identities are in Desktop
-`reports/source_audit_20261028/functional-validation/summary.json` and ticket 25.
+| Stage | Passing affected checks | NRT jobs containing accepted results |
+|---|---:|---|
+| Alignment ownership | 233 | 68862, 68893 |
+| Matching dependency layers | 246 | 69015 |
+| Search dependency layers | 227 | 69055 |
+| Scheduler consolidation | 150 | 69149, 69243, 69284 |
+| Decoder and mapping analytics | 210 selected, plus query checks | 69342, 69418 |
+| TS and shared data | 121 | 69482 |
+| I/O and presentation | 250 | 69757, 69792 |
+| Full repository integration | 616 | 69950 |
+
+Stage counts overlap and must not be added. Early import/test-adapter failures
+were corrected, with failed checks rerun; the final full run passes every check.
+The functional suite covers compressed matching, native parity, locking and
+branch caps, partial mapping, cut/seed execution, checkpoints, conversion and
+queries, TS scoring, CLI output and viewers.
+
+Packaging checks verify 133 historical class relocation destinations, native
+sources/licenses and viewer assets in the wheel/source archive, and public
+search/decoding from an installed wheel. The selected Python engine is used for
+the wheel check; native execution is checked by the rebuilt source suite.
+Both small documentation notebooks passed separately (NRT job 70052), with
+their declared optional dependencies installed only in disposable node-local storage. No dataset campaign or monitor was restarted.
+
+Full receipts, logs, commands and exact test identities are stored locally in
+`reports/source_audit_20261028/full-refactor-validation/` under the Desktop
+checkout. The final remote logs are in
+`rebenchmark_20261027/refactor_final_integration/`. Ticket 25 records publication
+and the completed validation scope. Skills and viewer/chirality feature redesign
+remain outside this refactor, as requested.
 
 ## Pickup information
 

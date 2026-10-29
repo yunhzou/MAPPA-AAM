@@ -67,7 +67,7 @@ The core workflow has two steps:
 
 ```python
 from mappa import search_aam
-from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.decoder import decode_events
 
 aam = search_aam(problem)       # Compressed fragment-matching families
 decoded = decode_events(aam)     # Distinct bond-event candidates
@@ -198,7 +198,7 @@ Start with the executed, self-contained [AAM notebook](docs/AAM_SIMPLE.ipynb): e
 
 ```python
 from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
 
 # Arrays for both endpoints are embedded in docs/AAM_SIMPLE.ipynb.
 problem = AAMProblem(
@@ -380,7 +380,7 @@ and its reproducibility index.
 <details>
 <summary>Upgrading from the former rxn_core package</summary>
 
-The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.mappa_core.post_processing.decoder.api import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
+The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.mappa_core.post_processing.decoder import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
 
 </details>
 
