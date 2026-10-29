@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 import math
 from numbers import Integral
+from functools import cached_property
 import numpy as np
 if TYPE_CHECKING:
     from .conversion import FragmentConversion
@@ -121,6 +122,29 @@ class SymmetryEventResponse:
         return all(preserves for preserves, _ in self.generators)
 
 
+@dataclass(frozen=True, eq=False)
+class BondEventResponse:
+    """Shared responses to reachable bond weights, not independent choices."""
+    source_weight: float
+    threshold: float
+    target_weights: np.ndarray
+    categories: np.ndarray
+
+    @property
+    def constant(self):
+        return int(self.categories[0]) if np.all(self.categories == self.categories[0]) else None
+
+    def lookup(self, weights):
+        return self.categories[np.searchsorted(self.target_weights, weights)]
+
+
+@dataclass(frozen=True)
+class BondEventTerm:
+    atoms: tuple[int, int]
+    action_ids: tuple[int, ...]
+    response: BondEventResponse
+
+
 @dataclass
 class EventInterpretation:
     """Bond responses attached to the unchanged, ordered saved mapping space.
@@ -132,6 +156,34 @@ class EventInterpretation:
     catalogue: FinalBranchCatalogue
     index: SignedEventIndex
     family_actions: tuple[tuple[SymmetryEventResponse, ...], ...]
+    _tables: dict = field(default_factory=dict, repr=False)
+
+    @cached_property
+    def fragment_partitions(self):
+        partitions = [set() for _ in self.catalogue.families]
+        for (_, pairs), ids in self.catalogue.branches.items():
+            for fid in ids:
+                partitions[fid].add(tuple(sorted(tuple(sorted(rs)) for rs, _ in pairs)))
+        for fid, alternatives in self.catalogue.coupled_branches.items():
+            for pairs in alternatives:
+                partitions[fid].add(tuple(sorted(tuple(sorted(rs)) for rs, _ in pairs)))
+        return tuple(tuple(sorted(parts)) for parts in partitions)
+
+    def tables(self, family_id, partition=0):
+        """Prepare one saved partition lazily; share bond responses across branches."""
+        from .events import FragmentEventTables
+        family = self.catalogue.families[family_id]
+        fragments = self.fragment_partitions[family_id][partition]
+        key = family.mapping, family.actions, fragments
+        if key not in self._tables:
+            self._tables[key] = FragmentEventTables(self.index,
+                family, fragments)
+        return self._tables[key]
+
+    def contributions(self, family_id, choices=None, *, partition=0, include_events=False):
+        """Compose internal and boundary categories for one permitted choice."""
+        vector = self.index.vector(self.realize(family_id, choices))
+        return self.tables(family_id, partition).evaluate(vector, include_events=include_events)
 
     def realize(self, family_id, choices=None):
         """Apply explicitly requested choices and enforce original constraints.
@@ -185,17 +237,18 @@ class EventInterpretation:
         mapping = self.realize(family_id, choices)
         return self.index.describe(self.index.vector(mapping))
 
-    def counts(self, family_id, choices, *, batch_size=64):
-        """Stream bounded vector batches for caller-supplied choices only."""
+    def counts(self, family_id, choices, *, batch_size=64, categories=False):
+        """Stream requested counts; categories=True returns breaking/forming/strengthening/weakening."""
         if batch_size < 1:
             raise ValueError('batch_size must be positive')
         pair_count = len(self.index.a) + len(self.index.pa)
         batch_size = min(batch_size, max(1, 65536 // max(1, pair_count)))
+        count = self.tables(family_id).counts if categories else self.index.counts
         batch = []
         for choice in choices:
             batch.append(self.index.vector(self.realize(family_id, choice)))
             if len(batch) == batch_size:
-                yield from self.index.counts(batch)
+                yield from count(batch)
                 batch.clear()
         if batch:
-            yield from self.index.counts(batch)
+            yield from count(batch)

@@ -78,6 +78,9 @@ class SignedEventIndex:
         self.cache = {}
         self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
+        self._event_tables = OrderedDict()
+        self._domain_weights = OrderedDict()
+        self._orbit_tables = OrderedDict()
 
     def pair_table(self, weight, tau, xs, ys):
         """Reuse exact local responses across pairs/families, never mappings.
@@ -111,6 +114,40 @@ class SignedEventIndex:
         if len(self._pair_tables) > 16384:
             self._pair_tables.popitem(last=False)
         return result
+
+    def _event_orbits(self, action):
+        if action not in self._orbit_tables:
+            self._orbit_tables[action] = _action_orbits(action, self.m)
+            if len(self._orbit_tables) > 1024:
+                self._orbit_tables.popitem(last=False)
+        return self._orbit_tables[action]
+
+    def _event_response(self, weight, tau, xs, ys):
+        from .records import BondEventResponse
+        xs, ys = sorted((xs, ys))
+        key = float(weight), float(tau), xs, ys
+        if key not in self._event_tables:
+            domains = xs, ys
+            if domains not in self._domain_weights:
+                values = set()
+                x, y = np.array(xs), np.array(ys)
+                block = max(1, 65536 // len(y))
+                for start in range(0, len(x), block):
+                    xx = x[start:start+block]
+                    valid = (xx[:,None] != y[None,:]) | (xx[:,None] == -1) | (y[None,:] == -1)
+                    values.update(np.unique(self.padded_product[np.ix_(xx,y)][valid]).tolist())
+                weights = np.array(sorted(values))
+                weights.setflags(write=False)
+                self._domain_weights[domains] = weights
+                if len(self._domain_weights) > 4096:
+                    self._domain_weights.popitem(last=False)
+            weights = self._domain_weights[domains]
+            codes = _event_categories(weight, weights, tau)
+            codes.setflags(write=False)
+            self._event_tables[key] = BondEventResponse(float(weight), float(tau), weights, codes)
+            if len(self._event_tables) > 16384:
+                self._event_tables.popitem(last=False)
+        return self._event_tables[key]
 
     @property
     def policy(self):
@@ -374,6 +411,188 @@ class SignedEventIndex:
                     endpoint_events=dict(broken=tuple((a,b) for a,b,*_ in broken),
                                          formed=tuple((a,b) for a,b,*_ in formed)),
                     counts=counts, total=sum(counts.values()), policy=self.policy)
+
+EVENT_CATEGORIES = ('breaking', 'forming', 'strengthening', 'weakening')
+
+
+def _event_categories(source, target, threshold):
+    """0 unchanged; 1..4 are exclusive categories using the existing bond cutoff."""
+    source, target = np.asarray(source), np.asarray(target)
+    decrease, increase = source - target > threshold, target - source > threshold
+    return np.where(decrease, np.where(target > threshold, 4, 1),
+                    np.where(increase, np.where(source > threshold, 3, 2), 0)).astype(np.uint8)
+
+
+def _action_orbits(action, degree):
+    """Atom orbits from generator edges; never construct permutation elements."""
+    kind, data = action
+    parent = list(range(degree))
+
+    def root(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    edges = zip(data, data[1:]) if kind == 'pool' else (
+        (a, b) for generator in data for a, b in enumerate(generator) if a != b)
+    for a, b in edges:
+        parent[root(a)] = root(b)
+    cells = defaultdict(list)
+    for a in range(degree):
+        cells[root(a)].append(a)
+    result = [None] * degree
+    for cell in cells.values():
+        orbit = frozenset(cell)
+        for a in cell:
+            result[a] = orbit
+    return tuple(result)
+
+
+class FragmentEventTables:
+    """Sparse internal/boundary factors over ORIGINAL ordered family choices.
+
+    Single-atom domains only screen impossible events. Their Cartesian product
+    is an overapproximation, never a permission to combine independent images.
+    Evaluation receives a realization checked by EventInterpretation.realize.
+    """
+    def __init__(self, index, family, fragments):
+        from .records import BondEventTerm
+        self.index, self.fragments = index, fragments
+        owners = {a: i for i, atoms in enumerate(fragments) for a in atoms}
+        mapping = dict(family.mapping)
+        if len(owners) != sum(map(len, fragments)) or set(owners) != set(mapping):
+            raise ValueError('saved fragments must partition the mapped source atoms')
+        self.owners = np.array([owners.get(a, -1) for a in range(index.n)], dtype=int)
+        domains = {a: frozenset((p,)) for a, p in family.mapping}
+        dependencies = {a: set() for a in domains}
+        for aid, action in enumerate(family.actions):
+            orbits = index._event_orbits(action)
+            for a, domain in domains.items():
+                if any(len(orbits[p]) > 1 for p in domain):
+                    dependencies[a].add(aid)
+                    domains[a] = frozenset().union(*(orbits[p] for p in domain))
+        self.atom_domains = {a: tuple(sorted(ds)) for a, ds in domains.items()}
+        self.atom_actions = {a: tuple(sorted(ids)) for a, ids in dependencies.items()}
+        self.internal, self.boundary = {}, {}
+        groups = defaultdict(list)
+        self._constant = Counter()
+        # Source pairs cover both ordinary and manually cut boundaries. Product
+        # bonds are included even when their source weight is zero.
+        for a, b, tau in zip(index.a, index.b, index.tau):
+            if a not in mapping and b not in mapping:
+                continue
+            response = index._event_response(index.r[a, b], tau,
+                self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,)))
+            if response.constant == 0:
+                continue
+            left, right = int(self.owners[a]), int(self.owners[b])
+            region = tuple(sorted((left, right)))
+            term = BondEventTerm((int(a), int(b)),
+                tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set()))), response)
+            collection = self.internal if left == right else self.boundary
+            key = left if left == right else region
+            collection.setdefault(key, []).append(term)
+            if response.constant is None:
+                groups[response].append((int(a), int(b), region))
+            else:
+                self._constant[region, response.constant] += 1
+        self.internal = {key: tuple(terms) for key, terms in self.internal.items()}
+        self.boundary = {key: tuple(terms) for key, terms in self.boundary.items()}
+        regions = sorted({region for terms in groups.values() for _,_,region in terms}
+                         | {region for region, _ in self._constant})
+        self._regions = tuple(regions)
+        region_ids = {region:i for i,region in enumerate(regions)}
+        self._fixed = np.zeros((len(regions), 5), dtype=np.int64)
+        for (region, code), count in self._constant.items():
+            self._fixed[region_ids[region], code] += count
+        self._groups = tuple((response, np.array([(a,b) for a,b,_ in terms], dtype=int),
+                              np.array([region_ids[region] for _,_,region in terms], dtype=int))
+                             for response, terms in groups.items())
+        # Product-to-unmatched boundaries depend on occupied target atoms, not
+        # a fabricated correspondence between unmatched reactants and products.
+        eligible = index.p[index.pa, index.pb] > index.ptau
+        if len(mapping) == index.m:
+            eligible[:] = False
+        reachable = set().union(*domains.values()) if domains else set()
+        eligible &= np.array([a in reachable or b in reachable for a,b in zip(index.pa,index.pb)])
+        self.product_boundary_pairs = np.column_stack((index.pa[eligible], index.pb[eligible]))
+        self.product_boundary_actions = tuple(range(len(family.actions)))
+
+    def evaluate(self, vector, *, include_events=False):
+        """Lookup only the requested joint choice; sum each pair once."""
+        vector = np.asarray(vector, dtype=int)
+        totals = self._fixed.copy()
+        for response, pairs, regions in self._groups:
+            codes = response.lookup(self.index.padded_product[vector[pairs[:,0]], vector[pairs[:,1]]])
+            np.add.at(totals, (regions, codes), 1)
+        inverse = np.full(self.index.m, -1, dtype=int)
+        mapped = np.flatnonzero(vector >= 0)
+        inverse[vector[mapped]] = mapped
+        pairs = self.product_boundary_pairs
+        source = inverse[pairs]
+        boundary = (source[:,0] >= 0) ^ (source[:,1] >= 0)
+        target_boundary = pairs[boundary]
+        internal, boundary_result = {}, {}
+        counts = totals[:,1:].sum(axis=0)
+        for (left, right), row in zip(self._regions, totals[:,1:]):
+            if np.any(row):
+                collection = internal if left == right else boundary_result
+                key = left if left == right else (left, right)
+                collection[key] = row.copy()
+        formed_owners = self.owners[np.maximum(source[boundary,0], source[boundary,1])]
+        for owner, count in zip(*np.unique(formed_owners, return_counts=True)):
+            boundary_result.setdefault((-1, int(owner)), np.zeros(4, dtype=int))[1] += count
+            counts[1] += count
+        def named(counts):
+            return dict(zip(EVENT_CATEGORIES, map(int, counts)))
+        result = dict(counts=named(counts), total=int(counts.sum()),
+                      internal={k:named(v) for k,v in internal.items()},
+                      boundary={k:named(v) for k,v in boundary_result.items()})
+        if include_events:
+            events = []
+            for terms in (*self.internal.values(), *self.boundary.values()):
+                for term in terms:
+                    a,b = term.atoms
+                    x,y = int(vector[a]), int(vector[b])
+                    weight = self.index.padded_product[x,y]
+                    code = int(term.response.lookup(weight))
+                    if code:
+                        events.append(dict(category=EVENT_CATEGORIES[code-1], reactant_pair=(a,b),
+                            product_pair=tuple(sorted((x,y))) if x >= 0 and y >= 0 else None,
+                            reactant_weight=float(self.index.r[a,b]), product_weight=float(weight)))
+            events.extend(dict(category='forming', reactant_pair=None,
+                product_pair=(int(a),int(b)), reactant_weight=0., product_weight=float(self.index.p[a,b]))
+                for a,b in target_boundary)
+            result['events'] = tuple(events)
+        return result
+
+    def counts(self, vectors):
+        """Vectorized category lookup for caller-supplied, validated realizations."""
+        vectors = np.asarray(vectors, dtype=int)
+        result = np.broadcast_to(self._fixed[:,1:].sum(axis=0), (len(vectors), 4)).copy()
+        for response, pairs, _ in self._groups:
+            values = self.index.padded_product[vectors[:,pairs[:,0]], vectors[:,pairs[:,1]]]
+            codes = response.lookup(values)
+            for code in range(1, 5):
+                result[:,code-1] += np.count_nonzero(codes == code, axis=1)
+        pairs = self.product_boundary_pairs
+        if len(pairs):
+            present = np.zeros((len(vectors), self.index.m), dtype=bool)
+            rows, atoms = np.nonzero(vectors >= 0)
+            present[rows, vectors[rows,atoms]] = True
+            result[:,1] += np.count_nonzero(present[:,pairs[:,0]] ^ present[:,pairs[:,1]], axis=1)
+        return result
+
+    @property
+    def statistics(self):
+        terms = [t for rows in (*self.internal.values(), *self.boundary.values()) for t in rows]
+        return dict(fragments=len(self.fragments), internal_terms=sum(map(len,self.internal.values())),
+                    boundary_terms=sum(map(len,self.boundary.values())),
+                    variable_terms=sum(t.response.constant is None for t in terms),
+                    constant_terms=sum(t.response.constant is not None for t in terms),
+                    unique_responses=len({id(t.response) for t in terms}),
+                    product_boundary_pairs=len(self.product_boundary_pairs))
 
 
 class FragmentEventCounter:

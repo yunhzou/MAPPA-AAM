@@ -199,3 +199,153 @@ def test_large_compressed_space_never_enumerated(monkeypatch):
     assert sum(next(result.counts(0,[[tuple(reversed(a[1])) for a in actions]]))) == 40
     print(json.dumps(dict(represented_choices=2**20, unique_actions=20,
         cpu_seconds=elapsed,python_peak_bytes=peak)),flush=True)
+
+
+def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
+    """Independent scalar oracle, including original endpoint pair identities."""
+    result = []
+    r,p = problem.reactant,problem.product
+    for a in range(r.atom_count):
+        for b in range(a+1,r.atom_count):
+            if a not in mapping and b not in mapping:
+                continue
+            tau = metal_threshold if metal_threshold is not None and any(
+                is_metal_element(r.elements[k]) for k in (a,b)) else threshold
+            x,y = mapping.get(a),mapping.get(b)
+            old = float(r.wbo[a,b]); new = float(p.wbo[x,y]) if x is not None and y is not None else 0.
+            if old-new > tau:
+                kind = 'weakening' if new > tau else 'breaking'
+            elif new-old > tau:
+                kind = 'strengthening' if old > tau else 'forming'
+            else:
+                continue
+            result.append((kind,(a,b),tuple(sorted((x,y))) if x is not None and y is not None else None))
+    inverse = {v:k for k,v in mapping.items()}
+    for a in range(p.atom_count):
+        for b in range(a+1,p.atom_count):
+            tau = metal_threshold if metal_threshold is not None and any(
+                is_metal_element(p.elements[k]) for k in (a,b)) else threshold
+            if (a in inverse) != (b in inverse) and p.wbo[a,b] > tau:
+                result.append(('forming',None,(a,b)))
+    return sorted(result,key=repr)
+
+
+def check_contributions(interpreted, choices):
+    from collections import Counter
+    from mappa.mappa_core.post_processing.decoder.events import EVENT_CATEGORIES
+    expected_counts = []
+    for choice in choices:
+        mapping = interpreted.realize(0,choice)
+        expected = dense_categories(interpreted.catalogue.problem,mapping,
+            interpreted.index.threshold,interpreted.index.metal_threshold)
+        result = interpreted.contributions(0,choice,include_events=True)
+        actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
+        assert actual == expected
+        counts = Counter(e[0] for e in expected)
+        assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
+        assert result['total'] == len(expected)
+        for kind,count in result['counts'].items():
+            assert sum(row[kind] for row in (*result['internal'].values(),*result['boundary'].values())) == count
+        expected_counts.append([counts[k] for k in EVENT_CATEGORIES])
+    assert list(map(list,interpreted.counts(0,choices,categories=True,batch_size=2))) == expected_counts
+
+
+def test_sparse_boundaries_keep_shared_choices_and_manual_cut_bonds():
+    ep = endpoint('CCCC',[(0,2,1),(1,3,1),(0,3,.4),(1,2,.4)])
+    actions = (('pool',(0,1)),('pool',(2,3)))
+    catalogue = saved(ep,ep,dict(enumerate(range(4))),actions=actions,
+                      pairs=(((0,1),(0,1)),((2,3),(2,3))))
+    interpreted = interpret_events(catalogue)
+    choices = [[None,None],[(1,0),None],[None,(3,2)],[(1,0),(3,2)]]
+    check_contributions(interpreted,choices)
+    table = interpreted.tables(0)
+    assert not table.internal
+    assert set(table.boundary) == {(0,1)}
+    assert all(term.action_ids == (0,1) for term in table.boundary[0,1])
+    assert [interpreted.contributions(0,c)['total'] for c in choices] == [0,4,4,0]
+    # No independent minima of boundary terms or fragment choices are combined.
+    catalogue.families[0] = replace(catalogue.families[0],actions=(('group',((1,0,3,2),)),))
+    check_contributions(interpret_events(catalogue),[[None],[(1,)]])
+
+
+@pytest.mark.parametrize('partial',[False,True])
+def test_boundary_categories_against_exhaustive_small_permutations(partial):
+    r = endpoint('CCCC',[(0,1,1.8),(0,2,.2),(1,2,.8),(2,3,1.4)])
+    p = endpoint('CCCCC',[(0,1,.7),(1,2,1.8),(2,3,.4),(0,4,1.2),(3,4,1)])
+    mapping = {0:0,1:1} if partial else {0:0,1:1,2:2,3:3}
+    pairs = tuple(((a,),(b,)) for a,b in mapping.items())
+    interpreted = interpret_events(saved(r,p,mapping,actions=(('pool',tuple(range(5))),),pairs=pairs))
+    check_contributions(interpreted,[[perm] for perm in permutations(range(5))])
+
+
+def test_boundary_categorization_float_thresholds_and_metals():
+    for elements in ('CCC',('Fe','C','C')):
+        tau = .3 if elements[0] == 'Fe' else .5
+        for weight in (tau,np.nextafter(tau,1.),.8,1.8):
+            r = endpoint(elements,[(0,1,weight)])
+            p = endpoint(elements,[(0,1,tau),(0,2,1.8)])
+            result = interpret_events(saved(r,p,{0:0,1:1,2:2},actions=(('pool',(1,2)),),
+                pairs=(((0,),(0,)),((1,2),(1,2)))))
+            check_contributions(result,[[None],[(2,1)]])
+
+
+def test_tables_follow_ordered_overlapping_actions_and_required_edges():
+    ep = endpoint('CCC',[(0,1,.6),(0,2,1),(1,2,1.4)])
+    source = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(0,1)),('pool',(1,2))),
+        pairs=(((0,),(0,)),((1,2),(1,2))))
+    result = interpret_events(source)
+    assert result.tables(0).atom_domains == {0:(0,1,2),1:(0,1,2),2:(1,2)}
+    check_contributions(result,[[None,None],[(1,0),None],[None,(2,1)],[(1,0),(2,1)]])
+    source.families[0] = replace(source.families[0],required_edges=((0,1),),policy=(.2,.1))
+    with pytest.raises(ValueError,match='original fragment constraints'):
+        interpret_events(source).contributions(0,[None,(2,1)])
+
+
+def test_fixed_internal_and_boundary_responses_share_across_families():
+    ep = endpoint('CCCC',[(0,1,1),(2,3,1)])
+    target = endpoint('CCCC',[(0,1,1.8),(2,3,1.8),(0,3,1)])
+    source = saved(ep,target,dict(enumerate(range(4))),pairs=(((0,1),(0,1)),((2,3),(2,3))))
+    source.families.append(replace(source.families[0]))
+    next(iter(source.branches.values())).add(1)
+    result = interpret_events(source)
+    check_contributions(result,[None])
+    assert result.tables(0) is result.tables(1)
+    assert result.tables(0).statistics['variable_terms'] == 0
+    assert result.contributions(0)['counts'] == dict(breaking=0,forming=1,strengthening=2,weakening=0)
+
+
+def test_fragment_partitions_are_alternative_views_not_double_counts():
+    ep = endpoint('CCC',[(0,1,1),(1,2,1.8)])
+    source = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(0,2)),))
+    source.branches[(source.families[0].policy,(((0,),(0,)),((1,2),(1,2))))] = {0}
+    interpreted = interpret_events(source)
+    assert len(interpreted.fragment_partitions[0]) == 2
+    counts = [interpreted.contributions(0,[(2,0)],partition=i)['counts'] for i in range(2)]
+    assert counts[0] == counts[1]
+
+
+def test_empty_mapping_has_no_internal_or_boundary_events():
+    result = interpret_events(saved(endpoint('CC',[(0,1,1)]),endpoint('CCC',[(0,1,1)]),{}))
+    check_contributions(result,[None])
+    assert result.tables(0).statistics['boundary_terms'] == 0
+
+
+def test_large_boundary_tables_do_not_expand_combinations(monkeypatch):
+    import sympy.combinatorics as groups
+    def forbidden(*args,**kwargs):
+        pytest.fail('boundary tables expanded group elements')
+    monkeypatch.setattr(groups.PermutationGroup,'generate_schreier_sims',forbidden)
+    n = 40
+    ep = endpoint('C'*n,[(i,i+1,1.8) for i in range(n-1)])
+    actions = tuple(('pool',(i,i+1)) for i in range(0,n,2))
+    pairs = tuple(((i,i+1),(i,i+1)) for i in range(0,n,2))
+    result = interpret_events(saved(ep,ep,dict(enumerate(range(n))),actions=actions,pairs=pairs))
+    before = time.process_time()
+    table = result.tables(0)
+    elapsed = time.process_time()-before
+    choices = [[None]*20,[tuple(reversed(a[1])) for a in actions]]
+    check_contributions(result,choices)
+    assert len(table.boundary) == 19
+    assert table.statistics['boundary_terms'] == 76
+    print(json.dumps(dict(boundary_table_cpu_seconds=elapsed,represented_choices=2**20,
+                          statistics=table.statistics)),flush=True)
