@@ -7,6 +7,7 @@ checkout=$3
 expected_commit=$4
 python=$5
 workers=${6:-1}
+campaign=${7:-rebenchmark.decoder_campaign}
 test "$(git -C "$checkout" rev-parse HEAD)" = "$expected_commit"
 test -z "$(git -C "$checkout" status --porcelain --untracked-files=no)"
 export PYTHONPATH="$checkout/src:$checkout/bench"
@@ -14,7 +15,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 
 if [[ "$mode" == workers ]]; then
-    srun --ntasks-per-node=1 bash "$0" worker "$output" "$checkout" "$expected_commit" "$python" "$workers"
+    srun --ntasks-per-node=1 bash "$0" worker "$output" "$checkout" "$expected_commit" "$python" "$workers" "$campaign"
     exit
 fi
 
@@ -29,22 +30,24 @@ lscpu
 if [[ "$mode" == pilot ]]; then
     cd "$checkout"
     "$python" -m pytest -q -p no:cacheprovider tests/test_saved_event_decoding.py tests/test_fragment_conversion.py tests/test_shared_execution.py
-    "$python" -u -m rebenchmark.decoder_campaign coordinator "$output" &
+    "$python" -u -m "$campaign" coordinator "$output" &
     coordinator_pid=$!
     while [[ ! -f "$output/endpoint.json" ]]; do
         kill -0 "$coordinator_pid"
         sleep 1
     done
-    if ! "$python" -u -m rebenchmark.decoder_campaign worker "$output" --workers "$workers"; then
+    if ! "$python" -u -m "$campaign" worker "$output" --workers "$workers"; then
         kill -TERM "$coordinator_pid"
         wait "$coordinator_pid" || true
         exit 1
     fi
     wait "$coordinator_pid"
+elif [[ "$mode" == prepare ]]; then
+    "$python" -u -m "$campaign" prepare "$output"
 elif [[ "$mode" == coordinator ]]; then
-    "$python" -u -m rebenchmark.decoder_campaign coordinator "$output"
+    "$python" -u -m "$campaign" coordinator "$output"
 elif [[ "$mode" == worker ]]; then
-    "$python" -u -m rebenchmark.decoder_campaign worker "$output" --workers "$workers"
+    "$python" -u -m "$campaign" worker "$output" --workers "$workers"
 else
     echo "Unknown mode: $mode" >&2
     exit 2

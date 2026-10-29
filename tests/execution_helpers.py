@@ -15,3 +15,14 @@ def value(payload, workspace):
 
 def total(payload, workspace):
     return sum(workspace.dependency(key) for key in payload)
+
+
+class PublicationAllocation:
+    def __reduce__(self):
+        data = bytes(bytearray(640*2**20))
+        time.sleep(2)
+        return bytes, (data,)
+
+
+def publication_allocation(payload, workspace):
+    return PublicationAllocation()

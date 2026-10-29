@@ -53,20 +53,31 @@ def representative_bound(problem, graph, seed, tier, slack):
 
 
 def decode_seed(payload, workspace):
+    if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:
+        raise ValueError('Create conversion tasks explicitly; retired solver tasks cannot be resumed here')
+    started, cpu = time.perf_counter(), time.process_time()
+    plan, _, graph, digest, finalized = prepare_cut(payload, workspace)
+    loading = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    value = decode_graph(plan.problem, graph, payload)
+    value['timing']['loading'] = loading
+    return dict(value, task_id=payload['task_id'], cut=payload['cut'],
+        source=payload['source'], raw=payload['raw'], graph=payload['graph'],
+        finalized=finalized, finalized_sha256=digest, search_rerun=False)
+
+
+def decode_graph(problem, graph, payload):
+    """One public conversion for a selected seed, shared by fresh and saved runs."""
     from mappa.mappa_core.utils.io.records import decoded_events_record
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     from mappa.mappa_core.post_processing.decoder.events import classify_bonds
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.post_processing.decoder.api import decode_events
-    if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:
-        raise ValueError('Create conversion tasks explicitly; retired solver tasks cannot be resumed here')
     started, cpu = time.perf_counter(), time.process_time()
-    plan, _, graph, digest, finalized = prepare_cut(payload, workspace)
     one = select_contexts(graph, [payload['seed']])
-    catalogue = FinalBranchCatalogue(plan.problem).add_graph(one)
+    catalogue = FinalBranchCatalogue(problem).add_graph(one)
     all_families = len(catalogue.families)
-    tier = max((coverage(plan.problem, f) for f in catalogue.families), default=None)
-    selected_ids = {i for i, f in enumerate(catalogue.families) if coverage(plan.problem, f) == tier}
+    tier = max((coverage(problem, f) for f in catalogue.families), default=None)
+    selected_ids = {i for i, f in enumerate(catalogue.families) if coverage(problem, f) == tier}
     catalogue.branches = {key: ids & selected_ids for key, ids in catalogue.branches.items()
                           if ids & selected_ids}
     catalogue.coupled_branches = {i: pairs for i, pairs in catalogue.coupled_branches.items()
@@ -76,22 +87,24 @@ def decode_seed(payload, workspace):
     result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack'],
         branch_limit=payload['branch_limit'], random_seed=payload['random_seed']))
     timing = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    started, cpu = time.perf_counter(), time.process_time()
     for candidate in result.candidates:
-        broken, formed, *_ = classify_bonds(candidate.mapping, plan.problem.reactant.wbo,
-            plan.problem.product.wbo, dwbo_threshold=result.config.threshold,
-            elements_R=plan.problem.reactant.elements, elements_P=plan.problem.product.elements,
+        broken, formed, *_ = classify_bonds(candidate.mapping, problem.reactant.wbo,
+            problem.product.wbo, dwbo_threshold=result.config.threshold,
+            elements_R=problem.reactant.elements, elements_P=problem.product.elements,
             metal_dwbo_threshold=result.config.metal_threshold)
         assert candidate.total == len(broken)+len(formed)
         assert candidate.endpoint_events == dict(broken=tuple(sorted((a,b) for a,b,*_ in broken)),
                                                  formed=tuple(sorted((a,b) for a,b,*_ in formed)))
+    verification = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    started, cpu = time.perf_counter(), time.process_time()
     record = decoded_events_record(result)
-    return dict(task_id=payload['task_id'], cut=payload['cut'], seed=payload['seed']+1,
-        coverage=tier, conversion_scope='retained_converted_branches',
+    serialization = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    return dict(seed=payload['seed']+1, coverage=tier,
+        conversion_scope='retained_converted_branches',
         all_families=all_families, selected_families=len(selected_ids),
-        decoded=record, families=[f.to_record() for f in result.catalogue.families],
-        source=payload['source'], raw=payload['raw'], graph=payload['graph'],
-        finalized=finalized, finalized_sha256=digest, search_rerun=False,
-        timing=dict(setup=setup, decoding=timing))
+        decoded=record, families=record['converted_catalogue']['families'],
+        timing=dict(setup=setup, decoding=timing, verification=verification, record=serialization))
 
 
 def merge_windows(rows, *, slack=5):

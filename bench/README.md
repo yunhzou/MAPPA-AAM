@@ -37,3 +37,18 @@ under `tests/`.
 
 Cluster launchers live here. Their partition, QoS, account and resource settings
 must match the destination cluster; moving a launcher does not change its settings.
+
+Fresh full Golden runs use `rebenchmark.shared prepare/coordinator/worker` with
+`run_conversion.sbatch` (seventh argument `rebenchmark.shared`). Preparation
+verifies the original input manifest and packs the immutable search, finalization
+and conversion task specifications into bundles. Seed batches and cuts share the
+same executor; finalized graphs are persisted before conversion. A pilot selects
+cuts from this exact index. Production imports verified completed pilot outputs
+and charges their elapsed directional allowance, without repeating them.
+
+Every task records CPU and wall time, sampled process-tree peak RSS separately
+for computation and publication, the sampling interval, and its phase on failure.
+Successful tasks also report publication CPU and the compute process's lifetime
+high-water RSS (not a per-task peak). Conversion additionally logs loading, setup,
+decoding, independent event-count checks and record construction. Node allocation
+RSS/CPU comes from Slurm accounting and is kept separate from per-process data.

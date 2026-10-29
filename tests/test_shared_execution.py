@@ -316,3 +316,82 @@ def test_stop_tolerates_child_exit_before_final_signal(monkeypatch):
         raise ProcessLookupError()
     monkeypatch.setattr(runtime.os, 'killpg', gone)
     _stop(child)
+
+
+def test_resource_logs_separate_computation_from_publication(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    queue.add([task('record', payload={'sleep': .3})])
+    run(queue, identity=IDENTITY, scratch=tmp_path, bundles=tmp_path/'bundles', memory_bytes=MEMORY)
+    result = queue.results()['record']['result']
+    assert set(result['phase_peak_tree_rss_bytes']) == {'compute','publication'}
+    assert result['peak_tree_rss_bytes'] == max(result['phase_peak_tree_rss_bytes'].values())
+    assert result['phase_peak_tree_rss_bytes']['compute'] > 0
+    assert result['compute_seconds'] >= .3
+    assert result['total_cpu_seconds'] >= result['cpu_seconds'] + result['publish_cpu_seconds']
+    assert result['process_lifetime_peak_rss_bytes'] > 0
+    assert result['phase_at_exit'] == 'publication'
+    queue.close()
+
+
+def test_publication_memory_limit_preserves_compute_measurements(tmp_path):
+    limit = 512*2**20
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    queue.add([Task('publish', 'execution_helpers:publication_allocation', {}, memory_bytes=limit)])
+    run(queue, identity=IDENTITY, scratch=tmp_path, bundles=tmp_path/'bundles', memory_bytes=limit)
+    row = queue.results()['publish']
+    assert row['state'] == 'memory_limit'
+    result = row['result']
+    assert result['phase_at_exit'] == 'publication'
+    assert result['phase_peak_tree_rss_bytes']['publication'] > limit
+    assert result['compute_seconds'] >= 0 and result['cpu_seconds'] >= 0
+    queue.close()
+
+
+def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_path):
+    from dataclasses import asdict
+    import hashlib
+    import json
+    from golden_evaluation import prepare
+    from rebenchmark.shared import conversion_tasks, prepare_queue
+    from rebenchmark.decoding import decode_graph
+    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
+    writer = BundleWriter(tmp_path/'inputs',tmp_path)
+    tasks,cuts = plan_search('00000',case,config,writer,seed_batch=1,memory_bytes=MEMORY)
+    tasks += list(conversion_tasks('00000',tasks,cuts))
+    pilot = tmp_path/'pilot'; pilot.mkdir()
+    queue = TaskQueue(pilot/'queue.sqlite',IDENTITY)
+    queue.add(tasks)
+    run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',memory_bytes=MEMORY)
+    assert queue.snapshot() == {'complete':5}
+    rows = queue.results()
+    graph = read_blob(rows[cuts[0]]['result']['blob'],tmp_path)['graph']
+    for task_spec in tasks[-2:]:
+        result = read_blob(rows[task_spec.key]['result']['blob'],tmp_path)
+        direct = decode_graph(case,graph,task_spec.payload)
+        assert result['decoded'] == direct['decoded']
+        assert result['families'] is result['decoded']['converted_catalogue']['families']
+        assert result['search_rerun'] is True
+        assert result['finalized_sha256'] == rows[cuts[0]]['result']['blob'].sha256
+    queue.backup(pilot/'published.sqlite')
+    queue.close()
+    # Move the consistent backup into the location used by production reuse.
+    (pilot/'published.sqlite').replace(pilot/'queue.sqlite')
+    index = tmp_path/'index.json'
+    index.write_text(json.dumps(dict(directions=[dict(direction=0,blob=asdict(writer.put(tasks)))])))
+    plan = dict(index=str(index),index_sha256=hashlib.sha256(index.read_bytes()).hexdigest(),
+        identity=IDENTITY,commit='test-source',memory_bytes=MEMORY,pilots=[])
+    (pilot/'plan.json').write_text(json.dumps(plan))
+    (pilot/'progress.json').write_text(json.dumps(dict(finished=True)))
+    full = tmp_path/'full'; full.mkdir()
+    scratch = tmp_path/'scratch'; scratch.mkdir()
+    plan['pilots'] = [str(pilot)]
+    reused = prepare_queue(plan,full,scratch)
+    assert reused.snapshot() == {'complete':5}
+    assert reused.db.execute('SELECT seconds FROM cases').fetchone()[0] < 3600
+    assert len(json.loads((full/'reused.json').read_text())) == 5
+    reused.close()
+    plan['commit'] = 'changed'
+    other = tmp_path/'other'; other.mkdir()
+    with pytest.raises(ValueError,match='Pilot commit differs'):
+        prepare_queue(plan,other,other)

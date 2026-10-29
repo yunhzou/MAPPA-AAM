@@ -5,6 +5,8 @@ import importlib
 import multiprocessing as mp
 from multiprocessing.managers import BaseManager, Server
 import os
+import resource
+import sys
 from pathlib import Path
 import signal
 import tempfile
@@ -58,10 +60,13 @@ def _compute(connection, scratch, bundles):
             metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall)
             # Stop the work deadline at the compute boundary; allow evidence to publish.
             connection.send(('publishing', metrics))
-            start = time.perf_counter()
+            start, publish_cpu = time.perf_counter(), time.process_time()
             blob = workspace.writer.put(output)
             del output
             metrics['publish_seconds'] = time.perf_counter()-start
+            metrics['publish_cpu_seconds'] = time.process_time()-publish_cpu
+            metrics['total_cpu_seconds'] = time.process_time()-cpu
+            metrics['process_lifetime_peak_rss_bytes'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if sys.platform == 'darwin' else 1024)
             connection.send(('complete', dict(blob=blob, **metrics)))
         except Exception:
             connection.send(('error', dict(error=traceback.format_exc(),
@@ -114,15 +119,26 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                 task, token = claim['task'], claim['token']
                 parent.send((task, claim['dependencies']))
                 peak, publishing, publication_deadline, monitoring = 0, False, None, 0.
+                phase_peaks = dict(compute=0, publication=0)
+                process_stats = psutil.Process(process.pid)
+                initial_cpu = process_stats.cpu_times()
+                sampled_cpu = 0.
                 start, heartbeat = time.perf_counter(), time.monotonic()
                 result = {}
                 while True:
                     try:
                         stamp = time.perf_counter()
-                        peak = max(peak, tree_rss(process.pid))
+                        resident = tree_rss(process.pid)
+                        peak = max(peak, resident)
+                        phase = 'publication' if publishing else 'compute'
+                        phase_peaks[phase] = max(phase_peaks[phase], resident)
+                        current_cpu = process_stats.cpu_times()
+                        sampled_cpu = current_cpu.user + current_cpu.system - initial_cpu.user - initial_cpu.system
                         monitoring += time.perf_counter()-stamp
                     except psutil.NoSuchProcess:
-                        continue
+                        state = 'error'
+                        result.update(error='Compute process disappeared', exit_code=process.exitcode)
+                        break
                     if peak > memory_bytes:
                         state = 'memory_limit'
                         break
@@ -149,7 +165,10 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                         if not queue.heartbeat(task.key, token):
                             return  # lease lost; never accept stale work
                         heartbeat = time.monotonic()
-                result.update(peak_tree_rss_bytes=peak, worker=worker_id, monitoring_seconds=monitoring,
+                result.update(peak_tree_rss_bytes=peak, phase_peak_tree_rss_bytes=phase_peaks,
+                              memory_sample_interval_seconds=poll_seconds, sampled_cpu_seconds=sampled_cpu,
+                              phase_at_exit='publication' if publishing else 'compute',
+                              worker=worker_id, monitoring_seconds=monitoring,
                               elapsed_seconds=time.perf_counter()-start)
                 queue.finish(task.key, token, state, result)
                 if state != 'complete':
