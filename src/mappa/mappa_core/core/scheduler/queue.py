@@ -32,7 +32,7 @@ class TaskQueue:
     def __init__(self, path, identity, *, lease_seconds=120.):
         self.lock = threading.RLock()
         self.lease_seconds = lease_seconds
-        self.db = sqlite3.connect(str(path), check_same_thread=False)
+        self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS identity (value TEXT NOT NULL);
@@ -189,6 +189,7 @@ class TaskQueue:
             # Bound write-lock duration so a live coordinator can keep accepting
             # heartbeats and completed outputs during a large queue handoff.
             with self.lock, self.db:
+                self.db.execute('BEGIN IMMEDIATE')
                 rows = self.db.execute("SELECT rowid FROM tasks WHERE rowid>? AND state='pending' AND memory!=? ORDER BY rowid LIMIT 250",
                                        (cursor, memory_bytes)).fetchall()
                 if not rows:
