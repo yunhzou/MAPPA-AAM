@@ -230,7 +230,7 @@ def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ances
 
 
 def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
-    import mappa.mappa_core.core.search.symmetry as symmetry
+    from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
     target = network(['C'] * 3)
     recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
     branch = _Branch(recorder)
@@ -238,7 +238,7 @@ def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
     branch.commit(iso({1: 1}))
     recorder.stop(branch, 'objective_met')
     # Fresh equal arrays from separate conditioned calculations must be interned.
-    monkeypatch.setattr(symmetry._CandidateAutomorphismCanonicalizer,
+    monkeypatch.setattr(_CandidateAutomorphismCanonicalizer,
                         'atom_generators', lambda *a, **k: [list(range(3))])
     graph, _ = finalize_graph_symmetry(recorder.finish(), target, iso_tolerance=.5)
     first, second = graph.transitions
