@@ -1,6 +1,6 @@
 # MAPPA source refactoring plan
 
-Status: matching and reaction-search stages implemented; scheduler and later stages pending.
+Status: matching and reaction-search stages functionally validated; scheduler and later stages pending.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
@@ -238,6 +238,23 @@ mapping, seed/cut, parallel execution and checkpoint-resume tests, plus the publ
 workflow smoke checks. Fix failures and record the exact tested revision, counts,
 skips and scope. Do not rerun dataset benchmarks or restart monitoring for this
 validation. Preserve the core algorithm while fixing refactoring regressions.
+
+## Completed-stage functional validation
+
+Matching and reaction search have passed 492 selected functional tests across
+39 files on NRT, with no skips. Production source is `fa67d7a`; test corrections
+are `657f742` and `a8aee6c`. The main run passed 491 tests; the one failing test
+passed after correcting its moved patch target. An earlier collection failure
+was fixed by retaining a shared molecule fixture in the test-input module.
+Production source did not change during these corrections.
+
+Coverage includes exhaustive small-graph compression, Python/native matching,
+ordinary/metal tolerances, branch caps, partial mapping, shared seed policies,
+cut reuse, parallel execution, checkpoint resume, saved hierarchies and public
+workflow integration. This is module-level functional validation, not a full
+repository test run or dataset benchmark. NRT jobs: `68515` and `68563`.
+Logs and exact test identities are in Desktop
+`reports/source_audit_20261028/functional-validation/summary.json` and ticket 25.
 
 ## Pickup information
 
