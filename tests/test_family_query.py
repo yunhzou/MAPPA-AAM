@@ -97,6 +97,7 @@ def test_reference_propagation_keeps_correlated_permutation_choices():
         solver=z3.Solver();constraints.emit(solver)
         expected=target in ((0,1,2),(1,2,0),(2,0,1))
         assert (solver.check()==z3.sat)==expected
+        assert (constraints.solve(2000)[0]==z3.sat)==expected
 
 
 def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
@@ -139,6 +140,46 @@ def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
         for value,wanted in zip(values,target):constraints.restrict(value[0],{wanted})
         solver=z3.Solver();constraints.emit(solver)
         assert (solver.check()==z3.sat)==(target in expected)
+        assert (constraints.solve(2000)[0]==z3.sat)==(target in expected)
+
+
+def test_reference_atom_set_rejects_before_action_construction(monkeypatch):
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+    problem=AAMProblem(endpoint('CCC',[]),endpoint('CCC',[]))
+    path=FinalFamily(((0,0),(1,1)),(),(('group',((1,0,2),)),),(.2,1.)).as_path(problem)
+    def forbidden(*args):raise AssertionError('Atom-set mismatch needs no group query')
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.group_factors',forbidden)
+    assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
+
+
+def test_exact_ground_truth_settles_correlated_fragment_without_solver():
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+    problem=AAMProblem(endpoint('CCCC',[]),endpoint('CCCC',[]))
+    path=FinalFamily(tuple(enumerate(range(4))),(),(('group',((1,2,3,0),)),),(.2,1.)).as_path(problem)
+    for expected,reference in [('recovered',{0:1,1:2,2:3,3:0}),
+                               ('not_recovered',{0:1,1:0,2:2,3:3})]:
+        status,result=query_path(path,problem,reference,source_atoms=tuple(range(4)))
+        assert status==expected and result['checks']['solver_calls']==0
+
+
+def test_independent_fragment_constraint_cache_and_joint_conflict():
+    import z3
+    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints, _component_cache
+    _component_cache.clear()
+    constraints=ReferenceConstraints()
+    for _ in range(2):
+        values=[constraints.symbol(range(3))[0] for _ in range(3)]
+        for a,b in ((0,1),(1,2),(2,0)):
+            constraints.relation((values[a],values[b]),tuple((x,y) for x in range(3) for y in range(3) if x!=y))
+    status,_,stats=constraints.solve(2000)
+    assert status==z3.sat
+    assert stats['components']==2 and stats['cache_hits']==1 and stats['solver_calls']==1
+    # Sharing a choice means these constraints must not be accepted separately.
+    joint=ReferenceConstraints();a,b,c=[joint.symbol((0,1))[0] for _ in range(3)]
+    joint.relation((a,b),((0,0),(1,1)))
+    joint.relation((b,c),((0,0),(1,1)))
+    joint.relation((a,c),((0,1),(1,0)))
+    assert joint.solve(2000)[0]==z3.unsat
 
 
 def test_tolerant_symmetry_retains_all_small_query_mappings():

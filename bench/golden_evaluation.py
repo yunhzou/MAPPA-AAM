@@ -213,6 +213,22 @@ def projected_choices(placement, features):
     return projected,domains,changes
 
 
+def reference_event_index(features):
+    """Count only annotated-endpoint heavy bonds, using the shared event rule.
+
+    Chemical reference labels define this scope; full decoded all-H counts
+    cannot be compared with an annotation lacking hydrogen correspondence.
+    """
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+    endpoints=[]
+    for feature in features:
+        elements=tuple(color[0] for color in feature['colors'])
+        weights=np.zeros((len(elements),len(elements)))
+        for a,b,label in feature['bonds']:weights[a,b]=weights[b,a]=label[0]
+        endpoints.append(MolecularEndpoint(elements,np.zeros((len(elements),3)),weights))
+    return SignedEventIndex(AAMProblem(*endpoints))
+
+
 def reference_membership(problem, representatives, paths, features, reference, *, seconds=120):
     """Membership in saved compressed choices, with the original Golden policy.
 
@@ -224,15 +240,26 @@ def reference_membership(problem, representatives, paths, features, reference, *
     deadline = start + seconds
     reference = dict(reference)
     expected = pynauty.certificate(colored_graph(features, project(reference, features)))
+    event_index=reference_event_index(features)
+    expected_events=int(event_index.counts([event_index.vector(project(reference,features))])[0].sum())
     certificates = {}
     queries = []
+    filtered=0
     def matches(mapping):
+        nonlocal filtered
         heavy = tuple(sorted(project(mapping, features).items()))
         if heavy not in certificates:
-            certificates[heavy] = pynauty.certificate(colored_graph(features, dict(heavy)))
+            count=int(event_index.counts([event_index.vector(dict(heavy))])[0].sum())
+            if count!=expected_events:
+                filtered+=1
+                certificates[heavy]=None
+            else:
+                certificates[heavy] = pynauty.certificate(colored_graph(features, dict(heavy)))
         return certificates[heavy] == expected
     def answer(status, witness=None, **details):
         return dict(status=status,witness=witness,queries=queries,**details,
+            event_filter=dict(scope='annotated_endpoint_heavy_bonds',reference_count=expected_events,
+                              rejected_representatives=filtered),
             timing=dict(wall_seconds=time.perf_counter()-start,cpu_seconds=time.process_time()-cpu))
     for identifier, mapping in representatives:
         if matches(mapping):

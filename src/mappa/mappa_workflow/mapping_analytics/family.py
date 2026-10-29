@@ -4,7 +4,7 @@ Automorph-domain summaries are not independent assignment pools. Only native
 symmetry_domains provide local pool permutations; exact group factors retain
 their correlations. No group elements or complete bijections are enumerated.
 """
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from dataclasses import dataclass
 from itertools import combinations
 import time
@@ -17,6 +17,40 @@ def group_factors(generators):
     group=PermutationGroup([Permutation(list(g)) for g in generators])
     return tuple(tuple(tuple(p(i) for i in range(group.degree)) for p in level.values())
                  for level in reversed(group.basic_transversals) if len(level)>1)
+
+
+@lru_cache(maxsize=256)
+def atom_sets(degree, generators, pools=()):
+    """Possible atom sets only; this never asserts joint assignment compatibility."""
+    parent=list(range(degree))
+    def root(a):
+        while parent[a]!=a:
+            parent[a]=parent[parent[a]];a=parent[a]
+        return a
+    for generator in generators:
+        for a,b in enumerate(generator):parent[root(a)]=root(b)
+    for pool in pools:
+        for b in pool[1:]:parent[root(b)]=root(pool[0])
+    groups={}
+    for a in range(degree):groups.setdefault(root(a),set()).add(a)
+    return tuple(frozenset(groups[root(a)]) for a in range(degree))
+
+
+def compatible_atom_sets(representative, placements, reference, source_atoms,
+                         source_generators, target_generators, complete_reference, nr, np_):
+    """Reject impossible reference regions before constructing fragment choices."""
+    generators=tuple(target_generators)+tuple(g.images for _,p in placements for g in p.target_generators)
+    pools=tuple(d.p_atoms for _,p in placements for d in p.symmetry_domains
+                if d.source!='exact_automorph_group')
+    source=atom_sets(nr,tuple(source_generators))
+    target=atom_sets(np_,generators,pools)
+    for atom in source_atoms:
+        if not complete_reference and atom not in reference:continue
+        wanted=reference.get(atom,np_)
+        images={representative.get(r,np_) for r in source[atom]}
+        if not any(wanted==np_ if p==np_ else wanted in target[p] for p in images):
+            return False
+    return True
 
 
 class SymbolicActions:
@@ -71,7 +105,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     """
     import z3
     from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
-    start=time.perf_counter();solver=z3.Solver();encoder=ReferenceConstraints();program=encoder.program
+    start=time.perf_counter();encoder=ReferenceConstraints();program=encoder.program
     nr,np_=problem.source_atom_count,problem.target_atom_count
     representative=path.mapping
     if projected_atoms is not None:
@@ -86,6 +120,11 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
             if placement.target_generators is None:
                 raise ValueError('Finalize path symmetry before querying its family')
             placements.append((edge,placement))
+    if not compatible_atom_sets(representative,placements,reference,source_atoms,
+                                source_generators,target_generators,complete_reference,nr,np_):
+        encoder.failed=True
+        return CompiledFamily(encoder,values,representative,program,{},path,problem,
+                              projected_atoms,time.perf_counter()-start)
     # Later decisions are in the coordinate frame fixed by earlier witnesses.
     for edge,placement in reversed(placements):
         for domain in placement.symmetry_domains:
@@ -115,6 +154,15 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     for r in mapped:
         encoder.restrict(values[r][0],{p for p in values[r][1]
                           if p<np_ and problem.reactant.elements[r]==problem.product.elements[p]})
+    raw_values=values
+    # Ground truth constrains the physical atom choices before fragment bond
+    # compatibility is constructed. Endpoint equivalence remains correlated.
+    source_choices=act([constant(r) for r in source_atoms],source_generators,'source_equivalence')
+    normalized=[lookup(v,dict(enumerate(raw_values))) for v in source_choices]
+    normalized=act(normalized,target_generators,'target_equivalence')
+    for atom,value in zip(source_atoms,normalized):
+        if complete_reference or atom in reference:encoder.restrict(value[0],{reference.get(atom,np_)})
+    encoder.propagate()
     cuts={tuple(sorted(e)) for e in path.context.cuts}
     required={}
     for _,fragment in placements:
@@ -125,29 +173,23 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
             if pair in cuts or pair in deferred or w<path.context.graph_floor:continue
             required[pair]=float(w)
     for (a,b),w in required.items():
+        if encoder.failed:break
         va,vb=values[a],values[b]
-        allowed=[(x,y) for x in va[1] for y in vb[1]
+        allowed=[(x,y) for x in encoder.domain(va[0]) for y in encoder.domain(vb[0])
             if x!=y and x<np_ and y<np_ and problem.product.wbo[x,y]>=path.context.graph_floor
             and abs(w-problem.product.wbo[x,y])<=path.context.iso_tolerance+1e-9]
         encoder.relation((va[0],vb[0]),allowed)
-    raw_values=values
-    # Normalize endpoint equivalence without touching the physical witness.
-    source_choices=act([constant(r) for r in source_atoms],source_generators,'source_equivalence')
-    normalized=[lookup(v,dict(enumerate(raw_values))) for v in source_choices]
-    normalized=act(normalized,target_generators,'target_equivalence')
-    for atom,value in zip(source_atoms,normalized):
-        if complete_reference or atom in reference:encoder.restrict(value[0],{reference.get(atom,np_)})
-    encoder.emit(solver)
+    encoder.propagate()
     raw_values=[(encoder.expression(v),frozenset(encoder.domain(v))) for v,_ in raw_values]
     program=[(kind,edge,{p:encoder.expression(v) for p,v in choice.items()} if kind=='domain'
               else encoder.expression(choice),data) for kind,edge,choice,data in program]
-    return CompiledFamily(solver,raw_values,representative,program,required,path,problem,
+    return CompiledFamily(encoder,raw_values,representative,program,required,path,problem,
                           projected_atoms,time.perf_counter()-start)
 
 
 @dataclass
 class CompiledFamily:
-    solver: object
+    constraints: object
     values: list
     representative: dict
     program: list
@@ -156,6 +198,14 @@ class CompiledFamily:
     problem: object
     projected_atoms: object
     encoding_seconds: float
+
+    @cached_property
+    def solver(self):
+        """Materialize a joint query only for callers adding further constraints."""
+        import z3
+        solver=z3.Solver()
+        self.constraints.emit(solver)
+        return solver
 
     def realize(self, model):
         return _realize(self,model)
@@ -171,23 +221,22 @@ def query_path(path, problem, reference, *, source_atoms, source_generators=(),
         source_generators=source_generators,target_generators=target_generators,
         complete_reference=complete_reference,projected_atoms=projected_atoms)
     encoding = dict(wall_seconds=time.perf_counter()-start, cpu_seconds=time.process_time()-cpu)
-    solver=compiled.solver
     left=timeout_ms-1000*encoding['wall_seconds']
     if left<=0:
         return 'unknown',dict(reason='encoding budget',seconds=encoding['wall_seconds'],
                               timing=dict(encoding=encoding))
-    solver.set(timeout=max(1,int(left)))
     solve, solve_cpu = time.perf_counter(), time.process_time()
-    status=solver.check()
+    status, model, checks=compiled.constraints.solve(max(1,int(left)))
     timing = dict(encoding=encoding, solving=dict(wall_seconds=time.perf_counter()-solve,
                                                  cpu_seconds=time.process_time()-solve_cpu))
     if status!=z3.sat:
         return ('not_recovered' if status==z3.unsat else 'unknown'),dict(
-            reason='unsat' if status==z3.unsat else solver.reason_unknown(),
-            seconds=time.perf_counter()-start,timing=timing)
-    result=compiled.realize(solver.model())
+            reason='unsat' if status==z3.unsat else 'reference component budget',
+            seconds=time.perf_counter()-start,timing=timing,checks=checks)
+    result=compiled.realize(model)
     result['seconds']=time.perf_counter()-start
     result['timing']=timing
+    result['checks']=checks
     return 'recovered',result
 
 

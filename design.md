@@ -374,10 +374,35 @@ flowchart LR
 ```
 
 
-Reference coverage is queried from saved compressed choices through the existing
-`mapping_analytics` compiler. Golden adapters check representatives first, then
-constrain correlated choices only when needed, stopping at a verified witness
-for each direction/cut scope and seed prefix. Raw AAM membership and membership
-in all retained converted branches are distinct from event-window representative
-accuracy. Report query construction/solving cost separately from original
-matching, conversion, publication and scheduling time.
+Reference coverage uses ground-truth-first compatibility in `mapping_analytics`.
+Reject impossible annotated atom sets before constructing fragment choices.
+Apply exact reference assignments, with the declared endpoint equivalence, and
+propagate them before constructing fragment bond tables. Fixed choices settle
+directly. Only unresolved choices connected by a shared constraint enter one
+feasibility query; independent components reuse conclusive checks keyed by their
+complete reduced constraints and reference restrictions. Never enumerate full
+bijections or rerun growth. Atom sets alone cannot prove compatibility, and a
+fragment's literal representative set is not invariant when saved actions move it.
+
+Golden and EnzymeMap compare heavy-atom relations modulo endpoint chemical
+symmetry, including their declared charge/stereo/unmatched policy. A comparable
+heavy-bond event count rejects concrete representatives before chemical graph
+comparison. A representative's count cannot reject all compressed choices when
+those choices can change that count. Hydrogen correspondence is unannotated;
+full all-H decoded counts are not comparable to the heavy reference count.
+
+Stop at a verified witness for each direction/cut scope and seed prefix. Raw AAM
+membership and membership in all retained converted branches remain distinct
+from event-window representative accuracy. Report verification time separately
+from original matching, conversion, publication and scheduling time.
+
+```mermaid
+flowchart LR
+    Reference[Annotated ground truth] --> Sets[Allowed atom-set check]
+    Saved[Saved fragment constraints] --> Sets
+    Sets --> Fixed[Restrict exact assignments and propagate]
+    Fixed --> Bonds[Check fragment bonds on remaining assignments]
+    Bonds --> Components[Independent or coupled constraints]
+    Components --> Cache[Reuse conclusive component checks]
+    Cache --> Branch[Joint saved-branch witness or rejection]
+```

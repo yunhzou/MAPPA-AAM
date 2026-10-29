@@ -166,3 +166,34 @@ def test_membership_preserves_exact_partial_relation():
     result=E.reference_membership(problem,[(0,family.mapping)],
         lambda:iter([(0,family.as_path(problem))]),f,{0:0})
     assert result['status']=='not_recovered'
+
+
+def test_event_filter_does_not_reject_other_choices_in_compressed_branch():
+    from mappa import AAMProblem
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+    from test_family_query import endpoint
+    problem=AAMProblem(endpoint('CCC',[(0,1)]),endpoint('CCC',[(0,1)]))
+    f=feature(3,True);f['bonds']=[(0,1,(1.,''))]
+    family=FinalFamily(((0,1),(1,2),(2,0)),(),(('group',((1,2,0),)),),(.2,1.))
+    result=E.reference_membership(problem,[(0,family.mapping)],
+        lambda:iter([(0,family.as_path(problem))]),[f,f],{0:0,1:1,2:2})
+    assert result['status']=='recovered'
+    assert result['event_filter']['rejected_representatives']==1
+    assert result['event_filter']['reference_count']==0
+    assert dict(result['witness']['mapping'])=={0:0,1:1,2:2}
+
+
+def test_event_filter_partial_boundary_and_metal_threshold():
+    f=dict(heavy=[0,1,2],colors=[('Fe',0),('C',0),('C',0)],
+           bonds=[(0,1,(.4,'')),(1,2,(1.,''))])
+    p=dict(f,bonds=[])
+    index=E.reference_event_index([f,p])
+    # Metal boundary counts at .3; wholly unmatched C-C material is ignored.
+    assert tuple(index.counts([index.vector({0:0})])[0])==(1,0)
+
+
+def test_event_filter_ignores_unannotated_hydrogen_correspondence():
+    problem,features,reference=E.prepare('[CH3:1][OH:2]>>[CH2:1]=[O:2]')
+    index=E.reference_event_index(features)
+    assert index.n==index.m==2
+    assert index.counts([index.vector(E.project(reference,features))])[0].sum()==1
