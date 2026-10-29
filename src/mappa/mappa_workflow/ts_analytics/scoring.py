@@ -120,7 +120,7 @@ def subset_score(xyz,displacement,elements,events,pairs,*,reference_factor=1.):
         reference_factor=reference_factor)
 
 from itertools import combinations
-from mappa.frag import bond_event_threshold
+from mappa.mappa_core.utils.bonds import bond_event_threshold
 
 def endpoint_bond_changes(reaction, mechanism, target, assignment):
     r, p = reaction.problem.reactant, reaction.problem.product

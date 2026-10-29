@@ -8,7 +8,7 @@ import tarfile
 import pytest
 
 from mappa import AAMSearchConfig, search_aam
-from mappa.artifacts import write_graph_checkpoint, write_raw_cut
+from mappa.mappa_core.utils.io.checkpoints import write_graph_checkpoint, write_raw_cut
 from mappa.mappa_core.core.scheduler.runtime import Workspace
 from golden_evaluation import prepare
 from rebenchmark.evidence import save, publish, read

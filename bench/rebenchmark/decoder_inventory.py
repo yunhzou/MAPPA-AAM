@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 import pickle
 import sqlite3
-from mappa.artifacts import _loads_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
 def signature(task):

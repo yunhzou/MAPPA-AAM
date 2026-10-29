@@ -19,7 +19,7 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
     """
     import z3
     from mappa.mappa_workflow.mapping_analytics.family import compile_path
-    from mappa.search_validation import RepresentativeValidationWorkspace
+    from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
     if (not math.isfinite(seconds) or seconds < 0 or
             (max_patterns is not None and
              (not isinstance(max_patterns, int) or max_patterns < 1))):

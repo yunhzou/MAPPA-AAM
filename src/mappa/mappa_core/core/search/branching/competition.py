@@ -92,7 +92,7 @@ def compete_fragments(a, config=None):
     uses observed event counts with the AAM config's event thresholds.
     """
     from mappa.mappa_core.domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
-    from mappa.frag import build_graph
+    from mappa.mappa_core.core.matching.graphs import build_graph
     from mappa.mappa_core.core.matching.api import match_fragment
     from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
     from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
@@ -158,7 +158,7 @@ def compete_fragments(a, config=None):
     )
     po = _nauty_orbits(target, wbo_tol=cfg.iso_tolerance)
     from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
-    from mappa.search_validation import RepresentativeValidationWorkspace
+    from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
 
     symmetry_workspace = ConditionedSymmetryWorkspace(target, cfg.iso_tolerance)
     validation_workspace = RepresentativeValidationWorkspace(problem)

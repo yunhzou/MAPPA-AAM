@@ -53,9 +53,9 @@ def representative_bound(problem, graph, seed, tier, slack):
 
 
 def decode_seed(payload, workspace):
-    from mappa.artifacts import decoded_events_record
+    from mappa.mappa_core.utils.io.records import decoded_events_record
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-    from mappa.frag import classify_bonds
+    from mappa.mappa_core.post_processing.decoder.events import classify_bonds
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.post_processing.decoder.api import decode_events
     if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:

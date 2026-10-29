@@ -4,7 +4,7 @@ import pytest
 from mappa.mappa_core.core.scheduler import search as aam
 from mappa.mappa_core.core.search.session import _GrowthCounts
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
-from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
+from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut, write_raw_cut
 
 
 def test_cut_worker_persists_graph_and_returns_only_reference(tmp_path, monkeypatch):

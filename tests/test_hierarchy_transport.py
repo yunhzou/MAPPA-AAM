@@ -4,7 +4,7 @@ import pickle
 
 from mappa.mappa_core.domain import (
     AAMHierarchy, AAMHierarchyView, AAMHierarchyChain, AtomPermutation, FragmentMatch)
-from mappa.artifacts import _load_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _load_checkpoint
 
 
 def base():

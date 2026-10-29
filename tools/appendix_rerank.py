@@ -8,7 +8,7 @@ manifest charge/multiplicity, and aggregates a compact GT + top-2 IG viewer.
 """
 from __future__ import annotations
 
-from mappa.viewers import viewer_style
+from mappa.presentation.viewers import viewer_style
 
 import argparse
 import csv
@@ -29,7 +29,7 @@ if str(SRC) not in sys.path:
 
 import numpy as np
 
-from mappa.chemistry_computations.xyz import parse_xyz, write_xyz_str
+from mappa.mappa_core.utils.io.xyz import parse_xyz, write_xyz_str
 
 DEFAULT_BENCHMARK_ROOT = Path(
     "/h/399/yunhengzou/appendix_final/benchmark"

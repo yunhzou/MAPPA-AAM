@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 
-from mappa.viewers import collection_html, comparison_document
+from mappa.presentation.viewers import collection_html, comparison_document
 
 
 def render(source, output):

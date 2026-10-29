@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Mapping, Sequence
+from typing import Mapping
 
 import numpy as np
 
@@ -468,11 +468,10 @@ class AAMHierarchyChain:
 
 
 from collections import Counter
-from dataclasses import dataclass, field, replace
+from dataclasses import field, replace
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
-import numpy as np
 import math
 
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchBranch

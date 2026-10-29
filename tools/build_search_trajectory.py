@@ -29,7 +29,7 @@ def main():
         import mappa
         # Load this pipeline module against the selected engine's matcher APIs.
         import importlib.util
-        spec=importlib.util.spec_from_file_location('mappa.search_trajectory',ROOT/'src/mappa/search_trajectory.py')
+        spec=importlib.util.spec_from_file_location('mappa.presentation.trajectory',ROOT/'src/mappa/search_trajectory.py')
         module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module)
         selections=[{**s,'archive':resolve(s['archive'])} for s in manifest['selections']]
         document=module.build_trajectory(selections,title=manifest.get('title'),key_atoms=manifest.get('key_atoms'),
@@ -44,7 +44,7 @@ def main():
     subprocess.run([sys.executable,str(Path(__file__).resolve()),str(a.manifest),str(a.output),'--capture-only'],
                    env=env,check=True)
     sys.path.insert(0,str(ROOT/'src'))
-    from mappa.viewers import growth_trace_html
+    from mappa.presentation.viewers import growth_trace_html
     (a.output/'algorithm_trajectory.html').write_text(growth_trace_html(json.loads((a.output/'trace.json').read_text())))
     print(a.output/'algorithm_trajectory.html')
 

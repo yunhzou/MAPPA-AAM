@@ -8,7 +8,7 @@ import pytest
 from mappa.mappa_core.core.matching.growth.frontier import GrowthRandom, _pop_random_atom
 from mappa.mappa_core.core.matching.growth.engine import grow_island
 from mappa.mappa_core.core.matching.growth import native
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.mappa_core.core.search.planning import checkpoint_manifest
@@ -90,7 +90,7 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
 def test_old_pickle_policy_is_labeled_and_cannot_replay_as_new():
     import pickle
     from mappa.mappa_core.core.search.graph import SearchContext
-    from mappa.search_trajectory import build_trajectory
+    from mappa.presentation.trajectory import build_trajectory
     context=SearchContext((0,),(0,),(0,))
     object.__delattr__(context,'growth_policy')
     object.__delattr__(context,'random_seed')

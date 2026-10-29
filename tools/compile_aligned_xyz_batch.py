@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 from mappa.presentation.interpolation import proper_align_coordinates
-from mappa.chemistry_computations.xyz import parse_xyz, write_xyz_str
+from mappa.mappa_core.utils.io.xyz import parse_xyz, write_xyz_str
 
 
 def _safe_name(value: str) -> str:

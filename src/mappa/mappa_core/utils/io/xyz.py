@@ -18,17 +18,8 @@ def parse_xyz(path):
     return elements, np.array(coords)
 
 
-def parse_xyz_file(path: Path):
-    """Compatibility wrapper around :func:`parse_xyz`."""
-    return parse_xyz(path)
 
 
-def read_first_xyz(directory: Path):
-    """Read the first ``*.xyz`` file in a directory."""
-    files = sorted(Path(directory).glob("*.xyz"))
-    if not files:
-        raise FileNotFoundError(f"no xyz in {directory}")
-    return parse_xyz(files[0])
 
 
 def write_xyz_str(elements, coords, comment=""):

@@ -62,7 +62,7 @@ def plan_missing(archive, task_id, *, seconds=3600, memory_bytes=4*2**30):
 
 def prepare_cut(payload, workspace):
     from .campaign import load_plan
-    from mappa.artifacts import read_graph_checkpoint, read_raw_cut, write_graph_checkpoint
+    from mappa.mappa_core.utils.io.checkpoints import read_graph_checkpoint, read_raw_cut, write_graph_checkpoint
     def prepare():
         with tempfile.TemporaryDirectory(dir=workspace.scratch) as td:
             folder = Path(td)
@@ -76,7 +76,7 @@ def prepare_cut(payload, workspace):
                 digest = payload['graph']['sha256']
                 finalized = None
             else:
-                from mappa.frag import build_graph
+                from mappa.mappa_core.core.matching.graphs import build_graph
                 from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
                 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
                 raw = read_raw_cut(graph_path)

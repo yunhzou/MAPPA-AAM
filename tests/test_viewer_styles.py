@@ -4,7 +4,7 @@ import re
 
 import numpy as np
 
-from mappa.viewers import ASSETS, align_product, stylesheet
+from mappa.presentation.viewers import ASSETS, align_product, stylesheet
 
 
 def test_only_two_shared_viewer_styles():

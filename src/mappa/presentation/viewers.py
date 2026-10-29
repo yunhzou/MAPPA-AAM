@@ -3,6 +3,9 @@
 The molecular layout is the original white R/P/TS viewer from stable/legacy-aam.
 Adapters supply recorded data, rather than introducing report-specific skins.
 """
+from mappa.mappa_core.utils.io.records import aam_json
+from .interpolation import proper_align_coordinates
+
 import html
 import json
 from pathlib import Path
@@ -53,12 +56,7 @@ def viewer_style(family='reaction', layout='standard'):
 
 def align_product(reactant, product):
     """Rigid display fitting only; retain the recorded atom correspondence."""
-    r, p = np.asarray(reactant, dtype=float), np.asarray(product, dtype=float)
-    r0, p0 = r.mean(axis=0), p.mean(axis=0)
-    u, _, vt = np.linalg.svd((p - p0).T @ (r - r0))
-    correction = np.eye(3)
-    correction[-1, -1] = np.linalg.det(u @ vt)
-    return ((p - p0) @ (u @ correction @ vt) + r0).tolist()
+    return proper_align_coordinates(product, reactant).tolist()
 
 
 def comparison_document(case):
@@ -124,7 +122,7 @@ def aam_growth_html(aam, *, context=None, terminals=None, title=None,
     HTML embeds its renderer and data. In Jupyter, display it in an iframe so
     several viewers can coexist without sharing JavaScript state.
     """
-    from .search_trajectory import build_trajectory
+    from mappa.presentation.trajectory import build_trajectory
     if terminals is not None and context is None:
         raise ValueError('Select one context when specifying terminals')
     if context is None:
@@ -147,7 +145,7 @@ def aam_growth_html(aam, *, context=None, terminals=None, title=None,
 
 def growth_trace_html(document):
     """Present recorded algorithm events using the shared 3D reaction style."""
-    from .growth_display import with_represented_targets
+    from mappa.presentation.trajectory import with_represented_targets
     document = with_represented_targets(document)
     template = (ASSETS / 'growth_trace.html').read_text()
     page = style_document(template, layout='growth_trace')
@@ -175,3 +173,19 @@ select.onchange=render;render();</script></body></html>'''
     page = page.replace('__PAGE_TITLE__', html.escape(title)).replace('__CASES__', _json(documents)).replace('__TEMPLATE__', _json(template))
     # Avoid treating the embedded template's encoded styles as outer styles.
     return page.replace('</head>', '<style data-viewer-style="reaction">' + stylesheet() + '</style></head>', 1).replace('<body>', '<body data-viewer-layout="collection">', 1)
+
+
+def write_aam_bundle(result: AAMResult, output_directory):
+    """Save raw AAM and an offline graph/path viewer; never rerun matching."""
+    output = Path(output_directory)
+    output.mkdir(parents=True, exist_ok=True)
+    serialized = aam_json(result)
+    (output / 'aam.json').write_text(serialized)
+    assets = Path(__file__).parent / 'static'
+    page = (assets / 'aam_search.html').read_text()
+    page = style_document(page, layout='search_graph')
+    page = page.replace('__LIBRARY__', (assets / '3Dmol-min.js').read_text())
+    page = page.replace('__DATA__', serialized.replace('<', '\\u003c'))
+    (output / 'search.html').write_text(page)
+    return output
+

@@ -44,7 +44,7 @@ Repository = "https://github.com/yunhzou/MAPPA-AAM"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mappa = ["static/*.js", "static/*.html", "static/*.css", "static/LICENSES/*", "native/*.cpp", "native/*.h", "native/README.md", "native/third_party/nauty/*"]
+mappa = ["presentation/static/*.js", "presentation/static/*.html", "presentation/static/*.css", "presentation/static/LICENSES/*", "native/*.cpp", "native/*.h", "native/README.md", "native/third_party/nauty/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

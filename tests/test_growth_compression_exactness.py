@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand
 from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
 from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands

@@ -1,6 +1,7 @@
 """Deterministic cut/seed tasks calling the same prepared search as public APIs."""
 from __future__ import annotations
 from dataclasses import asdict
+from mappa.mappa_core.utils.io.records import endpoint_record, problem_from_record
 
 from mappa.mappa_core.core.scheduler.queue import Task
 from mappa.mappa_core.core.search.session import SearchSession
@@ -8,24 +9,19 @@ from mappa.mappa_core.core.search.planning import cut_seed
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.core.search.planning import cut_sweep_items
 from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
-def _endpoint(endpoint):
-    return dict(elements=endpoint.elements, coordinates=endpoint.coordinates, wbo=endpoint.wbo,
-                label=endpoint.label, energy=endpoint.energy, metadata=dict(endpoint.metadata))
 
 
-def _restore_problem(record):
-    return AAMProblem(MolecularEndpoint(**record['reactant']), MolecularEndpoint(**record['product']), record['name'])
 
 
 def _session(payload, workspace):
     reference = payload['input']
     def prepare():
         record = workspace.load(reference)
-        problem = _restore_problem(record)
+        problem = problem_from_record(record)
         return SearchSession(problem, AAMSearchConfig(**record['config']), record['execution'])
     return workspace.prepared(reference, prepare)
 
@@ -39,7 +35,7 @@ def plan_search(case, problem, config, writer, *, seed_batch=10, case_seconds=36
     """
     if seed_batch < 1:
         raise ValueError('seed_batch must be positive')
-    reference = writer.put(dict(reactant=_endpoint(problem.reactant), product=_endpoint(problem.product),
+    reference = writer.put(dict(reactant=endpoint_record(problem.reactant), product=endpoint_record(problem.product),
         name=problem.name, config=asdict(config), execution='reused_native'))
     cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
     tasks, final_keys = [], []
@@ -141,7 +137,7 @@ def _search_cut_task(payload, *, in_process=False):
     graph, counts = _search_cut(cut)
     counts['checkpoint_seconds'] = 0.0
     if checkpoint is not None:
-        from mappa.artifacts import write_raw_cut
+        from mappa.mappa_core.utils.io.checkpoints import write_raw_cut
         started = time.perf_counter()
         path = Path(checkpoint)
         write_raw_cut(graph,path)
@@ -162,7 +158,7 @@ def _initialize_finalization(problem,config,execution='reference'):
 
 
 def _restore_finalized_cut(payload):
-    from mappa.artifacts import read_graph_checkpoint, write_graph_checkpoint, read_raw_cut
+    from mappa.mappa_core.utils.io.checkpoints import read_graph_checkpoint, write_graph_checkpoint, read_raw_cut
     index,data,checkpoint=payload
     if checkpoint is not None and Path(checkpoint).exists():
         return index,read_graph_checkpoint(checkpoint),{}

@@ -4,7 +4,7 @@ from __future__ import annotations
 from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
 import gc, time
 from mappa.mappa_core.core.search.branching.construction import find_islands
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 

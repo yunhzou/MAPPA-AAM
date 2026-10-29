@@ -1,7 +1,7 @@
 """Viewer must distinguish a compressed relation from its witness."""
 from copy import deepcopy
 
-from mappa.growth_display import with_represented_targets
+from mappa.presentation.trajectory import with_represented_targets
 
 
 def test_target_options_follow_saved_groups_not_global_symmetry():

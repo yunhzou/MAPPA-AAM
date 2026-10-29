@@ -11,10 +11,10 @@ import time
 
 from mappa.mappa_core.core.scheduler import read_blob
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-from mappa.frag import bond_event_threshold
+from mappa.mappa_core.utils.bonds import bond_event_threshold
 from .campaign import load_plan
 from .saved_analysis import read_member
-from mappa.artifacts import _loads_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
 def check(queue_path, output):

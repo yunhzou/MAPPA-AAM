@@ -1,20 +1,18 @@
-"""Serialization and self-contained views for typed computational results."""
+"""Trusted saved graphs and explicit historical class relocation."""
 from __future__ import annotations
-
-import json
-import io
-import gc
-import gzip
-import pickle
+import json, gc, gzip, pickle, io
 from pathlib import Path
-
-from .mappa_core.domain import AtomBijection
-from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext, ResolvedMechanism
-from mappa.mappa_workflow.ts_analytics.records import TSResult
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
+from mappa.mappa_core.utils.io.records import _aam_header, _aam_result, aam_from_record
 
 _CHECKPOINT_MODULES = {
+    ('mappa.artifacts', '_CheckpointUnpickler'): 'mappa.mappa_core.utils.io.checkpoints',
+    ('mappa.frag', 'WeightedNode'): 'mappa.mappa_core.core.matching.graphs',
+    ('mappa.frag', 'WeightedGraph'): 'mappa.mappa_core.core.matching.graphs',
+    ('mappa.smiles', 'FormalWBOEndpoint'): 'mappa.mappa_core.utils.io.smiles',
+    ('mappa.search_validation', 'RepresentativeValidationWorkspace'): 'mappa.mappa_core.core.search.branching.validation',
+
     ('mappa.domain', 'MolecularEndpoint'): 'mappa.mappa_core.domain',
     ('mappa.domain', 'AAMProblem'): 'mappa.mappa_core.domain',
     ('mappa.domain', 'AAMSearchConfig'): 'mappa.mappa_core.domain',
@@ -177,38 +175,6 @@ def _loads_checkpoint(data):
     return _load_checkpoint(io.BytesIO(data))
 
 
-def _aam_header(result):
-    from dataclasses import asdict
-    def endpoint(molecule):
-        return {'elements': molecule.elements, 'coordinates': molecule.coordinates.tolist(),
-                'wbo': molecule.wbo.tolist(), 'label': molecule.label,
-                'energy': molecule.energy, 'metadata': dict(molecule.metadata)}
-    return {'schema': 'rxn_core.aam/v1', 'name': result.problem.name,
-            'reactant': endpoint(result.problem.reactant),
-            'product': endpoint(result.problem.product),
-            'config': asdict(result.config), 'metrics': asdict(result.metrics)}
-
-
-def aam_record(result: AAMResult, *, copy_graph=True):
-    """Persist the search graph before selecting mechanisms or representatives."""
-    return {**_aam_header(result),'graph': result.graph.to_record(copy=copy_graph)}
-
-
-def aam_from_record(record, *, copy_graph=True):
-    if record['schema'] != 'rxn_core.aam/v1':
-        raise ValueError('unsupported AAM result schema')
-    return _aam_result(record,AAMSearchGraph.from_record(record['graph'],copy=copy_graph))
-
-
-def _aam_result(record,graph):
-    def endpoint(raw):
-        return MolecularEndpoint(tuple(raw['elements']), raw['coordinates'], raw['wbo'], raw['label'],
-                                  energy=raw.get('energy'), metadata=raw.get('metadata', {}))
-    return AAMResult(AAMProblem(endpoint(record['reactant']), endpoint(record['product']), record['name']),
-                     AAMSearchConfig(**record['config']), graph,
-                     AAMSearchMetrics(**record['metrics']))
-
-
 def write_aam_checkpoint(result,path):
     """Trusted internal snapshot preserving shared Python graph objects.
 
@@ -303,150 +269,3 @@ def read_raw_cut(path, *, tuple_pool=None):
     if path.suffix=='.json':
         return AAMSearchGraph.from_record(json.loads(path.read_bytes()),copy=False,tuple_pool=tuple_pool)
     raise ValueError(f'Unsupported raw cut format: {path}')
-
-
-def aam_json(result):
-    """Encode the complete record while borrowing its immutable graph data."""
-    enabled=gc.isenabled()
-    try:
-        gc.disable()
-        return json.dumps(aam_record(result,copy_graph=False))+'\n'
-    finally:
-        if enabled:gc.enable()
-
-
-def write_aam_bundle(result: AAMResult, output_directory):
-    """Save raw AAM and an offline graph/path viewer; never rerun matching."""
-    output = Path(output_directory)
-    output.mkdir(parents=True, exist_ok=True)
-    serialized = aam_json(result)
-    (output / 'aam.json').write_text(serialized)
-    assets = Path(__file__).parent / 'static'
-    page = (assets / 'aam_search.html').read_text()
-    from .viewers import style_document
-    page = style_document(page, layout='search_graph')
-    page = page.replace('__LIBRARY__', (assets / '3Dmol-min.js').read_text())
-    page = page.replace('__DATA__', serialized.replace('<', '\\u003c'))
-    (output / 'search.html').write_text(page)
-    return output
-
-
-def _mapping_record(mapping):
-    return {str(source): int(target)
-            for source, target in mapping.as_dict().items()}
-
-
-def decoded_events_record(result):
-    """Serialize event witnesses and their explicitly scoped completeness."""
-    from mappa.mappa_core.post_processing.decoder.records import DecodedEvents
-    if not isinstance(result, DecodedEvents):
-        raise TypeError("decoded_events_record requires DecodedEvents")
-    return {
-        "schema": "mappa.decoded_events/v2",
-        "method": "anchored_fragment_conversion",
-        "scope": "Direct counts across retained converted branches",
-        "converted_catalogue": result.catalogue.to_record(),
-        "rematches": [item.to_record() for item in result.conversion.rematches],
-        "converted_branches": [vars(branch) for branch in result.conversion.branches],
-        "complete": result.complete,
-        "minimum_proven": result.minimum_proven,
-        "observed_minimum": result.observed_minimum,
-        "event_window": result.event_window,
-        "config": vars(result.config),
-        "incomplete_paths": result.catalogue.incomplete_paths,
-        "event_policy": result.index.policy,
-        "family_reports": result.family_reports,
-        "candidates": [{
-            "id": candidate.id,
-            "mapping": {str(a): int(b) for a, b in candidate.mapping.items()},
-            "events": candidate.events,
-            "endpoint_events": candidate.endpoint_events,
-            "total": candidate.total,
-            "family_ids": candidate.family_ids,
-        } for candidate in result.candidates],
-    }
-
-
-def ts_record(result: TSResult):
-    """Return a compact JSON boundary representation of one typed TS run."""
-    from mappa.mappa_workflow.ts_analytics.scoring import POLICY
-    return {
-        "scoring_policy": POLICY,
-        "schema": "rxn_core.ts/v2",
-        "target": result.mechanisms[0].target.molecule.label
-        if result.mechanisms else "",
-        "elapsed_seconds": result.elapsed_seconds,
-        "mechanisms": [{
-            "id": index,
-            "status": item.status,
-            "reason": item.reason,
-            "reactant_core_assignments": (
-                0 if item.reactant_core_aam is None
-                else len(item.reactant_core_aam.assignments)),
-            "product_core_assignments": (
-                0 if item.product_core_aam is None
-                else len(item.product_core_aam.assignments)),
-            "candidate_count": len(item.candidates),
-            "selected": None if item.selected is None else {
-                "assignment": {str(a): int(b)
-                               for a, b in item.selected.assignment.pairs},
-                "sources": sorted(item.selected.sources),
-                "score": item.selected.score,
-                "diagnostics": dict(item.selected.diagnostics),
-                "wbo_progress": item.selected.wbo_progress,
-                "mode_index": item.selected.mode_index,
-                "frequency": item.selected.frequency,
-                "event_terms": [dict(term)
-                                for term in item.selected.event_terms],
-            },
-        } for index, item in enumerate(result.mechanisms, 1)],
-    }
-
-
-def reaction_record(reaction: ReactionContext):
-    """Serialize the exact R/P information required by the TS stage."""
-    return {
-        "schema": "rxn_core.resolved_reaction/v1",
-        "name": reaction.problem.name,
-        "atom_count": reaction.problem.atom_count,
-        "mechanisms": [{
-            "mapping": _mapping_record(item.mapping),
-            "broken_bonds": [list(bond) for bond in item.broken_bonds],
-            "formed_bonds": [list(bond) for bond in item.formed_bonds],
-            "core_atoms": list(item.core_atoms),
-        } for item in reaction.mechanisms],
-    }
-
-
-def reaction_from_record(record, problem: AAMProblem,
-                         config: AAMSearchConfig | None = None):
-    """Materialize a TS-stage context without executing R/P search."""
-    if record.get("schema") != "rxn_core.resolved_reaction/v1":
-        raise ValueError("unsupported resolved reaction schema")
-    if int(record.get("atom_count", -1)) != problem.atom_count:
-        raise ValueError("resolved reaction atom count differs from endpoints")
-    mechanisms = []
-    for raw in record.get("mechanisms") or ():
-        mechanisms.append(ResolvedMechanism(
-            mapping=AtomBijection.from_mapping(
-                {int(a): int(b) for a, b in raw["mapping"].items()},
-                degree=problem.atom_count),
-            broken_bonds=tuple(tuple(bond)
-                               for bond in raw.get("broken_bonds") or ()),
-            formed_bonds=tuple(tuple(bond)
-                               for bond in raw.get("formed_bonds") or ()),
-            core_atoms=tuple(raw.get("core_atoms") or ()),
-        ))
-    if not mechanisms:
-        raise ValueError("resolved reaction contains no mechanisms")
-    return ReactionContext(
-        problem, config or AAMSearchConfig(), tuple(mechanisms))
-
-
-def _json_dump(path, value):
-    Path(path).write_text(json.dumps(value, indent=2, default=float))
-
-
-def write_ts_record(result: TSResult, path):
-    _json_dump(path, ts_record(result))
-    return Path(path)

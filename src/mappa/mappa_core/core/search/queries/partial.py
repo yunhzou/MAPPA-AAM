@@ -7,7 +7,7 @@ from mappa.mappa_core.core.search.branching.construction import BranchLimitExcee
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.domain import AAMHierarchy
 from mappa.mappa_core.domain import AAMSearchConfig, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits, _atom_tuple_orbit, _nauty_atom_generators
 from mappa.mappa_core.core.matching.representation.state import _SymBlock, _sym_block_assignment_expr
 

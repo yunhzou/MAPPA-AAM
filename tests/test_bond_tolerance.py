@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
-from mappa.frag import bond_event_threshold
+from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.representation.state import _SymCand
 from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands

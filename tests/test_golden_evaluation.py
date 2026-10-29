@@ -111,7 +111,7 @@ def test_H_witness_differences_retain_full_feasibility_queries():
 def test_explicit_H_donor_competition_depends_on_seed_order():
     """Completing a seed order does not enumerate every reactant subset."""
     import numpy as np
-    from mappa.frag import build_graph
+    from mappa.mappa_core.core.matching.graphs import build_graph
     from mappa.mappa_core.core.search.branching.construction import find_islands
     source=np.zeros((9,9));target=np.zeros((6,6))
     for a,b in [(0,1),(0,3),(0,4),(0,5),(1,8),(2,6),(2,7)]:source[a,b]=source[b,a]=1

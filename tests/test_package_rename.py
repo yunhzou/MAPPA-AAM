@@ -6,16 +6,15 @@ from pathlib import Path
 
 import mappa
 import pytest
-from mappa.artifacts import (
-    aam_from_record, read_aam_checkpoint, read_graph_checkpoint, read_raw_cut,
-)
+from mappa.mappa_core.utils.io.records import aam_from_record
+from mappa.mappa_core.utils.io.checkpoints import read_aam_checkpoint, read_graph_checkpoint, read_raw_cut
 from mappa.mappa_core.core.matching.growth import native
 
 FIXTURES = Path(__file__).parent / "fixtures" / "package_rename"
 
 
 def test_previous_package_checkpoint_global_resolves_to_mappa():
-    from mappa.artifacts import _CheckpointUnpickler
+    from mappa.mappa_core.utils.io.checkpoints import _CheckpointUnpickler
     # A protocol-0 GLOBAL from the previous public package namespace.
     stream = io.BytesIO(b"cgraft.domain\nAAMResult\n.")
     assert _CheckpointUnpickler(stream).load() is mappa.AAMResult
@@ -44,8 +43,8 @@ def test_both_old_binary_cut_formats_keep_their_graph():
 
 
 def test_installed_viewer_assets_are_available_under_mappa():
-    assert files("mappa").joinpath("static/3Dmol-min.js").is_file()
-    assert files("mappa").joinpath("static/aam_search.html").is_file()
+    assert files("mappa").joinpath("presentation/static/3Dmol-min.js").is_file()
+    assert files("mappa").joinpath("presentation/static/aam_search.html").is_file()
 
 
 def test_native_setting_uses_only_current_name(monkeypatch):

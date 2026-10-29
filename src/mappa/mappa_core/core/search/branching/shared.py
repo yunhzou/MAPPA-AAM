@@ -17,7 +17,7 @@ from mappa.mappa_core.core.search.graph import (
     SearchStop,
 )
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
 
 

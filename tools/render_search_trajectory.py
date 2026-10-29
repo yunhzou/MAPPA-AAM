@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from mappa.viewers import growth_trace_html
+from mappa.presentation.viewers import growth_trace_html
 
 
 if __name__=='__main__':

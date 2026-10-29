@@ -147,5 +147,5 @@ def test_aam_distribution_excludes_separate_retrosynthesis_packages():
     import mappa.mappa_core.core.matching.api
 
     assert find_spec("mappa.retrosynthesis") is None
-    assert find_spec("mappa.fragment_matching") is None
+    assert find_spec("mappa.mappa_core.core.matching.graphsment_matching") is None
     assert callable(mappa.mappa_core.core.matching.api.match_fragment)

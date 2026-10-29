@@ -2,13 +2,13 @@
 """Build self-contained R/P plus ranked initial-guess viewers."""
 from __future__ import annotations
 
-from mappa.viewers import viewer_style
+from mappa.presentation.viewers import viewer_style
 
 import argparse
 import json
 from pathlib import Path
 
-from mappa.chemistry_computations import parse_xyz, write_xyz_str
+from mappa.mappa_core.utils.io import parse_xyz, write_xyz_str
 
 
 def _source_xyz(directory):
@@ -76,7 +76,7 @@ def _html(case, elements_r, xyz_r, elements_p, xyz_p, document):
         mechanism["ranking"] = rows
     payload = json.dumps({"case": case, "mechanisms": mechanisms}).replace(
         "</", "<\\/")
-    library = (Path(__file__).parents[1] / "src" / "mappa" / "static"
+    library = (Path(__file__).parents[1] / "src" / "mappa" / "presentation" / "static"
                / "3Dmol-min.js").read_text()
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

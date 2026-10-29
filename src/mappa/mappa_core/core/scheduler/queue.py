@@ -9,7 +9,7 @@ import sqlite3
 import threading
 import time
 import uuid
-from mappa.artifacts import _loads_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
 @dataclass(frozen=True)

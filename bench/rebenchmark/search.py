@@ -59,7 +59,7 @@ def search(problem, config, folder, workers):
     from publication_timing import SearchProfiler
     folder = Path(folder)
     resume = (folder/'cuts/manifest.json').exists()
-    from mappa.artifacts import raw_cut_paths
+    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths
     resumed_cuts = len(raw_cut_paths(folder/'cuts')) if resume else 0
     timing_directory, seed_directory = folder/'search-timing', folder/'seed-timing'
     if resume:

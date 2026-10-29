@@ -54,7 +54,7 @@ def test_aam_problem_accepts_composition_mismatch():
 @pytest.mark.smoke
 def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
     import json
-    from mappa.artifacts import aam_record, aam_from_record
+    from mappa.mappa_core.utils.io.records import aam_record, aam_from_record
     source = MolecularEndpoint(('C','Cl'), np.zeros((2,3)), [[0,1],[1,0]])
     target = MolecularEndpoint(('C',), np.zeros((1,3)), [[0]])
     result = search_aam(AAMProblem(source,target), AAMSearchConfig(seed_count=1),intermediate_dir=tmp_path)
@@ -123,7 +123,8 @@ def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,m
 
 def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
     import json
-    from mappa.artifacts import aam_record,read_aam_checkpoint
+    from mappa.mappa_core.utils.io.records import aam_record
+    from mappa.mappa_core.utils.io.checkpoints import read_aam_checkpoint
     result=search_aam(AAMProblem(_endpoint('R'),_endpoint('P')),AAMSearchConfig(seed_count=1),
         intermediate_dir=tmp_path,archive_format='checkpoint')
     restored=read_aam_checkpoint(tmp_path/'aam.pkl.gz')
@@ -136,7 +137,7 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
 
 def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
     from mappa.mappa_core.core.scheduler import search as aam
-    from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
+    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut, write_raw_cut
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)
     original=search_aam(problem,config,intermediate_dir=tmp_path)

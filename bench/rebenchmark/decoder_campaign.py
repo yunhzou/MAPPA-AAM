@@ -14,7 +14,7 @@ import tempfile
 import time
 from mappa.mappa_core.core.scheduler import Blob, TaskQueue, read_blob, connect, coordinator, run
 from rebenchmark.decoding import seed_tasks
-from mappa.artifacts import _loads_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
 def save(path,value):

@@ -204,6 +204,14 @@ Consolidate endpoint serialization, checkpoints, SMILES, XYZ and xTB adapters
 under `utils/io/`. Keep generic serialization separate from workflow-specific
 result formatting. Core I/O must not import TS analytics or viewers.
 
+Implemented: `utils/io/records.py` owns core JSON records and shared endpoint
+serialization; `checkpoints.py` owns trusted binary transport and explicit class
+relocation. XYZ, xTB, SMILES and mode readers share the I/O package. TS formatting
+belongs to its workflow, and HTML bundle generation belongs to presentation.
+The mixed root `frag.py` and `artifacts.py` owners are removed. Graph primitives
+are in matching; shared bond rules are in `utils/bonds.py`; direct counts are in
+decoder events. Unused neighbor-completion and coordinate wrappers are deleted.
+
 ### Presentation
 
 Move existing viewers and static assets under `presentation/`. Separate HTML
@@ -214,8 +222,10 @@ Alignment ownership cleanup: shared hierarchy/permutation types now live in
 `mappa_core/domain.py`, and coordinate alignment/interpolation in
 `presentation/interpolation.py`. The old `alignment/` package and two obsolete
 interpolation aliases are removed. Core data and presentation no longer share
-an artificial owner. Remaining root-domain, I/O and viewer consolidation is
-still pending; this step preserves data semantics and interpolation behavior.
+an artificial owner. The remaining viewer and growth-display modules now share `presentation/`,
+including their unchanged static assets. Rigid fitting uses the existing shared
+coordinate routine; trajectory capture and represented-choice display share one
+module. Native-source placement and final integration verification remain.
 
 ## Files to dismantle rather than simply relocate
 

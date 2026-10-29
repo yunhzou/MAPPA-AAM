@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, replace, asdict
-from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, AAMResult
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig
 import json, hashlib, random
-from pathlib import Path
 from collections import Counter
 
 

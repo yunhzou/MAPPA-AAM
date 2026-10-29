@@ -11,8 +11,10 @@ import math
 from pathlib import Path
 
 import numpy as np
-from .artifacts import read_aam_checkpoint, aam_from_record
-from .frag import build_graph, classify_bonds
+from mappa.mappa_core.utils.io.checkpoints import read_aam_checkpoint
+from mappa.mappa_core.utils.io.records import aam_from_record
+from mappa.mappa_core.core.matching.graphs import build_graph
+from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.matching.representation.state import _cand_possible_p_atoms, _sym_block_indexes
 from mappa.mappa_core.core.matching.growth.support import _support_witness_for_value
@@ -279,9 +281,76 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
     return dict(schema='rxn_core.search_trajectory/v1',name=title or raw['name'] or 'AAM search trajectory',
         input=raw,runs=runs,key_atoms=default_keys if key_atoms is None else key_atoms,
         watch_targets=[] if watch_targets is None else watch_targets,
-        capture_source={str(p.relative_to(Path(__file__).parent.parent)):hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(Path(__file__).parent.rglob('*.py'))},
+        capture_source={str(p.relative_to(Path(__file__).parents[2])):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(Path(__file__).parents[1].rglob('*.py'))},
         scope='Diagnostic replay of selected saved fragment calls; one recorded history per terminal. '
               'All live compressed candidates are included, each with an actual representative and symmetry blocks. '
               'Trial rows inspect support before deduplication. Every fragment placement is checked against its archive. '
               'The endpoint coordinates stay fixed throughout playback.',checks=checks)
+
+
+from copy import deepcopy
+
+
+import json
+
+
+from mappa.mappa_core.core.matching.graphs import build_graph
+
+
+from mappa.mappa_core.core.matching.representation.state import candidate_from_record
+
+
+from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
+
+
+def with_represented_targets(document):
+    """Annotate per-atom marginal domains without enumerating full mappings.
+
+    Local pools act first, then the conditioned candidate group, as in the
+    family decoder. Marginal domains must never be shown as independently
+    selectable assignments. Raw automorph-block unions are not target domains.
+    """
+    import numpy as np
+    doc = deepcopy(document)
+    ep = doc['input']['product']
+    cache = {}
+    for run in doc['runs']:
+        cfg = run['config']
+        target = build_graph(ep['elements'], np.asarray(ep['wbo']), bond_cut=cfg['graph_floor'])
+        workspace = SymmetryWorkspace(target, cfg['iso_tolerance'])
+        for path in run['paths']:
+            for frame in path['frames']:
+                for record in frame['candidates']:
+                    if ((record.get('automorph_domains', 0) and 'automorph_blocks' not in record)
+                            or (frame['kind'] == 'seed_end' and not record.get('symmetry_complete'))):
+                        record['target_options'] = None
+                        continue
+                    key = json.dumps([cfg['graph_floor'], cfg['iso_tolerance'], frame['locked'], record], sort_keys=True)
+                    if key not in cache:
+                        cand = candidate_from_record(record)
+                        locked = tuple(sorted((int(r), int(p)) for r, p in frame['locked'].items()))
+                        generators = workspace.conditioned_generators(cand, locked)
+                        block_r = {r for b in cand.blocks for r in b.r_atoms}
+                        fixed = {p for _, p in locked} | {
+                            p for r, p in cand.mapping.items() if r not in block_r or r in cand.exact_fixed}
+                        options = {}
+                        for r, p in cand.mapping.items():
+                            domain = {p}
+                            for block in cand.blocks:
+                                free = set(block.p_atoms) - fixed
+                                if domain & free:
+                                    domain |= free
+                            queue = list(domain)
+                            while queue:
+                                atom = queue.pop()
+                                for gen in generators:
+                                    image = gen[atom]
+                                    if image not in domain:
+                                        domain.add(image)
+                                        queue.append(image)
+                            options[str(r)] = sorted(domain)
+                        cache[key] = options
+                    record['target_options'] = cache[key]
+    return doc
+

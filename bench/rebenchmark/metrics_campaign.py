@@ -13,7 +13,7 @@ from mappa.mappa_core.core.scheduler import Task, TaskQueue, read_blob
 from .decoder_campaign import save, serve_queue
 from .decoder_inventory import signature
 from .evidence import sha
-from mappa.artifacts import _loads_checkpoint
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
 def blob_record(blob):

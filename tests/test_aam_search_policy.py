@@ -9,7 +9,7 @@ from mappa import AAMProblem,AAMSearchConfig,plan_aam_search,search_aam
 from mappa.mappa_core.core.search.planning import cut_seed, checkpoint_manifest
 from mappa.mappa_core.domain import MolecularEndpoint
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 
 
 def endpoint(n):

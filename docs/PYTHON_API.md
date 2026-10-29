@@ -49,7 +49,7 @@ The evidence retains ordered target generators/pools, required fragment edges, m
 ```python
 from html import escape
 from IPython.display import HTML, display
-from mappa.viewers import aam_growth_html
+from mappa.presentation.viewers import aam_growth_html
 
 page = aam_growth_html(aam, context=None, event_threshold=0.5,
                        metal_event_threshold=0.3)
@@ -139,7 +139,7 @@ Neither entry point computes missing R/P selections.
 
 ```python
 from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
-from mappa.artifacts import decoded_events_record
+from mappa.mappa_core.utils.io.records import decoded_events_record
 
 result = decode_events(aam, EventDecodeConfig(event_slack=0))
 print(result.observed_minimum, result.complete)

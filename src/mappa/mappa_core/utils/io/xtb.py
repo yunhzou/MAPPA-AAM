@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .xyz import parse_xyz
+from mappa.mappa_core.utils.io.xyz import parse_xyz
 
 
 def read_wbo_file(path, n_atoms):

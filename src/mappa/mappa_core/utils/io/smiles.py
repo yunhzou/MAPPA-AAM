@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from .frag import WeightedGraph
+from mappa.mappa_core.core.matching.graphs import WeightedGraph
 
 
 @dataclass

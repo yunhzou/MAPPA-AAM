@@ -1,7 +1,7 @@
 """Saved seed/cut windows must agree with direct public decoding of their union."""
 import pytest
 
-from mappa.artifacts import decoded_events_record
+from mappa.mappa_core.utils.io.records import decoded_events_record
 from mappa.mappa_core.core.scheduler import Task
 from mappa.mappa_core.post_processing.decoder.api import decode_events
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig

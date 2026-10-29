@@ -9,9 +9,9 @@ import pytest
 
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.mappa_core.core.search.api import finalize_graph_symmetry
-from mappa.artifacts import aam_from_record, aam_record
+from mappa.mappa_core.utils.io.records import aam_from_record, aam_record
 from mappa.mappa_core.core.search.branching.construction import _Branch, find_islands
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.representation.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
@@ -370,7 +370,7 @@ def test_offline_viewer_uses_saved_graph_without_new_matching(tmp_path, monkeypa
     import shutil
     import subprocess
     import mappa.mappa_core.core.matching.api as fragment_module
-    from mappa.artifacts import write_aam_bundle
+    from mappa.presentation.viewers import write_aam_bundle
     result = search_aam(problem(), AAMSearchConfig(seed_count=1))
     def forbidden(*args, **kwargs):
         raise AssertionError('viewer must not invoke AAM')

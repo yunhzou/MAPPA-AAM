@@ -10,7 +10,7 @@ from rebenchmark.evidence import save,read,sha,publish,restore
 from rebenchmark.search import search,select_contexts
 from golden_evaluation import prepare
 from mappa import AAMSearchConfig,AAMProblem,search_aam_checkpoints
-from mappa.artifacts import read_raw_cut
+from mappa.mappa_core.utils.io.checkpoints import read_raw_cut
 
 
 @pytest.mark.parametrize('reverse',[False,True])

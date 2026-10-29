@@ -248,7 +248,7 @@ For one animation per sweep, use the in-memory result directly:
 
 ```python
 from pathlib import Path
-from mappa.viewers import aam_growth_html
+from mappa.presentation.viewers import aam_growth_html
 
 Path("aam_growth.html").write_text(aam_growth_html(aam), encoding="utf-8")
 ```

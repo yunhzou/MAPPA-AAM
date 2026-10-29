@@ -1,7 +1,7 @@
 """Anchored fragment conversion and direct event counting."""
 from .records import EventDecodeConfig, EventCandidate, DecodedEvents
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
-from mappa.frag import classify_bonds
+from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from mappa.mappa_core.post_processing.decoder.conversion import convert_fragments
 
 def decode_events(aam, config=None):

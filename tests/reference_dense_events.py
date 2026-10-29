@@ -8,9 +8,9 @@ from functools import cached_property
 import hashlib
 import numpy as np
 import pynauty
-from mappa.frag import is_metal_element
+from mappa.mappa_core.utils.bonds import is_metal_element
 from golden_evaluation import colored_graph
-from mappa.frag import classify_bonds
+from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 
 class DeltaPatterns:
     """Signed delta events modulo exact symmetry of the score-response graph.

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from mappa.mappa_core.core.search.branching.reuse import CutReplay
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.branching.construction import find_islands

@@ -9,12 +9,11 @@ from functools import cached_property
 import hashlib
 import json
 import math
-import time
 
 import numpy as np
 import pynauty
 
-from mappa.frag import classify_bonds, is_metal_element
+from mappa.mappa_core.utils.bonds import is_metal_element
 
 
 def _response_bounds(values, weight, threshold):
@@ -326,3 +325,75 @@ class SignedEventIndex:
                     endpoint_events=dict(broken=tuple((a,b) for a,b,*_ in broken),
                                          formed=tuple((a,b) for a,b,*_ in formed)),
                     counts=counts, total=sum(counts.values()), policy=self.policy)
+
+
+def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
+                   elements_R=None, elements_P=None,
+                   metal_dwbo_threshold=None):
+    """Bond classification by WBO change.
+
+        broken iff (WBO_R - WBO_P) >= pair_threshold
+        formed iff (WBO_P - WBO_R) >= pair_threshold
+
+    `pair_threshold` is normally `dwbo_threshold`.  If element lists and
+    `metal_dwbo_threshold` are supplied, any pair containing a metal uses the
+    metal threshold instead.  Since WBO is non-negative, requiring
+    (wR - wP) >= pair_threshold automatically implies wR >= pair_threshold
+    (wP >= 0), so a single
+    threshold both gates "is this a bond worth considering" and "did
+    its order change enough." For pairs with exactly one endpoint unmapped, compare the bond with
+    zero on the other side. Ignore pairs whose endpoints are both unmapped,
+    symmetrically in R and P.
+
+    Returns (broken_list, formed_list, core_R, core_P) where each bond
+    record is (i, j, wbo_R_or_None, wbo_P_or_None)."""
+    inv = {v: k for k, v in mapping.items()}
+    default_threshold = float(dwbo_threshold)
+    metal_threshold = (
+        None if metal_dwbo_threshold is None
+        else float(metal_dwbo_threshold))
+    metal_R = (
+        None if elements_R is None or metal_threshold is None
+        else tuple(is_metal_element(element) for element in elements_R))
+    metal_P = (
+        None if elements_P is None or metal_threshold is None
+        else tuple(is_metal_element(element) for element in elements_P))
+    def eligible(matrix, metal):
+        # Screen absent/subthreshold pairs in NumPy. The scalar subtraction
+        # below remains the event oracle, including exact floating boundaries.
+        threshold = default_threshold
+        if metal is not None:
+            flags = np.asarray(metal, dtype=bool)
+            threshold = np.where(flags[:, None] | flags[None, :],
+                                 metal_threshold, default_threshold)
+        a, b = np.nonzero(np.triu(~(matrix < threshold), k=1))
+        return zip(a.tolist(), b.tolist())
+
+    broken, formed = [], []
+    for i, j in eligible(wbo_R, metal_R):
+        if i not in mapping and j not in mapping:
+            continue
+        threshold = (metal_threshold if metal_R is not None and (metal_R[i] or metal_R[j])
+                     else default_threshold)
+        wR = wbo_R[i, j]
+        if i not in mapping or j not in mapping:
+            broken.append((i, j, float(wR), None)); continue
+        wP = wbo_P[mapping[i], mapping[j]]
+        if wR - wP >= threshold:
+            broken.append((i, j, float(wR), float(wP)))
+    for ip, jp in eligible(wbo_P, metal_P):
+        if ip not in inv and jp not in inv:
+            continue
+        threshold = (metal_threshold if metal_P is not None and (metal_P[ip] or metal_P[jp])
+                     else default_threshold)
+        wP = wbo_P[ip, jp]
+        if ip not in inv or jp not in inv:
+            formed.append((ip, jp, None, float(wP))); continue
+        wR = wbo_R[inv[ip], inv[jp]]
+        if wP - wR >= threshold:
+            formed.append((ip, jp, float(wR), float(wP)))
+    core_R = sorted({i for (i, j, _, _) in broken}
+                    | {j for (i, j, _, _) in broken})
+    core_P = sorted({i for (i, j, _, _) in formed}
+                    | {j for (i, j, _, _) in formed})
+    return broken, formed, core_R, core_P

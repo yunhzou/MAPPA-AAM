@@ -7,7 +7,7 @@ import json, gc, time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
-from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
@@ -49,7 +49,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
         from mappa.mappa_core.core.matching.growth.native import available
         if not available():
             raise ValueError('reused_native execution requires the built native engine')
-    from mappa.artifacts import raw_cut_paths, read_raw_cut
+    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut
     config = config or AAMSearchConfig()
     requested_workers=max(1,int(workers))
     if archive_format not in ('json','checkpoint'):
@@ -159,7 +159,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     result = AAMResult(problem, config, graph,
                       AAMSearchMetrics.from_record(metrics, time.perf_counter()-started))
     if directory is not None:
-        from mappa.artifacts import aam_json, write_aam_checkpoint
+        from mappa.mappa_core.utils.io.records import aam_json
+        from mappa.mappa_core.utils.io.checkpoints import write_aam_checkpoint
         if archive_format=='checkpoint':
             write_aam_checkpoint(result,directory/'aam.pkl.gz')
         else:
@@ -188,7 +189,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     consumers finalize and release individual cuts. Memory can still grow with
     one cut's history; this is not a universal memory bound.
     """
-    from mappa.artifacts import raw_cut_paths, read_raw_cut
+    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut
     if not isinstance(problem, AAMProblem):
         raise TypeError('search_aam_checkpoints requires an AAMProblem')
     if execution not in ('reference', 'reused_native', 'shared_policies'):

@@ -23,7 +23,7 @@ flowchart LR
 
 | Owner | Responsibility | Current implementation |
 |---|---|---|
-| Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `frag.py`, `chemistry_computations/`, `smiles.py` |
+| Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `mappa_core/core/matching/graphs.py`, `mappa_core/utils/bonds.py`, `mappa_core/utils/io/` |
 | Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
 | AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `mappa_core/core/search/` |
 | Representation | Shared decisions, paths, atom-set branches, saved mapping families | `mappa_core/domain.py`, `mappa_core/core/search/graph.py`, `mappa_core/post_processing/final_branches.py` |
@@ -32,7 +32,7 @@ flowchart LR
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `mappa_workflow/mapping_analytics/` |
 | Execution | Task dependencies, workers, budgets and verified publication | `mappa_core/core/scheduler/` |
 | TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `mappa_workflow/ts_analytics/`, `mappa_core/core/search/queries/partial.py` |
-| Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
+| Artifacts/presentation | Versioned persistence, molecular views and growth replay | `mappa_core/utils/io/`, `presentation/`, TS workflow serialization |
 | Coordinate display | Rigid alignment and mapped-coordinate interpolation | `presentation/interpolation.py` |
 
 CLIs, benchmark adapters and viewers consume these owners. They must not contain

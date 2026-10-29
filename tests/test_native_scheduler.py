@@ -130,7 +130,7 @@ def test_random_graphs_exercise_both_cap_stages():
         for side in range(2):
             w=np.triu(rng.choice([0.,0.,0.,1.,1.5,2.],size=(8,8)),1)
             matrices.append(w+w.T)
-        from mappa.frag import build_graph
+        from mappa.mappa_core.core.matching.graphs import build_graph
         source,target=[build_graph(['C']*4+['O']*2+['H']*2,w,bond_cut=.2) for w in matrices]
         result=compare(source,target,list(map(int,rng.permutation(8))),max_branches=int(rng.choice([3,4,8,100])))
         cap_stages.update(stop.stage for stop in result.stops if stop.reason=='capped')
