@@ -37,7 +37,7 @@ class TaskQueue:
         columns = {r[1] for r in self.db.execute('PRAGMA table_info(cases)')}
         if columns and 'spent' not in columns:
             self.db.close()
-            raise ValueError('Legacy queue requires explicit retired-budget migration')
+            raise ValueError('Unsupported queue schema')
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS identity (value TEXT NOT NULL);
@@ -75,15 +75,18 @@ class TaskQueue:
             if len({t.key for t in tasks}) != len(tasks):
                 raise ValueError('Duplicate task key')
             new = {}
+            specifications = {}
             for task in tasks:
                 if task.case_seconds <= 0 or task.memory_bytes <= 0:
                     raise ValueError('Resource budgets must be positive')
+                data = pickle.dumps(task, protocol=5)
                 previous = self.db.execute('SELECT specification FROM tasks WHERE key=?', (task.key,)).fetchone()
                 if previous:
-                    if previous[0] != pickle.dumps(task, protocol=5):
+                    if previous[0] != data:
                         raise ValueError('Task identity reused with different work')
                 else:
                     new[task.key] = task
+                    specifications[task.key] = data
             external = {d for t in new.values() for d in t.dependencies if d not in new}
             for dependency in external:
                 if self.db.execute('SELECT 1 FROM tasks WHERE key=?', (dependency,)).fetchone() is None:
@@ -92,20 +95,14 @@ class TaskQueue:
             # tasks. Only the new subgraph can introduce a cycle.
             tuple(TopologicalSorter({k: [d for d in t.dependencies if d in new]
                                      for k, t in new.items()}).static_order())
-            for task in tasks:
-                data = pickle.dumps(task, protocol=5)
-                previous = self.db.execute('SELECT specification FROM tasks WHERE key=?', (task.key,)).fetchone()
-                if previous:
-                    if previous[0] != data:
-                        raise ValueError('Task identity reused with different work')
-                    continue
+            for task in new.values():
                 case = task.case or task.key
                 row = self.db.execute('SELECT seconds FROM cases WHERE name=?', (case,)).fetchone()
                 if row and row[0] != task.case_seconds:
                     raise ValueError('Tasks in one case must share the same budget')
                 self.db.execute('INSERT OR IGNORE INTO cases(name,seconds) VALUES (?,?)', (case, task.case_seconds))
                 self.db.execute('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)',
-                    (task.key, data, case, task.memory_bytes, 'pending', None, None, None, None))
+                    (task.key, specifications[task.key], case, task.memory_bytes, 'pending', None, None, None, None))
                 self.db.executemany('INSERT INTO dependencies VALUES (?,?)',
                     [(task.key, d) for d in task.dependencies])
 
@@ -210,50 +207,8 @@ class TaskQueue:
             self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
             self._refresh(time.time())
 
-    @classmethod
-    def recover_waiting_timeouts(cls, path, identity):
-        """Explicitly migrate a retired legacy queue and resume unstarted work.
-
-        Old records lack exact overlapping compute intervals. Charge the sum
-        of recorded attempt compute durations, a conservative upper bound on
-        active wall time. Preserve prior pilot charges, attempts and outputs.
-        Run only on a node-local copy; the original checkpoint is evidence.
-        """
-        from collections import defaultdict
-        db = sqlite3.connect(path)
-        try:
-            with db:
-                if db.execute('SELECT value FROM identity').fetchone() != (identity,):
-                    raise ValueError('Queue identity differs')
-                if 'spent' in {r[1] for r in db.execute('PRAGMA table_info(cases)')}:
-                    raise ValueError('Budget migration already applied')
-                if db.execute("SELECT 1 FROM tasks WHERE state NOT IN ('complete','timeout') LIMIT 1").fetchone():
-                    raise ValueError('Diagnose active or failed work before budget migration')
-                if db.execute("SELECT 1 FROM attempts WHERE state!='complete' OR finished IS NULL LIMIT 1").fetchone():
-                    raise ValueError('Attempted failures cannot be retried by budget migration')
-                keys = [k for k, in db.execute("SELECT key FROM tasks WHERE state='timeout' AND token IS NULL AND result IS NULL")]
-                if len(keys) != db.execute("SELECT count(*) FROM tasks WHERE state='timeout'").fetchone()[0]:
-                    raise ValueError('Only unstarted timeouts may resume')
-                charged = defaultdict(float)
-                for case, raw in db.execute('SELECT t.case_name,a.result FROM attempts a JOIN tasks t ON t.key=a.task'):
-                    charged[case] += _loads_checkpoint(raw)['compute_seconds']
-                # Retain the exact former wall deadlines alongside the new
-                # accounting, so the policy correction remains reviewable.
-                db.execute('CREATE TABLE legacy_case_budgets AS SELECT * FROM cases')
-                db.execute('ALTER TABLE cases ADD COLUMN spent REAL NOT NULL DEFAULT 0')
-                db.execute('ALTER TABLE cases ADD COLUMN active_since REAL')
-                db.execute('UPDATE cases SET deadline=NULL')
-                db.executemany('UPDATE cases SET spent=? WHERE name=?', [(seconds,case) for case,seconds in charged.items()])
-                db.executemany("UPDATE tasks SET state='pending' WHERE key=?", [(key,) for key in keys])
-            queue = cls(path, identity)
-            queue.optimize()
-            return queue, dict(keys=keys, charged_compute_seconds=dict(charged),
-                               policy='active wall time; legacy attempt compute sums conservatively charged')
-        finally:
-            db.close()
-
     def set_pending_memory(self, memory_bytes, *, reason):
-        """Change admission estimates without changing saved work or deadlines.
+        """Change admission estimates without changing saved work or remaining budgets.
 
         A node-local maintenance connection may call this during a worker
         handoff. SQLite serializes it with claims and publications. Setting an

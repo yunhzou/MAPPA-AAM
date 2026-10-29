@@ -274,36 +274,6 @@ def test_budget_counts_parallel_work_once_and_excludes_publication_and_idle(tmp_
     queue.close()
 
 
-def test_retired_budget_recovery_preserves_outputs_attempts_and_prior_charges(tmp_path):
-    path = tmp_path/'legacy.sqlite'
-    queue = TaskQueue(path, IDENTITY)
-    queue.add([task('saved', case='same', case_seconds=10),
-               task('unstarted', case='same', case_seconds=10, dependencies=('saved',))])
-    first = queue.claim('old', MEMORY, IDENTITY)
-    queue.finish('saved', first['token'], 'complete', dict(compute_seconds=3, published='keep'))
-    with queue.db:
-        queue.db.execute("UPDATE tasks SET state='timeout' WHERE key='unstarted'")
-        queue.db.execute('UPDATE cases SET seconds=9')  # already charged one second for a pilot
-        queue.db.execute('DROP TABLE active_work')
-        queue.db.execute('ALTER TABLE cases DROP COLUMN active_since')
-        queue.db.execute('ALTER TABLE cases DROP COLUMN spent')
-    outputs = queue.db.execute('SELECT result FROM tasks WHERE key="saved"').fetchone()
-    attempts = queue.db.execute('SELECT * FROM attempts').fetchall()
-    queue.close()
-    resumed, receipt = TaskQueue.recover_waiting_timeouts(path, IDENTITY)
-    assert receipt['keys'] == ['unstarted']
-    assert resumed.db.execute('SELECT seconds,spent FROM cases').fetchone() == (9,3)
-    assert resumed.db.execute('SELECT result FROM tasks WHERE key="saved"').fetchone() == outputs
-    assert resumed.db.execute('SELECT * FROM attempts').fetchall() == attempts
-    assert resumed.snapshot() == {'complete':1, 'pending':1}
-    claimed = resumed.claim('new', MEMORY, IDENTITY)
-    assert claimed['task'].key == 'unstarted'
-    assert claimed['deadline']-time.time() == pytest.approx(6, abs=.1)
-    resumed.close()
-    with pytest.raises(ValueError, match='already applied'):
-        TaskQueue.recover_waiting_timeouts(path, IDENTITY)
-
-
 @pytest.mark.parametrize('batch', [1, 2, 5, 10])
 @pytest.mark.parametrize('sizes', [(5, 7), (7, 5)])
 def test_seed_batch_graph_and_prefix_equality(batch, sizes):

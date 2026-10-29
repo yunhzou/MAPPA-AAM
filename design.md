@@ -293,9 +293,6 @@ runs only while at least one of its computations is active. Overlapping tasks
 count once; queue waiting, allocation gaps and publication do not consume it.
 The clock pauses at the last compute completion and survives checkpoints.
 Scheduling cannot reset scientific budgets or silently retry completed/failed work.
-Explicit recovery of retired legacy queues charges recorded attempt compute
-durations conservatively before reopening only never-attempted expired tasks;
-original deadlines, attempts and successful outputs remain available as evidence.
 
 Resource stages may change pending tasks' admission estimates without changing
 their immutable scientific specifications. A higher estimate can drain existing
