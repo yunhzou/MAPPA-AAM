@@ -6,7 +6,7 @@ from dataclasses import replace, dataclass
 import time
 from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
 from mappa.mappa_core.core.search.branching.construction import _Branch
-from mappa.domain import AAMResult, AAMSearchMetrics
+from mappa.mappa_core.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits

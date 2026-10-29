@@ -2,7 +2,7 @@ from itertools import permutations
 import numpy as np
 
 from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
-from mappa.domain import MolecularEndpoint
+from mappa.mappa_core.domain import MolecularEndpoint
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
 

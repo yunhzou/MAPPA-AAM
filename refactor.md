@@ -183,6 +183,12 @@ same-event queries. It consumes saved core results without modifying matching.
 
 `mappa_workflow/ts_analytics/` owns TS processing, scoring, bond diagnostics,
 TS-specific mode analysis and TS-specific configuration/result classes.
+Implemented under `mappa_workflow/ts_analytics/`: workflow orchestration,
+configuration/result types and scoring. Bond-change diagnostics are merged into
+scoring. The live normal-mode parser is in core I/O; three unused historical
+mode helpers are removed after checking code, tests, tools and notebook cells.
+Shared endpoint, mapping and reaction types are consolidated in
+`mappa_core/domain.py`; the root domain module is removed.
 Reusable partial mapping remains in core. Generic mode-file parsing belongs
 with input adapters so core I/O does not import the TS workflow.
 

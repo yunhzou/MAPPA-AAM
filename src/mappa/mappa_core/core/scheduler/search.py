@@ -7,7 +7,7 @@ from mappa.mappa_core.core.search.session import SearchSession
 from mappa.mappa_core.core.search.planning import cut_seed
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.core.search.planning import cut_sweep_items
-from mappa.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint
 from mappa.frag import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 

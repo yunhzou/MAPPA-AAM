@@ -81,7 +81,7 @@ def run_xtb(xyz_path, workdir, charge=0, uhf=0, omp_threads=1):
 def run_xtb_hess(xyz_path: Path, workdir: Path, charge: int = 0, uhf: int = 0,
                  omp_threads: int = 1):
     """Run cached ``xtb --hess`` and return geometry, WBO, frequencies, modes."""
-    from ..modes import parse_g98_modes
+    from mappa.mappa_core.utils.io.modes import parse_g98_modes
 
     workdir = Path(workdir)
     workdir.mkdir(parents=True, exist_ok=True)

@@ -40,7 +40,7 @@ def exact_query(directory):
 def analyze_seed(plan, ref, graph, seed, out, number, **provenance):
     """Evaluate one finalized context; both campaign executors call this operation."""
     from mappa import AAMResult
-    from mappa.domain import AAMSearchMetrics
+    from mappa.mappa_core.domain import AAMSearchMetrics
     from golden_evaluation import evaluate_planned
     from publication_analysis import rank_archive
     one=select_contexts(graph,[seed])

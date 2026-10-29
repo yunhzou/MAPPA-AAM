@@ -140,7 +140,7 @@ def test_flat_archive_roundtrip_needs_no_original_search_graph():
 
 @pytest.mark.smoke
 def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatch):
-    from mappa.domain import AAMResult, AAMSearchConfig, AAMSearchMetrics
+    from mappa.mappa_core.domain import AAMResult, AAMSearchConfig, AAMSearchMetrics
     value = problem('COO', [], [])
     a = saved_path(value)
     # Different fixed mappings and policies belong to one atom-set branch.

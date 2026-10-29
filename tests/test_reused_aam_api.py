@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, AAMSearchConfig, search_aam
-from mappa.domain import MolecularEndpoint
+from mappa.mappa_core.domain import MolecularEndpoint
 
 
 def problem(n=6, m=6):

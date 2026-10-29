@@ -56,7 +56,7 @@ def test_one_sided_reference_requires_exact_relation_not_subset(extra_pair):
     from types import SimpleNamespace as S
     import numpy as np
     from mappa import AAMProblem
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     endpoint=MolecularEndpoint(('C','C'),np.zeros((2,3)),np.zeros((2,2)))
     mapping={0:0,1:1} if extra_pair else {0:0}
     graph=S(terminals=[0],states=[S(mapping=tuple(mapping.items()))],capped=False,
@@ -71,7 +71,7 @@ def test_one_sided_reference_requires_exact_relation_not_subset(extra_pair):
 def test_reference_recovery_queries_real_compressed_aam_not_only_representative():
     import numpy as np
     from mappa import AAMProblem,AAMSearchConfig,search_aam
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     from dataclasses import replace
     from itertools import permutations
     def endpoint(n):return MolecularEndpoint(('O',)*n,np.zeros((n,3)),np.zeros((n,n)))
@@ -92,7 +92,7 @@ def test_H_witness_differences_retain_full_feasibility_queries():
     from types import SimpleNamespace as S
     import numpy as np
     from mappa import AAMProblem
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     endpoint=MolecularEndpoint(('C','C','H','H'),np.zeros((4,3)),np.zeros((4,4)))
     mappings=[{0:0,1:1,2:2,3:3},{0:0,1:1,2:3,3:2}]
     graph=S(terminals=[0,1],states=[S(mapping=tuple(m.items())) for m in mappings],capped=False,

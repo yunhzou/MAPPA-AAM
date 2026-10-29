@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, asdict
-from mappa.domain import AAMResult
+from mappa.mappa_core.domain import AAMResult
 import math, time, collections
 
 
@@ -91,7 +91,7 @@ def compete_fragments(a, config=None):
     anchors remain fixed. No event decoding is performed here. Parent ordering
     uses observed event counts with the AAM config's event thresholds.
     """
-    from mappa.domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
+    from mappa.mappa_core.domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
     from mappa.frag import build_graph
     from mappa.mappa_core.core.matching.api import match_fragment
     from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext

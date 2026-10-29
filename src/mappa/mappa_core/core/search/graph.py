@@ -223,7 +223,7 @@ class SearchBranch:
 
     @property
     def representative(self):
-        from mappa.domain import AtomAssignment
+        from mappa.mappa_core.domain import AtomAssignment
         return AtomAssignment.from_mapping(self.paths[0].mapping)
 
     @property

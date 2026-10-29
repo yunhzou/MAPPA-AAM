@@ -82,7 +82,7 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
 def test_old_intermediate_cap_checkpoints_cannot_resume(tmp_path, checkpoint_only):
     import json
     from mappa import AAMProblem, AAMSearchConfig, search_aam
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     from mappa.mappa_core.core.search.planning import checkpoint_manifest
     from mappa.mappa_core.core.search.api import search_aam_checkpoints
 

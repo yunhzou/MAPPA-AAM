@@ -12,13 +12,11 @@ from .artifacts import (
     decoded_events_record, reaction_from_record, write_aam_bundle, write_ts_record,
 )
 from .chemistry_computations import load_cached_xtb
-from .domain import (
-    AAMProblem, AAMSearchConfig, MolecularEndpoint, TransitionStateTarget,
-    VibrationalModes,
-)
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint, VibrationalModes
+from mappa.mappa_workflow.ts_analytics.records import TransitionStateTarget
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
 from mappa.mappa_core.post_processing.decoder.api import decode_events
-from .ts import analyze_transition_state
+from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
 
 
 def _endpoint_npz(path, label):

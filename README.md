@@ -393,7 +393,7 @@ are listed in the [manuscript](manuscript/manuscript.pdf).
 ## Transition-state scoring
 
 MAPPA exposes one TS scorer: `significant_subset_motion_v1` through
-`analyze_transition_state` (or `mappa.scoring.subset_score` for an already mapped
+`analyze_transition_state` (or `mappa.mappa_workflow.ts_analytics.scoring.subset_score` for an already mapped
 geometry). It permits asynchronous event motion, combines substantial event
 support with contact selectivity and a bounded synchrony preference, and retains
 endpoint-consensus ranking. Every result records `scoring_policy`.

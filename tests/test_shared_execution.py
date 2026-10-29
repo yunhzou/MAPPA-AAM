@@ -9,7 +9,7 @@ from mappa.mappa_core.core.scheduler import Task, TaskQueue, BundleWriter, read_
 from mappa.mappa_core.core.scheduler.search import plan_search, iter_cuts
 from mappa.mappa_core.core.search.session import SearchSession
 from mappa import AAMSearchConfig, AAMResult
-from mappa.domain import AAMSearchMetrics
+from mappa.mappa_core.domain import AAMSearchMetrics
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from test_reused_aam_api import problem

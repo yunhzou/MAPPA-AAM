@@ -13,7 +13,7 @@ import pynauty
 from rdkit import Chem
 from sympy.combinatorics import Permutation, PermutationGroup
 
-from mappa.domain import AAMProblem, MolecularEndpoint
+from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
 from mappa.mappa_workflow.mapping_analytics.family import query_path
 from mappa.mappa_core.core.search.graph import frozen_value
 

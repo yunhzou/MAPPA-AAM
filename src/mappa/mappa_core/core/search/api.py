@@ -6,7 +6,7 @@ from mappa.mappa_core.core.scheduler.search import iter_cut_tasks, iter_finalize
 import json, gc, time
 from dataclasses import dataclass, replace
 from pathlib import Path
-from mappa.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
+from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
 from mappa.frag import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry

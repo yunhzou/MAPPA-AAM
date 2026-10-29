@@ -732,7 +732,7 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     assert (r_orbits[0], r_orbits[1]) == (r_orbits[0], r_orbits[2])
     mapping = {atom: atom for atom in range(n)}
 
-    from mappa.domain import AAMProblem, MolecularEndpoint
+    from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
     from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 
     def signature(product_wbo):
@@ -827,9 +827,9 @@ def test_find_islands_reuses_precomputed_orbits(monkeypatch):
 
 def test_removed_overlap_scorers_are_not_public():
     import mappa
-    import mappa.modes
+    import mappa.mappa_core.utils.io.modes
     assert not hasattr(mappa, 'bond_overlap_per_mode')
-    assert not hasattr(mappa.modes, 'bond_overlap_per_mode')
+    assert not hasattr(mappa.mappa_core.utils.io.modes, 'bond_overlap_per_mode')
     assert not hasattr(mappa, 'rxn_overlap_per_mode')
 
 

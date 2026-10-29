@@ -2,7 +2,7 @@ from types import SimpleNamespace as NS
 import numpy as np
 import pytest
 from mappa import MolecularEndpoint, AtomAssignment, AAMSearchConfig
-from mappa.bond_diagnostics import endpoint_bond_changes
+from mappa.mappa_workflow.ts_analytics.scoring import endpoint_bond_changes
 
 def fixture(mapping=(2,0,1)):
     xyz=np.array([[0.,0,0],[1.,0,0],[3.,0,0]])

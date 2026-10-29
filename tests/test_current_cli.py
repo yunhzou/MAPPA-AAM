@@ -69,7 +69,7 @@ def test_legacy_selector_has_no_import_or_compatibility_alias():
 
 def test_ts_cli_requires_and_consumes_explicit_reaction(tmp_path, monkeypatch):
     from mappa import cli, ReactionContext
-    from mappa.domain import TSResult
+    from mappa.mappa_workflow.ts_analytics.records import TSResult
     arguments = endpoints(tmp_path)
     reaction = tmp_path / 'reaction.json'
     reaction.write_text(json.dumps({

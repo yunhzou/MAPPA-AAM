@@ -44,7 +44,7 @@ def _tetraphenylmethane():
 
 
 def tetraphenyl():
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     elements, bonds, rings = _tetraphenylmethane()
     n = len(elements)
     rng = random.Random(7)
@@ -101,7 +101,7 @@ def _tetra_tbu_methane():
 
 def tetratbu():
     """1,3-hydrogen shift between two methyls of the same tert-butyl arm."""
-    from mappa.domain import MolecularEndpoint
+    from mappa.mappa_core.domain import MolecularEndpoint
     elements, bonds, methyls = _tetra_tbu_methane()
     n = len(elements)
     rng = random.Random(11)

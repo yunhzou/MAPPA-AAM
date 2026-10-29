@@ -9,14 +9,29 @@ import pickle
 from pathlib import Path
 
 from .mappa_core.domain import AtomBijection
-from .domain import (
-    AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext,
-    ResolvedMechanism, TSResult,
-)
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext, ResolvedMechanism
+from mappa.mappa_workflow.ts_analytics.records import TSResult
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
 _CHECKPOINT_MODULES = {
+    ('mappa.domain', 'MolecularEndpoint'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'AAMProblem'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'AAMSearchConfig'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'AAMSearchMetrics'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'AAMResult'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'ResolvedMechanism'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'ReactionContext'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'VibrationalModes'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'TransitionStateTarget'): 'mappa.mappa_workflow.ts_analytics.records',
+    ('mappa.domain', 'AtomAssignment'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'CoreAAMBranch'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'CoreAAMResult'): 'mappa.mappa_core.domain',
+    ('mappa.domain', 'TSScore'): 'mappa.mappa_workflow.ts_analytics.records',
+    ('mappa.domain', 'TSScoringConfig'): 'mappa.mappa_workflow.ts_analytics.records',
+    ('mappa.domain', 'TSMechanismResult'): 'mappa.mappa_workflow.ts_analytics.records',
+    ('mappa.domain', 'TSResult'): 'mappa.mappa_workflow.ts_analytics.records',
+
     ('mappa.postprocessing', 'EventDecodeConfig'): 'mappa.mappa_core.post_processing.decoder.records',
     ('mappa.postprocessing', 'EventCandidate'): 'mappa.mappa_core.post_processing.decoder.records',
     ('mappa.postprocessing', 'ShuffleQuery'): 'mappa.mappa_workflow.mapping_analytics.queries',
@@ -354,7 +369,7 @@ def decoded_events_record(result):
 
 def ts_record(result: TSResult):
     """Return a compact JSON boundary representation of one typed TS run."""
-    from .scoring import POLICY
+    from mappa.mappa_workflow.ts_analytics.scoring import POLICY
     return {
         "scoring_policy": POLICY,
         "schema": "rxn_core.ts/v2",

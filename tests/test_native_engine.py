@@ -35,7 +35,7 @@ def _iso_key(isos):
 def _search(case, workers=1):
     from native_cases import CASES
     from mappa.mappa_core.core.search.api import search_aam
-    from mappa.domain import AAMProblem, AAMSearchConfig
+    from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig
 
     R, P = CASES[case]()
     return search_aam(AAMProblem(R, P, name=case), AAMSearchConfig(),

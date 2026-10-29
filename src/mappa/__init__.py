@@ -13,25 +13,9 @@ from mappa.mappa_core.core.matching.representation.records import FragmentMatchC
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.search.queries.partial import search_core_assignments
-from .domain import (
-    AAMProblem,
-    AAMResult,
-    AAMSearchConfig,
-    AAMSearchMetrics,
-    AtomAssignment,
-    CoreAAMBranch,
-    CoreAAMResult,
-    MolecularEndpoint,
-    ReactionContext,
-    ResolvedMechanism,
-    TSMechanismResult,
-    TSResult,
-    TSScore,
-    TSScoringConfig,
-    TransitionStateTarget,
-    VibrationalModes,
-)
-from .ts import analyze_transition_state
+from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint, ReactionContext, ResolvedMechanism, VibrationalModes
+from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
+from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
 from .artifacts import (
     aam_record, aam_from_record, write_aam_bundle,
     reaction_from_record, reaction_record, ts_record,
@@ -50,7 +34,7 @@ from .frag import (
     build_weighted_graph,
     classify_bonds,
 )
-from .scoring import POLICY as TS_SCORING_POLICY, subset_score
+from mappa.mappa_workflow.ts_analytics.scoring import POLICY as TS_SCORING_POLICY, subset_score
 from mappa.mappa_core.core.search.queries.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [

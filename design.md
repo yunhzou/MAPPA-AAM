@@ -26,12 +26,12 @@ flowchart LR
 | Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `frag.py`, `chemistry_computations/`, `smiles.py` |
 | Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
 | AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `mappa_core/core/search/` |
-| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `domain.py`, `mappa_core/domain.py`, `mappa_core/core/search/graph.py`, `mappa_core/post_processing/final_branches.py` |
+| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `mappa_core/domain.py`, `mappa_core/core/search/graph.py`, `mappa_core/post_processing/final_branches.py` |
 | Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `mappa_core/core/search/symmetry.py`, private helpers in `mappa_core/post_processing/final_branches.py` |
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `mappa_core/post_processing/decoder/` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `mappa_workflow/mapping_analytics/` |
 | Execution | Task dependencies, workers, budgets and verified publication | `mappa_core/core/scheduler/` |
-| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `mappa_core/core/search/partial.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
+| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `mappa_workflow/ts_analytics/`, `mappa_core/core/search/queries/partial.py` |
 | Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
 | Coordinate display | Rigid alignment and mapped-coordinate interpolation | `presentation/interpolation.py` |
 
@@ -72,9 +72,9 @@ and bijections now belong to shared core data in `mappa_core/domain.py`;
 coordinate interpolation belongs to presentation. The core data owner has no
 presentation dependency. Obsolete interpolation aliases are removed. Trusted
 saved checkpoints resolve the previous hierarchy class paths through the existing
-explicit relocation table. Root `domain.py` still contains public endpoint,
-search-result and TS types; separating those workflow responsibilities remains
-part of the later shared-data stage.
+explicit relocation table. Shared endpoint, search-result and reaction types now share the core domain
+owner. TS-specific types and scoring live in the TS workflow; generic mode
+parsing lives in core I/O.
 
 ## Matching dependency levels
 

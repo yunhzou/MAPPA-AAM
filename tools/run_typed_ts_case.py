@@ -20,7 +20,7 @@ from mappa import (
 )
 from mappa.chemistry_computations import parse_xyz
 from mappa.chemistry_computations.xtb import read_wbo_file
-from mappa.modes import parse_g98_modes
+from mappa.mappa_core.utils.io.modes import parse_g98_modes
 
 
 def _endpoint(cache, label):

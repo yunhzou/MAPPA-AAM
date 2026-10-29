@@ -7,18 +7,10 @@ from collections import defaultdict
 import numpy as np
 
 from mappa.mappa_core.core.search.queries.partial import search_core_assignments
-from .domain import (
-    AAMSearchConfig,
-    AtomAssignment,
-    ReactionContext,
-    TSMechanismResult,
-    TSResult,
-    TSScore,
-    TSScoringConfig,
-    TransitionStateTarget,
-)
-from .scoring import POLICY, pair_geometry, subset_score
-from .bond_diagnostics import endpoint_bond_changes
+from mappa.mappa_core.domain import AAMSearchConfig, AtomAssignment, ReactionContext
+from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
+from mappa.mappa_workflow.ts_analytics.scoring import POLICY, pair_geometry, subset_score
+from mappa.mappa_workflow.ts_analytics.scoring import endpoint_bond_changes
 from dataclasses import replace
 
 

@@ -4,14 +4,9 @@ import mappa
 
 from mappa.mappa_core.core.search.api import search_aam
 from mappa.mappa_core.domain import AtomBijection
-from mappa.ts import analyze_transition_state
-from mappa.domain import (
-    AAMProblem,
-    AAMSearchConfig,
-    MolecularEndpoint,
-    TransitionStateTarget,
-    VibrationalModes, ReactionContext, ResolvedMechanism,
-)
+from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint, VibrationalModes, ReactionContext, ResolvedMechanism
+from mappa.mappa_workflow.ts_analytics.records import TransitionStateTarget
 
 
 def _endpoint(label, coordinates=None):
