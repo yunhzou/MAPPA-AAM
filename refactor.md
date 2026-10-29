@@ -230,12 +230,14 @@ Each step should leave a usable codebase. Update `design.md`, current callers,
 public API documentation and the existing MAPPA source-cleanup ticket as each
 step is completed. Do not replace the current design with an unimplemented one.
 
-The user explicitly requested limited validation: syntax, dependency and import
-checks, plus necessary native build checks. No broad test suite, chemistry
-benchmark rerun or monitor restart. Retain meaningful independent tests and
-update imports, but do not run significant tests as part of this cleanup. If a
-change would require algorithmic validation beyond that scope, stop that change
-and explain why rather than silently altering scientific behavior.
+After each module is refactored, run its functional tests before declaring that
+stage complete. This supersedes the earlier request to limit validation to
+syntax/import/build checks. Matching requires the existing exhaustive compression
+oracles and Python/native comparison tests. Search requires branch/cap, partial
+mapping, seed/cut, parallel execution and checkpoint-resume tests, plus the public
+workflow smoke checks. Fix failures and record the exact tested revision, counts,
+skips and scope. Do not rerun dataset benchmarks or restart monitoring for this
+validation. Preserve the core algorithm while fixing refactoring regressions.
 
 ## Pickup information
 

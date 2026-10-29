@@ -71,7 +71,7 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
 
 
 def test_shared_growth_cache_and_saved_snapshot_preserve_groups():
-    from test_fragment_choices import problem
+    from native_cases import chain_problem as problem
     sessions = list(cut_sessions(problem(6), AAMSearchConfig(seed_count=3, iso_tolerance=1.)))
     for child in sessions:
         for _ in range(25):
@@ -110,7 +110,7 @@ def test_element_exhaustion_skips_only_impossible_growth(cap, monkeypatch):
 @pytest.mark.parametrize('workers', [1, 2])
 def test_cut_worker_backend_preserves_full_fragment_content_and_checkpoint_identity(tmp_path, workers):
     from mappa import search_aam
-    from test_fragment_choices import problem
+    from native_cases import chain_problem as problem
     config = AAMSearchConfig(seed_count=3, iso_tolerance=1., branch_limit=100)
     original = search_aam(problem(6), config, workers=workers, execution='reused_native')
     directory = tmp_path/'cuts'

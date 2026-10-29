@@ -126,3 +126,15 @@ def tetratbu():
 
 
 CASES["tetratbu"] = tetratbu
+
+
+def chain_problem(size=7):
+    """Identical carbon chains for graph-sharing and seed-policy tests."""
+    from mappa import AAMProblem, MolecularEndpoint
+
+    wbo = np.zeros((size, size))
+    for i in range(size - 1):
+        wbo[i, i + 1] = wbo[i + 1, i] = 1.
+    reactant = MolecularEndpoint(['C'] * size, np.zeros((size, 3)), wbo)
+    product = MolecularEndpoint(['C'] * size, np.zeros((size, 3)), wbo.copy())
+    return AAMProblem(reactant, product)
