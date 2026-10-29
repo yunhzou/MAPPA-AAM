@@ -3,6 +3,7 @@
 The molecular layout is the original white R/P/TS viewer from stable/legacy-aam.
 Adapters supply recorded data, rather than introducing report-specific skins.
 """
+from mappa.mappa_core.domain import AAMResult
 from mappa.mappa_core.utils.io.records import aam_json
 from .interpolation import proper_align_coordinates
 
