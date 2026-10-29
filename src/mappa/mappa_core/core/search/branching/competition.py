@@ -39,7 +39,7 @@ class CompetitionResult:
     elapsed_seconds: float
 
     def final_catalogue(self):
-        from mappa.final_branches import FinalBranchCatalogue
+        from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 
         catalogue = FinalBranchCatalogue(self.baseline.problem).add_aam(
             self.baseline, "baseline"
@@ -98,7 +98,7 @@ def compete_fragments(a, config=None):
     from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
     from mappa.mappa_core.core.search.branching.native import find_islands_native
     from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     from mappa.mappa_core.core.matching.growth.native import available
 
     if not available():

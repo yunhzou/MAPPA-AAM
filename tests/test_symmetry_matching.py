@@ -733,7 +733,7 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     mapping = {atom: atom for atom in range(n)}
 
     from mappa.domain import AAMProblem, MolecularEndpoint
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 
     def signature(product_wbo):
         coordinates = np.zeros((n, 3))

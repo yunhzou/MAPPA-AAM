@@ -310,7 +310,7 @@ def test_tiny_exact_symmetry_matches_exhaustive_ring_automorphisms():
 
 
 def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
-    import mappa.postprocessing as postprocessing
+    import mappa.mappa_core.post_processing.decoder.api as postprocessing
     def forbidden(*args, **kwargs):
         raise AssertionError('raw search must not score mechanisms')
     monkeypatch.setattr(postprocessing, 'decode_events', forbidden)

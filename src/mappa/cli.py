@@ -16,7 +16,8 @@ from .domain import (
     AAMProblem, AAMSearchConfig, MolecularEndpoint, TransitionStateTarget,
     VibrationalModes,
 )
-from .postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.decoder.api import decode_events
 from .ts import analyze_transition_state
 
 

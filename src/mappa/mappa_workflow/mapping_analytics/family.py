@@ -70,7 +70,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     is conclusive for the full model, but its SAT result requires a full query.
     """
     import z3
-    from .reference_constraints import ReferenceConstraints
+    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
     start=time.perf_counter();solver=z3.Solver();encoder=ReferenceConstraints();program=encoder.program
     nr,np_=problem.source_atom_count,problem.target_atom_count
     representative=path.mapping

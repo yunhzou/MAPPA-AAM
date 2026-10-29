@@ -14,7 +14,7 @@ def exact_query(directory):
     """Save the exact solver query and outcome. Solver unknown stays unknown."""
     def query(path, problem, reference, **options):
         import z3
-        from mappa.family_query import compile_path
+        from mappa.mappa_workflow.mapping_analytics.family import compile_path
         options.pop('timeout_ms', None)
         compiled = compile_path(path, problem, reference, **options)
         compiled.solver.set(timeout=0)

@@ -17,6 +17,22 @@ from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
 _CHECKPOINT_MODULES = {
+    ('mappa.postprocessing', 'EventDecodeConfig'): 'mappa.mappa_core.post_processing.decoder.records',
+    ('mappa.postprocessing', 'EventCandidate'): 'mappa.mappa_core.post_processing.decoder.records',
+    ('mappa.postprocessing', 'ShuffleQuery'): 'mappa.mappa_workflow.mapping_analytics.queries',
+    ('mappa.postprocessing', 'DecodedEvents'): 'mappa.mappa_core.post_processing.decoder.records',
+    ('mappa.fragment_conversion', 'FragmentRematch'): 'mappa.mappa_core.post_processing.decoder.conversion',
+    ('mappa.fragment_conversion', 'ConvertedBranch'): 'mappa.mappa_core.post_processing.decoder.conversion',
+    ('mappa.fragment_conversion', 'FragmentConversion'): 'mappa.mappa_core.post_processing.decoder.conversion',
+    ('mappa.event_patterns', 'SignedEventIndex'): 'mappa.mappa_core.post_processing.decoder.events',
+    ('mappa.event_patterns', '_EventTerms'): 'mappa.mappa_workflow.mapping_analytics.event_query',
+    ('mappa.final_branches', 'FinalFamily'): 'mappa.mappa_core.post_processing.final_branches',
+    ('mappa.final_branches', 'FinalBranchCatalogue'): 'mappa.mappa_core.post_processing.final_branches',
+    ('mappa.family_query', 'SymbolicActions'): 'mappa.mappa_workflow.mapping_analytics.family',
+    ('mappa.family_query', 'CompiledFamily'): 'mappa.mappa_workflow.mapping_analytics.family',
+    ('mappa.reference_constraints', 'Choice'): 'mappa.mappa_workflow.mapping_analytics.constraints',
+    ('mappa.reference_constraints', 'ReferenceConstraints'): 'mappa.mappa_workflow.mapping_analytics.constraints',
+
     ('mappa.execution.queue', 'Task'): 'mappa.mappa_core.core.scheduler.queue',
     ('mappa.execution.queue', 'TaskQueue'): 'mappa.mappa_core.core.scheduler.queue',
     ('mappa.execution.bundles', 'Blob'): 'mappa.mappa_core.core.scheduler.bundles',
@@ -307,7 +323,7 @@ def _mapping_record(mapping):
 
 def decoded_events_record(result):
     """Serialize event witnesses and their explicitly scoped completeness."""
-    from .postprocessing import DecodedEvents
+    from mappa.mappa_core.post_processing.decoder.records import DecodedEvents
     if not isinstance(result, DecodedEvents):
         raise TypeError("decoded_events_record requires DecodedEvents")
     return {

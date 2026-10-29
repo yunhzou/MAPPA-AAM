@@ -11,7 +11,7 @@ import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.event_patterns import SignedEventIndex, _response_bounds
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex, _response_bounds
 from reference_event_decoder import extract_path_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
@@ -156,7 +156,7 @@ def test_large_invariant_pool_never_enters_solver(monkeypatch):
     path = saved_path(value, blocks=[dict(r_atoms=list(range(1, 13)), p_atoms=list(range(1, 13)))])
     def forbidden(*args, **kwargs):
         raise AssertionError('invariant pool must remain compressed')
-    monkeypatch.setattr('mappa.family_query.compile_path', forbidden)
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path', forbidden)
     result = extract_path_events(path, value, SignedEventIndex(value))
     assert result['complete'] and result['solver_queries'] == 0 and len(result['patterns']) == 1
 
@@ -189,7 +189,7 @@ def test_correlated_actions_do_not_turn_into_independent_fragment_pools():
 
 def test_symbolic_orbit_equality_matches_canonical_identity():
     import z3
-    from mappa.event_patterns import _same_event_orbit
+    from mappa.mappa_workflow.mapping_analytics.event_query import _same_event_orbit
     value = problem('CHHH', [(0, a, 1.) for a in (1, 2, 3)], [(0, 1, .1), (0, 2, 1.), (0, 3, 1.)])
     index = SignedEventIndex(value)
     pattern = index.describe([0, 1, 2, 3])

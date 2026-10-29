@@ -127,7 +127,7 @@ def test_locked_ring_then_free_hydrogen():
     import z3
     from mappa import AAMProblem
     from mappa.mappa_core.core.search.branching.construction import find_islands
-    from mappa.family_query import compile_path
+    from mappa.mappa_workflow.mapping_analytics.family import compile_path
     from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from test_family_query import endpoint
 

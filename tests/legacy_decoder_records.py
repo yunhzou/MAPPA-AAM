@@ -1,5 +1,5 @@
 """Small legacy-format fixtures for historical proof-audit regression tests."""
-from mappa.event_patterns import SignedEventIndex
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from reference_event_decoder import extract_path_events
 
 

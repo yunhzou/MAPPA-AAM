@@ -6,7 +6,7 @@ import pytest
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.mappa_core.domain import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
 from mappa.mappa_core.core.matching.growth import native
-from mappa.final_branches import FinalFamily
+from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from test_bond_tolerance import event_threshold

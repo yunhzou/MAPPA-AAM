@@ -161,6 +161,12 @@ Under `mappa_core/post_processing/`:
 - Move explicit mapping queries out of `DecodedEvents.query()` and move symbolic
   event-query functions out of `event_patterns.py` into mapping analytics.
 
+Implemented: final grouping and private adjacent-action reduction share
+`post_processing/final_branches.py`. Decoder `records.py`, `conversion.py`,
+`events.py` and `api.py` separate settings/results, rematching, direct event
+identity and orchestration. `DecodedEvents.query()` is removed; callers use
+`mapping_analytics.queries.query_assignments(decoded, ...)`. Symbolic event
+constraints and family/reference queries are owned by mapping analytics.
 Normal decoding must not import or invoke the solver-query implementation.
 Any public query API change must be documented and its callers updated; do not
 leave a forwarding method that makes core depend on workflows.

@@ -3,8 +3,9 @@ import pytest
 
 from mappa.artifacts import decoded_events_record
 from mappa.mappa_core.core.scheduler import Task
-from mappa.postprocessing import decode_events, EventDecodeConfig
-from mappa.final_branches import FinalBranchCatalogue
+from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from rebenchmark.decoding import seed_tasks, merge_windows, coverage
 from test_partial_event_decoding import endpoint, catalogue
 from mappa import AAMProblem

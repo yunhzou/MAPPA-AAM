@@ -72,7 +72,7 @@ def test_relax_only_named_stereo_and_charge_features():
 
 def test_reverse_concrete_witness_normalizes_before_event_union():
     from mappa import AAMProblem
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     from test_partial_event_decoding import endpoint
     problem=AAMProblem(endpoint('CCC',[(0,1,1)]),endpoint('CCC',[(1,2,1)]))
     forward={0:1,1:0,2:2};reverse={b:a for a,b in forward.items()}

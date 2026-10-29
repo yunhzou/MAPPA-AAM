@@ -217,7 +217,7 @@ class AAMResult:
 
     def final_catalogue(self):
         """Unordered branches and unique flat families for exact postprocessing."""
-        from .final_branches import deduplicate_final_branches
+        from mappa.mappa_core.post_processing.final_branches import deduplicate_final_branches
         return deduplicate_final_branches(self)
 
 

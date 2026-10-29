@@ -89,7 +89,7 @@ def test_heavy_projection_positive_cannot_replace_full_H_check():
 
 def test_reference_propagation_keeps_correlated_permutation_choices():
     import z3
-    from mappa.reference_constraints import ReferenceConstraints
+    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
     for target in permutations(range(3)):
         constraints=ReferenceConstraints()
         values=constraints.act([constraints.constant(i) for i in range(3)],[(1,2,0)],'ring')
@@ -101,7 +101,7 @@ def test_reference_propagation_keeps_correlated_permutation_choices():
 
 def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
     import z3
-    from mappa.reference_constraints import ReferenceConstraints
+    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
     # The reference fixes the output, not a freely chosen input slot.
     for selector in (0,1):
         for left in (2,3):
@@ -119,7 +119,7 @@ def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
 
 def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
     import z3
-    from mappa.reference_constraints import ReferenceConstraints
+    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
     # Two correlated permutations on overlapping target pools, with one slot
     # fixed in the second operation. Compare every output, including negatives.
     expected=set()

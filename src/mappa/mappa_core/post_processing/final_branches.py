@@ -7,6 +7,7 @@ from matching-response labels and is shared independently of growth prefixes;
 it does not silently enlarge the saved mapping relation.
 """
 from collections import Counter, defaultdict
+from functools import lru_cache
 from dataclasses import dataclass, field
 from itertools import combinations
 import heapq
@@ -134,8 +135,7 @@ class FinalFamily:
                 witness=dict(witness), blocks=blocks, exact_fixed=[],
                 automorph_blocks=[], automorph_generators=generators))
         records = [match(tuple(r for r, _ in self.mapping), witness=self.mapping)]
-        from .action_reduction import absorb_subgroups
-        for kind, data in reversed(absorb_subgroups(self.actions, problem.target_atom_count)):
+        for kind, data in reversed(_absorb_subgroups(self.actions, problem.target_atom_count)):
             records.append(match((), blocks=(dict(r_atoms=(), p_atoms=data),))
                            if kind == 'pool' else match((), generators=data))
         states = [SearchState(i, 0, self.mapping if i == len(records) else (),
@@ -348,3 +348,67 @@ class FinalBranchCatalogue:
 
 def deduplicate_final_branches(aam):
     return FinalBranchCatalogue(aam.problem).add_aam(aam)
+
+
+@lru_cache(maxsize=1024)
+def _subgroup_support(action):
+    kind, data = action
+    if kind == 'pool':
+        return frozenset(data) if len(data) > 1 else frozenset()
+    return frozenset(i for g in data for i, j in enumerate(g) if i != j)
+
+
+@lru_cache(maxsize=128)
+def _generators(action, degree):
+    kind, data = action
+    if kind == 'group':
+        return data
+    result = []
+    for a, b in zip(data, data[1:]):
+        g = list(range(degree))
+        g[a], g[b] = g[b], g[a]
+        result.append(tuple(g))
+    return tuple(result)
+
+
+@lru_cache(maxsize=128)
+def _group(action, degree):
+    from sympy.combinatorics import Permutation, PermutationGroup
+    generators = _generators(action, degree)
+    return PermutationGroup([Permutation(list(g), size=degree) for g in generators]
+                            or [Permutation(list(range(degree)))])
+
+
+@lru_cache(maxsize=2048)
+def _contains(container, member, degree):
+    if container == member:
+        return True
+    if not _subgroup_support(member) <= _subgroup_support(container):
+        return False
+    if container[0] == 'pool':
+        # A pool is the full symmetric group on its free atoms.
+        return True
+    from sympy.combinatorics import Permutation
+    group = _group(container, degree)
+    # Schreier-Sims membership checks generators, not group elements.
+    return all(group.contains(Permutation(list(g), size=degree))
+               for g in _generators(member, degree))
+
+
+@lru_cache(maxsize=2048)
+def _absorb_subgroups(actions, degree):
+    """Reduce a group product by exact adjacent containments only."""
+    stack = []
+    for action in actions:
+        while stack:
+            if _contains(stack[-1], action, degree):
+                break
+            if _contains(action, stack[-1], degree):
+                stack.pop()
+            else:
+                stack.append(action)
+                break
+        else:
+            stack.append(action)
+    return tuple(stack)
+

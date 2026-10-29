@@ -10,7 +10,7 @@ import tempfile
 import time
 
 from mappa.mappa_core.core.scheduler import read_blob
-from mappa.final_branches import FinalBranchCatalogue
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.frag import bond_event_threshold
 from .campaign import load_plan
 from .saved_analysis import read_member

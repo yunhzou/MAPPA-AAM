@@ -18,8 +18,9 @@ def plan_event_decoding(case, problem, catalogue, config, writer, *, case_second
 
 def decode_catalogue(payload, workspace):
     from mappa.artifacts import decoded_events_record
-    from mappa.final_branches import FinalBranchCatalogue
-    from mappa.postprocessing import EventDecodeConfig, decode_events
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.api import decode_events
     problem = _restore_problem(workspace.load(payload['input']))
     catalogue = FinalBranchCatalogue.from_record(problem, workspace.load(payload['catalogue']))
     return decoded_events_record(decode_events(catalogue, EventDecodeConfig(**payload['config'])))

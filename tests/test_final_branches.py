@@ -4,10 +4,10 @@ import sys
 from pathlib import Path
 from test_event_patterns import problem,saved_path
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
-from mappa.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
-from mappa.event_patterns import SignedEventIndex
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, canonical_actions, final_fragment_pairs
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from reference_event_decoder import extract_path_events
-from mappa.family_query import query_path
+from mappa.mappa_workflow.mapping_analytics.family import query_path
 
 
 def independent_path(order, mapping=None, labels=(7,19)):

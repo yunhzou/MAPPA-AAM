@@ -217,7 +217,7 @@ class SearchBranch:
     @property
     def fragment_pairs(self):
         """Atom-set identity; mapping choices and matching settings are contents."""
-        from mappa.final_branches import final_fragment_pairs
+        from mappa.mappa_core.post_processing.final_branches import final_fragment_pairs
         path = self.paths[0]
         return final_fragment_pairs(path.graph.states[path.terminal])
 
@@ -306,7 +306,7 @@ class AAMSearchGraph:
         All original paths remain available: grouping never selects only one
         mapping or assumes that an intrinsic group exhausts a saved family.
         """
-        from mappa.final_branches import final_fragment_pairs
+        from mappa.mappa_core.post_processing.final_branches import final_fragment_pairs
         groups, keys = {}, {}
         for path in self.paths():
             if path.terminal not in keys:

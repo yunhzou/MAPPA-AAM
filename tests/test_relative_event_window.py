@@ -3,7 +3,8 @@ from dataclasses import replace
 
 import pytest
 
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.decoder.api import decode_events
 from test_fragment_conversion import endpoint, saved
 
 
@@ -25,7 +26,7 @@ def test_window_filters_direct_branch_counts(slack, expected):
 
 
 def test_absolute_window_and_empty_catalogue():
-    from mappa.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     cat=catalogue()
     assert [c.total for c in decode_events(cat,EventDecodeConfig(max_events=1)).candidates]==[0]
     empty=decode_events(FinalBranchCatalogue(cat.problem),EventDecodeConfig(event_slack=5))
@@ -39,7 +40,7 @@ def test_invalid_or_ambiguous_configuration_rejected():
 
 
 def test_event_ids_are_only_built_for_the_requested_window(monkeypatch):
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     original = SignedEventIndex.describe
     observed = []
     def describe(index, vector):

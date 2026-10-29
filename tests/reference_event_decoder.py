@@ -1,7 +1,7 @@
 """Test-only signed-event enumeration oracle; never imported by MAPPA."""
 import math
 import time
-from mappa.event_patterns import _event_model, _event_count_constraint, _same_event_orbit
+from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint, _same_event_orbit
 
 def extract_path_events(path, search_problem, index, *, max_events=None, seconds=2.0,
                         max_patterns=32, on_pattern=None, query_log=None):
@@ -18,7 +18,7 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
     its returned references are retained in the family report.
     """
     import z3
-    from mappa.family_query import compile_path
+    from mappa.mappa_workflow.mapping_analytics.family import compile_path
     from mappa.search_validation import RepresentativeValidationWorkspace
     if (not math.isfinite(seconds) or seconds < 0 or
             (max_patterns is not None and

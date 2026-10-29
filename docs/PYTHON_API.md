@@ -8,7 +8,7 @@ Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postpro
 
 ```python
 from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
 
 problem = AAMProblem(
     MolecularEndpoint(elements_R, xyz_R, wbo_R),
@@ -33,7 +33,8 @@ A candidate is a **signed bond-event class**, with one explicit witness, its eve
 ```python
 candidate = decoded.candidates[0]
 evidence = decoded.symmetry(candidate)
-answer = decoded.query(candidate, {source_atom: desired_target}, same_events=True)
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
+answer = query_assignments(decoded, candidate, {source_atom: desired_target}, same_events=True)
 if answer.status == "allowed":
     alternative_witness = answer.mapping
     certificate = answer.actions
@@ -137,7 +138,7 @@ Neither entry point computes missing R/P selections.
 ## Event decoding
 
 ```python
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
 from mappa.artifacts import decoded_events_record
 
 result = decode_events(aam, EventDecodeConfig(event_slack=0))
@@ -157,7 +158,7 @@ The event count is the number of bond differences touching mapped atoms, includi
 
 `max_events` and `event_slack` filter the converted branch results; they are not solver search bounds. The minimum is the lowest count among these branches. `complete` requires completed uncapped rematches, retained mapped atoms, and no counted events internal to a new fragment. `minimum_proven` uses this same converted-branch scope. Neither flag certifies exhaustive original-family decoding or global AAM search.
 
-`result.symmetry(candidate)` returns compressed choices from the converted catalogue. `result.query(...)` is a separate, explicitly requested constraint query over those choices. Only that query requires the optional solver dependency. Conversion does not call it or use it as a fallback.
+`result.symmetry(candidate)` returns compressed choices from the converted catalogue. `query_assignments(result, ...)` is a separate, explicitly requested constraint query over those choices. Only that query requires the optional solver dependency. Conversion does not call it or use it as a fallback.
 
 Historical benchmark proofs apply only to their recorded source revisions; they do not certify converted-branch outputs.
 

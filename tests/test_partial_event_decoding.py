@@ -1,3 +1,4 @@
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 """One event rule for partial and full maps; exhaustive tiny graphs are the oracle."""
 from itertools import combinations, permutations
 import random
@@ -6,10 +7,12 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.event_patterns import SignedEventIndex, _event_model, _same_event_orbit
-from mappa.final_branches import FinalBranchCatalogue, FinalFamily
-from mappa.postprocessing import EventDecodeConfig, decode_events
-from mappa.family_query import compile_path
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _same_event_orbit
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_workflow.mapping_analytics.family import compile_path
 from mappa.frag import classify_bonds
 from reference_event_decoder import extract_path_events
 
@@ -109,7 +112,7 @@ def test_partial_target_symmetry_needs_no_solver(monkeypatch):
     cat = catalogue(AAMProblem(r,p),{0:0},range(3))
     def forbidden(*args,**kwargs):
         raise AssertionError('Exact target symmetry needs no solver')
-    monkeypatch.setattr('mappa.family_query.compile_path',forbidden)
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path',forbidden)
     result=decode_events(cat,EventDecodeConfig(event_slack=0))
     assert result.minimum_proven and result.observed_minimum==2
     assert len(result.candidates)==1 and result.family_reports[0]['solver_queries']==0
@@ -126,7 +129,7 @@ def test_saved_partial_graph_survives_catalogue_and_artifact():
     assert record['complete'] and record['observed_minimum']==2
     assert record['candidates'][0]['endpoint_events']['formed']==((0,2),)
     candidate=decoded.candidates[0]
-    assert decoded.query(candidate,{0:0,1:1}).status=='allowed'
+    assert query_assignments(decoded, candidate,{0:0,1:1}).status=='allowed'
 
 
 def test_empty_mapping_has_no_events_and_creates_no_atoms():

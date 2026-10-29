@@ -81,7 +81,7 @@ def summarize(rows, expected, reference_ids, slack=5):
 def case_metrics(payload, workspace):
     """Read accepted output blobs once and normalize concrete reverse witnesses."""
     from mappa import AAMProblem, MolecularEndpoint
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     from mappa.mappa_core.core.scheduler import Blob, read_blob
     from publication_analysis import certificate_id
     started,cpu=time.perf_counter(),time.process_time()

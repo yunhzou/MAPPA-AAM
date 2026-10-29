@@ -1,3 +1,4 @@
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 """Anchored conversion preserves fixed atoms, compressed choices and counts."""
 from dataclasses import replace
 
@@ -6,8 +7,9 @@ import pytest
 
 from mappa import AAMProblem, MolecularEndpoint, convert_fragments
 from mappa.artifacts import decoded_events_record
-from mappa.final_branches import FinalBranchCatalogue, FinalFamily
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.decoder.api import decode_events
 
 
 def endpoint(elements, edges):
@@ -74,8 +76,8 @@ def test_free_hydrogens_stay_compressed_and_queryable(backend):
     assert decoded.complete and len(decoded.conversion.branches) == 1
     assert decoded.catalogue.families[0].actions
     candidate = decoded.candidates[0]
-    assert decoded.query(candidate, {1: 3, 2: 1, 3: 2}, same_events=False).status == 'allowed'
-    assert decoded.query(candidate, {1: 3, 2: 3}, same_events=False).status == 'forbidden'
+    assert query_assignments(decoded, candidate, {1: 3, 2: 1, 3: 2}, same_events=False).status == 'allowed'
+    assert query_assignments(decoded, candidate, {1: 3, 2: 3}, same_events=False).status == 'forbidden'
 
 
 def test_jointly_moving_atoms_are_not_fixed(backend):
@@ -171,7 +173,7 @@ def test_artifact_preserves_converted_compression_and_scope(backend):
 
 @pytest.mark.smoke
 def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
-    import mappa.fragment_conversion as module
+    import mappa.mappa_core.post_processing.decoder.conversion as module
     from mappa.mappa_core.core.search.graph import SearchStop
     original = module.find_islands
     def capped(*args, **kwargs):
@@ -185,7 +187,7 @@ def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
 
 
 def test_grouping_precedes_recombination_and_result_return(backend, monkeypatch):
-    import mappa.fragment_conversion as module
+    import mappa.mappa_core.post_processing.decoder.conversion as module
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
     catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
     baseline = decode_events(catalogue)

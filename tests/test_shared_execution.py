@@ -146,7 +146,8 @@ def test_seed_batch_graph_and_prefix_equality(batch, sizes):
 
 @pytest.mark.parametrize('workers,remote,batch', [(1, False, 2), (3, False, 1), (3, True, 5)])
 def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, workers, remote, batch):
-    from mappa.postprocessing import decode_events, EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.api import decode_events
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
     writer = BundleWriter(tmp_path/'inputs', tmp_path)
     expected = []
@@ -235,8 +236,9 @@ def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
 def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
     from golden_evaluation import prepare
     from mappa import search_aam
-    from mappa.final_branches import FinalBranchCatalogue
-    from mappa.postprocessing import EventDecodeConfig, decode_events
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.api import decode_events
     from mappa.mappa_core.core.scheduler.decoding import plan_event_decoding
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')

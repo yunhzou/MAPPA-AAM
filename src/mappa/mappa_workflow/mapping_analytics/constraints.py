@@ -57,7 +57,7 @@ class ReferenceConstraints:
         return output
 
     def act(self, values, generators, label):
-        from .family_query import group_factors
+        from mappa.mappa_workflow.mapping_analytics.family import group_factors
         for factor in group_factors(tuple(tuple(g) for g in generators)):
             active=set().union(*(v[1] for v in values))
             if not any(p<len(factor[0]) and any(g[p]!=p for g in factor) for p in active):continue

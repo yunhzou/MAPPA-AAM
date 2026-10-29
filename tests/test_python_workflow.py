@@ -1,3 +1,4 @@
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 """Public notebook workflow: event classes, certified shuffles, orientations."""
 
 import numpy as np
@@ -9,7 +10,8 @@ from mappa import (
     search_aam,
     search_aam_directions,
 )
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.decoder.api import decode_events
 
 
 @pytest.fixture
@@ -42,14 +44,14 @@ def test_event_classes_and_conditional_shuffles(searched):
     mapping = dict(candidate.mapping)
     # These two H atoms are inside one converted fragment.
     mapping[3], mapping[4] = mapping[4], mapping[3]
-    assert decoded.query(candidate, mapping).mapping == mapping
-    assert decoded.query(candidate, {2: mapping[2]}).status == "allowed"
-    assert decoded.query(candidate, other.mapping).status == "forbidden"
+    assert query_assignments(decoded, candidate, mapping).mapping == mapping
+    assert query_assignments(decoded, candidate, {2: mapping[2]}).status == "allowed"
+    assert query_assignments(decoded, candidate, other.mapping).status == "forbidden"
     assert (
-        decoded.query(candidate, other.mapping, same_events=False).status == "allowed"
+        query_assignments(decoded, candidate, other.mapping, same_events=False).status == "allowed"
     )
-    assert decoded.query(candidate, {2: 2, 3: 2}).status == "forbidden"
-    assert decoded.query(candidate, {}, seconds=0).status == "unknown"
+    assert query_assignments(decoded, candidate, {2: 2, 3: 2}).status == "forbidden"
+    assert query_assignments(decoded, candidate, {}, seconds=0).status == "unknown"
     assert decoded.symmetry(candidate)[0]["provenance"]
     assert [c.total for c in decoded.minimum_candidates] == [4]
 
@@ -66,7 +68,7 @@ def test_thresholds_are_separate_and_partial_results_are_marked(searched):
     assert incomplete.candidates
     assert before == searched.graph.to_record()
     with pytest.raises(ValueError):
-        incomplete.query(decode_events(searched).candidates[0], {})
+        query_assignments(incomplete, decode_events(searched).candidates[0], {})
 
 
 def test_bidirectional_anchors_and_unequal_sizes():

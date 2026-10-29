@@ -6,9 +6,10 @@ from types import SimpleNamespace
 import numpy as np
 import z3
 
-from mappa.event_patterns import SignedEventIndex, _event_model, _event_count_constraint
-from mappa.family_query import compile_path
-from mappa.final_branches import FinalFamily
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint
+from mappa.mappa_workflow.mapping_analytics.family import compile_path
+from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.frag import classify_bonds, is_metal_element
 from reference_event_model import _event_model as reference_event_model
 from test_event_patterns import problem

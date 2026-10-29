@@ -35,7 +35,7 @@ def representative_bound(problem, graph, seed, tier, slack):
     Every requested prefix containing this seed also contains these witnesses.
     A larger cut union can only lower the minimum within its chosen tier.
     """
-    from mappa.event_patterns import SignedEventIndex
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     index = SignedEventIndex(problem)
     vectors, best = [], None
     for terminal in graph.terminals:
@@ -54,9 +54,10 @@ def representative_bound(problem, graph, seed, tier, slack):
 
 def decode_seed(payload, workspace):
     from mappa.artifacts import decoded_events_record
-    from mappa.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     from mappa.frag import classify_bonds
-    from mappa.postprocessing import EventDecodeConfig, decode_events
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.api import decode_events
     if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:
         raise ValueError('Create conversion tasks explicitly; retired solver tasks cannot be resumed here')
     started, cpu = time.perf_counter(), time.process_time()

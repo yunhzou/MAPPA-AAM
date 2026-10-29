@@ -4,8 +4,8 @@ from itertools import chain, product
 import time
 
 from mappa.mappa_core.core.search.branching.construction import find_islands
-from .final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
-from .frag import bond_event_threshold, build_graph
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
+from mappa.frag import bond_event_threshold, build_graph
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
@@ -60,7 +60,7 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
     retains compressed actions and fragment partitions, not all bijections.
     The branch limit applies to each rematch's existing growth scheduler.
     """
-    from .postprocessing import EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     EventDecodeConfig(threshold=threshold, metal_threshold=metal_threshold,
                       branch_limit=branch_limit, random_seed=random_seed)
     source = aam if isinstance(aam, FinalBranchCatalogue) else FinalBranchCatalogue(aam.problem).add_aam(aam)

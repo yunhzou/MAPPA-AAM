@@ -1,12 +1,12 @@
 """Composable atom mapping and signed-event decoding.
 
-The main workflow is search_aam -> mappa.postprocessing.decode_events.
+The main workflow is search_aam -> mappa.mappa_core.post_processing.decoder.api.decode_events.
 TS analysis consumes an explicitly supplied ReactionContext.
 """
 from mappa.mappa_core.core.search.api import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, plan_aam_search
-from .fragment_conversion import convert_fragments, FragmentConversion
-from .family_query import query_path
+from mappa.mappa_core.post_processing.decoder.conversion import convert_fragments, FragmentConversion
+from mappa.mappa_workflow.mapping_analytics.family import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
@@ -82,6 +82,6 @@ __all__ = [
 
 __version__ = "0.2.0"
 
-# Raw search helpers; signed-event decoding remains in mappa.postprocessing.
+# Raw search helpers; signed-event decoding remains in mappa.mappa_core.post_processing.decoder.api.
 from mappa.mappa_core.core.search.api import DirectedAAMResult, search_aam_directions
 __all__ += ["DirectedAAMResult", "search_aam_directions"]
