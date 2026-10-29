@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 import math
+from numbers import Integral
+import numpy as np
 if TYPE_CHECKING:
     from .conversion import FragmentConversion
     from .events import SignedEventIndex
@@ -106,3 +108,92 @@ class DecodedEvents:
     def _check_candidate(self, candidate):
         if not any(candidate is c for c in self.candidates):
             raise ValueError("candidate must belong to this decoded result")
+
+
+@dataclass(frozen=True)
+class SymmetryEventResponse:
+    """One original action, annotated without expanding or removing it."""
+    action: tuple
+    generators: tuple  # (response-preserving certificate, changed pair count)
+
+    @property
+    def response_invariant(self):
+        return all(preserves for preserves, _ in self.generators)
+
+
+@dataclass
+class EventInterpretation:
+    """Bond responses attached to the unchanged, ordered saved mapping space.
+
+    This is a compressed event function, not an enumerated pattern catalogue.
+    Invariance concerns bond responses/counts; labelled unmatched target atoms
+    can still move. No minimum or exhaustive event-window claim is made.
+    """
+    catalogue: FinalBranchCatalogue
+    index: SignedEventIndex
+    family_actions: tuple[tuple[SymmetryEventResponse, ...], ...]
+
+    def realize(self, family_id, choices=None):
+        """Apply explicitly requested choices and enforce original constraints.
+
+        One choice per saved action, in saved order: a pool choice lists the
+        images of its stored atoms; a group choice is a word of signed 1-based
+        generator numbers (negative means inverse). None selects identity.
+        No group closure or Cartesian product is constructed.
+        """
+        family = self.catalogue.families[family_id]
+        choices = (None,) * len(family.actions) if choices is None else tuple(choices)
+        if len(choices) != len(family.actions):
+            raise ValueError('provide one choice per saved action')
+        atoms = np.asarray([r for r, _ in family.mapping], dtype=int)
+        images = np.asarray([p for _, p in family.mapping], dtype=int)
+        for (kind, data), choice in zip(family.actions, choices):
+            if choice is None:
+                continue
+            if kind == 'pool':
+                selected = tuple(choice)
+                if (any(not isinstance(p, Integral) for p in selected)
+                        or sorted(selected) != sorted(data)):
+                    raise ValueError('pool choice must permute exactly its saved atoms')
+                permutation = np.arange(self.index.m)
+                permutation[list(data)] = selected
+                images = permutation[images]
+            elif kind == 'group':
+                for number in choice:
+                    if not isinstance(number, Integral) or not 1 <= abs(number) <= len(data):
+                        raise ValueError('group word must use signed 1-based generator numbers')
+                    permutation = np.asarray(data[abs(number) - 1], dtype=int)
+                    images = (permutation if number > 0 else np.argsort(permutation))[images]
+            else:
+                raise ValueError(f'unknown saved action: {kind}')
+        mapping = {int(r): int(p) for r, p in zip(atoms, images)}
+        vector = self.index.vector(mapping)
+        self.index._vectors([vector])
+        # Actions preserve correlation; required edges additionally restrict
+        # their allowed compositions at the ORIGINAL matching tolerance.
+        if family.required_edges:
+            a, b = np.asarray(family.required_edges, dtype=int).T
+            vector = np.asarray(vector)
+            weights = self.index.p[vector[a], vector[b]]
+            floor, iso = family.policy
+            if np.any(weights < floor) or np.any(np.abs(self.index.r[a, b] - weights) > iso + 1e-9):
+                raise ValueError('choices violate original fragment constraints')
+        return mapping
+
+    def evaluate(self, family_id, choices=None):
+        """Return events for one requested realization, without rematching."""
+        mapping = self.realize(family_id, choices)
+        return self.index.describe(self.index.vector(mapping))
+
+    def counts(self, family_id, choices, *, batch_size=64):
+        """Stream bounded vector batches for caller-supplied choices only."""
+        if batch_size < 1:
+            raise ValueError('batch_size must be positive')
+        batch = []
+        for choice in choices:
+            batch.append(self.index.vector(self.realize(family_id, choice)))
+            if len(batch) == batch_size:
+                yield from self.index.counts(batch)
+                batch.clear()
+        if batch:
+            yield from self.index.counts(batch)

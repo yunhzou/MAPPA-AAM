@@ -223,6 +223,50 @@ Grouping must not discard other allowed mappings or manufacture new ones.
 
 ## Event conversion and counting
 
+### Lossless event interpretation of saved symmetry
+
+`interpret_events` attaches event responses to the original `FinalBranchCatalogue`.
+It retains its fragment pairs, ordered group/pool actions, fixed assignments and
+required-edge constraints. Event thresholds do not restrict the matching space.
+The returned `EventInterpretation` represents an event function over those saved
+choices, not a list of every pattern or a claim of a global minimum.
+
+The existing `SignedEventIndex` batches response-bound searches over unique bond
+weights. Generator checks gather response labels for touched pairs in bounded
+NumPy batches, including cross-fragment and unmatched boundaries. All opposite
+weights of the same element pair, plus zero, enter the response certificate.
+Unique actions share checks across families. This is a sufficient certificate;
+failure does not establish that different events are attainable under all saved
+constraints. A certificate preserves responses/counts, not the individual names
+of unmatched target atoms.
+
+Event-changing actions remain compressed with their original order and
+correlations. Even invariant actions stay in place: a later overlapping action
+can depend on their motion. No group closure, solver, or Cartesian expansion is
+used. Explicit requests can supply a generator word or a pool permutation;
+realization checks the original fragment constraints before vectorized event
+counting. Shared bonds are evaluated jointly, never by adding independent swap
+deltas. Complexity follows endpoint pairs and stored generators, not group order;
+large endpoint graphs can still require quadratic response storage.
+
+```mermaid
+flowchart LR
+    Original[Original compressed AAM] --> Interpretation[Event interpretation]
+    Thresholds[Ordinary / metal thresholds] --> Responses[Vectorized bond responses]
+    Responses --> Interpretation
+    Interpretation --> Compressed[Original choices + response annotations]
+    Compressed --> Requested[Explicit requested choices]
+    Requested --> Constraints[Original fragment constraints]
+    Constraints --> Events[Vectorized counts and event identities]
+```
+
+The anchored rematcher below remains a distinct hierarchical mapping operation.
+It is not a fallback for interpretation or a lossless replacement of the original
+family. Existing benchmark calls remain unchanged. Exhaustive event-pattern
+listing and optimization over event-changing choices are not part of this API.
+
+### Hierarchical rematching and retained-branch counting
+
 AAM matching tolerance and bond-event thresholds serve different purposes.
 `convert_fragments` rematches inside the saved R/P fragment atom sets at the event
 thresholds. Only directly fixed assignments become anchors. A role moved by a

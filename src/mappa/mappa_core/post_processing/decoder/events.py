@@ -22,22 +22,21 @@ def _response_bounds(values, weight, threshold):
     Keep the original subtraction/comparisons, including floating boundaries.
     Algebraically moving the threshold to the other operand need not agree.
     """
-    lo, hi = 0, len(values)
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if values[mid] - weight < -threshold:
-            lo = mid + 1
-        else:
-            hi = mid
-    negative_end = lo
-    lo, hi = 0, len(values)
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if values[mid] - weight > threshold:
-            hi = mid
-        else:
-            lo = mid + 1
-    return negative_end, lo
+    values, weight = np.asarray(values), np.asarray(weight)
+    bounds = []
+    # Search all distinct weights together, without a weights-by-weights table.
+    for negative in (True, False):
+        lo = np.zeros(weight.shape, dtype=int)
+        hi = np.full(weight.shape, len(values), dtype=int)
+        while np.any(lo < hi):
+            mid = (lo + hi) // 2
+            delta = values[np.minimum(mid, len(values) - 1)] - weight
+            left = delta < -threshold if negative else delta <= threshold
+            active = lo < hi
+            lo = np.where(active & left, mid + 1, lo)
+            hi = np.where(active & ~left, mid, hi)
+        bounds.append(lo)
+    return tuple(int(bound) if bound.ndim == 0 else bound for bound in bounds)
 
 
 class SignedEventIndex:
@@ -77,7 +76,7 @@ class SignedEventIndex:
             self.ptau[target_metal[self.pa] | target_metal[self.pb]] = self.metal_threshold
         self.padded_product = np.pad(self.p, ((0, 1), (0, 1)))
         self.cache = {}
-        self._actions = {}
+        self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
 
     def pair_table(self, weight, tau, xs, ys):
@@ -180,14 +179,22 @@ class SignedEventIndex:
                 pair = tuple(sorted((other.elements[a], other.elements[b])))
                 opposite_values[pair].add(float(other.wbo[a, b]))
             opposite_values = {k: tuple(sorted(v | {0.})) for k, v in opposite_values.items()}
-            memo, pairs, counts = {}, [], defaultdict(Counter)
+            weights = defaultdict(set)
             for a, b in zip(*np.triu_indices(ep.atom_count, 1)):
                 pair = tuple(sorted((ep.elements[a], ep.elements[b])))
+                weights[pair].add(float(ep.wbo[a, b]))
+            memo = {}
+            for pair, values in weights.items():
+                values = sorted(values)
                 tau = (self.metal_threshold if self.metal_threshold is not None
                        and any(is_metal_element(e) for e in pair) else self.threshold)
+                bounds = _response_bounds(opposite_values.get(pair, (0.,)), values, tau)
+                memo.update(((pair, weight), (int(lo), int(hi)))
+                            for weight, lo, hi in zip(values, *bounds))
+            pairs, counts = [], defaultdict(Counter)
+            for a, b in zip(*np.triu_indices(ep.atom_count, 1)):
+                pair = tuple(sorted((ep.elements[a], ep.elements[b])))
                 key = pair, float(ep.wbo[a, b])
-                if key not in memo:
-                    memo[key] = _response_bounds(opposite_values.get(pair, (0.,)), key[1], tau)
                 label = memo[key]
                 pairs.append((int(a), int(b), pair, label))
                 counts[pair][label] += 1
@@ -229,15 +236,48 @@ class SignedEventIndex:
         return tuple(tuple(g[:self.n]) for g in pynauty.autgrp(self.base)[0])
 
     def preserves_target_action(self, images):
-        images = tuple(images)
-        if images not in self._actions:
-            if len(images) != self.m or sorted(images) != list(range(self.m)):
-                raise ValueError('invalid saved target permutation')
-            elements = self.problem.product.elements
-            labels = self.response_data[1]['labels']
-            self._actions[images] = (all(elements[a] == elements[b] for a, b in enumerate(images))
-                                    and np.array_equal(labels, labels[np.ix_(images, images)]))
-        return self._actions[images]
+        return self.target_action_responses((tuple(images),))[0][0]
+
+    def target_action_responses(self, generators, *, batch_entries=65536):
+        """Certify generators over every bond response, never group elements.
+
+        Return (preserves responses, changed pair count) per generator. Failure
+        is conservative, not proof of different attainable event patterns.
+        Temporary pair arrays have at most ``batch_entries`` entries each.
+        """
+        if batch_entries < 1:
+            raise ValueError('batch_entries must be positive')
+        generators = tuple(tuple(g) for g in generators)
+        labels = self.response_data[1]['labels']
+        elements = np.asarray(self.problem.product.elements)
+        result = []
+        # Bound both the generator matrix and the generator-by-pair scratch.
+        batch_size = max(1, min(64, batch_entries // max(1, self.m)))
+        for start in range(0, len(generators), batch_size):
+            batch = generators[start:start + batch_size]
+            missing = tuple(dict.fromkeys(g for g in batch if g not in self._actions))
+            if missing:
+                images = np.asarray(missing)
+                if (images.shape != (len(missing), self.m) or (self.m and images.dtype.kind not in 'iu')
+                        or not np.all(np.sort(images, axis=1) == np.arange(self.m))):
+                    raise ValueError('invalid saved target permutation')
+                images = images.astype(int, copy=False)
+                changed = np.zeros(len(missing), dtype=int)
+                moved = np.any(images != np.arange(self.m), axis=0)
+                relevant = np.flatnonzero(moved[self.pa] | moved[self.pb])
+                pair_batch = max(1, batch_entries // len(missing))
+                for offset in range(0, len(relevant), pair_batch):
+                    pairs = relevant[offset:offset + pair_batch]
+                    a, b = self.pa[pairs], self.pb[pairs]
+                    changed += np.count_nonzero(
+                        labels[images[:, a], images[:, b]] != labels[a, b], axis=1)
+                same_elements = np.all(elements[images] == elements, axis=1)
+                for g, count, same in zip(missing, changed, same_elements):
+                    self._actions[g] = (bool(same and count == 0), int(count))
+            result.extend(self._actions[g] for g in batch)
+            while len(self._actions) > 4096:
+                self._actions.popitem(last=False)
+        return tuple(result)
 
     def invariant_path(self, path):
         """Sufficient full signed-event certificate, including boundary pairs."""

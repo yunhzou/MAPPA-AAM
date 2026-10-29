@@ -183,3 +183,27 @@ Trusted checkpoint and bundle readers explicitly relocate saved search class
 names. Rebuild the native engine after updating: the unused experimental
 `FragmentChoices` export has been removed. Shared seed search and optional
 fragment competition remain supported.
+# Interpret events without rematching
+
+```python
+from mappa import interpret_events
+
+events = interpret_events(aam, threshold=0.5, metal_threshold=0.3)
+pattern = events.evaluate(0)  # Original representative of saved family 0.
+actions = events.family_actions[0]
+```
+
+The returned object retains the original catalogue and all its correlated
+choices. Each action has a `response_invariant` certificate and per-generator
+changed-pair counts. An uncertified action remains compressed; it is not rejected
+or enumerated. This API does not list all patterns or assert a minimum.
+
+To request a realization, provide one choice per original action to
+`events.evaluate(family_id, choices)`. `None` selects the identity. For a pool,
+list the images of its saved atoms; for a group, provide a word of signed 1-based
+generator numbers (negative numbers apply the inverse). The original matching
+constraints still apply. `events.counts(family_id, choices_iterable)` streams
+counts in bounded vector batches for explicitly supplied choices only.
+
+`convert_fragments` and `decode_events` retain their existing hierarchical
+rematching behavior. They do not replace this lossless interpretation.
