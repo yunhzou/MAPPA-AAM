@@ -1,6 +1,6 @@
 """Build mappa._engine from this checkout.
 
-Run: python src/mappa/native/build_engine.py
+Run: python src/mappa/mappa_core/native/build_engine.py
 
 Requires pybind11 and a C++17 compiler. Vendored nauty lives separately under
 third_party/nauty. MAPPA_NATIVE=0 explicitly selects the Python engine; a missing

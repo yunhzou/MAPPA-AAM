@@ -18,7 +18,7 @@ Install the package and its build dependencies, then build the growth engine:
 ```bash
 python -m pip install -e ".[dev]"
 python -m pip install pybind11
-python src/mappa/native/build_engine.py
+python src/mappa/mappa_core/native/build_engine.py
 ```
 
 Package installation builds `_group_ops` through `setup.py`.
