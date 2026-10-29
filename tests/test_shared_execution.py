@@ -452,6 +452,60 @@ def test_queue_optimization_preserves_dependency_and_claim_results(tmp_path):
     queue.close()
 
 
+def test_independent_tasks_do_not_scan_payloads_during_dependency_refresh(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    queue.add([task(str(i), payload=b'x'*65536, case='batch') for i in range(600)])
+    queue.optimize()
+    calls = 0
+    def instructions():
+        nonlocal calls
+        calls += 1
+        return calls > 40
+    queue.db.set_progress_handler(instructions, 100)
+    try:
+        # With no dependency edges, maintenance must not visit every payload.
+        with queue.db:
+            queue._refresh(time.time())
+    finally:
+        queue.db.set_progress_handler(None, 0)
+        queue.close()
+
+
+def test_checkpoint_finishes_under_continuous_heartbeat_writes(tmp_path, monkeypatch):
+    import sqlite3
+    import mappa.mappa_core.core.scheduler.queue as module
+    queue = TaskQueue(tmp_path/'live.sqlite', IDENTITY)
+    queue.add([task('large', payload=b'x'*(8*2**20))])
+    claim = queue.claim('worker', MEMORY, IDENTITY)
+    expires = queue.db.execute('SELECT expires FROM tasks').fetchone()[0]
+    pages = queue.db.execute('PRAGMA page_count').fetchone()[0]
+    writes = 0
+    class UpdatingBackup(sqlite3.Connection):
+        def backup(self, target, **options):
+            def update(status, remaining, total):
+                nonlocal writes
+                writes += 1
+                assert writes < pages // 256 + 5, 'Checkpoint restarted after heartbeat write'
+                assert queue.heartbeat('large', claim['token'])
+            return super().backup(target, progress=update, **options)
+    connect = sqlite3.connect
+    def connection(*args, **kwargs):
+        if kwargs.get('uri'):
+            kwargs['factory'] = UpdatingBackup
+        return connect(*args, **kwargs)
+    monkeypatch.setattr(module.sqlite3, 'connect', connection)
+    target = tmp_path/'published.sqlite'
+    try:
+        queue.backup(target)
+        with connect(target) as saved:
+            assert saved.execute('SELECT expires FROM tasks').fetchone()[0] == expires
+            assert saved.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
+        assert writes > 1
+        assert queue.db.execute('SELECT expires FROM tasks').fetchone()[0] > expires
+    finally:
+        queue.close()
+
+
 def test_stop_tolerates_child_exit_before_final_signal(monkeypatch):
     from mappa.mappa_core.core.scheduler.runtime import _stop
     from types import SimpleNamespace

@@ -304,7 +304,11 @@ repeated, and unrelated errors are not promoted to memory retries.
 
 Use node-local scratch and SQLite writes. Publish verified bounded bundles and
 consistent queue backups through a separate read connection so publication cannot
-block worker heartbeats. Serialize queue closure with active requests. Do not copy a live WAL database's main file alone or
+block worker heartbeats. Pin one read transaction during each local backup so
+concurrent updates cannot restart it; copy only the completed file to shared storage.
+Queue maintenance starts from expired cases and dependency edges, rather than
+scanning large task payloads on every heartbeat or result submission.
+Serialize queue closure with active requests. Do not copy a live WAL database's main file alone or
 create a shared file for every tiny intermediate. Preserve source/input hashes,
 settings, timings, memory, attempts, output provenance and incomplete flags.
 Execution success is not scientific completeness. Resource limits, unknowns,

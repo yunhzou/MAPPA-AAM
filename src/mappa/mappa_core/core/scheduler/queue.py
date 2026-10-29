@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from graphlib import TopologicalSorter
 import pickle
 import os
+import shutil
 import tempfile
 from pathlib import Path
 import sqlite3
@@ -113,10 +114,13 @@ class TaskQueue:
         self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
             (SELECT token FROM tasks WHERE state='running' AND expires<?)""", (now, now))
         self.db.execute("UPDATE tasks SET state='lost' WHERE state='running' AND expires<?", (now,))
-        self.db.execute("""UPDATE tasks SET state='timeout' WHERE state='pending' AND case_name IN
-            (SELECT name FROM cases WHERE spent>=seconds OR deadline<=?)""", (now,))
+        self.db.execute("""UPDATE tasks SET state='timeout' WHERE rowid IN
+            (SELECT t.rowid FROM cases c CROSS JOIN tasks t ON t.case_name=c.name AND t.state='pending'
+             WHERE c.spent>=c.seconds OR c.deadline<=?)""", (now,))
+        # Start from dependency edges: scanning task rows also reads their
+        # potentially large payloads, even when no task has dependencies.
         while self.db.execute("""UPDATE tasks SET state='blocked' WHERE state='pending' AND key IN
-            (SELECT d.task FROM dependencies d JOIN tasks p ON p.key=d.dependency
+            (SELECT d.task FROM dependencies d CROSS JOIN tasks p ON p.key=d.dependency
              WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
             pass
 
@@ -286,11 +290,15 @@ class TaskQueue:
         # A separate read connection lets workers renew leases while a large
         # checkpoint is copied. Holding the dispatch lock here can expire
         # healthy workers before their queued heartbeats are accepted.
-        with tempfile.TemporaryDirectory(dir=path.parent) as temporary:
+        with tempfile.TemporaryDirectory(dir=self.path.parent) as temporary:
             snapshot = Path(temporary)/'queue.sqlite'
             source = sqlite3.connect(f'file:{self.path}?mode=ro', uri=True)
             destination = sqlite3.connect(snapshot)
             try:
+                # Pin one WAL read snapshot. Without it, updates between backup
+                # pages restart the copy indefinitely under sustained traffic.
+                source.execute('BEGIN')
+                source.execute('SELECT count(*) FROM sqlite_schema').fetchone()
                 source.backup(destination, pages=256, sleep=.01)
                 # The backup inherits WAL mode. Consolidate it before publishing
                 # so copying this single file preserves every committed row.
@@ -298,7 +306,12 @@ class TaskQueue:
             finally:
                 destination.close()
                 source.close()
-            os.replace(snapshot, path)
+            # SQLite writes stay local; only the finished file is copied to
+            # shared storage, then atomically replaces the published checkpoint.
+            with tempfile.TemporaryDirectory(dir=path.parent) as publication:
+                copied = Path(publication)/path.name
+                shutil.copyfile(snapshot, copied)
+                os.replace(copied, path)
 
     def close(self):
         with self.lock:
