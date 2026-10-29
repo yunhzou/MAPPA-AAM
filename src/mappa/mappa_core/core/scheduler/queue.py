@@ -117,11 +117,11 @@ class TaskQueue:
         self.db.execute("""UPDATE tasks SET state='timeout' WHERE rowid IN
             (SELECT t.rowid FROM cases c CROSS JOIN tasks t ON t.case_name=c.name AND t.state='pending'
              WHERE c.spent>=c.seconds OR c.deadline<=?)""", (now,))
-        # Start from dependency edges: scanning task rows also reads their
-        # potentially large payloads, even when no task has dependencies.
+        # Only failed parents can block children. Start from their state index,
+        # then look up their outgoing edges instead of scanning every dependency.
         while self.db.execute("""UPDATE tasks SET state='blocked' WHERE state='pending' AND key IN
-            (SELECT d.task FROM dependencies d CROSS JOIN tasks p ON p.key=d.dependency
-             WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
+            (SELECT d.task FROM tasks p INDEXED BY task_state
+             CROSS JOIN dependencies d ON d.dependency=p.key WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
             pass
 
     def claim(self, worker, memory_bytes, identity):

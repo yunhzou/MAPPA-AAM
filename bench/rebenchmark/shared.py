@@ -1,4 +1,4 @@
-"""Golden adapter for the portable execution layer; scoring remains in analysis."""
+"""Dataset planning for the portable execution layer; scoring remains in analysis."""
 from pathlib import Path
 import tarfile
 import tempfile
@@ -75,63 +75,154 @@ def convert_seed(payload, workspace):
         finalized=blob, finalized_sha256=blob.sha256, search_rerun=True)
 
 
-def prepare_campaign(out):
-    """Freeze the full task grid in bundles once, before pilot or full execution."""
-    from collections import Counter
-    from dataclasses import asdict
+def _initialize_planner(output, scratch):
+    from mappa.mappa_core.core.scheduler import BundleWriter
+    global _planning_writer
+    _planning_writer = BundleWriter(Path(output)/'inputs', scratch)
+
+
+def _prepare_record(payload):
+    """Plan one reaction, publishing only bounded bundles from local scratch."""
     import hashlib
     import json
-    import os
-    from mappa import AAMSearchConfig, AAMSearchPlan, AAMProblem
-    from mappa.mappa_core.utils.io.records import problem_from_record
-    from mappa.mappa_core.core.scheduler import BundleWriter
+    import numpy as np
+    from collections import Counter
+    from dataclasses import asdict
+    from mappa import AAMSearchConfig, AAMProblem
+    from mappa.mappa_core.utils.io.records import endpoint_record, problem_from_record
+    plan, item, output = payload
+    case = item['index']
+    if plan['dataset'] == 'EnzymeMap':
+        from golden_evaluation import prepare
+        problem, input_features, _ = prepare(item['rxn'])
+        problem = AAMProblem(problem.reactant, problem.product, f'enzymemap_{case}')
+        reference_problem, features, mapping = prepare(item['ground_truth'])
+        same_index = all(a.elements == b.elements and np.array_equal(a.wbo, b.wbo)
+            for a, b in zip((problem.reactant, problem.product),
+                            (reference_problem.reactant, reference_problem.product)))
+        raw = dict(input=dict(name=problem.name,
+            reactant=endpoint_record(problem.reactant, array_lists=True),
+            product=endpoint_record(problem.product, array_lists=True)),
+            reference=dict(features=features, mapping=sorted(mapping.items()),
+                mapped_reaction=item['ground_truth'], input_reaction=item['rxn'],
+                input_features=input_features, input_reference_index_agrees=same_index,
+                original_id=item['original_id']))
+    else:
+        folder = Path(plan['input_manifest']).parent/'inputs'/str(case)
+        raw = {}
+        for name in ('input', 'reference'):
+            data = (folder/f'{name}.json').read_bytes()
+            if hashlib.sha256(data).hexdigest() != item[f'{name}_sha256']:
+                raise ValueError(f'Input {case} {name} hash differs')
+            raw[name] = json.loads(data)
+        problem = problem_from_record(raw['input'])
+    config = AAMSearchConfig(**plan['config'])
+    writer = _planning_writer
+    reference = asdict(writer.put(raw['reference']))
+    rows = []
+    for reverse in plan['directions']:
+        direction = 2*case+int(reverse)
+        directed = AAMProblem(problem.product,problem.reactant,problem.name) if reverse else problem
+        tasks, cuts = plan_search(f'{direction:05d}', directed, config, writer,
+            seed_batch=plan['seed_batch'], case_seconds=plan['case_seconds'], memory_bytes=plan['memory_bytes'])
+        tasks += list(conversion_tasks(f'{direction:05d}',tasks,cuts,slack=plan['slack']))
+        if plan.get('reference_checks', False):
+            tasks += reference_tasks(f'{direction:05d}', tasks, cuts, reference, reverse)
+        order = {'search_batch':0,'finalize_cut':1,'verify_seed':2,'convert_seed':3}
+        tasks.sort(key=lambda t: (t.key.split('/')[2], order[t.operation.rsplit(':',1)[1]], t.key))
+        rows.append(dict(direction=direction,case=case,reversed=reverse,cuts=len(cuts),
+            tasks=len(tasks),counts=dict(Counter(t.operation.rsplit(':',1)[1] for t in tasks)),
+            blob=asdict(writer.put(tasks)),reference=reference,
+            input_sha256=hashlib.sha256(json.dumps(raw['input'],sort_keys=True).encode()).hexdigest(),
+            reference_sha256=hashlib.sha256(json.dumps(raw['reference'],sort_keys=True).encode()).hexdigest()))
+    return rows
+
+
+def reference_tasks(case, tasks, cuts, reference, reverse):
+    """Check the original ISO1 graph, independently of conversion success."""
+    from dataclasses import replace
+    finals = {t.key:t for t in tasks if t.key in cuts}
+    return [replace(final,key=f'{case}/cut/{final.payload["number"]:05d}/verify/{seed:02d}',
+        operation='rebenchmark.shared:verify_seed',dependencies=(key,),
+        payload=dict(input=final.payload['input'],cut=key,seed=seed,reference=reference,reversed=reverse))
+        for key,final in finals.items() for seed in range(final.payload['seeds'])]
+
+
+def verify_seed(payload, workspace):
+    from mappa import AAMProblem, AAMSearchPlan, AAMResult
+    from mappa.mappa_core.domain import AAMSearchMetrics
+    from mappa.mappa_core.core.scheduler.search import _session
+    from golden_evaluation import evaluate_planned
+    from .search import select_contexts
+    from mappa.mappa_core.core.scheduler import Blob
+    problem, config, _, _ = _session(payload, workspace).context
+    reference = workspace.load(Blob(**payload['reference']))
+    if not reference.get('input_reference_index_agrees', True):
+        return dict(reference_recovery='unknown',reason='input/reference coordinate systems differ',
+                    scope='original_iso1_aam',reference=payload['reference'])
+    original = AAMProblem(problem.product,problem.reactant,problem.name) if payload['reversed'] else problem
+    plan = AAMSearchPlan(original,problem,config,payload['reversed'])
+    graph = select_contexts(workspace.dependency(payload['cut'])['graph'],[payload['seed']])
+    result = AAMResult(problem,config,graph,AAMSearchMetrics.from_record({},0))
+    return dict(evaluate_planned(result,plan,reference['features'],reference['mapping'],seconds=120),
+                scope='original_iso1_aam',reference=payload['reference'])
+
+
+def prepare_campaign(out):
+    """Freeze a dataset's explicit cut/seed grid, with parallel input planning."""
+    import csv
+    import gzip
+    import hashlib
+    import json
+    from collections import Counter
+    from concurrent.futures import ProcessPoolExecutor
+    from dataclasses import asdict
+    from mappa import AAMSearchConfig
     from .decoder_campaign import save
     plan = json.loads((out/'plan.json').read_text())
     manifest_path = Path(plan['input_manifest'])
     if hashlib.sha256(manifest_path.read_bytes()).hexdigest() != plan['input_manifest_sha256']:
         raise ValueError('Input manifest changed')
     manifest = json.loads(manifest_path.read_text())
-    if len(manifest['inputs']) != 1851 or len(manifest['tasks']) != 3702:
-        raise ValueError('Golden input grid is incomplete')
+    plan.setdefault('dataset', 'Golden')
+    plan.setdefault('directions', [False, True])
+    if plan['dataset'] == 'EnzymeMap':
+        dataset = Path(plan['dataset_path'])
+        if hashlib.sha256(dataset.read_bytes()).hexdigest() != manifest['dataset_sha256']:
+            raise ValueError('EnzymeMap dataset changed')
+        with gzip.open(dataset,'rt') as stream:
+            items = [dict(row,index=int(row['r_id'])) for row in csv.DictReader(stream)]
+        if len(items) != manifest['cases'] or [r['index'] for r in items] != list(range(manifest['cases'])):
+            raise ValueError('EnzymeMap row identities differ')
+    elif plan['dataset'] == 'Golden':
+        items = manifest['inputs']
+        if len(items) != 1851 or len(manifest['tasks']) != 3702:
+            raise ValueError('Golden input grid is incomplete')
+    else:
+        raise ValueError('Unknown benchmark dataset')
     config = AAMSearchConfig(**plan['config'])
-    if (config.iso_tolerance, config.branch_limit, config.seed_count, config.random_seed, config.sweep_cuts) != (1,100,10,42,True):
-        raise ValueError('Unexpected Golden search settings')
     if (out/'index.json').exists():
         raise FileExistsError('The frozen plan already exists')
+    if 'selected_cases' in plan:
+        selected = set(plan['selected_cases'])
+        items = [r for r in items if r['index'] in selected]
+        if len(items) != len(selected):
+            raise ValueError('Selected cases are missing')
+    rows, totals = [], Counter()
+    import os
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        writer = BundleWriter(out/'inputs', scratch)
-        rows, totals = [], Counter()
-        for item in manifest['inputs']:
-            case = item['index']
-            folder = manifest_path.parent/'inputs'/str(case)
-            raw = {}
-            for name in ('input', 'reference'):
-                data = (folder/f'{name}.json').read_bytes()
-                if hashlib.sha256(data).hexdigest() != item[f'{name}_sha256']:
-                    raise ValueError(f'Golden {case} {name} hash differs')
-                raw[name] = json.loads(data)
-            original = problem_from_record(raw['input'])
-            for reverse in (False, True):
-                direction = 2*case+int(reverse)
-                problem = AAMProblem(original.product,original.reactant,original.name) if reverse else original
-                tasks, cuts = plan_search(f'{direction:05d}', problem, config, writer,
-                    seed_batch=plan['seed_batch'], case_seconds=plan['case_seconds'], memory_bytes=plan['memory_bytes'])
-                converted = list(conversion_tasks(f'{direction:05d}', tasks, cuts, slack=plan['slack']))
-                # Keep dependent work close to its producer, so queued later cuts
-                # do not consume the direction's deadline before conversion starts.
-                tasks = sorted(tasks+converted, key=lambda t: (t.key.split('/')[2],
-                    {'search_batch':0,'finalize_cut':1,'convert_seed':2}[t.operation.rsplit(':',1)[1]], t.key))
-                counts = Counter(t.operation.rsplit(':',1)[1] for t in tasks)
-                totals.update(counts)
-                rows.append(dict(direction=direction, case=case, reversed=reverse, cuts=len(cuts),
-                    tasks=len(tasks), counts=dict(counts), blob=asdict(writer.put(tasks)),
-                    reference=asdict(writer.put(raw['reference'])),
-                    input_sha256=item['input_sha256'], reference_sha256=item['reference_sha256']))
-            if case % 100 == 0:
-                save(out/'preparation.json', dict(cases=case+1, tasks=sum(totals.values())))
-        save(out/'index.json', dict(schema='mappa.fresh_golden/v1', config=asdict(config),
-            directions=rows, counts=dict(totals), tasks=sum(totals.values()),
-            input_manifest_sha256=plan['input_manifest_sha256']))
+        with ProcessPoolExecutor(max_workers=plan.get('preparation_workers',1),
+                initializer=_initialize_planner,initargs=(str(out),scratch)) as pool:
+            for done, prepared in enumerate(pool.map(_prepare_record,
+                    ((plan,item,str(out)) for item in items), chunksize=1),1):
+                rows.extend(prepared)
+                for row in prepared:
+                    totals.update(row['counts'])
+                if done % 100 == 0:
+                    save(out/'preparation.json',dict(cases=done,tasks=sum(totals.values())))
+    save(out/'index.json',dict(schema='mappa.fresh_benchmark/v1',dataset=plan['dataset'],
+        config=asdict(config),directions=rows,counts=dict(totals),tasks=sum(totals.values()),
+        cases=len(items),input_manifest_sha256=plan['input_manifest_sha256']))
 
 
 def prepare_queue(plan, out, scratch):
@@ -264,7 +355,7 @@ def execute(args):
         prepare = {'memory-stage': prepare_memory_stage, 'coordinator': prepare_queue}[args.mode]
         queue = prepare(plan,out,scratch)
         try:
-            serve_queue(queue,out,dict(campaign='fresh Golden matching and conversion'))
+            serve_queue(queue,out,dict(campaign='fresh matching and conversion'))
         finally:
             queue.close()
 

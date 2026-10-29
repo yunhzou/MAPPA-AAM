@@ -611,3 +611,75 @@ def test_allocation_retirement_does_not_claim_or_reset_pending_work(tmp_path):
     run(queue,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',memory_bytes=MEMORY)
     assert queue.snapshot() == {'complete':1}
     queue.close()
+
+
+def test_dependency_refresh_skips_successful_parents(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('parent')])
+    queue.db.execute("UPDATE tasks SET state='complete'")
+    queue.db.executemany('INSERT INTO dependencies VALUES (?,?)',
+        [(f'child/{i}', 'parent') for i in range(50000)])
+    queue.db.commit()
+    calls = [0]
+    def budget():
+        calls[0] += 1
+        return calls[0] > 50
+    queue.db.set_progress_handler(budget,1000)
+    queue._refresh(time.time())
+    queue.db.set_progress_handler(None,0)
+    queue.close()
+
+
+def test_enzyme_planner_keeps_input_independent_and_checks_both_directions(tmp_path, monkeypatch):
+    from dataclasses import asdict
+    from golden_evaluation import prepare
+    from rebenchmark.shared import _initialize_planner, _prepare_record
+    from mappa.mappa_core.core.scheduler import Blob
+    import numpy as np
+    monkeypatch.setenv('TMPDIR',str(tmp_path))
+    _initialize_planner(str(tmp_path),str(tmp_path))
+    config = AAMSearchConfig(seed_count=1,iso_tolerance=1,sweep_cuts=False)
+    plan = dict(dataset='EnzymeMap',directions=[False,True],config=asdict(config),seed_batch=1,
+        case_seconds=60,memory_bytes=MEMORY,slack=5,reference_checks=True)
+    item = dict(index=0,rxn='CO>>CO',ground_truth='[CH3:1][OH:2]>>[CH3:1][OH:2]',original_id='example')
+    rows = _prepare_record((plan,item,str(tmp_path)))
+    queue = TaskQueue(tmp_path/'queue.db',IDENTITY)
+    for row in rows:
+        assert row['counts'] == dict(search_batch=1,finalize_cut=1,verify_seed=1,convert_seed=1)
+        queue.add(read_blob(Blob(**row['blob']),tmp_path))
+    run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'results',memory_bytes=MEMORY)
+    assert queue.snapshot() == {'complete':8}
+    checks = [read_blob(r['result']['blob'],tmp_path) for k,r in queue.results().items() if '/verify/' in k]
+    assert all(r['reference_recovery']=='recovered' for r in checks)
+    original,_,_ = prepare(item['rxn'])
+    changed = _prepare_record((plan,dict(item,ground_truth='[CH4:1]>>[CH4:1]'),str(tmp_path)))
+    tasks = read_blob(Blob(**changed[0]['blob']),tmp_path)
+    record = read_blob(tasks[0].payload['input'],tmp_path)
+    assert np.array_equal(record['reactant']['wbo'],original.reactant.wbo)
+    reference = read_blob(Blob(**changed[0]['reference']),tmp_path)
+    assert not reference['input_reference_index_agrees']
+    queue.close()
+
+
+def test_enzyme_preparation_freezes_complete_grid_in_worker_bundles(tmp_path, monkeypatch):
+    import csv, gzip, hashlib, json
+    from rebenchmark.shared import prepare_campaign
+    monkeypatch.setenv('TMPDIR',str(tmp_path))
+    dataset = tmp_path/'dataset.csv.gz'
+    with gzip.open(dataset,'wt') as stream:
+        writer = csv.DictWriter(stream,fieldnames=['r_id','rxn','ground_truth','original_id'])
+        writer.writeheader()
+        for i in range(3):
+            writer.writerow(dict(r_id=i,rxn='CO>>CO',ground_truth='[CH3:1][OH:2]>>[CH3:1][OH:2]',original_id=i))
+    manifest = tmp_path/'manifest.json'
+    manifest.write_text(json.dumps(dict(cases=3,dataset_sha256=hashlib.sha256(dataset.read_bytes()).hexdigest())))
+    plan = dict(dataset='EnzymeMap',dataset_path=str(dataset),input_manifest=str(manifest),
+        input_manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),directions=[False,True],
+        config=dict(seed_count=1,iso_tolerance=1,sweep_cuts=False),seed_batch=1,case_seconds=60,
+        memory_bytes=MEMORY,slack=5,reference_checks=True,preparation_workers=2)
+    (tmp_path/'plan.json').write_text(json.dumps(plan))
+    prepare_campaign(tmp_path)
+    index = json.loads((tmp_path/'index.json').read_text())
+    assert index['cases']==3 and index['tasks']==24
+    assert [r['direction'] for r in index['directions']]==list(range(6))
+    assert len(list((tmp_path/'inputs').glob('*.bundle'))) <= 2

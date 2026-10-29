@@ -59,3 +59,11 @@ original deadline and publication guard. The retirement receipt permits a new
 allocation to use the same queue without retrying accepted or active work.
 Pilots from an earlier operational revision require an explicit accepted commit
 list and recorded source diff; task specifications and input index must match.
+
+EnzymeMap uses the same `rebenchmark.shared` preparation and execution commands.
+Its plan names `dataset: EnzymeMap`, the pinned `dataset_path` and original
+`input_manifest` hash, explicit boolean `directions`, and `preparation_workers`.
+`reference_checks: true` adds ground-truth membership tasks on finalized original
+AAM graphs; these do not depend on conversion. Mismatched input/reference atom
+coordinates remain explicitly unknown. Original input and annotation strings,
+features and hashes are retained together in bounded input bundles.

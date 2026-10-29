@@ -410,3 +410,18 @@ flowchart LR
     Components --> Cache[Reuse conclusive component checks]
     Cache --> Branch[Joint saved-branch witness or rejection]
 ```
+
+## Dataset-independent benchmark planning
+
+The shared benchmark adapter plans Golden and EnzymeMap through the same public
+search, conversion and execution queue. Dataset parsing stays in this adapter;
+parallel preparation reuses one bounded bundle writer per process. EnzymeMap
+inputs come only from its unmapped reaction column. Reference molecules and
+annotations are prepared separately and never change search inputs. A reference
+whose atom coordinate system differs is explicitly unresolved until aligned.
+
+The 2026-10-29 EnzymeMap run uses one seed, both directions and the full cut sweep.
+Headline coverage queries the original compressed ISO1 AAM, independently of
+conversion. Lossy conversion investigation is pending in tracker ticket38.
+The scheduler locates failed parents through the task-state index before looking
+up dependent children; successful dependency graphs incur no full edge scan.
