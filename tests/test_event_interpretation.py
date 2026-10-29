@@ -347,5 +347,6 @@ def test_large_boundary_tables_do_not_expand_combinations(monkeypatch):
     check_contributions(result,choices)
     assert len(table.boundary) == 19
     assert table.statistics['boundary_terms'] == 76
+    assert table.statistics['unique_responses'] == 2
     print(json.dumps(dict(boundary_table_cpu_seconds=elapsed,represented_choices=2**20,
                           statistics=table.statistics)),flush=True)

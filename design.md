@@ -260,6 +260,46 @@ flowchart LR
     Constraints --> Events[Vectorized counts and event identities]
 ```
 
+Internal variations and boundary responses are separate sparse tables, built
+lazily for a saved fragment partition. Each bond term refers to the original
+ordered action IDs. Single-atom domains come from generator orbits composed in
+saved order; they conservatively screen possible responses, never authorize
+independent image choices. Different partitions of a family are alternative
+views, not extra contributions. A manually cut boundary receives exactly the
+same original-WBO comparison as any other pair.
+
+A shared bond-response table stores the reachable target weights and their four
+exclusive categories: breaking, forming, strengthening and weakening. Bonded
+means WBO greater than the existing ordinary/metal pair threshold; an event still
+requires an absolute difference greater than that threshold. Source decrease
+with a remaining bond is weakening; source increase with an existing bond is
+strengthening. Thus the historical decrease/increase totals equal
+breaking+weakening / forming+strengthening. Signed-response action certificates
+alone do not certify these finer categories; table constants are checked against
+the full category responses.
+
+Identical response tables are shared even across different endpoint domains.
+Constant contributions are summed once; variable contributions use batched NumPy
+lookups. Required-edge constraints are checked before any requested realization
+is counted. Product-only bonds and dynamically unmatched product boundaries are
+included; bonds wholly between unmatched atoms are omitted. No fictitious pairing
+of unmatched material is introduced. Candidate atom-pair screening and domain
+lookups can be quadratic in atom/domain size; they do not enumerate group elements
+or fragment combinations. Intermediate domain gathers are bounded to 65,536
+entries and reuse caches are bounded. Selected family tables live with the
+interpretation and scale with the retained sparse terms.
+
+```mermaid
+flowchart LR
+    Saved[Saved fragment sets and correlated choices] --> Internal[Internal event variations]
+    Saved --> Boundary[Boundary response tables]
+    Choice[One requested joint choice] --> Check[Original constraints]
+    Check --> Lookup[Shared response lookups]
+    Internal --> Lookup
+    Boundary --> Lookup
+    Lookup --> Sum[Four event counts and optional endpoint pairs]
+```
+
 The anchored rematcher below remains a distinct hierarchical mapping operation.
 It is not a fallback for interpretation or a lossless replacement of the original
 family. Existing benchmark calls remain unchanged. Exhaustive event-pattern

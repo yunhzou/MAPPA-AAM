@@ -206,5 +206,34 @@ generator numbers (negative numbers apply the inverse). The original matching
 constraints still apply. `events.counts(family_id, choices_iterable)` streams
 counts in bounded vector batches for explicitly supplied choices only.
 
+Internal and boundary contributions are available without expanding combinations:
+
+```python
+tables = events.tables(0)  # Lazy, shared response tables for one saved partition.
+tables.internal          # Fragment ID -> original source-pair terms.
+tables.boundary          # Fragment pair -> source-pair terms; -1 is unmatched.
+tables.product_boundary_pairs  # Product bonds with dynamic unmatched occupancy.
+result = events.contributions(0, choices=None, include_events=True)
+result["counts"]         # breaking, forming, strengthening, weakening
+result["internal"]       # Contributions by fragment.
+result["boundary"]       # Contributions by pair of fragments / unmatched material.
+result["events"]         # Original R/P endpoint pairs and weights.
+rows = events.counts(0, requested_choices, categories=True)
+```
+
+Bond presence uses the same pair threshold as event counting: WBO > threshold.
+An event additionally needs absolute change > threshold. Equality produces no
+event. The four categories are exclusive; their sum equals the historical total.
+Without `categories=True`, `counts` retains decrease/increase counts.
+
+Terms retain the IDs of original actions affecting their endpoints; these are
+not new independent choices. Atom domains and table entries can overapproximate
+jointly reachable pairs. Only requested choices validated against the saved
+family may be composed. Product-to-unmatched contributions are conditional on
+occupied target atoms and are added once, not once per possible target image.
+If a family has multiple saved partitions, select one with `partition=` in
+`tables` / `contributions`; counts are independent of that bookkeeping choice.
+Tables never select independent per-bond minima or claim a global optimum.
+
 `convert_fragments` and `decode_events` retain their existing hierarchical
 rematching behavior. They do not replace this lossless interpretation.

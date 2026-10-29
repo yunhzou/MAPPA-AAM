@@ -130,7 +130,7 @@ class BondEventResponse:
     target_weights: np.ndarray
     categories: np.ndarray
 
-    @property
+    @cached_property
     def constant(self):
         return int(self.categories[0]) if np.all(self.categories == self.categories[0]) else None
 

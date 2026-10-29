@@ -80,6 +80,7 @@ class SignedEventIndex:
         self._pair_tables = OrderedDict()
         self._event_tables = OrderedDict()
         self._domain_weights = OrderedDict()
+        self._response_values = OrderedDict()
         self._orbit_tables = OrderedDict()
 
     def pair_table(self, weight, tau, xs, ys):
@@ -142,9 +143,14 @@ class SignedEventIndex:
                 if len(self._domain_weights) > 4096:
                     self._domain_weights.popitem(last=False)
             weights = self._domain_weights[domains]
-            codes = _event_categories(weight, weights, tau)
-            codes.setflags(write=False)
-            self._event_tables[key] = BondEventResponse(float(weight), float(tau), weights, codes)
+            values_key = float(weight), float(tau), tuple(weights)
+            if values_key not in self._response_values:
+                codes = _event_categories(weight, weights, tau)
+                codes.setflags(write=False)
+                self._response_values[values_key] = BondEventResponse(float(weight), float(tau), weights, codes)
+                if len(self._response_values) > 4096:
+                    self._response_values.popitem(last=False)
+            self._event_tables[key] = self._response_values[values_key]
             if len(self._event_tables) > 16384:
                 self._event_tables.popitem(last=False)
         return self._event_tables[key]
