@@ -8,7 +8,7 @@ Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postpro
 
 ```python
 from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
 
 problem = AAMProblem(
     MolecularEndpoint(elements_R, xyz_R, wbo_R),
@@ -90,7 +90,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 | `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
-| `decoded.query` | `assignments`; `same_events=True`; `seconds=10` |
+| `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
@@ -102,7 +102,7 @@ Raw search does not classify or repair events. `decode_events` owns event conver
 ## Experimental fragment competition (optional; default off)
 
 ```python
-from mappa.competition import CompetitionConfig, compete_fragments
+from mappa.mappa_core.core.search.branching.competition import CompetitionConfig, compete_fragments
 augmented = compete_fragments(aam, CompetitionConfig(operation_budget=128))
 decoded = decode_events(augmented.final_catalogue())
 ```
@@ -138,7 +138,7 @@ Neither entry point computes missing R/P selections.
 ## Event decoding
 
 ```python
-from mappa.mappa_core.post_processing.decoder.api import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
 from mappa.mappa_core.utils.io.records import decoded_events_record
 
 result = decode_events(aam, EventDecodeConfig(event_slack=0))
@@ -174,8 +174,8 @@ saved class names to their new modules; it does not retain a second implementati
 
 Public `mappa.search_aam`, `search_aam_checkpoints`, direction planning, partial
 mapping and subgraph APIs retain their signatures. Implementations now live under
-`mappa.mappa_core.core.search`: `api`, `planning`, `session`, `branch`, `graph`,
-`shared`, `reuse`, `native`, `symmetry`, `partial`, `subgraph` and `competition`.
+`mappa.mappa_core.core.search`: `api`, `planning`, `session` and `graph`, with branch construction under
+`branching/` and partial/subgraph objectives under `queries/`.
 Old internal search module paths are removed. Local workers use
 `mappa.mappa_core.core.scheduler.search`; the shared task queue retains its current API.
 
