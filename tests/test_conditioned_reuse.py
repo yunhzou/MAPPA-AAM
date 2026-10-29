@@ -3,12 +3,12 @@ import numpy as np
 import pytest
 
 from mappa.mappa_core.core.search.branch import find_islands
-from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
+from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
 from mappa.mappa_core.core.search.reuse import FragmentRepair
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.state import candidate_from_record
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
-from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
+from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
 from test_cut_replay import graph, raw
 
 

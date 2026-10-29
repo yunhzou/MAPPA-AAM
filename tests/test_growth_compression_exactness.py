@@ -8,11 +8,11 @@ import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand
-from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
-from mappa.mappa_core.core.matching.extend import _extend_sym_cands
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
+from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand
+from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
+from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
 
 
 def graph(elements, edges):
@@ -23,7 +23,7 @@ def graph(elements, edges):
 
 
 def test_historical_v2_roles_equal_direct_full_matrix_scan():
-    from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
+    from mappa.mappa_core.core.matching.symmetry.canonical import _CandidateAutomorphismCanonicalizer
     rng = np.random.default_rng(7321)
     nodes = (2, 5, 9, 12, 19)
     for _ in range(12):
@@ -183,7 +183,7 @@ def test_weighted_source_target_pairs_against_enumeration(tolerance):
 
 
 def test_support_limit_reports_incomplete_instead_of_no_match():
-    from mappa.mappa_core.core.matching.support import _support_assignments_for_value
+    from mappa.mappa_core.core.matching.growth.support import _support_assignments_for_value
     target = graph(['C', 'C', 'O'], [(1, 2, 1)])
     candidate = _SymCand({0: 0}, (_SymBlock((0,), (0, 1)),))
     with pytest.raises(RuntimeError, match='support state limit exceeded'):
@@ -205,8 +205,8 @@ def test_standalone_fragment_matcher_returns_both_component_placements():
 
 def test_compression_contract_survives_typed_hierarchy_roundtrip():
     from mappa.mappa_core.domain import AAMHierarchy
-    from mappa.mappa_core.core.matching.state import _symmetry_state
-    from mappa.mappa_core.core.matching.state import candidate_from_record
+    from mappa.mappa_core.core.matching.representation.state import _symmetry_state
+    from mappa.mappa_core.core.matching.representation.state import candidate_from_record
     candidate = _SymCand({0: 0})
     record = {'fragments': [{'fragment': [0], 'symmetry': _symmetry_state(candidate)}]}
     hierarchy = AAMHierarchy.from_record(record)

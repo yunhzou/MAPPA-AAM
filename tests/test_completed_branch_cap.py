@@ -4,10 +4,10 @@ import pytest
 
 from mappa import build_graph
 from mappa.mappa_core.core.search.branch import find_islands
-from mappa.mappa_core.core.matching.growth import grow_island
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
-from mappa.mappa_core.core.matching import native
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.growth.engine import grow_island
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 def graph(elements, edges):

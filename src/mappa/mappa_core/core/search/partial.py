@@ -14,12 +14,8 @@ from mappa.domain import (
     MolecularEndpoint,
 )
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.orbits import (
-    _nauty_orbits,
-    _atom_tuple_orbit,
-    _nauty_atom_generators,
-)
-from mappa.mappa_core.core.matching.state import _SymBlock, _sym_block_assignment_expr
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits, _atom_tuple_orbit, _nauty_atom_generators
+from mappa.mappa_core.core.matching.representation.state import _SymBlock, _sym_block_assignment_expr
 
 
 def search_core_assignments(

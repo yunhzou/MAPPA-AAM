@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
-from mappa.mappa_core.core.matching.orbits import _orbit_wbo_bucket
+from mappa.mappa_core.core.matching.symmetry.canonical import _CandidateAutomorphismCanonicalizer
+from mappa.mappa_core.core.matching.symmetry.orbits import _orbit_wbo_bucket
 from mappa.mappa_core.core.matching.policy import AttributeNodeMatchPolicy, ElementNodeMatchPolicy, as_node_match_policy
 from mappa.mappa_core.core.matching.policy import _edge_wbo, _orbit_id, _wbo_bucket
-from mappa.mappa_core.core.matching.state import _SymCand, _cand_map, _cand_possible_p_atoms
+from mappa.mappa_core.core.matching.representation.state import _SymCand, _cand_map, _cand_possible_p_atoms
 
 
 def _p_relation_signature_from_parts(cand, v, g_P, p_orbits,

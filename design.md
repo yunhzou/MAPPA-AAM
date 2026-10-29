@@ -76,6 +76,22 @@ explicit relocation table. Root `domain.py` still contains public endpoint,
 search-result and TS types; separating those workflow responsibilities remains
 part of the later shared-data stage.
 
+## Matching dependency levels
+
+```mermaid
+flowchart TD
+    Match[Matching API] --> Growth[Growth: extension / compression / frontier]
+    Growth --> Symmetry[Symmetry: canonical forms / orbits / workspaces]
+    Growth --> Representation[Representation: candidate state / fragment records]
+    Symmetry --> Representation
+    Representation --> Policy[Node and bond policies]
+    Symmetry --> Policy
+```
+
+These are dependency levels inside the fragment matcher, not new stages in the
+scientific algorithm. Growth and iso matching retain their shared compressed
+representation. Only the public entry and contracts are exported from matching.
+
 ## Data architecture
 
 ```text

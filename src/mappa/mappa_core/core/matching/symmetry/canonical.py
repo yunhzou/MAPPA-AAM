@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
-from mappa.mappa_core.core.matching.orbits import _nauty_atom_generators, _nauty_colored_wbo_graph, _wbo_tolerance_bucket_lookup
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_atom_generators, _nauty_colored_wbo_graph, _wbo_tolerance_bucket_lookup
 from mappa.mappa_core.core.matching.policy import AttributeNodeMatchPolicy, ElementNodeMatchPolicy, as_node_match_policy
-from mappa.mappa_core.core.matching.state import _SymCand
+from mappa.mappa_core.core.matching.representation.state import _SymCand
 from mappa.mappa_core.core.matching.policy import _edge_wbo
 
 

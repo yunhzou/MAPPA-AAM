@@ -77,7 +77,7 @@ def prepare_cut(payload, workspace):
                 finalized = None
             else:
                 from mappa.frag import build_graph
-                from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
+                from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
                 from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
                 raw = read_raw_cut(graph_path)
                 target = build_graph(plan.problem.product.elements, plan.problem.product.wbo,

@@ -42,7 +42,7 @@ def _initialize_finalization(problem,config,execution='reference'):
     gc.disable()
     _initialize_search(problem,config)
     if execution in ('reused_native', 'shared_policies'):
-        from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
+        from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
         _FINALIZATION_WORKSPACE = ConditionedSymmetryWorkspace(_SEARCH_CONTEXT[2], config.iso_tolerance)
 
 

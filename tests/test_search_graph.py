@@ -12,10 +12,10 @@ from mappa.mappa_core.core.search.api import finalize_graph_symmetry
 from mappa.artifacts import aam_from_record, aam_record
 from mappa.mappa_core.core.search.branch import _Branch, find_islands
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.representation.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.api import match_fragment
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 
 
@@ -180,7 +180,7 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
 
 @pytest.mark.parametrize('seed', range(10))
 def test_fragment_bonds_match_whole_graph_definition(seed):
-    from mappa.mappa_core.core.matching.records import _IsoResult
+    from mappa.mappa_core.core.matching.representation.records import _IsoResult
     rng = random.Random(seed)
     graph = network(['C'] * 18)
     for a in graph:
@@ -230,7 +230,7 @@ def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ances
 
 
 def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
-    from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
+    from mappa.mappa_core.core.matching.symmetry.canonical import _CandidateAutomorphismCanonicalizer
     target = network(['C'] * 3)
     recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
     branch = _Branch(recorder)

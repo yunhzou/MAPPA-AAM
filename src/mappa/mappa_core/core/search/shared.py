@@ -8,8 +8,8 @@ from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_order
 from mappa.mappa_core.core.search.branch import _Branch
 from mappa.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
-from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import (
     SearchContext,
     SearchGraphBuilder,
@@ -18,7 +18,7 @@ from mappa.mappa_core.core.search.graph import (
 )
 from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
+from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
 
 
 class _SharedGraphBuilder(SearchGraphBuilder):

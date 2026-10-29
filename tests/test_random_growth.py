@@ -5,11 +5,11 @@ import json
 import numpy as np
 import pytest
 
-from mappa.mappa_core.core.matching.frontier import GrowthRandom, _pop_random_atom
-from mappa.mappa_core.core.matching.growth import grow_island
-from mappa.mappa_core.core.matching import native
+from mappa.mappa_core.core.matching.growth.frontier import GrowthRandom, _pop_random_atom
+from mappa.mappa_core.core.matching.growth.engine import grow_island
+from mappa.mappa_core.core.matching.growth import native
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.mappa_core.core.search.planning import checkpoint_manifest
 
@@ -106,7 +106,7 @@ def test_old_pickle_policy_is_labeled_and_cannot_replay_as_new():
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
 def test_randomized_partial_matching_parity_across_streams(monkeypatch):
-    from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
+    from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
     rng=np.random.default_rng(2071)
     for trial in range(8):
         edges=[(i,i+1) for i in range(7)]+[(0,3),(2,6)]

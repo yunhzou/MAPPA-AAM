@@ -1,11 +1,11 @@
 """Fragment locking, branch construction and exact frontier admission."""
 
 from __future__ import annotations
-from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.search.graph import SearchContext, SearchGraphBuilder
 from mappa.mappa_core.core.matching.policy import as_node_match_policy
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 class _StateKey(tuple):

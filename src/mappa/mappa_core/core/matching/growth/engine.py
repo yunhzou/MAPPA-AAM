@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 import time
-from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
-from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
-from mappa.mappa_core.core.matching.extend import _extend_sym_cands
-from mappa.mappa_core.core.matching.orbits import _group_nodes_by_signature
+from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
+from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
+from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.symmetry.orbits import _group_nodes_by_signature
 from mappa.mappa_core.core.matching.policy import _orbit_id
 from mappa.mappa_core.core.matching.policy import as_node_match_policy
-from mappa.mappa_core.core.matching import native
-from mappa.mappa_core.core.matching.frontier import _frontier_boundary_edges, _push_edges_from, _set_unique, _pop_random_atom, GrowthRandom
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded, _IsoResult
-from mappa.mappa_core.core.matching.trace import cand_possible_values, cands_pattern_sample, cands_sample, heap_snapshot, pool_by_frag_atom, represented_assignment_expr, why_extend_failed, why_merge_failed
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.growth.frontier import _frontier_boundary_edges, _push_edges_from, _set_unique, _pop_random_atom, GrowthRandom
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, _IsoResult
+from mappa.mappa_core.core.matching.growth.trace import cand_possible_values, cands_pattern_sample, cands_sample, heap_snapshot, pool_by_frag_atom, represented_assignment_expr, why_extend_failed, why_merge_failed
 
 
 def grow_island(g_R, g_P, seed, mapping,

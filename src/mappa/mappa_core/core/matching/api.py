@@ -1,11 +1,11 @@
 """Reusable fragment growth interface."""
 from __future__ import annotations
 
-from mappa.mappa_core.core.matching.records import FragmentPlacement, FragmentMatchContext, FragmentMatchConfig, FragmentMatchResult
+from mappa.mappa_core.core.matching.representation.records import FragmentPlacement, FragmentMatchContext, FragmentMatchConfig, FragmentMatchResult
 import time
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
-from mappa.mappa_core.core.matching.growth import grow_island
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.growth.engine import grow_island
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 def match_fragment(source, target, *, seed, context=None, config=None,

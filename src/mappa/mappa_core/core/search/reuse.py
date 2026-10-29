@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from mappa.mappa_core.core.matching import native
+from mappa.mappa_core.core.matching.growth import native
 
 
 @dataclass(frozen=True)

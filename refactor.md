@@ -75,7 +75,12 @@ Required refactoring:
 The matching interface returns compressed fragment placements. It does not
 manage the overall reaction's branch frontier.
 
-Implemented as one matching package. Node and bond policies share `policy.py`;
+Implemented as one matching package with dependency levels:
+`representation/` holds candidate state and fragment contracts; `symmetry/`
+holds automorphism and canonical-equivalence operations; `growth/` extends and
+compresses candidates using those lower layers. `api.py` is the public entry;
+`policy.py` defines shared matching rules. Internal helpers are no longer
+re-exported from the package facade. Node and bond policies share `policy.py`;
 fragment configurations/results share `records.py`; symmetry workspaces share
 `symmetry.py`. Existing matching and growth function bodies are retained.
 `subgraph.py` calls full reaction search, so only its graph preparation moved.

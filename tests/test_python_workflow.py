@@ -105,7 +105,7 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
 
 def test_competition_retains_baseline_and_hard_anchors(reaction):
     from mappa.mappa_core.core.search.competition import compete_fragments, CompetitionConfig
-    from mappa.mappa_core.core.matching.native import available
+    from mappa.mappa_core.core.matching.growth.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")
@@ -124,7 +124,7 @@ def test_competition_retains_baseline_and_hard_anchors(reaction):
 
 
 def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
-    from mappa.mappa_core.core.matching.native import available
+    from mappa.mappa_core.core.matching.growth.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")

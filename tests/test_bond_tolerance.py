@@ -6,11 +6,11 @@ import pytest
 
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.frag import bond_event_threshold
-from mappa.mappa_core.core.matching import native
-from mappa.mappa_core.core.matching.state import _SymCand
-from mappa.mappa_core.core.matching.extend import _extend_sym_cands
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.state import candidate_from_record
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.representation.state import _SymCand
+from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from test_growth_compression_exactness import graph, represented
 
 

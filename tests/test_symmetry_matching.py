@@ -10,16 +10,16 @@ from mappa import build_graph
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.core.search.partial import _branch_symmetry_record, _core_mapping_variants
 import mappa.mappa_core.core.search.branch as branch_mod
-from mappa.mappa_core.core.matching.canonical import _PartialMappingCanonicalizer
-from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
-from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
-from mappa.mappa_core.core.matching.extend import _extend_sym_cands
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.support import _support_witness_for_value
-from mappa.mappa_core.core.matching.orbits import _wbo_tolerance_bucket_lookup
-from mappa.mappa_core.core.matching.records import _IsoResult
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
-from mappa.mappa_core.core.matching.growth import grow_island
+from mappa.mappa_core.core.matching.symmetry.canonical import _PartialMappingCanonicalizer
+from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
+from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
+from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.growth.support import _support_witness_for_value
+from mappa.mappa_core.core.matching.symmetry.orbits import _wbo_tolerance_bucket_lookup
+from mappa.mappa_core.core.matching.representation.records import _IsoResult
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.growth.engine import grow_island
 
 
 def _represented_count(cand):
@@ -177,7 +177,7 @@ def test_symcand_reassigns_correlated_block_witness():
 
 
 def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
-    from mappa.mappa_core.core.matching.records import FragmentPlacement
+    from mappa.mappa_core.core.matching.representation.records import FragmentPlacement
     branch = branch_mod._Branch()
     branch.commit(
         FragmentPlacement.from_match(_IsoResult(
@@ -864,6 +864,6 @@ def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
 
 def test_approximate_orbits_are_not_an_exact_symmetry_backend():
     import mappa.mappa_core.core.matching as matcher
-    import mappa.mappa_core.core.matching.orbits as orbits
+    import mappa.mappa_core.core.matching.symmetry.orbits as orbits
     assert not hasattr(matcher, '_color_refine_orbits')
     assert not hasattr(orbits, '_color_refine_orbits')

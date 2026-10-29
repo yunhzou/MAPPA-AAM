@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
+from mappa.mappa_core.core.matching.symmetry.canonical import _CandidateAutomorphismCanonicalizer
 
 
 class SymmetryWorkspace:

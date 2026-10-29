@@ -4,8 +4,8 @@ import pytest
 
 from mappa.mappa_core.core.search.branch import find_islands
 from mappa.mappa_core.core.search.reuse import FragmentRepair
-from mappa.mappa_core.core.matching import native
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from test_cut_replay import graph, raw
 

@@ -5,9 +5,9 @@ import os
 from importlib import import_module
 import time
 from dataclasses import dataclass
-from mappa.mappa_core.core.matching.orbits import _OrbitMap
+from mappa.mappa_core.core.matching.symmetry.orbits import _OrbitMap
 from mappa.mappa_core.core.matching.policy import ElementNodeMatchPolicy
-from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded, _IsoResult
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, _IsoResult
 
 
 try:  # pragma: no cover - depends on the build

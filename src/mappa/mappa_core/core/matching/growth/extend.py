@@ -5,11 +5,11 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 from typing import Any
-from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands, _p_relation_signature
+from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands, _p_relation_signature
 from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY, as_node_match_policy
 from mappa.mappa_core.core.matching.policy import _edge_wbo
-from mappa.mappa_core.core.matching.state import _SymCand, _sym_block_indexes
-from mappa.mappa_core.core.matching.support import _refine_sym_assignments, _r_compatible_with_block, _support_assignments_for_value
+from mappa.mappa_core.core.matching.representation.state import _SymCand, _sym_block_indexes
+from mappa.mappa_core.core.matching.growth.support import _refine_sym_assignments, _r_compatible_with_block, _support_assignments_for_value
 
 
 Node = int

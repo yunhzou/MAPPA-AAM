@@ -9,7 +9,7 @@ from .fragment_conversion import convert_fragments, FragmentConversion
 from .family_query import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
-from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
 from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.search.partial import search_core_assignments

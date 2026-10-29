@@ -13,14 +13,14 @@ from pathlib import Path
 import numpy as np
 from .artifacts import read_aam_checkpoint, aam_from_record
 from .frag import build_graph, classify_bonds
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.state import _cand_possible_p_atoms, _sym_block_indexes
-from mappa.mappa_core.core.matching.support import _support_witness_for_value
-from mappa.mappa_core.core.matching.support import _refine_sym_assignments
-from mappa.mappa_core.core.matching.trace import cands_pattern_sample
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.state import _cand_possible_p_atoms, _sym_block_indexes
+from mappa.mappa_core.core.matching.growth.support import _support_witness_for_value
+from mappa.mappa_core.core.matching.growth.support import _refine_sym_assignments
+from mappa.mappa_core.core.matching.growth.trace import cands_pattern_sample
 
-growth = importlib.import_module('mappa.mappa_core.core.matching.growth')
-extension = importlib.import_module('mappa.mappa_core.core.matching.extend')
+growth = importlib.import_module('mappa.mappa_core.core.matching.growth.engine')
+extension = importlib.import_module('mappa.mappa_core.core.matching.growth.extend')
 
 
 def snapshot(cands):

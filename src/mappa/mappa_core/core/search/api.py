@@ -46,7 +46,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     if execution not in ('reference', 'reused_native', 'shared_policies'):
         raise ValueError('unknown AAM execution backend')
     if execution in ('reused_native', 'shared_policies'):
-        from mappa.mappa_core.core.matching.native import available
+        from mappa.mappa_core.core.matching.growth.native import available
         if not available():
             raise ValueError('reused_native execution requires the built native engine')
     from mappa.artifacts import raw_cut_paths, read_raw_cut
@@ -146,7 +146,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     symmetry_started = time.perf_counter()
     workspace = None
     if execution in ('reused_native', 'shared_policies'):
-        from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
+        from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
         workspace = ConditionedSymmetryWorkspace(target, config.iso_tolerance)
     graph, groups = finalize_graph_symmetry(graph, target, iso_tolerance=config.iso_tolerance,
                                           workspace=workspace)
@@ -194,7 +194,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     if execution not in ('reference', 'reused_native', 'shared_policies'):
         raise ValueError('unknown AAM execution backend')
     if execution != 'reference':
-        from mappa.mappa_core.core.matching.native import available
+        from mappa.mappa_core.core.matching.growth.native import available
         if not available():
             raise ValueError('native execution requires the built native engine')
     config = config or AAMSearchConfig()

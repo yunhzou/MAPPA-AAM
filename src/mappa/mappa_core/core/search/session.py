@@ -5,7 +5,7 @@ from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_order
 import gc, time
 from mappa.mappa_core.core.search.branch import find_islands
 from mappa.frag import build_graph
-from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
@@ -28,7 +28,7 @@ class SearchSession:
         if execution not in ('reference', 'reused_native', 'shared_policies'):
             raise ValueError('unknown AAM execution backend')
         if execution != 'reference':
-            from mappa.mappa_core.core.matching.native import available
+            from mappa.mappa_core.core.matching.growth.native import available
             if not available():
                 raise ValueError('native execution requires the built native engine')
         self.execution = execution

@@ -1,7 +1,7 @@
 """Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
-from mappa.mappa_core.core.matching.state import _cand_has_open_choice, _cand_map
+from mappa.mappa_core.core.matching.representation.state import _cand_has_open_choice, _cand_map
 
 
 MASK64 = (1 << 64) - 1

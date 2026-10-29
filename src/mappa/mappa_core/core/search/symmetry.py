@@ -1,10 +1,10 @@
 """Exact symmetry finalization for recorded search transitions."""
 
 from __future__ import annotations
-from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
+from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
 from dataclasses import replace
 import gc
-from mappa.mappa_core.core.matching.state import candidate_from_record
+from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from mappa.mappa_core.core.search.graph import frozen_value
 
 

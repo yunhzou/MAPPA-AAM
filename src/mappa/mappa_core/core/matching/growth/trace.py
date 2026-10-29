@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from mappa.mappa_core.core.matching.state import _SymCand, _cand_map, _cand_possible_p_atoms, _sym_block_assignment_expr, _sym_block_indexes
+from mappa.mappa_core.core.matching.representation.state import _SymCand, _cand_map, _cand_possible_p_atoms, _sym_block_assignment_expr, _sym_block_indexes
 from mappa.mappa_core.core.matching.policy import _edge_wbo, _growth_edge_supported, as_node_match_policy
-from mappa.mappa_core.core.matching.support import _support_witness_for_value
+from mappa.mappa_core.core.matching.growth.support import _support_witness_for_value
 
 
 def cands_sample(cands, k=10):
