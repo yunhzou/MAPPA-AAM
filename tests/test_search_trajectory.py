@@ -92,7 +92,7 @@ def test_in_memory_replay_matches_archive_and_keeps_result(tmp_path, monkeypatch
 
 def test_event_overlay_uses_decoder_thresholds_and_target_indexing():
     from mappa.presentation.trajectory import bond_events
-    # Inclusive 0.5 boundary, metal-only 0.3 event, subthreshold edge loss,
+    # Inclusive 0.5/0.3 matching boundaries, subthreshold edge loss,
     # and a formed bond under a nonidentity atom mapping.
     elements = ['C', 'O', 'Fe', 'H']
     r = np.zeros((4, 4)); p = np.zeros((4, 4))
@@ -105,6 +105,12 @@ def test_event_overlay_uses_decoder_thresholds_and_target_indexing():
     raw = dict(reactant=dict(elements=elements, wbo=r.tolist()),
                product=dict(elements=[elements[i] for i in order],
                             wbo=p[np.ix_(order, order)].tolist()))
+    assert bond_events(raw, mapping) == []
+    r[0, 1] = r[1, 0] = 1.1
+    r[0, 2] = r[2, 0] = .4
+    p[1, 3] = p[3, 1] = .6
+    raw['reactant']['wbo'] = r.tolist()
+    raw['product']['wbo'] = p[np.ix_(order, order)].tolist()
     events = bond_events(raw, mapping)
     assert {(e['kind'], tuple(e['r'])) for e in events} == {
         ('weakened', (0, 1)), ('broken', (0, 2)), ('formed', (1, 3))}

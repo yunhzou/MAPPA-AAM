@@ -717,11 +717,11 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     # these two one-bond events.
     n = 5
     elements = ["C"] * n
-    wbo_r = np.full((n, n), 0.5)
+    wbo_r = np.full((n, n), 0.75)
     np.fill_diagonal(wbo_r, 0.0)
     for atom in range(n):
         neighbor = (atom + 1) % n
-        wbo_r[atom, neighbor] = wbo_r[neighbor, atom] = 1.0
+        wbo_r[atom, neighbor] = wbo_r[neighbor, atom] = 1.5
     wbo_cycle = wbo_r.copy()
     wbo_cycle[0, 1] = wbo_cycle[1, 0] = 0.0
     wbo_diagonal = wbo_r.copy()

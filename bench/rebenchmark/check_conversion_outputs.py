@@ -46,7 +46,8 @@ def check(queue_path, output):
                 for ep in (problem.reactant, problem.product)]
             counts = {}
             reports = {row['family_id']:row for row in result['family_reports']}
-            assert len(reports) == len(catalogue.families) == len(result['converted_branches'])
+            assert len(result['family_reports']) == len(result['converted_branches'])
+            assert set(reports) == {b['family_id'] for b in result['converted_branches']}
             for branch in result['converted_branches']:
                 family = catalogue.families[branch['family_id']]
                 mapping = dict(family.mapping)

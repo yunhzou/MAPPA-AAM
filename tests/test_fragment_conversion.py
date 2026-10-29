@@ -285,3 +285,14 @@ def test_inclusive_conversion_boundary(backend, elements, limit, offset):
     owners = dict(result.conversion.branches[0].islands)
     assert (owners[0] == owners[1]) == (not expected)
     assert result.index.policy['event_comparison'] == 'absolute difference > threshold'
+
+
+def test_reused_family_keeps_distinct_partitions_without_duplicate_candidate_support():
+    ep = endpoint('HH', [])
+    source = saved(ep, ep, {0: 0, 1: 1}, actions=(('pool', (0, 1)),))
+    source.coupled_branches[0] = {(((0,), (0,)), ((1,), (1,)))}
+    result = decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=1.))
+    assert len(result.conversion.branches) == len(result.family_reports) == 2
+    assert result.candidates[0].family_ids == [0]
+    assert result.catalogue is source
+    assert len({branch.islands for branch in result.conversion.branches}) == 2

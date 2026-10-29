@@ -56,7 +56,8 @@ def decode_events(aam, config=None):
         candidate = candidates.setdefault(pattern['id'], EventCandidate(pattern['id'],
             dict(family.mapping), pattern['events'], pattern['total'],
             endpoint_events=pattern['endpoint_events']))
-        candidate.family_ids.append(report['family_id'])
+        if report['family_id'] not in candidate.family_ids:
+            candidate.family_ids.append(report['family_id'])
     selected = list(candidates.values())
     return DecodedEvents(sorted(selected, key=lambda c: (c.total, c.id)),
                          catalogue, index, reports, config, conversion)

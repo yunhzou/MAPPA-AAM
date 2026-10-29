@@ -435,5 +435,8 @@ There is no separate minimum-scoring pass. Each candidate's `mapping` contains
 only actual correspondences. `endpoint_events` gives broken bonds in native R
 indices and formed bonds in native P indices. Internal `events` retain the R
 frame, using `nR+p` for an unmatched product boundary atom; serialized records
-include this convention in `event_policy`. Event IDs use version2 so old output
-policies cannot be mixed with the new unmatched-region semantics.
+include this convention in `event_policy`. A difference equal to the ordinary or metal tolerance stays unchanged (`<=`);
+only a larger difference is an event (`>`). When both tolerances equal the saved
+AAM iso tolerance, conversion reuses its compressed fragments directly, without
+rematching or recombination. Requested event counts are still computed. Event
+IDs use version3 to distinguish this rule from earlier boundary conventions.
