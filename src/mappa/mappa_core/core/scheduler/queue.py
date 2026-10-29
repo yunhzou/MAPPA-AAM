@@ -33,10 +33,18 @@ class TaskQueue:
         self.lock = threading.RLock()
         self.lease_seconds = lease_seconds
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
+        columns = {r[1] for r in self.db.execute('PRAGMA table_info(cases)')}
+        if columns and 'spent' not in columns:
+            self.db.close()
+            raise ValueError('Legacy queue requires explicit retired-budget migration')
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS identity (value TEXT NOT NULL);
-            CREATE TABLE IF NOT EXISTS cases (name TEXT PRIMARY KEY, seconds REAL, deadline REAL);
+            CREATE TABLE IF NOT EXISTS cases (
+                name TEXT PRIMARY KEY, seconds REAL, deadline REAL,
+                spent REAL NOT NULL DEFAULT 0, active_since REAL);
+            CREATE TABLE IF NOT EXISTS active_work (token TEXT PRIMARY KEY, case_name TEXT);
+            CREATE INDEX IF NOT EXISTS active_case ON active_work(case_name);
             CREATE TABLE IF NOT EXISTS tasks (
                 key TEXT PRIMARY KEY, specification BLOB, case_name TEXT, memory INTEGER,
                 state TEXT, worker TEXT, token TEXT, expires REAL, result BLOB);
@@ -94,18 +102,21 @@ class TaskQueue:
                 row = self.db.execute('SELECT seconds FROM cases WHERE name=?', (case,)).fetchone()
                 if row and row[0] != task.case_seconds:
                     raise ValueError('Tasks in one case must share the same budget')
-                self.db.execute('INSERT OR IGNORE INTO cases VALUES (?,?,NULL)', (case, task.case_seconds))
+                self.db.execute('INSERT OR IGNORE INTO cases(name,seconds) VALUES (?,?)', (case, task.case_seconds))
                 self.db.execute('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)',
                     (task.key, data, case, task.memory_bytes, 'pending', None, None, None, None))
                 self.db.executemany('INSERT INTO dependencies VALUES (?,?)',
                     [(task.key, d) for d in task.dependencies])
 
     def _refresh(self, now):
+        for token, expires in self.db.execute(
+                "SELECT token,expires FROM tasks WHERE state='running' AND expires<? ORDER BY expires", (now,)).fetchall():
+            self._end_work(token, expires)
         self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
             (SELECT token FROM tasks WHERE state='running' AND expires<?)""", (now, now))
         self.db.execute("UPDATE tasks SET state='lost' WHERE state='running' AND expires<?", (now,))
         self.db.execute("""UPDATE tasks SET state='timeout' WHERE state='pending' AND case_name IN
-            (SELECT name FROM cases WHERE deadline IS NOT NULL AND deadline<=?)""", (now,))
+            (SELECT name FROM cases WHERE spent>=seconds OR deadline<=?)""", (now,))
         while self.db.execute("""UPDATE tasks SET state='blocked' WHERE state='pending' AND key IN
             (SELECT d.task FROM dependencies d JOIN tasks p ON p.key=d.dependency
              WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
@@ -129,9 +140,11 @@ class TaskQueue:
                 running = self.db.execute("SELECT count(*) FROM tasks WHERE state='running'").fetchone()[0]
                 return {'state': 'waiting' if running else 'insufficient_memory'}
             key, specification, case = row
-            self.db.execute('UPDATE cases SET deadline=?+seconds WHERE name=? AND deadline IS NULL', (now, case))
+            self.db.execute('UPDATE cases SET active_since=?,deadline=?+seconds-spent WHERE name=? AND active_since IS NULL',
+                            (now, now, case))
             deadline = self.db.execute('SELECT deadline FROM cases WHERE name=?', (case,)).fetchone()[0]
             token = uuid.uuid4().hex
+            self.db.execute('INSERT INTO active_work VALUES (?,?)', (token, case))
             self.db.execute("UPDATE tasks SET state='running',worker=?,token=?,expires=? WHERE key=?",
                             (worker, token, now+self.lease_seconds, key))
             self.db.execute('INSERT INTO attempts VALUES (?,?,?,?,NULL,?,NULL)',
@@ -140,6 +153,31 @@ class TaskQueue:
                 SELECT p.key,p.result FROM dependencies d JOIN tasks p ON p.key=d.dependency WHERE d.task=?''', (key,))}
             return dict(state='work', task=_loads_checkpoint(specification), token=token,
                         deadline=deadline, dependencies=dependencies)
+
+    def _end_work(self, token, now):
+        row = self.db.execute('SELECT case_name FROM active_work WHERE token=?', (token,)).fetchone()
+        if row is None:
+            return
+        case = row[0]
+        self.db.execute('DELETE FROM active_work WHERE token=?', (token,))
+        if self.db.execute('SELECT 1 FROM active_work WHERE case_name=? LIMIT 1', (case,)).fetchone() is None:
+            self.db.execute('UPDATE cases SET spent=spent+max(0,?-active_since),active_since=NULL,deadline=NULL WHERE name=?',
+                            (now, case))
+
+    def computed(self, key, token):
+        """Pause a direction once its last computation reaches publication.
+
+        Overlapping tasks share one active wall clock. Queued dependencies,
+        gaps between allocations and output publication do not consume it.
+        """
+        with self.lock, self.db:
+            now = time.time()
+            self._refresh(now)
+            valid = self.db.execute("SELECT 1 FROM tasks WHERE key=? AND token=? AND state='running'",
+                                    (key, token)).fetchone() is not None
+            if valid:
+                self._end_work(token, now)
+            return valid
 
     def heartbeat(self, key, token):
         with self.lock, self.db:
@@ -155,6 +193,7 @@ class TaskQueue:
             accepted = bool(self.db.execute("UPDATE tasks SET state=?,result=? WHERE key=? AND token=? AND state='running'",
                 (state, data, key, token)).rowcount)
             if accepted:
+                self._end_work(token, time.time())
                 self.db.execute('UPDATE attempts SET state=?,result=?,finished=? WHERE token=?',
                                 (state, data, time.time(), token))
             return accepted
@@ -169,6 +208,48 @@ class TaskQueue:
             self.db.execute("UPDATE tasks SET state='pending',token=NULL,worker=NULL WHERE key=?", (key,))
             self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
             self._refresh(time.time())
+
+    @classmethod
+    def recover_waiting_timeouts(cls, path, identity):
+        """Explicitly migrate a retired legacy queue and resume unstarted work.
+
+        Old records lack exact overlapping compute intervals. Charge the sum
+        of recorded attempt compute durations, a conservative upper bound on
+        active wall time. Preserve prior pilot charges, attempts and outputs.
+        Run only on a node-local copy; the original checkpoint is evidence.
+        """
+        from collections import defaultdict
+        db = sqlite3.connect(path)
+        try:
+            with db:
+                if db.execute('SELECT value FROM identity').fetchone() != (identity,):
+                    raise ValueError('Queue identity differs')
+                if 'spent' in {r[1] for r in db.execute('PRAGMA table_info(cases)')}:
+                    raise ValueError('Budget migration already applied')
+                if db.execute("SELECT 1 FROM tasks WHERE state NOT IN ('complete','timeout') LIMIT 1").fetchone():
+                    raise ValueError('Diagnose active or failed work before budget migration')
+                if db.execute("SELECT 1 FROM attempts WHERE state!='complete' OR finished IS NULL LIMIT 1").fetchone():
+                    raise ValueError('Attempted failures cannot be retried by budget migration')
+                keys = [k for k, in db.execute("SELECT key FROM tasks WHERE state='timeout' AND token IS NULL AND result IS NULL")]
+                if len(keys) != db.execute("SELECT count(*) FROM tasks WHERE state='timeout'").fetchone()[0]:
+                    raise ValueError('Only unstarted timeouts may resume')
+                charged = defaultdict(float)
+                for case, raw in db.execute('SELECT t.case_name,a.result FROM attempts a JOIN tasks t ON t.key=a.task'):
+                    charged[case] += _loads_checkpoint(raw)['compute_seconds']
+                # Retain the exact former wall deadlines alongside the new
+                # accounting, so the policy correction remains reviewable.
+                db.execute('CREATE TABLE legacy_case_budgets AS SELECT * FROM cases')
+                db.execute('ALTER TABLE cases ADD COLUMN spent REAL NOT NULL DEFAULT 0')
+                db.execute('ALTER TABLE cases ADD COLUMN active_since REAL')
+                db.execute('UPDATE cases SET deadline=NULL')
+                db.executemany('UPDATE cases SET spent=? WHERE name=?', [(seconds,case) for case,seconds in charged.items()])
+                db.executemany("UPDATE tasks SET state='pending' WHERE key=?", [(key,) for key in keys])
+            queue = cls(path, identity)
+            queue.optimize()
+            return queue, dict(keys=keys, charged_compute_seconds=dict(charged),
+                               policy='active wall time; legacy attempt compute sums conservatively charged')
+        finally:
+            db.close()
 
     def set_pending_memory(self, memory_bytes, *, reason):
         """Change admission estimates without changing saved work or deadlines.

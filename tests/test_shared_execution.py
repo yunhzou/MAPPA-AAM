@@ -56,10 +56,15 @@ def test_budget_shared_across_tasks_and_explicit_lost_recovery(tmp_path, monkeyp
     assert not queue.finish('a', first['token'], 'complete', {})
     queue.retry('a')
     resumed = queue.claim('two', MEMORY, IDENTITY)
-    assert resumed['deadline'] == first['deadline'] == 110
+    assert first['deadline'] == 110
+    assert resumed['deadline'] == 111
     queue.finish('a', resumed['token'], 'complete', {})
     clock[0] = 111
-    assert queue.claim('two', MEMORY, IDENTITY)['state'] == 'finished'
+    queue.lease_seconds = 20
+    last = queue.claim('two', MEMORY, IDENTITY)
+    assert last['deadline'] == 119  # idle time did not consume the remaining eight seconds
+    clock[0] = 120
+    assert queue.finish('b', last['token'], 'timeout', {})
     assert queue.snapshot() == {'complete': 1, 'timeout': 1}
     queue.close()
 
@@ -99,7 +104,7 @@ def test_memory_handoff_preserves_live_work_specs_and_deadline(tmp_path):
     assert maintenance.set_pending_memory(MEMORY//2, reason='Lower-memory first pass') == 1
     next_task = queue.claim('new', MEMORY//2, IDENTITY)
     assert next_task['task'].key == 'b'
-    assert next_task['deadline'] == active['deadline']
+    assert next_task['deadline'] >= active['deadline']
     assert queue.db.execute('SELECT key,specification FROM tasks ORDER BY key').fetchall() == original
     assert queue.results(['a'])['a']['result'] == {'value': 7}
     maintenance.close()
@@ -120,7 +125,7 @@ def test_larger_memory_stage_retries_only_authorized_limits(tmp_path):
     assert queue.retry_memory_limits(MEMORY, 4*MEMORY, reason='Authorized memory second stage') == ['small']
     assert queue.claim('first-pass', MEMORY, IDENTITY)['state'] == 'insufficient_memory'
     second = queue.claim('second-pass', 4*MEMORY, IDENTITY)
-    assert second['task'].key == 'small' and second['deadline'] == first['deadline']
+    assert second['task'].key == 'small' and second['deadline'] >= first['deadline']
     queue.finish('small', second['token'], 'complete', {'value': 1})
     assert queue.claim('first-pass', MEMORY, IDENTITY)['task'].key == 'dependent'
     assert queue.results(['broken'])['broken']['state'] == 'error'
@@ -155,7 +160,7 @@ def test_memory_stage_reuses_completed_outputs_and_refuses_live_source(tmp_path)
     assert stage.snapshot() == {'complete': 1, 'pending': 1}
     assert stage.results(['saved'])['saved']['result'] == {'published': 'unchanged'}
     resumed = stage.claim('second', 4*MEMORY, IDENTITY)
-    assert resumed['task'].key == 'limited' and resumed['deadline'] == limited['deadline']
+    assert resumed['task'].key == 'limited' and resumed['deadline'] >= limited['deadline']
     assert json.loads((output/'selection.json').read_text())['keys'] == ['limited']
     stage.close()
 
@@ -201,6 +206,68 @@ def test_actual_deadline_does_not_block_other_cases(tmp_path):
     run(queue, identity=IDENTITY, scratch=tmp_path, bundles=tmp_path/'bundles', memory_bytes=MEMORY)
     assert queue.snapshot() == {'timeout': 1, 'complete': 1}
     queue.close()
+
+
+def test_budget_counts_parallel_work_once_and_excludes_publication_and_idle(tmp_path, monkeypatch):
+    import mappa.mappa_core.core.scheduler.queue as module
+    clock = [100.]
+    monkeypatch.setattr(module.time, 'time', lambda: clock[0])
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY, lease_seconds=1000)
+    queue.add([task(k, case='same', case_seconds=10) for k in ('a','b','c','d')])
+    a = queue.claim('one', MEMORY, IDENTITY)
+    clock[0] = 102
+    b = queue.claim('two', MEMORY, IDENTITY)
+    assert b['deadline'] == a['deadline'] == 110
+    clock[0] = 104
+    assert queue.computed('a', a['token'])
+    assert not queue.computed('b', 'wrong-token')
+    clock[0] = 106
+    assert queue.computed('b', b['token'])
+    assert queue.db.execute('SELECT spent,deadline FROM cases').fetchone() == (6, None)
+    clock[0] = 200  # publication can finish much later without consuming computation time
+    queue.finish('a', a['token'], 'complete', {})
+    queue.finish('b', b['token'], 'complete', {})
+    queue.backup(tmp_path/'backup.db')
+    queue.close()
+    clock[0] = 1000  # an allocation gap survives checkpoint/restart
+    queue = TaskQueue(tmp_path/'backup.db', IDENTITY)
+    c = queue.claim('three', MEMORY, IDENTITY)
+    assert c['deadline'] == 1004
+    clock[0] = 1005
+    assert queue.snapshot() == {'complete': 2, 'running': 1, 'timeout': 1}
+    queue.finish('c', c['token'], 'timeout', {})
+    assert queue.snapshot() == {'complete': 2, 'timeout': 2}
+    queue.close()
+
+
+def test_retired_budget_recovery_preserves_outputs_attempts_and_prior_charges(tmp_path):
+    path = tmp_path/'legacy.sqlite'
+    queue = TaskQueue(path, IDENTITY)
+    queue.add([task('saved', case='same', case_seconds=10),
+               task('unstarted', case='same', case_seconds=10, dependencies=('saved',))])
+    first = queue.claim('old', MEMORY, IDENTITY)
+    queue.finish('saved', first['token'], 'complete', dict(compute_seconds=3, published='keep'))
+    with queue.db:
+        queue.db.execute("UPDATE tasks SET state='timeout' WHERE key='unstarted'")
+        queue.db.execute('UPDATE cases SET seconds=9')  # already charged one second for a pilot
+        queue.db.execute('DROP TABLE active_work')
+        queue.db.execute('ALTER TABLE cases DROP COLUMN active_since')
+        queue.db.execute('ALTER TABLE cases DROP COLUMN spent')
+    outputs = queue.db.execute('SELECT result FROM tasks WHERE key="saved"').fetchone()
+    attempts = queue.db.execute('SELECT * FROM attempts').fetchall()
+    queue.close()
+    resumed, receipt = TaskQueue.recover_waiting_timeouts(path, IDENTITY)
+    assert receipt['keys'] == ['unstarted']
+    assert resumed.db.execute('SELECT seconds,spent FROM cases').fetchone() == (9,3)
+    assert resumed.db.execute('SELECT result FROM tasks WHERE key="saved"').fetchone() == outputs
+    assert resumed.db.execute('SELECT * FROM attempts').fetchall() == attempts
+    assert resumed.snapshot() == {'complete':1, 'pending':1}
+    claimed = resumed.claim('new', MEMORY, IDENTITY)
+    assert claimed['task'].key == 'unstarted'
+    assert claimed['deadline']-time.time() == pytest.approx(6, abs=.1)
+    resumed.close()
+    with pytest.raises(ValueError, match='already applied'):
+        TaskQueue.recover_waiting_timeouts(path, IDENTITY)
 
 
 @pytest.mark.parametrize('batch', [1, 2, 5, 10])

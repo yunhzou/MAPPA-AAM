@@ -182,9 +182,8 @@ def prepare_queue(plan, out, scratch):
                 read_blob(resource['blob'], scratch)
                 queue.db.execute("UPDATE tasks SET state='complete',result=? WHERE key=?",(result,key))
                 reused.append(dict(key=key, pilot=str(root), blob=asdict(resource['blob'])))
-            for name, seconds, deadline in prior.execute('SELECT name,seconds,deadline FROM cases'):
-                end = prior.execute('SELECT max(a.finished) FROM attempts a JOIN tasks t ON a.task=t.key WHERE t.case_name=?',(name,)).fetchone()[0]
-                charged[name] = charged.get(name,0.) + max(0.,end-(deadline-seconds))
+            for name, spent in prior.execute('SELECT name,spent FROM cases'):
+                charged[name] = charged.get(name,0.) + spent
         finally:
             prior.close()
     for name, seconds in charged.items():
@@ -228,6 +227,36 @@ def prepare_memory_stage(plan, out, scratch):
     return queue
 
 
+def prepare_budget_recovery(plan, out, scratch):
+    """Correct idle-time expiry from a verified, retired campaign checkpoint."""
+    import hashlib
+    import json
+    import sqlite3
+    from mappa.mappa_core.core.scheduler import TaskQueue
+    from .decoder_campaign import save
+    source = Path(plan['previous_stage'])
+    progress = json.loads((source/'progress.json').read_text())
+    if not progress.get('finished'):
+        raise ValueError('Previous campaign still owns work')
+    path = source/'queue.sqlite'
+    local = Path(scratch)/'queue.sqlite'
+    prior = sqlite3.connect('file:'+str(path)+'?mode=ro&immutable=1', uri=True)
+    copied = sqlite3.connect(local)
+    try:
+        prior.backup(copied)
+    finally:
+        copied.close()
+        prior.close()
+    with path.open('rb') as stream:
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    if digest != plan['previous_sha256']:
+        raise ValueError('Previous checkpoint changed')
+    queue, selection = TaskQueue.recover_waiting_timeouts(local, plan['identity'])
+    save(out/'selection.json', dict(selection, source_queue=str(path), source_sha256=digest,
+                                   states=queue.snapshot()))
+    return queue
+
+
 def execute(args):
     import json
     import os
@@ -262,8 +291,9 @@ def execute(args):
         raise SystemExit(128+signum)
     signal.signal(signal.SIGTERM, terminate)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        queue = (prepare_memory_stage(plan,out,scratch) if args.mode == 'memory-stage'
-                 else prepare_queue(plan,out,scratch))
+        prepare = {'memory-stage': prepare_memory_stage, 'budget-recovery': prepare_budget_recovery,
+                   'coordinator': prepare_queue}[args.mode]
+        queue = prepare(plan,out,scratch)
         try:
             serve_queue(queue,out,dict(campaign='fresh Golden matching and conversion'))
         finally:
@@ -273,7 +303,7 @@ def execute(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode',choices=('prepare','coordinator','worker','memory-stage'))
+    parser.add_argument('mode',choices=('prepare','coordinator','worker','memory-stage','budget-recovery'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--workers',type=int,default=1)
     parser.add_argument('--memory-bytes',type=int,

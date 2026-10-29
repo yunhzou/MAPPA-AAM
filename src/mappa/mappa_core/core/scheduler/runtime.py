@@ -150,6 +150,8 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                             if time.time() > claim['deadline']:
                                 state = 'timeout'
                                 break
+                            if not queue.computed(task.key, token):
+                                return
                             publishing = True
                             publication_deadline = time.monotonic()+publish_seconds
                             continue
@@ -238,7 +240,7 @@ def coordinator(queue, address, authkey):
     class Manager(BaseManager):
         pass
     Manager.register('queue', callable=lambda: queue,
-                     exposed=('claim', 'heartbeat', 'finish', 'snapshot', 'results'))
+                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results'))
     server = _QueueServer(Manager._registry, address, authkey, 'pickle')
     server.stop_event = threading.Event()
     thread = threading.Thread(target=server.serve_forever, daemon=True)

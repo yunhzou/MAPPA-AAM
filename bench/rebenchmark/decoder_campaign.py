@@ -44,9 +44,8 @@ def execute(args):
             progress=json.loads((root/'progress.json').read_text())
             assert progress.get('finished') and set(progress['states'])=={'complete'},progress
             db=sqlite3.connect('file:'+str(root/'queue.sqlite')+'?mode=ro',uri=True)
-            for case,seconds,deadline in db.execute('SELECT name,seconds,deadline FROM cases'):
-                end=db.execute('SELECT max(a.finished) FROM attempts a JOIN tasks t ON a.task=t.key WHERE t.case_name=?',(case,)).fetchone()[0]
-                charged[case]=charged.get(case,0.)+max(0.,end-(deadline-seconds))
+            for case,spent in db.execute('SELECT name,spent FROM cases'):
+                charged[case]=charged.get(case,0.)+spent
             for key,specification,state,result in db.execute('SELECT key,specification,state,result FROM tasks'):
                 assert key not in reused and state=='complete'
                 resource=_loads_checkpoint(result)

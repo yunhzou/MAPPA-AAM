@@ -288,14 +288,20 @@ selectable atom pairs. Shared reaction/batch renderers own presentation.
 One operation runs on a single CPU, local workers or cluster workers through
 `mappa_core/core/scheduler/`. Decompose independent case/direction/seed/cut work using original
 seed identities; do not create a second cluster implementation. Shared queues
-own leases, dependencies and original case deadlines. Scheduling cannot reset
-scientific budgets or silently retry completed/failed work.
+own leases, dependencies and remaining case budgets. A case's wall allowance
+runs only while at least one of its computations is active. Overlapping tasks
+count once; queue waiting, allocation gaps and publication do not consume it.
+The clock pauses at the last compute completion and survives checkpoints.
+Scheduling cannot reset scientific budgets or silently retry completed/failed work.
+Explicit recovery of retired legacy queues charges recorded attempt compute
+durations conservatively before reopening only never-attempted expired tasks;
+original deadlines, attempts and successful outputs remain available as evidence.
 
 Resource stages may change pending tasks' admission estimates without changing
 their immutable scientific specifications. A higher estimate can drain existing
 workers through normal retirement; lower-memory workers then consume the same
 queue. An explicitly authorized larger-memory stage retries only failures from
-the specified smaller guard, retaining original attempts and case deadlines.
+the specified smaller guard, retaining original attempts and remaining budgets.
 Record the actual worker guard with every outcome. Completed work is never
 repeated, and unrelated errors are not promoted to memory retries.
 
