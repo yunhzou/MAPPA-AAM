@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import pickle
 import sqlite3
+from mappa.artifacts import _loads_checkpoint
 
 
 def signature(task):
@@ -63,8 +64,8 @@ class Inventory:
         count = 0
         with self.db:
             for key, spec, state, result in source.execute('SELECT key,specification,state,result FROM tasks'):
-                self.replace(key, state, pickle.loads(result) if result else None,
-                             origin, allowed, pickle.loads(spec))
+                self.replace(key, state, _loads_checkpoint(result) if result else None,
+                             origin, allowed, _loads_checkpoint(spec))
                 count += 1
             self.db.execute('INSERT INTO sources VALUES (?,?)', (origin, count))
         source.close()

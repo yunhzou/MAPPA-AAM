@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import time
 
-from . import TaskQueue, connect, coordinator, run
+from mappa.mappa_core.core.scheduler import TaskQueue, connect, coordinator, run
 
 
 def main():

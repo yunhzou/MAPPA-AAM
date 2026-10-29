@@ -5,7 +5,7 @@ Local minimum+slack windows contain the corresponding prefix-union window.
 """
 import time
 
-from mappa.execution import Task
+from mappa.mappa_core.core.scheduler import Task
 from .saved_analysis import prepare_cut
 from .search import select_contexts
 

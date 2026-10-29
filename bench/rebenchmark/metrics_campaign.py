@@ -9,10 +9,11 @@ import shutil
 import sqlite3
 import tempfile
 
-from mappa.execution import Task, TaskQueue, read_blob
+from mappa.mappa_core.core.scheduler import Task, TaskQueue, read_blob
 from .decoder_campaign import save, serve_queue
 from .decoder_inventory import signature
 from .evidence import sha
+from mappa.artifacts import _loads_checkpoint
 
 
 def blob_record(blob):
@@ -33,7 +34,7 @@ def case_tasks(inventory, manifest, matching, *, memory_bytes, case_seconds):
             for key,state,data in inventory.execute('SELECT key,state,resource FROM tasks WHERE direction=? ORDER BY cut,seed',(int(direction),)):
                 expected.append(key)
                 if state=='complete':
-                    outputs.append(dict(key=key,blob=blob_record(pickle.loads(data)['blob'])))
+                    outputs.append(dict(key=key,blob=blob_record(_loads_checkpoint(data)['blob'])))
         if not expected:
             raise ValueError('Case is absent from the expected inventory')
         payload=dict(index=index,expected=expected,outputs=outputs,directions=directions,
@@ -84,7 +85,7 @@ def execute(out):
             for key,spec,state,data in source.execute('SELECT key,specification,state,result FROM tasks'):
                 if state!='complete' or key in reused:
                     raise ValueError('Incomplete or duplicate prior metric task')
-                resource=pickle.loads(data);value=read_blob(resource['blob'],scratch);task=pickle.loads(spec)
+                resource=_loads_checkpoint(data);value=read_blob(resource['blob'],scratch);task=_loads_checkpoint(spec)
                 if value['index']!=task.payload['index']:
                     raise ValueError('Prior metric output identity differs')
                 reused[key]=dict(task=task,resource=resource)

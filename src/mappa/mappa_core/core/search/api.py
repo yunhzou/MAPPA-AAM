@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, checkpoint_manifest, cut_sweep_items
-from mappa.execution.local_search import iter_cut_tasks, iter_finalized_tasks
+from mappa.mappa_core.core.scheduler.search import iter_cut_tasks, iter_finalized_tasks
 import json, gc, time
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -284,4 +284,3 @@ def search_aam_directions(problem, config=None, *, direction='both', workers=1,
         result = search_aam(directed, cfg, workers=workers, intermediate_dir=folder, **search_options)
         results.append(DirectedAAMResult(plan, result))
     return tuple(results)
-

@@ -176,7 +176,7 @@ mapping and subgraph APIs retain their signatures. Implementations now live unde
 `mappa.mappa_core.core.search`: `api`, `planning`, `session`, `branch`, `graph`,
 `shared`, `reuse`, `native`, `symmetry`, `partial`, `subgraph` and `competition`.
 Old internal search module paths are removed. Local workers use
-`mappa.execution.local_search`; the shared task queue retains its current API.
+`mappa.mappa_core.core.scheduler.search`; the shared task queue retains its current API.
 
 Trusted checkpoint and bundle readers explicitly relocate saved search class
 names. Rebuild the native engine after updating: the unused experimental

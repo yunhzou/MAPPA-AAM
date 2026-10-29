@@ -12,8 +12,9 @@ import socket
 import sqlite3
 import tempfile
 import time
-from mappa.execution import Blob, TaskQueue, read_blob, connect, coordinator, run
+from mappa.mappa_core.core.scheduler import Blob, TaskQueue, read_blob, connect, coordinator, run
 from rebenchmark.decoding import seed_tasks
+from mappa.artifacts import _loads_checkpoint
 
 
 def save(path,value):
@@ -48,10 +49,10 @@ def execute(args):
                 charged[case]=charged.get(case,0.)+max(0.,end-(deadline-seconds))
             for key,specification,state,result in db.execute('SELECT key,specification,state,result FROM tasks'):
                 assert key not in reused and state=='complete'
-                resource=pickle.loads(result)
+                resource=_loads_checkpoint(result)
                 value=read_blob(resource['blob'],scratch)
                 assert value['search_rerun'] is False
-                reused[key]=(pickle.loads(specification),dict(state=state,resource=dict(resource,blob=asdict(resource['blob'])),
+                reused[key]=(_loads_checkpoint(specification),dict(state=state,resource=dict(resource,blob=asdict(resource['blob'])),
                     pilot=str(root),complete=value['decoded']['complete'],minimum=value['decoded']['observed_minimum']))
             db.close()
         index_path=Path(plan['index'])

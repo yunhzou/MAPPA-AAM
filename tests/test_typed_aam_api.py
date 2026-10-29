@@ -78,7 +78,7 @@ def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
 
 def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, monkeypatch):
     import importlib,json
-    module=importlib.import_module('mappa.execution.local_search')
+    module=importlib.import_module('mappa.mappa_core.core.scheduler.search')
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)
     original=search_aam(problem,config,intermediate_dir=tmp_path)
@@ -140,7 +140,7 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
 
 
 def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
-    from mappa.execution import local_search as aam
+    from mappa.mappa_core.core.scheduler import local_search as aam
     from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)

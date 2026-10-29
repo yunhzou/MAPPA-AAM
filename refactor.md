@@ -120,7 +120,7 @@ and subgraph searches. The saved `graph.py` and deterministic `planning.py` are
 lower-level inputs; `session.py` combines them, while `api.py` owns public and
 bidirectional execution. Planning no longer calls the API.
 Local pool loops and worker state were extracted to `execution/local_search.py`;
-the next stage owns scheduler consolidation. Existing task/budget policy is unchanged.
+scheduler ownership is consolidated below. Existing task/budget policy is unchanged.
 
 ## 3. Consolidate execution scheduling
 
@@ -138,6 +138,13 @@ nested worker pools or reset budgets when moving work between workers.
 Keep work-reuse caches beside the algorithm that knows whether cached work is
 still valid. The task scheduler does not own all matching/search caches.
 Cluster-specific submission scripts remain under `bench/`.
+
+Implemented under `mappa_core/core/scheduler/`. Local cut workers and portable
+cut-task adapters share `search.py`, both calling the same `SearchSession`.
+The one shared queue/worker implementation serves local and remote transport;
+there is no cluster-specific scientific pipeline. Trusted queue and bundle
+records use the explicit checkpoint class relocation policy. Existing frozen
+campaigns retain their producing source and task-operation identities.
 
 ## 4. Clean postprocessing and decoding
 

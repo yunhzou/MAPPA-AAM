@@ -28,7 +28,7 @@ def test_parallel_prefixes_and_resume(tmp_path,reverse,monkeypatch):
         prefix=search_aam_checkpoints(problem,replace(config,seed_count=n),intermediate_dir=tmp_path/f'prefix{n}')
         for a,b in zip(parallel.cut_paths,prefix.cut_paths):
             assert select_contexts(read_raw_cut(a),range(n))==read_raw_cut(b)
-    import mappa.execution.local_search as core
+    import mappa.mappa_core.core.scheduler.search as core
     monkeypatch.setattr(core,'_search_cut',lambda *a:pytest.fail('Completed cut searched again'))
     resumed=search_aam_checkpoints(problem,config,intermediate_dir=tmp_path/'serial',resume=True)
     assert resumed.metrics.retained_branch_count==serial.metrics.retained_branch_count
@@ -49,7 +49,7 @@ def test_logged_resume_searches_only_missing_cut(tmp_path,monkeypatch):
     full=search(problem,config,tmp_path,1)
     expected={p.name:read_raw_cut(p) for p in full.cut_paths}
     missing=full.cut_paths[-1];missing.unlink()
-    from mappa.execution import local_search as core
+    from mappa.mappa_core.core.scheduler import local_search as core
     original=core._search_cut;calls=[]
     def observed(cut):
         calls.append(cut)

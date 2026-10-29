@@ -9,6 +9,7 @@ import sqlite3
 import threading
 import time
 import uuid
+from mappa.artifacts import _loads_checkpoint
 
 
 @dataclass(frozen=True)
@@ -133,9 +134,9 @@ class TaskQueue:
                             (worker, token, now+self.lease_seconds, key))
             self.db.execute('INSERT INTO attempts VALUES (?,?,?,?,NULL,?,NULL)',
                             (token, key, worker, now, 'running'))
-            dependencies = {d: pickle.loads(r) for d, r in self.db.execute('''
+            dependencies = {d: _loads_checkpoint(r) for d, r in self.db.execute('''
                 SELECT p.key,p.result FROM dependencies d JOIN tasks p ON p.key=d.dependency WHERE d.task=?''', (key,))}
-            return dict(state='work', task=pickle.loads(specification), token=token,
+            return dict(state='work', task=_loads_checkpoint(specification), token=token,
                         deadline=deadline, dependencies=dependencies)
 
     def heartbeat(self, key, token):
@@ -177,7 +178,7 @@ class TaskQueue:
             rows = (self.db.execute('SELECT key,state,result FROM tasks ORDER BY rowid') if keys is None
                     else (self.db.execute('SELECT key,state,result FROM tasks WHERE key=?', (key,)).fetchone()
                           for key in keys))
-            return {k: dict(state=s, result=pickle.loads(r) if r else None) for k, s, r in rows}
+            return {k: dict(state=s, result=_loads_checkpoint(r) if r else None) for k, s, r in rows}
 
     def optimize(self):
         """Prepare planner statistics after bulk task insertion, before workers.

@@ -15,7 +15,7 @@ import tarfile
 import tempfile
 import time
 
-from mappa.execution import Task, TaskQueue, coordinator, connect, run, read_blob
+from mappa.mappa_core.core.scheduler import Task, TaskQueue, coordinator, connect, run, read_blob
 from .evidence import read, save
 
 

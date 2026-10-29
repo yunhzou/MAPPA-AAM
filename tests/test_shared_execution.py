@@ -5,8 +5,8 @@ import time
 
 import pytest
 
-from mappa.execution import Task, TaskQueue, BundleWriter, read_blob, run, connect, coordinator
-from mappa.execution.search import plan_search, iter_cuts
+from mappa.mappa_core.core.scheduler import Task, TaskQueue, BundleWriter, read_blob, run, connect, coordinator
+from mappa.mappa_core.core.scheduler.search import plan_search, iter_cuts
 from mappa.mappa_core.core.search.session import SearchSession
 from mappa import AAMSearchConfig, AAMResult
 from mappa.domain import AAMSearchMetrics
@@ -45,7 +45,7 @@ def test_dependency_identity_resume_and_single_acceptance(tmp_path):
 
 
 def test_budget_shared_across_tasks_and_explicit_lost_recovery(tmp_path, monkeypatch):
-    import mappa.execution.queue as module
+    import mappa.mappa_core.core.scheduler.queue as module
     clock = [100.]
     monkeypatch.setattr(module.time, 'time', lambda: clock[0])
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY, lease_seconds=2)
@@ -237,7 +237,7 @@ def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
     from mappa import search_aam
     from mappa.final_branches import FinalBranchCatalogue
     from mappa.postprocessing import EventDecodeConfig, decode_events
-    from mappa.execution.decoding import plan_event_decoding
+    from mappa.mappa_core.core.scheduler.decoding import plan_event_decoding
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')
     catalogue = FinalBranchCatalogue(case).add_aam(aam)
@@ -305,9 +305,9 @@ def test_queue_optimization_preserves_dependency_and_claim_results(tmp_path):
 
 
 def test_stop_tolerates_child_exit_before_final_signal(monkeypatch):
-    from mappa.execution.runtime import _stop
+    from mappa.mappa_core.core.scheduler.runtime import _stop
     from types import SimpleNamespace
-    import mappa.execution.runtime as runtime
+    import mappa.mappa_core.core.scheduler.runtime as runtime
     child = SimpleNamespace(pid=12345, is_alive=lambda: True, join=lambda *args: None)
     monkeypatch.setattr(runtime.os, 'getpgid', lambda pid: pid)
     def gone(*args):

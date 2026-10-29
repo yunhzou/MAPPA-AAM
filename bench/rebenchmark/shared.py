@@ -3,8 +3,8 @@ from pathlib import Path
 import tarfile
 import tempfile
 
-from mappa.execution import Task
-from mappa.execution.search import plan_search
+from mappa.mappa_core.core.scheduler import Task
+from mappa.mappa_core.core.scheduler.search import plan_search
 
 
 def plan_direction(case, plan, reference, writer, *, seed_batch=10, case_seconds=3600., memory_bytes=2**30):
@@ -26,7 +26,7 @@ def plan_direction(case, plan, reference, writer, *, seed_batch=10, case_seconds
 
 def evaluate_seed(payload, workspace):
     from mappa import AAMProblem, AAMSearchPlan
-    from mappa.execution.search import _session
+    from mappa.mappa_core.core.scheduler.search import _session
     from .analysis import analyze_seed
     from .evidence import read
     session = _session(payload, workspace)

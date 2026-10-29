@@ -2,7 +2,7 @@ from dataclasses import replace
 import json
 import pickle
 import pytest
-from mappa.execution import Task, TaskQueue
+from mappa.mappa_core.core.scheduler import Task, TaskQueue
 from rebenchmark.decoder_inventory import Inventory, execute
 
 

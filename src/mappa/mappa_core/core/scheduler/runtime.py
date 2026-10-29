@@ -13,8 +13,8 @@ import time
 import traceback
 import uuid
 
-from .bundles import BundleWriter, read_blob
-from .resources import tree_rss
+from mappa.mappa_core.core.scheduler.bundles import BundleWriter, read_blob
+from mappa.mappa_core.core.scheduler.resources import tree_rss
 
 
 class Workspace:

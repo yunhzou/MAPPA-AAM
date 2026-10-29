@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import tempfile
 
-from mappa.execution import Blob, BundleWriter, read_blob
+from mappa.mappa_core.core.scheduler import Blob, BundleWriter, read_blob
 
 
 def relocate(value, old, new):

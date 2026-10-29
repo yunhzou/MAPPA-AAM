@@ -1,6 +1,6 @@
 # Shared execution
 
-`mappa.execution` distributes independent work across cases. One scientific
+`mappa.mappa_core.core.scheduler` distributes independent work across cases. One scientific
 operation runs unchanged on a single CPU, local processes, or remote workers.
 Each worker owns one compute process and one prepared case; it reuses that
 case's existing bounded native caches. It never starts a nested compute pool.
@@ -23,8 +23,8 @@ is the ordinary `AAMSearchConfig`.
 ```python
 from pathlib import Path
 import tempfile
-from mappa.execution import TaskQueue, BundleWriter, run
-from mappa.execution.search import plan_search, iter_cuts
+from mappa.mappa_core.core.scheduler import TaskQueue, BundleWriter, run
+from mappa.mappa_core.core.scheduler.search import plan_search, iter_cuts
 
 with tempfile.TemporaryDirectory() as scratch:
     queue = TaskQueue(Path(scratch) / 'queue.sqlite', identity='frozen-manifest-id')
@@ -57,11 +57,11 @@ transport. It is for trusted internal artifacts/workers, not public clients.
 The coordinator and worker commands are:
 
 ```text
-python -m mappa.execution serve --database /tmp/queue.sqlite \
+python -m mappa.mappa_core.core.scheduler serve --database /tmp/queue.sqlite \
   --backup /shared/run/queue-backup.sqlite --identity MANIFEST \
   --host COORDINATOR --port PORT --auth-file /shared/private-worker.key
 
-python -m mappa.execution worker --host COORDINATOR --port PORT \
+python -m mappa.mappa_core.core.scheduler worker --host COORDINATOR --port PORT \
   --auth-file /shared/private-worker.key --identity MANIFEST \
   --workers 4 --memory-mib 4096 --scratch /tmp --bundles /shared/run/results
 ```

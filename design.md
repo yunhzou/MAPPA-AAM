@@ -30,7 +30,7 @@ flowchart LR
 | Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `mappa_core/core/search/symmetry.py`, `action_reduction.py` |
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `family_query.py`, `reference_constraints.py` |
-| Execution | Task dependencies, workers, budgets and verified publication | `execution/` |
+| Execution | Task dependencies, workers, budgets and verified publication | `mappa_core/core/scheduler/` |
 | TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `mappa_core/core/search/partial.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
 | Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
 | Coordinate display | Rigid alignment and mapped-coordinate interpolation | `presentation/interpolation.py` |
@@ -43,7 +43,7 @@ Matching and reaction search are the completed ownership stages in
 Search owns direction/seed/cut plans, fragment locking, branch admission, saved
 graphs and optional competition. `session.py` owns per-cut scientific operations;
 `api.py` combines and persists their results. Existing local worker lifecycle and
-pool loops live in `execution/local_search.py`; distributed scheduling is unchanged.
+pool loops live in `mappa_core/core/scheduler/search.py`; local and remote workers retain the same task and budget semantics.
 
 ```mermaid
 flowchart TD
@@ -238,7 +238,7 @@ selectable atom pairs. Shared reaction/batch renderers own presentation.
 ## Execution, storage and evidence
 
 One operation runs on a single CPU, local workers or cluster workers through
-`execution/`. Decompose independent case/direction/seed/cut work using original
+`mappa_core/core/scheduler/`. Decompose independent case/direction/seed/cut work using original
 seed identities; do not create a second cluster implementation. Shared queues
 own leases, dependencies and original case deadlines. Scheduling cannot reset
 scientific budgets or silently retry completed/failed work.

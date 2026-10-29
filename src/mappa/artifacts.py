@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import io
 import gc
 import gzip
 import pickle
@@ -16,6 +17,13 @@ from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
 _CHECKPOINT_MODULES = {
+    ('mappa.execution.queue', 'Task'): 'mappa.mappa_core.core.scheduler.queue',
+    ('mappa.execution.queue', 'TaskQueue'): 'mappa.mappa_core.core.scheduler.queue',
+    ('mappa.execution.bundles', 'Blob'): 'mappa.mappa_core.core.scheduler.bundles',
+    ('mappa.execution.bundles', 'BundleWriter'): 'mappa.mappa_core.core.scheduler.bundles',
+    ('mappa.execution.runtime', 'Workspace'): 'mappa.mappa_core.core.scheduler.runtime',
+    ('mappa.execution.runtime', '_QueueServer'): 'mappa.mappa_core.core.scheduler.runtime',
+
     ('mappa.mappa_core.core.search.branch', '_StateKey'): 'mappa.mappa_core.core.search.branching.construction',
     ('mappa.mappa_core.core.search.branch', 'BranchLimitExceeded'): 'mappa.mappa_core.core.search.branching.construction',
     ('mappa.mappa_core.core.search.branch', '_Branch'): 'mappa.mappa_core.core.search.branching.construction',
@@ -132,6 +140,10 @@ class _CheckpointUnpickler(pickle.Unpickler):
 
 def _load_checkpoint(stream):
     return _CheckpointUnpickler(stream).load()
+
+
+def _loads_checkpoint(data):
+    return _load_checkpoint(io.BytesIO(data))
 
 
 def _aam_header(result):

@@ -2,7 +2,7 @@
 import pytest
 
 from mappa.artifacts import decoded_events_record
-from mappa.execution import Task
+from mappa.mappa_core.core.scheduler import Task
 from mappa.postprocessing import decode_events, EventDecodeConfig
 from mappa.final_branches import FinalBranchCatalogue
 from rebenchmark.decoding import seed_tasks, merge_windows, coverage
@@ -64,7 +64,7 @@ def test_tasks_share_direction_budget_and_keep_seed_cut_identity():
 
 def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypatch,tmp_path):
     from types import SimpleNamespace
-    from mappa.execution.runtime import Workspace
+    from mappa.mappa_core.core.scheduler.runtime import Workspace
     from rebenchmark.decoding import decode_seed
     problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CON',[(0,2,1)]))
     cat=catalogue(problem,{0:0,1:1})

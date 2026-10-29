@@ -9,11 +9,12 @@ import sqlite3
 import tempfile
 import time
 
-from mappa.execution import read_blob
+from mappa.mappa_core.core.scheduler import read_blob
 from mappa.final_branches import FinalBranchCatalogue
 from mappa.frag import bond_event_threshold
 from .campaign import load_plan
 from .saved_analysis import read_member
+from mappa.artifacts import _loads_checkpoint
 
 
 def check(queue_path, output):
@@ -26,7 +27,7 @@ def check(queue_path, output):
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         folder = Path(scratch)
         for key, specification, resource in db.execute('SELECT key,specification,result FROM tasks ORDER BY key'):
-            task, resource = pickle.loads(specification), pickle.loads(resource)
+            task, resource = _loads_checkpoint(specification), _loads_checkpoint(resource)
             value = read_blob(resource['blob'], scratch)
             assert task.operation == 'rebenchmark.decoding:decode_seed'
             assert key == f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'

@@ -1,6 +1,6 @@
 from dataclasses import replace
 import pytest
-from mappa.execution import TaskQueue
+from mappa.mappa_core.core.scheduler import TaskQueue
 from rebenchmark.decoder_inventory import Inventory
 from rebenchmark.metrics_campaign import case_tasks,prepare
 from test_decoder_inventory import task
