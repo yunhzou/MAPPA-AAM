@@ -5,13 +5,13 @@ import numpy as np
 import pytest
 
 from mappa import AAMSearchConfig
-from mappa.mappa_core.core.search.shared import AdaptiveSearchCondition
+from mappa.mappa_core.core.search.branching.shared import AdaptiveSearchCondition
 from mappa.mappa_core.core.search.planning import cut_sweep_items
-from mappa.mappa_core.core.search.reuse import FragmentRepair
+from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
 from mappa.domain import AAMProblem, MolecularEndpoint
-from mappa.mappa_core.core.search.native import find_islands_native
+from mappa.mappa_core.core.search.branching.native import find_islands_native
 from mappa.mappa_core.core.search.graph import frozen_value
-from mappa.mappa_core.core.search.shared import SharedSeedSearch
+from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
 
 
 def cut_sessions(problem, config):

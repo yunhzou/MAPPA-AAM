@@ -3,7 +3,7 @@
 from __future__ import annotations
 from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
 import gc, time
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
@@ -38,7 +38,7 @@ class SearchSession:
                         _nauty_orbits(target, wbo_tol=config.iso_tolerance))
         self.repair = None
         if execution in ('reused_native', 'shared_policies'):
-            from mappa.mappa_core.core.search.reuse import FragmentRepair
+            from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
             source = build_graph(problem.reactant.elements, problem.reactant.wbo,
                                  bond_cut=config.graph_floor)
             self.repair = FragmentRepair(source, target, self.context[3])
@@ -54,14 +54,14 @@ class SearchSession:
             source.remove_edges_from(cut)
             matcher = find_islands
         else:
-            from mappa.mappa_core.core.search.native import find_islands_native
+            from mappa.mappa_core.core.search.branching.native import find_islands_native
             source = view.source
             matcher = find_islands_native
         if self.execution == 'shared_policies':
             if seed_indices is not None:
                 raise ValueError('Shared-policy search is an indivisible cut task')
-            from mappa.mappa_core.core.search.shared import AdaptiveSearchCondition
-            from mappa.mappa_core.core.search.shared import SharedSeedSearch
+            from mappa.mappa_core.core.search.branching.shared import AdaptiveSearchCondition
+            from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
             condition = AdaptiveSearchCondition(source, target, (), target_orbits, None, cut, view)
             gc_enabled = gc.isenabled()
             try:

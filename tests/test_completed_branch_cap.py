@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from mappa import build_graph
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.growth.engine import grow_island
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
 from mappa.mappa_core.core.matching.growth import native
@@ -65,7 +65,7 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
     dest = graph(['C', 'C', 'O', 'O', 'N', 'F', 'Cl', 'Br'],
                  [(0, 4), (1, 5), (2, 6), (3, 7)])
     if engine == 'native':
-        from mappa.mappa_core.core.search.native import find_islands_native
+        from mappa.mappa_core.core.search.branching.native import find_islands_native
         search = find_islands_native
     else:
         search = find_islands

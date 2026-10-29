@@ -67,7 +67,7 @@ def analyze_cut(payload):
     from mappa.artifacts import read_raw_cut, write_graph_checkpoint
     from mappa.frag import build_graph
     from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     plan = load_plan(folder)
     ref = read(folder/'reference.json')
     path = folder/'cuts'/f'cut_{number:05d}.raw.pkl.gz'

@@ -114,6 +114,11 @@ saved graph, per-cut session, shared seed policies, reuse/native adapters, parti
 mapping, subgraph search and optional competition. The unused adaptive closure
 engine, its wrapper/native adapter and unused historical branch/symmetry helpers
 are removed. Live condition/result classes remain with shared seed search.
+Within search, `branching/` owns construction, locking, native/shared-seed
+execution, reuse, optional competition and finalization. `queries/` owns partial
+and subgraph searches. The saved `graph.py` and deterministic `planning.py` are
+lower-level inputs; `session.py` combines them, while `api.py` owns public and
+bidirectional execution. Planning no longer calls the API.
 Local pool loops and worker state were extracted to `execution/local_search.py`;
 the next stage owns scheduler consolidation. Existing task/budget policy is unchanged.
 

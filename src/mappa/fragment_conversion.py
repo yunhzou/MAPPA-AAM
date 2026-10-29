@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 from itertools import chain, product
 import time
 
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 from .final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
 from .frag import bond_event_threshold, build_graph
 from mappa.mappa_core.core.matching.policy import BondTolerance
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
 
 @dataclass

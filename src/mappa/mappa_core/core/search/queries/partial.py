@@ -3,7 +3,7 @@
 from __future__ import annotations
 import time
 from collections import Counter
-from mappa.mappa_core.core.search.branch import BranchLimitExceeded, find_islands
+from mappa.mappa_core.core.search.branching.construction import BranchLimitExceeded, find_islands
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.domain import AAMHierarchy
 from mappa.domain import (

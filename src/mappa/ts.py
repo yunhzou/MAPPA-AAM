@@ -6,7 +6,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from mappa.mappa_core.core.search.partial import search_core_assignments
+from mappa.mappa_core.core.search.queries.partial import search_core_assignments
 from .domain import (
     AAMSearchConfig,
     AtomAssignment,

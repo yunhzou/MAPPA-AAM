@@ -51,7 +51,7 @@ def test_actual_growth_can_choose_hydrogen_before_triple_bond():
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
 def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
-    from mappa.mappa_core.core.search.reuse import CutReplay, FragmentRepair
+    from mappa.mappa_core.core.search.branching.reuse import CutReplay, FragmentRepair
     source,_=molecule();orbits=_nauty_orbits(source,wbo_tol=.1)
     r=native.source_graph(source);p=native.target_graph(source,orbits)
     sessions=[CutReplay(source,source,orbits),FragmentRepair(source,source,orbits)]

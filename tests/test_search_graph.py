@@ -10,7 +10,7 @@ import pytest
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
 from mappa.mappa_core.core.search.api import finalize_graph_symmetry
 from mappa.artifacts import aam_from_record, aam_record
-from mappa.mappa_core.core.search.branch import _Branch, find_islands
+from mappa.mappa_core.core.search.branching.construction import _Branch, find_islands
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.representation.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.api import match_fragment

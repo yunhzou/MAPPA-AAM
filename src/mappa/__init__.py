@@ -11,8 +11,8 @@ from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
-from mappa.mappa_core.core.search.partial import search_core_assignments
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.queries.partial import search_core_assignments
 from .domain import (
     AAMProblem,
     AAMResult,
@@ -51,7 +51,7 @@ from .frag import (
     classify_bonds,
 )
 from .scoring import POLICY as TS_SCORING_POLICY, subset_score
-from mappa.mappa_core.core.search.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
+from mappa.mappa_core.core.search.queries.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
     "query_path", "convert_fragments", "FragmentConversion",
@@ -83,5 +83,5 @@ __all__ = [
 __version__ = "0.2.0"
 
 # Raw search helpers; signed-event decoding remains in mappa.postprocessing.
-from mappa.mappa_core.core.search.planning import DirectedAAMResult, search_aam_directions
+from mappa.mappa_core.core.search.api import DirectedAAMResult, search_aam_directions
 __all__ += ["DirectedAAMResult", "search_aam_directions"]

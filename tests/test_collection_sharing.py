@@ -3,7 +3,7 @@ from dataclasses import replace
 from mappa import AAMSearchConfig, search_aam
 from mappa.frag import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from native_cases import chain_problem as problem
 
 
@@ -48,7 +48,7 @@ def test_finalization_scoped_gc_preserves_records_and_restores_caller_state():
     import pytest
     from mappa import AAMSearchConfig, search_aam
     from mappa.frag import build_graph
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
     from native_cases import chain_problem as problem
     sample=problem(6)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 from dataclasses import asdict
 import gc, time
-from mappa.mappa_core.core.search.branch import _normalize_anchor_map
+from mappa.mappa_core.core.search.branching.construction import _normalize_anchor_map
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext

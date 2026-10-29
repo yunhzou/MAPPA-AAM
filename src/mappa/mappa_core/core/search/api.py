@@ -1,15 +1,15 @@
 """Public AAM search and checkpoint orchestration."""
 
 from __future__ import annotations
-from mappa.mappa_core.core.search.planning import checkpoint_manifest, cut_sweep_items
+from mappa.mappa_core.core.search.planning import AAMSearchPlan, checkpoint_manifest, cut_sweep_items
 from mappa.execution.local_search import iter_cut_tasks, iter_finalized_tasks
 import json, gc, time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from mappa.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
 from mappa.frag import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
 
 def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
@@ -247,3 +247,41 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     return AAMCheckpointResult(directory, paths,
         AAMSearchMetrics.from_record(metrics, time.perf_counter() - started),
         bool(metrics['subtree_branch_cap_count']))
+
+
+@dataclass(frozen=True)
+class DirectedAAMResult:
+    """A directed raw search plus conversion back to the user's atom indices."""
+    plan: AAMSearchPlan
+    aam: AAMResult
+
+    def to_input_mapping(self, mapping):
+        return self.plan.to_input_mapping(mapping)
+
+
+def search_aam_directions(problem, config=None, *, direction='both', workers=1,
+                          intermediate_dir=None, **search_options):
+    """Run forward, reverse, smaller-first, larger-first, or both searches.
+
+    Results retain native directed families; only concrete witnesses are
+    inverted. Both directions run sequentially and share the worker ceiling.
+    Search anchors are supplied in input R->P indices and inverted as needed.
+    Post-processing and cross-direction output identity remain separate.
+    """
+    from pathlib import Path
+    config = config or AAMSearchConfig()
+    choices = {'forward': (False,), 'reverse': (True,), 'both': (False, True),
+               'smaller_first': (problem.source_atom_count > problem.target_atom_count,),
+               'larger_first': (problem.source_atom_count <= problem.target_atom_count,)}
+    if direction not in choices:
+        raise ValueError(f'unknown direction: {direction}')
+    results = []
+    for reverse in choices[direction]:
+        directed = AAMProblem(problem.product, problem.reactant, problem.name) if reverse else problem
+        cfg = replace(config, anchors=tuple((p,r) for r,p in config.anchors)) if reverse else config
+        plan = AAMSearchPlan(problem, directed, cfg, reverse)
+        folder = None if intermediate_dir is None else Path(intermediate_dir) / plan.direction
+        result = search_aam(directed, cfg, workers=workers, intermediate_dir=folder, **search_options)
+        results.append(DirectedAAMResult(plan, result))
+    return tuple(results)
+

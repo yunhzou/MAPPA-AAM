@@ -93,8 +93,8 @@ def test_asymmetric_future_neighbors_keep_non_equivalent_matches():
 
 def test_decoding_transports_later_fragments_with_the_earlier_group():
     from mappa import AAMProblem, query_path
-    from mappa.mappa_core.core.search.branch import find_islands
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.construction import find_islands
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from test_family_query import endpoint
 
     source = graph(['C'] * 4, [(0, 1, 1), (1, 2, 1), (2, 0, 1)])
@@ -126,9 +126,9 @@ def test_locked_ring_then_free_hydrogen():
     import time
     import z3
     from mappa import AAMProblem
-    from mappa.mappa_core.core.search.branch import find_islands
+    from mappa.mappa_core.core.search.branching.construction import find_islands
     from mappa.family_query import compile_path
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from test_family_query import endpoint
 
     ring, target = rings()

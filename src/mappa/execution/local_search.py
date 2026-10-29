@@ -5,7 +5,7 @@ from mappa.mappa_core.core.search.session import SearchSession
 import gc, multiprocessing as mp, time
 from pathlib import Path
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
 
 def _initialize_search(problem, config, execution='reference'):

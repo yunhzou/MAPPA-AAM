@@ -5,7 +5,7 @@ from collections import Counter, deque
 from dataclasses import replace, dataclass
 import time
 from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
-from mappa.mappa_core.core.search.branch import _Branch
+from mappa.mappa_core.core.search.branching.construction import _Branch
 from mappa.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
@@ -16,7 +16,7 @@ from mappa.mappa_core.core.search.graph import (
     FragmentTransition,
     SearchStop,
 )
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
 

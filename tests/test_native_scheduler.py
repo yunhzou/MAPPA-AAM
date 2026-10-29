@@ -3,12 +3,12 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.search.reuse import FragmentRepair
-from mappa.mappa_core.core.search.native import find_islands_native
+from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+from mappa.mappa_core.core.search.branching.native import find_islands_native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from test_cut_replay import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')

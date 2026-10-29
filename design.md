@@ -92,6 +92,23 @@ These are dependency levels inside the fragment matcher, not new stages in the
 scientific algorithm. Growth and iso matching retain their shared compressed
 representation. Only the public entry and contracts are exported from matching.
 
+## Search dependency levels
+
+```mermaid
+flowchart TD
+    API[Public / bidirectional API] --> Execution[Scheduler transport]
+    Execution --> Session[Per-cut session]
+    Session --> Plans[Seed / cut plans]
+    Session --> Branching[Branching: locking / shared seeds / reuse]
+    Queries[Partial / subgraph queries] --> Branching
+    Branching --> Matcher[Fragment matcher]
+    Branching --> Graph[Saved search graph]
+```
+
+`branching/` contains the branch engines; `queries/` contains searches with partial
+or subgraph objectives. Planning produces inputs and never invokes the public API.
+The native and Python branch engines retain their existing policies.
+
 ## Data architecture
 
 ```text

@@ -4,7 +4,7 @@ from __future__ import annotations
 from mappa.mappa_core.core.matching.graphs import _coerce_graph
 from dataclasses import dataclass
 from collections.abc import Sequence
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.policy import (
     _edge_wbo,
     _growth_edge_supported,

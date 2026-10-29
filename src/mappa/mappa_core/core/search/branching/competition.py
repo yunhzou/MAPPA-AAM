@@ -96,8 +96,8 @@ def compete_fragments(a, config=None):
     from mappa.mappa_core.core.matching.api import match_fragment
     from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
     from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-    from mappa.mappa_core.core.search.native import find_islands_native
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.native import find_islands_native
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.event_patterns import SignedEventIndex
     from mappa.mappa_core.core.matching.growth.native import available
 

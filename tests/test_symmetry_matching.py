@@ -8,8 +8,8 @@ from mappa import classify_bonds
 from mappa import build_graph
 
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
-from mappa.mappa_core.core.search.partial import _branch_symmetry_record, _core_mapping_variants
-import mappa.mappa_core.core.search.branch as branch_mod
+from mappa.mappa_core.core.search.queries.partial import _branch_symmetry_record, _core_mapping_variants
+import mappa.mappa_core.core.search.branching.construction as branch_mod
 from mappa.mappa_core.core.matching.symmetry.canonical import _PartialMappingCanonicalizer
 from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
 from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands

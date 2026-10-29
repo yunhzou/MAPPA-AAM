@@ -2,11 +2,11 @@
 import numpy as np
 import pytest
 
-from mappa.mappa_core.core.search.reuse import CutReplay
+from mappa.mappa_core.core.search.branching.reuse import CutReplay
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.branching.construction import find_islands
 
 pytestmark = pytest.mark.skipif(not native.built(), reason="native engine not built")
 
@@ -122,7 +122,7 @@ def test_full_search_graph_is_identical():
 
 
 def test_shared_finalization_preserves_all_generators_and_reports_reuse():
-    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
     source=graph(8,[(i,i+1) for i in range(7)]+[(0,3)])
     target=graph(8,[(i,i+1) for i in range(7)]+[(2,5)])

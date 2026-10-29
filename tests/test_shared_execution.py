@@ -11,7 +11,7 @@ from mappa.mappa_core.core.search.session import SearchSession
 from mappa import AAMSearchConfig, AAMResult
 from mappa.domain import AAMSearchMetrics
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from test_reused_aam_api import problem
 
 
