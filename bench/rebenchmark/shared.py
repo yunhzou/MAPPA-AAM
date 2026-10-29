@@ -162,7 +162,9 @@ def prepare_queue(plan, out, scratch):
     reused, charged = [], {}
     for root in map(Path, plan['pilots']):
         prior_plan = json.loads((root/'plan.json').read_text())
-        for key in ('index_sha256', 'commit', 'memory_bytes'):
+        if prior_plan['commit'] not in plan['pilot_commits']:
+            raise ValueError('Pilot commit is not explicitly accepted')
+        for key in ('index_sha256', 'memory_bytes'):
             if prior_plan[key] != plan[key]:
                 raise ValueError(f'Pilot {key} differs')
         if not json.loads((root/'progress.json').read_text()).get('finished'):
@@ -210,8 +212,20 @@ def execute(args):
     if args.mode == 'worker':
         endpoint = json.loads((out/'endpoint.json').read_text())
         queue = connect((endpoint['host'],endpoint['port']),(out/'worker.key').read_bytes())
-        run(queue, workers=args.workers, identity=plan['identity'], scratch=os.environ['TMPDIR'],
-            bundles=out/'bundles', memory_bytes=plan['memory_bytes'])
+        claim_until = None
+        if 'SLURM_JOB_ID' in os.environ:
+            import datetime, re, subprocess, time
+            job = subprocess.check_output(['scontrol','show','job',os.environ['SLURM_JOB_ID'],'-o'],text=True)
+            end = datetime.datetime.fromisoformat(re.search(r'EndTime=(\S+)',job)[1]).timestamp()
+            claim_until = min(end - plan['case_seconds'] - 180, plan['claim_until'])
+        states = run(queue, workers=args.workers, identity=plan['identity'], scratch=os.environ['TMPDIR'],
+            bundles=out/'bundles', memory_bytes=plan['memory_bytes'], claim_until=claim_until)
+        if claim_until is not None:
+            from .decoder_campaign import save
+            import socket
+            folder = out/'retirements'; folder.mkdir(exist_ok=True)
+            save(folder/f'{os.environ["SLURM_JOB_ID"]}-{socket.gethostname()}.json',
+                dict(states=states, claim_until=claim_until, utc=time.time(), allocation_end=end))
         return
     def terminate(signum, frame):
         raise SystemExit(128+signum)

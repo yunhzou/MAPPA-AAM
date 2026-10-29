@@ -52,3 +52,10 @@ Successful tasks also report publication CPU and the compute process's lifetime
 high-water RSS (not a per-task peak). Conversion additionally logs loading, setup,
 decoding, independent event-count checks and record construction. Node allocation
 RSS/CPU comes from Slurm accounting and is kept separate from per-process data.
+
+Fresh-run workers stop claiming tasks one directional allowance plus three
+minutes before their Slurm allocation ends. Already claimed work keeps its
+original deadline and publication guard. The retirement receipt permits a new
+allocation to use the same queue without retrying accepted or active work.
+Pilots from an earlier operational revision require an explicit accepted commit
+list and recorded source diff; task specifications and input index must match.

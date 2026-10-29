@@ -93,7 +93,7 @@ def _stop(process):
     process.join()
 
 
-def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, publish_seconds=120.):
+def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, publish_seconds=120., claim_until=None):
     """One compute CPU, no nested pool; limits produce explicit incomplete states.
 
     psutil is required by the execution extra. The task's memory request is an
@@ -110,6 +110,8 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
             if not parent.poll(60) or parent.recv()[0] != 'ready':
                 raise RuntimeError('Compute worker failed to initialize')
             while True:
+                if claim_until is not None and time.time() >= claim_until:
+                    return 'retired'
                 claim = queue.claim(worker_id, memory_bytes, identity)
                 if claim['state'] in ('finished', 'insufficient_memory'):
                     return claim['state']
@@ -191,7 +193,7 @@ def _supervise(queue, options):
         pass
 
 
-def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes):
+def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes, claim_until=None):
     """Use the common worker with one CPU or several local compute processes.
 
     memory_bytes is a per-worker reservation: workers * memory_bytes must fit
@@ -201,7 +203,7 @@ def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes):
         raise ValueError('Positive worker count and per-worker memory are required')
     for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
         os.environ[name] = '1'
-    options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes)
+    options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes, claim_until=claim_until)
     if workers == 1:
         _supervise(queue, options)
     else:

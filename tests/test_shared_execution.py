@@ -383,7 +383,7 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     index = tmp_path/'index.json'
     index.write_text(json.dumps(dict(directions=[dict(direction=0,blob=asdict(writer.put(tasks)))])))
     plan = dict(index=str(index),index_sha256=hashlib.sha256(index.read_bytes()).hexdigest(),
-        identity=IDENTITY,commit='test-source',memory_bytes=MEMORY,pilots=[])
+        identity=IDENTITY,commit='test-source',memory_bytes=MEMORY,pilots=[],pilot_commits=['test-source'])
     (pilot/'plan.json').write_text(json.dumps(plan))
     (pilot/'progress.json').write_text(json.dumps(dict(finished=True)))
     full = tmp_path/'full'; full.mkdir()
@@ -394,7 +394,20 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     assert reused.db.execute('SELECT seconds FROM cases').fetchone()[0] < 3600
     assert len(json.loads((full/'reused.json').read_text())) == 5
     reused.close()
-    plan['commit'] = 'changed'
+    plan['pilot_commits'] = []
     other = tmp_path/'other'; other.mkdir()
-    with pytest.raises(ValueError,match='Pilot commit differs'):
+    with pytest.raises(ValueError,match='Pilot commit'):
         prepare_queue(plan,other,other)
+
+
+def test_allocation_retirement_does_not_claim_or_reset_pending_work(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    queue.add([task('later', case='same',case_seconds=100)])
+    run(queue,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',
+        memory_bytes=MEMORY,claim_until=time.time()-1)
+    assert queue.snapshot() == {'pending':1}
+    assert queue.db.execute('SELECT deadline FROM cases').fetchone()[0] is None
+    assert queue.db.execute('SELECT count(*) FROM attempts').fetchone()[0] == 0
+    run(queue,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',memory_bytes=MEMORY)
+    assert queue.snapshot() == {'complete':1}
+    queue.close()
