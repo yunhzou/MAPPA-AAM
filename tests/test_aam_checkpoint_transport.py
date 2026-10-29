@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from mappa.mappa_core.core.scheduler import local_search as aam
+from mappa.mappa_core.core.scheduler import search as aam
 from mappa.mappa_core.core.search.session import _GrowthCounts
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
