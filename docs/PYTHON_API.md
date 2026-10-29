@@ -168,3 +168,17 @@ Their implementation is now under `mappa.mappa_core.core.matching`, together wit
 fragment growth and compressed symmetry. Old internal `fragment`, `matcher` and
 `growth` import paths are removed. The checkpoint reader explicitly relocates
 saved class names to their new modules; it does not retain a second implementation.
+
+### Search implementation ownership
+
+Public `mappa.search_aam`, `search_aam_checkpoints`, direction planning, partial
+mapping and subgraph APIs retain their signatures. Implementations now live under
+`mappa.mappa_core.core.search`: `api`, `planning`, `session`, `branch`, `graph`,
+`shared`, `reuse`, `native`, `symmetry`, `partial`, `subgraph` and `competition`.
+Old internal search module paths are removed. Local workers use
+`mappa.execution.local_search`; the shared task queue retains its current API.
+
+Trusted checkpoint and bundle readers explicitly relocate saved search class
+names. Rebuild the native engine after updating: the unused experimental
+`FragmentChoices` export has been removed. Shared seed search and optional
+fragment competition remain supported.

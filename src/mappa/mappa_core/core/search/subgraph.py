@@ -1,16 +1,16 @@
-"""General weighted-subgraph matching API."""
+"""Weighted-subgraph search using the shared branch engine."""
+
 from __future__ import annotations
-
 from mappa.mappa_core.core.matching.graphs import _coerce_graph
-
 from dataclasses import dataclass
 from collections.abc import Sequence
-
-
-from .alignment.branch import find_islands
-from mappa.mappa_core.core.matching.policy import _edge_wbo, _growth_edge_supported
-from mappa.mappa_core.core.matching.policy import as_node_match_policy
-from .search_graph import AAMSearchGraph, SearchPath, frozen_value
+from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.matching.policy import (
+    _edge_wbo,
+    _growth_edge_supported,
+    as_node_match_policy,
+)
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchPath, frozen_value
 
 
 @dataclass(frozen=True)
@@ -46,8 +46,6 @@ class SubgraphSearchResult(Sequence):
     @property
     def capped(self):
         return self.graph.capped
-
-
 
 
 def _query_edges_supported(g_q, g_t, mapping, iso_tol):

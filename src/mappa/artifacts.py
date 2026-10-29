@@ -12,10 +12,10 @@ from .domain import (
     AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext,
     ResolvedMechanism, TSResult,
 )
-from .search_graph import AAMSearchGraph
+from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
-_MATCHING_CHECKPOINT_MODULES = {
+_CHECKPOINT_MODULES = {
     ('mappa.search_symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
     ('mappa.conditioned_symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
     ('mappa.fragment', 'FragmentMatchConfig'): 'mappa.mappa_core.core.matching.records',
@@ -37,6 +37,37 @@ _MATCHING_CHECKPOINT_MODULES = {
     ('mappa.matcher.policy', 'ElementNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.state', '_SymBlock'): 'mappa.mappa_core.core.matching.state',
     ('mappa.matcher.state', '_SymCand'): 'mappa.mappa_core.core.matching.state',
+
+    ('mappa.aam', '_GrowthCounts'): 'mappa.mappa_core.core.search.session',
+    ('mappa.aam', 'SearchSession'): 'mappa.mappa_core.core.search.session',
+    ('mappa.aam', 'AAMCheckpointResult'): 'mappa.mappa_core.core.search.api',
+    ('mappa.alignment.branch', '_StateKey'): 'mappa.mappa_core.core.search.branch',
+    ('mappa.alignment.branch', 'BranchLimitExceeded'): 'mappa.mappa_core.core.search.branch',
+    ('mappa.alignment.branch', '_Branch'): 'mappa.mappa_core.core.search.branch',
+    ('mappa.adaptive_search', 'AdaptiveResult'): 'mappa.mappa_core.core.search.shared',
+    ('mappa.adaptive_search', 'AdaptiveSearchCondition'): 'mappa.mappa_core.core.search.shared',
+    ('mappa.shared_seed_search', '_SharedGraphBuilder'): 'mappa.mappa_core.core.search.shared',
+    ('mappa.shared_seed_search', 'SharedSeedSearch'): 'mappa.mappa_core.core.search.shared',
+    ('mappa.cut_replay', 'CutReplayView'): 'mappa.mappa_core.core.search.reuse',
+    ('mappa.cut_replay', '_CutSession'): 'mappa.mappa_core.core.search.reuse',
+    ('mappa.cut_replay', 'CutReplay'): 'mappa.mappa_core.core.search.reuse',
+    ('mappa.cut_replay', 'FragmentRepair'): 'mappa.mappa_core.core.search.reuse',
+    ('mappa.search_orientation', 'AAMSearchPlan'): 'mappa.mappa_core.core.search.planning',
+    ('mappa.search_orientation', 'DirectedAAMResult'): 'mappa.mappa_core.core.search.planning',
+    ('mappa.search_graph', '_BondRecords'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchContext'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchState'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'FragmentTransition'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchStop'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchPath'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'PathRealization'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchBranch'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'AAMSearchGraph'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.search_graph', 'SearchGraphBuilder'): 'mappa.mappa_core.core.search.graph',
+    ('mappa.subgraph', 'SubgraphMatch'): 'mappa.mappa_core.core.search.subgraph',
+    ('mappa.subgraph', 'SubgraphSearchResult'): 'mappa.mappa_core.core.search.subgraph',
+    ('mappa.competition', 'CompetitionConfig'): 'mappa.mappa_core.core.search.competition',
+    ('mappa.competition', 'CompetitionResult'): 'mappa.mappa_core.core.search.competition',
 }
 
 
@@ -51,8 +82,8 @@ class _CheckpointUnpickler(pickle.Unpickler):
             if module == legacy or module.startswith(legacy + "."):
                 module = "mappa" + module[len(legacy):]
                 break
-        # Explicit class-path relocation for checkpoints saved before matching consolidation.
-        module = _MATCHING_CHECKPOINT_MODULES.get((module, name), module)
+        # Explicit class-path relocation for checkpoints saved before ownership consolidation.
+        module = _CHECKPOINT_MODULES.get((module, name), module)
         return super().find_class(module, name)
 
 

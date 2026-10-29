@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from mappa import build_graph
-from mappa.alignment.branch import find_islands
+from mappa.mappa_core.core.search.branch import find_islands
 from mappa.mappa_core.core.matching.growth import grow_island
 from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
 from mappa.mappa_core.core.matching import native
@@ -65,7 +65,7 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
     dest = graph(['C', 'C', 'O', 'O', 'N', 'F', 'Cl', 'Br'],
                  [(0, 4), (1, 5), (2, 6), (3, 7)])
     if engine == 'native':
-        from mappa.native_search import find_islands_native
+        from mappa.mappa_core.core.search.native import find_islands_native
         search = find_islands_native
     else:
         search = find_islands
@@ -83,7 +83,8 @@ def test_old_intermediate_cap_checkpoints_cannot_resume(tmp_path, checkpoint_onl
     import json
     from mappa import AAMProblem, AAMSearchConfig, search_aam
     from mappa.domain import MolecularEndpoint
-    from mappa.aam import checkpoint_manifest, search_aam_checkpoints
+    from mappa.mappa_core.core.search.planning import checkpoint_manifest
+    from mappa.mappa_core.core.search.api import search_aam_checkpoints
 
     endpoint = MolecularEndpoint(('C',), np.zeros((1, 3)), np.zeros((1, 1)))
     problem = AAMProblem(endpoint, endpoint)

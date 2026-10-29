@@ -1,12 +1,11 @@
-"""Finalize exact symmetry on recorded fragment transitions, without events."""
+"""Exact symmetry finalization for recorded search transitions."""
+
+from __future__ import annotations
 from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
 from dataclasses import replace
 import gc
-
 from mappa.mappa_core.core.matching.state import candidate_from_record
-from .search_graph import frozen_value
-
-
+from mappa.mappa_core.core.search.graph import frozen_value
 
 
 def finalize_graph_symmetry(graph, target, *, iso_tolerance, states=None, workspace=None):

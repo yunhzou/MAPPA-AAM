@@ -7,7 +7,7 @@ from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, matc
 from mappa.alignment.post_aam import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
 from mappa.mappa_core.core.matching import native
 from mappa.final_branches import FinalFamily
-from mappa.alignment.branch import find_islands
+from mappa.mappa_core.core.search.branch import find_islands
 from mappa.mappa_core.core.matching.state import candidate_from_record
 from test_bond_tolerance import event_threshold
 from test_growth_compression_exactness import graph, represented

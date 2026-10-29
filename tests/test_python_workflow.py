@@ -89,7 +89,7 @@ def test_bidirectional_anchors_and_unequal_sizes():
 
 
 def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
-    from mappa.aam import checkpoint_manifest
+    from mappa.mappa_core.core.search.planning import checkpoint_manifest
     from dataclasses import replace
 
     cfg = AAMSearchConfig(sweep_cuts=False, random_seed=9)
@@ -104,7 +104,7 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
 
 
 def test_competition_retains_baseline_and_hard_anchors(reaction):
-    from mappa.competition import compete_fragments, CompetitionConfig
+    from mappa.mappa_core.core.search.competition import compete_fragments, CompetitionConfig
     from mappa.mappa_core.core.matching.native import available
 
     if not available():

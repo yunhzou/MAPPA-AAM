@@ -13,7 +13,7 @@ from sympy.combinatorics import Permutation, PermutationGroup
 from mappa import AAMProblem, MolecularEndpoint
 from mappa.event_patterns import SignedEventIndex, _response_bounds
 from reference_event_decoder import extract_path_events
-from mappa.search_graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
 from reference_dense_events import DeltaPatterns

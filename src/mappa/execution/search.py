@@ -2,12 +2,13 @@
 from dataclasses import asdict
 
 from .queue import Task
-from ..aam import SearchSession, cut_seed
-from ..alignment.branch import _generate_seed_orders
-from ..alignment.sweep import cut_sweep_items
+from mappa.mappa_core.core.search.session import SearchSession
+from mappa.mappa_core.core.search.planning import cut_seed
+from mappa.mappa_core.core.search.planning import _generate_seed_orders
+from mappa.mappa_core.core.search.planning import cut_sweep_items
 from ..domain import AAMProblem, AAMSearchConfig, MolecularEndpoint
 from ..frag import build_graph
-from ..search_graph import AAMSearchGraph
+from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
 def _endpoint(endpoint):
@@ -74,7 +75,7 @@ def search_batch(payload, workspace):
 
 def finalize_cut(payload, workspace):
     from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
-    from ..search_symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
     session = _session(payload, workspace)
     graphs, indices, metrics = [], [], []
     for key in payload['batches']:

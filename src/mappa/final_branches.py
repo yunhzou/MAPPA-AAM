@@ -118,8 +118,7 @@ class FinalFamily:
 
     def as_path(self, problem, source_edges=None):
         """A flat equivalent family for the existing exact decoder/query API."""
-        from .search_graph import (AAMSearchGraph, SearchContext, SearchState,
-                                   FragmentTransition, SearchStop)
+        from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
         n = problem.source_atom_count
         floor, iso = self.policy
         required = set(self.required_edges)

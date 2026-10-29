@@ -3,7 +3,7 @@ import numpy as np
 
 from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
 from mappa.domain import MolecularEndpoint
-from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
 
 def endpoint(elements,edges):

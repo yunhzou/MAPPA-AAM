@@ -7,11 +7,11 @@ import pytest
 
 from mappa.execution import Task, TaskQueue, BundleWriter, read_blob, run, connect, coordinator
 from mappa.execution.search import plan_search, iter_cuts
-from mappa.aam import SearchSession
+from mappa.mappa_core.core.search.session import SearchSession
 from mappa import AAMSearchConfig, AAMResult
 from mappa.domain import AAMSearchMetrics
-from mappa.search_graph import AAMSearchGraph
-from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.graph import AAMSearchGraph
+from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from test_reused_aam_api import problem
 
 
@@ -165,7 +165,7 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
     else:
         execute(queue)
     assert set(queue.snapshot()) == {'complete'}, queue.results()
-    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.mappa_core.core.search.planning import cut_sweep_items
     for case, config, keys in expected:
         session = SearchSession(case, config)
         for cut, observed in zip(cut_sweep_items(case.reactant.wbo, config.cut_floor), iter_cuts(queue, keys, tmp_path)):

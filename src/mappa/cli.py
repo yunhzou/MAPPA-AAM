@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .aam import search_aam
+from mappa.mappa_core.core.search.api import search_aam
 from .artifacts import (
     decoded_events_record, reaction_from_record, write_aam_bundle, write_ts_record,
 )

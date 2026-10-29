@@ -1,22 +1,24 @@
-"""Exact policy sharing for sequential AAM, without rerunning common decisions.
+"""Shared seed-policy search and its condition/result records."""
 
-Policies retain the original shuffled order, repeated passes and synchronized
-frontier cap. Only equal conditional states/decisions and fragment records are
-shared. This is not a smaller seed sample or a reference-guided recovery pass.
-"""
+from __future__ import annotations
 from collections import Counter, deque
-from dataclasses import replace
+from dataclasses import replace, dataclass
 import time
-
-from .aam import cut_seed
-from .adaptive_search import AdaptiveResult
-from .alignment.branch import _Branch, _generate_seed_orders
-from .domain import AAMResult, AAMSearchMetrics
+from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
+from mappa.mappa_core.core.search.branch import _Branch
+from mappa.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from .search_graph import SearchContext, SearchGraphBuilder, FragmentTransition, SearchStop
-from .search_symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.graph import (
+    SearchContext,
+    SearchGraphBuilder,
+    FragmentTransition,
+    SearchStop,
+)
+from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+from mappa.frag import build_graph
+from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
 
 
 class _SharedGraphBuilder(SearchGraphBuilder):
@@ -203,3 +205,35 @@ unchanged. Identical growth output is never expanded into bijections.
             subtree_branch_cap_count=sum(s.reason=='capped' for s in graph.stops)), self.elapsed)
         return AdaptiveResult(AAMResult(self.problem, self.config, graph, metrics), self.work,
             self.growth_calls, 0, self.reused_states, pending, not self.agenda)
+
+
+@dataclass(frozen=True)
+class AdaptiveResult:
+    aam: AAMResult
+    work: int
+    growth_calls: int
+    closure_calls: int
+    reused_states: int
+    pending: tuple
+    exhausted: bool
+
+
+@dataclass(frozen=True)
+class AdaptiveSearchCondition:
+    """Prepared directed graphs and one explicit topology/seed condition."""
+    source: object
+    target: object
+    order: tuple
+    orbits: object
+    workspace: object
+    cuts: tuple = ()
+    growth_replay: object = None
+
+    @classmethod
+    def uncut(cls, problem, config):
+        source, target = [build_graph(endpoint.elements, endpoint.wbo,
+            bond_cut=config.graph_floor) for endpoint in (problem.reactant, problem.product)]
+        order = tuple(_generate_seed_orders(source, 1, rng_seed=config.random_seed,
+                                             seed_selection=config.seed_selection)[0])
+        return cls(source, target, order, _nauty_orbits(target, wbo_tol=config.iso_tolerance),
+                   ConditionedSymmetryWorkspace(target, config.iso_tolerance))

@@ -44,8 +44,8 @@ def test_saved_continuation_matches_direct_evaluation(tmp_path, monkeypatch, rev
     assert [task.key for task in tasks] == ['00042/cut/00000/seed/01']
     direct = tmp_path/'direct'
     analyze_seed(plan, read(folder/'reference.json'), graph, 1, direct, 0)
-    import mappa.aam
-    monkeypatch.setattr(mappa.aam, '_search_cut', lambda *args: pytest.fail('Search must not run'))
+    import mappa.execution.local_search
+    monkeypatch.setattr(mappa.execution.local_search, '_search_cut', lambda *args: pytest.fail('Search must not run'))
     workspace = Workspace(tmp_path, tmp_path/'bundles')
     actual = evaluate(tasks[0].payload, workspace)
     expected = read(direct/'evaluation.json')

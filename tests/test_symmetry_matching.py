@@ -7,17 +7,9 @@ import pytest
 from mappa import classify_bonds
 from mappa import build_graph
 
-from mappa.alignment import (
-    _generate_seed_orders,
-)
-from mappa.alignment.sweep import (
-    attach_completed_candidate_groups,
-    _branch_symmetry_record,
-    _color_groups_from_blocks,
-    _core_mapping_variants,
-    complete_chosen_automorphism_groups,
-)
-import mappa.alignment.branch as branch_mod
+from mappa.mappa_core.core.search.planning import _generate_seed_orders
+from mappa.mappa_core.core.search.partial import _branch_symmetry_record, _core_mapping_variants
+import mappa.mappa_core.core.search.branch as branch_mod
 from mappa.mappa_core.core.matching.canonical import _PartialMappingCanonicalizer
 from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
 from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
@@ -123,7 +115,7 @@ def test_partial_mapping_certificate_requires_exact_endpoint_transporter():
 
 
 def test_heavy_only_cut_items_keep_hydrogens_but_do_not_cut_xh_edges():
-    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.mappa_core.core.search.planning import cut_sweep_items
 
     elements = ["C", "C", "H", "H"]
     wbo = np.zeros((4, 4))
@@ -155,9 +147,6 @@ def test_live_branch_cap_discards_only_overflowing_parent_subtree(monkeypatch):
 
     import mappa.mappa_core.core.matching.api as fragment_mod
     monkeypatch.setattr(fragment_mod, "grow_island", fake_grow)
-    monkeypatch.setattr(
-        branch_mod, "_chemistry_orbit_signature",
-        lambda mapping, *_args, **_kwargs: tuple(sorted(mapping.items())))
 
     branches = branch_mod.find_islands(
         g_r, g_p, [0, 1], orbit_dedup=False, max_branches=2)
@@ -185,20 +174,6 @@ def test_symcand_reassigns_correlated_block_witness():
     assert repaired.materialize()[1] == 0
 
 
-def test_mapping_variation_blocks_capture_branch_dedupe_pool():
-    blocks = branch_mod._mapping_variation_blocks([
-        {0: 11, 4: 9, 8: 0},
-        {0: 9, 4: 11, 8: 0},
-    ])
-
-    assert blocks == [{
-        "source": "interbranch",
-        "r_atoms": [0, 4],
-        "p_atoms": [9, 11],
-        "extendable": False,
-        "open": False,
-        "assignments": 2,
-    }]
 
 
 def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
@@ -437,136 +412,12 @@ def test_nauty_masks_positive_wbo_below_graph_floor():
     assert orbits[3] == orbits[4]
 
 
-def test_chosen_automorphism_closure_recovers_early_singleton():
-    pytest.importorskip("pynauty")
-    wbo = np.zeros((4, 4))
-    for h, value in enumerate((0.982056, 0.980196, 0.960315), start=1):
-        wbo[0, h] = wbo[h, 0] = value
-    graph = build_graph(["C", "H", "H", "H"], wbo, bond_cut=0.2)
-    partial = {
-        "fragments": [{"fragment_index": 0, "island_idx": 0,
-                       "fragment": [0, 1, 2, 3]}],
-        "blocks": [{
-            "r_atoms": [1, 2], "p_atoms": [1, 2], "source": "sym_block",
-        }],
-    }
-
-    complete = complete_chosen_automorphism_groups(
-        partial, {0: 0, 1: 1, 2: 2, 3: 3}, graph, graph, 1.0)
-
-    assert complete["color_groups"] == [{
-        "r_atoms": [1, 2, 3],
-        "p_atoms": [1, 2, 3],
-        "sources": ["chosen_candidate_automorph"],
-    }]
 
 
-def test_stored_branch_group_preserves_correlated_local_orbits():
-    wbo = np.zeros((5, 5))
-    for atom in range(1, 5):
-        wbo[0, atom] = wbo[atom, 0] = 1.0
-    graph = build_graph(["C", "H", "H", "F", "F"], wbo, bond_cut=0.2)
-    hierarchy = {"fragments": [{
-        "fragment_index": 0,
-        "island_idx": 1,
-        "fragment": [0, 1, 2, 3, 4],
-    }]}
-
-    complete = complete_chosen_automorphism_groups(
-        hierarchy, {atom: atom for atom in range(5)},
-        graph, graph, 1.0,
-        exact_target_generators=[
-            [0, 2, 1, 3, 4],
-            [0, 1, 2, 4, 3],
-        ])
-
-    groups = {
-        (block.get("center_R"), tuple(block["r_atoms"]))
-        for block in complete["blocks"]
-    }
-    assert (0, (1, 2)) in groups
-    assert (0, (3, 4)) in groups
-    assert all(block["source"] == "stored_AAM_branch_mapping_group"
-               for block in complete["blocks"])
 
 
-def test_cross_branch_assignment_relation_preserves_observed_shuffles():
-    wbo = np.zeros((5, 5))
-    for atom in range(1, 5):
-        wbo[0, atom] = wbo[atom, 0] = 1.0
-    graph = build_graph(["M", "H", "H", "F", "F"], wbo, bond_cut=0.2)
-    hierarchy = {"fragments": [{
-        "fragment_index": 0,
-        "fragment": [0, 1, 2, 3, 4],
-    }]}
-    selected = {atom: atom for atom in range(5)}
-
-    complete = complete_chosen_automorphism_groups(
-        hierarchy, selected, graph, graph, 1.0,
-        exact_target_generators=[],
-        exact_branch_mappings=[
-            selected,
-            {0: 0, 1: 2, 2: 1, 3: 3, 4: 4},
-            {0: 0, 1: 1, 2: 2, 3: 4, 4: 3},
-        ])
-
-    cross_branch = {
-        (block["center_R"], tuple(block["r_atoms"]))
-        for block in complete["blocks"]
-        if block["source"] == "AAM_cross_branch_assignment"
-    }
-    assert cross_branch == {(0, (1, 2)), (0, (3, 4))}
 
 
-def test_completed_candidate_groups_are_cached_after_branch_reduction(
-        monkeypatch):
-    from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
-
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    graph = build_graph(["H", "H"], wbo, bond_cut=0.2)
-    state = {
-        "witness": {0: 0, 1: 1},
-        "blocks": [{
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "source": "exact_automorph_group",
-        }],
-        "automorph_blocks": [{
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-        }],
-        "multiplicity": 2,
-    }
-    branch = {"hierarchy": {"fragments": [{
-        "fragment_index": 0,
-        "fragment": [0, 1],
-        "symmetry": state,
-    }]}}
-    calls = 0
-    original = _CandidateAutomorphismCanonicalizer.atom_generators
-
-    def measured(self, candidate):
-        nonlocal calls
-        calls += 1
-        return original(self, candidate)
-
-    monkeypatch.setattr(
-        _CandidateAutomorphismCanonicalizer, "atom_generators", measured)
-    completed, metrics = attach_completed_candidate_groups(
-        [branch, branch], graph, wbo_tol=1.0, return_metrics=True)
-
-    assert calls == 1
-    assert metrics == {
-        "completed_candidate_group_requests": 2,
-        "completed_candidate_group_calculations": 1,
-        "completed_candidate_group_cache_hits": 1,
-    }
-    for item in completed:
-        symmetry = item["hierarchy"]["fragments"][0]["symmetry"]
-        assert symmetry["automorph_generators"] == [[1, 0]]
-        assert symmetry["automorph_group_source"] == (
-            "completed_candidate_after_branch_family_reduction")
 
 
 def test_nauty_orbits_drop_into_single_step_extension():
@@ -897,37 +748,6 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     assert cycle_signature['id'] != diagonal_signature['id']
 
 
-def test_color_groups_do_not_transitively_merge_overlapping_blocks():
-    groups = _color_groups_from_blocks([
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "source": "sym_block",
-        },
-        {
-            "r_atoms": [2, 3],
-            "p_atoms": [11, 12],
-            "source": "island_automorph",
-        },
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "source": "exact_automorph_group",
-        },
-    ])
-
-    assert groups == [
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "sources": ["exact_automorph_group", "sym_block"],
-        },
-        {
-            "r_atoms": [2, 3],
-            "p_atoms": [11, 12],
-            "sources": ["island_automorph"],
-        },
-    ]
 
 
 def test_generate_seed_orders_honors_trial_cap():

@@ -2,11 +2,11 @@
 import numpy as np
 import pytest
 
-from mappa.alignment.branch import find_islands
-from mappa.cut_replay import FragmentRepair
+from mappa.mappa_core.core.search.branch import find_islands
+from mappa.mappa_core.core.search.reuse import FragmentRepair
 from mappa.mappa_core.core.matching import native
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from test_cut_replay import graph, raw
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')

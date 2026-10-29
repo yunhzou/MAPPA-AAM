@@ -1,14 +1,7 @@
-"""Mechanism-independent fragment-decision DAG and deterministic persistence.
+"""Persistent fragment-decision search graph."""
 
-Runtime frontier objects reference this graph; they never copy entire paths.
-Joins are inserted only at synchronized frontier admission. Independent seed
-and cut contexts retain separate nodes when graphs are combined.
-"""
 from __future__ import annotations
-
-import copy
-import gc
-import json
+import copy, gc, json
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from functools import cached_property
@@ -94,7 +87,7 @@ class FragmentTransition:
         """Typed fragment view; a join has no fragment placement."""
         if self.match is None:
             return None
-        from .alignment.post_aam import AAMHierarchy
+        from mappa.alignment.post_aam import AAMHierarchy
         return AAMHierarchy.from_record({'fragments': (self.match,)}).fragments[0]
 
 
@@ -134,7 +127,7 @@ class SearchPath:
 
     @cached_property
     def hierarchy(self):
-        from .alignment.post_aam import AAMHierarchy
+        from mappa.alignment.post_aam import AAMHierarchy
         fragments = []
         for edge_id in self.transitions:
             edge = self.graph.transitions[edge_id]
@@ -224,13 +217,13 @@ class SearchBranch:
     @property
     def fragment_pairs(self):
         """Atom-set identity; mapping choices and matching settings are contents."""
-        from .final_branches import final_fragment_pairs
+        from mappa.final_branches import final_fragment_pairs
         path = self.paths[0]
         return final_fragment_pairs(path.graph.states[path.terminal])
 
     @property
     def representative(self):
-        from .domain import AtomAssignment
+        from mappa.domain import AtomAssignment
         return AtomAssignment.from_mapping(self.paths[0].mapping)
 
     @property
@@ -281,7 +274,7 @@ class AAMSearchGraph:
 
     def fragment_placement(self, edge_id):
         """Parse each decision once; exact permutations are shared per graph."""
-        from .alignment.post_aam import AAMHierarchy
+        from mappa.alignment.post_aam import AAMHierarchy
         edge = self.transitions[edge_id]
         if edge.match is None:
             return None
@@ -313,7 +306,7 @@ class AAMSearchGraph:
         All original paths remain available: grouping never selects only one
         mapping or assumes that an intrinsic group exhausts a saved family.
         """
-        from .final_branches import final_fragment_pairs
+        from mappa.final_branches import final_fragment_pairs
         groups, keys = {}, {}
         for path in self.paths():
             if path.terminal not in keys:

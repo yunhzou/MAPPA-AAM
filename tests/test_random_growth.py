@@ -11,7 +11,7 @@ from mappa.mappa_core.core.matching import native
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-from mappa.aam import checkpoint_manifest
+from mappa.mappa_core.core.search.planning import checkpoint_manifest
 
 
 @pytest.mark.smoke
@@ -51,7 +51,7 @@ def test_actual_growth_can_choose_hydrogen_before_triple_bond():
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
 def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
-    from mappa.cut_replay import CutReplay, FragmentRepair
+    from mappa.mappa_core.core.search.reuse import CutReplay, FragmentRepair
     source,_=molecule();orbits=_nauty_orbits(source,wbo_tol=.1)
     r=native.source_graph(source);p=native.target_graph(source,orbits)
     sessions=[CutReplay(source,source,orbits),FragmentRepair(source,source,orbits)]
@@ -89,7 +89,7 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
 
 def test_old_pickle_policy_is_labeled_and_cannot_replay_as_new():
     import pickle
-    from mappa.search_graph import SearchContext
+    from mappa.mappa_core.core.search.graph import SearchContext
     from mappa.search_trajectory import build_trajectory
     context=SearchContext((0,),(0,),(0,))
     object.__delattr__(context,'growth_policy')

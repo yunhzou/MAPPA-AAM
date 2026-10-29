@@ -43,14 +43,17 @@ class SearchProfiler:
         setattr(owner,name,value)
 
     def __enter__(self):
-        from mappa import aam, artifacts
-        from mappa.search_graph import AAMSearchGraph
+        from mappa.mappa_core.core.search import api as aam
+        from mappa import artifacts
+        from mappa.execution import local_search
+        from mappa.mappa_core.core.search.graph import AAMSearchGraph
         for name in ('write_raw_cut','write_graph_checkpoint','write_aam_checkpoint'):
             self.patch(artifacts,name,self.wrapper(getattr(artifacts,name),'persistence'))
         for name in ('read_raw_cut','read_graph_checkpoint','read_aam_checkpoint'):
             self.patch(artifacts,name,self.wrapper(getattr(artifacts,name),'loading'))
-        self.patch(aam,'_search_cut',self.wrapper(aam._search_cut,'cut_search_inclusive'))
-        self.patch(aam,'finalize_graph_symmetry',self.wrapper(aam.finalize_graph_symmetry,'symmetry'))
+        self.patch(local_search,'_search_cut',self.wrapper(local_search._search_cut,'cut_search_inclusive'))
+        for owner in (aam, local_search):
+            self.patch(owner,'finalize_graph_symmetry',self.wrapper(owner.finalize_graph_symmetry,'symmetry'))
         combine = AAMSearchGraph.combine.__func__
         self.patch(AAMSearchGraph,'combine',classmethod(self.wrapper(combine,'graph_merge')))
         self.wall_start, self.cpu_start = time.perf_counter(), cpu_total()

@@ -8,15 +8,15 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-from mappa.aam import finalize_graph_symmetry
+from mappa.mappa_core.core.search.api import finalize_graph_symmetry
 from mappa.artifacts import aam_from_record, aam_record
-from mappa.alignment.branch import _Branch, find_islands
+from mappa.mappa_core.core.search.branch import _Branch, find_islands
 from mappa.frag import build_graph
 from mappa.mappa_core.core.matching.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 
 
 def network(elements, bonds=()):
@@ -230,7 +230,7 @@ def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ances
 
 
 def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
-    import mappa.search_symmetry as symmetry
+    import mappa.mappa_core.core.search.symmetry as symmetry
     target = network(['C'] * 3)
     recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
     branch = _Branch(recorder)

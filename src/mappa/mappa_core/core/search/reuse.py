@@ -1,12 +1,7 @@
-"""Experimental dependency-checked cut replay, separate from search policy.
+"""Dependency-checked reuse across cut searches."""
 
-One session belongs to a fixed uncut source and target. It memoizes complete
-conditional growth calls and resumes compressed growth at the first topology
-read affected by a changed cut. It never selects seeds, cuts, or branches.
-Cache eviction affects time only. Production ``search_aam`` does not enable it.
-"""
+from __future__ import annotations
 from dataclasses import dataclass
-
 from mappa.mappa_core.core.matching import native
 
 

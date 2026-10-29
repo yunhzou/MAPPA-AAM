@@ -3,7 +3,7 @@ import pytest
 import sys
 from pathlib import Path
 from test_event_patterns import problem,saved_path
-from mappa.search_graph import AAMSearchGraph,SearchContext,SearchState,FragmentTransition,SearchStop
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 from mappa.final_branches import FinalBranchCatalogue,canonical_actions,final_fragment_pairs
 from mappa.event_patterns import SignedEventIndex
 from reference_event_decoder import extract_path_events

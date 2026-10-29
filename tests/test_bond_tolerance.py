@@ -124,7 +124,7 @@ def test_noncontiguous_atom_indices(backend):
 
 
 def test_cut_replay_keeps_its_conditional_policy(monkeypatch):
-    from mappa.cut_replay import CutReplay
+    from mappa.mappa_core.core.search.reuse import CutReplay
     monkeypatch.setenv('MAPPA_NATIVE', '1')
     assert native.built()
     source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])

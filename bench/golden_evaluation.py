@@ -15,7 +15,7 @@ from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa.domain import AAMProblem, MolecularEndpoint
 from mappa.family_query import query_path
-from mappa.search_graph import frozen_value
+from mappa.mappa_core.core.search.graph import frozen_value
 
 
 def prepare(mapped_reaction):

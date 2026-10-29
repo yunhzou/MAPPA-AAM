@@ -3,12 +3,12 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from mappa.alignment.branch import find_islands
+from mappa.mappa_core.core.search.branch import find_islands
 from mappa.mappa_core.core.matching import native
-from mappa.cut_replay import FragmentRepair
-from mappa.native_search import find_islands_native
+from mappa.mappa_core.core.search.reuse import FragmentRepair
+from mappa.mappa_core.core.search.native import find_islands_native
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from mappa.search_symmetry import finalize_graph_symmetry
+from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
 from test_cut_replay import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
@@ -18,7 +18,7 @@ pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built
 @pytest.mark.parametrize('failure', [None, 'search', 'construction'])
 def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
     import gc
-    from mappa.search_graph import AAMSearchGraph
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
     original_state = gc.isenabled()
     source = graph(3, [(0, 1), (1, 2)], ['C', 'O', 'H'])
     search = native._engine.search_fragments

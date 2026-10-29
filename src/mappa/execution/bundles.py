@@ -54,7 +54,8 @@ def _read_verified(stream, local, blob):
         raise ValueError('Result bundle checksum differs')
     local.seek(0)
     with gzip.GzipFile(fileobj=local, mode='rb') as compressed:
-        return pickle.load(compressed)
+        from mappa.artifacts import _load_checkpoint
+        return _load_checkpoint(compressed)
 
 
 class BundleWriter:

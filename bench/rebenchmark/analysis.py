@@ -67,7 +67,7 @@ def analyze_cut(payload):
     from mappa.artifacts import read_raw_cut, write_graph_checkpoint
     from mappa.frag import build_graph
     from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
-    from mappa.search_symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
     plan = load_plan(folder)
     ref = read(folder/'reference.json')
     path = folder/'cuts'/f'cut_{number:05d}.raw.pkl.gz'
@@ -95,7 +95,7 @@ def analyze_cut(payload):
 def analyze(folder,workers):
     import multiprocessing as mp
     from .campaign import load_plan
-    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.mappa_core.core.search.planning import cut_sweep_items
     folder=Path(folder);plan=load_plan(folder)
     cuts=cut_sweep_items(plan.problem.reactant.wbo,plan.config.cut_floor)
     payloads=[(str(folder),n) for n in range(len(cuts))]

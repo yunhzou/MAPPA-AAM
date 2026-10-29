@@ -1,16 +1,12 @@
-"""Experimental native scheduling with the unchanged Python search-graph API.
+"""Native branch-search adapter."""
 
-No seed selection, cut policy, mechanism collection or production dispatch lives
-here. Unsupported native graph inputs are errors, not another search method.
-"""
+from __future__ import annotations
 from dataclasses import asdict
-import gc
-import time
-
-from .alignment.branch import _normalize_anchor_map
+import gc, time
+from mappa.mappa_core.core.search.branch import _normalize_anchor_map
 from mappa.mappa_core.core.matching import native
 from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-from .search_graph import AAMSearchGraph, SearchContext
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext
 
 
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,

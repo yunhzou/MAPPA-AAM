@@ -132,7 +132,7 @@ public:
                 }
                 result=grow_island(source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
                                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,
-                                   trace.get(),previous.get(),resume,nullptr,nullptr,nullptr,random_seed);
+                                   trace.get(),previous.get(),resume,nullptr,nullptr,random_seed);
                 if (trace) {
                     trace->result=result;
                     insert(std::move(key),std::move(trace));

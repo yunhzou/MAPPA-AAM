@@ -32,7 +32,7 @@ class SeedLog:
         self.directory.mkdir(parents=True, exist_ok=True)
 
     def __enter__(self):
-        from mappa import native_search
+        from mappa.mappa_core.core.search import native as native_search
         self.original = native_search.find_islands_native
         original, directory = self.original, self.directory
         def observed(*args, **kwargs):
@@ -50,7 +50,7 @@ class SeedLog:
         return self
 
     def __exit__(self, *exception):
-        from mappa import native_search
+        from mappa.mappa_core.core.search import native as native_search
         native_search.find_islands_native = self.original
 
 

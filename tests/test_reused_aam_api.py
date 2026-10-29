@@ -36,7 +36,7 @@ def test_partial_composition_anchors_and_distinct_cut_floor(sizes):
 
 @pytest.mark.parametrize('workers',[1,2])
 def test_cross_backend_checkpoint_resume_requires_no_mapping_rerun(tmp_path,monkeypatch,workers):
-    import mappa.aam as module
+    import mappa.execution.local_search as module
     case=problem();config=AAMSearchConfig(seed_count=2)
     original=search_aam(case,config,workers=workers,execution='reused_native',
         intermediate_dir=tmp_path,archive_format='checkpoint')

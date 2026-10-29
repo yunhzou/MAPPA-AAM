@@ -161,7 +161,7 @@ public:
                 Entry entry(base.n);
                 GrowthTrace trace(active_source);trace.store_checkpoints=false;
                 result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),nullptr,random_seed);
+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),random_seed);
                 entry.key=std::move(key);entry.result=result;entry.mapping=mapping;
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);

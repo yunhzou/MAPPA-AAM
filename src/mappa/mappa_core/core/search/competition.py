@@ -1,20 +1,9 @@
-"""Experimental, opt-in fragment competition; disabled in the default pipeline.
+"""Optional fragment competition and backbiting."""
 
-An explicit call may add this stage after sweep search and before decoding.
-It is not part of the published MAPPA algorithm.
-
-TODO: establish a controlled coverage/cost benefit and improve proposal
-scheduling and deduplication before considering default integration.
-
-The local-collision policy is extracted from the validated 140-case campaign.
-No dataset, reference, filesystem, environment-variable, or CLI dependencies.
-"""
-
+from __future__ import annotations
 from dataclasses import dataclass, asdict
-from .domain import AAMResult
-import math
-import time
-import collections
+from mappa.domain import AAMResult
+import math, time, collections
 
 
 @dataclass(frozen=True)
@@ -50,7 +39,7 @@ class CompetitionResult:
     elapsed_seconds: float
 
     def final_catalogue(self):
-        from .final_branches import FinalBranchCatalogue
+        from mappa.final_branches import FinalBranchCatalogue
 
         catalogue = FinalBranchCatalogue(self.baseline.problem).add_aam(
             self.baseline, "baseline"
@@ -102,14 +91,14 @@ def compete_fragments(a, config=None):
     anchors remain fixed. No event decoding is performed here. Parent ordering
     uses observed event counts with the AAM config's event thresholds.
     """
-    from .domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
-    from .frag import build_graph
+    from mappa.domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
+    from mappa.frag import build_graph
     from mappa.mappa_core.core.matching.api import match_fragment
     from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
     from mappa.mappa_core.core.matching.orbits import _nauty_orbits
-    from .native_search import find_islands_native
-    from .search_symmetry import finalize_graph_symmetry
-    from .event_patterns import SignedEventIndex
+    from mappa.mappa_core.core.search.native import find_islands_native
+    from mappa.mappa_core.core.search.symmetry import finalize_graph_symmetry
+    from mappa.event_patterns import SignedEventIndex
     from mappa.mappa_core.core.matching.native import available
 
     if not available():
@@ -169,7 +158,7 @@ def compete_fragments(a, config=None):
     )
     po = _nauty_orbits(target, wbo_tol=cfg.iso_tolerance)
     from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
-    from .search_validation import RepresentativeValidationWorkspace
+    from mappa.search_validation import RepresentativeValidationWorkspace
 
     symmetry_workspace = ConditionedSymmetryWorkspace(target, cfg.iso_tolerance)
     validation_workspace = RepresentativeValidationWorkspace(problem)

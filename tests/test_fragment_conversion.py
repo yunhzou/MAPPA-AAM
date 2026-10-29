@@ -172,7 +172,7 @@ def test_artifact_preserves_converted_compression_and_scope(backend):
 @pytest.mark.smoke
 def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
     import mappa.fragment_conversion as module
-    from mappa.search_graph import SearchStop
+    from mappa.mappa_core.core.search.graph import SearchStop
     original = module.find_islands
     def capped(*args, **kwargs):
         graph = original(*args, **kwargs)

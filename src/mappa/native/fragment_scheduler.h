@@ -204,7 +204,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                     ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
                                       &branch->islands,branch->deferred,anchor,random_seed).first
                     : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed);
+                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,random_seed);
                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);
                 if (result.capped) {
                     graph.stop(*branch,"capped","fragment_growth",result.cap.count,result.cap.limit);

@@ -2,13 +2,7 @@ from dataclasses import replace
 import numpy as np
 import pytest
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.search_graph import (
-    AAMSearchGraph,
-    SearchContext,
-    SearchState,
-    FragmentTransition,
-    SearchStop,
-)
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 from mappa.search_validation import RepresentativeValidationWorkspace
 from itertools import combinations
 

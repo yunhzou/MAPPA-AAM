@@ -1393,14 +1393,6 @@ struct GrowResult {
     BranchCap cap{0, 0};
 };
 
-// Optional observation only. No heap/edge matrix copies and no change to growth.
-struct FragmentFrontier {
-    std::vector<Cand> cands;
-    std::vector<uint8_t> fragment;
-    std::vector<Pair> deferred;
-    int next_atom;
-};
-
 void finish_fragment(const Source& R, const Target& P, const std::vector<int>& mapping,
                      std::vector<Cand> cands, const std::vector<uint8_t>& fragment,
                      const std::vector<Pair>& deferred, double iso_tol, int min_lock_size,
@@ -1447,7 +1439,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        const GrowthTrace* previous = nullptr, int resume_step = -1,
                        GrowthDependencies* dependencies = nullptr,
                        ExtensionCache* extension_cache = nullptr,
-                       std::vector<FragmentFrontier>* choices = nullptr, uint64_t random_seed = 42,
+                       uint64_t random_seed = 42,
                        GrowthObservation* observation = nullptr) {
     SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);
     GrowResult result;
@@ -1657,8 +1649,6 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
             if (dependencies) dependencies->boundary(ctx.sig_fragment);
             new_cands = extend_sym_cands(cands, ctx, canon, certificate_calls, extension_cache);
         }
-        if (choices && !new_cands.empty())
-            choices->push_back({cands,fragment,deferred,n});
         if (!new_cands.empty()) {
             prof.commits++;
             prof.max_cands_after = std::max(prof.max_cands_after, (long)new_cands.size());
@@ -1918,7 +1908,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          nullptr,nullptr,-1,nullptr,nullptr,nullptr,random_seed,observe ? &observation : nullptr);
+                          nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -1940,7 +1930,6 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
 #include "growth_replay.h"
 #include "fragment_repair.h"
 #include "fragment_scheduler.h"
-#include "fragment_choices.h"
 
 }  // namespace
 
@@ -1979,5 +1968,4 @@ PYBIND11_MODULE(_engine, mod) {
     register_growth_replay(mod);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);
-    register_fragment_choices(mod);
 }

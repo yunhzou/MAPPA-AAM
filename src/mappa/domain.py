@@ -15,7 +15,7 @@ import numpy as np
 import math
 
 from .alignment.post_aam import AAMHierarchy, AtomBijection
-from .search_graph import AAMSearchGraph, SearchBranch
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchBranch
 
 
 def _readonly_array(value, *, shape=None, ndim=None):

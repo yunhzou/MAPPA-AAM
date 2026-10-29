@@ -25,23 +25,46 @@ flowchart LR
 |---|---|---|
 | Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `frag.py`, `chemistry_computations/`, `smiles.py` |
 | Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
-| AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `aam.py`, `alignment/branch.py`, `alignment/sweep.py`, `native_search.py` |
-| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `domain.py`, `search_graph.py`, `alignment/post_aam.py`, `final_branches.py` |
-| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `search_symmetry.py`, `action_reduction.py` |
+| AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `mappa_core/core/search/` |
+| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `domain.py`, `mappa_core/core/search/graph.py`, `alignment/post_aam.py`, `final_branches.py` |
+| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `mappa_core/core/search/symmetry.py`, `action_reduction.py` |
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `family_query.py`, `reference_constraints.py` |
 | Execution | Task dependencies, workers, budgets and verified publication | `execution/` |
-| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `core_aam.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
+| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `ts.py`, `mappa_core/core/search/partial.py`, `scoring.py`, `bond_diagnostics.py`, `modes.py` |
 | Artifacts/presentation | Versioned persistence, molecular views and growth replay | `artifacts.py`, `viewers.py`, `search_trajectory.py`, `growth_display.py`, `static/` |
 
 CLIs, benchmark adapters and viewers consume these owners. They must not contain
 another matcher or decoder. Scheduling changes do not change scientific settings.
 
-Matching is the first completed ownership stage in [refactor.md](refactor.md).
-Its node/bond policies and fragment result records are consolidated; matching
-and subgraph search share graph preparation. `subgraph.py` remains with search
-because it constructs a full search through `find_islands`. Search, scheduling,
-postprocessing and workflows retain their current locations until their own stage.
+Matching and reaction search are the completed ownership stages in
+[refactor.md](refactor.md). Matching owns fragment growth and compressed choices.
+Search owns direction/seed/cut plans, fragment locking, branch admission, saved
+graphs and optional competition. `session.py` owns per-cut scientific operations;
+`api.py` combines and persists their results. Existing local worker lifecycle and
+pool loops live in `execution/local_search.py`; distributed scheduling is unchanged.
+
+```mermaid
+flowchart TD
+    API[Search API] --> Plans[Direction / seed / cut planning]
+    API --> Workers[Execution: local worker lifecycle]
+    Workers --> Session[Per-cut search session]
+    Distributed[Execution: shared task queue] --> Session
+    Session --> Branch[Branch construction / frontier cap]
+    Session --> Shared[Shared seed policies]
+    Branch --> Matching[Fragment matching and growth]
+    Shared --> Matching
+    Branch --> Graph[Persistent search graph]
+    Shared --> Graph
+    API --> Finalize[Saved-graph symmetry finalization]
+    Finalize --> Graph
+```
+
+Node/bond policies and matching result records remain under matching. Search's
+partial-assignment helpers replace the old mixed `alignment/sweep.py` owner.
+The unused adaptive closure engine and its dedicated native adapter are removed;
+shared seed policies and their condition/result records remain. Other ownership
+stages are pending. These moves preserve scientific decisions and result semantics.
 
 ## Data architecture
 
@@ -160,7 +183,7 @@ path does not call solver enumeration or use a solver decoder as a fallback.
 ## Transition states and presentation
 
 TS analysis requires an explicit `ReactionContext`: selected mappings and bond
-events. `core_aam.py` serves endpoint-to-TS core assignment, not a replacement
+events. `mappa_core/core/search/partial.py` serves endpoint-to-TS core assignment, not a replacement
 full-reaction search. Raw AAM and event conversion do not select 3D orientation or
 claim a general stereochemistry guarantee from element/WBO inputs.
 
@@ -207,9 +230,10 @@ manuscript evidence. Keep `skills/` unchanged pending a separate review.
 
 `alignment.api` and its search/ranking wrappers are removed. The old sweep
 executor, worker pool, reduction and minimum-selection entry points are removed;
-`alignment/sweep.py` retains only cut planning and helpers used by current AAM,
-TS core assignment and group reconstruction. `aam.py` owns reaction
-search and `postprocessing.py` owns anchored conversion/counting.
+the former `alignment/sweep.py` is now removed. Its live cut and partial-assignment
+helpers belong to search; unused historical symmetry-completion helpers are gone.
+`mappa_core/core/search/` owns reaction search and `postprocessing.py` owns
+anchored conversion/counting.
 
 The unused post-AAM chirality/RMSD selection framework is removed. Fragment,
 permutation, hierarchy and branch types remain. Native selection fails explicitly

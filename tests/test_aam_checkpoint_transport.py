@@ -1,8 +1,9 @@
 import json
 import pytest
 
-from mappa import aam
-from mappa.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
+from mappa.execution import local_search as aam
+from mappa.mappa_core.core.search.session import _GrowthCounts
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
 
 
@@ -26,7 +27,7 @@ def test_in_memory_worker_and_online_profile_reducer(monkeypatch):
     monkeypatch.setattr(aam, '_search_cut', lambda cut: (graph, {'search_seconds': 0.}))
     assert aam._search_cut_task((4, (), None)) == (4, graph, {
         'search_seconds': 0., 'checkpoint_seconds': 0.})
-    reducer = aam._GrowthCounts()
+    reducer = _GrowthCounts()
     rows = [{}, {'max_cands_before': 3}, {'result': 'subtree_branch_cap'}, {'max_cands_before': 2}]
     for row in rows: reducer.append(row)
     assert reducer.maximum == max(row.get('max_cands_before', 0) for row in rows)

@@ -1,6 +1,6 @@
 # MAPPA source refactoring plan
 
-Status: matching stage implemented; remaining stages have not started.
+Status: matching and reaction-search stages implemented; scheduler and later stages pending.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
@@ -103,6 +103,14 @@ Required refactoring:
 - Keep reusable partial/core-atom mapping in search; move TS interpretation out.
 - Preserve optional fragment competition/backbiting in `competition.py` pending
   a separate feature decision. Optional functionality is not automatically dead.
+
+Implemented under `mappa_core/core/search/`: planning, branch construction,
+saved graph, per-cut session, shared seed policies, reuse/native adapters, partial
+mapping, subgraph search and optional competition. The unused adaptive closure
+engine, its wrapper/native adapter and unused historical branch/symmetry helpers
+are removed. Live condition/result classes remain with shared seed search.
+Local pool loops and worker state were extracted to `execution/local_search.py`;
+the next stage owns scheduler consolidation. Existing task/budget policy is unchanged.
 
 ## 3. Consolidate execution scheduling
 
