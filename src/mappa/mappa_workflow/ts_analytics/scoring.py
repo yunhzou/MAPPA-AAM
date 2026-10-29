@@ -154,7 +154,7 @@ def endpoint_bond_changes(reaction, mechanism, target, assignment):
                 default_threshold=reaction.config.event_threshold,
                 metal_threshold=reaction.config.metal_event_threshold)
             delta = after-before
-            if abs(delta) < threshold:
+            if abs(delta) <= threshold:
                 continue
             changes.append(dict(kind='forming' if delta > 0 else 'breaking',
                 reactant_atoms=[i,j], endpoint_atoms=[a,b], ts_atoms=[x,y],

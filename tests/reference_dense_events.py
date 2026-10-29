@@ -33,7 +33,7 @@ class DeltaPatterns:
     def counts(self, vectors):
         vectors = np.asarray(vectors, dtype=int)
         delta = self.p[vectors[:, self.a], vectors[:, self.b]] - self.r[self.a, self.b]
-        return np.column_stack(((delta <= -self.tau).sum(axis=1), (delta >= self.tau).sum(axis=1)))
+        return np.column_stack(((delta < -self.tau).sum(axis=1), (delta > self.tau).sum(axis=1)))
 
     @cached_property
     def features(self):
@@ -52,7 +52,7 @@ class DeltaPatterns:
                     pair = tuple(sorted((ep['elements'][a], ep['elements'][b])))
                     tau = .3 if any(is_metal_element(e) for e in pair) else .5
                     delta = values[pair] - w[a,b]
-                    response = np.where(delta <= -tau, -1, np.where(delta >= tau, 1, 0)).astype(np.int8)
+                    response = np.where(delta < -tau, -1, np.where(delta > tau, 1, 0)).astype(np.int8)
                     bonds.append((a,b,(response.tobytes().hex(),)))
             features.append(dict(colors=[(e,) for e in ep['elements']], bonds=bonds))
         return features
@@ -71,7 +71,7 @@ class DeltaPatterns:
         assert all(e == self.raw['product']['elements'][vector[a]] for a,e in enumerate(self.elements))
         delta = self.p[np.ix_(vector, vector)][self.a,self.b] - self.r[self.a,self.b]
         events = tuple(tuple((int(a), int(b)) for a,b in zip(self.a[mask], self.b[mask]))
-                       for mask in (delta <= -self.tau, delta >= self.tau))
+                       for mask in (delta < -self.tau, delta > self.tau))
         if events not in self.cache:
             base = self.base
             adjacency = {a:set(ns) for a,ns in base.adjacency_dict.items()}

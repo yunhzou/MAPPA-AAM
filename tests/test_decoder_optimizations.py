@@ -82,10 +82,10 @@ def test_sparse_scalar_validation_matches_dense_mapped_boundary_rule():
                     if a not in m and b not in m:continue
                     tau = metal if metal is not None and any(is_metal_element(elements[i]) for i in (a,b)) else .5
                     w=source[a,b]
-                    if w < tau:continue
+                    if w <= tau:continue
                     mapped = a in m and b in m
                     other=target[m[a],m[b]] if mapped else None
-                    if not mapped or w-other >= tau:out.append((a,b,float(w),None if other is None else float(other)))
+                    if not mapped or w-other > tau:out.append((a,b,float(w),None if other is None else float(other)))
                 return out
             broken=events(r,p,mapping)
             formed=[(a,b,other,w) for a,b,w,other in events(p,r,inv)]

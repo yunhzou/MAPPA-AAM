@@ -34,7 +34,7 @@ def oracle(problem, mapping, threshold=.5):
             if a not in correspondences and b not in correspondences:
                 continue
             other = target.wbo[correspondences[a], correspondences[b]] if a in correspondences and b in correspondences else 0
-            count += source.wbo[a, b] - other >= threshold
+            count += source.wbo[a, b] - other > threshold
         result.append(int(count))
     return tuple(result)
 

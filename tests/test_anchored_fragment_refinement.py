@@ -70,16 +70,16 @@ def test_anchored_three_atom_rematch(native, monkeypatch):
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
-def test_matching_threshold_equality_is_not_event_invariance(native, monkeypatch):
+def test_matching_threshold_equality_is_unchanged(native, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
     source = graph(['C', 'C'], [(0, 1, 1.)])
     target = graph(['C', 'C'], [(0, 1, 1.5)])
     result = anchored_match(source, target, .5)
     assert not result.capped and len(result.matches) == 1
     assert result.matches[0].fragment == frozenset((0, 1))
-    assert event_count(source, target, result.matches[0].mapping) == 1
+    assert event_count(source, target, result.matches[0].mapping) == 0
     print(json.dumps(dict(native=native, delta=.5,
-                          accepted_internal_bond=True, events=1)), flush=True)
+                          accepted_internal_bond=True, events=0)), flush=True)
 
 
 @pytest.mark.parametrize('elements', [('C', 'O'), ('Co', 'O')])
@@ -96,8 +96,8 @@ def test_ordinary_and_metal_anchored_pair_thresholds(elements, delta, monkeypatc
     assert not result.capped
     intact = any(match.fragment == frozenset((0, 1)) for match in result.matches)
     events = event_count(source, target, {0: 0, 1: 1})
-    assert intact == (delta < threshold)
-    assert events == int(delta >= threshold)
+    assert intact == (delta <= threshold)
+    assert events == int(delta > threshold)
     print(json.dumps(dict(elements=elements, delta=delta, threshold=threshold,
                           intact_match=intact, events=events)), flush=True)
 

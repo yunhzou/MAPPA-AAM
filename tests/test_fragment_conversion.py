@@ -48,14 +48,14 @@ def test_free_mapping_is_rediscovered_and_input_untouched(backend):
 
 
 @pytest.mark.smoke
-def test_direct_anchors_split_a_bond_at_the_exact_threshold(backend):
+def test_direct_anchors_keep_a_bond_at_the_exact_threshold(backend):
     r = endpoint('CO', [(0, 1, 1.)])
     p = endpoint('CO', [(0, 1, 1.5)])
     decoded = decode_events(saved(r, p, {0: 0, 1: 1}))
-    assert decoded.complete and decoded.observed_minimum == 1
-    assert decoded.candidates[0].endpoint_events['formed'] == ((0, 1),)
+    assert decoded.complete and decoded.observed_minimum == 0
+    assert decoded.candidates[0].endpoint_events['formed'] == ()
     owners = dict(decoded.conversion.branches[0].islands)
-    assert owners[0] != owners[1]
+    assert owners[0] == owners[1]
     assert decoded.conversion.rematches[0].anchors == ((0, 0), (1, 1))
 
 
@@ -235,3 +235,53 @@ def test_same_pairs_in_coupled_and_regular_inputs_share_conversion(backend):
     result = convert_fragments(catalogue)
     assert len(result.branches) == 1
     assert result.branches[0].source_family_ids == (0, 1)
+
+
+@pytest.mark.parametrize('metal_threshold', [1., None])
+@pytest.mark.parametrize('coupled', [False, True])
+def test_equal_tolerances_reuse_saved_choices_without_rematching(monkeypatch, metal_threshold, coupled):
+    import mappa.mappa_core.post_processing.decoder.conversion as module
+    ep = endpoint(('Co', 'C', 'C'), [(0, 1, 1.), (0, 2, 2.)])
+    source = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
+    if coupled:
+        source.coupled_branches[0] = {next(iter(source.branches))[1]}
+        source.branches.clear()
+    before = source.to_record()
+    def forbidden(*args, **kwargs):
+        pytest.fail('identical tolerances must not rematch or recombine')
+    for name in ('find_islands', 'build_graph', 'product', 'canonical_actions'):
+        monkeypatch.setattr(module, name, forbidden)
+    result = decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=metal_threshold))
+    assert result.catalogue is source and not result.conversion.rematches
+    assert result.candidates[0].mapping == {0: 0, 1: 2, 2: 1}
+    assert result.complete and result.observed_minimum == 0
+    assert source.to_record() == before
+    assert result.conversion.branches[0].source_family_ids == (0,)
+    source.incomplete_paths = 1
+    assert not decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=metal_threshold)).complete
+
+
+@pytest.mark.parametrize('threshold,metal_threshold', [(1., .3), (.5, 1.)])
+def test_both_tolerances_must_match_to_reuse(backend, threshold, metal_threshold):
+    ep = endpoint(('Co', 'O'), [(0, 1, 1.)])
+    result = convert_fragments(saved(ep, ep, {0: 0, 1: 1}),
+                               threshold=threshold, metal_threshold=metal_threshold)
+    assert result.rematches
+
+
+@pytest.mark.parametrize('elements,limit', [('CO', .5), (('Co', 'O'), .3)])
+@pytest.mark.parametrize('offset', [-1, 0, 1])
+def test_inclusive_conversion_boundary(backend, elements, limit, offset):
+    # Exactly representable difference at equality; adjacent floats stay distinct.
+    lower = limit
+    upper = 2 * limit
+    if offset:
+        upper = np.nextafter(upper, -np.inf if offset < 0 else np.inf)
+    r = endpoint(elements, [(0, 1, lower)])
+    p = endpoint(elements, [(0, 1, upper)])
+    result = decode_events(saved(r, p, {0: 0, 1: 1}))
+    expected = int(abs(upper - lower) > limit)
+    assert result.complete and result.observed_minimum == expected
+    owners = dict(result.conversion.branches[0].islands)
+    assert (owners[0] == owners[1]) == (not expected)
+    assert result.index.policy['event_comparison'] == 'absolute difference > threshold'

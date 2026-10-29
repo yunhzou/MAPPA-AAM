@@ -18,7 +18,7 @@ def _event_model(compiled, index, deadline):
                 if x == y:
                     continue
                 delta = index.p[x, y] - index.r[a, b]
-                sign = -1 if delta <= -tau else 1 if delta >= tau else 0
+                sign = -1 if delta < -tau else 1 if delta > tau else 0
                 groups[sign][x].append(y)
                 table_entries += 1
         if not groups:

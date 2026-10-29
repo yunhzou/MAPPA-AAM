@@ -235,8 +235,12 @@ work cache is not branch identity. Rematching can split a fragment; compatible
 results are recombined into converted compressed branches.
 
 The ordinary event threshold is 0.5 and the metal threshold is 0.3 by default.
-An unchanged bond differs by strictly less than its threshold; equality is an
-event. Count breaking/weakening and forming/strengthening differences touching
+An unchanged bond differs by at most its threshold (`<=`); an event requires
+a strictly larger difference (`>`). When both requested tolerances equal the
+saved uniform AAM tolerance, conversion directly reuses the saved catalogue,
+fragment partitions and compressed choices without rematching or recombination.
+Requested event counts are still computed. Signed-event policy v3 records this
+inclusive matching convention; earlier benchmark counts retain their old policy. Count breaking/weakening and forming/strengthening differences touching
 mapped atoms, including mapped/unmapped boundaries. Ignore bonds wholly between
 unmatched atoms. Do not invent atoms or correspondences.
 

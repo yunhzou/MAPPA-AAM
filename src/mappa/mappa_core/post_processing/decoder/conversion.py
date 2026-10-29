@@ -78,13 +78,28 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
         return bond_event_threshold(problem.reactant.elements, a, b,
             default_threshold=threshold, metal_threshold=metal_threshold)
 
-    rule = BondTolerance(tolerance, inclusive=False)
+    rule = BondTolerance(tolerance)
     entries = ((policy, pairs, fid) for (policy, pairs), ids in source.branches.items()
                for fid in sorted(ids))
     coupled = ((source.families[fid].policy, pairs, fid)
                for fid, pairs_list in source.coupled_branches.items() for pairs in sorted(pairs_list))
+    entries = tuple(chain(entries, coupled))
+    # A saved uniform matching policy already satisfies the requested rule.
+    # Preserve its compressed choices and partitions without another search.
+    if (source.mode == 'lossless_saved_family_union'
+            and all(policy[1] == threshold == (threshold if metal_threshold is None else metal_threshold)
+                    for policy, _, _ in entries)):
+        result.catalogue = source
+        seen = set()
+        for _, pairs, fid in entries:
+            owners = tuple(sorted((r, i) for i, (rs, _) in enumerate(sorted(pairs)) for r in rs))
+            if (fid, owners) not in seen:
+                result.branches.append(ConvertedBranch((fid,), fid, (), owners))
+                seen.add((fid, owners))
+        result.seconds = time.perf_counter() - started
+        return result
     groups = {}
-    for policy, pairs, fid in chain(entries, coupled):
+    for policy, pairs, fid in entries:
         pairs = tuple(sorted((tuple(sorted(rs)), tuple(sorted(ps))) for rs, ps in pairs))
         fixed = tuple(sorted(source.families[fid].fixed_assignments))
         groups.setdefault((policy, pairs, fixed), set()).add(fid)

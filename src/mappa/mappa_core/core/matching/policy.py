@@ -112,7 +112,7 @@ class BondTolerance:
     Conditions may use element, node features, or bond attributes. The rule
     must be symmetric in its endpoints and deterministic. It is evaluated
     once per active source bond, never per candidate mapping. ``inclusive``
-    selects <= (ordinary growth) or < (unchanged under an event threshold).
+    selects <= (default) or a strict < comparison.
     Target bonds must still satisfy the matcher's existing graph floor.
     """
     value: float | Callable

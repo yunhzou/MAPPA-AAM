@@ -25,7 +25,7 @@ def _response_bounds(values, weight, threshold):
     lo, hi = 0, len(values)
     while lo < hi:
         mid = (lo + hi) // 2
-        if values[mid] - weight <= -threshold:
+        if values[mid] - weight < -threshold:
             lo = mid + 1
         else:
             hi = mid
@@ -33,7 +33,7 @@ def _response_bounds(values, weight, threshold):
     lo, hi = 0, len(values)
     while lo < hi:
         mid = (lo + hi) // 2
-        if values[mid] - weight >= threshold:
+        if values[mid] - weight > threshold:
             hi = mid
         else:
             lo = mid + 1
@@ -47,7 +47,7 @@ class SignedEventIndex:
     and element-preserving; endpoint compositions may differ. Count differences
     touching mapped atoms and ignore bonds entirely within unmatched material.
     """
-    schema = 'mappa.signed_events/v2'
+    schema = 'mappa.signed_events/v3'
 
     def __init__(self, raw_problem, *, threshold=0.5, metal_threshold=0.3):
         for value in (threshold, metal_threshold):
@@ -93,7 +93,7 @@ class SignedEventIndex:
         xx, yy = sorted(xs), sorted(ys)
         delta = self.p[np.ix_(xx, yy)] - weight
         valid = np.asarray(xx)[:, None] != np.asarray(yy)[None, :]
-        signs = np.where(delta <= -tau, -1, np.where(delta >= tau, 1, 0))
+        signs = np.where(delta < -tau, -1, np.where(delta > tau, 1, 0))
         counts = {int(k): int(v) for k, v in zip(*np.unique(signs[valid], return_counts=True))}
         rectangles = {}
         default = max(counts, key=counts.get) if counts else 0
@@ -117,6 +117,7 @@ class SignedEventIndex:
     def policy(self):
         return dict(schema=self.schema, threshold=self.threshold,
                     metal_threshold=self.metal_threshold, includes_hydrogens=True,
+                    event_comparison="absolute difference > threshold",
                     unmatched="ignore bonds with two unmapped endpoints",
                     event_frame="R indices; unmatched P atom p is encoded as source_atom_count+p",
                     source_atom_count=self.n, target_atom_count=self.m)
@@ -158,14 +159,14 @@ class SignedEventIndex:
         both = present[:, self.a] & present[:, self.b]
         touching = present[:, self.a] | present[:, self.b]
         delta = self.padded_product[values[:, self.a], values[:, self.b]] - self.r[self.a, self.b]
-        broken = ((delta <= -self.tau) & touching).sum(axis=1)
-        formed = ((delta >= self.tau) & both).sum(axis=1)
+        broken = ((delta < -self.tau) & touching).sum(axis=1)
+        formed = ((delta > self.tau) & both).sum(axis=1)
         if self.n != self.m or not np.all(present):
             images = np.zeros((len(values), self.m), dtype=bool)
             rows, atoms = np.nonzero(present)
             images[rows, values[rows, atoms]] = True
             boundary = images[:, self.pa] ^ images[:, self.pb]
-            formed += (boundary & (self.p[self.pa, self.pb] >= self.ptau)).sum(axis=1)
+            formed += (boundary & (self.p[self.pa, self.pb] > self.ptau)).sum(axis=1)
         return np.column_stack((broken, formed))
 
     @cached_property
@@ -332,13 +333,13 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
                    metal_dwbo_threshold=None):
     """Bond classification by WBO change.
 
-        broken iff (WBO_R - WBO_P) >= pair_threshold
-        formed iff (WBO_P - WBO_R) >= pair_threshold
+        broken iff (WBO_R - WBO_P) > pair_threshold
+        formed iff (WBO_P - WBO_R) > pair_threshold
 
     `pair_threshold` is normally `dwbo_threshold`.  If element lists and
     `metal_dwbo_threshold` are supplied, any pair containing a metal uses the
     metal threshold instead.  Since WBO is non-negative, requiring
-    (wR - wP) >= pair_threshold automatically implies wR >= pair_threshold
+    (wR - wP) > pair_threshold automatically implies wR > pair_threshold
     (wP >= 0), so a single
     threshold both gates "is this a bond worth considering" and "did
     its order change enough." For pairs with exactly one endpoint unmapped, compare the bond with
@@ -366,7 +367,7 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
             flags = np.asarray(metal, dtype=bool)
             threshold = np.where(flags[:, None] | flags[None, :],
                                  metal_threshold, default_threshold)
-        a, b = np.nonzero(np.triu(~(matrix < threshold), k=1))
+        a, b = np.nonzero(np.triu(matrix > threshold, k=1))
         return zip(a.tolist(), b.tolist())
 
     broken, formed = [], []
@@ -379,7 +380,7 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
         if i not in mapping or j not in mapping:
             broken.append((i, j, float(wR), None)); continue
         wP = wbo_P[mapping[i], mapping[j]]
-        if wR - wP >= threshold:
+        if wR - wP > threshold:
             broken.append((i, j, float(wR), float(wP)))
     for ip, jp in eligible(wbo_P, metal_P):
         if ip not in inv and jp not in inv:
@@ -390,7 +391,7 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
         if ip not in inv or jp not in inv:
             formed.append((ip, jp, None, float(wP))); continue
         wR = wbo_R[inv[ip], inv[jp]]
-        if wP - wR >= threshold:
+        if wP - wR > threshold:
             formed.append((ip, jp, float(wR), float(wP)))
     core_R = sorted({i for (i, j, _, _) in broken}
                     | {j for (i, j, _, _) in broken})

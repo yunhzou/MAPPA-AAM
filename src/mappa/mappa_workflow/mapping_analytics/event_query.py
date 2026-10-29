@@ -35,7 +35,7 @@ def _event_model(compiled, index, deadline):
         if time.perf_counter() >= deadline:
             raise TimeoutError('event encoding budget')
         if a not in mapped or b not in mapped:
-            sign = -int((a in mapped or b in mapped) and index.r[a, b] >= tau)
+            sign = -int((a in mapped or b in mapped) and index.r[a, b] > tau)
             terms[int(a), int(b)] = sign
             constant_events += int(sign != 0)
             lower += int(sign != 0)
@@ -82,7 +82,7 @@ def _event_model(compiled, index, deadline):
                 tau = (index.metal_threshold if index.metal_threshold is not None and
                        (is_metal_element(index.elements[a]) or
                         is_metal_element(index.problem.product.elements[p])) else index.threshold)
-                support = tuple(x for x in value[1] if index.p[x, p] >= tau)
+                support = tuple(x for x in value[1] if index.p[x, p] > tau)
                 if not support:
                     continue
                 condition = z3.simplify(z3.And(select(value, support), terms.unmapped[p]))

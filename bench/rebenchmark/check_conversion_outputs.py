@@ -36,6 +36,7 @@ def check(queue_path, output):
             problem = load_plan(folder).problem
             result = value['decoded']
             assert result['schema'] == 'mappa.decoded_events/v2'
+            assert result['event_policy']['schema'] == 'mappa.signed_events/v3'
             assert result['method'] == 'anchored_fragment_conversion' and not value['search_rerun']
             catalogue = FinalBranchCatalogue.from_record(problem, result['converted_catalogue'])
             config = result['config']
@@ -62,7 +63,7 @@ def check(queue_path, output):
                             if a not in assignment and b not in assignment:
                                 continue
                             opposite = other.wbo[assignment[a],assignment[b]] if a in assignment and b in assignment else 0.
-                            count += weight - opposite >= threshold
+                            count += weight - opposite > threshold
                     counts[family.mapping] = int(count)
                 report = reports[branch['family_id']]
                 assert counts[family.mapping] == report['total'] and report['solver_queries'] == 0

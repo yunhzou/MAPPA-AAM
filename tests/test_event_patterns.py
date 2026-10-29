@@ -63,7 +63,7 @@ def test_response_bounds_match_dense_float_comparisons(tau):
                              for x in (math.nextafter(v, -math.inf), v, math.nextafter(v, math.inf))}))
     for weight in values:
         a, b = _response_bounds(values, weight, tau)
-        dense = np.where(values - weight <= -tau, -1, np.where(values - weight >= tau, 1, 0))
+        dense = np.where(values - weight < -tau, -1, np.where(values - weight > tau, 1, 0))
         assert np.array_equal(dense, [-1] * a + [0] * (b - a) + [1] * (len(values) - b))
 
 
