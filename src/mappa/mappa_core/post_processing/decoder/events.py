@@ -13,7 +13,7 @@ import math
 import numpy as np
 import pynauty
 
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_metal_element, bond_event_threshold
 
 
 def _response_bounds(values, weight, threshold):
@@ -263,10 +263,20 @@ class SignedEventIndex:
     def describe(self, vector):
         vector = self._vectors([vector])[0]
         mapping = self.mapping(vector)
-        inverse = {p: r for r, p in mapping.items()}
         broken, formed, _, _ = classify_bonds(mapping, self.r, self.p,
             dwbo_threshold=self.threshold, elements_R=self.elements,
             elements_P=self.problem.product.elements, metal_dwbo_threshold=self.metal_threshold)
+        result = self._describe_events(vector, tuple((a, b) for a, b, *_ in broken),
+                                       tuple((a, b) for a, b, *_ in formed))
+        if tuple(self.counts([vector])[0]) != tuple(result['counts'].values()):
+            raise AssertionError('vector and scalar event witnesses disagree')
+        return result
+
+    def _describe_events(self, vector, broken, formed):
+        """Canonicalize already counted endpoint events without recounting bonds."""
+        vector = self._vectors([vector])[0]
+        mapping = self.mapping(vector)
+        inverse = {p: r for r, p in mapping.items()}
         # Existing R coordinates remain valid for mapped pairs. New boundary
         # endpoints name actual P atoms explicitly, beyond the R index range.
         events = (tuple(sorted((a, b) for a, b, *_ in broken)),
@@ -319,13 +329,125 @@ class SignedEventIndex:
             payload = json.dumps(self.policy, sort_keys=True).encode() + pynauty.certificate(graph)
             self.cache[key] = self.schema + ':' + hashlib.sha256(payload).hexdigest()
         counts = dict(zip(('broken', 'formed'), map(len, events)))
-        if tuple(self.counts([vector])[0]) != tuple(counts.values()):
-            raise AssertionError('vector and scalar event witnesses disagree')
         return dict(id=self.cache[key], mapping=vector.tolist(), mapped_source=mapped,
                     events=dict(zip(('broken', 'formed'), events)),
                     endpoint_events=dict(broken=tuple((a,b) for a,b,*_ in broken),
                                          formed=tuple((a,b) for a,b,*_ in formed)),
                     counts=counts, total=sum(counts.values()), policy=self.policy)
+
+
+class FragmentEventCounter:
+    """Count each local alternative and interacting pair once per decoding call.
+
+    Regions are converted fragment atom sets, including any internal splits.
+    Unmapped material is a separate region: only its boundary is counted.
+    No complete-mapping or Cartesian-combination cache is stored.
+    """
+    def __init__(self, index):
+        self.index = index
+        self.regions, self.region_ids, self.local = [], {}, []
+        self.domains, self.domain_ids = [], {}
+        self.topologies, self.boundaries = {}, {}
+        self.bond_comparisons = self.branch_counts = 0
+        self.edges = []
+        for endpoint in (index.problem.reactant, index.problem.product):
+            adjacency = [[] for _ in endpoint.elements]
+            for a in range(endpoint.atom_count):
+                for b in range(a + 1, endpoint.atom_count):
+                    threshold = bond_event_threshold(endpoint.elements, a, b,
+                        default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+                    weight = endpoint.wbo[a, b]
+                    if weight > threshold:
+                        adjacency[a].append((b, weight, threshold))
+                        adjacency[b].append((a, weight, threshold))
+            self.edges.append(adjacency)
+
+    def _register(self, source, target, *, unmapped=False):
+        key = tuple(sorted(source.items())), tuple(sorted(target.items()))
+        if key not in self.region_ids:
+            region = len(self.regions)
+            self.region_ids[key] = region
+            self.regions.append((source, target))
+            domain = tuple(sorted(source)), tuple(sorted(target))
+            self.domains.append(self.domain_ids.setdefault(domain, len(self.domain_ids)))
+            self.local.append(((), ()) if unmapped else self._events(region, region))
+        return self.region_ids[key]
+
+    def _events(self, left, right):
+        result = []
+        for side, opposite in enumerate((self.index.p, self.index.r)):
+            images, other = self.regions[left][side], self.regions[right][side]
+            events = []
+            for a, image in images.items():
+                for b, weight, threshold in self.edges[side][a]:
+                    if b not in other or (left == right and a >= b):
+                        continue
+                    partner = other[b]
+                    if image is None and partner is None:
+                        continue
+                    self.bond_comparisons += 1
+                    compared = 0. if image is None or partner is None else opposite[image, partner]
+                    if weight - compared > threshold:
+                        events.append((min(a, b), max(a, b)))
+            result.append(tuple(sorted(events)))
+        return tuple(result)
+
+    def _partition(self, mapping, islands):
+        owners = dict(islands)
+        fragments = {}
+        for a, b in mapping:
+            fragments.setdefault(owners[a], {})[a] = b
+        return tuple(self._register(part, {b: a for a, b in part.items()})
+                     for part in fragments.values())
+
+    def _topology(self, regions):
+        key = tuple(self.domains[i] for i in regions)
+        if key not in self.topologies:
+            owners = [{a: i for i, region in enumerate(regions) for a in self.regions[region][side]}
+                      for side in (0, 1)]
+            absent = [{a: None for a in range(n) if a not in own}
+                      for n, own in zip((self.index.n, self.index.m), owners)]
+            unmatched = self._register(*absent, unmapped=True)
+            pairs = set()
+            for adjacency, own in zip(self.edges, owners):
+                for a, edges in enumerate(adjacency):
+                    for b, _, _ in edges:
+                        left, right = own.get(a, len(regions)), own.get(b, len(regions))
+                        if a < b and left != right:
+                            pairs.add(tuple(sorted((left, right))))
+            self.topologies[key] = unmatched, tuple(sorted(pairs))
+        return self.topologies[key]
+
+    def _contributions(self, mapping, islands):
+        regions = self._partition(mapping, islands)
+        unmatched, pairs = self._topology(regions)
+        local = tuple(self.local[i] for i in regions)
+        regions += (unmatched,)
+        boundary = []
+        for a, b in pairs:
+            key = tuple(sorted((regions[a], regions[b])))
+            if key not in self.boundaries:
+                self.boundaries[key] = self._events(*key)
+            boundary.append(self.boundaries[key])
+        return local, tuple(boundary)
+
+    def count(self, mapping, islands):
+        local, boundary = self._contributions(mapping, islands)
+        internal = sum(len(broken) + len(formed) for broken, formed in local)
+        total = internal + sum(len(broken) + len(formed) for broken, formed in boundary)
+        self.branch_counts += 1
+        return total, internal
+
+    def events(self, mapping, islands):
+        local, boundary = self._contributions(mapping, islands)
+        return tuple(tuple(sorted(pair for contribution in local + boundary
+                                  for pair in contribution[side])) for side in (0, 1))
+
+    @property
+    def statistics(self):
+        return dict(regions=len(self.regions), interacting_alternative_pairs=len(self.boundaries),
+                    partitions=len(self.topologies), bond_comparisons=self.bond_comparisons,
+                    branch_counts=self.branch_counts)
 
 
 def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,

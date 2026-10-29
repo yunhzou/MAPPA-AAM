@@ -53,6 +53,7 @@ class DecodedEvents:
     family_reports: list[dict]
     config: EventDecodeConfig
     conversion: FragmentConversion
+    counting_statistics: dict = field(default_factory=dict)
 
     @property
     def observed_minimum(self):

@@ -79,6 +79,7 @@ def decoded_events_record(result):
         "incomplete_paths": result.catalogue.incomplete_paths,
         "event_policy": result.index.policy,
         "family_reports": result.family_reports,
+        "counting_statistics": result.counting_statistics,
         "candidates": [{
             "id": candidate.id,
             "mapping": {str(a): int(b) for a, b in candidate.mapping.items()},

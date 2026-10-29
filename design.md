@@ -234,10 +234,14 @@ inputs share recombination work and retain every source-family reference. This
 work cache is not branch identity. Rematching can split a fragment; compatible
 results are recombined into converted compressed branches.
 Original fragment atom sets remain fixed; any splitting is internal to them.
-Further counting optimization should cache internal contributions per converted
-fragment alternative and boundary contributions per pair of alternatives. Branch
-counts can then sum these contributions without repeating bond comparisons.
-This counting cache is an agreed next step, not yet implemented.
+Event counting caches internal contributions per converted fragment alternative
+and boundary contributions per interacting pair of alternatives. Each branch
+sums these contributions; only selected candidates assemble event lists for
+canonicalization. Unmapped atoms form a boundary-only region. Sparse endpoint
+bonds determine which fragments can interact, and identical atom-set partitions
+share this topology. No complete-mapping bond scan or vector recount occurs in
+the decoder. Branch records and selected event-class records are still emitted;
+this removes repeated bond comparisons, not the cost of requested output.
 
 The ordinary event threshold is 0.5 and the metal threshold is 0.3 by default.
 An unchanged bond differs by at most its threshold (`<=`); an event requires
