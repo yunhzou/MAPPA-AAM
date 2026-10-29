@@ -17,6 +17,55 @@ from .saved_analysis import read_member
 from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 
+
+def verify_conversion(problem, value, resource, key):
+    """Independently count saved branches; never run matching or decoding."""
+    result = value['decoded']
+    assert result['schema'] == 'mappa.decoded_events/v2'
+    assert result['event_policy']['schema'] == 'mappa.signed_events/v3'
+    assert result['method'] == 'anchored_fragment_conversion'
+    catalogue = FinalBranchCatalogue.from_record(problem, result['converted_catalogue'])
+    config = result['config']
+    pairs = [tuple((a, b, ep.wbo[a,b], bond_event_threshold(ep.elements, a, b,
+        default_threshold=config['threshold'], metal_threshold=config['metal_threshold']))
+        for a in range(ep.atom_count) for b in range(a+1, ep.atom_count))
+        for ep in (problem.reactant, problem.product)]
+    counts = {}
+    reports = {row['family_id']:row for row in result['family_reports']}
+    assert len(result['family_reports']) == len(result['converted_branches'])
+    assert set(reports) == {b['family_id'] for b in result['converted_branches']}
+    for branch in result['converted_branches']:
+        family = catalogue.families[branch['family_id']]
+        mapping = dict(family.mapping)
+        assert len(mapping) == len(set(mapping.values()))
+        for pair_id, _ in branch['fragment_paths']:
+            pair = result['rematches'][pair_id]
+            assert all(mapping[a] == b for a,b in pair['anchors'])
+            assert {mapping[a] for a in pair['source_atoms']} <= set(pair['target_atoms'])
+        if family.mapping not in counts:
+            count = 0
+            for edges, other, assignment in ((pairs[0], problem.product, mapping),
+                    (pairs[1], problem.reactant, {p:r for r,p in mapping.items()})):
+                for a,b,weight,threshold in edges:
+                    if a not in assignment and b not in assignment:
+                        continue
+                    opposite = other.wbo[assignment[a],assignment[b]] if a in assignment and b in assignment else 0.
+                    count += weight - opposite > threshold
+            counts[family.mapping] = int(count)
+        report = reports[branch['family_id']]
+        assert counts[family.mapping] == report['total'] and report['solver_queries'] == 0
+    minimum = min(counts.values(), default=None)
+    assert minimum == result['observed_minimum']
+    for candidate in result['candidates']:
+        assert candidate['total'] <= minimum + config['event_slack']
+        assert all(reports[i]['total'] == candidate['total'] for i in candidate['family_ids'])
+    return dict(key=key, complete=result['complete'], minimum=minimum,
+        branches=len(reports), distinct_mappings=len(counts), candidates=len(result['candidates']),
+        internal_events=sum(r['internal_events'] for r in reports.values()),
+        incomplete_rematches=sum(not r['complete'] for r in result['rematches']),
+        event_histogram=dict(Counter(r['total'] for r in reports.values())),
+        timing=value['timing'], resource={k:v for k,v in resource.items() if k!='blob'})
+
 def check(queue_path, output):
     started = time.perf_counter()
     db = sqlite3.connect(f'file:{queue_path.resolve()}?mode=ro&immutable=1', uri=True)
@@ -48,51 +97,7 @@ def check(queue_path, output):
                     (folder/name).write_bytes(read_member(member))
                 problem = load_plan(folder).problem
                 assert not value['search_rerun']
-            result = value['decoded']
-            assert result['schema'] == 'mappa.decoded_events/v2'
-            assert result['event_policy']['schema'] == 'mappa.signed_events/v3'
-            assert result['method'] == 'anchored_fragment_conversion'
-            catalogue = FinalBranchCatalogue.from_record(problem, result['converted_catalogue'])
-            config = result['config']
-            pairs = [tuple((a, b, ep.wbo[a,b], bond_event_threshold(ep.elements, a, b,
-                default_threshold=config['threshold'], metal_threshold=config['metal_threshold']))
-                for a in range(ep.atom_count) for b in range(a+1, ep.atom_count))
-                for ep in (problem.reactant, problem.product)]
-            counts = {}
-            reports = {row['family_id']:row for row in result['family_reports']}
-            assert len(result['family_reports']) == len(result['converted_branches'])
-            assert set(reports) == {b['family_id'] for b in result['converted_branches']}
-            for branch in result['converted_branches']:
-                family = catalogue.families[branch['family_id']]
-                mapping = dict(family.mapping)
-                assert len(mapping) == len(set(mapping.values()))
-                for pair_id, _ in branch['fragment_paths']:
-                    pair = result['rematches'][pair_id]
-                    assert all(mapping[a] == b for a,b in pair['anchors'])
-                    assert {mapping[a] for a in pair['source_atoms']} <= set(pair['target_atoms'])
-                if family.mapping not in counts:
-                    count = 0
-                    for edges, other, assignment in ((pairs[0], problem.product, mapping),
-                            (pairs[1], problem.reactant, {p:r for r,p in mapping.items()})):
-                        for a,b,weight,threshold in edges:
-                            if a not in assignment and b not in assignment:
-                                continue
-                            opposite = other.wbo[assignment[a],assignment[b]] if a in assignment and b in assignment else 0.
-                            count += weight - opposite > threshold
-                    counts[family.mapping] = int(count)
-                report = reports[branch['family_id']]
-                assert counts[family.mapping] == report['total'] and report['solver_queries'] == 0
-            minimum = min(counts.values(), default=None)
-            assert minimum == result['observed_minimum']
-            for candidate in result['candidates']:
-                assert candidate['total'] <= minimum + config['event_slack']
-                assert all(reports[i]['total'] == candidate['total'] for i in candidate['family_ids'])
-            summaries.append(dict(key=key, complete=result['complete'], minimum=minimum,
-                branches=len(reports), distinct_mappings=len(counts), candidates=len(result['candidates']),
-                internal_events=sum(r['internal_events'] for r in reports.values()),
-                incomplete_rematches=sum(not r['complete'] for r in result['rematches']),
-                event_histogram=dict(Counter(r['total'] for r in reports.values())),
-                timing=value['timing'], resource={k:v for k,v in resource.items() if k!='blob'}))
+            summaries.append(verify_conversion(problem, value, resource, key))
     db.close()
     summary = dict(search_outputs_verified=search_outputs, tasks=len(summaries), complete=sum(r['complete'] for r in summaries),
         branches=sum(r['branches'] for r in summaries),

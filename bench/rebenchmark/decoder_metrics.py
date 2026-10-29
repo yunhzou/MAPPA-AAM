@@ -104,11 +104,45 @@ def case_metrics(payload, workspace):
     def certificates(heavy):
         # certificate_id takes original atom indices, so retain those here.
         return {name:certificate_id(features,dict(heavy)) for name,features in variants.items()}
+    fresh = payload.get('source_kind') == 'fresh_conversion'
+    verified=[]
+    if fresh:
+        from .check_conversion_outputs import verify_conversion
+        from mappa.mappa_core.utils.io.records import problem_from_record
+        @lru_cache(maxsize=2)
+        def fresh_input(blob):
+            return problem_from_record(read_blob(blob,workspace.scratch))
+        @lru_cache(maxsize=2)
+        def finalized(blob):
+            return read_blob(blob,workspace.scratch)['graph']
+        for item in payload['search_outputs']:
+            saved=read_blob(Blob(**item['blob']),workspace.scratch)
+            if not saved['graph'].contexts:
+                raise ValueError('Saved search output lacks contexts')
     normalized_rows=[];records=[];times=[]
     for item in payload['outputs']:
         value=read_blob(Blob(**item['blob']),workspace.scratch)
         key=f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
-        if key!=item['key'] or value['source']['input.json']['sha256']!=payload['input']['sha256'] or value['source']['reference.json']['sha256']!=payload['reference']['sha256']:
+        if key!=item['key']:
+            raise ValueError('Decoded output task identity differs')
+        if fresh:
+            expected=item['payload']
+            if (value['input']!=expected['input'] or value['finalized_sha256']!=value['finalized'].sha256
+                    or value['finalized']!=Blob(**item['finalized_blob'])):
+                raise ValueError('Fresh conversion source differs')
+            if (value['cut'],value['seed'])!=(expected['number'],expected['seed']+1):
+                raise ValueError('Fresh conversion seed/cut differs')
+            directed=fresh_input(value['input'])
+            # Verify the directed saved endpoint against the hashed original input.
+            original=(problem.product,problem.reactant) if payload['directions'][str(value['task_id'])]=='P_to_R' else (problem.reactant,problem.product)
+            import numpy as np
+            for actual,wanted in zip((directed.reactant,directed.product),original):
+                if tuple(actual.elements)!=tuple(wanted.elements) or not np.array_equal(actual.wbo,wanted.wbo):
+                    raise ValueError('Fresh endpoint differs from original input')
+            if not finalized(value['finalized']).contexts:
+                raise ValueError('Finalized source lacks contexts')
+            verified.append(verify_conversion(directed,value,item['resource'],key))
+        elif value['source']['input.json']['sha256']!=payload['input']['sha256'] or value['source']['reference.json']['sha256']!=payload['reference']['sha256']:
             raise ValueError('Decoded output source or task identity differs')
         config=value['decoded']['config']
         if (config['threshold'],config['metal_threshold'])!=(.5,.3):
@@ -143,8 +177,15 @@ def case_metrics(payload, workspace):
                 expected=[k for k in payload['expected'] if included(k)]
                 rows=[r for r in normalized_rows if included(r['key'])]
                 modes[f'{scope}/{mode}/seeds{n}']=summarize(rows,expected,expected_ids)
+    if fresh:
+        for mode in modes.values():
+            mode['scientific_audit_accepted']=True
+            mode['scope']='Independently counted retained converted branches; complete flags and missing keys preserved. No hidden-bijection or global-minimum claim.'
     return dict(index=payload['index'],modes=modes,records=records,timing=times,
         input=payload['input'],reference=payload['reference'],
         calculation=dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu),
-        scientific_audit_accepted=False,
+        scientific_audit_accepted=fresh,conversion_checks=verified,
+        search_outputs_verified=len(payload.get('search_outputs',[])),
+        missing_tasks=payload.get('missing_tasks',[]),
+        search_resources=[dict(key=r['key'],**r['resource']) for r in payload.get('search_outputs',[])],
         reference_policy='Original Golden projected heavy-atom correspondence with stereo/charge labels. Hydrogen-unannotated references do not uniquely specify an all-atom event count.')
