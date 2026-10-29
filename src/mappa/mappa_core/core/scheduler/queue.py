@@ -48,6 +48,8 @@ class TaskQueue:
             CREATE INDEX IF NOT EXISTS task_case ON tasks(case_name,state);
             CREATE INDEX IF NOT EXISTS task_expiry ON tasks(state,expires);
             CREATE INDEX IF NOT EXISTS dependency_parent ON dependencies(dependency);
+            CREATE TABLE IF NOT EXISTS resource_changes (
+                utc REAL, reason TEXT, memory INTEGER, changed_tasks INTEGER);
         ''')
         row = self.db.execute('SELECT value FROM identity').fetchone()
         if row and row[0] != identity:
@@ -167,6 +169,56 @@ class TaskQueue:
             self.db.execute("UPDATE tasks SET state='pending',token=NULL,worker=NULL WHERE key=?", (key,))
             self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
             self._refresh(time.time())
+
+    def set_pending_memory(self, memory_bytes, *, reason):
+        """Change admission estimates without changing saved work or deadlines.
+
+        A node-local maintenance connection may call this during a worker
+        handoff. SQLite serializes it with claims and publications. Setting an
+        estimate above the old workers' capacity lets their active work finish
+        before they retire through the normal insufficient-memory response.
+        """
+        if memory_bytes <= 0 or not reason.strip():
+            raise ValueError('A positive estimate and recorded reason are required')
+        with self.lock, self.db:
+            self.db.execute('INSERT INTO resource_changes VALUES (?,?,?,?)',
+                            (time.time(), reason, memory_bytes, 0))
+            change = self.db.execute('SELECT last_insert_rowid()').fetchone()[0]
+        changed, cursor = 0, 0
+        while True:
+            # Bound write-lock duration so a live coordinator can keep accepting
+            # heartbeats and completed outputs during a large queue handoff.
+            with self.lock, self.db:
+                rows = self.db.execute("SELECT rowid FROM tasks WHERE rowid>? AND state='pending' AND memory!=? ORDER BY rowid LIMIT 250",
+                                       (cursor, memory_bytes)).fetchall()
+                if not rows:
+                    break
+                cursor = rows[-1][0]
+                changed += self.db.executemany("UPDATE tasks SET memory=? WHERE rowid=? AND state='pending'",
+                                               [(memory_bytes, row[0]) for row in rows]).rowcount
+                self.db.execute('UPDATE resource_changes SET changed_tasks=? WHERE rowid=?', (changed, change))
+            time.sleep(.005)
+        return changed
+
+    def retry_memory_limits(self, previous_bytes, memory_bytes, *, reason):
+        """Explicit larger-memory stage; preserve attempts and case deadlines."""
+        if not 0 < previous_bytes < memory_bytes or not reason.strip():
+            raise ValueError('The next stage must increase memory and record a reason')
+        with self.lock, self.db:
+            # Acquire the write transaction before selecting retry candidates.
+            self.db.execute('INSERT INTO resource_changes VALUES (?,?,?,0)',
+                            (time.time(), reason, memory_bytes))
+            change = self.db.execute('SELECT last_insert_rowid()').fetchone()[0]
+            keys = [key for key, raw in self.db.execute(
+                "SELECT key,result FROM tasks WHERE state='memory_limit'")
+                if _loads_checkpoint(raw).get('memory_guard_bytes') == previous_bytes]
+            self.db.executemany("UPDATE tasks SET state='pending',memory=?,token=NULL,worker=NULL WHERE key=?",
+                                [(memory_bytes, key) for key in keys])
+            if keys:
+                self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
+                self._refresh(time.time())
+            self.db.execute('UPDATE resource_changes SET changed_tasks=? WHERE rowid=?', (len(keys), change))
+        return keys
 
     def snapshot(self):
         with self.lock, self.db:

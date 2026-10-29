@@ -291,6 +291,14 @@ seed identities; do not create a second cluster implementation. Shared queues
 own leases, dependencies and original case deadlines. Scheduling cannot reset
 scientific budgets or silently retry completed/failed work.
 
+Resource stages may change pending tasks' admission estimates without changing
+their immutable scientific specifications. A higher estimate can drain existing
+workers through normal retirement; lower-memory workers then consume the same
+queue. An explicitly authorized larger-memory stage retries only failures from
+the specified smaller guard, retaining original attempts and case deadlines.
+Record the actual worker guard with every outcome. Completed work is never
+repeated, and unrelated errors are not promoted to memory retries.
+
 Use node-local scratch and SQLite writes. Publish verified bounded bundles and
 consistent queue backups; do not copy a live WAL database's main file alone or
 create a shared file for every tiny intermediate. Preserve source/input hashes,

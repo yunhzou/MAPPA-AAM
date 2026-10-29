@@ -219,13 +219,14 @@ def execute(args):
             end = datetime.datetime.fromisoformat(re.search(r'EndTime=(\S+)',job)[1]).timestamp()
             claim_until = min(end - plan['case_seconds'] - 180, plan['claim_until'])
         states = run(queue, workers=args.workers, identity=plan['identity'], scratch=os.environ['TMPDIR'],
-            bundles=out/'bundles', memory_bytes=plan['memory_bytes'], claim_until=claim_until)
+            bundles=out/'bundles', memory_bytes=args.memory_bytes or plan['memory_bytes'], claim_until=claim_until)
         if claim_until is not None:
             from .decoder_campaign import save
             import socket
             folder = out/'retirements'; folder.mkdir(exist_ok=True)
             save(folder/f'{os.environ["SLURM_JOB_ID"]}-{socket.gethostname()}.json',
-                dict(states=states, claim_until=claim_until, utc=time.time(), allocation_end=end))
+                dict(states=states, claim_until=claim_until, utc=time.time(), allocation_end=end,
+                     memory_bytes=args.memory_bytes or plan['memory_bytes'], workers=args.workers))
         return
     def terminate(signum, frame):
         raise SystemExit(128+signum)
@@ -244,4 +245,6 @@ if __name__ == '__main__':
     parser.add_argument('mode',choices=('prepare','coordinator','worker'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--workers',type=int,default=1)
+    parser.add_argument('--memory-bytes',type=int,
+                        help='Per-worker guard for an explicitly recorded resource stage')
     execute(parser.parse_args())

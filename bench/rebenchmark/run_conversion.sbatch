@@ -8,6 +8,10 @@ expected_commit=$4
 python=$5
 workers=${6:-1}
 campaign=${7:-rebenchmark.decoder_campaign}
+memory_arguments=()
+if [[ $# -ge 8 ]]; then
+    memory_arguments=(--memory-bytes "$8")
+fi
 test "$(git -C "$checkout" rev-parse HEAD)" = "$expected_commit"
 test -z "$(git -C "$checkout" status --porcelain --untracked-files=no)"
 export PYTHONPATH="$checkout/src:$checkout/bench"
@@ -15,7 +19,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 
 if [[ "$mode" == workers ]]; then
-    srun --ntasks-per-node=1 bash "$0" worker "$output" "$checkout" "$expected_commit" "$python" "$workers" "$campaign"
+    srun --ntasks-per-node=1 bash "$0" worker "$output" "$checkout" "$expected_commit" "$python" "$workers" "$campaign" "${@:8}"
     exit
 fi
 
@@ -47,7 +51,7 @@ elif [[ "$mode" == prepare ]]; then
 elif [[ "$mode" == coordinator ]]; then
     "$python" -u -m "$campaign" coordinator "$output"
 elif [[ "$mode" == worker ]]; then
-    "$python" -u -m "$campaign" worker "$output" --workers "$workers"
+    "$python" -u -m "$campaign" worker "$output" --workers "$workers" "${memory_arguments[@]}"
 else
     echo "Unknown mode: $mode" >&2
     exit 2

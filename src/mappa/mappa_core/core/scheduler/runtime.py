@@ -168,6 +168,7 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                             return  # lease lost; never accept stale work
                         heartbeat = time.monotonic()
                 result.update(peak_tree_rss_bytes=peak, phase_peak_tree_rss_bytes=phase_peaks,
+                              memory_guard_bytes=memory_bytes,
                               memory_sample_interval_seconds=poll_seconds, sampled_cpu_seconds=sampled_cpu,
                               phase_at_exit='publication' if publishing else 'compute',
                               worker=worker_id, monitoring_seconds=monitoring,

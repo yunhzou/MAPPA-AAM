@@ -85,6 +85,51 @@ def test_resources_dependencies_and_backup(tmp_path):
     queue.close()
 
 
+def test_memory_handoff_preserves_live_work_specs_and_deadline(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('a', case='same', memory_bytes=MEMORY),
+               task('b', case='same', memory_bytes=MEMORY)])
+    original = queue.db.execute('SELECT key,specification FROM tasks ORDER BY key').fetchall()
+    active = queue.claim('old', MEMORY, IDENTITY)
+    maintenance = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    assert maintenance.set_pending_memory(2*MEMORY, reason='Drain old workers') == 1
+    assert queue.claim('old', MEMORY, IDENTITY)['state'] == 'waiting'
+    queue.finish('a', active['token'], 'complete', {'value': 7})
+    assert queue.claim('old', MEMORY, IDENTITY)['state'] == 'insufficient_memory'
+    assert maintenance.set_pending_memory(MEMORY//2, reason='Lower-memory first pass') == 1
+    next_task = queue.claim('new', MEMORY//2, IDENTITY)
+    assert next_task['task'].key == 'b'
+    assert next_task['deadline'] == active['deadline']
+    assert queue.db.execute('SELECT key,specification FROM tasks ORDER BY key').fetchall() == original
+    assert queue.results(['a'])['a']['result'] == {'value': 7}
+    maintenance.close()
+    queue.close()
+
+
+def test_larger_memory_stage_retries_only_authorized_limits(tmp_path):
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('small', memory_bytes=MEMORY),
+               task('dependent', dependencies=('small',), memory_bytes=MEMORY),
+               task('broken', memory_bytes=MEMORY), task('already-large', memory_bytes=MEMORY)])
+    first = queue.claim('first-pass', MEMORY, IDENTITY)
+    queue.finish('small', first['token'], 'memory_limit', {'memory_guard_bytes': MEMORY})
+    error = queue.claim('first-pass', MEMORY, IDENTITY)
+    queue.finish('broken', error['token'], 'error', {'memory_guard_bytes': MEMORY})
+    large = queue.claim('large', MEMORY, IDENTITY)
+    queue.finish('already-large', large['token'], 'memory_limit', {'memory_guard_bytes': 4*MEMORY})
+    assert queue.retry_memory_limits(MEMORY, 4*MEMORY, reason='Authorized memory second stage') == ['small']
+    assert queue.claim('first-pass', MEMORY, IDENTITY)['state'] == 'insufficient_memory'
+    second = queue.claim('second-pass', 4*MEMORY, IDENTITY)
+    assert second['task'].key == 'small' and second['deadline'] == first['deadline']
+    queue.finish('small', second['token'], 'complete', {'value': 1})
+    assert queue.claim('first-pass', MEMORY, IDENTITY)['task'].key == 'dependent'
+    assert queue.results(['broken'])['broken']['state'] == 'error'
+    assert queue.results(['already-large'])['already-large']['state'] == 'memory_limit'
+    assert queue.db.execute("SELECT state FROM attempts WHERE task='small' ORDER BY started").fetchall() == [('memory_limit',), ('complete',)]
+    assert queue.retry_memory_limits(MEMORY, 4*MEMORY, reason='No repeated escalation') == []
+    queue.close()
+
+
 def test_bundle_hash_and_file_count(tmp_path):
     writer = BundleWriter(tmp_path/'bundles', tmp_path)
     blobs = [writer.put({'index': n, 'data': bytes(range(255))}) for n in range(40)]
