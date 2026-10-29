@@ -110,26 +110,19 @@ def test_cached_ts_utility_requires_explicit_records():
 
 
 def test_retired_alignment_and_geometry_selection_are_not_exported():
-    import mappa.alignment as alignment
-    import mappa.alignment.post_aam as structures
-    for name in ('match_wbo_graphs', 'align_from_arrays', 'analyze_alignment',
-                 'cut_sweep', 'run_cut_sweep_chunk', 'select_min_mechanisms',
-                 '_chirality_violations'):
-        assert not hasattr(alignment, name)
+    import mappa.mappa_core.domain as structures
     for name in ('PostAAMSelectionProblem', 'PostAAMMechanism',
                  'AffineChiralityConstraint', 'FixedMappingRMSD'):
         assert not hasattr(structures, name)
     with pytest.raises(ModuleNotFoundError):
-        importlib.import_module('mappa.alignment.api')
+        importlib.import_module('mappa.alignment')
 
 
 def test_removed_mechanism_pipeline_has_no_api_or_options():
-    import mappa.alignment as alignment
     from mappa import AAMSearchConfig
     for name in ('group_mechanisms', 'compile_mechanism_families', 'AAMMechanism',
                  'MechanismResult', 'AnalyticalMechanism', 'AnalyticalAAMResult'):
         assert not hasattr(mappa, name)
-    assert not hasattr(alignment, 'symmetry_repair_mapping')
     with pytest.raises(ModuleNotFoundError) as exc:
         importlib.import_module('mappa.mechanisms')
     assert exc.value.name == 'mappa.mechanisms'

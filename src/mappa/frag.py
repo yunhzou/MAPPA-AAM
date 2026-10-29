@@ -5,7 +5,7 @@ Low-level utilities used by mappa:
   expand_mapping            — element-multiset pairing of unmapped neighbors
   classify_bonds            — broken/formed bond classification by ΔWBO
 
-Alignment logic lives in the `alignment`, `growth`, and `matcher` packages.
+Fragment matching and reaction search live under `mappa_core/core/`.
 XYZ and xtb helpers live in `chemistry_computations` and are re-exported
 here for compatibility with existing imports.
 """

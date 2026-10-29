@@ -3,7 +3,7 @@ import pytest
 import mappa
 
 from mappa.mappa_core.core.search.api import search_aam
-from mappa.alignment.post_aam import AtomBijection
+from mappa.mappa_core.domain import AtomBijection
 from mappa.ts import analyze_transition_state
 from mappa.domain import (
     AAMProblem,

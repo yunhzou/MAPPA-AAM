@@ -1,4 +1,4 @@
-from mappa.alignment.post_aam import (
+from mappa.mappa_core.domain import (
     AtomBijection,
     AtomPermutation,
     PermutationGroup,

@@ -204,7 +204,7 @@ def test_standalone_fragment_matcher_returns_both_component_placements():
 
 
 def test_compression_contract_survives_typed_hierarchy_roundtrip():
-    from mappa.alignment.post_aam import AAMHierarchy
+    from mappa.mappa_core.domain import AAMHierarchy
     from mappa.mappa_core.core.matching.state import _symmetry_state
     from mappa.mappa_core.core.matching.state import candidate_from_record
     candidate = _SymCand({0: 0})

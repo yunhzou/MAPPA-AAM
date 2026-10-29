@@ -37,7 +37,7 @@ from .artifacts import (
     reaction_from_record, reaction_record, ts_record,
     write_ts_record,
 )
-from .alignment.post_aam import (
+from .mappa_core.domain import (
     AAMHierarchy, AtomBijection, AtomPermutation,
     FragmentMatch, PermutationGroup, SymmetryDomain,
 )

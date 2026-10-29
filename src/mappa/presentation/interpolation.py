@@ -1406,10 +1406,3 @@ def internal_coordinate_interpolation(
         "n_frames": len(frames), "clash_threshold": float(clash_threshold),
         "frames": frames,
     }
-
-
-# Backward-compatible name for callers from the earlier viewer prototype.
-internal_distance_interpolation = internal_coordinate_interpolation
-
-# Compatibility for tests and callers of the initial viewer prototype.
-_proper_align = proper_align_coordinates

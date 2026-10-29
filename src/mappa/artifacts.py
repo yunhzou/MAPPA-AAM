@@ -7,7 +7,7 @@ import gzip
 import pickle
 from pathlib import Path
 
-from .alignment.post_aam import AtomBijection
+from .mappa_core.domain import AtomBijection
 from .domain import (
     AAMProblem, AAMSearchConfig, AAMResult, AAMSearchMetrics, MolecularEndpoint, ReactionContext,
     ResolvedMechanism, TSResult,
@@ -16,6 +16,15 @@ from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
 _CHECKPOINT_MODULES = {
+    ('mappa.alignment.post_aam', 'AtomPermutation'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'AtomBijection'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'PermutationGroup'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'SymmetryDomain'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'FragmentMatch'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'AAMHierarchy'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'AAMHierarchyView'): 'mappa.mappa_core.domain',
+    ('mappa.alignment.post_aam', 'AAMHierarchyChain'): 'mappa.mappa_core.domain',
+
     ('mappa.search_symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
     ('mappa.conditioned_symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
     ('mappa.fragment', 'FragmentMatchConfig'): 'mappa.mappa_core.core.matching.records',

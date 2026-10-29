@@ -52,7 +52,7 @@ class _SymBlock:
 class _SymCand:
     """Compressed partial mapping with symmetry blocks and one witness.
 
-    The public alignment API still consumes concrete dict mappings.  Inside
+    The public matching API consumes concrete dict mappings.  Inside
     growth, this object keeps target pools grouped so a K-fold symmetric target
     produces one candidate instead of K concrete bijections.  `mapping` is the
     deterministic witness used for cheap WBO existence checks.

@@ -1,7 +1,10 @@
 from itertools import permutations
+import io
+import pickle
 
-from mappa.alignment.post_aam import (
+from mappa.mappa_core.domain import (
     AAMHierarchy, AAMHierarchyView, AAMHierarchyChain, AtomPermutation, FragmentMatch)
+from mappa.artifacts import _load_checkpoint
 
 
 def base():
@@ -37,3 +40,16 @@ def test_composed_views_flatten_and_pad_augmentation_frames():
     combined = {a: second[first[a]] for a in first}
     assert view.to_record() == hierarchy._materialize_target(combined).to_record()
     assert view.fragments[0].target_generators[0].degree == 5
+
+
+def test_saved_hierarchy_keeps_correlated_frames_after_module_relocation():
+    hierarchy = base()
+    chain = AAMHierarchyChain((hierarchy, hierarchy.relabel_target({0: 1, 1: 0})))
+    saved = pickle.dumps(chain, protocol=0).replace(
+        b'cmappa.mappa_core.domain\n', b'cmappa.alignment.post_aam\n')
+    restored = _load_checkpoint(io.BytesIO(saved))
+    assert isinstance(restored, AAMHierarchyChain)
+    assert restored.parts[1].base is restored.parts[0]
+    assert restored.parts[0].fragments[0].target_generators[0] is (
+        restored.parts[0].fragments[1].target_generators[0])
+    assert restored.to_record() == chain.to_record()

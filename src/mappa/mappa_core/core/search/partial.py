@@ -5,7 +5,7 @@ import time
 from collections import Counter
 from mappa.mappa_core.core.search.branch import BranchLimitExceeded, find_islands
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
-from mappa.alignment.post_aam import AAMHierarchy
+from mappa.mappa_core.domain import AAMHierarchy
 from mappa.domain import (
     AAMSearchConfig,
     AtomAssignment,

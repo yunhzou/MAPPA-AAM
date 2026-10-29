@@ -4,7 +4,7 @@ from dataclasses import replace
 import pytest
 
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
-from mappa.alignment.post_aam import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
+from mappa.mappa_core.domain import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
 from mappa.mappa_core.core.matching import native
 from mappa.final_branches import FinalFamily
 from mappa.mappa_core.core.search.branch import find_islands

@@ -181,6 +181,13 @@ Move existing viewers and static assets under `presentation/`. Separate HTML
 bundle generation from data persistence. Preserve behavior; animation/viewer
 redesign and chirality feature work remain deferred. Keep `skills/` unchanged.
 
+Alignment ownership cleanup: shared hierarchy/permutation types now live in
+`mappa_core/domain.py`, and coordinate alignment/interpolation in
+`presentation/interpolation.py`. The old `alignment/` package and two obsolete
+interpolation aliases are removed. Core data and presentation no longer share
+an artificial owner. Remaining root-domain, I/O and viewer consolidation is
+still pending; this step preserves data semantics and interpolation behavior.
+
 ## Files to dismantle rather than simply relocate
 
 | Current file | Distribute its responsibilities to |

@@ -14,7 +14,7 @@ from typing import Any, Mapping
 import numpy as np
 import math
 
-from .alignment.post_aam import AAMHierarchy, AtomBijection
+from .mappa_core.domain import AAMHierarchy, AtomBijection
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchBranch
 
 

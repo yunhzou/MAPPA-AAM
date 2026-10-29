@@ -87,7 +87,7 @@ class FragmentTransition:
         """Typed fragment view; a join has no fragment placement."""
         if self.match is None:
             return None
-        from mappa.alignment.post_aam import AAMHierarchy
+        from mappa.mappa_core.domain import AAMHierarchy
         return AAMHierarchy.from_record({'fragments': (self.match,)}).fragments[0]
 
 
@@ -127,7 +127,7 @@ class SearchPath:
 
     @cached_property
     def hierarchy(self):
-        from mappa.alignment.post_aam import AAMHierarchy
+        from mappa.mappa_core.domain import AAMHierarchy
         fragments = []
         for edge_id in self.transitions:
             edge = self.graph.transitions[edge_id]
@@ -274,7 +274,7 @@ class AAMSearchGraph:
 
     def fragment_placement(self, edge_id):
         """Parse each decision once; exact permutations are shared per graph."""
-        from mappa.alignment.post_aam import AAMHierarchy
+        from mappa.mappa_core.domain import AAMHierarchy
         edge = self.transitions[edge_id]
         if edge.match is None:
             return None
