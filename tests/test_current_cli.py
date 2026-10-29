@@ -61,7 +61,7 @@ def test_legacy_selector_has_no_import_or_compatibility_alias():
     for name in ('align_reaction', 'select_rp_mappings', 'RPResult',
                  'RPMechanism', 'write_rp_bundle', 'reaction_context_from_rp'):
         assert not hasattr(mappa, name)
-    for name in ('mappa.rp', 'mappa.alignment.index_chirality'):
+    for name in ('mappa.rp', 'mappa.alignment'):
         with pytest.raises(ModuleNotFoundError) as exc:
             importlib.import_module(name)
         assert exc.value.name == name
