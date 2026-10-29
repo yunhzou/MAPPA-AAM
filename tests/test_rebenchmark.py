@@ -108,29 +108,6 @@ def test_full_analysis_keeps_seed_evidence(tmp_path,reverse):
     assert all(read(p)['raw_sha256'] for p in records)
 
 
-def test_saved_exact_queries_replay(tmp_path):
-    import z3
-    from rebenchmark.analysis import exact_query
-    from mappa import search_aam
-    problem,features,reference=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
-    result=search_aam(problem,AAMSearchConfig(seed_count=1,sweep_cuts=False),execution='reused_native')
-    path=next(result.graph.paths())
-    mapping=path.mapping
-    query=exact_query(tmp_path)
-    status,witness=query(path,problem,mapping,source_atoms=list(mapping),complete_reference=True)
-    assert status=='recovered'
-    wrong=dict(mapping);atoms=list(mapping);wrong[atoms[0]]=wrong[atoms[1]]
-    status,_=query(path,problem,wrong,source_atoms=list(mapping),complete_reference=True)
-    assert status=='not_recovered'
-    statuses=[]
-    for p in tmp_path.glob('*.smt2'):
-        solver=z3.Solver();solver.from_string(p.read_text())
-        result=solver.check();statuses.append(str(result))
-        record=read(p.with_suffix('.json'))
-        assert record['outcome']==('recovered' if result==z3.sat else 'not_recovered')
-    assert sorted(statuses)==['sat','unsat']
-
-
 def test_report_missing_seed_remains_unknown(tmp_path):
     from rebenchmark.report import summarize
     run=tmp_path/'run'

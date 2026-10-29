@@ -93,24 +93,18 @@ class SymbolicActions:
 
 
 def compile_path(path, problem, reference, *, source_atoms, source_generators=(),
-               target_generators=(), complete_reference=True,
-               projected_atoms=None):
+               target_generators=(), complete_reference=True):
     """Compile the shared correlated path constraints, without solving.
 
     Endpoint generators normalize reference identity only. They do not change
     the returned physical mapping. ``source_atoms`` is the reference-scored
     atom set (e.g. heavy atoms); all mapped hydrogens still enter the path model.
-    ``projected_atoms`` requests a rejection-only relaxation: its UNSAT result
-    is conclusive for the full model, but its SAT result requires a full query.
     """
     import z3
     from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
     start=time.perf_counter();encoder=ReferenceConstraints();program=encoder.program
     nr,np_=problem.source_atom_count,problem.target_atom_count
     representative=path.mapping
-    if projected_atoms is not None:
-        selected=set(projected_atoms)
-        representative={r:p for r,p in representative.items() if r in selected}
     constant,symbol,lookup,act=encoder.constant,encoder.symbol,encoder.lookup,encoder.act
     values=[constant(representative.get(r,np_)) for r in range(nr)]
     placements=[]
@@ -124,7 +118,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
                                 source_generators,target_generators,complete_reference,nr,np_):
         encoder.failed=True
         return CompiledFamily(encoder,values,representative,program,{},path,problem,
-                              projected_atoms,time.perf_counter()-start)
+                              time.perf_counter()-start)
     # Later decisions are in the coordinate frame fixed by earlier witnesses.
     for edge,placement in reversed(placements):
         for domain in placement.symmetry_domains:
@@ -184,7 +178,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     program=[(kind,edge,{p:encoder.expression(v) for p,v in choice.items()} if kind=='domain'
               else encoder.expression(choice),data) for kind,edge,choice,data in program]
     return CompiledFamily(encoder,raw_values,representative,program,required,path,problem,
-                          projected_atoms,time.perf_counter()-start)
+                          time.perf_counter()-start)
 
 
 @dataclass
@@ -196,7 +190,6 @@ class CompiledFamily:
     required: dict
     path: object
     problem: object
-    projected_atoms: object
     encoding_seconds: float
 
     @cached_property
@@ -212,14 +205,13 @@ class CompiledFamily:
 
 
 def query_path(path, problem, reference, *, source_atoms, source_generators=(),
-               target_generators=(), complete_reference=True, timeout_ms=10000,
-               projected_atoms=None):
+               target_generators=(), complete_reference=True, timeout_ms=10000):
     """Return a certified full explicit-atom realization, UNSAT, or unknown."""
     import z3
     start, cpu = time.perf_counter(), time.process_time()
     compiled=compile_path(path,problem,reference,source_atoms=source_atoms,
         source_generators=source_generators,target_generators=target_generators,
-        complete_reference=complete_reference,projected_atoms=projected_atoms)
+        complete_reference=complete_reference)
     encoding = dict(wall_seconds=time.perf_counter()-start, cpu_seconds=time.process_time()-cpu)
     left=timeout_ms-1000*encoding['wall_seconds']
     if left<=0:
@@ -259,4 +251,4 @@ def _realize(compiled,model):
         for (a,b),w in required.items())
     return dict(mapping=sorted(actual.items()),actions=actions,
         checked_fragment_edges=len(required),
-        scope='full_explicit' if compiled.projected_atoms is None else 'projection_only')
+        scope='full_explicit')

@@ -1,40 +1,12 @@
 """Original Golden scoring, independently retained for every seed and cut."""
 from dataclasses import replace, asdict
 import gc
-import hashlib
 import json
 from pathlib import Path
 import time
 
 from .evidence import read, save, sha
 from .search import select_contexts
-
-
-def exact_query(directory):
-    """Save the exact solver query and outcome. Solver unknown stays unknown."""
-    def query(path, problem, reference, **options):
-        import z3
-        from mappa.mappa_workflow.mapping_analytics.family import compile_path
-        options.pop('timeout_ms', None)
-        compiled = compile_path(path, problem, reference, **options)
-        compiled.solver.set(timeout=0)
-        text = compiled.solver.to_smt2()
-        key = hashlib.sha256(text.encode()).hexdigest()
-        target = Path(directory)/key
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.with_suffix('.smt2').write_text(text)
-        start = time.process_time()
-        status = compiled.solver.check()
-        if status == z3.sat:
-            outcome, result = 'recovered', compiled.realize(compiled.solver.model())
-        elif status == z3.unsat:
-            outcome, result = 'not_recovered', dict(reason='unsat')
-        else:
-            outcome, result = 'unknown', dict(reason=compiled.solver.reason_unknown())
-        result['cpu_seconds'] = time.process_time()-start
-        save(target.with_suffix('.json'), dict(outcome=outcome,result=result,query_sha256=key))
-        return outcome, result
-    return query
 
 
 def analyze_seed(plan, ref, graph, seed, out, number, **provenance):
@@ -53,7 +25,7 @@ def analyze_seed(plan, ref, graph, seed, out, number, **provenance):
     ranking=dict(cpu_seconds=time.process_time()-c,wall_seconds=time.perf_counter()-w)
     c,w=time.process_time(),time.perf_counter()
     verdict=evaluate_planned(result,plan,ref['features'],ref['mapping'],
-        seconds=3600,query=exact_query(out/'queries'))
+        seconds=3600)
     save(out/'evaluation.json',dict(**verdict,cpu_seconds=time.process_time()-c,
          wall_seconds=time.perf_counter()-w,cut=number,seed=seed+1,ranking=ranking,
          **provenance))

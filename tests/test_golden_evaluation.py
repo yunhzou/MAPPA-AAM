@@ -1,5 +1,4 @@
 import importlib.util
-from itertools import product
 from pathlib import Path
 import pynauty
 import pytest
@@ -18,29 +17,6 @@ def test_joint_chemical_equivalence_is_not_independent_atom_membership():
     reversed_=pynauty.certificate(E.colored_graph([f,f],dict(enumerate([3,2,1,0]))))
     wrong=pynauty.certificate(E.colored_graph([f,f],dict(enumerate([0,2,1,3]))))
     assert original==reversed_ and original!=wrong
-
-
-@pytest.mark.parametrize('finite_domain',[False,True])
-def test_symbolic_conditioned_group_product_matches_tiny_exhaustive_oracle(finite_domain):
-    f=feature(3,True)
-    groups=[((1,0,2),),((0,2,1),)]
-    possible=set()
-    for first,second in product([(0,1,2),(1,0,2)],[(0,1,2),(0,2,1)]):
-        possible.add(tuple(first[second[i]] for i in range(3)))
-    from itertools import permutations
-    for values in permutations(range(3)):
-        status,_=E.symbolic_path_query(dict(enumerate(range(3))),groups,[f,f],dict(enumerate(values)),5000,
-                                     finite_domain=finite_domain)
-        assert (status=='recovered') == (values in possible)
-
-
-@pytest.mark.parametrize('finite_domain',[False,True])
-def test_symbolic_query_preserves_unmatched_domain_and_free_hydrogen_projection(finite_domain):
-    f=feature(3,True)
-    status,_=E.symbolic_path_query({0:0,1:1},[((1,0,2),)],[f,f],{0:1,1:0},5000,finite_domain=finite_domain)
-    assert status=='recovered'
-    status,_=E.symbolic_path_query({0:0,1:1},[((1,0,2),)],[f,f],{0:1,2:0},5000,finite_domain=finite_domain)
-    assert status=='not_recovered'
 
 
 def test_inputs_are_unmapped_explicit_H_and_reference_indices_are_separate():
@@ -85,27 +61,7 @@ def test_reference_recovery_queries_real_compressed_aam_not_only_representative(
     evaluated=E.evaluate(result,features,reference,seconds=10)
     assert not evaluated['representative_recovery']
     assert evaluated['reference_recovery']=='recovered'
-    assert evaluated['symbolic_queries']>0
-
-
-def test_H_witness_differences_retain_full_feasibility_queries():
-    from types import SimpleNamespace as S
-    import numpy as np
-    from mappa import AAMProblem
-    from mappa.mappa_core.domain import MolecularEndpoint
-    endpoint=MolecularEndpoint(('C','C','H','H'),np.zeros((4,3)),np.zeros((4,4)))
-    mappings=[{0:0,1:1,2:2,3:3},{0:0,1:1,2:3,3:2}]
-    graph=S(terminals=[0,1],states=[S(mapping=tuple(m.items())) for m in mappings],capped=False,
-        transitions=[S(source=0),S(source=0)],
-        paths=lambda:iter([S(mapping=m,terminal=i,transitions=[i],context=S(cuts=()),fragments=()) for i,m in enumerate(mappings)]),
-        fragment_placement=lambda edge:S(r_atoms=(),representative_assignments=(),exact_fixed=(),deferred_edges=(),
-            symmetry_domains=(),target_generators=[S(images=(1,0,2,3)),S(images=(0,1,3,2))]))
-    calls=[]
-    def query(*args,**kwargs):calls.append(args);return 'unknown',None
-    f=feature(2,True)
-    result=E.evaluate(S(graph=graph,problem=AAMProblem(endpoint,endpoint)),[f,f],{0:1,1:0},query=query)
-    assert result['reference_recovery']=='unknown'
-    assert len(calls)==result['symbolic_queries']==2
+    assert evaluated['compatibility_queries']>0
 
 
 def test_explicit_H_donor_competition_depends_on_seed_order():
@@ -197,3 +153,31 @@ def test_event_filter_ignores_unannotated_hydrogen_correspondence():
     index=E.reference_event_index(features)
     assert index.n==index.m==2
     assert index.counts([index.vector(E.project(reference,features))])[0].sum()==1
+
+
+def test_saved_singleton_domain_can_cross_conditioned_automorphism_orbits():
+    import numpy as np
+    from mappa import AAMProblem,AAMSearchConfig,search_aam
+    from mappa.mappa_core.domain import MolecularEndpoint
+    source=MolecularEndpoint(('O','O'),np.zeros((2,3)),np.zeros((2,2)))
+    bonds=np.zeros((4,4));bonds[0,1]=bonds[1,0]=bonds[2,3]=bonds[3,2]=1
+    target=MolecularEndpoint(('O',)*4,np.zeros((4,3)),bonds)
+    result=search_aam(AAMProblem(source,target),AAMSearchConfig())
+    path=next(result.graph.paths());edge=result.graph.transitions[path.transitions[-1]]
+    seed=edge.match['fragment'][0];old=path.mapping[seed]
+    domain=edge.match['symmetry']['blocks'][0]['p_atoms']
+    assert set(domain)=={1,2,3} and old==1
+    assert all(g[old]==old for g in edge.match['symmetry']['automorph_generators'])
+    assert 2 in domain and not result.graph.capped
+    trial={**path.mapping,seed:2}
+    assert len(set(trial.values()))==2
+    assert bonds[tuple(path.mapping.values())]==1
+    assert bonds[tuple(trial.values())]==0
+    def feature(n,edges):
+        return dict(heavy=list(range(n)),colors=[('O',0,0,0,'')]*n,
+                    bonds=[(a,b,(1.0,'STEREONONE')) for a,b in edges])
+    score=E.evaluate(result,[feature(2,[]),feature(4,[(0,1),(2,3)])],trial,
+                   reference_side='source',seconds=10)
+    assert not score['representative_recovery']
+    assert score['reference_recovery']=='recovered'
+    assert score['witness_actions']['scope']=='full_explicit'

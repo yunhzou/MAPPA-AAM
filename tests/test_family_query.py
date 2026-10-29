@@ -80,10 +80,9 @@ def test_automorphism_summary_is_not_an_independent_domain():
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
 
 
-def test_heavy_projection_positive_cannot_replace_full_H_check():
+def test_reference_heavy_assignment_still_requires_feasible_hydrogens():
     problem=AAMProblem(endpoint('OH',[(0,1)]),endpoint('OHO',[(0,1)]))
     path=synthetic_path([dict(r_atoms=[0],p_atoms=[0,2])])
-    assert query_path(path,problem,{0:2},source_atoms=(0,),projected_atoms=(0,))[0]=='recovered'
     assert query_path(path,problem,{0:2},source_atoms=(0,))[0]=='not_recovered'
 
 
