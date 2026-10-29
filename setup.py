@@ -6,7 +6,7 @@ setup(
     ext_modules=[
         Extension(
             "mappa._group_ops",
-            sources=["src/mappa/native/group_ops.cpp"],
+            sources=["src/mappa/mappa_core/native/group_ops.cpp"],
             include_dirs=[pybind11.get_include()],
             language="c++",
             extra_compile_args=["-O3", "-std=c++17"],

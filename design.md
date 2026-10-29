@@ -5,6 +5,42 @@ This is the authoritative design for the current code. Usage belongs in
 and [viewer guide](docs/VIEWERS.md). Measurements and validation records belong
 in `reports/`; historical implementations and superseded designs remain in Git.
 
+## Source hierarchy
+
+```text
+mappa/
+├── mappa_core/
+│   ├── domain.py                 shared endpoint, hierarchy and result data
+│   ├── core/
+│   │   ├── matching/
+│   │   │   ├── api.py, policy.py, graphs.py
+│   │   │   ├── representation/   candidate state and fragment contracts
+│   │   │   ├── symmetry/         canonical forms, orbits and workspaces
+│   │   │   └── growth/           extension, compression and frontier
+│   │   ├── search/
+│   │   │   ├── api.py, planning.py, session.py, graph.py
+│   │   │   ├── branching/        locking, branch engines, reuse and validation
+│   │   │   └── queries/          partial and subgraph objectives
+│   │   └── scheduler/            local and distributed task execution
+│   ├── post_processing/
+│   │   ├── final_branches.py
+│   │   └── decoder/              records, conversion, events and public API
+│   ├── utils/                    shared bond rules and file I/O
+│   └── native/                   C++ engine and vendored nauty
+├── mappa_workflow/
+│   ├── mapping_analytics/        explicit mapping and event-membership queries
+│   └── ts_analytics/             TS records, scoring and serialization
+├── presentation/                viewers, trajectory, coordinates and assets
+├── __init__.py                   public exports
+└── cli.py
+```
+
+The subfolders express dependencies: growth uses representation and symmetry;
+reaction branching uses matching; sessions combine branches and plans; the
+scheduler executes sessions. Matching does not call reaction search. Core I/O
+has no workflow or presentation imports. Trusted saved-data class relocation is
+explicit in the checkpoint reader; no retired import modules remain.
+
 ## Workflow and ownership
 
 ```mermaid
@@ -27,7 +63,7 @@ flowchart LR
 | Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
 | AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `mappa_core/core/search/` |
 | Representation | Shared decisions, paths, atom-set branches, saved mapping families | `mappa_core/domain.py`, `mappa_core/core/search/graph.py`, `mappa_core/post_processing/final_branches.py` |
-| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `mappa_core/core/search/symmetry.py`, private helpers in `mappa_core/post_processing/final_branches.py` |
+| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry/`, `mappa_core/core/search/branching/symmetry.py`, private helpers in `mappa_core/post_processing/final_branches.py` |
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `mappa_core/post_processing/decoder/` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `mappa_workflow/mapping_analytics/` |
 | Execution | Task dependencies, workers, budgets and verified publication | `mappa_core/core/scheduler/` |
@@ -38,8 +74,7 @@ flowchart LR
 CLIs, benchmark adapters and viewers consume these owners. They must not contain
 another matcher or decoder. Scheduling changes do not change scientific settings.
 
-Matching and reaction search are the completed ownership stages in
-[refactor.md](refactor.md). Matching owns fragment growth and compressed choices.
+The ownership stages in [refactor.md](refactor.md) are implemented. Matching owns fragment growth and compressed choices.
 Search owns direction/seed/cut plans, fragment locking, branch admission, saved
 graphs and optional competition. `session.py` owns per-cut scientific operations;
 `api.py` combines and persists their results. Existing local worker lifecycle and
@@ -64,8 +99,8 @@ flowchart TD
 Node/bond policies and matching result records remain under matching. Search's
 partial-assignment helpers replace the old mixed `alignment/sweep.py` owner.
 The unused adaptive closure engine and its dedicated native adapter are removed;
-shared seed policies and their condition/result records remain. Other ownership
-stages are pending. These moves preserve scientific decisions and result semantics.
+shared seed policies and their condition/result records remain. These changes
+preserve scientific decisions and result semantics.
 
 The old `alignment/` package is removed. Its fragment hierarchies, permutations
 and bijections now belong to shared core data in `mappa_core/domain.py`;
@@ -226,7 +261,7 @@ path does not call solver enumeration or use a solver decoder as a fallback.
 ## Transition states and presentation
 
 TS analysis requires an explicit `ReactionContext`: selected mappings and bond
-events. `mappa_core/core/search/partial.py` serves endpoint-to-TS core assignment, not a replacement
+events. `mappa_core/core/search/queries/partial.py` serves endpoint-to-TS core assignment, not a replacement
 full-reaction search. Raw AAM and event conversion do not select 3D orientation or
 claim a general stereochemistry guarantee from element/WBO inputs.
 
@@ -250,7 +285,7 @@ settings, timings, memory, attempts, output provenance and incomplete flags.
 Execution success is not scientific completeness. Resource limits, unknowns,
 missing outputs and unattempted tasks are never algorithmic negatives.
 
-## Repository boundaries and remaining cleanup
+## Repository boundaries
 
 `src/` contains the reusable Python and native algorithms; `tests/` contains their checks.
 `docs/` contains current usage guides and executable examples. `bench/` owns
@@ -261,10 +296,10 @@ user adapters; cluster launch settings live under `bench/`; `manuscript/` owns p
 code is recovered from its recorded Git revision, not kept as runnable fallback
 copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
 
-This document does not claim all consolidation is finished. Shared search scheduling and its supporting condition/result types
-remain in use. Further consolidation must migrate their consumers together;
-changing directory names does not establish equivalent behavior. New code must
-use the existing owners, remove superseded paths, and update this one design.
+Shared search scheduling and its supporting condition/result types remain in
+use. New code must use these owners, remove superseded paths and update this
+one design. The refactor retains one scientific implementation per selected
+engine and one shared task executor.
 
 Standalone examples are removed. Paper witness inputs stay beside the relevant
 manuscript evidence. Keep `skills/` unchanged pending a separate review.
@@ -275,7 +310,7 @@ manuscript evidence. Keep `skills/` unchanged pending a separate review.
 executor, worker pool, reduction and minimum-selection entry points are removed;
 the former `alignment/sweep.py` is now removed. Its live cut and partial-assignment
 helpers belong to search; unused historical symmetry-completion helpers are gone.
-`mappa_core/core/search/` owns reaction search and `postprocessing.py` owns
+`mappa_core/core/search/` owns reaction search and `mappa_core/post_processing/decoder/` owns
 anchored conversion/counting.
 
 The unused post-AAM chirality/RMSD selection framework is removed. Fragment,
@@ -292,23 +327,23 @@ symmetry-repair scoring. `decode_events` is the sole public event-result pipelin
 The unused analytical mapping-family compiler, historical scoring/pattern
 utilities, adaptive cut/seed runners and event certificates are removed with
 their obsolete exports and dedicated tests. Explicit mapping queries retain
-`family_query.py`; shared fragment and hierarchy types remain in use.
+`mappa_workflow/mapping_analytics/family.py`; shared fragment and hierarchy types remain in use.
 Search configurations no longer accept symmetry-repair options. Exact fragment
 symmetry and TS core assignment keep their shared helpers.
 
 ## Native implementation ownership
 
-`src/mappa/native/` owns our C++ implementations, headers and engine build script.
+`src/mappa/mappa_core/native/` owns our C++ implementations, headers and engine build script.
 Vendored nauty sources and licenses are isolated under
-`src/mappa/native/third_party/nauty/`. There is no top-level native source tree.
+`src/mappa/mappa_core/native/third_party/nauty/`. There is no top-level native source tree.
 The compiled interfaces are `mappa._engine` and `mappa._group_ops`.
 The unused paired-mapping extension and freeze exports are removed.
 `autgrp.cpp` remains required by conditioned symmetry.
 
 ```mermaid
 flowchart LR
-    Matcher[Python fragment matcher] --> Bridge[matching/native.py]
+    Matcher[Python fragment matcher] --> Bridge[matching/growth/native.py]
     Bridge --> Engine[mappa._engine]
-    Source[src/mappa/native] --> Engine
+    Source[src/mappa/mappa_core/native] --> Engine
     Vendor[third_party/nauty] --> Engine
 ```

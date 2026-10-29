@@ -297,8 +297,8 @@ removed. They have no compatibility aliases or fallback dispatch. The old
 `alignment.api` and `cut_sweep` execution entry points are also removed; use
 `search_aam` followed by `decode_events`.
 
-Build the engine with `python src/mappa/native/build_engine.py`; see the
-[native build guide](src/mappa/native/README.md).
+Build the engine with `python src/mappa/mappa_core/native/build_engine.py`; see the
+[native build guide](src/mappa/mappa_core/native/README.md).
 
 `MAPPA_NATIVE=1` is the default native selection. A missing or broken native
 extension raises an error. Set `MAPPA_NATIVE=0` to explicitly select Python.
@@ -362,12 +362,12 @@ which tests ran; passing smoke checks does not mean the full suite passed.
 
 | Location | Contents |
 |---|---|
-| `src/mappa/` | Importable matching, search, separate decoding, geometry, and viewers |
+| `src/mappa/` | `mappa_core` algorithms/I/O, `mappa_workflow` analytics, and `presentation` |
 | `docs/` | Executed notebooks and public API documentation |
 | `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
-| `tests/`, `native/`, `tools/` | Tests, native implementation and user utilities |
+| `tests/`, `tools/` | Functional checks and user utilities |
 | `skills/` | Reusable viewer instructions |
 
 The architecture and ownership rules are in [design.md](design.md). Historical

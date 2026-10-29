@@ -1,11 +1,11 @@
 # MAPPA source refactoring plan
 
-Status: matching and reaction-search stages functionally validated; scheduler and later stages pending.
+Status: all ownership stages implemented; final native build and integration validation in progress.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
-This document describes the proposed refactor. `design.md` describes the current
-implementation until each corresponding change is implemented and documented.
+This document records the approved refactor and its implementation. `design.md`
+describes the current architecture.
 
 ## Central boundary
 
@@ -81,8 +81,8 @@ holds automorphism and canonical-equivalence operations; `growth/` extends and
 compresses candidates using those lower layers. `api.py` is the public entry;
 `policy.py` defines shared matching rules. Internal helpers are no longer
 re-exported from the package facade. Node and bond policies share `policy.py`;
-fragment configurations/results share `records.py`; symmetry workspaces share
-`symmetry.py`. Existing matching and growth function bodies are retained.
+fragment configurations/results share `representation/records.py`; symmetry
+workspaces share `symmetry/workspace.py`. Existing matching and growth function bodies are retained.
 `subgraph.py` calls full reaction search, so only its graph preparation moved.
 Saved class names resolve through an explicit relocation table in the checkpoint
 reader; superseded source modules are removed.
@@ -119,8 +119,8 @@ execution, reuse, optional competition and finalization. `queries/` owns partial
 and subgraph searches. The saved `graph.py` and deterministic `planning.py` are
 lower-level inputs; `session.py` combines them, while `api.py` owns public and
 bidirectional execution. Planning no longer calls the API.
-Local pool loops and worker state were extracted to `execution/local_search.py`;
-scheduler ownership is consolidated below. Existing task/budget policy is unchanged.
+Local pool loops and worker state are consolidated into `scheduler/search.py`.
+Existing task/budget policy is unchanged.
 
 ## 3. Consolidate execution scheduling
 
@@ -225,7 +225,9 @@ interpolation aliases are removed. Core data and presentation no longer share
 an artificial owner. The remaining viewer and growth-display modules now share `presentation/`,
 including their unchanged static assets. Rigid fitting uses the existing shared
 coordinate routine; trajectory capture and represented-choice display share one
-module. Native-source placement and final integration verification remain.
+module. Native sources and build configuration now live under `mappa_core/native/`;
+all 36 C/C++/header/license files are byte-identical across that relocation.
+Final integration verification is in progress.
 
 ## Files to dismantle rather than simply relocate
 

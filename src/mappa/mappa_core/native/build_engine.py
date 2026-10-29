@@ -7,6 +7,7 @@ third_party/nauty. MAPPA_NATIVE=0 explicitly selects the Python engine; a missin
 selected native engine is an error.
 """
 import shutil
+import tempfile
 from pathlib import Path
 
 import pybind11
@@ -14,9 +15,8 @@ from setuptools import Distribution, Extension
 from setuptools.command.build_ext import build_ext
 
 NATIVE = Path(__file__).resolve().parent
-ROOT = NATIVE.parents[2]
+ROOT = NATIVE.parents[3]
 NAUTY = NATIVE / "third_party" / "nauty"
-BUILD = ROOT / "build" / "engine"
 
 nauty_sources = [str(NAUTY / name) for name in (
     "nauty.c", "nautil.c", "naugraph.c", "schreier.c", "naurng.c")]
@@ -42,7 +42,7 @@ class Build(build_ext):
         for source in extension.sources:
             is_c = source.endswith(".c")
             objects += compiler.compile(
-                [source], output_dir=str(BUILD / "obj"),
+                [source], output_dir=self.build_temp,
                 include_dirs=extension.include_dirs,
                 extra_postargs=c_flags if is_c else extension.extra_compile_args)
         output = self.get_ext_fullpath(extension.name)
@@ -53,16 +53,18 @@ class Build(build_ext):
 
 
 def main():
-    dist = Distribution({"name": "mappa_engine", "ext_modules": [ext]})
-    cmd = Build(dist)
-    cmd.build_lib = str(BUILD / "lib")
-    cmd.build_temp = str(BUILD / "tmp")
-    cmd.ensure_finalized()
-    cmd.run()
-    built = next((BUILD / "lib" / "mappa").glob("_engine*.so"))
-    target = ROOT / "src" / "mappa" / built.name
-    shutil.copy2(built, target)
-    print("built", target)
+    with tempfile.TemporaryDirectory(prefix="mappa-engine-") as directory:
+        build = Path(directory)
+        dist = Distribution({"name": "mappa_engine", "ext_modules": [ext]})
+        cmd = Build(dist)
+        cmd.build_lib = str(build / "lib")
+        cmd.build_temp = str(build / "obj")
+        cmd.ensure_finalized()
+        cmd.run()
+        built = next((build / "lib" / "mappa").glob("_engine*.so"))
+        target = ROOT / "src" / "mappa" / built.name
+        shutil.copy2(built, target)
+        print("built", target)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ imports are `mappa._engine` and `mappa._group_ops`.
 
 - `engine.cpp` and the fragment/growth headers implement compressed matching,
   growth, conditioned symmetry and reusable search work. Python calls these
-  through `mappa_core/core/matching/native.py` and the native search adapters.
+  through `mappa_core/core/matching/growth/native.py` and the native search adapters.
 - `group_ops.cpp` implements permutation projection and conjugation used by
   the shared matcher and hierarchy types.
 - `autgrp.cpp` implements the automorphism graph used by conditioned symmetry.
@@ -24,7 +24,8 @@ python src/mappa/native/build_engine.py
 Package installation builds `_group_ops` through `setup.py`.
 The engine build compiles `engine.cpp`, `autgrp.cpp` and the nauty
 core, then places `_engine.<abi>.so` in `src/mappa/`. It requires a C++17 compiler.
-Build products live under `build/engine/` and are not committed.
+Intermediate build products use a temporary directory (`TMPDIR` when set)
+and are removed after the extension is published.
 
 `MAPPA_NATIVE=1` is the default. Missing or broken selected native execution is
 an error. `MAPPA_NATIVE=0` explicitly selects Python growth. Custom node policies
