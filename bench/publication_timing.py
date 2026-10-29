@@ -45,7 +45,7 @@ class SearchProfiler:
     def __enter__(self):
         from mappa.mappa_core.core.search import api as aam
         from mappa import artifacts
-        from mappa.mappa_core.core.scheduler import local_search
+        from mappa.mappa_core.core.scheduler import search as local_search
         from mappa.mappa_core.core.search.graph import AAMSearchGraph
         for name in ('write_raw_cut','write_graph_checkpoint','write_aam_checkpoint'):
             self.patch(artifacts,name,self.wrapper(getattr(artifacts,name),'persistence'))

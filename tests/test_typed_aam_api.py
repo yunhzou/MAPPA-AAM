@@ -140,7 +140,7 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
 
 
 def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
-    from mappa.mappa_core.core.scheduler import local_search as aam
+    from mappa.mappa_core.core.scheduler import search as aam
     from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)

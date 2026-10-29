@@ -49,7 +49,7 @@ def test_logged_resume_searches_only_missing_cut(tmp_path,monkeypatch):
     full=search(problem,config,tmp_path,1)
     expected={p.name:read_raw_cut(p) for p in full.cut_paths}
     missing=full.cut_paths[-1];missing.unlink()
-    from mappa.mappa_core.core.scheduler import local_search as core
+    from mappa.mappa_core.core.scheduler import search as core
     original=core._search_cut;calls=[]
     def observed(cut):
         calls.append(cut)
