@@ -194,6 +194,67 @@ def symbolic_path_query(mapping, groups, features, reference, timeout_ms, *, fin
     return ('not_recovered',None) if status == z3.unsat else ('unknown',solver.reason_unknown())
 
 
+def reference_membership(problem, representatives, paths, features, reference, *, seconds=120):
+    """Membership in saved compressed choices, with the original Golden policy.
+
+    ``paths`` is lazy: representative hits need no constraint construction.
+    Unmatched heavy atoms remain part of the exact relation. Hydrogens are
+    feasible but unscored; endpoint chemical equivalence preserves correlations.
+    """
+    start, cpu = time.perf_counter(), time.process_time()
+    deadline = start + seconds
+    reference = dict(reference)
+    expected = pynauty.certificate(colored_graph(features, project(reference, features)))
+    certificates = {}
+    queries = []
+    def matches(mapping):
+        heavy = tuple(sorted(project(mapping, features).items()))
+        if heavy not in certificates:
+            certificates[heavy] = pynauty.certificate(colored_graph(features, dict(heavy)))
+        return certificates[heavy] == expected
+    def answer(status, witness=None, **details):
+        return dict(status=status,witness=witness,queries=queries,**details,
+            timing=dict(wall_seconds=time.perf_counter()-start,cpu_seconds=time.process_time()-cpu))
+    for identifier, mapping in representatives:
+        if matches(mapping):
+            return answer('recovered',dict(mapping=sorted(dict(mapping).items()),branch=identifier,
+                                           method='representative'))
+        if time.perf_counter() >= deadline:
+            return answer('unknown',reason='reference-check budget')
+    def lifted(feature, degree):
+        result=[]
+        for generator in endpoint_generators(feature):
+            images=list(range(degree))
+            for i, atom in enumerate(feature['heavy']):
+                images[atom]=feature['heavy'][generator[i]]
+            result.append(tuple(images))
+        return tuple(result)
+    source = lifted(features[0], problem.source_atom_count)
+    target = lifted(features[1], problem.target_atom_count)
+    seen=set(); unknown=False
+    for identifier, path in paths():
+        remaining=deadline-time.perf_counter()
+        if remaining<=0:
+            return answer('unknown',reason='reference-check budget')
+        if len(project(path.mapping,features)) != len(project(reference,features)):
+            continue
+        identity=(tuple(sorted(path.mapping.items())),path.context.cuts,
+                  path.context.graph_floor,path.context.iso_tolerance,frozen_value(path.fragments))
+        if identity in seen:
+            continue
+        seen.add(identity)
+        status, result=query_path(path,problem,reference,source_atoms=features[0]['heavy'],
+            source_generators=source,target_generators=target,complete_reference=True,
+            timeout_ms=min(10000,1000*remaining))
+        queries.append(dict(branch=identifier,status=status,**result))
+        if status=='recovered':
+            if not matches(result['mapping']):
+                raise ValueError('Reference witness fails independent chemical equivalence check')
+            return answer(status,dict(result,branch=identifier,method='compressed_choices'))
+        unknown |= status=='unknown'
+    return answer('unknown' if unknown else 'not_recovered')
+
+
 def rank_key(mapping, problem):
     """Frozen graph-only representative rank; no reference data consumed."""
     mapping = dict(mapping)

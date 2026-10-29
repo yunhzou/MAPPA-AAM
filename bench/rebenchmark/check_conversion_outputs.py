@@ -20,16 +20,20 @@ from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
 def verify_conversion(problem, value, resource, key):
     """Independently count saved branches; never run matching or decoding."""
+    import numpy as np
     result = value['decoded']
     assert result['schema'] == 'mappa.decoded_events/v2'
     assert result['event_policy']['schema'] == 'mappa.signed_events/v3'
     assert result['method'] == 'anchored_fragment_conversion'
     catalogue = FinalBranchCatalogue.from_record(problem, result['converted_catalogue'])
     config = result['config']
-    pairs = [tuple((a, b, ep.wbo[a,b], bond_event_threshold(ep.elements, a, b,
-        default_threshold=config['threshold'], metal_threshold=config['metal_threshold']))
-        for a in range(ep.atom_count) for b in range(a+1, ep.atom_count))
-        for ep in (problem.reactant, problem.product)]
+    edges=[]
+    for endpoint in (problem.reactant,problem.product):
+        a,b=np.triu_indices(endpoint.atom_count,1)
+        thresholds=np.array([bond_event_threshold(endpoint.elements,int(x),int(y),
+            default_threshold=config['threshold'],metal_threshold=config['metal_threshold']) for x,y in zip(a,b)])
+        edges.append((a,b,endpoint.wbo[a,b],thresholds))
+    padded=[np.pad(endpoint.wbo,((0,1),(0,1))) for endpoint in (problem.product,problem.reactant)]
     counts = {}
     reports = {row['family_id']:row for row in result['family_reports']}
     assert len(result['family_reports']) == len(result['converted_branches'])
@@ -44,13 +48,15 @@ def verify_conversion(problem, value, resource, key):
             assert {mapping[a] for a in pair['source_atoms']} <= set(pair['target_atoms'])
         if family.mapping not in counts:
             count = 0
-            for edges, other, assignment in ((pairs[0], problem.product, mapping),
-                    (pairs[1], problem.reactant, {p:r for r,p in mapping.items()})):
-                for a,b,weight,threshold in edges:
-                    if a not in assignment and b not in assignment:
-                        continue
-                    opposite = other.wbo[assignment[a],assignment[b]] if a in assignment and b in assignment else 0.
-                    count += weight - opposite > threshold
+            for size, (a,b,weights,thresholds), other, assignment in zip(
+                    (problem.source_atom_count,problem.target_atom_count),edges,padded,
+                    (mapping,{p:r for r,p in mapping.items()})):
+                # Use the full endpoint dimension, including unmatched atoms.
+                images=np.full(size,len(other)-1,dtype=int)
+                for atom,image in assignment.items():
+                    images[atom]=image
+                touched=(images[a]!=len(other)-1)|(images[b]!=len(other)-1)
+                count+=np.count_nonzero(touched & (weights-other[images[a],images[b]]>thresholds))
             counts[family.mapping] = int(count)
         report = reports[branch['family_id']]
         assert counts[family.mapping] == report['total'] and report['solver_queries'] == 0

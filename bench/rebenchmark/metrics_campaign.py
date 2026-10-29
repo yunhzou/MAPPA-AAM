@@ -69,6 +69,8 @@ def prepare(inventory,manifest,matching,queue,reused,memory_bytes,case_seconds,s
 
 def execute(out):
     plan=json.loads((out/'plan.json').read_text())
+    if plan.get('source_kind') == 'reference_membership':
+        return execute_membership(out, plan)
     if plan.get('source_kind') == 'fresh_conversion':
         return execute_fresh(out, plan)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
@@ -199,6 +201,71 @@ def execute_fresh(out, plan):
             missing_output_rows=expected-accepted,source_kind='fresh_conversion',reused=sorted(seen))
         save(out/'selection.json',summary)
         serve_queue(queue,out,summary);queue.close()
+
+
+def prepare_membership(out, plan, scratch):
+    """Reuse verified case specifications; replace only explicitly named cases."""
+    from dataclasses import replace
+    selected=set(plan.get('selected',range(1851)))
+    queue=TaskQueue(Path(scratch)/'queue.sqlite',plan['identity'])
+    reused={}
+    for item in plan.get('reuse',[]):
+        if sha(item['path'])!=item['sha256']:
+            raise ValueError('Membership pilot changed')
+        source=sqlite3.connect('file:'+item['path']+'?mode=ro&immutable=1',uri=True)
+        for key,spec,state,result in source.execute('SELECT key,specification,state,result FROM tasks'):
+            if state!='complete' or key in reused:
+                raise ValueError('Invalid membership pilot reuse')
+            reused[key]=(_loads_checkpoint(spec),result)
+        source.close()
+    seen=set();expected=0
+    sources=plan['task_sources']
+    for position,item in enumerate(sources):
+        path=Path(item['path'])
+        if sha(path)!=item['sha256']:
+            raise ValueError('Membership task source changed')
+        source=sqlite3.connect('file:'+str(path)+'?mode=ro&immutable=1',uri=True)
+        replaced={k for later in sources[position+1:] for k in later.get('replace',[])}
+        for key,spec in source.execute('SELECT key,specification FROM tasks'):
+            if key in replaced:
+                continue
+            if key in seen:
+                raise ValueError('Duplicate membership source case')
+            seen.add(key)
+            previous=_loads_checkpoint(spec)
+            expected+=len(previous.payload['expected'])
+            if previous.payload['missing_tasks']:
+                raise ValueError('Membership must use the completed scientific recovery')
+            index=previous.payload['index']
+            if index not in selected:
+                continue
+            task=replace(previous,key=f'membership/{index:05d}',operation='rebenchmark.decoder_metrics:case_membership',
+                payload=dict(previous.payload,membership_seconds=plan['membership_seconds']),
+                memory_bytes=plan['memory_bytes'],case_seconds=plan['case_seconds'])
+            queue.add([task])
+            if task.key in reused:
+                old,result=reused.pop(task.key)
+                if signature(old)!=signature(task):
+                    raise ValueError('Reused membership task differs')
+                queue.db.execute("UPDATE tasks SET state='complete',result=? WHERE key=?",(result,task.key))
+        source.close()
+    if seen!={f'metrics/{i:05d}' for i in range(1851)} or expected!=1775520:
+        raise ValueError('Membership source differs from the expected Golden grid')
+    if reused:
+        raise ValueError('Unused membership pilot')
+    queue.db.commit();queue.optimize()
+    save(out/'selection.json',dict(cases=len(selected),states=queue.snapshot(),
+        expected_dataset_keys=1775520,scope='Saved results; no matching or decoding repeated'))
+    return queue
+
+
+def execute_membership(out,plan):
+    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
+        queue=prepare_membership(out,plan,scratch)
+        try:
+            serve_queue(queue,out,dict(campaign='Golden reference membership'))
+        finally:
+            queue.close()
 
 
 if __name__=='__main__':

@@ -166,19 +166,28 @@ def query_path(path, problem, reference, *, source_atoms, source_generators=(),
                projected_atoms=None):
     """Return a certified full explicit-atom realization, UNSAT, or unknown."""
     import z3
-    start=time.perf_counter()
+    start, cpu = time.perf_counter(), time.process_time()
     compiled=compile_path(path,problem,reference,source_atoms=source_atoms,
         source_generators=source_generators,target_generators=target_generators,
         complete_reference=complete_reference,projected_atoms=projected_atoms)
+    encoding = dict(wall_seconds=time.perf_counter()-start, cpu_seconds=time.process_time()-cpu)
     solver=compiled.solver
-    left=timeout_ms-1000*(time.perf_counter()-start)
-    if left<=0:return 'unknown',dict(reason='encoding budget',seconds=time.perf_counter()-start)
+    left=timeout_ms-1000*encoding['wall_seconds']
+    if left<=0:
+        return 'unknown',dict(reason='encoding budget',seconds=encoding['wall_seconds'],
+                              timing=dict(encoding=encoding))
     solver.set(timeout=max(1,int(left)))
+    solve, solve_cpu = time.perf_counter(), time.process_time()
     status=solver.check()
-    if status!=z3.sat:return ('not_recovered' if status==z3.unsat else 'unknown'),dict(
-        reason='unsat' if status==z3.unsat else solver.reason_unknown(),seconds=time.perf_counter()-start)
+    timing = dict(encoding=encoding, solving=dict(wall_seconds=time.perf_counter()-solve,
+                                                 cpu_seconds=time.process_time()-solve_cpu))
+    if status!=z3.sat:
+        return ('not_recovered' if status==z3.unsat else 'unknown'),dict(
+            reason='unsat' if status==z3.unsat else solver.reason_unknown(),
+            seconds=time.perf_counter()-start,timing=timing)
     result=compiled.realize(solver.model())
     result['seconds']=time.perf_counter()-start
+    result['timing']=timing
     return 'recovered',result
 
 

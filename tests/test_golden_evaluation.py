@@ -124,3 +124,45 @@ def test_explicit_H_donor_competition_depends_on_seed_order():
                    dict(graph.states[t].mapping).get(2)==1 for t in graph.terminals)
     assert not recovered(list(range(9)))
     assert recovered([2,0,1,3,4,5,6,7,8])
+
+
+def test_compressed_membership_matches_independent_cyclic_oracle():
+    from itertools import permutations
+    from mappa import AAMProblem
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+    from test_family_query import endpoint
+    problem=AAMProblem(endpoint('CCCC',[]),endpoint('CCCC',[]))
+    family=FinalFamily(tuple(enumerate(range(4))),(),(('group',((1,2,3,0),)),),(.2,1.))
+    f=[feature(4,True),feature(4,True)]
+    allowed={tuple((i+shift)%4 for i in range(4)) for shift in range(4)}
+    for values in permutations(range(4)):
+        result=E.reference_membership(problem,[(0,family.mapping)],
+            lambda:iter([(0,family.as_path(problem))]),f,dict(enumerate(values)))
+        assert (result['status']=='recovered') == (values in allowed)
+        if values in allowed:
+            assert dict(result['witness']['mapping'])==dict(enumerate(values))
+            if values!=tuple(range(4)):
+                assert result['witness']['method']=='compressed_choices'
+                assert 'encoding' in result['queries'][0]['timing']
+
+
+def test_membership_representative_stops_before_path_construction():
+    from mappa import AAMProblem
+    from test_family_query import endpoint
+    problem=AAMProblem(endpoint('CC',[]),endpoint('CCC',[]))
+    def forbidden():raise AssertionError('No query needed for a verified witness')
+    result=E.reference_membership(problem,[(0,{0:1,1:2})],forbidden,
+        [feature(2,True),feature(3,True)],{0:1,1:2})
+    assert result['status']=='recovered' and result['queries']==[]
+
+
+def test_membership_preserves_exact_partial_relation():
+    from mappa import AAMProblem
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+    from test_family_query import endpoint
+    problem=AAMProblem(endpoint('CC',[]),endpoint('CC',[]))
+    f=[feature(2,True),feature(2,True)]
+    family=FinalFamily(((0,0),(1,1)),(),(),(.2,1.))
+    result=E.reference_membership(problem,[(0,family.mapping)],
+        lambda:iter([(0,family.as_path(problem))]),f,{0:0})
+    assert result['status']=='not_recovered'

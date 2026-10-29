@@ -82,3 +82,55 @@ def test_reverse_concrete_witness_normalizes_before_event_union():
     native=SignedEventIndex(AAMProblem(problem.product,problem.reactant)).describe(
         SignedEventIndex(AAMProblem(problem.product,problem.reactant)).vector(reverse))
     assert actual['id']==expected['id'] and native['total']==expected['total']
+
+
+def test_membership_prefixes_preserve_unknown_and_early_witness():
+    from rebenchmark.decoder_metrics import membership_summary
+    rows=[dict(key='a',seed=1,cut=0,status='not_recovered'),
+          dict(key='b',seed=2,cut=1,status='recovered')]
+    assert membership_summary(rows,['a'])['status']=='not_recovered'
+    assert membership_summary(rows,['a','missing'])['status']=='unknown'
+    assert membership_summary(rows,['a','b','missing'])['status']=='recovered'
+
+
+def test_saved_bidirectional_membership_needs_no_search_or_conversion_rerun(tmp_path, monkeypatch):
+    import hashlib,json
+    from dataclasses import asdict
+    from golden_evaluation import prepare
+    from mappa import AAMProblem,AAMSearchConfig,search_aam
+    from mappa.mappa_core.core.scheduler import BundleWriter
+    from mappa.mappa_core.core.scheduler.runtime import Workspace
+    from mappa.mappa_core.utils.io.records import endpoint_record
+    from rebenchmark.decoding import decode_graph
+    from rebenchmark.decoder_metrics import case_membership
+    problem,features,reference=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    writer=BundleWriter(tmp_path/'saved',tmp_path)
+    payload=dict(index=0,expected=[],outputs=[],search_outputs=[],missing_tasks=[],
+        directions={'0':'R_to_P','1':'P_to_R'})
+    for name,value in [('input',dict(name='test',reactant=endpoint_record(problem.reactant),product=endpoint_record(problem.product))),
+                       ('reference',dict(features=features,mapping=reference))]:
+        path=tmp_path/(name+'.json');path.write_text(json.dumps(value,default=lambda a:a.tolist()))
+        payload[name]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    for direction in (0,1):
+        directed=AAMProblem(problem.product,problem.reactant) if direction else problem
+        graph=search_aam(directed,AAMSearchConfig(seed_count=2,iso_tolerance=1.)).graph
+        parent=f'{direction:05d}/cut/00000/finalize'
+        payload['search_outputs'].append(dict(key=parent,blob=asdict(writer.put(dict(graph=graph)))))
+        for seed in range(2):
+            value=decode_graph(directed,graph,dict(seed=seed,slack=5,branch_limit=100,random_seed=42))
+            value.update(task_id=direction,cut=0)
+            from rebenchmark.check_conversion_outputs import verify_conversion
+            checked=verify_conversion(directed,value,{},'test')
+            assert checked['branches']==len(value['decoded']['converted_branches'])
+            key=f'{direction:05d}/cut/00000/seed/{seed:02d}'
+            payload['expected'].append(key)
+            payload['outputs'].append(dict(key=key,blob=asdict(writer.put(value))))
+    def forbidden(*args,**kwargs):raise AssertionError('Saved-result membership must not rerun science')
+    monkeypatch.setattr('mappa.mappa_core.post_processing.decoder.api.decode_events',forbidden)
+    monkeypatch.setattr('mappa.mappa_core.core.search.api.search_aam',forbidden)
+    result=case_membership(payload,Workspace(tmp_path,tmp_path/'reports'))
+    assert len(result['modes'])==80
+    assert all(m[k]['status']=='recovered' for m in result['modes'].values() for k in ('aam','converted'))
+    assert result['reads']==dict(aam=2,converted=2)
+    assert all(r['seed']==1 for rows in result['rows'].values() for r in rows)
+    assert all(r['witness']['input_orientation_mapping'] for rows in result['rows'].values() for r in rows)
