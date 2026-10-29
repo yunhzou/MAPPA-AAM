@@ -288,7 +288,11 @@ def aggregate_fresh(plan, output, scratch):
             for name,values in timing['prefixes'].items():prefix_times[name].update(values)
             if member is not None:
                 membership_cpu.append(member['timing']['cpu_seconds']);membership_wall.append(member['timing']['wall_seconds'])
-                membership_peaks.append(resource['peak_tree_rss_bytes'])
+                # Recovered published outputs retain operation timings but may
+                # lack the supervisor's memory sample. Missing is not zero.
+                peak = resource.get('peak_tree_rss_bytes')
+                if peak is not None:
+                    membership_peaks.append(peak)
                 for rows in member['rows'].values():
                     for row in rows:
                         for query in row['queries']:
@@ -308,7 +312,8 @@ def aggregate_fresh(plan, output, scratch):
             per_direction={k:distribution(v) for k,v in direction_phases.items()},
             prefix_totals={k:dict(v) for k,v in prefix_times.items()}),
         membership_time=dict(cpu=distribution(membership_cpu),wall=distribution(membership_wall),
-            peak=distribution(membership_peaks),queries=statistics(query_phases)),
+            peak=distribution(membership_peaks),peak_measured_cases=len(membership_peaks),
+            peak_missing_cases=len(membership_cpu)-len(membership_peaks),queries=statistics(query_phases)),
         execution=execution_timeline(plan['scientific_queue']),
         scope='1851 Golden cases. Membership uses exact heavy-atom correspondence modulo endpoint chemistry in saved compressed choices. Converted membership is before event-window filtering; representative accuracy uses minimum+5 windows. Incomplete conversion flags remain explicit.',
         timing_scope='Original measured CPU and summed worker wall time. Matching tasks contain two seeds: odd-prefix matching totals include the paired next seed. Finalization is shared across all ten seeds. No standalone seed latency or hidden-bijection optimum is inferred.',
