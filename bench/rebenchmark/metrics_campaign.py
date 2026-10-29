@@ -214,6 +214,8 @@ def prepare_membership(out, plan, scratch):
             raise ValueError('Membership pilot changed')
         source=sqlite3.connect('file:'+item['path']+'?mode=ro&immutable=1',uri=True)
         for key,spec,state,result in source.execute('SELECT key,specification,state,result FROM tasks'):
+            if key not in item['keys']:
+                continue
             if state!='complete' or key in reused:
                 raise ValueError('Invalid membership pilot reuse')
             reused[key]=(_loads_checkpoint(spec),result)

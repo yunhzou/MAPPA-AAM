@@ -224,6 +224,115 @@ def summarize(run,output,workers=1,replacements=None):
     return summary
 
 
+def aggregate_fresh(plan, output, scratch):
+    """Join verified case reports and compressed membership over the full grid."""
+    from collections import defaultdict
+    from concurrent.futures import ThreadPoolExecutor
+    import gzip, sqlite3
+    from mappa.mappa_core.core.scheduler import Blob,read_blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    from .timings import distribution,case_timing,execution_timeline
+    output=Path(output);output.mkdir(parents=True,exist_ok=True)
+    if sha(plan['reports'])!=plan['reports_sha256']:
+        raise ValueError('Accepted report manifest changed')
+    reports=read(plan['reports'])
+    for key,item in plan.get('report_overrides',{}).items():
+        if key in reports:raise ValueError('Completed report would be repeated')
+        reports[key]=item
+    expected={f'metrics/{i:05d}' for i in range(1851)}
+    if set(reports)!=expected:
+        raise ValueError('Final report lacks expected cases')
+    if sha(plan['membership_queue'])!=plan['membership_queue_sha256']:
+        raise ValueError('Membership checkpoint changed')
+    db=sqlite3.connect('file:'+plan['membership_queue']+'?mode=ro&immutable=1',uri=True)
+    members={k:(state,_loads_checkpoint(raw) if raw else None) for k,state,raw in db.execute('SELECT key,state,result FROM tasks')};db.close()
+    if set(members)!={f'membership/{i:05d}' for i in range(1851)}:
+        raise ValueError('Membership denominator differs')
+    def extract(item):
+        key,source=item;record=read_blob(Blob(**source['blob']),scratch)
+        index=record['index']
+        if key!=f'metrics/{index:05d}' or not record['scientific_audit_accepted'] or record['missing_tasks']:
+            raise ValueError('Unverified or incomplete report inventory')
+        state,resource=members[f'membership/{index:05d}']
+        member=read_blob(resource['blob'],scratch) if state=='complete' else None
+        if member is not None:
+            if member['index']!=index or member['input']!=record['input'] or member['reference']!=record['reference']:
+                raise ValueError('Membership belongs to another input')
+            keys=sorted(r['key'] for r in record['records'])
+            if len(keys)!=len(set(keys)) or hashlib.sha256(json.dumps(keys).encode()).hexdigest()!=member['expected_keys_sha256']:
+                raise ValueError('Membership/report expected-key join differs')
+        return record,member,case_timing(record),state,resource
+    modes=defaultdict(Counter);phases=defaultdict(lambda:defaultdict(list))
+    case_phases=defaultdict(lambda:defaultdict(list));direction_phases=defaultdict(list)
+    prefix_times=defaultdict(Counter);counts=Counter();cases=[];membership_cpu=[];membership_wall=[];membership_peaks=[]
+    query_phases=defaultdict(lambda:defaultdict(list))
+    with ThreadPoolExecutor(max_workers=4) as workers:
+        for record,member,timing,state,resource in workers.map(extract,sorted(reports.items())):
+            counts.update(cases=1,conversions=len(record['conversion_checks']),search_outputs=record['search_outputs_verified'],
+                incomplete_conversions=sum(not r['complete'] for r in record['conversion_checks']))
+            for name,value in record['modes'].items():
+                counter=modes[name];counter['cases']+=1
+                counter['representative_recovered']+=value['representative_hits']['strict']
+                counter['relaxed_representative_recovered']+=value['representative_hits']['without_both']
+                counter['complete_windows']+=value['decoded_window_complete']
+                for k,hit in value['representative_topk'].items():counter['representative_top'+k]+=hit
+                for kind in ('aam','converted'):
+                    status=member['modes'][name][kind]['status'] if member else 'unknown'
+                    counter[kind+'_'+status]+=1
+            for name,samples in timing['phases'].items():
+                for measure,values in samples.items():
+                    phases[name][measure].extend(values)
+                    case_phases[name][measure].append(max(values,default=0) if measure=='peak' else sum(values))
+            for direction,values in timing['directions'].items():
+                for name,total in values.items():direction_phases[name].append(total)
+            for name,values in timing['prefixes'].items():prefix_times[name].update(values)
+            if member is not None:
+                membership_cpu.append(member['timing']['cpu_seconds']);membership_wall.append(member['timing']['wall_seconds'])
+                membership_peaks.append(resource['peak_tree_rss_bytes'])
+                for rows in member['rows'].values():
+                    for row in rows:
+                        for query in row['queries']:
+                            for phase,values in query.get('timing',{}).items():
+                                for name,value in values.items():query_phases[phase][name].append(value)
+            cases.append(dict(index=record['index'],modes={name:dict(representative=value['representative_hits']['strict'],
+                complete=value['decoded_window_complete'],minimum=value['observed_minimum'],
+                membership=member['modes'][name] if member else None) for name,value in record['modes'].items()},
+                original_time=timing['directions'],membership_state=state,
+                membership_time=member['timing'] if member else None))
+            if len(cases)%100==0:print(f'{len(cases)}/1851 reports joined',flush=True)
+    if (counts['conversions'],counts['search_outputs'])!=(1775520,1065312):
+        raise ValueError('Final scientific output denominator differs')
+    def statistics(groups):return {name:{measure:distribution(values) for measure,values in samples.items()} for name,samples in groups.items()}
+    summary=dict(counts=dict(counts),modes={name:dict(value) for name,value in modes.items()},
+        original_time=dict(per_task=statistics(phases),per_case=statistics(case_phases),
+            per_direction={k:distribution(v) for k,v in direction_phases.items()},
+            prefix_totals={k:dict(v) for k,v in prefix_times.items()}),
+        membership_time=dict(cpu=distribution(membership_cpu),wall=distribution(membership_wall),
+            peak=distribution(membership_peaks),queries=statistics(query_phases)),
+        execution=execution_timeline(plan['scientific_queue']),
+        scope='1851 Golden cases. Membership uses exact heavy-atom correspondence modulo endpoint chemistry in saved compressed choices. Converted membership is before event-window filtering; representative accuracy uses minimum+5 windows. Incomplete conversion flags remain explicit.',
+        timing_scope='Original measured CPU and summed worker wall time. Matching tasks contain two seeds: odd-prefix matching totals include the paired next seed. Finalization is shared across all ten seeds. No standalone seed latency or hidden-bijection optimum is inferred.',
+        sources=plan)
+    save(output/'summary.json',summary)
+    with gzip.open(output/'cases.json.gz','wt') as stream:json.dump(cases,stream,separators=(',',':'))
+    save(output/'accepted-reports.json',reports)
+    lines=['# Post-refactor Golden benchmark','',summary['scope'],'',
+        '| Seeds | AAM recovered | AAM unresolved | Converted recovered | Converted unresolved | Representative hits |',
+        '|---:|---:|---:|---:|---:|---:|']
+    for n in range(1,11):
+        mode=modes[f'sweep/bidirectional/seeds{n}']
+        lines.append(f"| {n} | {mode['aam_recovered']}/1851 | {mode['aam_unknown']} | {mode['converted_recovered']}/1851 | {mode['converted_unknown']} | {mode['representative_recovered']}/1851 |")
+    lines+=['','## Original computation time','',
+        '| Stage | CPU total (h) | CPU median (s/task) | CPU p95 | CPU maximum | Worker wall total (h) | Peak memory (GiB) |',
+        '|---|---:|---:|---:|---:|---:|---:|']
+    for name in ('matching_batch','finalization','conversion_decoding','conversion_task','conversion_publication'):
+        values=summary['original_time']['per_task'][name];c=values['cpu'];w=values['wall'];p=values['peak']
+        lines.append(f"| {name} | {c['total']/3600:.3f} | {c['median']:.6f} | {c['p95']:.6f} | {c['maximum']:.6f} | {w['total']/3600:.3f} | {p['maximum']/2**30:.3f} |")
+    lines+=['',summary['timing_scope'],'',f"Incomplete conversion outputs: {counts['incomplete_conversions']}/{counts['conversions']}. These are not negative mapping results."]
+    (output/'report.md').write_text('\n'.join(lines)+'\n')
+    return summary
+
+
 if __name__=='__main__':
     import argparse
     p=argparse.ArgumentParser();p.add_argument('run');p.add_argument('output');p.add_argument('--workers',type=int,default=1)

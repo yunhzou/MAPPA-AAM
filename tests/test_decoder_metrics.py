@@ -134,3 +134,33 @@ def test_saved_bidirectional_membership_needs_no_search_or_conversion_rerun(tmp_
     assert result['reads']==dict(aam=2,converted=2)
     assert all(r['seed']==1 for rows in result['rows'].values() for r in rows)
     assert all(r['witness']['input_orientation_mapping'] for rows in result['rows'].values() for r in rows)
+
+
+def test_original_timing_keeps_batches_publication_and_checking_separate():
+    from rebenchmark.timings import case_timing,distribution
+    resource=dict(cpu_seconds=4.,compute_seconds=5.,peak_tree_rss_bytes=100,
+                  publish_cpu_seconds=2.,publish_seconds=3.)
+    result=case_timing(dict(conversion_checks=[dict(key='00000/cut/00000/seed/00',complete=True,
+        timing=dict(decoding=dict(cpu_seconds=1.,wall_seconds=2.)),resource=resource)],
+        search_resources=[dict(key='00000/cut/00000/seeds/00000',**resource),
+                          dict(key='00000/cut/00000/finalize',**resource)],
+        calculation=dict(cpu_seconds=999.)))
+    assert result['phases']['conversion_decoding']['cpu']==[1.]
+    assert result['phases']['matching_batch']['cpu']==[4.]
+    assert result['phases']['conversion_publication']['wall']==[3.]
+    assert result['prefixes']['uncut/R_to_P/seeds1']['matching_batch_cpu']==4.
+    assert distribution([1.,3.])['median']==2.
+
+
+def test_claim_concurrency_is_not_summed_latency(tmp_path):
+    import sqlite3
+    from rebenchmark.timings import execution_timeline
+    path=tmp_path/'timing.sqlite';db=sqlite3.connect(path)
+    db.execute('CREATE TABLE attempts(started REAL,finished REAL,state TEXT)')
+    db.executemany('INSERT INTO attempts VALUES (?,?,?)',[(0.,2.,'complete'),(1.,3.,'complete'),(10.,11.,'complete')])
+    db.commit();db.close()
+    value=execution_timeline(path)
+    assert value['elapsed_seconds']==11.
+    assert value['claimed_task_seconds']==5.
+    assert value['seconds_with_claimed_work']==4.
+    assert value['peak_claimed_tasks']==2

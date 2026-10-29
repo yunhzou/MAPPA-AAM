@@ -194,6 +194,25 @@ def symbolic_path_query(mapping, groups, features, reference, timeout_ms, *, fin
     return ('not_recovered',None) if status == z3.unsat else ('unknown',solver.reason_unknown())
 
 
+def projected_choices(placement, features):
+    """Only choices that change chemical correspondence need a reference query."""
+    target_index={a:i for i,a in enumerate(features[1]['heavy'])}
+    source_heavy=set(features[0]['heavy'])
+    projected=tuple(dict.fromkeys(tuple(target_index[g.images[a]] for a in features[1]['heavy'])
+                                   for g in placement.target_generators))
+    projected=tuple(g for g in projected if g!=tuple(range(len(target_index))))
+    changes=any(not exact_action(g,features[1]) for g in projected)
+    domains=[]
+    for domain in placement.symmetry_domains:
+        if domain.source=='exact_automorph_group':continue
+        atoms=[target_index[a] for a in domain.p_atoms if a in target_index]
+        if atoms:domains.append((tuple(r for r in domain.r_atoms if r in source_heavy),tuple(atoms)))
+        for atom in atoms[1:]:
+            swap=list(range(len(target_index)));swap[atoms[0]],swap[atom]=swap[atom],swap[atoms[0]]
+            changes |= not exact_action(swap,features[1])
+    return projected,domains,changes
+
+
 def reference_membership(problem, representatives, paths, features, reference, *, seconds=120):
     """Membership in saved compressed choices, with the original Golden policy.
 
@@ -237,6 +256,10 @@ def reference_membership(problem, representatives, paths, features, reference, *
         if remaining<=0:
             return answer('unknown',reason='reference-check budget')
         if len(project(path.mapping,features)) != len(project(reference,features)):
+            continue
+        if not any(projected_choices(placement,features)[2]
+                   for edge in path.transitions
+                   if (placement:=path.graph.fragment_placement(edge)) is not None):
             continue
         identity=(tuple(sorted(path.mapping.items())),path.context.cuts,
                   path.context.graph_floor,path.context.iso_tolerance,frozen_value(path.fragments))
@@ -325,18 +348,8 @@ def evaluate(aam, features, reference, seconds=120, symbolic=True, query=None,
             for edge in path.transitions:
                 placement=aam.graph.fragment_placement(edge)
                 if placement is None:continue
-                projected=tuple(dict.fromkeys(tuple(target_index[g.images[a]] for a in features[1]['heavy'])
-                                               for g in placement.target_generators))
-                projected=tuple(g for g in projected if g!=tuple(range(len(target_index))))
-                changes_chemistry |= any(not exact_action(g,features[1]) for g in projected)
-                projected_domains=[]
-                for domain in placement.symmetry_domains:
-                    if domain.source=='exact_automorph_group':continue
-                    atoms=[target_index[a] for a in domain.p_atoms if a in target_index]
-                    if atoms:projected_domains.append((tuple(r for r in domain.r_atoms if r in source_heavy),tuple(atoms)))
-                    for atom in atoms[1:]:
-                        swap=list(range(len(target_index)));swap[atoms[0]],swap[atom]=swap[atom],swap[atoms[0]]
-                        changes_chemistry |= not exact_action(swap,features[1])
+                projected,projected_domains,changes=projected_choices(placement,features)
+                changes_chemistry |= changes
                 fragment=tuple(r for r in placement.r_atoms if r in source_heavy)
                 if projected or projected_domains or fragment:
                     projected_history.append((fragment,tuple(projected_domains),projected,

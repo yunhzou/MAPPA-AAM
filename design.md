@@ -372,3 +372,12 @@ flowchart LR
     Source[src/mappa/mappa_core/native] --> Engine
     Vendor[third_party/nauty] --> Engine
 ```
+
+
+Reference coverage is queried from saved compressed choices through the existing
+`mapping_analytics` compiler. Golden adapters check representatives first, then
+constrain correlated choices only when needed, stopping at a verified witness
+for each direction/cut scope and seed prefix. Raw AAM membership and membership
+in all retained converted branches are distinct from event-window representative
+accuracy. Report query construction/solving cost separately from original
+matching, conversion, publication and scheduling time.
