@@ -350,3 +350,11 @@ def test_large_boundary_tables_do_not_expand_combinations(monkeypatch):
     assert table.statistics['unique_responses'] == 2
     print(json.dumps(dict(boundary_table_cpu_seconds=elapsed,represented_choices=2**20,
                           statistics=table.statistics)),flush=True)
+
+
+def test_single_atom_mapping_has_no_bond_tables():
+    ep = endpoint('C',[])
+    for mapping in ({}, {0:0}):
+        result = interpret_events(saved(ep,ep,mapping))
+        check_contributions(result,[None])
+        assert result.contributions(0)['total'] == 0

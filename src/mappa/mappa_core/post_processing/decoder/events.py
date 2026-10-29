@@ -521,7 +521,7 @@ class FragmentEventTables:
         if len(mapping) == index.m:
             eligible[:] = False
         reachable = set().union(*domains.values()) if domains else set()
-        eligible &= np.array([a in reachable or b in reachable for a,b in zip(index.pa,index.pb)])
+        eligible &= np.array([a in reachable or b in reachable for a,b in zip(index.pa,index.pb)], dtype=bool)
         self.product_boundary_pairs = np.column_stack((index.pa[eligible], index.pb[eligible]))
         self.product_boundary_actions = tuple(range(len(family.actions)))
 
