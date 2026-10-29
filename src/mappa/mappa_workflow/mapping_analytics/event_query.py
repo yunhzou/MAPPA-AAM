@@ -1,5 +1,6 @@
 """Symbolic equality queries for signed event classes; never called by decoding."""
 import time
+from mappa.frag import is_metal_element
 
 class _EventTerms(dict):
     """Signed terms plus exact Boolean event-presence indicators."""
