@@ -23,21 +23,35 @@ def check(queue_path, output):
     states = dict(db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))
     if set(states) != {'complete'}:
         raise ValueError(f'Pilot executions are unfinished: {states}')
-    summaries = []
+    summaries, search_outputs = [], 0
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         folder = Path(scratch)
         for key, specification, resource in db.execute('SELECT key,specification,result FROM tasks ORDER BY key'):
             task, resource = _loads_checkpoint(specification), _loads_checkpoint(resource)
             value = read_blob(resource['blob'], scratch)
-            assert task.operation == 'rebenchmark.decoding:decode_seed'
+            if task.operation in ('mappa.mappa_core.core.scheduler.search:search_batch',
+                                  'mappa.mappa_core.core.scheduler.search:finalize_cut'):
+                assert value['graph'].contexts
+                search_outputs += 1
+                continue
+            if task.operation not in ('rebenchmark.decoding:decode_seed','rebenchmark.shared:convert_seed'):
+                raise ValueError(f'Unexpected pilot operation: {task.operation}')
             assert key == f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
-            for name, member in value['source'].items():
-                (folder/name).write_bytes(read_member(member))
-            problem = load_plan(folder).problem
+            if task.operation == 'rebenchmark.shared:convert_seed':
+                from mappa.mappa_core.utils.io.records import problem_from_record
+                problem = problem_from_record(read_blob(value['input'],scratch))
+                assert value['search_rerun']
+                assert value['finalized_sha256'] == value['finalized'].sha256
+                read_blob(value['finalized'],scratch)
+            else:
+                for name, member in value['source'].items():
+                    (folder/name).write_bytes(read_member(member))
+                problem = load_plan(folder).problem
+                assert not value['search_rerun']
             result = value['decoded']
             assert result['schema'] == 'mappa.decoded_events/v2'
             assert result['event_policy']['schema'] == 'mappa.signed_events/v3'
-            assert result['method'] == 'anchored_fragment_conversion' and not value['search_rerun']
+            assert result['method'] == 'anchored_fragment_conversion'
             catalogue = FinalBranchCatalogue.from_record(problem, result['converted_catalogue'])
             config = result['config']
             pairs = [tuple((a, b, ep.wbo[a,b], bond_event_threshold(ep.elements, a, b,
@@ -80,7 +94,7 @@ def check(queue_path, output):
                 event_histogram=dict(Counter(r['total'] for r in reports.values())),
                 timing=value['timing'], resource={k:v for k,v in resource.items() if k!='blob'}))
     db.close()
-    summary = dict(tasks=len(summaries), complete=sum(r['complete'] for r in summaries),
+    summary = dict(search_outputs_verified=search_outputs, tasks=len(summaries), complete=sum(r['complete'] for r in summaries),
         branches=sum(r['branches'] for r in summaries),
         internal_events=sum(r['internal_events'] for r in summaries),
         seconds=time.perf_counter()-started, rows=summaries, verified=True,

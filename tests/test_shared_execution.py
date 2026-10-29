@@ -369,6 +369,9 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     for task_spec in tasks[-2:]:
         result = read_blob(rows[task_spec.key]['result']['blob'],tmp_path)
         direct = decode_graph(case,graph,task_spec.payload)
+        for record in (result['decoded'],direct['decoded']):
+            for rematch in record['rematches']:
+                rematch.pop('seconds')
         assert result['decoded'] == direct['decoded']
         assert result['families'] is result['decoded']['converted_catalogue']['families']
         assert result['search_rerun'] is True

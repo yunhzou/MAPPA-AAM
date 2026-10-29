@@ -93,7 +93,7 @@ def prepare_campaign(out):
     manifest = json.loads(manifest_path.read_text())
     if len(manifest['inputs']) != 1851 or len(manifest['tasks']) != 3702:
         raise ValueError('Golden input grid is incomplete')
-    config = AAMSearchConfig(**manifest['config'])
+    config = AAMSearchConfig(**plan['config'])
     if (config.iso_tolerance, config.branch_limit, config.seed_count, config.random_seed, config.sweep_cuts) != (1,100,10,42,True):
         raise ValueError('Unexpected Golden search settings')
     if (out/'index.json').exists():
