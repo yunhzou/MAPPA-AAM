@@ -15,7 +15,7 @@ from .domain import (
     MolecularEndpoint,
 )
 from .frag import build_graph
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 
 
 def search_core_assignments(

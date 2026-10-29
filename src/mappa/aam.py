@@ -13,7 +13,7 @@ from .alignment.branch import _generate_seed_orders, find_islands
 from .alignment.sweep import cut_sweep_items
 from .domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
 from .frag import build_graph
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from .search_graph import AAMSearchGraph
 from .search_symmetry import finalize_graph_symmetry
 
@@ -74,7 +74,7 @@ class SearchSession:
         if execution not in ('reference', 'reused_native', 'shared_policies'):
             raise ValueError('unknown AAM execution backend')
         if execution != 'reference':
-            from .growth.native import available
+            from mappa.mappa_core.core.matching.native import available
             if not available():
                 raise ValueError('native execution requires the built native engine')
         self.execution = execution
@@ -182,7 +182,7 @@ def _initialize_finalization(problem,config,execution='reference'):
     gc.disable()
     _initialize_search(problem,config)
     if execution in ('reused_native', 'shared_policies'):
-        from .conditioned_symmetry import ConditionedSymmetryWorkspace
+        from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
         _FINALIZATION_WORKSPACE = ConditionedSymmetryWorkspace(_SEARCH_CONTEXT[2], config.iso_tolerance)
 
 
@@ -234,7 +234,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     if execution not in ('reference', 'reused_native', 'shared_policies'):
         raise ValueError('unknown AAM execution backend')
     if execution in ('reused_native', 'shared_policies'):
-        from .growth.native import available
+        from mappa.mappa_core.core.matching.native import available
         if not available():
             raise ValueError('reused_native execution requires the built native engine')
     from .artifacts import raw_cut_paths,read_raw_cut
@@ -340,7 +340,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     symmetry_started = time.perf_counter()
     workspace = None
     if execution in ('reused_native', 'shared_policies'):
-        from .conditioned_symmetry import ConditionedSymmetryWorkspace
+        from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
         workspace = ConditionedSymmetryWorkspace(target, config.iso_tolerance)
     graph, groups = finalize_graph_symmetry(graph, target, iso_tolerance=config.iso_tolerance,
                                           workspace=workspace)
@@ -388,7 +388,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     if execution not in ('reference', 'reused_native', 'shared_policies'):
         raise ValueError('unknown AAM execution backend')
     if execution != 'reference':
-        from .growth.native import available
+        from mappa.mappa_core.core.matching.native import available
         if not available():
             raise ValueError('native execution requires the built native engine')
     config = config or AAMSearchConfig()

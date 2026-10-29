@@ -1,11 +1,10 @@
-"""Exact extension support inside compressed fragment matches."""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 from collections import defaultdict
 from itertools import product
-
-from .primitives import SYM_SUPPORT_MAX_STATES, _edge_wbo, _growth_edge_supported
-from .state import _SymBlock, _SymCand, _sym_block_indexes
+from mappa.mappa_core.core.matching.policy import SYM_SUPPORT_MAX_STATES, _edge_wbo, _growth_edge_supported
+from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand, _sym_block_indexes
 
 
 def _r_compatible_with_block(cand, block_idx, n, fragment, g_R, r_orbits, bond_tolerance=None):

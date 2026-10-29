@@ -6,7 +6,7 @@ import time
 from .alignment.branch import find_islands
 from .final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
 from .frag import bond_event_threshold, build_graph
-from .matcher.bond_policy import BondTolerance
+from mappa.mappa_core.core.matching.policy import BondTolerance
 from .search_symmetry import finalize_graph_symmetry
 
 

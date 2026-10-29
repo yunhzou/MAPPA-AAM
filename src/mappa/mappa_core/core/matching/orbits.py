@@ -1,12 +1,9 @@
-"""Orbit grouping for WBO graphs."""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 from collections import defaultdict, deque
-
-import networkx as nx
-
-from .primitives import _edge_wbo, _wbo_bucket
-from .policy import as_node_match_policy
+from mappa.mappa_core.core.matching.policy import _edge_wbo, _wbo_bucket
+from mappa.mappa_core.core.matching.policy import as_node_match_policy
 
 
 class _OrbitMap(dict):

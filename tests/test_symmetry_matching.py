@@ -18,21 +18,16 @@ from mappa.alignment.sweep import (
     complete_chosen_automorphism_groups,
 )
 import mappa.alignment.branch as branch_mod
-from mappa.matcher import (
-    _PartialMappingCanonicalizer,
-    _SymBlock,
-    _SymCand,
-    _cand_map,
-    _cand_possible_p_atoms,
-    _dedup_sym_cands,
-    _extend_sym_cands,
-    _nauty_orbits,
-    _support_witness_for_value,
-    _symmetry_state,
-)
-from mappa.matcher.orbits import _wbo_tolerance_bucket_lookup
-from mappa.growth.result import _IsoResult
-from mappa.growth import IslandBranchLimitExceeded, grow_island
+from mappa.mappa_core.core.matching.canonical import _PartialMappingCanonicalizer
+from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
+from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
+from mappa.mappa_core.core.matching.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.support import _support_witness_for_value
+from mappa.mappa_core.core.matching.orbits import _wbo_tolerance_bucket_lookup
+from mappa.mappa_core.core.matching.records import _IsoResult
+from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.growth import grow_island
 
 
 def _represented_count(cand):
@@ -158,7 +153,7 @@ def test_live_branch_cap_discards_only_overflowing_parent_subtree(monkeypatch):
             ]
         return [_IsoResult({1: 2}, fragment={1})]
 
-    import mappa.fragment as fragment_mod
+    import mappa.mappa_core.core.matching.api as fragment_mod
     monkeypatch.setattr(fragment_mod, "grow_island", fake_grow)
     monkeypatch.setattr(
         branch_mod, "_chemistry_orbit_signature",
@@ -207,7 +202,7 @@ def test_mapping_variation_blocks_capture_branch_dedupe_pool():
 
 
 def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
-    from mappa.fragment import FragmentPlacement
+    from mappa.mappa_core.core.matching.records import FragmentPlacement
     branch = branch_mod._Branch()
     branch.commit(
         FragmentPlacement.from_match(_IsoResult(
@@ -525,9 +520,7 @@ def test_cross_branch_assignment_relation_preserves_observed_shuffles():
 
 def test_completed_candidate_groups_are_cached_after_branch_reduction(
         monkeypatch):
-    from mappa.matcher.canonical import (
-        _CandidateAutomorphismCanonicalizer,
-    )
+    from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
 
     wbo = np.zeros((2, 2))
     wbo[0, 1] = wbo[1, 0] = 1.0
@@ -978,7 +971,7 @@ def test_core_atoms_do_not_reorder_seed_sequence(monkeypatch):
         seen.append(seed)
         return []
 
-    import mappa.fragment as fragment_mod
+    import mappa.mappa_core.core.matching.api as fragment_mod
     monkeypatch.setattr(fragment_mod, "grow_island", fake_grow_island)
 
     branch_mod.find_islands(
@@ -1050,7 +1043,7 @@ def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
 
 
 def test_approximate_orbits_are_not_an_exact_symmetry_backend():
-    import mappa.matcher as matcher
-    import mappa.matcher.orbits as orbits
+    import mappa.mappa_core.core.matching as matcher
+    import mappa.mappa_core.core.matching.orbits as orbits
     assert not hasattr(matcher, '_color_refine_orbits')
     assert not hasattr(orbits, '_color_refine_orbits')

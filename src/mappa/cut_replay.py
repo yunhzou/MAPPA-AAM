@@ -7,7 +7,7 @@ Cache eviction affects time only. Production ``search_aam`` does not enable it.
 """
 from dataclasses import dataclass
 
-from .growth import native
+from mappa.mappa_core.core.matching import native
 
 
 @dataclass(frozen=True)

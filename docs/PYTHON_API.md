@@ -160,3 +160,11 @@ The event count is the number of bond differences touching mapped atoms, includi
 `result.symmetry(candidate)` returns compressed choices from the converted catalogue. `result.query(...)` is a separate, explicitly requested constraint query over those choices. Only that query requires the optional solver dependency. Conversion does not call it or use it as a fallback.
 
 Historical benchmark proofs apply only to their recorded source revisions; they do not certify converted-branch outputs.
+
+### Matching implementation ownership
+
+`mappa.match_fragment` and its public configuration/result types remain available.
+Their implementation is now under `mappa.mappa_core.core.matching`, together with
+fragment growth and compressed symmetry. Old internal `fragment`, `matcher` and
+`growth` import paths are removed. The checkpoint reader explicitly relocates
+saved class names to their new modules; it does not retain a second implementation.

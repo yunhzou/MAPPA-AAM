@@ -2,10 +2,10 @@
 from dataclasses import dataclass
 import time
 
-from .fragment import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult
-from .growth import native
-from .growth.result import _IsoResult
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult
+from mappa.mappa_core.core.matching import native
+from mappa.mappa_core.core.matching.records import _IsoResult
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 
 
 @dataclass(frozen=True)

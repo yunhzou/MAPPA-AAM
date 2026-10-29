@@ -15,6 +15,31 @@ from .domain import (
 from .search_graph import AAMSearchGraph
 
 
+_MATCHING_CHECKPOINT_MODULES = {
+    ('mappa.search_symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
+    ('mappa.conditioned_symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry',
+    ('mappa.fragment', 'FragmentMatchConfig'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.fragment', 'FragmentMatchContext'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.fragment', 'FragmentMatchResult'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.fragment', 'FragmentPlacement'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.growth.frontier', 'GrowthRandom'): 'mappa.mappa_core.core.matching.frontier',
+    ('mappa.growth.native', '_NativeGraphView'): 'mappa.mappa_core.core.matching.native',
+    ('mappa.growth.result', 'IslandBranchLimitExceeded'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.growth.result', '_IsoResult'): 'mappa.mappa_core.core.matching.records',
+    ('mappa.matcher.bond_policy', 'BondTolerance'): 'mappa.mappa_core.core.matching.policy',
+    ('mappa.matcher.bond_policy', 'ResolvedBondTolerance'): 'mappa.mappa_core.core.matching.policy',
+    ('mappa.matcher.canonical', '_CandidateAutomorphismCanonicalizer'): 'mappa.mappa_core.core.matching.canonical',
+    ('mappa.matcher.canonical', '_PartialMappingCanonicalizer'): 'mappa.mappa_core.core.matching.canonical',
+    ('mappa.matcher.extend', '_ExtensionContext'): 'mappa.mappa_core.core.matching.extend',
+    ('mappa.matcher.orbits', '_OrbitMap'): 'mappa.mappa_core.core.matching.orbits',
+    ('mappa.matcher.policy', 'AttributeNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
+    ('mappa.matcher.policy', 'CallableNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
+    ('mappa.matcher.policy', 'ElementNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
+    ('mappa.matcher.state', '_SymBlock'): 'mappa.mappa_core.core.matching.state',
+    ('mappa.matcher.state', '_SymCand'): 'mappa.mappa_core.core.matching.state',
+}
+
+
 class _CheckpointUnpickler(pickle.Unpickler):
     """Resolve pre-rename globals in trusted internal checkpoints.
 
@@ -26,6 +51,8 @@ class _CheckpointUnpickler(pickle.Unpickler):
             if module == legacy or module.startswith(legacy + "."):
                 module = "mappa" + module[len(legacy):]
                 break
+        # Explicit class-path relocation for checkpoints saved before matching consolidation.
+        module = _MATCHING_CHECKPOINT_MODULES.get((module, name), module)
         return super().find_class(module, name)
 
 

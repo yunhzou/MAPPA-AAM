@@ -73,7 +73,7 @@ def search_batch(payload, workspace):
 
 
 def finalize_cut(payload, workspace):
-    from ..conditioned_symmetry import ConditionedSymmetryWorkspace
+    from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
     from ..search_symmetry import finalize_graph_symmetry
     session = _session(payload, workspace)
     graphs, indices, metrics = [], [], []

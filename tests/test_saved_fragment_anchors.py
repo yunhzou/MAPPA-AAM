@@ -5,10 +5,10 @@ import pytest
 
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.alignment.post_aam import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
-from mappa.growth import native
+from mappa.mappa_core.core.matching import native
 from mappa.final_branches import FinalFamily
 from mappa.alignment.branch import find_islands
-from mappa.matcher.state import candidate_from_record
+from mappa.mappa_core.core.matching.state import candidate_from_record
 from test_bond_tolerance import event_threshold
 from test_growth_compression_exactness import graph, represented
 

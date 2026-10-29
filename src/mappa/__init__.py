@@ -7,8 +7,9 @@ from .aam import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from .search_orientation import AAMSearchPlan, plan_aam_search
 from .fragment_conversion import convert_fragments, FragmentConversion
 from .family_query import query_path
-from .matcher.bond_policy import BondTolerance
-from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
+from mappa.mappa_core.core.matching.policy import BondTolerance
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
 from .search_graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
 from .search_symmetry import finalize_graph_symmetry
 from .core_aam import search_core_assignments

@@ -1,9 +1,11 @@
-"""Node-level compatibility policy for weighted graph matching."""
+"""Node compatibility and bond-tolerance rules for matching."""
 from __future__ import annotations
 
 from collections.abc import Callable, Hashable, Sequence
 from dataclasses import dataclass
 from typing import Any
+from collections.abc import Callable
+import math
 
 
 def _node_attr(g, node, name, default=None):
@@ -101,3 +103,82 @@ def as_node_match_policy(policy=None, *, node_match=None, node_key=None):
     if node_key is not None:
         raise ValueError("node_key is not used when policy object is supplied")
     return policy
+
+
+@dataclass(frozen=True)
+class BondTolerance:
+    """A constant or ``value(source_graph, a, b)`` for each source bond.
+
+    Conditions may use element, node features, or bond attributes. The rule
+    must be symmetric in its endpoints and deterministic. It is evaluated
+    once per active source bond, never per candidate mapping. ``inclusive``
+    selects <= (ordinary growth) or < (unchanged under an event threshold).
+    Target bonds must still satisfy the matcher's existing graph floor.
+    """
+    value: float | Callable
+    inclusive: bool = True
+
+    def resolve(self, source):
+        values = {}
+        for a, b in source.edges:
+            a, b = sorted((a, b))
+            value = float(self.value(source, a, b) if callable(self.value) else self.value)
+            if not math.isfinite(value) or value < 0:
+                raise ValueError('bond tolerances must be finite and nonnegative')
+            values[a, b] = value
+        return ResolvedBondTolerance(values, self.inclusive)
+
+
+@dataclass(frozen=True)
+class ResolvedBondTolerance:
+    values: dict
+    inclusive: bool
+
+    def limit(self, a, b):
+        return self.values[min(a, b), max(a, b)]
+
+    def supports(self, a, b, source_weight, target_weight, floor):
+        return _growth_edge_supported(source_weight, target_weight, self.limit(a, b),
+                                      floor, inclusive=self.inclusive)
+
+    def native_values(self, nodes):
+        # Native indexing can differ from the graph's original atom indices.
+        index = {atom: i for i, atom in enumerate(nodes)}
+        return [(index[a], index[b], value) for (a, b), value in self.values.items()]
+
+
+SYM_SUPPORT_MAX_STATES = 4096
+
+
+def _edge_wbo(g, a, b):
+    """WBO for any atom pair in the complete weighted graph."""
+    if a == b:
+        return 0.0
+    mat = g.graph.get("wbo_matrix")
+    if mat is not None:
+        return float(mat[a, b])
+    if g.has_edge(a, b):
+        return float(g[a][b].get("wbo", 0.0))
+    return 0.0
+
+
+def _growth_edge_supported(w_R, w_P, iso_tol, graph_floor=0.2, *, inclusive=True):
+    """Compatibility for one active R-side growth/vector edge.
+
+    The popped edge is not special chemically; it is one active R-side pair in
+    the weighted WBO vector checked during extension.  If an R pair is active,
+    the target pair must also be an active graph edge before the WBO tolerance
+    is considered.  This prevents a loose ``iso_tol`` from treating a real
+    bond as matching a target nonbond.
+    """
+    w_P = float(w_P)
+    difference = abs(float(w_R) - w_P)
+    return w_P >= graph_floor and (difference <= iso_tol if inclusive else difference < iso_tol)
+
+
+def _wbo_bucket(w):
+    return int(round(float(w) * 5))
+
+
+def _orbit_id(orbits, node):
+    return orbits[node] if orbits is not None else node

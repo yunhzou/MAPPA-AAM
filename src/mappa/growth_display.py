@@ -3,8 +3,8 @@ from copy import deepcopy
 import json
 
 from .frag import build_graph
-from .matcher.state import candidate_from_record
-from .search_symmetry import SymmetryWorkspace
+from mappa.mappa_core.core.matching.state import candidate_from_record
+from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
 
 
 def with_represented_targets(document):

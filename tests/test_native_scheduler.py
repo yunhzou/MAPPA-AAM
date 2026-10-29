@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from mappa.alignment.branch import find_islands
-from mappa.growth import native
+from mappa.mappa_core.core.matching import native
 from mappa.cut_replay import FragmentRepair
 from mappa.native_search import find_islands_native
-from mappa.matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from mappa.search_symmetry import finalize_graph_symmetry
 from test_cut_replay import graph
 

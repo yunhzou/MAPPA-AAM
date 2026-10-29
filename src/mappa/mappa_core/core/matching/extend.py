@@ -1,45 +1,35 @@
-"""Single-atom extension for symmetry-compressed fragment matches.
-
-This module is the elementary matching step used by island growth:
-
-    current fragment F  ->  enlarged fragment F union {n}
-
-The input candidate list is *local* to one growing island.  Each `_SymCand`
-is one canonical compressed state: it has one concrete witness mapping, plus
-symmetry blocks/multiplicity that represent many injective concrete mappings.
-The outer ``list[_SymCand]`` stores multiple canonical-distinct local states.
-
-The main function operates on internal growth objects. The standalone public
-entry point is ``mappa.fragment.match_fragment``.
-
-Invariant: the children represent exactly every valid one-atom extension of
-the input relation. Pool restriction is exhaustive; compression must commute
-with later extensions. See ``design.md`` for the induction argument.
-"""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 from typing import Any
-
-from .dedupe import _dedup_sym_cands, _p_relation_signature
-from .policy import DEFAULT_NODE_POLICY, as_node_match_policy
-from .primitives import _edge_wbo
-from .state import _SymCand, _sym_block_indexes
-from .support import (
-    _refine_sym_assignments,
-    _r_compatible_with_block,
-    _support_assignments_for_value,
-)
+from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands, _p_relation_signature
+from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY, as_node_match_policy
+from mappa.mappa_core.core.matching.policy import _edge_wbo
+from mappa.mappa_core.core.matching.state import _SymCand, _sym_block_indexes
+from mappa.mappa_core.core.matching.support import _refine_sym_assignments, _r_compatible_with_block, _support_assignments_for_value
 
 
 Node = int
+
+
 Wbo = float
+
+
 Support = dict[Node, Node]
+
+
 SymCandidate = _SymCand | Mapping[Node, Node]
+
+
 OrbitMap = Mapping[Node, int] | None
+
+
 EdgeKey = tuple[Node, Node]
+
+
 TargetEntry = tuple[Node, Support, bool]
 
 
@@ -135,7 +125,6 @@ def _extend_sym_cands(
         cand = raw_cand if isinstance(raw_cand, _SymCand) else _SymCand(raw_cand)
         children.extend(_extend_one_candidate(cand, ctx))
     return _dedupe_children(children, ctx)
-
 
 
 @dataclass(frozen=True)

@@ -1,20 +1,11 @@
-"""Exact automorphism certificates for hierarchical partial mappings."""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 from collections import defaultdict, deque
-
-from .orbits import (
-    _nauty_atom_generators,
-    _nauty_colored_wbo_graph,
-    _wbo_tolerance_bucket_lookup,
-)
-from .policy import (
-    AttributeNodeMatchPolicy,
-    ElementNodeMatchPolicy,
-    as_node_match_policy,
-)
-from .state import _SymCand
-from .primitives import _edge_wbo
+from mappa.mappa_core.core.matching.orbits import _nauty_atom_generators, _nauty_colored_wbo_graph, _wbo_tolerance_bucket_lookup
+from mappa.mappa_core.core.matching.policy import AttributeNodeMatchPolicy, ElementNodeMatchPolicy, as_node_match_policy
+from mappa.mappa_core.core.matching.state import _SymCand
+from mappa.mappa_core.core.matching.policy import _edge_wbo
 
 
 class _PartialMappingCanonicalizer:
@@ -512,7 +503,7 @@ class _CandidateAutomorphismCanonicalizer:
     def atom_generators(self, cand, *, colored_vertices=None):
         """Exact generators for a bounded completed candidate state."""
         import pynauty
-        from .._group_ops import project_generators
+        from mappa._group_ops import project_generators
 
         raw_generators = pynauty.autgrp(
             self.graph(cand, group_domains=True, colored_vertices=colored_vertices))[0]

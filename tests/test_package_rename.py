@@ -9,7 +9,7 @@ import pytest
 from mappa.artifacts import (
     aam_from_record, read_aam_checkpoint, read_graph_checkpoint, read_raw_cut,
 )
-from mappa.growth import native
+from mappa.mappa_core.core.matching import native
 
 FIXTURES = Path(__file__).parent / "fixtures" / "package_rename"
 

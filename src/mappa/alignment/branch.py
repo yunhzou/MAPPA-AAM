@@ -6,16 +6,12 @@ from collections import Counter
 
 
 from ..frag import bond_event_threshold
-from ..fragment import FragmentMatchConfig, FragmentMatchContext, match_fragment
+from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.api import match_fragment
 from ..search_graph import SearchContext, SearchGraphBuilder, frozen_value
-from ..matcher import (
-    _boundary_signature,
-    _edge_wbo,
-    _nauty_orbits,
-    _orbit_id,
-    _wbo_bucket,
-    as_node_match_policy,
-)
+from mappa.mappa_core.core.matching.dedupe import _boundary_signature
+from mappa.mappa_core.core.matching.policy import _edge_wbo, _orbit_id, _wbo_bucket, as_node_match_policy
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 
 
 class _StateKey(tuple):

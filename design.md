@@ -24,10 +24,10 @@ flowchart LR
 | Owner | Responsibility | Current implementation |
 |---|---|---|
 | Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `frag.py`, `chemistry_computations/`, `smiles.py` |
-| Fragment matcher | Conditional injective matches with compressed correlated choices | `fragment.py`, `matcher/`, `growth/`, native engine |
+| Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
 | AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `aam.py`, `alignment/branch.py`, `alignment/sweep.py`, `native_search.py` |
 | Representation | Shared decisions, paths, atom-set branches, saved mapping families | `domain.py`, `search_graph.py`, `alignment/post_aam.py`, `final_branches.py` |
-| Symmetry | Conditioned group reconstruction and action reduction | `search_symmetry.py`, `conditioned_symmetry.py`, `action_reduction.py` |
+| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry.py`, `search_symmetry.py`, `action_reduction.py` |
 | Decoding | Anchored rematching, recombination, direct counts and event classes | `fragment_conversion.py`, `postprocessing.py`, `event_patterns.py` |
 | Explicit queries | Membership of a supplied mapping in saved correlated choices | `family_query.py`, `reference_constraints.py` |
 | Execution | Task dependencies, workers, budgets and verified publication | `execution/` |
@@ -36,6 +36,12 @@ flowchart LR
 
 CLIs, benchmark adapters and viewers consume these owners. They must not contain
 another matcher or decoder. Scheduling changes do not change scientific settings.
+
+Matching is the first completed ownership stage in [refactor.md](refactor.md).
+Its node/bond policies and fragment result records are consolidated; matching
+and subgraph search share graph preparation. `subgraph.py` remains with search
+because it constructs a full search through `find_islands`. Search, scheduling,
+postprocessing and workflows retain their current locations until their own stage.
 
 ## Data architecture
 
@@ -234,7 +240,7 @@ The unused paired-mapping extension and freeze exports are removed.
 
 ```mermaid
 flowchart LR
-    Matcher[Python fragment matcher] --> Bridge[growth/native.py]
+    Matcher[Python fragment matcher] --> Bridge[matching/native.py]
     Bridge --> Engine[mappa._engine]
     Source[src/mappa/native] --> Engine
     Vendor[third_party/nauty] --> Engine

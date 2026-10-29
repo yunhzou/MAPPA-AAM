@@ -5,9 +5,12 @@ import numpy as np
 import pytest
 
 from mappa import FragmentMatchConfig, match_fragment
-from mappa.matcher import _SymBlock, _SymCand, _dedup_sym_cands, _extend_sym_cands, _nauty_orbits
-from mappa.matcher.state import candidate_from_record
-from mappa.search_symmetry import SymmetryWorkspace
+from mappa.mappa_core.core.matching.state import _SymBlock, _SymCand
+from mappa.mappa_core.core.matching.dedupe import _dedup_sym_cands
+from mappa.mappa_core.core.matching.extend import _extend_sym_cands
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.state import candidate_from_record
+from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
 from test_growth_compression_exactness import graph, represented, assert_prefixes
 
 

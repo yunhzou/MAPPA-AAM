@@ -12,9 +12,10 @@ from mappa.aam import finalize_graph_symmetry
 from mappa.artifacts import aam_from_record, aam_record
 from mappa.alignment.branch import _Branch, find_islands
 from mappa.frag import build_graph
-from mappa.fragment import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext, match_fragment
-from mappa.growth.result import IslandBranchLimitExceeded
-from mappa.matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.records import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from mappa.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 
 
@@ -67,7 +68,7 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
 
 
 def test_online_admission_reuses_equal_continuation(monkeypatch):
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     calls = []
     def grow(source, target, seed, mapping, **kwargs):
         calls.append((seed, tuple(mapping)))
@@ -179,7 +180,7 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
 
 @pytest.mark.parametrize('seed', range(10))
 def test_fragment_bonds_match_whole_graph_definition(seed):
-    from mappa.growth.result import _IsoResult
+    from mappa.mappa_core.core.matching.records import _IsoResult
     rng = random.Random(seed)
     graph = network(['C'] * 18)
     for a in graph:
@@ -251,7 +252,7 @@ def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
 
 @pytest.mark.parametrize('stage', ['fragment_growth', 'combined_live_leaves'])
 def test_cap_is_recorded_without_claiming_a_match(monkeypatch, stage):
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     def grow(source, target, seed, mapping, **kwargs):
         if stage == 'fragment_growth':
             raise IslandBranchLimitExceeded(2, 1, seed=seed)
@@ -350,7 +351,7 @@ def test_later_generator_is_transported_with_earlier_fragment():
 
 
 def test_capped_sibling_does_not_discard_a_successful_path(monkeypatch):
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     def grow(source, target, seed, mapping, **kwargs):
         if seed == 0:
             return [iso({0: 0}), iso({0: 1})]
@@ -368,7 +369,7 @@ def test_offline_viewer_uses_saved_graph_without_new_matching(tmp_path, monkeypa
     import re
     import shutil
     import subprocess
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     from mappa.artifacts import write_aam_bundle
     result = search_aam(problem(), AAMSearchConfig(seed_count=1))
     def forbidden(*args, **kwargs):

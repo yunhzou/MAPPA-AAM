@@ -12,8 +12,9 @@ from .aam import cut_seed
 from .adaptive_search import AdaptiveResult
 from .alignment.branch import _Branch, _generate_seed_orders
 from .domain import AAMResult, AAMSearchMetrics
-from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from .search_graph import SearchContext, SearchGraphBuilder, FragmentTransition, SearchStop
 from .search_symmetry import finalize_graph_symmetry
 

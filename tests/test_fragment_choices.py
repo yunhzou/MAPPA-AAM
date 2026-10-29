@@ -7,7 +7,8 @@ import pytest
 from mappa import AAMProblem, AAMSearchConfig
 from mappa.adaptive_search import AdaptiveFragmentSearch
 from mappa.domain import MolecularEndpoint
-from mappa.fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
 from mappa.fragment_choices import FragmentChoices
 from test_cut_replay import graph
 

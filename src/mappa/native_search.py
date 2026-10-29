@@ -8,8 +8,8 @@ import gc
 import time
 
 from .alignment.branch import _normalize_anchor_map
-from .growth import native
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching import native
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from .search_graph import AAMSearchGraph, SearchContext
 
 

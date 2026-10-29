@@ -104,12 +104,13 @@ def compete_fragments(a, config=None):
     """
     from .domain import AAMSearchConfig, AAMResult, AAMSearchMetrics
     from .frag import build_graph
-    from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext
-    from .matcher import _nauty_orbits
+    from mappa.mappa_core.core.matching.api import match_fragment
+    from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
+    from mappa.mappa_core.core.matching.orbits import _nauty_orbits
     from .native_search import find_islands_native
     from .search_symmetry import finalize_graph_symmetry
     from .event_patterns import SignedEventIndex
-    from .growth.native import available
+    from mappa.mappa_core.core.matching.native import available
 
     if not available():
         raise RuntimeError(
@@ -167,7 +168,7 @@ def compete_fragments(a, config=None):
         problem.product.elements, problem.product.wbo, bond_cut=cfg.graph_floor
     )
     po = _nauty_orbits(target, wbo_tol=cfg.iso_tolerance)
-    from .conditioned_symmetry import ConditionedSymmetryWorkspace
+    from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
     from .search_validation import RepresentativeValidationWorkspace
 
     symmetry_workspace = ConditionedSymmetryWorkspace(target, cfg.iso_tolerance)

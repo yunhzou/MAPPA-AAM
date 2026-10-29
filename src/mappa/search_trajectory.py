@@ -13,12 +13,14 @@ from pathlib import Path
 import numpy as np
 from .artifacts import read_aam_checkpoint, aam_from_record
 from .frag import build_graph, classify_bonds
-from .matcher import _nauty_orbits, _cand_possible_p_atoms, _support_witness_for_value, _sym_block_indexes
-from .matcher.support import _refine_sym_assignments
-from .growth.trace import cands_pattern_sample
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.state import _cand_possible_p_atoms, _sym_block_indexes
+from mappa.mappa_core.core.matching.support import _support_witness_for_value
+from mappa.mappa_core.core.matching.support import _refine_sym_assignments
+from mappa.mappa_core.core.matching.trace import cands_pattern_sample
 
-growth = importlib.import_module(__package__ + '.growth.island')
-extension = importlib.import_module(__package__ + '.matcher.extend')
+growth = importlib.import_module('mappa.mappa_core.core.matching.growth')
+extension = importlib.import_module('mappa.mappa_core.core.matching.extend')
 
 
 def snapshot(cands):
@@ -277,8 +279,8 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
     return dict(schema='rxn_core.search_trajectory/v1',name=title or raw['name'] or 'AAM search trajectory',
         input=raw,runs=runs,key_atoms=default_keys if key_atoms is None else key_atoms,
         watch_targets=[] if watch_targets is None else watch_targets,
-        capture_source={('mappa/search_trajectory.py' if p == Path(__file__) else str(p.relative_to(Path(growth.__file__).parents[2]))):hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(set(Path(growth.__file__).parents[1].rglob('*.py'))|{Path(__file__)})},
+        capture_source={str(p.relative_to(Path(__file__).parent.parent)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(Path(__file__).parent.rglob('*.py'))},
         scope='Diagnostic replay of selected saved fragment calls; one recorded history per terminal. '
               'All live compressed candidates are included, each with an actual representative and symmetry blocks. '
               'Trial rows inspect support before deduplication. Every fragment placement is checked against its archive. '

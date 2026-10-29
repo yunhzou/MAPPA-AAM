@@ -1,9 +1,8 @@
-"""Compressed symmetry candidate state."""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-from .primitives import _orbit_id
+from mappa.mappa_core.core.matching.policy import _orbit_id
 
 
 def candidate_from_record(state):

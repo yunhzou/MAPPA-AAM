@@ -105,7 +105,7 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
 
 def test_competition_retains_baseline_and_hard_anchors(reaction):
     from mappa.competition import compete_fragments, CompetitionConfig
-    from mappa.growth.native import available
+    from mappa.mappa_core.core.matching.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")
@@ -124,7 +124,7 @@ def test_competition_retains_baseline_and_hard_anchors(reaction):
 
 
 def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
-    from mappa.growth.native import available
+    from mappa.mappa_core.core.matching.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")
@@ -142,8 +142,8 @@ def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
 
 def test_aam_distribution_excludes_separate_retrosynthesis_packages():
     from importlib.util import find_spec
-    import mappa.fragment
+    import mappa.mappa_core.core.matching.api
 
     assert find_spec("mappa.retrosynthesis") is None
     assert find_spec("mappa.fragment_matching") is None
-    assert callable(mappa.fragment.match_fragment)
+    assert callable(mappa.mappa_core.core.matching.api.match_fragment)

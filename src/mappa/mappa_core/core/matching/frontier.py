@@ -1,5 +1,8 @@
-"""Random boundary-atom frontier utilities for fragment growth."""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
+
+from mappa.mappa_core.core.matching.state import _cand_has_open_choice, _cand_map
+
 
 MASK64 = (1 << 64) - 1
 
@@ -34,9 +37,6 @@ def _pop_random_atom(pool, used_edges, fragment, rng):
     edge = edges[rng.below(len(edges))]
     pool.remove(edge)
     return edge
-
-
-from ..matcher import _cand_has_open_choice, _cand_map
 
 
 def _set_unique(cands):

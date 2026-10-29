@@ -1,6 +1,6 @@
 # MAPPA source refactoring plan
 
-Status: agreed architecture; implementation has not started.
+Status: matching stage implemented; remaining stages have not started.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
@@ -53,7 +53,8 @@ separate files. Do not create a new file for every function or class.
 
 ## 1. Consolidate the matching engine
 
-Bring `fragment.py`, `subgraph.py`, `matcher/`, `growth/` and matching-related
+Bring `fragment.py`, the shared graph preparation from `subgraph.py`,
+`matcher/`, `growth/` and matching-related
 symmetry code into `mappa_core/core/matching/`.
 
 This owner contains fragment iso matching, growth, compressed candidates,
@@ -73,6 +74,13 @@ Required refactoring:
 
 The matching interface returns compressed fragment placements. It does not
 manage the overall reaction's branch frontier.
+
+Implemented as one matching package. Node and bond policies share `policy.py`;
+fragment configurations/results share `records.py`; symmetry workspaces share
+`symmetry.py`. Existing matching and growth function bodies are retained.
+`subgraph.py` calls full reaction search, so only its graph preparation moved.
+Saved class names resolve through an explicit relocation table in the checkpoint
+reader; superseded source modules are removed.
 
 ## 2. Consolidate reaction search
 
@@ -233,5 +241,5 @@ and explain why rather than silently altering scientific behavior.
 - Re-read `AGENTS.md`, this plan, current `design.md` and Git status before
   starting. Inspect current code rather than assuming the planning revision is
   still current.
-- This request authorized writing the plan only. Do not start implementation
-  until the user requests it.
+- Implementation was authorized after the plan. Complete one major element at
+  a time. Preserve core logic; remove only established redundancies.

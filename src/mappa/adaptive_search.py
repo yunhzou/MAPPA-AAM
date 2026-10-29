@@ -13,12 +13,12 @@ from collections import Counter
 from .alignment.branch import _Branch, _generate_seed_orders
 from .domain import AAMResult, AAMSearchConfig, AAMSearchMetrics
 from .frag import build_graph
-from .fragment import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.records import FragmentMatchConfig, FragmentMatchContext
 from .fragment_choices import FragmentChoices
-from .matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 from .search_graph import SearchContext, SearchGraphBuilder, FragmentTransition, SearchStop
 from .search_symmetry import finalize_graph_symmetry
-from .conditioned_symmetry import ConditionedSymmetryWorkspace
+from mappa.mappa_core.core.matching.symmetry import ConditionedSymmetryWorkspace
 
 
 @dataclass(frozen=True)

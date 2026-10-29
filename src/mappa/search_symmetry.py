@@ -1,49 +1,12 @@
 """Finalize exact symmetry on recorded fragment transitions, without events."""
+from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
 from dataclasses import replace
-from collections import defaultdict
 import gc
 
-from .matcher.state import candidate_from_record
-from .matcher.canonical import _CandidateAutomorphismCanonicalizer
+from mappa.mappa_core.core.matching.state import candidate_from_record
 from .search_graph import frozen_value
 
 
-class SymmetryWorkspace:
-    """Exact finalization reuse for one fixed target/tolerance, not a search cap.
-
-    Owned by an explicit caller (typically one reaction), never process-global.
-    Keys include locked atom roles and the complete candidate symmetry record.
-    """
-    def __init__(self, target, iso_tolerance):
-        self.target = target
-        self.iso_tolerance = iso_tolerance
-        self.cache = {}
-        self.coloring_cache = {}
-        self.generators = {}
-        self.groups = {}
-        self.canonicalizers = {}
-
-    def canonicalizer_for(self, version):
-        if version not in self.canonicalizers:
-            self.canonicalizers[version] = _CandidateAutomorphismCanonicalizer(
-                self.target, wbo_tol=self.iso_tolerance, compression_version=version)
-        return self.canonicalizers[version]
-
-    def conditioned_generators(self, candidate, locked, intern=tuple):
-        canonicalizer = self.canonicalizer_for(candidate.compression_version)
-        locked_roles = defaultdict(list)
-        for r, p in sorted(locked):
-            if p in canonicalizer.atom_index:
-                locked_roles[p].append(('locked', r))
-        coloring = canonicalizer._colored_vertices(candidate, group_domains=True,
-            locked_roles={p: tuple(roles) for p, roles in locked_roles.items()})
-        key = candidate.compression_version, tuple(vertices for _label, vertices in coloring)
-        if key not in self.coloring_cache:
-            self.coloring_cache[key] = intern(canonicalizer.atom_generators(candidate, colored_vertices=coloring))
-        return self.coloring_cache[key]
-
-    def coloring_count(self):
-        return len(self.coloring_cache)
 
 
 def finalize_graph_symmetry(graph, target, *, iso_tolerance, states=None, workspace=None):

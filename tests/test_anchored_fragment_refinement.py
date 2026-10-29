@@ -11,7 +11,7 @@ import pytest
 from mappa import FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.alignment.branch import find_islands
 from mappa.frag import bond_event_threshold, classify_bonds
-from mappa.matcher.state import candidate_from_record
+from mappa.mappa_core.core.matching.state import candidate_from_record
 from test_growth_compression_exactness import graph, represented
 
 

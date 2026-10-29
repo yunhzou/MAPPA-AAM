@@ -7,9 +7,10 @@ from __future__ import annotations
 import copy
 from collections import deque
 
-from ..matcher import _SymBlock, _atom_tuple_orbit, _nauty_atom_generators, _nauty_orbits, _sym_block_assignment_expr
-from ..matcher.canonical import _CandidateAutomorphismCanonicalizer
-from ..matcher.state import candidate_from_record
+from mappa.mappa_core.core.matching.state import _SymBlock, _sym_block_assignment_expr
+from mappa.mappa_core.core.matching.orbits import _atom_tuple_orbit, _nauty_atom_generators, _nauty_orbits
+from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
+from mappa.mappa_core.core.matching.state import candidate_from_record
 from .branch import BranchLimitExceeded
 
 

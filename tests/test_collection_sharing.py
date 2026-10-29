@@ -48,7 +48,8 @@ def test_finalization_scoped_gc_preserves_records_and_restores_caller_state():
     import pytest
     from mappa import AAMSearchConfig, search_aam
     from mappa.frag import build_graph
-    from mappa.search_symmetry import finalize_graph_symmetry, SymmetryWorkspace
+    from mappa.search_symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.matching.symmetry import SymmetryWorkspace
     from test_fragment_choices import problem
     sample=problem(6)
     aam=search_aam(sample,AAMSearchConfig(seed_count=3,iso_tolerance=1.))

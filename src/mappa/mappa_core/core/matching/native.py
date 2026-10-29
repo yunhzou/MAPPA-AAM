@@ -1,24 +1,14 @@
-"""Bridge to the optional native growth engine (``mappa._engine``).
-
-The native engine is a C++ port of :func:`mappa.growth.island.grow_island`
-and the matcher step it drives.  It is used only when the extension is
-importable, ``MAPPA_NATIVE=1`` (the default), and the call is one the port
-covers (default element policy, exact nauty orbit map with a structural zero
-bucket, no trace events).  Its outputs are the same ``_IsoResult`` objects the
-Python engine returns. A missing or broken selected extension is an error;
-``MAPPA_NATIVE=0`` explicitly selects Python. ``tests/test_native_engine.py`` compares growth calls,
-symmetry state, cap behavior, and typed AAM outputs against the Python engine.
-"""
+"""Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
 import os
 from importlib import import_module
 import time
 from dataclasses import dataclass
+from mappa.mappa_core.core.matching.orbits import _OrbitMap
+from mappa.mappa_core.core.matching.policy import ElementNodeMatchPolicy
+from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded, _IsoResult
 
-from ..matcher.orbits import _OrbitMap
-from ..matcher.policy import ElementNodeMatchPolicy
-from .result import IslandBranchLimitExceeded, _IsoResult
 
 try:  # pragma: no cover - depends on the build
     _engine = import_module('mappa._engine')

@@ -1,15 +1,15 @@
 """General weighted-subgraph matching API."""
 from __future__ import annotations
 
+from mappa.mappa_core.core.matching.graphs import _coerce_graph
+
 from dataclasses import dataclass
 from collections.abc import Sequence
 
-import networkx as nx
 
 from .alignment.branch import find_islands
-from .frag import WeightedGraph
-from .matcher import _edge_wbo, _growth_edge_supported
-from .matcher.policy import as_node_match_policy
+from mappa.mappa_core.core.matching.policy import _edge_wbo, _growth_edge_supported
+from mappa.mappa_core.core.matching.policy import as_node_match_policy
 from .search_graph import AAMSearchGraph, SearchPath, frozen_value
 
 
@@ -48,19 +48,6 @@ class SubgraphSearchResult(Sequence):
         return self.graph.capped
 
 
-def _coerce_graph(graph, graph_floor):
-    if isinstance(graph, WeightedGraph):
-        return graph.to_networkx(bond_cut=graph_floor)
-    if isinstance(graph, nx.Graph):
-        if "wbo_matrix" not in graph.graph:
-            raise ValueError("NetworkX graph must carry graph['wbo_matrix']")
-        if "bond_cut" not in graph.graph:
-            graph = graph.copy()
-            graph.graph["bond_cut"] = float(graph_floor)
-        return graph
-    if hasattr(graph, "to_networkx"):
-        return graph.to_networkx(bond_cut=graph_floor)
-    raise TypeError("graph must be WeightedGraph or a NetworkX graph")
 
 
 def _query_edges_supported(g_q, g_t, mapping, iso_tol):

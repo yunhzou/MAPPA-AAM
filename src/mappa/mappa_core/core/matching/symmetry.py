@@ -1,12 +1,46 @@
-"""Opt-in native conditioning over one immutable target symmetry graph.
+"""Exact conditioned symmetry workspaces for fragment matching."""
+from __future__ import annotations
 
-The Python fragment and AAM graph abstractions are unchanged. The native object
-reuses role colors and complete ordered partitions, returning the same ordered
-generators as the reference finalizer, without permutation enumeration.
-"""
-from ._engine import ConditionedAutGraph
-from .matcher.canonical import _CandidateAutomorphismCanonicalizer
-from .search_symmetry import SymmetryWorkspace
+from collections import defaultdict
+from mappa.mappa_core.core.matching.canonical import _CandidateAutomorphismCanonicalizer
+
+
+class SymmetryWorkspace:
+    """Exact finalization reuse for one fixed target/tolerance, not a search cap.
+
+    Owned by an explicit caller (typically one reaction), never process-global.
+    Keys include locked atom roles and the complete candidate symmetry record.
+    """
+    def __init__(self, target, iso_tolerance):
+        self.target = target
+        self.iso_tolerance = iso_tolerance
+        self.cache = {}
+        self.coloring_cache = {}
+        self.generators = {}
+        self.groups = {}
+        self.canonicalizers = {}
+
+    def canonicalizer_for(self, version):
+        if version not in self.canonicalizers:
+            self.canonicalizers[version] = _CandidateAutomorphismCanonicalizer(
+                self.target, wbo_tol=self.iso_tolerance, compression_version=version)
+        return self.canonicalizers[version]
+
+    def conditioned_generators(self, candidate, locked, intern=tuple):
+        canonicalizer = self.canonicalizer_for(candidate.compression_version)
+        locked_roles = defaultdict(list)
+        for r, p in sorted(locked):
+            if p in canonicalizer.atom_index:
+                locked_roles[p].append(('locked', r))
+        coloring = canonicalizer._colored_vertices(candidate, group_domains=True,
+            locked_roles={p: tuple(roles) for p, roles in locked_roles.items()})
+        key = candidate.compression_version, tuple(vertices for _label, vertices in coloring)
+        if key not in self.coloring_cache:
+            self.coloring_cache[key] = intern(canonicalizer.atom_generators(candidate, colored_vertices=coloring))
+        return self.coloring_cache[key]
+
+    def coloring_count(self):
+        return len(self.coloring_cache)
 
 
 class ConditionedSymmetryWorkspace(SymmetryWorkspace):
@@ -17,6 +51,7 @@ class ConditionedSymmetryWorkspace(SymmetryWorkspace):
         self.identity_shortcuts = 0
 
     def _engine(self, version):
+        from mappa._engine import ConditionedAutGraph
         if version in self.engines:
             return self.engines[version]
         c = self.canonicalizer_for(version)

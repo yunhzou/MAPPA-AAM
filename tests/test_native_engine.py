@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "bench"))
 
-from mappa.growth import native  # noqa: E402
+from mappa.mappa_core.core.matching import native  # noqa: E402
 
 pytestmark = pytest.mark.skipif(
     not native.built(), reason="native growth engine not built")
@@ -43,10 +43,10 @@ def _search(case, workers=1):
 
 
 def test_every_growth_call_agrees_with_python(monkeypatch):
-    import mappa.fragment as fragment_mod
-    import mappa.growth.island as island_mod
-    from mappa.growth.result import IslandBranchLimitExceeded
-    from mappa.matcher.policy import as_node_match_policy
+    import mappa.mappa_core.core.matching.api as fragment_mod
+    import mappa.mappa_core.core.matching.growth as island_mod
+    from mappa.mappa_core.core.matching.records import IslandBranchLimitExceeded
+    from mappa.mappa_core.core.matching.policy import as_node_match_policy
 
     original = island_mod.grow_island
     stats = {"calls": 0, "native": 0}
@@ -131,7 +131,7 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
     import networkx as nx
     import numpy as np
 
-    from mappa.matcher.orbits import _nauty_orbits
+    from mappa.mappa_core.core.matching.orbits import _nauty_orbits
 
     source = nx.Graph()
     source.add_nodes_from(((10, {"element": "C"}),
@@ -165,7 +165,7 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
 
 @pytest.mark.parametrize('selection', [None, '1'])
 def test_missing_selected_engine_is_an_error(selection, monkeypatch):
-    from mappa.growth import native
+    from mappa.mappa_core.core.matching import native
     monkeypatch.setattr(native, '_engine', None)
     if selection is None:
         monkeypatch.delenv('MAPPA_NATIVE', raising=False)
@@ -178,7 +178,7 @@ def test_missing_selected_engine_is_an_error(selection, monkeypatch):
 
 
 def test_invalid_backend_is_not_an_implicit_selection(monkeypatch):
-    from mappa.growth import native
+    from mappa.mappa_core.core.matching import native
     monkeypatch.setenv('MAPPA_NATIVE', 'auto')
     with pytest.raises(ValueError, match='must be 0'):
         native.available()
