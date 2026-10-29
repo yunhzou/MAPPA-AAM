@@ -90,6 +90,40 @@ def test_resources_dependencies_and_backup(tmp_path):
     queue.close()
 
 
+def test_checkpoint_does_not_block_worker_heartbeat(tmp_path, monkeypatch):
+    import sqlite3
+    import threading
+    import mappa.mappa_core.core.scheduler.queue as module
+    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
+    queue.add([task('a')])
+    claim = queue.claim('worker', MEMORY, IDENTITY)
+    copying, release = threading.Event(), threading.Event()
+    class SlowBackup(sqlite3.Connection):
+        def backup(self, *args, **kwargs):
+            copying.set()
+            assert release.wait(5)
+            return super().backup(*args, **kwargs)
+    connect = sqlite3.connect
+    def connection(*args, **kwargs):
+        if kwargs.get('uri'):
+            kwargs['factory'] = SlowBackup
+        return connect(*args, **kwargs)
+    monkeypatch.setattr(module.sqlite3, 'connect', connection)
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(2) as pool:
+        backup = pool.submit(queue.backup, tmp_path/'snapshot.db')
+        assert copying.wait(5)
+        heartbeat = pool.submit(queue.heartbeat, 'a', claim['token'])
+        try:
+            assert heartbeat.result(timeout=2)
+        finally:
+            release.set()
+        backup.result(timeout=5)
+    restored = TaskQueue(tmp_path/'snapshot.db', IDENTITY)
+    assert restored.snapshot() == {'running':1}
+    restored.close();queue.close()
+
+
 def test_memory_handoff_preserves_live_work_specs_and_deadline(tmp_path):
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
     queue.add([task('a', case='same', memory_bytes=MEMORY),

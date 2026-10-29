@@ -32,6 +32,7 @@ class TaskQueue:
     def __init__(self, path, identity, *, lease_seconds=120.):
         self.lock = threading.RLock()
         self.lease_seconds = lease_seconds
+        self.path = Path(path)
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
         columns = {r[1] for r in self.db.execute('PRAGMA table_info(cases)')}
         if columns and 'spent' not in columns:
@@ -327,17 +328,23 @@ class TaskQueue:
     def backup(self, path):
         """One compact consistent checkpoint, never a shared database writer."""
         path = Path(path)
-        with self.lock, tempfile.TemporaryDirectory(dir=path.parent) as temporary:
+        # A separate read connection lets workers renew leases while a large
+        # checkpoint is copied. Holding the dispatch lock here can expire
+        # healthy workers before their queued heartbeats are accepted.
+        with tempfile.TemporaryDirectory(dir=path.parent) as temporary:
             snapshot = Path(temporary)/'queue.sqlite'
+            source = sqlite3.connect(f'file:{self.path}?mode=ro', uri=True)
             destination = sqlite3.connect(snapshot)
             try:
-                self.db.backup(destination)
+                source.backup(destination, pages=256, sleep=.01)
                 # The backup inherits WAL mode. Consolidate it before publishing
                 # so copying this single file preserves every committed row.
                 destination.execute('PRAGMA journal_mode=DELETE')
             finally:
                 destination.close()
+                source.close()
             os.replace(snapshot, path)
 
     def close(self):
-        self.db.close()
+        with self.lock:
+            self.db.close()

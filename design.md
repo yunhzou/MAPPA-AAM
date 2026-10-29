@@ -306,7 +306,8 @@ Record the actual worker guard with every outcome. Completed work is never
 repeated, and unrelated errors are not promoted to memory retries.
 
 Use node-local scratch and SQLite writes. Publish verified bounded bundles and
-consistent queue backups; do not copy a live WAL database's main file alone or
+consistent queue backups through a separate read connection so publication cannot
+block worker heartbeats. Serialize queue closure with active requests. Do not copy a live WAL database's main file alone or
 create a shared file for every tiny intermediate. Preserve source/input hashes,
 settings, timings, memory, attempts, output provenance and incomplete flags.
 Execution success is not scientific completeness. Resource limits, unknowns,
