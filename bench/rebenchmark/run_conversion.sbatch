@@ -31,16 +31,20 @@ hostname
 lscpu
 "$python" -m pip freeze
 "$python" -c 'import platform, sys; print(sys.version); print(platform.platform())'
-if [[ "$mode" == pilot ]]; then
+if [[ "$mode" == pilot || "$mode" == memory-stage ]]; then
     cd "$checkout"
-    "$python" -m pytest -q -p no:cacheprovider tests/test_saved_event_decoding.py tests/test_fragment_conversion.py tests/test_shared_execution.py
-    "$python" -u -m "$campaign" coordinator "$output" &
+    coordinator_mode=memory-stage
+    if [[ "$mode" == pilot ]]; then
+        "$python" -m pytest -q -p no:cacheprovider tests/test_saved_event_decoding.py tests/test_fragment_conversion.py tests/test_shared_execution.py
+        coordinator_mode=coordinator
+    fi
+    "$python" -u -m "$campaign" "$coordinator_mode" "$output" &
     coordinator_pid=$!
     while [[ ! -f "$output/endpoint.json" ]]; do
         kill -0 "$coordinator_pid"
         sleep 1
     done
-    if ! "$python" -u -m "$campaign" worker "$output" --workers "$workers"; then
+    if ! "$python" -u -m "$campaign" worker "$output" --workers "$workers" "${memory_arguments[@]}"; then
         kill -TERM "$coordinator_pid"
         wait "$coordinator_pid" || true
         exit 1

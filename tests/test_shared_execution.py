@@ -130,6 +130,36 @@ def test_larger_memory_stage_retries_only_authorized_limits(tmp_path):
     queue.close()
 
 
+def test_memory_stage_reuses_completed_outputs_and_refuses_live_source(tmp_path):
+    import json
+    from rebenchmark.shared import prepare_memory_stage
+    source, output, scratch = (tmp_path/name for name in ('first', 'second', 'scratch'))
+    for folder in (source, output, scratch):
+        folder.mkdir()
+    queue = TaskQueue(source/'queue.sqlite', IDENTITY)
+    queue.add([task('saved'), task('limited')])
+    saved = queue.claim('first', MEMORY, IDENTITY)
+    queue.finish('saved', saved['token'], 'complete', {'published': 'unchanged'})
+    limited = queue.claim('first', MEMORY, IDENTITY)
+    queue.finish('limited', limited['token'], 'memory_limit', {'memory_guard_bytes': MEMORY})
+    queue.backup(source/'final.sqlite')
+    queue.close()
+    (source/'final.sqlite').replace(source/'queue.sqlite')
+    plan = dict(previous_stage=str(source), identity=IDENTITY,
+                previous_memory_bytes=MEMORY, memory_bytes=4*MEMORY)
+    (source/'progress.json').write_text(json.dumps(dict(finished=False, states={'running': 1})))
+    with pytest.raises(ValueError, match='still owns'):
+        prepare_memory_stage(plan, output, scratch)
+    (source/'progress.json').write_text(json.dumps(dict(finished=True, states={'complete': 1, 'memory_limit': 1})))
+    stage = prepare_memory_stage(plan, output, scratch)
+    assert stage.snapshot() == {'complete': 1, 'pending': 1}
+    assert stage.results(['saved'])['saved']['result'] == {'published': 'unchanged'}
+    resumed = stage.claim('second', 4*MEMORY, IDENTITY)
+    assert resumed['task'].key == 'limited' and resumed['deadline'] == limited['deadline']
+    assert json.loads((output/'selection.json').read_text())['keys'] == ['limited']
+    stage.close()
+
+
 def test_bundle_hash_and_file_count(tmp_path):
     writer = BundleWriter(tmp_path/'bundles', tmp_path)
     blobs = [writer.put({'index': n, 'data': bytes(range(255))}) for n in range(40)]

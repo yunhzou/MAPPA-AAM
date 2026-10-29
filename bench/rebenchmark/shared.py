@@ -198,6 +198,36 @@ def prepare_queue(plan, out, scratch):
     return queue
 
 
+def prepare_memory_stage(plan, out, scratch):
+    """Continue only authorized memory failures from a retired first stage."""
+    import hashlib
+    import json
+    import sqlite3
+    from mappa.mappa_core.core.scheduler import TaskQueue
+    from .decoder_campaign import save
+    source = Path(plan['previous_stage'])
+    progress = json.loads((source/'progress.json').read_text())
+    if not progress.get('finished') or any(progress['states'].get(k, 0) for k in ('pending', 'running')):
+        raise ValueError('Previous memory stage still owns unfinished work')
+    path = source/'queue.sqlite'
+    with path.open('rb') as stream:
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    prior = sqlite3.connect('file:'+str(path)+'?mode=ro', uri=True)
+    copied = sqlite3.connect(Path(scratch)/'queue.sqlite')
+    try:
+        prior.backup(copied)
+    finally:
+        copied.close()
+        prior.close()
+    queue = TaskQueue(Path(scratch)/'queue.sqlite', plan['identity'])
+    keys = queue.retry_memory_limits(plan['previous_memory_bytes'], plan['memory_bytes'],
+        reason='User-authorized larger-memory second stage; preserve prior attempts and deadlines')
+    save(out/'selection.json', dict(keys=keys, source_queue=str(path), source_sha256=digest,
+        previous_memory_bytes=plan['previous_memory_bytes'], memory_bytes=plan['memory_bytes'],
+        states=queue.snapshot(), deadlines_preserved=True))
+    return queue
+
+
 def execute(args):
     import json
     import os
@@ -232,7 +262,8 @@ def execute(args):
         raise SystemExit(128+signum)
     signal.signal(signal.SIGTERM, terminate)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        queue = prepare_queue(plan,out,scratch)
+        queue = (prepare_memory_stage(plan,out,scratch) if args.mode == 'memory-stage'
+                 else prepare_queue(plan,out,scratch))
         try:
             serve_queue(queue,out,dict(campaign='fresh Golden matching and conversion'))
         finally:
@@ -242,7 +273,7 @@ def execute(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode',choices=('prepare','coordinator','worker'))
+    parser.add_argument('mode',choices=('prepare','coordinator','worker','memory-stage'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--workers',type=int,default=1)
     parser.add_argument('--memory-bytes',type=int,
