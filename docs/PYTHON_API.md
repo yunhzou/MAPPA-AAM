@@ -183,7 +183,8 @@ Trusted checkpoint and bundle readers explicitly relocate saved search class
 names. Rebuild the native engine after updating: the unused experimental
 `FragmentChoices` export has been removed. Shared seed search and optional
 fragment competition remain supported.
-# Interpret events without rematching
+
+## Interpret events without rematching
 
 ```python
 from mappa import interpret_events

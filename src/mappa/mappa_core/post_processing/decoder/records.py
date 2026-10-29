@@ -189,6 +189,8 @@ class EventInterpretation:
         """Stream bounded vector batches for caller-supplied choices only."""
         if batch_size < 1:
             raise ValueError('batch_size must be positive')
+        pair_count = len(self.index.a) + len(self.index.pa)
+        batch_size = min(batch_size, max(1, 65536 // max(1, pair_count)))
         batch = []
         for choice in choices:
             batch.append(self.index.vector(self.realize(family_id, choice)))

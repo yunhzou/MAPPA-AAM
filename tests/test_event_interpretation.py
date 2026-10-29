@@ -132,8 +132,18 @@ def test_partial_boundaries_and_empty_mapping():
         for choice in ((0,1,2,3),(2,3,0,1)):
             actual = result.realize(0,[choice])
             assert list(result.evaluate(0,[choice])['counts'].values()) == dense_counts(source.problem,actual)
-    empty = endpoint((),[])
-    assert interpret_events(saved(empty,empty,{})).evaluate(0)['total'] == 0
+
+
+def test_count_batches_bound_pair_scratch(monkeypatch):
+    ep = endpoint('C'*300,[(0,1,1.)])
+    result = interpret_events(saved(ep,ep,{0:0,1:1}))
+    original, sizes = result.index.counts, []
+    def checked(vectors):
+        sizes.append(len(vectors))
+        return original(vectors)
+    monkeypatch.setattr(result.index,'counts',checked)
+    assert [int(row.sum()) for row in result.counts(0,[None]*3)] == [0,0,0]
+    assert sizes == [1,1,1]
 
 
 def test_response_certificate_does_not_freeze_unmatched_target_identity():
