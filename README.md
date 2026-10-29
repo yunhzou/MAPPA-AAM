@@ -440,3 +440,9 @@ only a larger difference is an event (`>`). When both tolerances equal the saved
 AAM iso tolerance, conversion reuses its compressed fragments directly, without
 rematching or recombination. Requested event counts are still computed. Event
 IDs use version3 to distinguish this rule from earlier boundary conventions.
+
+Event counting reuses each converted fragment alternative and each interacting
+pair of alternatives across branches. Branch totals sum these stored contributions;
+only candidates inside the requested window assemble and canonicalize event lists.
+Saved `counting_statistics` report the number of bond comparisons and reused
+regions/pairs. Requested branch records are still materialized.

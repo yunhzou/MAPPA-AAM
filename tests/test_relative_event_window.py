@@ -41,13 +41,13 @@ def test_invalid_or_ambiguous_configuration_rejected():
 
 def test_event_ids_are_only_built_for_the_requested_window(monkeypatch):
     from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
-    original = SignedEventIndex.describe
+    original = SignedEventIndex._describe_events
     observed = []
-    def describe(index, vector):
-        count = int(index.counts([vector]).sum())
+    def describe(index, vector, broken, formed):
+        count = len(broken) + len(formed)
         observed.append(count)
-        return original(index, vector)
-    monkeypatch.setattr(SignedEventIndex, 'describe', describe)
+        return original(index, vector, broken, formed)
+    monkeypatch.setattr(SignedEventIndex, '_describe_events', describe)
     result = decode_events(catalogue(), EventDecodeConfig(event_slack=0))
     assert sorted(r['total'] for r in result.family_reports) == [0,2]
     assert observed == [0]
