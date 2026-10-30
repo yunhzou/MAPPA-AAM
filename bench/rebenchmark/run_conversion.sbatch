@@ -14,7 +14,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 
 if [[ "$mode" == workers ]]; then
-    srun --ntasks-per-node=1 bash "$0" worker "$output" "$checkout" "$expected_commit" "$python" "$workers"
+    srun --ntasks-per-node=1 bash "$checkout/bench/rebenchmark/run_conversion.sbatch" worker "$output" "$checkout" "$expected_commit" "$python" "$workers"
     exit
 fi
 

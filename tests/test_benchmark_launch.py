@@ -440,3 +440,28 @@ def test_controller_routes_terminal_queue_to_reporting(tmp_path,monkeypatch):
     launch.control(full)
     assert len(submitted)==1 and submitted[0][0][1]=='report'
     assert launch.read(tmp_path/'terminal.json')['unresolved']==1
+
+
+def test_multinode_workers_use_shared_script_from_slurm_spool(tmp_path):
+    import os
+    import shutil
+    import subprocess
+    from pathlib import Path
+    tools = tmp_path/'bin'; tools.mkdir()
+    git = tools/'git'
+    git.write_text('#!/bin/sh\ncase "$*" in *rev-parse*) echo frozen;; esac\n')
+    git.chmod(0o755)
+    srun = tools/'srun'
+    srun.write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$CAPTURE"\n')
+    srun.chmod(0o755)
+    spool = tmp_path/'slurm_script'
+    shutil.copyfile(launch.REPO/'bench/rebenchmark/run_conversion.sbatch', spool)
+    capture = tmp_path/'arguments'
+    checkout = tmp_path/'shared checkout'
+    subprocess.run(['bash', str(spool), 'workers', str(tmp_path/'out'), str(checkout),
+                    'frozen', 'python', '19'], check=True,
+                   env=dict(os.environ, PATH=str(tools)+':'+os.environ['PATH'], CAPTURE=str(capture)))
+    args = capture.read_text().splitlines()
+    assert args[:4] == ['--ntasks-per-node=1', 'bash',
+                       str(checkout/'bench/rebenchmark/run_conversion.sbatch'), 'worker']
+    assert str(spool) not in args
