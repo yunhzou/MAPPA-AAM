@@ -60,19 +60,68 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
     assert len(commands)==4
 
 
-def test_capacity_requests_target_even_when_nodes_are_busy():
+def test_capacity_uses_free_cpu_and_allocatable_memory_with_strict_ceiling():
     nodes = '\n'.join(
-        f'NodeName=cpu-{i:04d} State=MIXED CPUTot=96 CPUAlloc=90 RealMemory=207698 AllocMem=204800'
-        for i in range(1,12))
-    result = launch.capacity(nodes,2*2**30,3,800)
-    assert result['compute_workers']==801
-    assert result['groups']==[dict(nodes=3,workers_per_node=89)]*3
-    assert launch.capacity(nodes.replace('CPUAlloc=90','CPUAlloc=0'),2*2**30,3,800)==result
-    reserved=nodes.replace('State=MIXED','State=IDLE+RESERVED')
-    with pytest.raises(ValueError,match='exceeds'):launch.capacity(reserved,2*2**30,3,800)
-    with pytest.raises(ValueError,match='exceeds'):launch.capacity(nodes,32*2**30,3,800)
-    tiny=launch.capacity(nodes,2*2**30,3,1)
-    assert tiny['groups']==[dict(nodes=1,workers_per_node=1)]
+        f'NodeName=cpu-{i:04d} State=MIXED CPUTot=96 CPUAlloc=64 RealMemory=207698 AllocMem=131072'
+        for i in range(1, 12))
+    result = launch.capacity(nodes, 2*2**30, 3, 800)
+    assert result['compute_workers'] == 11*31
+    assert sum(g['nodes']*g['workers_per_node'] for g in result['groups']) == 341
+    idle = nodes.replace('CPUAlloc=64', 'CPUAlloc=0').replace('AllocMem=131072', 'AllocMem=0')
+    assert launch.capacity(idle, 2*2**30, 3, 800)['compute_workers'] == 800
+    assert launch.capacity(nodes.replace('AllocMem=131072', 'AllocMem=204800'), 2*2**30, 3, 800)['groups'] == []
+    assert launch.capacity(nodes+' ReservationName=reserved', 2*2**30, 3, 800)['compute_workers'] == 310
+    assert launch.capacity(nodes.replace('State=MIXED', 'State=IDLE+RESERVED'), 2*2**30, 3, 800)['groups'] == []
+    assert launch.capacity(idle, 2*2**30, 3, 1)['groups'] == [dict(nodes=1, workers_per_node=1)]
+
+
+def test_scaling_preserves_live_workers_and_refits_retired_capacity(tmp_path, monkeypatch):
+    plan = dict(memory_bytes=2*2**30, slurm=dict(max_worker_jobs=3, target_workers=800))
+    live = {'100': 'RUNNING'}
+    nodes = 'NodeName=cpu-0001 State=MIXED CPUTot=96 CPUAlloc=64 RealMemory=207698 AllocMem=65536'
+    monkeypatch.setattr(launch, 'scheduler_output', lambda args: '\n'.join(k+'|'+v for k,v in live.items()) if args[0]=='squeue' else nodes)
+    monkeypatch.setattr(launch, 'retired_workers', lambda full, job: None if job['job'] in live else [])
+    calls = []
+    def start(full, plan, slot, generation, group):
+        calls.append((slot, generation, group)); return dict(job=str(101+len(calls)))
+    monkeypatch.setattr(launch, 'start_workers', start)
+    jobs = [dict(job='100', generation=0, group=dict(nodes=1, workers_per_node=20))]
+    jobs = launch.scale_workers(tmp_path, plan, jobs)
+    assert calls == [(1, 0, dict(nodes=1, workers_per_node=31))]
+    assert jobs[0]['job'] == '100'
+    # Retired allocations are re-sized, not renewed with the old 20-worker shape.
+    live.clear()
+    jobs = launch.scale_workers(tmp_path, plan, jobs)
+    assert calls[-1] == (0, 1, dict(nodes=1, workers_per_node=31))
+
+
+def test_scaling_cancels_only_pending_and_waits_for_retirement(tmp_path, monkeypatch):
+    plan = dict(memory_bytes=2*2**30, slurm=dict(max_worker_jobs=3, target_workers=800))
+    calls = []
+    def output(args):
+        calls.append(args)
+        if args[0] == 'squeue': return '100|PENDING'
+        if args[0] == 'scontrol': return 'NodeName=cpu-0001 State=MIXED CPUTot=96 CPUAlloc=64 RealMemory=207698 AllocMem=65536'
+        return ''
+    monkeypatch.setattr(launch, 'scheduler_output', output)
+    monkeypatch.setattr(launch, 'retired_workers', lambda *a: None)
+    monkeypatch.setattr(launch, 'start_workers', lambda *a: pytest.fail('Must confirm retirement before replacement'))
+    jobs = [dict(job='100', generation=0, group=dict(nodes=3, workers_per_node=89))]
+    launch.scale_workers(tmp_path, plan, jobs)
+    assert ['scancel', '--state=PENDING', '100'] in calls
+    assert jobs[0]['cancel_pending']
+
+
+def test_scaling_counts_existing_workers_against_ceiling(tmp_path, monkeypatch):
+    plan = dict(memory_bytes=2*2**30, slurm=dict(max_worker_jobs=3, target_workers=800))
+    monkeypatch.setattr(launch, 'retired_workers', lambda *a: None)
+    monkeypatch.setattr(launch, 'scheduler_output', lambda args: '100|RUNNING' if args[0]=='squeue' else 'NodeName=cpu-0001 State=IDLE CPUTot=96 CPUAlloc=0 RealMemory=207698 AllocMem=0')
+    seen=[]
+    def start(full, plan, slot, generation, group):
+        seen.append(group);return dict(job='101')
+    monkeypatch.setattr(launch, 'start_workers', start)
+    launch.scale_workers(tmp_path, plan, [dict(job='100', generation=0, group=dict(nodes=8, workers_per_node=99))])
+    assert seen == [dict(nodes=1, workers_per_node=8)]
 
 
 def test_worker_renewal_requires_clean_exit_and_every_node_receipt(tmp_path, monkeypatch):
