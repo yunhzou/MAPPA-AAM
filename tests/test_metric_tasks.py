@@ -2,7 +2,7 @@ from dataclasses import replace
 import pytest
 from mappa.mappa_core.core.scheduler import TaskQueue
 from rebenchmark.decoder_inventory import Inventory
-from rebenchmark.metrics_campaign import case_tasks,prepare
+from rebenchmark.metric_tasks import case_tasks,prepare
 from test_decoder_inventory import task
 
 
@@ -40,14 +40,14 @@ def test_fresh_grid_preserves_timeout_and_rejects_changed_task(tmp_path):
     import pickle
     from dataclasses import asdict
     from mappa.mappa_core.core.scheduler import Task, BundleWriter
-    from rebenchmark.metrics_campaign import fresh_case_tasks
+    from rebenchmark.metric_tasks import fresh_case_tasks
     writer=BundleWriter(tmp_path/'bundles',tmp_path)
     source=TaskQueue(tmp_path/'fresh.sqlite','fresh')
     directions=[]
     for direction in (0,1):
         key=f'{direction:05d}/cut/00000'
         parent=Task(key,'mappa.mappa_core.core.scheduler.search:finalize_cut',{},case=f'{direction:05d}')
-        child=Task(key+'/seed/00','rebenchmark.shared:convert_seed',{'cut':key},case=f'{direction:05d}')
+        child=Task(key+'/seed/00','rebenchmark.operations:convert_seed',{'cut':key},case=f'{direction:05d}')
         source.add([parent,child])
         resource=pickle.dumps({'blob':writer.put({'saved':True})})
         source.db.execute("UPDATE tasks SET state='complete',result=? WHERE case_name=?",(resource,f'{direction:05d}'))

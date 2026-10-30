@@ -35,7 +35,7 @@ def analyze_seed(plan, ref, graph, seed, out, number, **provenance):
 def analyze_cut(payload):
     folder, number = payload
     folder = Path(folder)
-    from .campaign import load_plan
+    from .inputs import load_plan
     from mappa.mappa_core.utils.io.checkpoints import read_raw_cut, write_graph_checkpoint
     from mappa.mappa_core.core.matching.graphs import build_graph
     from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
@@ -66,7 +66,7 @@ def analyze_cut(payload):
 
 def analyze(folder,workers):
     import multiprocessing as mp
-    from .campaign import load_plan
+    from .inputs import load_plan
     from mappa.mappa_core.core.search.planning import cut_sweep_items
     folder=Path(folder);plan=load_plan(folder)
     cuts=cut_sweep_items(plan.problem.reactant.wbo,plan.config.cut_floor)

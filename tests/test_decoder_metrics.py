@@ -101,7 +101,10 @@ def test_saved_bidirectional_membership_needs_no_search_or_conversion_rerun(tmp_
     from mappa.mappa_core.core.scheduler import BundleWriter
     from mappa.mappa_core.core.scheduler.runtime import Workspace
     from mappa.mappa_core.utils.io.records import endpoint_record
-    from rebenchmark.decoding import decode_graph
+    from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping, RefinementConfig
+    from mappa.mappa_core.utils.io.records import refined_mapping_record
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from rebenchmark.search import select_contexts
     from rebenchmark.decoder_metrics import case_membership
     problem,features,reference=prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     writer=BundleWriter(tmp_path/'saved',tmp_path)
@@ -117,8 +120,9 @@ def test_saved_bidirectional_membership_needs_no_search_or_conversion_rerun(tmp_
         parent=f'{direction:05d}/cut/00000/finalize'
         payload['search_outputs'].append(dict(key=parent,blob=asdict(writer.put(dict(graph=graph)))))
         for seed in range(2):
-            value=decode_graph(directed,graph,dict(seed=seed,slack=5,branch_limit=100,random_seed=42))
-            value.update(task_id=direction,cut=0)
+            catalogue=FinalBranchCatalogue(directed).add_graph(select_contexts(graph,[seed]))
+            value=dict(decoded=refined_mapping_record(refine_mapping(catalogue,RefinementConfig(event_slack=5))),
+                       seed=seed+1,task_id=direction,cut=0,timing={})
             from rebenchmark.check_conversion_outputs import verify_conversion
             checked=verify_conversion(directed,value,{},'test')
             assert checked['branches']==len(value['decoded']['converted_branches'])

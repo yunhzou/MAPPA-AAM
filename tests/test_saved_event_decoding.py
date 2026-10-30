@@ -80,35 +80,6 @@ def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypa
     assert value['coverage']==(2,2) and value['search_rerun'] is False
 
 
-def test_prefix_representatives_bound_later_seed_without_minimum_stage():
-    from types import SimpleNamespace
-    from rebenchmark.decoding import representative_bound
-    problem=AAMProblem(endpoint('CCC',[(0,1,1),(1,2,1)]),
-        endpoint('CCCCC',[(0,1,1),(1,2,1),(2,3,1),(3,4,1)]))
-    maps=[{0:0,1:2,2:4},{0:0,1:1,2:2},{0:0,1:2,2:4}]
-    graph=SimpleNamespace(terminals=range(3),states=[SimpleNamespace(context=i,mapping=tuple(m.items())) for i,m in enumerate(maps)])
-    rows=[]
-    bounds=[]
-    for seed,mapping in enumerate(maps):
-        cat=catalogue(problem,mapping)
-        tier=coverage(problem,cat.families[0])
-        bound=representative_bound(problem,graph,seed,tier,1)
-        bounds.append(bound)
-        result=refine_mapping(cat,RefinementConfig(max_events=bound))
-        rows.append(dict(coverage=tier,decoded=refined_mapping_record(result)))
-        merged=merge_windows(rows,slack=1)
-        direct=FinalBranchCatalogue(problem)
-        for m in maps[:seed+1]:
-            c=catalogue(problem,m)
-            offset=len(direct.families)
-            direct.families.extend(c.families)
-            for key,ids in c.branches.items():direct.branches.setdefault(key,set()).update(offset+i for i in ids)
-        expected=refine_mapping(direct,RefinementConfig(event_slack=1))
-        assert merged['complete'] and merged['minimum']==expected.observed_minimum
-        assert {r['id'] for r in merged['candidates']}=={r.id for r in expected.candidates}
-    assert bounds[2]==bounds[1]<bounds[0]
-
-
 def test_retired_solver_tasks_cannot_run_as_conversion(tmp_path):
     from rebenchmark.decoding import decode_seed
     with pytest.raises(ValueError, match='retired solver tasks'):

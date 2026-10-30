@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from rebenchmark import launch
+from rebenchmark import launch, execution
 
 
 def test_scheduler_outage_retries_same_pending_only_request(monkeypatch):
@@ -46,18 +46,20 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
     configuration = tmp_path/'config.json'
     configuration.write_text(json.dumps(dict(slurm=dict(account='test',partition='cpu',
         **{k:dict(qos='short',cpus=2,memory_gib=8,time='01:00:00') for k in ('prepare','pilot','queue','coordinator')}))))
+    from rebenchmark import inputs
+    monkeypatch.setattr(inputs, 'validate', lambda plan: None)
     result = launch.submit(tmp_path/'run',configuration)
-    assert result['production']=='104'
+    assert result['production']=='103'
     assert '--dependency=afterok:101' in commands[1]
     assert '--dependency=afterok:102' in commands[2]
-    assert '--dependency=afterok:103' in commands[3]
-    assert commands[0][-1]=='rebenchmark.shared'
+    assert 'pilot-check' in commands[0]
+    assert not any(a.startswith('--dependency') for a in commands[0])
     assert 'bash' not in commands[0]
     assert any(a.endswith('/run_conversion.sbatch') for a in commands[0])
-    assert commands[1][-1]=='rebenchmark.launch'
-    assert all((tmp_path/'run'/f'{stage}-launch.json').exists() for stage in ('prepare','pilot','queue','production'))
+    assert 'prepare-queue' in commands[1]
+    assert all((tmp_path/'run'/f'{stage}-launch.json').exists() for stage in ('pilot','queue','production'))
     with pytest.raises(FileExistsError):launch.submit(tmp_path/'run',configuration)
-    assert len(commands)==4
+    assert len(commands)==3
 
 
 def test_capacity_requests_target_even_when_nodes_are_busy():
@@ -96,7 +98,8 @@ def test_worker_renewal_requires_clean_exit_and_every_node_receipt(tmp_path, mon
 def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeypatch):
     import csv,gzip
     from mappa import AAMSearchConfig
-    from rebenchmark.shared import prepare_campaign,prepare_queue
+    from rebenchmark.inputs import prepare_campaign
+    from rebenchmark.execution import prepare_queue
     monkeypatch.setenv('TMPDIR',str(tmp_path))
     dataset=tmp_path/'dataset.csv.gz'
     with gzip.open(dataset,'wt') as stream:
@@ -113,6 +116,12 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
         pilot_cases=[0],pilot_workers=2)
     (tmp_path/'plan.json').write_text(json.dumps(plan))
     prepare_campaign(tmp_path)
+    plan.update(index=str(tmp_path/'index.json'),index_sha256=launch.sha(tmp_path/'index.json'))
+    launch.save(tmp_path/'plan.json',plan)
+    from rebenchmark.inputs import validate
+    validate(plan)
+    with pytest.raises(ValueError,match='settings'):
+        validate(dict(plan,slack=6))
     launch.pilot_check(tmp_path)
     check=launch.read(tmp_path/'pilot/check.json')
     assert check['verified'] and check['event_outputs']==check['reference_outputs']==2
@@ -120,16 +129,34 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     queue=prepare_queue(launch.read(tmp_path/'full/plan.json'),tmp_path/'full',scratch)
     assert set(queue.snapshot())=={'complete'}
     assert queue.claim('no-repeat',2**30,queue.identity)['state']=='finished'
+    queue.backup(tmp_path/'full/queue.sqlite')
+    launch.save(tmp_path/'full/progress.json',dict(finished=True,states=queue.snapshot()))
+    from rebenchmark.report import summarize_original_events
+    report=summarize_original_events(tmp_path/'full',tmp_path/'complete-report',1)
+    assert report['unresolved_tasks']==0
+    assert report['modes']['sweep/bidirectional/seeds1']['recovered']==1
+    # Failed reference/decode rows must report unknowns without hiding their keys.
+    queue.db.execute("UPDATE tasks SET state='timeout',result=NULL WHERE key LIKE '%/verify/%'")
+    queue.db.execute("UPDATE tasks SET state='blocked',result=NULL WHERE key LIKE '%/seed/%'")
+    queue.db.commit();queue.backup(tmp_path/'full/queue.sqlite')
+    launch.save(tmp_path/'full/progress.json',dict(finished=True,states=queue.snapshot()))
     queue.close()
+    from rebenchmark.report import summarize_original_events
+    report=summarize_original_events(tmp_path/'full',tmp_path/'report',1)
+    assert report['unresolved_tasks']==4
+    assert report['modes']['sweep/bidirectional/seeds1']['unknown']==1
+    assert report['modes']['sweep/bidirectional/seeds1']['mapping_space_preserved']==0
+    assert report['counts']['verify_seed']==2 and report['counts']['convert_seed']==2
 
 
 def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_path,monkeypatch):
     from mappa.mappa_core.core.scheduler import Task,TaskQueue
-    from rebenchmark import decoder_campaign
+    from rebenchmark import execution
     import mappa.mappa_core.core.scheduler.queue as queue_module
     clock=[100.]
     monkeypatch.setattr(queue_module.time,'time',lambda:clock[0])
-    monkeypatch.setattr(decoder_campaign.time,'sleep',lambda seconds:None)
+    monkeypatch.setattr(execution.time,'sleep',lambda seconds:None)
+    monkeypatch.setattr(execution.socket,'gethostname',lambda:'127.0.0.1')
     monkeypatch.setenv('SLURM_JOB_ID','100')
     full=tmp_path/'full';full.mkdir()
     queue=TaskQueue(tmp_path/'live.sqlite','handoff')
@@ -139,7 +166,7 @@ def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_pa
     queue.finish('done',claim['token'],'complete',{'value':42})
     before={table:list(queue.db.execute('SELECT * FROM '+table)) for table in ('tasks','attempts','cases')}
     launch.save(full/'retire.json',{'workers':[]})
-    decoder_campaign.serve_queue(queue,full,{},retire_file=full/'retire.json')
+    execution.serve_queue(queue,full,{},retire_file=full/'retire.json')
     queue.close()
     assert launch.read(full/'progress.json')['finished'] is False
     plan=dict(identity='handoff',index_sha256='index',campaign_root=str(tmp_path),generation=0,
@@ -155,7 +182,7 @@ def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_pa
     continued=launch.read(following/'plan.json')
     assert continued['identity']==plan['identity'] and 'claim_until' not in continued
     scratch=tmp_path/'scratch';scratch.mkdir()
-    restored=launch.restore_queue(continued,following,scratch)
+    restored=execution.restore_queue(continued,following,scratch)
     assert before=={table:list(restored.db.execute('SELECT * FROM '+table)) for table in before}
     clock[0]=1000.
     claim=restored.claim('new',2**30,'handoff')
@@ -175,15 +202,15 @@ def test_checkpoint_rejects_active_owners_and_changed_bytes(tmp_path):
     queue.claim('active',2**30,'handoff')
     queue.backup(tmp_path/'snapshot.sqlite');queue.close()
     receipt=dict(identity='handoff',index_sha256='index',queue=str(tmp_path/'snapshot.sqlite'),
-                 queue_sha256=launch.file_hash(tmp_path/'snapshot.sqlite'),states={'running':1})
+                 queue_sha256=launch.sha(tmp_path/'snapshot.sqlite'),states={'running':1})
     launch.save(tmp_path/'handoff.json',receipt)
     plan=dict(identity='handoff',index_sha256='index',resume_receipt=str(tmp_path/'handoff.json'))
     scratch=tmp_path/'scratch';scratch.mkdir()
-    with pytest.raises(ValueError,match='active owners'):launch.restore_queue(plan,tmp_path,scratch)
+    with pytest.raises(ValueError,match='active owners'):execution.restore_queue(plan,tmp_path,scratch)
     receipt['states']={'pending':1};launch.save(tmp_path/'handoff.json',receipt)
-    with pytest.raises(ValueError,match='not retired'):launch.restore_queue(plan,tmp_path,scratch)
+    with pytest.raises(ValueError,match='not retired'):execution.restore_queue(plan,tmp_path,scratch)
     receipt['queue_sha256']='changed';launch.save(tmp_path/'handoff.json',receipt)
-    with pytest.raises(ValueError,match='hash differs'):launch.restore_queue(plan,tmp_path,scratch)
+    with pytest.raises(ValueError,match='hash differs'):execution.restore_queue(plan,tmp_path,scratch)
 
 
 def test_pending_cancellation_needs_no_worker_receipt_but_started_cancellation_fails(tmp_path,monkeypatch):
@@ -200,7 +227,7 @@ def test_pending_cancellation_needs_no_worker_receipt_but_started_cancellation_f
 
 def test_queue_preparation_publishes_restorable_snapshot_before_coordinator(tmp_path,monkeypatch):
     from mappa.mappa_core.core.scheduler import Task,TaskQueue
-    from rebenchmark import shared
+    from rebenchmark import execution
     monkeypatch.setenv('TMPDIR',str(tmp_path))
     plan=dict(identity='fresh',index_sha256='index')
     launch.save(tmp_path/'plan.json',plan)
@@ -209,13 +236,13 @@ def test_queue_preparation_publishes_restorable_snapshot_before_coordinator(tmp_
         queue.add([Task('a','execution_helpers:value',{})])
         return queue
     from pathlib import Path
-    monkeypatch.setattr(shared,'prepare_queue',prepared)
-    launch.prepare_full_queue(tmp_path)
+    monkeypatch.setattr(execution,'prepare_queue',prepared)
+    execution.prepare_full_queue(tmp_path)
     receipt=launch.read(tmp_path/'prepared-queue.json')
     assert receipt['states']=={'pending':1}
-    assert receipt['queue_sha256']==launch.file_hash(tmp_path/'queue.sqlite')
+    assert receipt['queue_sha256']==launch.sha(tmp_path/'queue.sqlite')
     scratch=tmp_path/'restore';scratch.mkdir()
-    restored=launch.restore_queue(launch.read(tmp_path/'plan.json'),tmp_path,scratch)
+    restored=execution.restore_queue(launch.read(tmp_path/'plan.json'),tmp_path,scratch)
     assert restored.snapshot()=={'pending':1}
     assert restored.db.execute('SELECT count(*) FROM attempts').fetchone()[0]==0
     restored.close()
@@ -244,7 +271,7 @@ def test_status_separates_requested_from_running_workers_and_reports_failures(tm
 
 
 def test_failed_service_retains_local_queue_and_reports_location(tmp_path,monkeypatch):
-    from rebenchmark import decoder_campaign
+    from rebenchmark import execution
     from pathlib import Path
     monkeypatch.setenv('TMPDIR',str(tmp_path))
     launch.save(tmp_path/'plan.json',dict(identity='fresh'))
@@ -252,11 +279,112 @@ def test_failed_service_retains_local_queue_and_reports_location(tmp_path,monkey
     def restored(plan,full,scratch):
         (scratch/'queue.sqlite').write_bytes(b'preserve failed queue')
         return SimpleNamespace(close=lambda:closed.append(True))
-    monkeypatch.setattr(launch,'restore_queue',restored)
+    monkeypatch.setattr(execution,'restore_queue',restored)
     def failed(*args,**kwargs):raise RuntimeError('transport failed')
-    monkeypatch.setattr(decoder_campaign,'serve_queue',failed)
+    monkeypatch.setattr(execution,'serve_queue',failed)
     monkeypatch.setattr(launch.signal,'signal',lambda *args:None)
-    with pytest.raises(RuntimeError,match='transport failed'):launch.service(tmp_path)
+    with pytest.raises(RuntimeError,match='transport failed'):execution.service(tmp_path)
     receipt=launch.read(tmp_path/'retained-scratch.json')
     assert (Path(receipt['path'])/'queue.sqlite').read_bytes()==b'preserve failed queue'
     assert closed==[True]
+
+
+@pytest.mark.parametrize('states,kind', [({'complete':2},'report'),
+    ({'complete':1,'timeout':1,'error':1,'blocked':1},'report'),
+    ({'complete':1,'memory_limit':1},'memory')])
+def test_terminal_routing_and_memory_stage_reports_once(tmp_path,monkeypatch,states,kind):
+    monkeypatch.setenv('SLURM_JOB_ID','100')
+    full=tmp_path/'full';full.mkdir()
+    resource=dict(qos='short',cpus=2,memory_gib=8,time='01:00:00')
+    plan=dict(campaign_root=str(tmp_path),identity='test',generation=0,commit='source',python='python',
+        memory_bytes=2**30,retry_memory_bytes=8*2**30,retry_workers=1,
+        slurm=dict(memory_stage=resource,report=resource))
+    submitted=[]
+    monkeypatch.setattr(launch,'submit_job',lambda *a,**k:submitted.append((a,k)) or dict(job='101'))
+    launch.complete_stage(full,plan,dict(states=states,finished=True))
+    assert submitted[0][0][1]==('memory-stage' if kind=='memory' else 'report')
+    assert submitted[0][1]['dependency']=='afterok:100'
+    if kind=='memory':
+        stage=tmp_path/'memory-stage';retry=launch.read(stage/'plan.json')
+        assert retry['previous_stage']==str(full) and retry['memory_stage']
+        launch.complete_stage(stage,retry,dict(states={'complete':1,'memory_limit':1},finished=True))
+        assert submitted[-1][0][1]=='report'  # No repeated escalation loop.
+    assert launch.read(tmp_path/'terminal.json')['unresolved']==sum(n for k,n in states.items() if k!='complete')
+
+
+def test_stage_completion_rejects_live_owners(tmp_path):
+    with pytest.raises(ValueError,match='owners'):
+        launch.complete_stage(tmp_path,{},dict(states={'running':1},finished=False))
+
+
+def test_input_submission_is_separate_from_run(tmp_path,monkeypatch):
+    plan=dict(commit='source',python='python',slurm=dict(prepare=dict(qos='short',cpus=2,memory_gib=8,time='01:00:00')))
+    monkeypatch.setattr(launch,'initialize',lambda *args:plan)
+    submitted=[]
+    monkeypatch.setattr(launch,'submit_job',lambda *a,**k:submitted.append((a,k)) or {'job':'100'})
+    launch.prepare_inputs(tmp_path,tmp_path/'config.json')
+    assert len(submitted)==1 and submitted[0][0][1]=='prepare'
+    assert launch.read(tmp_path/'submission.json')['kind']=='inputs'
+
+
+def test_disk_timing_distributions_match_numpy(tmp_path):
+    from rebenchmark.timings import DiskSamples,distribution
+    samples=DiskSamples(tmp_path/'samples')
+    values=[0.,2.,7.,4.,18.,3.]
+    for value in values:samples.add('decode','cpu_seconds',value)
+    assert samples.summarize()['decode']['cpu_seconds']==distribution(values)
+
+
+def test_saved_report_rejects_missing_keys_and_changed_specifications(tmp_path):
+    from dataclasses import asdict,replace
+    from mappa.mappa_core.core.scheduler import Task,TaskQueue,BundleWriter
+    from rebenchmark.report import _event_direction_report
+    queue=TaskQueue(tmp_path/'queue.sqlite','test')
+    task=Task('00000/cut/00000/verify/00','rebenchmark.operations:verify_seed',{'seed':0},case='00000')
+    writer=BundleWriter(tmp_path/'bundles',tmp_path)
+    direction=dict(direction=0,case=0,blob=asdict(writer.put([task])),reversed=False)
+    queue.backup(tmp_path/'snapshot.sqlite')
+    with pytest.raises(ValueError,match='grid'):
+        _event_direction_report((str(tmp_path/'snapshot.sqlite'),direction,str(tmp_path)))
+    queue.add([replace(task,payload={'seed':1})]);queue.backup(tmp_path/'snapshot.sqlite')
+    with pytest.raises(ValueError,match='specification'):
+        _event_direction_report((str(tmp_path/'snapshot.sqlite'),direction,str(tmp_path)))
+    queue.close()
+
+
+def test_local_resource_stage_publishes_final_checkpoint(tmp_path,monkeypatch):
+    from mappa.mappa_core.core.scheduler import Task,TaskQueue
+    import time
+    queue=TaskQueue(tmp_path/'live.sqlite','local')
+    queue.add([Task('value','execution_helpers:value',{})])
+    plan=dict(identity='local',memory_bytes=2**30,claim_until=time.time()+60)
+    progress=execution.run_local(queue,tmp_path,plan,1,tmp_path)
+    assert progress['finished'] and progress['states']=={'complete':1}
+    assert launch.read(tmp_path/'runtime.json')['queue']==str(queue.path)
+    assert (tmp_path/'queue.sqlite').exists()
+    queue.close()
+
+
+def test_controller_routes_terminal_queue_to_reporting(tmp_path,monkeypatch):
+    from datetime import datetime,timedelta
+    monkeypatch.setenv('SLURM_JOB_ID','100')
+    full=tmp_path/'full';full.mkdir()
+    resource=dict(qos='short',cpus=2,memory_gib=8,time='01:00:00')
+    plan=dict(campaign_root=str(tmp_path),identity='test',generation=0,commit='source',python='python',
+              case_seconds=60,slurm=dict(checkpoint_seconds=30,report=resource))
+    launch.save(full/'plan.json',plan)
+    launch.save(full/'endpoint.json',{})
+    launch.save(full/'progress.json',dict(finished=True,states={'complete':2,'timeout':1}))
+    class Process:
+        pid=123
+        code=None
+        def poll(self):return self.code
+        def wait(self):self.code=0;return 0
+    monkeypatch.setattr(launch.subprocess,'Popen',lambda *a,**k:Process())
+    monkeypatch.setattr(launch.signal,'signal',lambda *a:None)
+    monkeypatch.setattr(launch,'scheduler_output',lambda args:'EndTime='+(datetime.now()+timedelta(hours=2)).isoformat())
+    submitted=[]
+    monkeypatch.setattr(launch,'submit_job',lambda *a,**k:submitted.append((a,k)) or {'job':'101'})
+    launch.control(full)
+    assert len(submitted)==1 and submitted[0][0][1]=='report'
+    assert launch.read(tmp_path/'terminal.json')['unresolved']==1

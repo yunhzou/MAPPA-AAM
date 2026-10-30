@@ -171,7 +171,7 @@ def test_larger_memory_stage_retries_only_authorized_limits(tmp_path):
 
 def test_memory_stage_reuses_completed_outputs_and_refuses_live_source(tmp_path):
     import json
-    from rebenchmark.shared import prepare_memory_stage
+    from rebenchmark.execution import prepare_memory_stage
     source, output, scratch = (tmp_path/name for name in ('first', 'second', 'scratch'))
     for folder in (source, output, scratch):
         folder.mkdir()
@@ -340,7 +340,7 @@ def test_abrupt_exit_keeps_other_work_moving(tmp_path):
 def test_parallel_reference_evaluation_equals_existing_evaluator(tmp_path):
     from golden_evaluation import prepare
     from mappa import AAMSearchPlan
-    from rebenchmark.shared import plan_direction
+    from rebenchmark.operations import plan_direction
     from rebenchmark.analysis import analyze_seed
     import json
     case, features, mapping = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
@@ -552,7 +552,8 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     import hashlib
     import json
     from golden_evaluation import prepare
-    from rebenchmark.shared import conversion_tasks, prepare_queue
+    from rebenchmark.operations import conversion_tasks
+    from rebenchmark.execution import prepare_queue
     from rebenchmark.decoding import decode_graph
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
@@ -630,7 +631,7 @@ def test_dependency_refresh_skips_successful_parents(tmp_path):
 def test_enzyme_planner_keeps_input_independent_and_checks_both_directions(tmp_path, monkeypatch):
     from dataclasses import asdict
     from golden_evaluation import prepare
-    from rebenchmark.shared import _initialize_planner, _prepare_record
+    from rebenchmark.inputs import _initialize_planner, _prepare_record
     from mappa.mappa_core.core.scheduler import Blob
     import numpy as np
     monkeypatch.setenv('TMPDIR',str(tmp_path))
@@ -660,7 +661,7 @@ def test_enzyme_planner_keeps_input_independent_and_checks_both_directions(tmp_p
 
 def test_enzyme_preparation_freezes_complete_grid_in_worker_bundles(tmp_path, monkeypatch):
     import csv, gzip, hashlib, json
-    from rebenchmark.shared import prepare_campaign
+    from rebenchmark.inputs import prepare_campaign
     monkeypatch.setenv('TMPDIR',str(tmp_path))
     dataset = tmp_path/'dataset.csv.gz'
     with gzip.open(dataset,'wt') as stream:
@@ -685,13 +686,13 @@ def test_enzyme_preparation_freezes_complete_grid_in_worker_bundles(tmp_path, mo
 def test_repeat_stage_reuses_exact_parents_and_keeps_source_immutable(tmp_path):
     import hashlib, json
     from dataclasses import asdict
-    from rebenchmark.shared import prepare_repeat_queue
+    from rebenchmark.execution import prepare_repeat_queue
     prior_path = tmp_path/'prior'; prior_path.mkdir()
     output = tmp_path/'repeat'; output.mkdir()
     scratch = tmp_path/'scratch'; scratch.mkdir()
     parent = task('00000/cut/00000/final', case='00000')
     child = replace(task('00000/cut/00000/seed/00', case='00000', dependencies=(parent.key,)),
-                    operation='rebenchmark.shared:convert_seed')
+                    operation='rebenchmark.operations:convert_seed')
     writer = BundleWriter(tmp_path/'bundles', scratch)
     blob = writer.put([parent, child])
     index = tmp_path/'index.json'

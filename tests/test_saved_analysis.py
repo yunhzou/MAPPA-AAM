@@ -14,7 +14,7 @@ from golden_evaluation import prepare
 from rebenchmark.evidence import save, publish, read
 from rebenchmark.saved_analysis import plan_missing, read_member, evaluate
 from rebenchmark.analysis import analyze_seed
-from rebenchmark.campaign import load_plan
+from rebenchmark.inputs import load_plan
 
 
 @pytest.mark.parametrize('reverse', [False, True])

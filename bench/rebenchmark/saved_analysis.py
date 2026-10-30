@@ -3,20 +3,14 @@
 The shared executor handles CPU placement and the directional wall budget.
 Archive byte ranges avoid copying old solver logs or extracting shared trees.
 """
-import argparse
-from dataclasses import asdict
 import hashlib
 import json
-import os
 from pathlib import Path
-import secrets
-import socket
 import tarfile
 import tempfile
-import time
 
-from mappa.mappa_core.core.scheduler import Task, TaskQueue, coordinator, connect, run, read_blob
-from .evidence import read, save
+from mappa.mappa_core.core.scheduler import Task
+from .evidence import read
 
 
 def read_member(member):
@@ -61,7 +55,7 @@ def plan_missing(archive, task_id, *, seconds=3600, memory_bytes=4*2**30):
 
 
 def prepare_cut(payload, workspace):
-    from .campaign import load_plan
+    from .inputs import load_plan
     from mappa.mappa_core.utils.io.checkpoints import read_graph_checkpoint, read_raw_cut, write_graph_checkpoint
     def prepare():
         with tempfile.TemporaryDirectory(dir=workspace.scratch) as td:
@@ -110,72 +104,3 @@ def evaluate(payload, workspace):
             summary=summary, evidence=workspace.writer.put_file(archive),
             source=payload['source'], raw=payload['raw'], graph=payload['graph'],
             finalized=finalized, search_rerun=False)
-
-
-def execute(args):
-    output = args.output
-    specification = read(output/'plan.json')
-    memory = specification['memory_bytes']
-    identity = specification['identity']
-    if args.mode == 'worker':
-        endpoint = read(output/'endpoint.json')
-        queue = connect((endpoint['host'], endpoint['port']), (output/'worker.key').read_bytes())
-        run(queue, workers=args.workers, identity=identity, scratch=os.environ['TMPDIR'],
-            bundles=output/'bundles', memory_bytes=memory)
-        return
-    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        queue = TaskQueue(Path(scratch)/'queue.sqlite', identity)
-        tasks = []
-        for row in specification['archives']:
-            tasks.extend(plan_missing(row['path'], row['task'],
-                seconds=specification['case_seconds'], memory_bytes=memory))
-        if specification.get('selected_keys') is not None:
-            selected = set(specification['selected_keys'])
-            tasks = [task for task in tasks if task.key in selected]
-            assert {task.key for task in tasks} == selected
-        queue.add(tasks)
-        save(output/'tasks.json', [asdict(task) for task in tasks])
-        secret = secrets.token_bytes(32)
-        with (output/'worker.key').open('xb') as stream:
-            os.chmod(output/'worker.key', 0o600)
-            stream.write(secret)
-        with coordinator(queue, (socket.gethostname(), 0), secret) as address:
-            save(output/'endpoint.json', dict(host=address[0], port=address[1], tasks=len(tasks)))
-            # This process owns the queue; separate allocations execute tasks.
-            last_backup = 0.
-            while any(n for state, n in queue.snapshot().items() if state in ('running', 'pending')):
-                if time.monotonic()-last_backup >= 60:
-                    queue.backup(output/'queue.sqlite')
-                    last_backup = time.monotonic()
-                save(output/'progress.json', dict(states=queue.snapshot(), utc=time.time()))
-                time.sleep(10)
-            queue.backup(output/'queue.sqlite')
-            rows = queue.results()
-            merged = {}
-            for key, row in rows.items():
-                record = dict(state=row['state'], resource=row['result'])
-                if row['state'] == 'complete':
-                    value = read_blob(row['result']['blob'], scratch)
-                    record['evaluation'] = value['evaluation']
-                    record['classes'] = value['classes']
-                    record['evidence'] = asdict(value['evidence'])
-                    record['source'] = value['source']
-                    record['raw'] = value['raw']
-                    record['graph'] = value['graph']
-                    record['finalized'] = asdict(value['finalized']) if value['finalized'] else None
-                if record['resource'] and 'blob' in record['resource']:
-                    record['resource'] = dict(record['resource'], blob=asdict(record['resource']['blob']))
-                merged[key] = record
-            save(output/'results.json', merged)
-            save(output/'progress.json', dict(states=queue.snapshot(), utc=time.time(), finished=True))
-            # Let remote workers receive the terminal queue state before closing.
-            time.sleep(5)
-        queue.close()
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('coordinator', 'worker'))
-    parser.add_argument('output', type=Path)
-    parser.add_argument('--workers', type=int, default=1)
-    execute(parser.parse_args())

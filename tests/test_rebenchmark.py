@@ -61,35 +61,6 @@ def test_logged_resume_searches_only_missing_cut(tmp_path,monkeypatch):
     assert {p.name:read_raw_cut(p) for p in result.cut_paths}==expected
 
 
-def test_worker_continuation_preserves_inputs_and_prior_budget(tmp_path,monkeypatch):
-    from types import SimpleNamespace
-    from rebenchmark import campaign
-    run=tmp_path/'run';seed=tmp_path/'seed'
-    task=dict(index=0,direction='R_to_P',config={})
-    for name in ('input.json','reference.json','source.json'):
-        save(run/'inputs/0'/name,{})
-        save(seed/name,{})
-    save(seed/'task.json',task);save(seed/'cuts/manifest.json',{})
-    save(seed/'cuts/saved.json',{'unchanged':True})
-    receipt=publish(seed,tmp_path/'seed.tar')
-    budgets=[]
-    monkeypatch.setattr(campaign,'CASE_SECONDS',10)
-    monkeypatch.setattr(campaign.time,'perf_counter',lambda:100.0)
-    def stage(command,folder,name,seconds,memory):
-        assert read(folder/'cuts/saved.json')=={'unchanged':True}
-        budgets.append(seconds)
-        return dict(status='complete')
-    monkeypatch.setattr(campaign,'guarded',stage)
-    manifest=dict(tasks=[task],workers=1,stage_seconds=dict(search=100,analysis=100),
-        memory_mib=100,resume_archives={'0':dict(path=receipt['path'],sha256=receipt['sha256'],charged_seconds=3)})
-    campaign.worker(SimpleNamespace(run=run,task=0),manifest)
-    assert budgets==[7,7]
-    state=read(run/'progress/00000.json')
-    assert state['complete'] and state['prior_charged_seconds']==3
-    restore(run/'archives/00000.tar',tmp_path/'restored')
-    assert read(tmp_path/'restored/continuation.json')['sha256']==receipt['sha256']
-
-
 @pytest.mark.parametrize('reverse',[False,True])
 def test_full_analysis_keeps_seed_evidence(tmp_path,reverse):
     from rebenchmark.analysis import analyze
@@ -125,33 +96,6 @@ def test_report_missing_seed_remains_unknown(tmp_path):
     assert result['modes']['bidirectional/seeds1']['not_recovered']==1
     assert result['modes']['bidirectional/seeds2']['unknown']==1
     assert result['modes']['bidirectional/seeds2']['ranking_complete']==0
-
-
-def test_case_deadline_spans_stages_and_preserves_evidence(tmp_path,monkeypatch):
-    from types import SimpleNamespace
-    from rebenchmark import campaign
-    run=tmp_path/'run'
-    for name in ('input.json','reference.json','source.json'):
-        save(run/'inputs/0'/name,{})
-    clock=[100.0];budgets=[]
-    monkeypatch.setattr(campaign,'CASE_SECONDS',10)
-    monkeypatch.setattr(campaign.time,'perf_counter',lambda:clock[0])
-    def stage(command,folder,name,seconds,memory):
-        budgets.append(seconds)
-        save(folder/(name+'-saved.json'),dict(evidence='retained'))
-        clock[0]+=8 if name=='search' else seconds
-        return dict(status='complete' if name=='search' else 'timeout')
-    monkeypatch.setattr(campaign,'guarded',stage)
-    manifest=dict(tasks=[dict(index=0,direction='R_to_P',config={})],
-        workers=1,stage_seconds=dict(search=100,analysis=100),memory_mib=100)
-    campaign.worker(SimpleNamespace(run=run,task=0),manifest)
-    assert budgets==[10,2]
-    state=read(run/'progress/00000.json')
-    assert not state['complete'] and state['active_stage'] is None
-    assert state['stages']['analysis']['limit_scope']=='case'
-    restore(run/'archives/00000.tar',tmp_path/'restored')
-    assert read(tmp_path/'restored/search-saved.json')['evidence']=='retained'
-    assert read(tmp_path/'restored/analysis-saved.json')['evidence']=='retained'
 
 
 def test_report_uncut_complete_does_not_make_incomplete_sweep_negative(tmp_path):

@@ -29,29 +29,6 @@ def coverage(problem, family):
     return (sum(problem.reactant.elements[a] != 'H' for a, _ in family.mapping), len(family.mapping))
 
 
-def representative_bound(problem, graph, seed, tier, slack):
-    """Earlier same-tier witnesses bound this prefix without any optimization.
-
-    Every requested prefix containing this seed also contains these witnesses.
-    A larger cut union can only lower the minimum within its chosen tier.
-    """
-    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
-    index = SignedEventIndex(problem)
-    vectors, best = [], None
-    for terminal in graph.terminals:
-        state = graph.states[terminal]
-        if state.context <= seed and coverage(problem, state) == tier:
-            vectors.append(index.vector(dict(state.mapping)))
-            if len(vectors) == 32:
-                value = int(index.counts(vectors).sum(axis=1).min())
-                best = value if best is None else min(best, value)
-                vectors = []
-    if vectors:
-        value = int(index.counts(vectors).sum(axis=1).min())
-        best = value if best is None else min(best, value)
-    return None if best is None else best+slack
-
-
 def decode_seed(payload, workspace):
     if payload.get('decoder') != 'compressed_event_interpretation' or 'family_seconds' in payload:
         raise ValueError('Create current event tasks explicitly; retired solver tasks cannot be resumed here')

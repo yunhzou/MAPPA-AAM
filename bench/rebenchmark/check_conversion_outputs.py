@@ -12,10 +12,9 @@ import time
 from mappa.mappa_core.core.scheduler import read_blob
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_core.utils.bonds import bond_event_threshold
-from .campaign import load_plan
+from .inputs import load_plan
 from .saved_analysis import read_member
 from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
-
 
 
 def verify_conversion(problem, value, resource, key):
@@ -89,10 +88,10 @@ def check(queue_path, output):
                 assert value['graph'].contexts
                 search_outputs += 1
                 continue
-            if task.operation not in ('rebenchmark.decoding:decode_seed','rebenchmark.shared:convert_seed'):
+            if task.operation not in ('rebenchmark.decoding:decode_seed','rebenchmark.operations:convert_seed'):
                 raise ValueError(f'Unexpected pilot operation: {task.operation}')
             assert key == f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
-            if task.operation == 'rebenchmark.shared:convert_seed':
+            if task.operation == 'rebenchmark.operations:convert_seed':
                 from mappa.mappa_core.utils.io.records import problem_from_record
                 problem = problem_from_record(read_blob(value['input'],scratch))
                 assert value['search_rerun']

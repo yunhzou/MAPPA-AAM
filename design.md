@@ -593,68 +593,53 @@ JSON v3 records retain the original catalogue, response tables, action correlati
 manual-cut provenance and separate representative counts. They do not claim full
 pattern enumeration or a minimum across unrequested symmetry choices.
 
-### Benchmark submission ownership
+### Reusable benchmark ownership
 
-`bench/rebenchmark/launch.py` owns Slurm submission, stage dependencies, resource
-fitting and renewal of retired worker allocations. `shared.py` owns immutable
-scientific task planning and execution; the core scheduler owns task claims,
-budgets, publication and checkpoints. `run_conversion.sbatch` is the single
-allocation wrapper. Run folders contain configuration and evidence, not alternate
-launcher implementations. Dataset preparation, pilot and production are submitted
-in one command; a failed pilot blocks production automatically. Renewal never
-requeues a completed/live task. Explicit larger-memory recovery retains prior
-attempts and remaining budgets.
+Prepared inputs and execution state have separate lifetimes. `inputs.py` freezes
+hash-verified endpoint/reference data and task specifications into bounded bundles.
+A new run explicitly names a compatible index; it cannot trigger implicit dataset
+preparation. Compatibility includes search policy, seed/cut/direction scope,
+reference policy and task resource specifications. Operational worker placement
+is independent. A fresh run owns a new queue, pilot and attempt history.
+
+`operations.py` contains scientific task adapters to public MAPPA APIs.
+`execution.py` alone owns benchmark queue preparation, pilot reuse, worker entry,
+checkpoint publication and retired-queue restoration. The core scheduler remains
+the sole owner of claims, dependencies, budgets and result acceptance. Common
+atomic JSON, hashes and archives belong to `evidence.py`.
+
+`launch.py` owns Slurm dependencies, target capacity, clean handoff and stage
+completion. Every retired stage either continues pending work, performs the one
+authorized memory escalation, or reports terminal results including unresolved
+outcomes. The memory stage follows the same checkpoint and completion rules.
+`run_conversion.sbatch` is the only benchmark allocation wrapper. Run directories
+contain configuration and receipts, never alternate implementations.
 
 ```mermaid
 flowchart LR
-    Config[Saved run configuration] --> Launch[Benchmark launcher]
-    Launch --> Prep[Shared input preparation]
-    Prep --> Pilot[Small real-input pilot]
-    Pilot --> Production[Shared coordinator]
-    Launch --> Workers[Renewable Slurm workers]
-    Workers --> Production
-    Production --> Queue[Core task queue and budgets]
-    Queue --> Results[Verified bundles and report]
-    Production --> Drain[Stop claims and retire workers]
-    Drain --> Checkpoint[Hash consistent queue]
-    Checkpoint --> Successor[Next short allocation]
-    Successor --> Production
+    Dataset --> Inputs[inputs: immutable artifact]
+    Inputs --> Launch[launch: new run and stage lifecycle]
+    Launch --> Pilot[operations: real-input pilot]
+    Pilot --> Execution[execution: prepare and serve queue]
+    Launch --> Workers[execution: workers]
+    Workers --> Queue[core scheduler: claims and budgets]
+    Execution --> Queue
+    Queue --> Evidence[evidence: verified bundles and checkpoints]
+    Evidence --> Report[report and timings: bounded saved-result analysis]
+    Evidence --> Handoff[launch: clean continuation or memory stage]
+    Handoff --> Execution
 ```
 
-The benchmark wrapper puts queues, checkpoints and worker scratch on verified
-node-local disk (`/var/tmp` on NRT), not RAM-backed `/tmp`. A local checkpoint
-requires a second queue-sized file. The launcher can reuse a prepared index and
-passed pilot after confirmed pre-worker startup failure; it validates source,
-settings, index hash and retired ownership before submitting a fresh controller.
-It never treats an attempted production queue as unstarted preparation.
+Queues and scratch live on verified node-local disk, not RAM-backed `/tmp` on
+NRT. Failed owners retain their database/WAL with a location receipt. A clean
+handoff restores the same task rows, results, attempts and remaining budgets.
+Only idempotent scheduler transport operations are retried; submission is never
+blindly repeated. Target capacity uses eligible physical nodes rather than idle
+capacity. Requested, running and actually used CPUs remain separate measurements.
 
-Coordinator lifetime follows its actual Slurm allocation. The launcher reserves
-time for active computations, publication and a final disk checkpoint. Only after
-worker retirement may it hand the same queue to an `afterok` successor. Queue
-identity, accepted results, attempts and charged budgets survive unchanged. This
-lifecycle belongs to the benchmark launcher, not chemistry or task planning.
-
-The launcher sizes worker allocations from the explicit throughput target and
-physical node limits. Current occupancy affects admission, not the requested
-capacity or renewal size. With 96-CPU/202GiB nodes and 2GiB guards, a target of
-800 produces three independently scheduled groups of three nodes ×89 workers
-(801 compute processes). This resource change never modifies scientific tasks.
-
-
-### Fresh cluster benchmark lifecycle
-
-The maintained `bench/rebenchmark/launch.py` owns submission, clean handoff and
-status collection. One pipeline runs input preparation, a real-input pilot,
-node-local queue construction, then the serving coordinator and worker groups.
-Queue construction does not consume the coordinator allocation. Workers request
-the configured compute target from eligible physical capacity, including busy
-nodes; running capacity and actual CPU use are reported separately.
-
-Failed-run result reassignment and preparation-recovery entry points are removed.
-An explicitly authorized fresh run gets its own identity and budgets; old logs
-and outputs remain immutable evidence. Normal continuation restores the same
-verified queue with attempts and remaining budgets intact. Scheduler transport
-timeouts on idempotent requests retain the service; submissions are never blindly
-retried. Failed services retain their local SQLite database and WAL. The reusable
-`status` command reads compact receipts and scheduler accounting without archive
-scans. Scientific operations stay in the existing shared pipeline.
+Reporting verifies the complete expected task grid, immutable specifications and
+accepted parent identities. Unknown, missing and resource-limited work remains
+explicit. Cases are processed in bounded batches; exact resource quantiles use
+local disk samples and concurrency uses a streamed timeline. Scientific checks
+and saved-result readers remain available; obsolete campaign executors and their
+exclusive tests are removed. No matching or decoder logic changes for this refactor.

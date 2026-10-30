@@ -103,20 +103,59 @@ def case_timing(record):
 def execution_timeline(queue_path):
     """Claim-to-accept intervals include dispatch and publication, not pure compute."""
     import sqlite3
-    import numpy as np
     db=sqlite3.connect('file:'+str(queue_path)+'?mode=ro&immutable=1',uri=True)
-    intervals=np.array(db.execute('SELECT started,finished FROM attempts WHERE finished IS NOT NULL').fetchall())
-    states=dict(db.execute('SELECT state,count(*) FROM attempts GROUP BY state'));db.close()
-    if not len(intervals):return dict(attempts=states)
-    points=np.concatenate((intervals[:,0],intervals[:,1]))
-    changes=np.concatenate((np.ones(len(intervals),dtype=int),-np.ones(len(intervals),dtype=int)))
-    order=np.argsort(points,kind='stable');points=points[order];active=np.cumsum(changes[order])
-    widths=np.diff(points);area=float(np.dot(active[:-1],widths));elapsed=float(points[-1]-points[0])
-    return dict(attempts=states,first_claim_utc=float(points[0]),last_accept_utc=float(points[-1]),
-        elapsed_seconds=elapsed,peak_claimed_tasks=int(active.max()),
-        average_claimed_tasks=area/elapsed,claimed_task_seconds=area,
-        seconds_with_claimed_work=float(widths[active[:-1]>0].sum()),
-        scope='Recorded claim-to-accept concurrency, including publication and dispatch. Recovery gaps are included in elapsed span. Not simultaneous CPU utilization.')
+    db.execute('PRAGMA temp_store=FILE')
+    states=dict(db.execute('SELECT state,count(*) FROM attempts GROUP BY state'))
+    points=db.execute("""SELECT stamp,sum(change) FROM (
+        SELECT started AS stamp,1 AS change FROM attempts WHERE finished IS NOT NULL
+        UNION ALL SELECT finished,-1 FROM attempts WHERE finished IS NOT NULL)
+        GROUP BY stamp ORDER BY stamp""")
+    first=previous=None;active=peak=0;area=occupied=0.
+    for stamp,change in points:
+        if previous is None:first=stamp
+        else:
+            width=stamp-previous;area+=active*width
+            if active:occupied+=width
+        active+=change;peak=max(peak,active);previous=stamp
+    db.close()
+    if first is None:return dict(attempts=states)
+    elapsed=previous-first
+    return dict(attempts=states,first_claim_utc=first,last_accept_utc=previous,
+        elapsed_seconds=elapsed,peak_claimed_tasks=peak,
+        average_claimed_tasks=area/elapsed if elapsed else 0.,claimed_task_seconds=area,
+        seconds_with_claimed_work=occupied,
+        scope='Recorded claim-to-accept concurrency, including publication and dispatch. Not simultaneous CPU utilization.')
+
+
+class DiskSamples:
+    """Exact timing distributions with local disk storage instead of Python lists."""
+    def __init__(self, folder):
+        self.folder=Path(folder);self.folder.mkdir()
+        self.samples={}
+
+    def add(self, phase, measure, value):
+        import math,struct
+        value=float(value)
+        if not math.isfinite(value):raise ValueError('Non-finite resource measurement')
+        key=(phase,measure)
+        if key not in self.samples:
+            path=self.folder/f'{len(self.samples)}.bin'
+            self.samples[key]=dict(stream=path.open('wb'),path=path,count=0,total=0.,maximum=value)
+        row=self.samples[key]
+        row['stream'].write(struct.pack('d',value))
+        row['count']+=1;row['total']+=value;row['maximum']=max(row['maximum'],value)
+
+    def summarize(self):
+        import numpy as np
+        result={}
+        for (phase,measure),row in self.samples.items():
+            row['stream'].close()
+            values=np.memmap(row['path'],dtype='float64',mode='r+')
+            median,p95=np.percentile(values,[50,95],overwrite_input=True)
+            result.setdefault(phase,{})[measure]=dict(count=row['count'],total=row['total'],
+                maximum=row['maximum'],median=float(median),p95=float(p95))
+            del values
+        return result
 
 
 if __name__=='__main__':

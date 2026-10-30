@@ -390,21 +390,35 @@ def _event_direction_report(arguments):
     actual={k:(s,state,r) for k,s,state,r in rows}
     if set(actual)!={t.key for t in expected}:
         raise ValueError('Expected task grid differs')
-    accepted={}; resources=[]
+    accepted={}; resources=[]; missing=[]; states=Counter()
     for task in expected:
         spec,state,raw=actual[task.key]
-        if task!=_loads_checkpoint(spec) or state!='complete':
-            raise ValueError('Task specification or completion differs: '+task.key)
+        if task!=_loads_checkpoint(spec):
+            raise ValueError('Task specification differs: '+task.key)
+        if state in ('pending','running'):
+            raise ValueError('Task still has live work: '+task.key)
+        states[state]+=1
+        if state!='complete':
+            missing.append(dict(key=task.key,state=state,operation=task.operation.rsplit(':',1)[1]))
+            continue
         result=_loads_checkpoint(raw);accepted[task.key]=result
         resources.append(dict(key=task.key,operation=task.operation.rsplit(':',1)[1],
             **{k:result[k] for k in ('cpu_seconds','compute_seconds','publish_seconds',
                                     'publish_cpu_seconds','peak_tree_rss_bytes')}))
     selected={}
     for task in expected:
-        if task.operation.rsplit(':',1)[1] in ('verify_seed','convert_seed'):
+        if task.key in accepted and task.operation.rsplit(':',1)[1] in ('verify_seed','convert_seed'):
             blob=accepted[task.key]['blob'];selected[blob.path,blob.offset]=(task,blob)
     ordered=sorted(selected)
     references=[];events=[]
+    for task in expected:
+        if task.key in accepted: continue
+        base=dict(key=task.key,cut=int(task.key.split('/')[2]),seed=task.payload.get('seed'))
+        if task.operation.endswith(':verify_seed'):
+            references.append(dict(base,reference_recovery='unknown',representative_recovery=False))
+        elif task.operation.endswith(':convert_seed'):
+            events.append(dict(base,coverage=None,mapping_space_preserved=False,incomplete_paths=['missing_output'],
+                families=0,tables=0,representative_minimum=None,minimum_categories=[],timing={}))
     for blob,value in read_blobs([selected[k][1] for k in ordered],scratch):
         task=selected[blob.path,blob.offset][0];p=task.payload
         base=dict(key=task.key,cut=int(task.key.split('/')[2]),seed=p['seed'],sha256=blob.sha256)
@@ -438,7 +452,7 @@ def _event_direction_report(arguments):
             incomplete_paths=d['incomplete_paths'],families=len(families),tables=len(d['tables']),
             representative_minimum=minimum,minimum_categories=categories,timing=value['timing']))
     return dict(case=direction['case'],direction=direction['direction'],
-                references=references,events=events,resources=resources)
+                references=references,events=events,resources=resources,missing=missing,states=dict(states))
 
 
 def summarize_original_events(run, output, workers):
@@ -451,7 +465,27 @@ def summarize_original_events(run, output, workers):
     plan=read(run/'plan.json');index_path=Path(plan['index'])
     if sha(index_path)!=plan['index_sha256'] or not read(run/'progress.json')['finished']:
         raise ValueError('Need the finished frozen campaign')
-    index=read(index_path);counts=Counter();directions={};phases=defaultdict(lambda:defaultdict(list))
+    from itertools import groupby, islice
+    from .timings import DiskSamples
+    index=read(index_path); counts=Counter(); states=Counter(); modes=defaultdict(Counter)
+    direction_count=case_count=0
+    def case_summary(case, records):
+        values={}
+        for prefix in range(1,index['config']['seed_count']+1):
+            for scope in ('uncut','sweep'):
+                for direction, reverse in (('R_to_P',False),('P_to_R',True),('bidirectional',None)):
+                    selected=[r for r in records if reverse is None or bool(r['direction']%2)==reverse]
+                    if not selected: continue
+                    refs=[r for d in selected for r in d['references']
+                          if r['seed']<prefix and (scope=='sweep' or r['cut']==0)]
+                    events=[r for d in selected for r in d['events']
+                            if r['seed']<prefix and (scope=='sweep' or r['cut']==0)]
+                    value=event_mode_summary(refs,events)
+                    name=f'{scope}/{direction}/seeds{prefix}'
+                    values[name]=value; modes[name][value['reference_recovery']]+=1
+                    modes[name]['representative_recovered']+=value['representative_recovery']
+                    modes[name]['mapping_space_preserved']+=value['mapping_space_preserved']
+        return dict(case=case,modes=values)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
         local=Path(scratch)/'queue.sqlite';shutil.copyfile(run/'queue.sqlite',local)
         digest=sha(local)
@@ -459,50 +493,56 @@ def summarize_original_events(run, output, workers):
         if db.execute('SELECT count(*) FROM tasks').fetchone()[0]!=index['tasks']:
             raise ValueError('Task denominator differs')
         db.close()
-        with gzip.open(output/'task-summary.jsonl.gz','wt') as stream, ProcessPoolExecutor(max_workers=workers) as pool:
-            arguments=((str(local),d,scratch) for d in index['directions'])
-            for record in pool.map(_event_direction_report,arguments,chunksize=1):
-                stream.write(json.dumps(record,separators=(',',':'))+'\n')
-                resources=record.pop('resources')
-                for resource in resources:
-                    op=resource['operation'];counts[op]+=1
-                    for name in ('cpu_seconds','compute_seconds','publish_cpu_seconds','publish_seconds','peak_tree_rss_bytes'):
-                        phases[op][name].append(resource[name])
-                for row in record['events']:
-                    counts['families']+=row['families'];counts['event_tables']+=row['tables']
-                    counts['incomplete_event_outputs']+=bool(row['incomplete_paths'])
-                    for name,timing in row.pop('timing').items():
-                        for measure,value in timing.items():phases['decoder_'+name][measure].append(value)
-                directions[record['direction']]=record
-                if len(directions)%100==0:
-                    save(output/'progress.json',dict(directions=len(directions),expected=len(index['directions'])))
-                    print(f"{len(directions)}/{len(index['directions'])} directions read",flush=True)
+        samples=DiskSamples(Path(scratch)/'timing')
+        # Only a bounded batch of cases and worker results is retained in memory.
+        grouped=iter(groupby(sorted(index['directions'],key=lambda d:(d['case'],d['direction'])),key=lambda d:d['case']))
+        with gzip.open(output/'task-summary.jsonl.gz','wt') as stream, \
+             (output/'cases.json').open('w') as cases, ProcessPoolExecutor(max_workers=workers) as pool:
+            cases.write('[')
+            while True:
+                batch=[(case,list(rows)) for case,rows in islice(grouped,max(1,workers))]
+                if not batch: break
+                arguments=[(str(local),d,scratch) for _,rows in batch for d in rows]
+                reports=iter(pool.map(_event_direction_report,arguments,chunksize=1))
+                for case,rows in batch:
+                    records=[]
+                    for _ in rows:
+                        record=next(reports);direction_count+=1
+                        stream.write(json.dumps(record,separators=(',',':'))+'\n')
+                        states.update(record['states'])
+                        for missing in record['missing']:
+                            counts[missing['operation']]+=1;counts['missing_'+missing['operation']]+=1
+                        for resource in record.pop('resources'):
+                            op=resource['operation'];counts[op]+=1
+                            for name in ('cpu_seconds','compute_seconds','publish_cpu_seconds','publish_seconds','peak_tree_rss_bytes'):
+                                samples.add(op,name,resource[name])
+                        for row in record['events']:
+                            counts['families']+=row['families'];counts['event_tables']+=row['tables']
+                            counts['incomplete_event_outputs']+=bool(row['incomplete_paths'])
+                            for name,timing in row.pop('timing').items():
+                                for measure,value in timing.items():samples.add('decoder_'+name,measure,value)
+                        records.append(record)
+                    value=case_summary(case,records)
+                    if case_count: cases.write(',')
+                    json.dump(value,cases,separators=(',',':'));case_count+=1
+                    key=f"sweep/bidirectional/seeds{index['config']['seed_count']}"
+                    minimum=value['modes'][key]['representative_minimum']
+                    if minimum is not None:samples.add('representatives','minimum',minimum)
+                save(output/'progress.json',dict(directions=direction_count,expected=len(index['directions'])))
+            cases.write(']\n')
+        timing=samples.summarize()
         timeline=execution_timeline(local)
     if {k:counts[k] for k in index['counts']}!=index['counts']:
         raise ValueError('Operation denominators differ')
-    cases=[];modes=defaultdict(Counter)
-    for case in sorted({d['case'] for d in index['directions']}):
-        case_modes={}
-        for scope in ('uncut','sweep'):
-            for direction,ids in (('R_to_P',[2*case]),('P_to_R',[2*case+1]),('bidirectional',[2*case,2*case+1])):
-                refs=[r for i in ids for r in directions[i]['references'] if scope=='sweep' or r['cut']==0]
-                events=[r for i in ids for r in directions[i]['events'] if scope=='sweep' or r['cut']==0]
-                value=event_mode_summary(refs,events);name=f'{scope}/{direction}'
-                case_modes[name]=value;modes[name][value['reference_recovery']]+=1
-                modes[name]['representative_recovered']+=value['representative_recovery']
-                modes[name]['mapping_space_preserved']+=value['mapping_space_preserved']
-        cases.append(dict(case=case,modes=case_modes))
-    summary=dict(schema='mappa.original_event_report/v1',cases=len(cases),config=index['config'],
-        counts=dict(counts),modes={k:dict(v) for k,v in modes.items()},
-        timing={k:{m:distribution(v) for m,v in values.items()} for k,values in phases.items()},
+    summary=dict(schema='mappa.original_event_report/v2',cases=case_count,config=index['config'],
+        counts=dict(counts),execution_states=dict(states),unresolved_tasks=sum(v for k,v in states.items() if k!='complete'),
+        modes={k:dict(v) for k,v in modes.items()},timing=timing,
         execution=timeline,queue_sha256=digest,index_sha256=plan['index_sha256'],source=plan['commit'],
-        representative_minima=distribution([r['modes']['sweep/bidirectional']['representative_minimum']
-            for r in cases if r['modes']['sweep/bidirectional']['representative_minimum'] is not None]),
-        scope='One seed, both directions, full cut sweep. Exact annotated heavy-atom relation modulo endpoint chemical symmetry. Decoder retains original compressed mappings. Minima below are over saved representatives, not exhaustive symmetry assignments.',
+        scope='Configured seed prefixes, directions and full cut sweep. Exact annotated heavy-atom relation modulo endpoint chemical symmetry. Original compressed mappings retained; missing outputs remain unknown. Minima concern saved representatives only.',
         event_category_order=['breaking','forming','strengthening','weakening'],
         global_minimum_proven=False,exhaustive_event_patterns=False)
-    save(output/'summary.json',summary);save(output/'cases.json',cases)
-    save(output/'progress.json',dict(finished=True,directions=len(directions),cases=len(cases)))
+    save(output/'summary.json',summary)
+    save(output/'progress.json',dict(finished=True,directions=direction_count,cases=case_count))
     return summary
 
 
