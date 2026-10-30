@@ -196,14 +196,14 @@ def control(root):
     # Set the claim horizon when this allocation starts, not while queued.
     plan['claim_until'] = time.time()+plan['slurm']['claim_hours']*3600
     save(full/'plan.json', plan)
-    process = subprocess.Popen(wrapper(plan, 'coordinator', full))
+    process = subprocess.Popen(wrapper(plan, 'coordinator', full), start_new_session=True)
     def terminate(signum, frame):
-        process.terminate()
+        os.killpg(process.pid, signal.SIGTERM)
         raise SystemExit(128+signum)
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
     try:
-        while not (full/'endpoint.json').exists():
+        while not ((full/'endpoint.json').exists() and (full/'progress.json').exists()):
             if process.poll() is not None: raise RuntimeError('Coordinator exited during preparation')
             time.sleep(5)
         while time.time() < plan['claim_until']:
@@ -244,10 +244,8 @@ def control(root):
                        wrapper(plan,'report',full,plan['slurm']['report']['cpus'],module='rebenchmark.launch'))
     finally:
         if process.poll() is None:
-            process.terminate()
-            try: process.wait(timeout=300)
-            except subprocess.TimeoutExpired:
-                process.kill(); process.wait()
+            os.killpg(process.pid, signal.SIGTERM)
+            process.wait()
 
 
 def report(full, workers):
