@@ -262,7 +262,13 @@ flowchart LR
 
 Internal variations and boundary responses are separate sparse tables, built
 lazily for a saved fragment partition. Each bond term refers to the original
-ordered action IDs. Endpoint-pair orbits follow those actions in saved order,
+ordered action IDs. Preparation visits source bonds above the event threshold
+and the source pairs that can reach product bonds above that threshold through
+the saved atom domains. Pairs with both weights below or equal to their threshold
+cannot contribute an event. Recorded cuts add only their own endpoint pair,
+including zero-event cuts; no all-atom-pair scan is repeated for each family.
+Product neighbors are projected through allowed images, not just the representative.
+Endpoint-pair orbits follow those actions in saved order,
 keeping correlated swaps joint. A constant-response certificate on the endpoint
 domain superset is checked first; only varying responses require pair projection.
 This certificate cannot authorize independent endpoint choices. Fixed–fixed, fixed–shuffle and shuffle–shuffle

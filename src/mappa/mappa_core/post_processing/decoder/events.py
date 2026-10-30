@@ -74,6 +74,10 @@ class SignedEventIndex:
         self.ptau = np.full(len(self.pa), self.threshold)
         if self.metal_threshold is not None:
             self.ptau[target_metal[self.pa] | target_metal[self.pb]] = self.metal_threshold
+        self.reactant_bonds = np.column_stack((self.a, self.b))[
+            self.r[self.a, self.b] > self.tau]
+        self.product_bonds = np.column_stack((self.pa, self.pb))[
+            self.p[self.pa, self.pb] > self.ptau]
         self.padded_product = np.pad(self.p, ((0, 1), (0, 1)))
         self.cache = {}
         self._actions = OrderedDict()
@@ -123,6 +127,27 @@ class SignedEventIndex:
             if len(self._orbit_tables) > 1024:
                 self._orbit_tables.popitem(last=False)
         return self._orbit_tables[action]
+
+    def neighboring_pairs(self, domains):
+        """Source bonds plus source pairs that can reach a product bond.
+
+        Nonnegative weights can differ by more than the event threshold only
+        if at least one endpoint bond exceeds it. Inverse atom domains retain
+        possible forming bonds without visiting unrelated source nonbonds.
+        Joint action constraints are still applied to each retained response.
+        """
+        pairs = {(int(a), int(b)) for a, b in self.reactant_bonds
+                 if a in domains or b in domains}
+        sources = defaultdict(set)
+        for atom, images in domains.items():
+            for image in images:
+                sources[image].add(atom)
+        for x, y in self.product_bonds:
+            for a in sources[x]:
+                for b in sources[y]:
+                    if a != b:
+                        pairs.add((min(a, b), max(a, b)))
+        return pairs
 
     def endpoint_pairs(self, pair, actions):
         """Project the ordered action program onto two endpoints, never mappings.
@@ -537,12 +562,15 @@ class FragmentEventTables:
         groups = defaultdict(list)
         self._constant = Counter()
         self.projected_pair_states = 0
-        # Source pairs cover both ordinary and manually cut boundaries. Product
-        # bonds are included even when their source weight is zero.
-        for a, b, tau in zip(index.a, index.b, index.tau):
-            if a not in mapping and b not in mapping:
-                continue
-            manual_cut = (int(a), int(b)) in self.cut_bonds
+        # Internal and boundary work follows original bond neighborhoods.
+        # A manual cut adds only its own endpoints, even for a zero-event cut.
+        pairs = index.neighboring_pairs(self.atom_domains)
+        pairs.update((a, b) for a, b in self.cut_bonds if a in mapping or b in mapping)
+        self.neighboring_pair_count = len(pairs)
+        for a, b in sorted(pairs):
+            tau = bond_event_threshold(index.elements, a, b,
+                default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+            manual_cut = (a, b) in self.cut_bonds
             response = index._domain_response(index.r[a, b], tau,
                 self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,)))
             if response.constant == 0 and not manual_cut:
@@ -582,12 +610,13 @@ class FragmentEventTables:
                              for response, terms in groups.items())
         # Product-to-unmatched boundaries depend on occupied target atoms, not
         # a fabricated correspondence between unmatched reactants and products.
-        eligible = index.p[index.pa, index.pb] > index.ptau
+        bonds = index.product_bonds
         if len(mapping) == index.m:
-            eligible[:] = False
-        reachable = set().union(*domains.values()) if domains else set()
-        eligible &= np.array([a in reachable or b in reachable for a,b in zip(index.pa,index.pb)], dtype=bool)
-        self.product_boundary_pairs = np.column_stack((index.pa[eligible], index.pb[eligible]))
+            self.product_boundary_pairs = bonds[:0]
+        else:
+            reachable = set().union(*domains.values()) if domains else set()
+            eligible = np.array([a in reachable or b in reachable for a, b in bonds], dtype=bool)
+            self.product_boundary_pairs = bonds[eligible]
         self.product_boundary_actions = tuple(range(len(family.actions)))
         self.components = self._dependency_components(family)
 
@@ -696,6 +725,7 @@ class FragmentEventTables:
     def statistics(self):
         terms = [t for rows in (*self.internal.values(), *self.boundary.values()) for t in rows]
         return dict(fragments=len(self.fragments), internal_terms=sum(map(len,self.internal.values())),
+                    neighboring_pairs=self.neighboring_pair_count,
                     boundary_terms=sum(map(len,self.boundary.values())),
                     variable_terms=sum(t.response.constant is None for t in terms),
                     constant_terms=sum(t.response.constant is not None for t in terms),

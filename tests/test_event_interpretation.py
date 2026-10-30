@@ -468,3 +468,37 @@ def test_constant_boundary_certificate_does_not_expand_pair_orbits(monkeypatch):
     assert table.statistics['projected_pair_states'] == 0
     assert table.statistics['cut_terms'] == 1
     assert result.contributions(0)['total'] == 0
+
+
+def test_preparation_visits_only_bond_neighbors_and_recorded_cut(monkeypatch):
+    n = 80
+    source_edges = [(i, i+1, 1.) for i in range(n-1)]
+    source = saved(endpoint('C'*n, source_edges),
+        endpoint('C'*n, source_edges + [(17,42,1.)]), dict(enumerate(range(n))),
+        pairs=tuple(((a,),(a,)) for a in range(n)))
+    source.families[0].provenance.append(dict(cuts=((0,79),)))
+    result = interpret_events(source)
+    original = result.index._domain_response
+    visits = []
+    def record(weight, tau, xs, ys):
+        visits.append((xs, ys))
+        return original(weight, tau, xs, ys)
+    monkeypatch.setattr(result.index, '_domain_response', record)
+    table = result.tables(0)
+    assert len(visits) == table.statistics['neighboring_pairs'] == 81
+    assert table.statistics['cut_terms'] == 1
+    assert set(table.boundary) == {(0,79),(17,42)}
+    check_contributions(result, [None])
+    assert result.contributions(0)['counts'] == dict(breaking=0, forming=1, strengthening=0, weakening=0)
+
+
+def test_product_neighbors_follow_allowed_images_not_representative_only():
+    ep = endpoint('CCCCCC', [(0,2,1.),(3,4,.5)])
+    source = saved(ep, ep, dict(enumerate(range(6))), actions=(('pool',(0,1)),),
+        pairs=(((0,1),(0,1)),((2,),(2,)),((3,4,5),(3,4,5))))
+    result = interpret_events(source)
+    table = result.tables(0)
+    assert table.statistics['neighboring_pairs'] == 2
+    assert {term.atoms for terms in table.boundary.values() for term in terms} == {(0,2),(1,2)}
+    check_contributions(result, [[None],[(1,0)]])
+    assert result.contributions(0, [(1,0)])['counts'] == dict(breaking=1, forming=1, strengthening=0, weakening=0)

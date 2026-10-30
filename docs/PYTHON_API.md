@@ -253,3 +253,9 @@ related fragments together. Constant responses are counted once. Original
 sweep cuts are recorded even when no bond event occurs; fragment separation
 alone never creates an event. All four event categories use the original R/P
 bond weights and the existing ordinary/metal thresholds.
+
+Preparation follows source/product bond neighborhoods, including product bonds
+reachable through allowed choices. Manual cuts add their own endpoint pair;
+unrelated source nonbonds are not visited. `tables.statistics['neighboring_pairs']`
+reports the number of pairs examined. This preserves internal variations and
+possible forming bonds without repeating an all-atom-pair scan per family.
