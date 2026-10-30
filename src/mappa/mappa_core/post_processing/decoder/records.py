@@ -143,6 +143,9 @@ class BondEventTerm:
     atoms: tuple[int, int]
     action_ids: tuple[int, ...]
     response: BondEventResponse
+    target_pairs: tuple[tuple[int, int], ...]
+    endpoint_case: str
+    manual_cut: bool
 
 
 @dataclass
@@ -174,10 +177,12 @@ class EventInterpretation:
         from .events import FragmentEventTables
         family = self.catalogue.families[family_id]
         fragments = self.fragment_partitions[family_id][partition]
-        key = family.mapping, family.actions, fragments
+        cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
+                                  for pair in origin.get('cuts', ())}))
+        key = family.mapping, family.actions, fragments, cut_bonds
         if key not in self._tables:
             self._tables[key] = FragmentEventTables(self.index,
-                family, fragments)
+                family, fragments, cut_bonds)
         return self._tables[key]
 
     def contributions(self, family_id, choices=None, *, partition=0, include_events=False):

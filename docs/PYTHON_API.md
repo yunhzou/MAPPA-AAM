@@ -237,3 +237,19 @@ Tables never select independent per-bond minima or claim a global optimum.
 
 `convert_fragments` and `decode_events` retain their existing hierarchical
 rematching behavior. They do not replace this lossless interpretation.
+
+## Local event contributions and sweep cuts
+
+`interpret_events(aam).tables(family_id)` exposes internal and boundary bond
+terms. Each term retains `target_pairs`, original `action_ids`, `endpoint_case`
+(`fixed_fixed`, `fixed_shuffle`, or `shuffle_shuffle`) and `manual_cut` provenance.
+Pair projection preserves correlated moves and saved action order without
+expanding full permutations. A projected pair alone is not permission to combine
+it with another term; use `contributions` or `counts` with a joint saved choice.
+
+`tables.components` contains `(fragment_ids, action_ids)` contribution groups.
+Shared choices, required-edge constraints and partial target occupancy keep
+related fragments together. Constant responses are counted once. Original
+sweep cuts are recorded even when no bond event occurs; fragment separation
+alone never creates an event. All four event categories use the original R/P
+bond weights and the existing ordinary/metal thresholds.

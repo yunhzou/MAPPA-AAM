@@ -231,7 +231,8 @@ class FinalBranchCatalogue:
             family_id = self._family_ids[key]
             branch.add(family_id)
             self.families[family_id].provenance.append(
-                dict(archive=str(archive), terminal=path.terminal, transitions=path.transitions))
+                dict(archive=str(archive), terminal=path.terminal, transitions=path.transitions,
+                     cuts=context.cuts))
         return self
 
     def rebuild_symmetry(self, policy, pair):

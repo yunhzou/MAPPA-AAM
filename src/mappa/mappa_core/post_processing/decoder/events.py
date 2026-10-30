@@ -79,7 +79,7 @@ class SignedEventIndex:
         self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
         self._event_tables = OrderedDict()
-        self._domain_weights = OrderedDict()
+        self._endpoint_pairs = OrderedDict()
         self._response_values = OrderedDict()
         self._orbit_tables = OrderedDict()
 
@@ -123,29 +123,56 @@ class SignedEventIndex:
                 self._orbit_tables.popitem(last=False)
         return self._orbit_tables[action]
 
-    def _event_response(self, weight, tau, xs, ys):
+    def endpoint_pairs(self, pair, actions):
+        """Project the ordered action program onto two endpoints, never mappings.
+
+        Each group closes only its pair orbit before the next action starts.
+        A pool contributes at most k*(k-1) pairs, not k! permutations. These
+        projections retain correlation between endpoints; constraints involving
+        other atoms are still enforced when a complete choice is realized.
+        """
+        if not actions:
+            return (pair,)
+        key = pair, actions
+        if key not in self._endpoint_pairs:
+            pairs = {pair}
+            for action in actions:
+                kind, data = action
+                orbits = self._event_orbits(action)
+                if all((x < 0 or len(orbits[x]) == 1) and
+                       (y < 0 or len(orbits[y]) == 1) for x,y in pairs):
+                    continue
+                if kind == 'pool':
+                    pool = frozenset(data)
+                    pairs = {(a,b) for x,y in pairs
+                             for a in (data if x in pool else (x,))
+                             for b in (data if y in pool else (y,))
+                             if a != b or a == -1}
+                else:
+                    # Directed generators suffice: finite permutations have
+                    # inverse powers in the same orbit.
+                    frontier = list(pairs)
+                    generators = tuple(np.asarray((*g, -1), dtype=int) for g in data)
+                    while frontier:
+                        images = np.asarray(frontier, dtype=int)
+                        discovered = {tuple(map(int,p)) for g in generators for p in g[images]}
+                        frontier = list(discovered - pairs)
+                        pairs.update(frontier)
+            self._endpoint_pairs[key] = tuple(sorted(pairs))
+            if len(self._endpoint_pairs) > 1024:
+                self._endpoint_pairs.popitem(last=False)
+        return self._endpoint_pairs[key]
+
+    def _event_response(self, weight, tau, pairs):
         from .records import BondEventResponse
-        xs, ys = sorted((xs, ys))
-        key = float(weight), float(tau), xs, ys
+        key = float(weight), float(tau), pairs
         if key not in self._event_tables:
-            domains = xs, ys
-            if domains not in self._domain_weights:
-                values = set()
-                x, y = np.array(xs), np.array(ys)
-                block = max(1, 65536 // len(y))
-                for start in range(0, len(x), block):
-                    xx = x[start:start+block]
-                    valid = (xx[:,None] != y[None,:]) | (xx[:,None] == -1) | (y[None,:] == -1)
-                    values.update(np.unique(self.padded_product[np.ix_(xx,y)][valid]).tolist())
-                weights = np.array(sorted(values))
-                weights.setflags(write=False)
-                self._domain_weights[domains] = weights
-                if len(self._domain_weights) > 4096:
-                    self._domain_weights.popitem(last=False)
-            weights = self._domain_weights[domains]
+            endpoints = np.asarray(pairs, dtype=int)
+            weights = np.unique(self.padded_product[endpoints[:,0], endpoints[:,1]])
             values_key = float(weight), float(tau), tuple(weights)
             if values_key not in self._response_values:
                 codes = _event_categories(weight, weights, tau)
+                weights.setflags(write=False)
                 codes.setflags(write=False)
                 self._response_values[values_key] = BondEventResponse(float(weight), float(tau), weights, codes)
                 if len(self._response_values) > 4096:
@@ -458,13 +485,14 @@ def _action_orbits(action, degree):
 class FragmentEventTables:
     """Sparse internal/boundary factors over ORIGINAL ordered family choices.
 
-    Single-atom domains only screen impossible events. Their Cartesian product
-    is an overapproximation, never a permission to combine independent images.
-    Evaluation receives a realization checked by EventInterpretation.realize.
+    Each bond is projected onto jointly reachable endpoint pairs. Constants
+    are accumulated once; variable internal and cut-boundary terms retain their
+    original action IDs. Evaluation checks complete choices before lookup.
     """
-    def __init__(self, index, family, fragments):
+    def __init__(self, index, family, fragments, cut_bonds=()):
         from .records import BondEventTerm
         self.index, self.fragments = index, fragments
+        self.cut_bonds = frozenset(cut_bonds)
         owners = {a: i for i, atoms in enumerate(fragments) for a in atoms}
         mapping = dict(family.mapping)
         if len(owners) != sum(map(len, fragments)) or set(owners) != set(mapping):
@@ -488,14 +516,19 @@ class FragmentEventTables:
         for a, b, tau in zip(index.a, index.b, index.tau):
             if a not in mapping and b not in mapping:
                 continue
-            response = index._event_response(index.r[a, b], tau,
-                self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,)))
-            if response.constant == 0:
+            pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
+            action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
+            images = index.endpoint_pairs(pair, tuple(family.actions[i] for i in action_ids))
+            response = index._event_response(index.r[a, b], tau, images)
+            manual_cut = (int(a), int(b)) in self.cut_bonds
+            if response.constant == 0 and not manual_cut:
                 continue
             left, right = int(self.owners[a]), int(self.owners[b])
             region = tuple(sorted((left, right)))
+            moving = sum(len(self.atom_domains.get(atom, (-1,))) > 1 for atom in (a,b))
             term = BondEventTerm((int(a), int(b)),
-                tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set()))), response)
+                action_ids, response,
+                images, ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
             collection = self.internal if left == right else self.boundary
             key = left if left == right else region
             collection.setdefault(key, []).append(term)
@@ -524,6 +557,43 @@ class FragmentEventTables:
         eligible &= np.array([a in reachable or b in reachable for a,b in zip(index.pa,index.pb)], dtype=bool)
         self.product_boundary_pairs = np.column_stack((index.pa[eligible], index.pb[eligible]))
         self.product_boundary_actions = tuple(range(len(family.actions)))
+        self.components = self._dependency_components(family)
+
+    def _dependency_components(self, family):
+        """Separate contribution groups without separating shared choices.
+
+        Original required-edge constraints join action variables even when
+        their event response is constant. Partial target occupancy retains the
+        dependencies of every source atom that can own either endpoint.
+        """
+        parent = {('fragment', i): ('fragment', i) for i in range(len(self.fragments))}
+        def root(node):
+            parent.setdefault(node, node)
+            while parent[node] != node:
+                parent[node] = parent[parent[node]]
+                node = parent[node]
+            return node
+        def join(owners, actions):
+            nodes = [('fragment', i) for i in owners if i >= 0] + [('action', i) for i in actions]
+            if nodes:
+                first = root(nodes[0])
+                for node in nodes[1:]:
+                    parent[root(node)] = first
+        for terms in (*self.internal.values(), *self.boundary.values()):
+            for term in terms:
+                if term.response.constant is None:
+                    join({int(self.owners[a]) for a in term.atoms}, term.action_ids)
+        for a,b in family.required_edges:
+            join((), set(self.atom_actions[a]) | set(self.atom_actions[b]))
+        for x,y in self.product_boundary_pairs:
+            atoms = [a for a, domain in self.atom_domains.items() if x in domain or y in domain]
+            join({int(self.owners[a]) for a in atoms},
+                 {i for a in atoms for i in self.atom_actions[a]})
+        groups = defaultdict(lambda: ([], []))
+        for kind,i in tuple(parent):
+            groups[root((kind,i))][kind == 'action'].append(i)
+        return tuple(sorted((tuple(sorted(fs)), tuple(sorted(actions)))
+                            for fs,actions in groups.values() if fs))
 
     def evaluate(self, vector, *, include_events=False):
         """Lookup only the requested joint choice; sum each pair once."""
@@ -598,7 +668,13 @@ class FragmentEventTables:
                     variable_terms=sum(t.response.constant is None for t in terms),
                     constant_terms=sum(t.response.constant is not None for t in terms),
                     unique_responses=len({id(t.response) for t in terms}),
-                    product_boundary_pairs=len(self.product_boundary_pairs))
+                    product_boundary_pairs=len(self.product_boundary_pairs),
+                    cut_terms=sum(t.manual_cut for t in terms),
+                    boundary_cases=dict(Counter(t.endpoint_case for ts in self.boundary.values() for t in ts)),
+                    variable_boundary_terms=sum(t.response.constant is None
+                                                for ts in self.boundary.values() for t in ts),
+                    endpoint_pair_states=sum(len(t.target_pairs) for t in terms),
+                    contribution_components=len(self.components))
 
 
 class FragmentEventCounter:

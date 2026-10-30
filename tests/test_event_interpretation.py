@@ -358,3 +358,94 @@ def test_single_atom_mapping_has_no_bond_tables():
         result = interpret_events(saved(ep,ep,mapping))
         check_contributions(result,[None])
         assert result.contributions(0)['total'] == 0
+
+
+@pytest.mark.parametrize('actions,expected_case', [
+    ((), 'fixed_fixed'),
+    ((('pool',(2,3)),), 'fixed_shuffle'),
+    ((('pool',(0,1)),('pool',(2,3))), 'shuffle_shuffle'),
+])
+def test_cut_endpoint_cases_use_original_bonds(actions, expected_case):
+    r = endpoint('CCCC',[(0,2,1)])
+    p = endpoint('CCCC',[(0,2,1),(1,3,1)])
+    source = saved(r,p,dict(enumerate(range(4))),actions=actions,
+                   pairs=(((0,1),(0,1)),((2,3),(2,3))))
+    source.families[0].provenance.append(dict(cuts=((0,2),)))
+    result = interpret_events(source)
+    table = result.tables(0)
+    term = next(t for t in table.boundary[0,1] if t.atoms == (0,2))
+    assert term.manual_cut and term.endpoint_case == expected_case
+    assert len(term.target_pairs) == 2**len(actions)
+    choices = [[None]*len(actions),[tuple(reversed(a[1])) for a in actions]]
+    check_contributions(result,choices)
+
+
+def test_joint_cut_endpoint_projection_certifies_constant_boundary():
+    ep = endpoint('CCCC',[(0,2,1),(1,3,1)])
+    source = saved(ep,ep,dict(enumerate(range(4))),
+        actions=(('group',((1,0,3,2),)),),pairs=(((0,1),(0,1)),((2,3),(2,3))))
+    source.families[0].provenance.append(dict(cuts=((0,2),)))
+    result = interpret_events(source)
+    table = result.tables(0)
+    term = next(t for t in table.boundary[0,1] if t.atoms == (0,2))
+    assert term.target_pairs == ((0,2),(1,3))
+    assert term.response.constant == 0
+    assert term.endpoint_case == 'shuffle_shuffle'
+    assert table.statistics['variable_boundary_terms'] == 0
+    check_contributions(result,[[None],[(1,)]])
+
+
+def test_pair_projection_matches_independent_small_action_composition():
+    ep = endpoint('CCCC',[])
+    index = SignedEventIndex(AAMProblem(ep,ep))
+    identity = tuple(range(4))
+    cycle = tuple(tuple((i+step)%4 for i in range(4)) for step in range(4))
+    swap = (identity,(0,2,1,3))
+    for actions, first, second in (
+        ((('group',((1,2,3,0),)),('pool',(1,2))),cycle,swap),
+        ((('pool',(1,2)),('group',((1,2,3,0),))),swap,cycle),
+    ):
+        complete = {tuple(b[a[i]] for i in range(4)) for a in first for b in second}
+        for x in range(-1,4):
+            for y in range(4):
+                if x == y:continue
+                expected = {(g[x] if x >= 0 else -1,g[y]) for g in complete}
+                assert set(index.endpoint_pairs((x,y),actions)) == expected
+    # A same-pool pair is injective and represents 12! choices with 132 pairs.
+    ep = endpoint('C'*12,[])
+    index = SignedEventIndex(AAMProblem(ep,ep))
+    assert len(index.endpoint_pairs((0,1),(('pool',tuple(range(12))),))) == 132
+
+
+def test_local_contribution_components_retain_shared_actions_and_constraints():
+    ep = endpoint('CCCCCC',[(0,1,1),(0,2,1.8),(3,4,1),(3,5,1.8)])
+    source = saved(ep,ep,dict(enumerate(range(6))),
+        actions=(('pool',(1,2)),('pool',(4,5))),
+        pairs=(((0,1,2),(0,1,2)),((3,4,5),(3,4,5))))
+    result = interpret_events(source)
+    assert result.tables(0).components == (((0,),(0,)),((1,),(1,)))
+    check_contributions(result,[[None,None],[(2,1),None],[None,(5,4)],[(2,1),(5,4)]])
+    # Original cross-fragment feasibility constraints keep the two choices joint.
+    source.families[0] = replace(source.families[0],required_edges=((1,4),))
+    assert interpret_events(source).tables(0).components == (((0,1),(0,1)),)
+    source.families[0] = replace(source.families[0],required_edges=(),
+                                actions=(('group',((0,2,1,3,5,4),)),))
+    result = interpret_events(source)
+    assert result.tables(0).components == (((0,1),(0,)),)
+    check_contributions(result,[[None],[(1,)]])
+
+
+def test_sweep_cut_provenance_survives_catalogue_roundtrip():
+    from mappa import AAMSearchConfig, search_aam
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    ep = endpoint('CCC',[(0,1,1),(1,2,1)])
+    aam = search_aam(AAMProblem(ep,ep),AAMSearchConfig(seed_count=1,sweep_cuts=True))
+    source = aam.final_catalogue()
+    restored = FinalBranchCatalogue.from_record(source.problem,json.loads(json.dumps(source.to_record())))
+    cuts = {tuple(map(tuple,p['cuts'])) for f in restored.families for p in f.provenance}
+    assert cuts == {c.cuts for c in aam.graph.contexts}
+    assert cuts == {(),((0,1),),((1,2),)}
+    result = interpret_events(restored)
+    for fid,family in enumerate(restored.families):
+        assert result.tables(fid).cut_bonds == frozenset(tuple(p) for row in family.provenance for p in row['cuts'])
+        assert result.contributions(fid)['total'] == sum(dense_counts(source.problem,dict(family.mapping)))

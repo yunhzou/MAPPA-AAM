@@ -262,11 +262,27 @@ flowchart LR
 
 Internal variations and boundary responses are separate sparse tables, built
 lazily for a saved fragment partition. Each bond term refers to the original
-ordered action IDs. Single-atom domains come from generator orbits composed in
-saved order; they conservatively screen possible responses, never authorize
-independent image choices. Different partitions of a family are alternative
-views, not extra contributions. A manually cut boundary receives exactly the
-same original-WBO comparison as any other pair.
+ordered action IDs. Endpoint-pair orbits follow those actions in saved order,
+keeping correlated swaps joint. Fixed–fixed, fixed–shuffle and shuffle–shuffle
+are one projected-pair operation, not separate decoding modes. A group closes
+its two-endpoint orbit before the next action; a k-atom pool produces at most
+k*(k-1) ordered pairs, not k! permutations. Original constraints involving other
+atoms remain enforced at realization, so projected pairs are not independent
+mapping permissions. Different fragment partitions are alternative views.
+
+Final family provenance retains the original sweep cuts. Cut terms use original
+R/P WBOs, including zero-event cuts and cuts lying within a final fragment.
+Merged histories retain the union of recorded cuts for table annotation; this
+does not change their mapping space. Historical records without cut provenance
+remain unlabelled and use the same exact bond calculation. Natural boundaries
+are accumulated as constants only when all projected category responses agree;
+the calculation never infers an event merely from fragment separation.
+
+`tables.components` groups fragment contributions by shared action dependencies.
+Variable cut terms couple their endpoint fragments; original required-edge
+constraints and partial target occupancy also retain their dependencies. These
+components can be processed separately while joint action IDs are preserved.
+No independent selection of incompatible boundary outcomes is introduced.
 
 A shared bond-response table stores the reachable target weights and their four
 exclusive categories: breaking, forming, strengthening and weakening. Bonded
@@ -283,10 +299,9 @@ Constant contributions are summed once; variable contributions use batched NumPy
 lookups. Required-edge constraints are checked before any requested realization
 is counted. Product-only bonds and dynamically unmatched product boundaries are
 included; bonds wholly between unmatched atoms are omitted. No fictitious pairing
-of unmatched material is introduced. Candidate atom-pair screening and domain
-lookups can be quadratic in atom/domain size; they do not enumerate group elements
-or fragment combinations. Intermediate domain gathers are bounded to 65,536
-entries and reuse caches are bounded. Selected family tables live with the
+of unmatched material is introduced. Pair projection can be quadratic in atom
+domain size; it never enumerates full group elements or fragment combinations.
+Pair and response reuse caches are bounded. Selected family tables live with the
 interpretation and scale with the retained sparse terms.
 
 ```mermaid
