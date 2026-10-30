@@ -465,3 +465,49 @@ def test_multinode_workers_use_shared_script_from_slurm_spool(tmp_path):
     assert args[:4] == ['--ntasks-per-node=1', 'bash',
                        str(checkout/'bench/rebenchmark/run_conversion.sbatch'), 'worker']
     assert str(spool) not in args
+
+
+def test_worker_failure_drains_without_terminating_queue_or_repeating_work(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta
+    from mappa.mappa_core.core import scheduler
+    monkeypatch.setenv('SLURM_JOB_ID', '100')
+    full = tmp_path/'full'; full.mkdir()
+    launch.save(full/'plan.json', dict(campaign_root=str(tmp_path), generation=0,
+        commit='source', python='python', case_seconds=60, slurm=dict(checkpoint_seconds=30)))
+    launch.save(full/'endpoint.json', dict(host='node', port=123))
+    (full/'worker.key').write_bytes(b'test')
+    launch.save(full/'progress.json', dict(states={'complete':5, 'pending':3, 'running':1}))
+    class Process:
+        pid = 123
+        def poll(self): return None
+        def wait(self):
+            assert (full/'retire.json').exists()
+            launch.save(full/'progress.json', dict(states={'complete':5, 'pending':3, 'lost':1}))
+            self.poll = lambda: 0
+            return 0
+    process = Process()
+    monkeypatch.setattr(launch.subprocess, 'Popen', lambda *a, **k: process)
+    monkeypatch.setattr(launch.signal, 'signal', lambda *a: None)
+    kills = []
+    monkeypatch.setattr(launch.os, 'killpg', lambda *a: kills.append(a))
+    commands = []
+    def output(args):
+        commands.append(args)
+        return 'EndTime='+(datetime.now()+timedelta(hours=2)).isoformat()
+    monkeypatch.setattr(launch, 'scheduler_output', output)
+    def fail(full, plan, jobs):
+        jobs.extend([dict(job='failed'), dict(job='healthy')])
+        raise launch.WorkerFailure('failed allocation')
+    monkeypatch.setattr(launch, 'scale_workers', fail)
+    live = iter([{'healthy'}, set(), set()])
+    monkeypatch.setattr(launch, 'active_jobs', lambda: next(live))
+    states = iter([{'running':1}, {'running':0}])
+    monkeypatch.setattr(scheduler, 'connect', lambda *a: SimpleNamespace(snapshot=lambda:next(states)))
+    monkeypatch.setattr(launch.time, 'sleep', lambda seconds:None)
+    completed = []
+    monkeypatch.setattr(launch, 'complete_stage', lambda *a: completed.append(a))
+    launch.control(full)
+    assert not kills
+    assert [c for c in commands if c[0]=='scancel'] == [['scancel','--state=PENDING','healthy']]
+    assert launch.read(full/'worker-failure.json')['error'] == 'failed allocation'
+    assert completed[0][2]['states'] == {'complete':5, 'pending':3, 'lost':1}
