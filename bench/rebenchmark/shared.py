@@ -347,7 +347,7 @@ def execute(args):
             from .decoder_campaign import save
             import socket
             folder = out/'retirements'; folder.mkdir(exist_ok=True)
-            save(folder/f'{os.environ["SLURM_JOB_ID"]}-{socket.gethostname()}.json',
+            save(folder/f'{os.environ["SLURM_JOB_ID"]}-{socket.gethostname()}-{os.getpid()}.json',
                 dict(states=states, claim_until=claim_until, utc=time.time(), allocation_end=end,
                      memory_bytes=args.memory_bytes or plan['memory_bytes'], workers=args.workers))
         return
