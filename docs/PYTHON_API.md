@@ -79,7 +79,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 
 ## Conditional fragment and fixed-query isomorphism
 
-`match_fragment(source_graph, target_graph, seed=..., context=FragmentMatchContext(locked_mapping=...), config=FragmentMatchConfig(...))` grows a seeded saturated fragment subject to existing assignments. Its result includes compressed placements and an explicit cap flag. It does not promise a globally largest common subgraph.
+`match_fragment(source_graph, target_graph, seed=..., context=FragmentMatchContext(locked_mapping=...), config=FragmentMatchConfig(...))` grows a seeded saturated fragment subject to existing assignments. Each extension constrains only the selected growth edge. Returned placements expose those accepted edges as `preserved_bonds`; other bonds between included atoms remain available in the original molecular graphs for event interpretation. Its result includes compressed placements and an explicit cap flag. It does not promise a globally largest common subgraph.
 
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 

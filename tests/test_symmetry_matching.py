@@ -193,8 +193,7 @@ def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
                     "assignments": "2",
                 }],
             },
-        ),
-        build_graph(["H"] * 28, np.zeros((28, 28)), bond_cut=0.2)),
+        )),
     )
     branch.mapping[22] = 26
     branch.islands_R[22] = 2

@@ -53,7 +53,7 @@ class FragmentPlacement(Mapping):
         return self.mapping.items()
 
     @classmethod
-    def from_match(cls, match, source):
+    def from_match(cls, match):
         """Keep the accepted growth edges, not the induced molecular graph."""
         return cls(dict(match), match.fragment, match.deferred_edges,
                    match.symmetry, match.preserved_bonds)

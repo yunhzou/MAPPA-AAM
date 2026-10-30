@@ -193,7 +193,7 @@ def test_fragment_bonds_retain_only_recorded_growth_edges(seed):
                             if edge[0] in atoms and edge[1] in atoms))[:2]
     raw = _IsoResult({a: a + 100 for a in atoms}, fragment=atoms,
                      deferred_edges=cuts, preserved_bonds=expected)
-    result = FragmentPlacement.from_match(raw, graph)
+    result = FragmentPlacement.from_match(raw)
     assert result.preserved_bonds == expected
 
 

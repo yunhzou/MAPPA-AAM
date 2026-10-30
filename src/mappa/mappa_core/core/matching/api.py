@@ -45,6 +45,6 @@ def match_fragment(source, target, *, seed, context=None, config=None,
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,
                                    time.perf_counter() - started)
-    placements = tuple(FragmentPlacement.from_match(match, source) for match in matches)
+    placements = tuple(FragmentPlacement.from_match(match) for match in matches)
     return FragmentMatchResult(placements, False, len(matches),
                                config.branch_limit, time.perf_counter() - started)
