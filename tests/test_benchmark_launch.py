@@ -89,3 +89,26 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     assert set(queue.snapshot())=={'complete'}
     assert queue.claim('no-repeat',2**30,queue.identity)['state']=='finished'
     queue.close()
+
+
+def test_prepared_recovery_reuses_only_verified_unstarted_work(tmp_path,monkeypatch):
+    previous=tmp_path/'previous';(previous/'full').mkdir(parents=True)
+    pilot=previous/'pilot';pilot.mkdir()
+    (pilot/'check.json').write_text(json.dumps(dict(verified=True)))
+    (pilot/'progress.json').write_text(json.dumps(dict(finished=True)))
+    index=previous/'index.json';index.write_text('{}')
+    plan={k:'same' for k in ('dataset','dataset_path','input_manifest_sha256','directions','config',
+        'seed_batch','case_seconds','memory_bytes','slack','reference_checks','expected_cases')}
+    plan.update(commit='new',identity='recovery')
+    prior=dict(plan,commit='old',index=str(index),index_sha256=hashlib.sha256(index.read_bytes()).hexdigest(),
+               pilots=[str(pilot)],pilot_commits=['old'])
+    (previous/'full/plan.json').write_text(json.dumps(prior))
+    (previous/'production-launch.json').write_text(json.dumps(dict(job='123')))
+    monkeypatch.setattr(launch.subprocess,'check_output',lambda args,**kw:'OUT_OF_MEMORY\n' if args[0]=='sacct' else '')
+    result=launch.prepared_plan(previous,plan)
+    assert result['pilots']==[str(pilot)] and result['pilot_commits']==['old']
+    assert result['commit']=='new' and result['index']==str(index)
+    changed=dict(plan,config='different')
+    with pytest.raises(ValueError,match='settings differ'):launch.prepared_plan(previous,changed)
+    (previous/'full/endpoint.json').write_text('{}')
+    with pytest.raises(ValueError,match='already started'):launch.prepared_plan(previous,plan)

@@ -58,7 +58,39 @@ def stage_resources(plan, stage):
             '--time='+spec['time']]
 
 
-def submit(output, configuration):
+def prepared_plan(previous, plan):
+    """Reuse preparation/pilot only when production never exposed a queue."""
+    full = previous/'full'
+    if (full/'endpoint.json').exists() or (full/'worker-jobs.json').exists():
+        raise ValueError('Production already started; reconcile its queue instead')
+    job = read(previous/'production-launch.json')['job']
+    if subprocess.check_output(['squeue','-h','-j',job,'-o','%T'],text=True).strip():
+        raise ValueError('Previous production allocation is still active')
+    state = subprocess.check_output(['sacct','-X','-n','-P','-j',job,
+                                    '--format=State'],text=True).strip().strip('|')
+    if state not in ('FAILED','OUT_OF_MEMORY','TIMEOUT','CANCELLED'):
+        raise ValueError('Need confirmed failed production retirement: '+state)
+    prior = read(full/'plan.json')
+    for key in ('dataset','dataset_path','input_manifest_sha256','directions','config',
+                'seed_batch','case_seconds','memory_bytes','slack','reference_checks','expected_cases'):
+        if prior[key] != plan[key]:
+            raise ValueError('Prepared scientific settings differ: '+key)
+    changed = subprocess.check_output(['git','-C',str(REPO),'diff','--name-only',
+        prior['commit'],plan['commit'],'--','src','bench/rebenchmark/shared.py',
+        'bench/rebenchmark/decoding.py','bench/rebenchmark/reference.py'],text=True)
+    if changed.strip():
+        raise ValueError('Prepared scientific implementation differs: '+changed)
+    with Path(prior['index']).open('rb') as stream:
+        if hashlib.file_digest(stream,'sha256').hexdigest() != prior['index_sha256']:
+            raise ValueError('Prepared index changed')
+    for pilot in map(Path,prior['pilots']):
+        if not read(pilot/'check.json')['verified'] or not read(pilot/'progress.json')['finished']:
+            raise ValueError('Pilot has not passed')
+    return dict(plan,index=prior['index'],index_sha256=prior['index_sha256'],
+                pilots=prior['pilots'],pilot_commits=prior['pilot_commits'])
+
+
+def submit(output, configuration, prepared=None):
     plan = read(configuration)
     commit = subprocess.check_output(['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip()
     if subprocess.check_output(['git', '-C', str(REPO), 'status', '--porcelain', '--untracked-files=no'], text=True).strip():
@@ -68,20 +100,30 @@ def submit(output, configuration):
     output.mkdir(parents=True, exist_ok=False)
     plan.update(commit=commit, python=sys.executable, identity=output.name+'-'+commit[:7],
                 pilots=[], pilot_commits=[commit])
+    if prepared is not None:
+        plan = prepared_plan(prepared, plan)
     save(output/'plan.json', plan)
     binaries = {str(p.relative_to(REPO)): hashlib.sha256(p.read_bytes()).hexdigest()
                 for pattern in ('_engine*.so', '_group_ops*.so') for p in (REPO/'src/mappa').glob(pattern)}
     save(output/'source.json', dict(commit=commit, native_binaries=binaries,
         plan_sha256=hashlib.sha256((output/'plan.json').read_bytes()).hexdigest()))
-    preparation = submit_job(output, 'prepare', plan, stage_resources(plan, 'prepare'),
-        wrapper(plan, 'prepare', output))
-    pilot = submit_job(output, 'pilot', plan, stage_resources(plan, 'pilot'),
-        wrapper(plan, 'pilot-check', output, module='rebenchmark.launch'),
-        dependency='afterok:'+preparation['job'])
+    preparation = pilot = None
+    if prepared is None:
+        preparation = submit_job(output, 'prepare', plan, stage_resources(plan, 'prepare'),
+            wrapper(plan, 'prepare', output))
+        pilot = submit_job(output, 'pilot', plan, stage_resources(plan, 'pilot'),
+            wrapper(plan, 'pilot-check', output, module='rebenchmark.launch'),
+            dependency='afterok:'+preparation['job'])
+    else:
+        full = output/'full'; full.mkdir()
+        save(full/'plan.json',dict(plan,identity=plan['identity']+'-full'))
+        save(output/'prepared-reuse.json',dict(previous=str(prepared),index=plan['index'],
+             index_sha256=plan['index_sha256'],pilots=plan['pilots']))
     production = submit_job(output, 'production', plan, stage_resources(plan, 'coordinator'),
         wrapper(plan, 'control', output, module='rebenchmark.launch'),
-        dependency='afterok:'+pilot['job'])
-    result = dict(preparation=preparation['job'], pilot=pilot['job'], production=production['job'],
+        dependency='afterok:'+pilot['job'] if pilot else None)
+    result = dict(preparation=preparation['job'] if preparation else None,
+                  pilot=pilot['job'] if pilot else None, production=production['job'],
                   run=str(output), source=commit)
     save(output/'submission.json', result)
     print(json.dumps(result), flush=True)
@@ -258,11 +300,12 @@ if __name__ == '__main__':
     parser.add_argument('mode', choices=('submit','pilot-check','control','report'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--plan',type=Path)
+    parser.add_argument('--prepared',type=Path,help='Reuse a passed pilot and index after pre-worker startup failure')
     parser.add_argument('--workers',type=int,default=1)
     args = parser.parse_args()
     if args.mode == 'submit':
         if args.plan is None: parser.error('submit needs --plan')
-        submit(args.output.resolve(),args.plan)
+        submit(args.output.resolve(),args.plan,args.prepared)
     elif args.mode == 'pilot-check': pilot_check(args.output)
     elif args.mode == 'control': control(args.output)
     else: report(args.output,args.workers)

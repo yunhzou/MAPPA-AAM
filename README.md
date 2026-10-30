@@ -441,3 +441,11 @@ Launch receipts, source/native hashes, configurations and result bundles are sav
 under the run. A new submission refuses an existing run directory. Reusing a
 completed stage for timing comparisons is supported separately by the shared
 planner's explicit `repeat` mode.
+
+The Slurm wrapper uses `/var/tmp` on node-local disk and rejects RAM-backed or
+shared mounts. `/tmp` on NRT is RAM-backed and must not hold a large queue.
+After a confirmed production startup failure *before any worker endpoint exists*,
+`submit NEW_RUN --plan CONFIG --prepared PREVIOUS_RUN` reuses the verified input
+index and passed pilot. It rejects active owners, changed scientific settings or
+code, and any previous worker endpoint. Recovery of attempted work requires its
+queue and is not covered by this preparation-only operation.

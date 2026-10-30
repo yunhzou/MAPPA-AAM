@@ -24,7 +24,12 @@ if [[ "$mode" == workers ]]; then
 fi
 
 export TMPDIR
-TMPDIR=$(mktemp -d /tmp/mappa-conversion.XXXXXX)
+# /tmp is tmpfs on NRT: a large queue and its backup would consume job RAM.
+scratch_root=/var/tmp
+case "$(findmnt -n -o FSTYPE -T "$scratch_root")" in
+    tmpfs|ramfs|nfs|nfs4|lustre) echo "Scratch must be node-local disk: $scratch_root" >&2; exit 1 ;;
+esac
+TMPDIR=$(mktemp -d "$scratch_root/mappa-conversion.XXXXXX")
 trap 'rm -rf "$TMPDIR"' EXIT
 date -u
 hostname

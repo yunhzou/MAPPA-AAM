@@ -616,3 +616,10 @@ flowchart LR
     Production --> Queue[Core task queue and budgets]
     Queue --> Results[Verified bundles and report]
 ```
+
+The benchmark wrapper puts queues, checkpoints and worker scratch on verified
+node-local disk (`/var/tmp` on NRT), not RAM-backed `/tmp`. A local checkpoint
+requires a second queue-sized file. The launcher can reuse a prepared index and
+passed pilot after confirmed pre-worker startup failure; it validates source,
+settings, index hash and retired ownership before submitting a fresh controller.
+It never treats an attempted production queue as unstarted preparation.
