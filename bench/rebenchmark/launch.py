@@ -277,6 +277,73 @@ def file_hash(path):
         return hashlib.file_digest(stream,'sha256').hexdigest()
 
 
+def recover_linked_outputs(queue_path, members, scratch):
+    """Recover task identities carried by saved decodes and their parent hashes.
+
+    This creates an evidence overlay, not a runnable queue. Unlabelled search
+    and reference records remain unresolved; graph similarity is not identity.
+    """
+    import sqlite3
+    from dataclasses import asdict
+    from mappa.mappa_core.core.scheduler import Blob, read_blob, read_blobs
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    db = sqlite3.connect(f'file:{Path(queue_path).resolve()}?mode=ro&immutable=1',uri=True)
+    blobs = {Blob(**{k:m[k] for k in ('path','offset','size','sha256')}):m for m in members}
+    recovered = {}
+    def specification(key, operation):
+        row = db.execute('SELECT specification,state,result FROM tasks WHERE key=?',(key,)).fetchone()
+        if row is None:
+            raise ValueError('Saved output has no expected task: '+key)
+        task = _loads_checkpoint(row[0])
+        if task.operation != operation:
+            raise ValueError('Saved output operation differs: '+key)
+        return task, row
+    def record(key, blob, row, provenance):
+        if row[1] == 'complete':
+            if _loads_checkpoint(row[2])['blob'] != blob:
+                raise ValueError('Saved output conflicts with accepted result: '+key)
+            return
+        if row[1] not in ('pending','running'):
+            raise ValueError('Unexpected recorded task state: '+key)
+        value = dict(key=key,blob=asdict(blob),specification_sha256=hashlib.sha256(row[0]).hexdigest(),
+                     snapshot_state=row[1],provenance=provenance,
+                     attempt_resource_accounting='not present in the surviving checkpoint')
+        if key in recovered and recovered[key]['blob'] != value['blob']:
+            raise ValueError('Multiple saved outputs for one task: '+key)
+        recovered[key] = value
+    try:
+        decodes = sorted((b for b,m in blobs.items() if m['kind']=='decode'),key=lambda b:(b.path,b.offset))
+        seen = set()
+        for blob,value in read_blobs(decodes,scratch):
+            key = f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
+            if key in seen:
+                raise ValueError('Duplicate decoder task identity: '+key)
+            seen.add(key)
+            task,row = specification(key,'rebenchmark.shared:convert_seed')
+            p = task.payload
+            if (p['input'] != value['input'] or p['task_id'] != value['task_id']
+                    or p['number'] != value['cut'] or p['seed'] != value['seed']-1):
+                raise ValueError('Saved decoder input identity differs: '+key)
+            parent = value['finalized']
+            if parent.sha256 != value['finalized_sha256'] or task.dependencies != (p['cut'],):
+                raise ValueError('Saved parent identity differs: '+key)
+            final,final_row = specification(p['cut'],'mappa.mappa_core.core.scheduler.search:finalize_cut')
+            if final.payload['input'] != p['input'] or final.payload['number'] != p['number']:
+                raise ValueError('Finalized task input differs: '+key)
+            if final_row[1] != 'complete' and (parent not in blobs or blobs[parent]['kind']!='finalize'):
+                raise ValueError('Referenced parent is absent from recovery inventory: '+key)
+            if p['cut'] not in recovered:
+                saved = read_blob(parent,scratch)
+                if (saved['cut'] != final.payload['number'] or saved['seeds'] != final.payload['seeds']
+                        or any(tuple(c.cuts)!=tuple(final.payload['cut']) for c in saved['graph'].contexts)):
+                    raise ValueError('Saved finalized specification differs: '+key)
+            record(p['cut'],parent,final_row,dict(decoder_key=key,relation='exact finalized blob reference'))
+            record(key,blob,row,dict(relation='saved task/seed/cut/input identity',finalized_key=p['cut']))
+        return list(recovered.values())
+    finally:
+        db.close()
+
+
 def restore_queue(plan, full, scratch):
     """Restore a retired snapshot byte-for-byte; do not replan or retry tasks."""
     from mappa.mappa_core.core.scheduler import TaskQueue

@@ -9,6 +9,37 @@ import pytest
 from rebenchmark import launch
 
 
+def test_recovery_uses_task_identity_and_parent_hash_without_reassigning_graphs(tmp_path):
+    from mappa.mappa_core.core.scheduler import Task, TaskQueue, BundleWriter
+    from dataclasses import asdict
+    writer=BundleWriter(tmp_path/'bundles',tmp_path)
+    input_blob=writer.put({'input':'exact'})
+    parent=writer.put(dict(cut=0,seeds=1,graph=SimpleNamespace(contexts=[SimpleNamespace(cuts=())])))
+    payload=dict(task_id=0,cut=0,seed=1,input=input_blob,finalized=parent,finalized_sha256=parent.sha256)
+    decoder=writer.put(payload)
+    final_key='00000/cut/00000/finalize';key='00000/cut/00000/seed/00'
+    queue=TaskQueue(tmp_path/'queue.sqlite','recover')
+    queue.add([Task(final_key,'mappa.mappa_core.core.scheduler.search:finalize_cut',
+                    dict(input=input_blob,number=0,seeds=1,cut=())),
+               Task(key,'rebenchmark.shared:convert_seed',dict(input=input_blob,task_id=0,number=0,seed=0,cut=final_key),
+                    dependencies=(final_key,))])
+    queue.backup(tmp_path/'snapshot.sqlite');queue.close()
+    members=[dict(asdict(parent),kind='finalize'),dict(asdict(decoder),kind='decode')]
+    rows=launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',members,tmp_path)
+    assert {r['key'] for r in rows}=={key,final_key}
+    import sqlite3
+    with sqlite3.connect(tmp_path/'snapshot.sqlite') as db:
+        assert dict(db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))=={'pending':2}
+    with pytest.raises(ValueError,match='absent'):
+        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',members[1:],tmp_path)
+    wrong=writer.put(dict(payload,input=writer.put({'input':'wrong'})))
+    with pytest.raises(ValueError,match='input identity'):
+        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',[members[0],dict(asdict(wrong),kind='decode')],tmp_path)
+    duplicate=writer.put(payload)
+    with pytest.raises(ValueError,match='Duplicate'):
+        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',[*members,dict(asdict(duplicate),kind='decode')],tmp_path)
+
+
 def test_scheduler_outage_retries_same_pending_only_request(monkeypatch):
     import subprocess
     calls, pauses = [], []
