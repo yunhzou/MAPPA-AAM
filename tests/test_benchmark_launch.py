@@ -377,9 +377,9 @@ def test_worker_failure_drains_without_terminating_queue_or_repeating_work(tmp_p
     monkeypatch.setattr(scheduler, 'connect', lambda *a: SimpleNamespace(snapshot=lambda:next(states)))
     monkeypatch.setattr(launch.time, 'sleep', lambda seconds:None)
     completed = []
-    monkeypatch.setattr(launch, 'complete_stage', lambda *a: completed.append(a))
+    monkeypatch.setattr(launch, 'next_allocation', lambda *a: completed.append(a))
     launch.control(full)
     assert not kills
     assert [c for c in commands if c[0]=='scancel'] == [['scancel','--state=PENDING','healthy']]
     assert launch.read(full/'worker-failure.json')['error'] == 'failed allocation'
-    assert completed[0][2]['states'] == {'complete':5, 'pending':3, 'lost':1}
+    assert completed[0][2] == {'complete':5, 'pending':3, 'lost':1}
