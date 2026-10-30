@@ -143,9 +143,16 @@ class BondEventTerm:
     atoms: tuple[int, int]
     action_ids: tuple[int, ...]
     response: BondEventResponse
-    target_pairs: tuple[tuple[int, int], ...]
+    initial_pair: tuple[int, int]
+    projected_actions: tuple
+    index: SignedEventIndex = field(repr=False, compare=False)
     endpoint_case: str
     manual_cut: bool
+
+    @cached_property
+    def target_pairs(self):
+        """Materialize only this endpoint relation when explicitly inspected."""
+        return self.index.endpoint_pairs(self.initial_pair, self.projected_actions)
 
 
 @dataclass

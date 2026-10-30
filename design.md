@@ -263,7 +263,9 @@ flowchart LR
 Internal variations and boundary responses are separate sparse tables, built
 lazily for a saved fragment partition. Each bond term refers to the original
 ordered action IDs. Endpoint-pair orbits follow those actions in saved order,
-keeping correlated swaps joint. Fixed–fixed, fixed–shuffle and shuffle–shuffle
+keeping correlated swaps joint. A constant-response certificate on the endpoint
+domain superset is checked first; only varying responses require pair projection.
+This certificate cannot authorize independent endpoint choices. Fixed–fixed, fixed–shuffle and shuffle–shuffle
 are one projected-pair operation, not separate decoding modes. A group closes
 its two-endpoint orbit before the next action; a k-atom pool produces at most
 k*(k-1) ordered pairs, not k! permutations. Original constraints involving other

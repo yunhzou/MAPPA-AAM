@@ -453,3 +453,18 @@ def test_sweep_cut_provenance_survives_catalogue_roundtrip():
     for fid,family in enumerate(restored.families):
         assert result.tables(fid).cut_bonds == frozenset(tuple(p) for row in family.provenance for p in row['cuts'])
         assert result.contributions(fid)['total'] == sum(dense_counts(source.problem,dict(family.mapping)))
+
+
+def test_constant_boundary_certificate_does_not_expand_pair_orbits(monkeypatch):
+    ep = endpoint('C'*12,[(a,b,1.) for a in range(12) for b in range(a+1,12)])
+    source = saved(ep,ep,dict(enumerate(range(12))),actions=(('pool',tuple(range(12))),),
+        pairs=tuple(((a,),(a,)) for a in range(12)))
+    source.families[0].provenance.append(dict(cuts=((0,1),)))
+    result = interpret_events(source)
+    def forbidden(*args,**kwargs):
+        pytest.fail('constant response expanded an endpoint orbit')
+    monkeypatch.setattr(result.index,'endpoint_pairs',forbidden)
+    table = result.tables(0)
+    assert table.statistics['projected_pair_states'] == 0
+    assert table.statistics['cut_terms'] == 1
+    assert result.contributions(0)['total'] == 0

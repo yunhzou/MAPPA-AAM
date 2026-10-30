@@ -80,6 +80,7 @@ class SignedEventIndex:
         self._pair_tables = OrderedDict()
         self._event_tables = OrderedDict()
         self._endpoint_pairs = OrderedDict()
+        self._domain_responses = OrderedDict()
         self._response_values = OrderedDict()
         self._orbit_tables = OrderedDict()
 
@@ -163,21 +164,46 @@ class SignedEventIndex:
                 self._endpoint_pairs.popitem(last=False)
         return self._endpoint_pairs[key]
 
-    def _event_response(self, weight, tau, pairs):
+    def _response_from_weights(self, weight, tau, weights):
         from .records import BondEventResponse
-        key = float(weight), float(tau), pairs
+        key = float(weight), float(tau), tuple(weights)
+        if key not in self._response_values:
+            codes = _event_categories(weight, weights, tau)
+            weights.setflags(write=False)
+            codes.setflags(write=False)
+            self._response_values[key] = BondEventResponse(float(weight), float(tau), weights, codes)
+            if len(self._response_values) > 4096:
+                self._response_values.popitem(last=False)
+        return self._response_values[key]
+
+    def _domain_response(self, weight, tau, xs, ys):
+        """Certify constants on a superset before exploring any pair orbit."""
+        xs, ys = sorted((xs, ys))
+        key = float(weight), float(tau), xs, ys
+        if key not in self._domain_responses:
+            values = set()
+            x, y = np.asarray(xs), np.asarray(ys)
+            block = max(1, 65536 // len(y))
+            for start in range(0, len(x), block):
+                xx = x[start:start+block]
+                valid = (xx[:,None] != y[None,:]) | (xx[:,None] == -1) | (y[None,:] == -1)
+                values.update(np.unique(self.padded_product[np.ix_(xx,y)][valid]).tolist())
+            self._domain_responses[key] = self._response_from_weights(weight, tau, np.array(sorted(values)))
+            if len(self._domain_responses) > 4096:
+                self._domain_responses.popitem(last=False)
+        return self._domain_responses[key]
+
+    def _event_response(self, weight, tau, pair, actions, domains):
+        """Constant certificate, then joint pair projection only if needed."""
+        response = self._domain_response(weight, tau, *domains)
+        if response.constant is not None:
+            return response, 0
+        key = float(weight), float(tau), pair, actions
         if key not in self._event_tables:
+            pairs = self.endpoint_pairs(pair, actions)
             endpoints = np.asarray(pairs, dtype=int)
             weights = np.unique(self.padded_product[endpoints[:,0], endpoints[:,1]])
-            values_key = float(weight), float(tau), tuple(weights)
-            if values_key not in self._response_values:
-                codes = _event_categories(weight, weights, tau)
-                weights.setflags(write=False)
-                codes.setflags(write=False)
-                self._response_values[values_key] = BondEventResponse(float(weight), float(tau), weights, codes)
-                if len(self._response_values) > 4096:
-                    self._response_values.popitem(last=False)
-            self._event_tables[key] = self._response_values[values_key]
+            self._event_tables[key] = self._response_from_weights(weight, tau, weights), len(pairs)
             if len(self._event_tables) > 16384:
                 self._event_tables.popitem(last=False)
         return self._event_tables[key]
@@ -511,6 +537,7 @@ class FragmentEventTables:
         self.internal, self.boundary = {}, {}
         groups = defaultdict(list)
         self._constant = Counter()
+        self.projected_pair_states = 0
         # Source pairs cover both ordinary and manually cut boundaries. Product
         # bonds are included even when their source weight is zero.
         for a, b, tau in zip(index.a, index.b, index.tau):
@@ -518,8 +545,10 @@ class FragmentEventTables:
                 continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
             action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
-            images = index.endpoint_pairs(pair, tuple(family.actions[i] for i in action_ids))
-            response = index._event_response(index.r[a, b], tau, images)
+            actions = tuple(family.actions[i] for i in action_ids)
+            response, projected = index._event_response(index.r[a, b], tau, pair, actions,
+                (self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,))))
+            self.projected_pair_states += projected
             manual_cut = (int(a), int(b)) in self.cut_bonds
             if response.constant == 0 and not manual_cut:
                 continue
@@ -528,7 +557,8 @@ class FragmentEventTables:
             moving = sum(len(self.atom_domains.get(atom, (-1,))) > 1 for atom in (a,b))
             term = BondEventTerm((int(a), int(b)),
                 action_ids, response,
-                images, ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
+                pair, actions, index,
+                ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
             collection = self.internal if left == right else self.boundary
             key = left if left == right else region
             collection.setdefault(key, []).append(term)
@@ -673,7 +703,7 @@ class FragmentEventTables:
                     boundary_cases=dict(Counter(t.endpoint_case for ts in self.boundary.values() for t in ts)),
                     variable_boundary_terms=sum(t.response.constant is None
                                                 for ts in self.boundary.values() for t in ts),
-                    endpoint_pair_states=sum(len(t.target_pairs) for t in terms),
+                    projected_pair_states=self.projected_pair_states,
                     contribution_components=len(self.components))
 
 
