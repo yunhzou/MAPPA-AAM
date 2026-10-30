@@ -226,6 +226,8 @@ def scale_workers(full, plan, jobs):
         ['squeue', '-h', '-u', getpass.getuser(), '-o', '%i|%T']).splitlines())
     active = [job for job in jobs if not job.get('retired')]
     pending = [job for job in active if live.get(job['job']) == 'PENDING']
+    if pending and time.time()-max(job['utc'] for job in pending) < 120:
+        return jobs  # Give newly submitted requests time to be scheduled.
     retained = [job for job in active if job not in pending]
     occupied = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in retained)
     slots = plan['slurm']['max_worker_jobs']-len(retained)
