@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import pickle
 import secrets
+import shutil
+import resource
 import signal
 import socket
 import sqlite3
@@ -103,6 +105,9 @@ def serve_queue(queue,out,metadata,*,retire_file=None):
         try:
             while True:
                 states=queue.snapshot();stamp=time.monotonic()
+                save(out/'runtime.json',dict(utc=time.time(),host=socket.gethostname(),pid=os.getpid(),
+                    queue=str(queue.path),disk_free_bytes=shutil.disk_usage(queue.path.parent).free,
+                    process_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
                 if stamp-last>=300:
                     queue.backup(out/'queue.sqlite');last=stamp
                 save(out/'progress.json',dict(metadata,states=states,utc=time.time()))

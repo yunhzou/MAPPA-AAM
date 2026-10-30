@@ -427,13 +427,14 @@ PYTHONPATH=src:bench python -m rebenchmark.launch submit /absolute/new/run --pla
 
 The plan supplies the dataset/manifest, search settings and a `slurm` resource
 profile (`account`, `partition`, `short_qos`, `worker_time`,
-`max_worker_jobs`, `target_workers`, `checkpoint_seconds`; `prepare`, `pilot`, `coordinator`, `report` and
+`max_worker_jobs`, `target_workers`, `checkpoint_seconds`; `prepare`, `pilot`, `queue`, `coordinator`, `report` and
 `memory_stage` each specify `qos`, `cpus`, `memory_gib`, `time`). It also supplies
 `expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
 `retry_workers`. The existing shared planner owns dataset/task preparation.
 
-One command queues preparation, a small real-input pilot and production with
-scheduler dependencies. Production renews only cleanly retired worker allocations
+One command queues input preparation, a small real-input pilot, task-queue
+construction and production with scheduler dependencies. Queue construction
+finishes on local disk before the production coordinator allocation starts. Production renews only cleanly retired worker allocations
 against the same queue. It preserves task budgets, accepted work and checkpoint
 backups; failed workers require diagnosis. Only recorded memory failures enter
 the configured larger-memory stage. Unknowns and resource limits remain unresolved.
@@ -444,11 +445,20 @@ planner's explicit `repeat` mode.
 
 The Slurm wrapper uses `/var/tmp` on node-local disk and rejects RAM-backed or
 shared mounts. `/tmp` on NRT is RAM-backed and must not hold a large queue.
-After a confirmed production startup failure *before any worker endpoint exists*,
-`submit NEW_RUN --plan CONFIG --prepared PREVIOUS_RUN` reuses the verified input
-index and passed pilot. It rejects active owners, changed scientific settings or
-code, and any previous worker endpoint. Recovery of attempted work requires its
-queue and is not covered by this preparation-only operation.
+Failed jobs retain their local scratch and publish its location. Historical failed
+runs are evidence, not automatic recovery inputs. A fresh submission uses a new
+run directory and new task budgets; it never mixes old partial results.
+
+Inspect the whole active pipeline with one repeatable command:
+
+```bash
+PYTHONPATH=src:bench python -m rebenchmark.launch status /absolute/run
+```
+
+This writes `status.json` with current stage, scheduler states, requested/running
+compute workers, progress, preparation progress, checkpoint age/size, local-disk
+space and allocation CPU/memory statistics. It reads no output archives. Running
+capacity is distinct from actual CPU usage and scientific completeness.
 
 Short coordinator allocations stop new claims early enough for the longest task,
 publication and `checkpoint_seconds`. After all worker owners retire cleanly, the

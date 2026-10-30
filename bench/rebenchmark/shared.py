@@ -235,6 +235,7 @@ def prepare_queue(plan, out, scratch):
     import json
     import pickle
     import sqlite3
+    import time
     from mappa.mappa_core.core.scheduler import Blob, TaskQueue, read_blob
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
     from .decoder_campaign import save
@@ -243,6 +244,8 @@ def prepare_queue(plan, out, scratch):
         raise ValueError('Frozen task index changed')
     index = json.loads(path.read_text())
     queue = TaskQueue(Path(scratch)/'queue.sqlite', plan['identity'])
+    # Bulk planning has no live attempts; the published backup is its commit point.
+    queue.db.execute('PRAGMA synchronous=NORMAL')
     selected = {tuple(x) for x in plan['selected_cuts']} if 'selected_cuts' in plan else None
     expected = 0
     for row in index['directions']:
@@ -253,6 +256,9 @@ def prepare_queue(plan, out, scratch):
             tasks = [t for t in tasks if (row['direction'],int(t.key.split('/')[2])) in selected]
         queue.add(tasks)
         expected += len(tasks)
+        if row['direction'] % 100 == 0:
+            save(out/'preparation.json',dict(direction=row['direction'],tasks=expected,utc=time.time()))
+    queue.db.execute('PRAGMA synchronous=FULL')
     reused, charged = [], {}
     for root in map(Path, plan['pilots']):
         prior_plan = json.loads((root/'plan.json').read_text())

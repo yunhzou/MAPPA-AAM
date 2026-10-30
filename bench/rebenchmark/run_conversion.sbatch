@@ -30,7 +30,16 @@ case "$(findmnt -n -o FSTYPE -T "$scratch_root")" in
     tmpfs|ramfs|nfs|nfs4|lustre) echo "Scratch must be node-local disk: $scratch_root" >&2; exit 1 ;;
 esac
 TMPDIR=$(mktemp -d "$scratch_root/mappa-conversion.XXXXXX")
-trap 'rm -rf "$TMPDIR"' EXIT
+completed=false
+cleanup() {
+    if $completed; then rm -rf "$TMPDIR";
+    else echo "Retained failed-job scratch: $TMPDIR" >&2; fi
+}
+trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+mkdir -p "$output"
+"$python" -c 'import json,os,socket,time; from pathlib import Path; p=Path(os.environ["TMPDIR"]); print(json.dumps(dict(host=socket.gethostname(),scratch=str(p),job=os.environ.get("SLURM_JOB_ID"),utc=time.time())))' > "$output/scratch-${SLURM_JOB_ID:-local}-$(hostname)-$$.json"
 date -u
 hostname
 lscpu
@@ -59,7 +68,7 @@ elif [[ "$mode" == prepare ]]; then
     "$python" -u -m "$campaign" prepare "$output"
 elif [[ "$mode" == coordinator || "$mode" == repeat ]]; then
     "$python" -u -m "$campaign" "$mode" "$output"
-elif [[ "$mode" == pilot-check || "$mode" == control || "$mode" == service || "$mode" == report ]]; then
+elif [[ "$mode" == prepare-queue || "$mode" == pilot-check || "$mode" == control || "$mode" == service || "$mode" == report ]]; then
     "$python" -u -m "$campaign" "$mode" "$output" --workers "$workers"
 elif [[ "$mode" == worker ]]; then
     "$python" -u -m "$campaign" worker "$output" --workers "$workers" "${memory_arguments[@]}"
@@ -68,3 +77,4 @@ else
     exit 2
 fi
 date -u
+completed=true

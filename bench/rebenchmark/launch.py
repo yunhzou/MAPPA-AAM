@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import socket
 import shutil
 import subprocess
 import sys
@@ -83,39 +84,7 @@ def stage_resources(plan, stage):
             '--time='+spec['time']]
 
 
-def prepared_plan(previous, plan):
-    """Reuse preparation/pilot only when production never exposed a queue."""
-    full = previous/'full'
-    if (full/'endpoint.json').exists() or (full/'worker-jobs.json').exists():
-        raise ValueError('Production already started; reconcile its queue instead')
-    job = read(previous/'production-launch.json')['job']
-    if job in active_jobs():
-        raise ValueError('Previous production allocation is still active')
-    state = subprocess.check_output(['sacct','-X','-n','-P','-j',job,
-                                    '--format=State'],text=True).strip().strip('|')
-    if state not in ('FAILED','OUT_OF_MEMORY','TIMEOUT','CANCELLED'):
-        raise ValueError('Need confirmed failed production retirement: '+state)
-    prior = read(full/'plan.json')
-    for key in ('dataset','dataset_path','input_manifest_sha256','directions','config',
-                'seed_batch','case_seconds','memory_bytes','slack','reference_checks','expected_cases'):
-        if prior[key] != plan[key]:
-            raise ValueError('Prepared scientific settings differ: '+key)
-    changed = subprocess.check_output(['git','-C',str(REPO),'diff','--name-only',
-        prior['commit'],plan['commit'],'--','src','bench/rebenchmark/shared.py',
-        'bench/rebenchmark/decoding.py','bench/rebenchmark/reference.py'],text=True)
-    if changed.strip():
-        raise ValueError('Prepared scientific implementation differs: '+changed)
-    with Path(prior['index']).open('rb') as stream:
-        if hashlib.file_digest(stream,'sha256').hexdigest() != prior['index_sha256']:
-            raise ValueError('Prepared index changed')
-    for pilot in map(Path,prior['pilots']):
-        if not read(pilot/'check.json')['verified'] or not read(pilot/'progress.json')['finished']:
-            raise ValueError('Pilot has not passed')
-    return dict(plan,index=prior['index'],index_sha256=prior['index_sha256'],
-                pilots=prior['pilots'],pilot_commits=prior['pilot_commits'])
-
-
-def submit(output, configuration, prepared=None):
+def submit(output, configuration):
     plan = read(configuration)
     commit = subprocess.check_output(['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip()
     if subprocess.check_output(['git', '-C', str(REPO), 'status', '--porcelain', '--untracked-files=no'], text=True).strip():
@@ -125,32 +94,25 @@ def submit(output, configuration, prepared=None):
     plan.update(commit=commit, python=sys.executable, identity=output.name+'-'+commit[:7],
                 campaign_root=str(output), generation=0,
                 pilots=[], pilot_commits=[commit])
-    if prepared is not None:
-        plan = prepared_plan(prepared, plan)
     output.mkdir(parents=True, exist_ok=False)
     save(output/'plan.json', plan)
     binaries = {str(p.relative_to(REPO)): hashlib.sha256(p.read_bytes()).hexdigest()
                 for pattern in ('_engine*.so', '_group_ops*.so') for p in (REPO/'src/mappa').glob(pattern)}
     save(output/'source.json', dict(commit=commit, native_binaries=binaries,
         plan_sha256=hashlib.sha256((output/'plan.json').read_bytes()).hexdigest()))
-    preparation = pilot = None
-    if prepared is None:
-        preparation = submit_job(output, 'prepare', plan, stage_resources(plan, 'prepare'),
-            wrapper(plan, 'prepare', output))
-        pilot = submit_job(output, 'pilot', plan, stage_resources(plan, 'pilot'),
-            wrapper(plan, 'pilot-check', output, module='rebenchmark.launch'),
-            dependency='afterok:'+preparation['job'])
-    else:
-        full = output/'full'; full.mkdir()
-        save(full/'plan.json',dict(plan,identity=plan['identity']+'-full'))
-        save(output/'prepared-reuse.json',dict(previous=str(prepared),index=plan['index'],
-             index_sha256=plan['index_sha256'],pilots=plan['pilots']))
+    preparation = submit_job(output, 'prepare', plan, stage_resources(plan, 'prepare'),
+        wrapper(plan, 'prepare', output))
+    pilot = submit_job(output, 'pilot', plan, stage_resources(plan, 'pilot'),
+        wrapper(plan, 'pilot-check', output, module='rebenchmark.launch'),
+        dependency='afterok:'+preparation['job'])
+    prepared_queue = submit_job(output, 'queue', plan, stage_resources(plan, 'queue'),
+        wrapper(plan, 'prepare-queue', output/'full', module='rebenchmark.launch'),
+        dependency='afterok:'+pilot['job'])
     production = submit_job(output, 'production', plan, stage_resources(plan, 'coordinator'),
         wrapper(plan, 'control', output/'full', module='rebenchmark.launch'),
-        dependency='afterok:'+pilot['job'] if pilot else None)
-    result = dict(preparation=preparation['job'] if preparation else None,
-                  pilot=pilot['job'] if pilot else None, production=production['job'],
-                  run=str(output), source=commit)
+        dependency='afterok:'+prepared_queue['job'])
+    result = dict(preparation=preparation['job'], pilot=pilot['job'], queue=prepared_queue['job'],
+                  production=production['job'], run=str(output), source=commit)
     save(output/'submission.json', result)
     print(json.dumps(result), flush=True)
     return result
@@ -277,73 +239,6 @@ def file_hash(path):
         return hashlib.file_digest(stream,'sha256').hexdigest()
 
 
-def recover_linked_outputs(queue_path, members, scratch):
-    """Recover task identities carried by saved decodes and their parent hashes.
-
-    This creates an evidence overlay, not a runnable queue. Unlabelled search
-    and reference records remain unresolved; graph similarity is not identity.
-    """
-    import sqlite3
-    from dataclasses import asdict
-    from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob, read_blobs
-    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
-    db = sqlite3.connect(f'file:{Path(queue_path).resolve()}?mode=ro&immutable=1',uri=True)
-    blobs = {Blob(**{k:m[k] for k in ('path','offset','size','sha256')}):m for m in members}
-    recovered = {}
-    def specification(key, operation):
-        row = db.execute('SELECT specification,state,result FROM tasks WHERE key=?',(key,)).fetchone()
-        if row is None:
-            raise ValueError('Saved output has no expected task: '+key)
-        task = _loads_checkpoint(row[0])
-        if task.operation != operation:
-            raise ValueError('Saved output operation differs: '+key)
-        return task, row
-    def record(key, blob, row, provenance):
-        if row[1] == 'complete':
-            if _loads_checkpoint(row[2])['blob'] != blob:
-                raise ValueError('Saved output conflicts with accepted result: '+key)
-            return
-        if row[1] not in ('pending','running'):
-            raise ValueError('Unexpected recorded task state: '+key)
-        value = dict(key=key,blob=asdict(blob),specification_sha256=hashlib.sha256(row[0]).hexdigest(),
-                     snapshot_state=row[1],provenance=provenance,
-                     attempt_resource_accounting='not present in the surviving checkpoint')
-        if key in recovered and recovered[key]['blob'] != value['blob']:
-            raise ValueError('Multiple saved outputs for one task: '+key)
-        recovered[key] = value
-    try:
-        decodes = sorted((b for b,m in blobs.items() if m['kind']=='decode'),key=lambda b:(b.path,b.offset))
-        seen = set()
-        for blob,value in read_blobs(decodes,scratch):
-            key = f'{value["task_id"]:05d}/cut/{value["cut"]:05d}/seed/{value["seed"]-1:02d}'
-            if key in seen:
-                raise ValueError('Duplicate decoder task identity: '+key)
-            seen.add(key)
-            task,row = specification(key,'rebenchmark.shared:convert_seed')
-            p = task.payload
-            if (p['input'] != value['input'] or p['task_id'] != value['task_id']
-                    or p['number'] != value['cut'] or p['seed'] != value['seed']-1):
-                raise ValueError('Saved decoder input identity differs: '+key)
-            parent = value['finalized']
-            if parent.sha256 != value['finalized_sha256'] or task.dependencies != (p['cut'],):
-                raise ValueError('Saved parent identity differs: '+key)
-            final,final_row = specification(p['cut'],'mappa.mappa_core.core.scheduler.search:finalize_cut')
-            if final.payload['input'] != p['input'] or final.payload['number'] != p['number']:
-                raise ValueError('Finalized task input differs: '+key)
-            if final_row[1] != 'complete' and (parent not in blobs or blobs[parent]['kind']!='finalize'):
-                raise ValueError('Referenced parent is absent from recovery inventory: '+key)
-            if p['cut'] not in recovered:
-                saved = read_blob(parent,scratch)
-                if (saved['cut'] != final.payload['number'] or saved['seeds'] != final.payload['seeds']
-                        or any(tuple(c.cuts)!=tuple(final.payload['cut']) for c in saved['graph'].contexts)):
-                    raise ValueError('Saved finalized specification differs: '+key)
-            record(p['cut'],parent,final_row,dict(decoder_key=key,relation='exact finalized blob reference'))
-            record(key,blob,row,dict(relation='saved task/seed/cut/input identity',finalized_key=p['cut']))
-        return list(recovered.values())
-    finally:
-        db.close()
-
-
 def restore_queue(plan, full, scratch):
     """Restore a retired snapshot byte-for-byte; do not replan or retry tasks."""
     from mappa.mappa_core.core.scheduler import TaskQueue
@@ -369,21 +264,77 @@ def restore_queue(plan, full, scratch):
         raise
 
 
-def service(full):
+def prepare_full_queue(full):
+    """Build and publish the task grid before starting the coordinator clock."""
     from .shared import prepare_queue
+    plan = read(full/'plan.json')
+    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
+        queue = prepare_queue(plan,full,scratch)
+        try:
+            states = queue.snapshot()
+            queue.backup(full/'queue.sqlite')
+        finally:
+            queue.close()
+    receipt = dict(identity=plan['identity'],index_sha256=plan['index_sha256'],
+        queue=str(full/'queue.sqlite'),queue_sha256=file_hash(full/'queue.sqlite'),
+        states=states,owner=os.environ.get('SLURM_JOB_ID'),utc=time.time())
+    save(full/'prepared-queue.json',receipt)
+    plan['resume_receipt'] = str(full/'prepared-queue.json')
+    save(full/'plan.json',plan)
+
+
+def status(root):
+    """One compact, read-only check; never inspect result archives or live SQLite."""
+    now = time.time()
+    submission = read(root/'submission.json')
+    allocation = read(root/'current-allocation.json') if (root/'current-allocation.json').exists() else None
+    stage = Path(allocation['stage']) if allocation else root/'full'
+    receipts = list(root.glob('*-launch.json')) + list(stage.glob('*-launch.json'))
+    jobs = sorted({str(read(p)['job']) for p in receipts if read(p).get('job')})
+    live_rows = scheduler_output(['squeue','-h','-u',getpass.getuser(),'-o','%i|%T|%C|%M|%R']).splitlines()
+    live = {r.split('|')[0]:r for r in live_rows if r.split('|')[0] in jobs}
+    def observed(name):
+        path = stage/name
+        if not path.exists(): return None
+        return dict(age_seconds=now-path.stat().st_mtime,**read(path))
+    checkpoint = stage/'queue.sqlite'
+    result = dict(utc=now,run=str(root),stage=str(stage),source=submission['source'],
+        target_compute_workers=read(root/'plan.json')['slurm']['target_workers'],
+        scheduler=list(live.values()),progress=observed('progress.json'),
+        preparation=observed('preparation.json'),runtime=observed('runtime.json'),
+        checkpoint=dict(bytes=checkpoint.stat().st_size,age_seconds=now-checkpoint.stat().st_mtime)
+                   if checkpoint.exists() else None)
+    worker_jobs = read(stage/'worker-jobs.json') if (stage/'worker-jobs.json').exists() else []
+    result['requested_compute_workers'] = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in worker_jobs)
+    result['running_compute_workers'] = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in worker_jobs
+        if live.get(str(j['job']),'').split('|')[1:2]==['RUNNING'])
+    result['accounting'] = scheduler_output(['sacct','-X','-n','-P','-j',','.join(jobs),
+        '--format=JobID,State,ExitCode,AllocCPUS,Elapsed,Start,End']).splitlines() if jobs else []
+    running = [j for j,r in live.items() if r.split('|')[1]=='RUNNING']
+    result['resources'] = scheduler_output(['sstat','-a','-n','-P','-j',','.join(running),
+        '--format=JobID,AveCPU,MaxRSS,MaxDiskRead,MaxDiskWrite']).splitlines() if running else []
+    save(root/'status.json',result)
+    return result
+
+
+def service(full):
     from .decoder_campaign import serve_queue
     plan = read(full/'plan.json')
     def terminate(signum, frame):
         raise SystemExit(128+signum)
     signal.signal(signal.SIGTERM,terminate)
-    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        queue = (restore_queue(plan,full,scratch) if 'resume_receipt' in plan
-                 else prepare_queue(plan,full,scratch))
-        try:
-            serve_queue(queue,full,dict(campaign='matching and original-space events'),
-                        retire_file=full/'retire.json')
-        finally:
-            queue.close()
+    scratch = Path(tempfile.mkdtemp(dir=os.environ['TMPDIR']))
+    queue = restore_queue(plan,full,scratch)
+    try:
+        serve_queue(queue,full,dict(campaign='matching and original-space events'),
+                    retire_file=full/'retire.json')
+    except BaseException:
+        save(full/'retained-scratch.json',dict(path=str(scratch),host=socket.gethostname(),
+            utc=time.time(),reason='Service failed; retain local database and WAL for diagnosis'))
+        raise
+    finally:
+        queue.close()
+    shutil.rmtree(scratch)
 
 
 def next_allocation(full, plan, states):
@@ -489,16 +440,17 @@ def report(full, workers):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('submit','pilot-check','control','service','report'))
+    parser.add_argument('mode', choices=('submit','pilot-check','prepare-queue','control','service','report','status'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--plan',type=Path)
-    parser.add_argument('--prepared',type=Path,help='Reuse a passed pilot and index after pre-worker startup failure')
     parser.add_argument('--workers',type=int,default=1)
     args = parser.parse_args()
     if args.mode == 'submit':
         if args.plan is None: parser.error('submit needs --plan')
-        submit(args.output.resolve(),args.plan,args.prepared)
+        submit(args.output.resolve(),args.plan)
     elif args.mode == 'pilot-check': pilot_check(args.output)
+    elif args.mode == 'prepare-queue': prepare_full_queue(args.output)
+    elif args.mode == 'status': print(json.dumps(status(args.output),indent=2))
     elif args.mode == 'control': control(args.output)
     elif args.mode == 'service': service(args.output)
     else: report(args.output,args.workers)

@@ -639,3 +639,22 @@ physical node limits. Current occupancy affects admission, not the requested
 capacity or renewal size. With 96-CPU/202GiB nodes and 2GiB guards, a target of
 800 produces three independently scheduled groups of three nodes ×89 workers
 (801 compute processes). This resource change never modifies scientific tasks.
+
+
+### Fresh cluster benchmark lifecycle
+
+The maintained `bench/rebenchmark/launch.py` owns submission, clean handoff and
+status collection. One pipeline runs input preparation, a real-input pilot,
+node-local queue construction, then the serving coordinator and worker groups.
+Queue construction does not consume the coordinator allocation. Workers request
+the configured compute target from eligible physical capacity, including busy
+nodes; running capacity and actual CPU use are reported separately.
+
+Failed-run result reassignment and preparation-recovery entry points are removed.
+An explicitly authorized fresh run gets its own identity and budgets; old logs
+and outputs remain immutable evidence. Normal continuation restores the same
+verified queue with attempts and remaining budgets intact. Scheduler transport
+timeouts on idempotent requests retain the service; submissions are never blindly
+retried. Failed services retain their local SQLite database and WAL. The reusable
+`status` command reads compact receipts and scheduler accounting without archive
+scans. Scientific operations stay in the existing shared pipeline.

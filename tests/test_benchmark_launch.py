@@ -9,37 +9,6 @@ import pytest
 from rebenchmark import launch
 
 
-def test_recovery_uses_task_identity_and_parent_hash_without_reassigning_graphs(tmp_path):
-    from mappa.mappa_core.core.scheduler import Task, TaskQueue, BundleWriter
-    from dataclasses import asdict
-    writer=BundleWriter(tmp_path/'bundles',tmp_path)
-    input_blob=writer.put({'input':'exact'})
-    parent=writer.put(dict(cut=0,seeds=1,graph=SimpleNamespace(contexts=[SimpleNamespace(cuts=())])))
-    payload=dict(task_id=0,cut=0,seed=1,input=input_blob,finalized=parent,finalized_sha256=parent.sha256)
-    decoder=writer.put(payload)
-    final_key='00000/cut/00000/finalize';key='00000/cut/00000/seed/00'
-    queue=TaskQueue(tmp_path/'queue.sqlite','recover')
-    queue.add([Task(final_key,'mappa.mappa_core.core.scheduler.search:finalize_cut',
-                    dict(input=input_blob,number=0,seeds=1,cut=())),
-               Task(key,'rebenchmark.shared:convert_seed',dict(input=input_blob,task_id=0,number=0,seed=0,cut=final_key),
-                    dependencies=(final_key,))])
-    queue.backup(tmp_path/'snapshot.sqlite');queue.close()
-    members=[dict(asdict(parent),kind='finalize'),dict(asdict(decoder),kind='decode')]
-    rows=launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',members,tmp_path)
-    assert {r['key'] for r in rows}=={key,final_key}
-    import sqlite3
-    with sqlite3.connect(tmp_path/'snapshot.sqlite') as db:
-        assert dict(db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))=={'pending':2}
-    with pytest.raises(ValueError,match='absent'):
-        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',members[1:],tmp_path)
-    wrong=writer.put(dict(payload,input=writer.put({'input':'wrong'})))
-    with pytest.raises(ValueError,match='input identity'):
-        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',[members[0],dict(asdict(wrong),kind='decode')],tmp_path)
-    duplicate=writer.put(payload)
-    with pytest.raises(ValueError,match='Duplicate'):
-        launch.recover_linked_outputs(tmp_path/'snapshot.sqlite',[*members,dict(asdict(duplicate),kind='decode')],tmp_path)
-
-
 def test_scheduler_outage_retries_same_pending_only_request(monkeypatch):
     import subprocess
     calls, pauses = [], []
@@ -76,18 +45,19 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
     monkeypatch.setattr(launch.subprocess, 'run', submitted)
     configuration = tmp_path/'config.json'
     configuration.write_text(json.dumps(dict(slurm=dict(account='test',partition='cpu',
-        **{k:dict(qos='short',cpus=2,memory_gib=8,time='01:00:00') for k in ('prepare','pilot','coordinator')}))))
+        **{k:dict(qos='short',cpus=2,memory_gib=8,time='01:00:00') for k in ('prepare','pilot','queue','coordinator')}))))
     result = launch.submit(tmp_path/'run',configuration)
-    assert result['production']=='103'
+    assert result['production']=='104'
     assert '--dependency=afterok:101' in commands[1]
     assert '--dependency=afterok:102' in commands[2]
+    assert '--dependency=afterok:103' in commands[3]
     assert commands[0][-1]=='rebenchmark.shared'
     assert 'bash' not in commands[0]
     assert any(a.endswith('/run_conversion.sbatch') for a in commands[0])
     assert commands[1][-1]=='rebenchmark.launch'
-    assert all((tmp_path/'run'/f'{stage}-launch.json').exists() for stage in ('prepare','pilot','production'))
+    assert all((tmp_path/'run'/f'{stage}-launch.json').exists() for stage in ('prepare','pilot','queue','production'))
     with pytest.raises(FileExistsError):launch.submit(tmp_path/'run',configuration)
-    assert len(commands)==3
+    assert len(commands)==4
 
 
 def test_capacity_requests_target_even_when_nodes_are_busy():
@@ -151,29 +121,6 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     assert set(queue.snapshot())=={'complete'}
     assert queue.claim('no-repeat',2**30,queue.identity)['state']=='finished'
     queue.close()
-
-
-def test_prepared_recovery_reuses_only_verified_unstarted_work(tmp_path,monkeypatch):
-    previous=tmp_path/'previous';(previous/'full').mkdir(parents=True)
-    pilot=previous/'pilot';pilot.mkdir()
-    (pilot/'check.json').write_text(json.dumps(dict(verified=True)))
-    (pilot/'progress.json').write_text(json.dumps(dict(finished=True)))
-    index=previous/'index.json';index.write_text('{}')
-    plan={k:'same' for k in ('dataset','dataset_path','input_manifest_sha256','directions','config',
-        'seed_batch','case_seconds','memory_bytes','slack','reference_checks','expected_cases')}
-    plan.update(commit='new',identity='recovery')
-    prior=dict(plan,commit='old',index=str(index),index_sha256=hashlib.sha256(index.read_bytes()).hexdigest(),
-               pilots=[str(pilot)],pilot_commits=['old'])
-    (previous/'full/plan.json').write_text(json.dumps(prior))
-    (previous/'production-launch.json').write_text(json.dumps(dict(job='123')))
-    monkeypatch.setattr(launch.subprocess,'check_output',lambda args,**kw:'OUT_OF_MEMORY\n' if args[0]=='sacct' else '')
-    result=launch.prepared_plan(previous,plan)
-    assert result['pilots']==[str(pilot)] and result['pilot_commits']==['old']
-    assert result['commit']=='new' and result['index']==str(index)
-    changed=dict(plan,config='different')
-    with pytest.raises(ValueError,match='settings differ'):launch.prepared_plan(previous,changed)
-    (previous/'full/endpoint.json').write_text('{}')
-    with pytest.raises(ValueError,match='already started'):launch.prepared_plan(previous,plan)
 
 
 def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_path,monkeypatch):
@@ -249,3 +196,67 @@ def test_pending_cancellation_needs_no_worker_receipt_but_started_cancellation_f
     assert launch.retired_workers(tmp_path,job)==[]
     started[0]='2026-10-30T00:00:00'
     with pytest.raises(RuntimeError,match='failed'):launch.retired_workers(tmp_path,job)
+
+
+def test_queue_preparation_publishes_restorable_snapshot_before_coordinator(tmp_path,monkeypatch):
+    from mappa.mappa_core.core.scheduler import Task,TaskQueue
+    from rebenchmark import shared
+    monkeypatch.setenv('TMPDIR',str(tmp_path))
+    plan=dict(identity='fresh',index_sha256='index')
+    launch.save(tmp_path/'plan.json',plan)
+    def prepared(plan,out,scratch):
+        queue=TaskQueue(Path(scratch)/'queue.sqlite',plan['identity'])
+        queue.add([Task('a','execution_helpers:value',{})])
+        return queue
+    from pathlib import Path
+    monkeypatch.setattr(shared,'prepare_queue',prepared)
+    launch.prepare_full_queue(tmp_path)
+    receipt=launch.read(tmp_path/'prepared-queue.json')
+    assert receipt['states']=={'pending':1}
+    assert receipt['queue_sha256']==launch.file_hash(tmp_path/'queue.sqlite')
+    scratch=tmp_path/'restore';scratch.mkdir()
+    restored=launch.restore_queue(launch.read(tmp_path/'plan.json'),tmp_path,scratch)
+    assert restored.snapshot()=={'pending':1}
+    assert restored.db.execute('SELECT count(*) FROM attempts').fetchone()[0]==0
+    restored.close()
+
+
+def test_status_separates_requested_from_running_workers_and_reports_failures(tmp_path,monkeypatch):
+    full=tmp_path/'full';full.mkdir()
+    launch.save(tmp_path/'submission.json',dict(source='source'))
+    launch.save(tmp_path/'plan.json',dict(slurm=dict(target_workers=800)))
+    launch.save(tmp_path/'production-launch.json',dict(job='100'))
+    launch.save(full/'workers-00-00-launch.json',dict(job='101'))
+    launch.save(full/'workers-01-00-launch.json',dict(job='102'))
+    launch.save(full/'worker-jobs.json',[dict(job=j,group=dict(nodes=3,workers_per_node=89)) for j in ('101','102')])
+    launch.save(full/'progress.json',dict(states=dict(complete=12,pending=20),utc=0))
+    def output(args):
+        if args[0]=='squeue':return '100|RUNNING|2|1:00|cpu-1\n101|RUNNING|270|1:00|cpu-[2-4]\n102|PENDING|270|0:00|Resources\n999|RUNNING|64|1:00|other\n'
+        if args[0]=='sacct':return '100|RUNNING|0:0\n'
+        return '100.batch|00:00:04|200M|0|0\n'
+    monkeypatch.setattr(launch,'scheduler_output',output)
+    result=launch.status(tmp_path)
+    assert result['requested_compute_workers']==534 and result['running_compute_workers']==267
+    assert result['target_compute_workers']==800 and result['checkpoint'] is None
+    assert len(result['scheduler'])==3 and result['progress']['states']['complete']==12
+    monkeypatch.setattr(launch,'scheduler_output',lambda args:'' if args[0]=='squeue' else '100|FAILED|1:0')
+    assert launch.status(tmp_path)['running_compute_workers']==0
+
+
+def test_failed_service_retains_local_queue_and_reports_location(tmp_path,monkeypatch):
+    from rebenchmark import decoder_campaign
+    from pathlib import Path
+    monkeypatch.setenv('TMPDIR',str(tmp_path))
+    launch.save(tmp_path/'plan.json',dict(identity='fresh'))
+    closed=[]
+    def restored(plan,full,scratch):
+        (scratch/'queue.sqlite').write_bytes(b'preserve failed queue')
+        return SimpleNamespace(close=lambda:closed.append(True))
+    monkeypatch.setattr(launch,'restore_queue',restored)
+    def failed(*args,**kwargs):raise RuntimeError('transport failed')
+    monkeypatch.setattr(decoder_campaign,'serve_queue',failed)
+    monkeypatch.setattr(launch.signal,'signal',lambda *args:None)
+    with pytest.raises(RuntimeError,match='transport failed'):launch.service(tmp_path)
+    receipt=launch.read(tmp_path/'retained-scratch.json')
+    assert (Path(receipt['path'])/'queue.sqlite').read_bytes()==b'preserve failed queue'
+    assert closed==[True]
