@@ -11,15 +11,10 @@ def validate_representative(path,problem):
     mapping=path.mapping
     assert len(set(mapping.values()))==len(mapping)
     assert all(problem.reactant.elements[r]==problem.product.elements[p] for r,p in mapping.items())
-    cuts={tuple(sorted(e)) for e in path.context.cuts}
-    for edge in path.transitions:
-        fragment=path.graph.fragment_placement(edge)
-        if fragment is None:continue
-        deferred={tuple(sorted(e)) for e in fragment.deferred_edges}
-        for a,b in combinations(fragment.r_atoms,2):
+    for edge_id in path.transitions:
+        for a,b in path.graph.transitions[edge_id].preserved_bonds:
             if a not in mapping or b not in mapping:continue
             w=problem.reactant.wbo[a,b]
-            if tuple(sorted((a,b))) in cuts|deferred or w<path.context.graph_floor:continue
             assert problem.product.wbo[mapping[a],mapping[b]]>=path.context.graph_floor
             assert abs(w-problem.product.wbo[mapping[a],mapping[b]])<=path.context.iso_tolerance+1e-9
 
@@ -48,7 +43,7 @@ def example(target_weight=1.0, cuts=(), deferred=()):
         )
 
     edges = (
-        FragmentTransition(0, 0, 1, 0, (1, 0), match([0, 1]), ((0, 1),)),
+        FragmentTransition(0, 0, 1, 0, (1, 0), match([0, 1]), () if cuts or deferred else ((0, 1),)),
         FragmentTransition(1, 0, 2, 0, (1, 0), match([0]), ()),
         FragmentTransition(2, 1, 3, 0, (1, 1), None, ()),
         FragmentTransition(3, 2, 3, 0, (1, 1), None, ()),

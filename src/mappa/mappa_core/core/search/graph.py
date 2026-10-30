@@ -280,9 +280,10 @@ class AAMSearchGraph:
         if edge.match is None:
             return None
         if edge_id not in self._typed_fragments:
-            self._typed_fragments[edge_id] = AAMHierarchy.from_record(
+            self._typed_fragments[edge_id] = replace(AAMHierarchy.from_record(
                 {'fragments': (edge.match,)},
-                generator_pool=self._typed_generators).fragments[0]
+                generator_pool=self._typed_generators).fragments[0],
+                preserved_bonds=edge.preserved_bonds)
         return self._typed_fragments[edge_id]
 
     def paths(self, terminal=None):

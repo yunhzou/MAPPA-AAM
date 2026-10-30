@@ -12,12 +12,12 @@ def endpoint(elements,edges):
     return MolecularEndpoint(tuple(elements),np.zeros((len(elements),3)),w)
 
 
-def synthetic_path(blocks,automorph_blocks=()):
+def synthetic_path(blocks,automorph_blocks=(),preserved_bonds=()):
     graph=AAMSearchGraph((SearchContext((0,1),(0,1,2),(0,1)),),(0,),
         (SearchState(0,0,(),(),()),SearchState(1,0,((0,0),(1,1)),((0,1),(1,1)),())),
         (FragmentTransition(0,0,1,0,(1,0),dict(fragment=[0,1],symmetry=dict(
             witness={0:0,1:1},blocks=blocks,exact_fixed=[],automorph_blocks=automorph_blocks,
-            automorph_generators=[]))),),(SearchStop(1,'objective_met'),))
+            automorph_generators=[])),preserved_bonds),),(SearchStop(1,'objective_met'),))
     return next(graph.paths())
 
 
@@ -82,7 +82,7 @@ def test_automorphism_summary_is_not_an_independent_domain():
 
 def test_reference_heavy_assignment_still_requires_feasible_hydrogens():
     problem=AAMProblem(endpoint('OH',[(0,1)]),endpoint('OHO',[(0,1)]))
-    path=synthetic_path([dict(r_atoms=[0],p_atoms=[0,2])])
+    path=synthetic_path([dict(r_atoms=[0],p_atoms=[0,2])], preserved_bonds=((0,1),))
     assert query_path(path,problem,{0:2},source_atoms=(0,))[0]=='not_recovered'
 
 
