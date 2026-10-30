@@ -291,6 +291,67 @@ def prepare_queue(plan, out, scratch):
     return queue
 
 
+def prepare_repeat_queue(plan, out, scratch):
+    """A new timed experiment reuses completed stages and repeats explicit ones.
+
+    The original run and its attempts remain immutable. This is an authorized
+    benchmark repetition with fresh budgets, not recovery of failed work.
+    """
+    import hashlib
+    import json
+    import sqlite3
+    from collections import Counter
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    from .decoder_campaign import save
+    source = Path(plan['repeat_from'])
+    prior_plan = json.loads((source/'plan.json').read_text())
+    progress = json.loads((source/'progress.json').read_text())
+    if not progress.get('finished') or progress['states'].keys() != {'complete'}:
+        raise ValueError('Repeat requires a completed source experiment')
+    if prior_plan['index_sha256'] != plan['index_sha256'] or plan['pilots']:
+        raise ValueError('Repeat requires the same complete task grid without pilot reuse')
+    with (source/'queue.sqlite').open('rb') as stream:
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    if digest != plan['source_queue_sha256']:
+        raise ValueError('Source queue hash differs')
+    prior = sqlite3.connect('file:'+str(source/'queue.sqlite')+'?mode=ro', uri=True)
+    local = sqlite3.connect(Path(scratch)/'source.sqlite')
+    try:
+        prior.backup(local)
+    finally:
+        prior.close()
+    queue = prepare_queue(plan, out, scratch)
+    repeated, reused = Counter(), Counter()
+    operations = set(plan['repeat_operations'])
+    try:
+        for key, specification, state, result in local.execute(
+                'SELECT key,specification,state,result FROM tasks'):
+            expected = queue.db.execute('SELECT specification FROM tasks WHERE key=?',(key,)).fetchone()
+            if expected != (specification,) or state != 'complete' or result is None:
+                raise ValueError('Source task differs or is unfinished: '+key)
+            operation = _loads_checkpoint(specification).operation
+            if operation in operations:
+                repeated[operation] += 1
+            else:
+                queue.db.execute("UPDATE tasks SET state='complete',result=? WHERE key=?",(result,key))
+                reused[operation] += 1
+        count = queue.db.execute('SELECT count(*) FROM tasks').fetchone()[0]
+        if sum(repeated.values())+sum(reused.values()) != count or set(repeated) != operations or not operations:
+            raise ValueError('Repeat operation selection or source denominator differs')
+        queue.db.commit()
+        queue.optimize()
+        save(out/'inventory.json',dict(expected=count, repeated=dict(repeated), reused=dict(reused),
+            source_queue=str(source/'queue.sqlite'), source_queue_sha256=digest,
+            index_sha256=plan['index_sha256'], fresh_experiment_budgets=True,
+            counts=queue.snapshot()))
+        return queue
+    except BaseException:
+        queue.close()
+        raise
+    finally:
+        local.close()
+
+
 def prepare_memory_stage(plan, out, scratch):
     """Continue only authorized memory failures from a retired first stage."""
     import hashlib
@@ -355,7 +416,8 @@ def execute(args):
         raise SystemExit(128+signum)
     signal.signal(signal.SIGTERM, terminate)
     with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
-        prepare = {'memory-stage': prepare_memory_stage, 'coordinator': prepare_queue}[args.mode]
+        prepare = {'memory-stage': prepare_memory_stage, 'repeat': prepare_repeat_queue,
+                   'coordinator': prepare_queue}[args.mode]
         queue = prepare(plan,out,scratch)
         try:
             serve_queue(queue,out,dict(campaign='fresh matching and conversion'))
@@ -366,7 +428,7 @@ def execute(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode',choices=('prepare','coordinator','worker','memory-stage'))
+    parser.add_argument('mode',choices=('prepare','coordinator','worker','memory-stage','repeat'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--workers',type=int,default=1)
     parser.add_argument('--memory-bytes',type=int,

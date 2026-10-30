@@ -52,8 +52,8 @@ if [[ "$mode" == pilot || "$mode" == memory-stage ]]; then
     wait "$coordinator_pid"
 elif [[ "$mode" == prepare ]]; then
     "$python" -u -m "$campaign" prepare "$output"
-elif [[ "$mode" == coordinator ]]; then
-    "$python" -u -m "$campaign" coordinator "$output"
+elif [[ "$mode" == coordinator || "$mode" == repeat ]]; then
+    "$python" -u -m "$campaign" "$mode" "$output"
 elif [[ "$mode" == worker ]]; then
     "$python" -u -m "$campaign" worker "$output" --workers "$workers" "${memory_arguments[@]}"
 else

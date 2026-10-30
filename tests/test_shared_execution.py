@@ -680,3 +680,48 @@ def test_enzyme_preparation_freezes_complete_grid_in_worker_bundles(tmp_path, mo
     assert index['cases']==3 and index['tasks']==24
     assert [r['direction'] for r in index['directions']]==list(range(6))
     assert len(list((tmp_path/'inputs').glob('*.bundle'))) <= 2
+
+
+def test_repeat_stage_reuses_exact_parents_and_keeps_source_immutable(tmp_path):
+    import hashlib, json
+    from dataclasses import asdict
+    from rebenchmark.shared import prepare_repeat_queue
+    prior_path = tmp_path/'prior'; prior_path.mkdir()
+    output = tmp_path/'repeat'; output.mkdir()
+    scratch = tmp_path/'scratch'; scratch.mkdir()
+    parent = task('00000/cut/00000/final', case='00000')
+    child = replace(task('00000/cut/00000/seed/00', case='00000', dependencies=(parent.key,)),
+                    operation='rebenchmark.shared:convert_seed')
+    writer = BundleWriter(tmp_path/'bundles', scratch)
+    blob = writer.put([parent, child])
+    index = tmp_path/'index.json'
+    index.write_text(json.dumps(dict(directions=[dict(direction=0,blob=asdict(blob))])))
+    index_hash = hashlib.sha256(index.read_bytes()).hexdigest()
+    (prior_path/'plan.json').write_text(json.dumps(dict(index_sha256=index_hash)))
+    (prior_path/'progress.json').write_text(json.dumps(dict(finished=True,states=dict(complete=2))))
+    prior = TaskQueue(prior_path/'queue.sqlite','prior')
+    prior.add([parent, child])
+    for expected in (parent,child):
+        claim = prior.claim('old', MEMORY, 'prior')
+        assert claim['task']==expected
+        prior.finish(expected.key,claim['token'],'complete',dict(value=expected.key))
+    prior.close()
+    before = (prior_path/'queue.sqlite').read_bytes()
+    plan = dict(index=str(index), index_sha256=index_hash,identity='new',pilots=[],
+        repeat_from=str(prior_path),source_queue_sha256=hashlib.sha256(before).hexdigest(),
+        repeat_operations=[child.operation])
+    queue = prepare_repeat_queue(plan,output,scratch)
+    assert queue.snapshot()==dict(complete=1,pending=1)
+    assert queue.db.execute('SELECT count(*) FROM attempts').fetchone()[0]==0
+    claim = queue.claim('new',MEMORY,'new')
+    assert claim['task']==child
+    assert claim['dependencies']=={parent.key:dict(value=parent.key)}
+    assert queue.db.execute('SELECT spent FROM cases').fetchone()[0]==0
+    queue.close()
+    assert (prior_path/'queue.sqlite').read_bytes()==before
+    plan['source_queue_sha256']='wrong'
+    with pytest.raises(ValueError,match='hash differs'):
+        prepare_repeat_queue(plan,output,scratch)
+    (prior_path/'progress.json').write_text(json.dumps(dict(finished=False,states=dict(running=1))))
+    with pytest.raises(ValueError,match='completed source'):
+        prepare_repeat_queue(plan,output,scratch)
