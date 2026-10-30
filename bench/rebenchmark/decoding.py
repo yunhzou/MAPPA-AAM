@@ -65,6 +65,29 @@ def decode_seed(payload, workspace):
         finalized=finalized, finalized_sha256=digest, search_rerun=False)
 
 
+def dense_event_categories(problem, mapping):
+    """Independent original-matrix recount for saved representative validation."""
+    import numpy as np
+    from mappa.mappa_core.utils.bonds import is_metal_element
+    counts = np.zeros(4,dtype=int)
+    for reverse in (False,True):
+        ep,other,images = ((problem.reactant,problem.product,mapping) if not reverse else
+                          (problem.product,problem.reactant,{p:r for r,p in mapping.items()}))
+        a,b = np.triu_indices(ep.atom_count,1)
+        mapped = np.array([images.get(i,-1) for i in range(ep.atom_count)])
+        touched = (mapped[a]>=0)|(mapped[b]>=0)
+        both = (mapped[a]>=0)&(mapped[b]>=0)
+        opposite = np.zeros(len(a))
+        opposite[both] = other.wbo[mapped[a[both]],mapped[b[both]]]
+        metal = np.array([is_metal_element(e) for e in ep.elements])
+        tau = np.where(metal[a]|metal[b],.3,.5)
+        decrease = touched & (ep.wbo[a,b]-opposite>tau)
+        persists = opposite>tau
+        counts[1 if reverse else 0] += np.count_nonzero(decrease & ~persists)
+        counts[2 if reverse else 3] += np.count_nonzero(decrease & persists)
+    return dict(zip(('breaking','forming','strengthening','weakening'),map(int,counts)))
+
+
 def decode_graph(problem, graph, payload):
     """Prepare every retained family's local event functions without rematching."""
     from mappa.mappa_core.utils.io.records import decoded_events_record
@@ -86,7 +109,7 @@ def decode_graph(problem, graph, payload):
     # Independent dense recounts check the sparse factors on each saved branch.
     for fid, partitions in enumerate(result.fragment_partitions):
         vector = result.index.vector(result.realize(fid))
-        expected = result.index.describe(vector)['counts']
+        expected = dense_event_categories(problem,result.realize(fid))
         for partition in range(len(partitions)):
             actual = result.tables(fid,partition).evaluate(vector)['counts']
             if actual != expected:

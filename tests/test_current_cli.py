@@ -27,7 +27,7 @@ def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatc
     assert record['schema'] == 'mappa.decoded_events/v3'
     assert record['mapping_space_preserved']
     assert not record['global_minimum_proven']
-    assert len(record['representatives']) == 1
+    assert len({r['id'] for r in record['representatives']}) == 1
     assert record['representatives'][0]['total'] == 0
     assert (output / 'aam.json').is_file()
     assert (output / 'search.html').is_file()

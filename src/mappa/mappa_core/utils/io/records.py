@@ -98,7 +98,6 @@ def decoded_events_record(result):
     counts are labelled explicitly; they do not prove a minimum over choices.
     """
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
-    from dataclasses import asdict
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, table_ids, responses, response_ids, families = [], {}, [], {}, []
@@ -129,7 +128,7 @@ def decoded_events_record(result):
                     components=table.components, statistics=table.statistics))
             saved.append(table_ids[identity])
         families.append(dict(family_id=fid, tables=saved,
-            action_responses=[asdict(r) for r in result.family_actions[fid]]))
+            action_responses=[r.generators for r in result.family_actions[fid]]))
     representatives = [dict(family_id=i, **result.evaluate(i))
                        for i in range(len(result.catalogue.families))]
     return dict(schema='mappa.decoded_events/v3', method='compressed_event_interpretation',
