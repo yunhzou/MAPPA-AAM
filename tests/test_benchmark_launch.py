@@ -106,10 +106,13 @@ def test_scaling_cancels_only_pending_and_waits_for_retirement(tmp_path, monkeyp
     monkeypatch.setattr(launch, 'scheduler_output', output)
     monkeypatch.setattr(launch, 'retired_workers', lambda *a: None)
     monkeypatch.setattr(launch, 'start_workers', lambda *a: pytest.fail('Must confirm retirement before replacement'))
-    jobs = [dict(job='100', generation=0, group=dict(nodes=3, workers_per_node=89))]
+    jobs = [dict(job='100', utc=0, generation=0, group=dict(nodes=3, workers_per_node=89))]
     launch.scale_workers(tmp_path, plan, jobs)
     assert ['scancel', '--state=PENDING', '100'] in calls
     assert jobs[0]['cancel_pending']
+    calls.clear();jobs[0]['utc']=launch.time.time()
+    launch.scale_workers(tmp_path, plan, jobs)
+    assert not any(c[0]=='scancel' for c in calls)
 
 
 def test_scaling_counts_existing_workers_against_ceiling(tmp_path, monkeypatch):
