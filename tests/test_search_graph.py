@@ -179,7 +179,7 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
 
 
 @pytest.mark.parametrize('seed', range(10))
-def test_fragment_bonds_match_whole_graph_definition(seed):
+def test_fragment_bonds_retain_only_recorded_growth_edges(seed):
     from mappa.mappa_core.core.matching.representation.records import _IsoResult
     rng = random.Random(seed)
     graph = network(['C'] * 18)
@@ -189,9 +189,10 @@ def test_fragment_bonds_match_whole_graph_definition(seed):
                 graph.add_edge(a, b)
     atoms = frozenset(rng.sample(list(graph), 9))
     cuts = frozenset(tuple(sorted(edge)) for edge in rng.sample(list(graph.edges()), 4))
-    raw = _IsoResult({a: a + 100 for a in atoms}, fragment=atoms, deferred_edges=cuts)
-    expected = tuple(sorted(tuple(sorted((a, b))) for a, b in graph.edges()
-                            if a in atoms and b in atoms and tuple(sorted((a, b))) not in cuts))
+    expected = tuple(sorted(tuple(sorted(edge)) for edge in graph.edges()
+                            if edge[0] in atoms and edge[1] in atoms))[:2]
+    raw = _IsoResult({a: a + 100 for a in atoms}, fragment=atoms,
+                     deferred_edges=cuts, preserved_bonds=expected)
     result = FragmentPlacement.from_match(raw, graph)
     assert result.preserved_bonds == expected
 

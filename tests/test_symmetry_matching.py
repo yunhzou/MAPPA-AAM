@@ -226,7 +226,7 @@ def test_extension_retains_correlated_placements_on_different_atom_sets():
         [cand], {0}, 1, g_r, g_p, {}, 0.1, None,
         p_orbits={0: 0, 1: 0, 2: 1, 3: 1},
         r_orbits={0: 0, 1: 0},
-    )
+     anchor_u=min(set(g_r.neighbors(1)) & set({0})))
     mappings = {tuple(sorted(_cand_map(c).items())) for c in out}
 
     assert mappings == {((0, 0), (1, 2)), ((0, 1), (1, 3))}
@@ -245,7 +245,7 @@ def test_extension_ignores_inactive_r_pairs():
     out = _extend_sym_cands(
         [_SymCand({0: 0, 1: 1})], {0, 1}, 2,
         g_r, g_p, {}, 0.1, None,
-    )
+     anchor_u=min(set(g_r.neighbors(2)) & set({0, 1})))
 
     assert len(out) == 1
 
@@ -263,7 +263,7 @@ def test_extension_rejects_active_r_pair_mismatch():
     out = _extend_sym_cands(
         [_SymCand({0: 0, 1: 1})], {0, 1}, 2,
         g_r, g_p, {}, 0.1, None,
-    )
+     anchor_u=min(set(g_r.neighbors(2)) & set({0, 1})))
 
     assert out == []
 
@@ -282,7 +282,7 @@ def test_unique_center_can_grow_to_many_compressed_targets():
         [_SymCand({0: 0})], {0}, 1, g_r, g_p, {}, 0.1, None,
         p_orbits={0: 0, 1: 1, 2: 1},
         r_orbits={0: 0, 1: 1},
-    )
+     anchor_u=min(set(g_r.neighbors(1)) & set({0})))
 
     assert len(out) == 1
     assert isinstance(out[0], _SymCand)

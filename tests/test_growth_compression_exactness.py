@@ -67,7 +67,7 @@ def represented(candidates, target, tolerance):
     return result
 
 
-def explicit(source, target, atoms, tolerance):
+def explicit(source, target, atoms, tolerance, edges=None):
     result = set()
     for images in permutations(target.nodes, len(atoms)):
         mapping = dict(zip(atoms, images))
@@ -77,7 +77,7 @@ def explicit(source, target, atoms, tolerance):
         if all(target.has_edge(mapping[a], mapping[b]) and
                abs(source.graph['wbo_matrix'][a, b] -
                    target.graph['wbo_matrix'][mapping[a], mapping[b]]) <= tolerance
-               for a, b in source.edges if a in mapping and b in mapping):
+               for a, b in (source.edges if edges is None else edges) if a in mapping and b in mapping):
             result.add(tuple(sorted(mapping.items())))
     return result
 
@@ -96,12 +96,15 @@ def assert_prefixes(source, target, order, tolerance=0.2):
                   for values in pools.values()]
     candidates = _dedup_sym_cands(candidates, source, target, ro, po)
     fragment = {seed}
+    edges = []
     assert represented(candidates, target, tolerance) == explicit(source, target, fragment, tolerance)
     for atom in order[1:]:
+        anchor = min(set(source.neighbors(atom)) & fragment)
+        edges.append((anchor, atom))
         candidates = _extend_sym_cands(candidates, fragment, atom, source, target,
-                                       {}, tolerance, None, r_orbits=ro, p_orbits=po)
+                                       {}, tolerance, None, r_orbits=ro, p_orbits=po, anchor_u=anchor)
         fragment.add(atom)
-        assert represented(candidates, target, tolerance) == explicit(source, target, fragment, tolerance), (order, atom)
+        assert represented(candidates, target, tolerance) == explicit(source, target, fragment, tolerance, edges), (order, atom)
     return candidates
 
 
@@ -138,7 +141,7 @@ def test_bucket_equivalence_does_not_hide_different_future_support():
     assert_prefixes(source, target, [0, 1, 2], tolerance=0.15)
 
 
-def test_locked_island_merge_preserves_pool_support_for_every_added_atom():
+def test_locked_island_merge_constrains_only_join_edge():
     source = graph(['X', 'C', 'O', 'N'],
                    [(0, 1, 1), (1, 2, 1), (2, 3, 1), (1, 3, 1)])
     target = graph(['X', 'C', 'C', 'O', 'N'],
@@ -146,8 +149,8 @@ def test_locked_island_merge_preserves_pool_support_for_every_added_atom():
                     (3, 4, 1), (2, 4, 1)])
     candidate = _SymCand({0: 0, 1: 1}, (_SymBlock((1,), (1, 2)),))
     result = _extend_sym_cands([candidate], {0, 1}, 2, source, target,
-                               {2: 3, 3: 4}, .2, {2: 1, 3: 1})
-    assert represented(result, target, .2) == {((0, 0), (1, 2), (2, 3), (3, 4))}
+                               {2: 3, 3: 4}, .2, {2: 1, 3: 1}, anchor_u=1)
+    assert represented(result, target, .2) == {((0, 0), (1, p), (2, 3), (3, 4)) for p in (1, 2)}
 
 
 def test_pool_join_requires_every_new_atom_choice_to_be_interchangeable():
@@ -157,8 +160,8 @@ def test_pool_join_requires_every_new_atom_choice_to_be_interchangeable():
                    [(0, 1, 1), (0, 2, 1), (0, 3, 1), (1, 2, 1), (2, 3, 1)])
     candidate = _SymCand({0: 0, 1: 1, 2: 2}, (_SymBlock((1, 2), (1, 2, 3)),))
     assert represented([candidate], target, .2) == explicit(source, target, {0, 1, 2}, .2)
-    result = _extend_sym_cands([candidate], {0, 1, 2}, 3, source, target, {}, .2, None)
-    assert represented(result, target, .2) == explicit(source, target, {0, 1, 2, 3}, .2)
+    result = _extend_sym_cands([candidate], {0, 1, 2}, 3, source, target, {}, .2, None, anchor_u=0)
+    assert represented(result, target, .2) == explicit(source, target, {0, 1, 2, 3}, .2, [(0, 1), (0, 2), (0, 3)])
 
 
 def test_weighted_prefixes_preserve_exact_tolerance_checks():
@@ -215,3 +218,60 @@ def test_compression_contract_survives_typed_hierarchy_roundtrip():
     assert candidate_from_record(restored).compression_version == 3
     del restored['compression_version']
     assert candidate_from_record(restored).compression_version == 1
+
+
+@pytest.mark.parametrize('native', ['0', '1'])
+@pytest.mark.parametrize('reverse', [False, True])
+def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, reverse, monkeypatch):
+    from mappa import AAMProblem, MolecularEndpoint, interpret_events, query_path
+    from mappa.mappa_core.core.search.branching.construction import find_islands
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    import json
+
+    monkeypatch.setenv('MAPPA_NATIVE', native)
+    ring = graph(['C'] * 6, [(a, (a + 1) % 6, 1) for a in range(6)])
+    chain = graph(['C'] * 6, [(a, a + 1, 1) for a in range(5)])
+    source, target = (chain, ring) if reverse else (ring, chain)
+    endpoint = lambda g: MolecularEndpoint(('C',) * 6, np.zeros((6, 3)), g.graph['wbo_matrix'])
+    problem = AAMProblem(endpoint(source), endpoint(target))
+    found = find_islands(source, target, list(range(6)), iso_tol=1, max_branches=100)
+    found, _ = finalize_graph_symmetry(found, target, iso_tolerance=1)
+    restored = AAMSearchGraph.from_record(json.loads(json.dumps(found.to_record())))
+    catalogue = FinalBranchCatalogue(problem).add_graph(restored)
+    assert catalogue.families and not found.capped
+    for path in restored.paths():
+        assert len(path.hierarchy.fragments) == 1
+        fragment = path.hierarchy.fragments[0]
+        assert set(fragment.r_atoms) == set(range(6))
+        assert len(fragment.preserved_bonds) == 5
+        tree = nx.Graph(fragment.preserved_bonds)
+        assert nx.is_tree(tree)
+        assert query_path(path, problem, path.mapping, source_atoms=tuple(range(6)))[0] == 'recovered'
+    events = interpret_events(catalogue)
+    for i, family in enumerate(catalogue.families):
+        family.validate_representative(problem)
+        assert len(family.required_edges) == 5
+        result = events.contributions(i)
+        assert result['total'] == 1
+        assert result['counts']['forming' if reverse else 'breaking'] == 1
+        assert sum(sum(v.values()) for v in result['boundary'].values()) == 0
+
+
+def test_equal_atom_sets_keep_distinct_growth_constraints():
+    from dataclasses import replace
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.mappa_core.core.search.branching.construction import find_islands
+    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    ring = graph(['C'] * 3, [(0, 1, 1), (1, 2, 1), (0, 2, 1)])
+    endpoint = MolecularEndpoint(('C',) * 3, np.zeros((3, 3)), ring.graph['wbo_matrix'])
+    found = find_islands(ring, ring, [0, 1, 2], iso_tol=.2, max_branches=100)
+    found, _ = finalize_graph_symmetry(found, ring, iso_tolerance=.2)
+    changed = replace(found, transitions=tuple(replace(e, preserved_bonds=((0, 1), (1, 2)))
+                                               for e in found.transitions))
+    other = replace(found, transitions=tuple(replace(e, preserved_bonds=((0, 1), (0, 2)))
+                                             for e in found.transitions))
+    cat = FinalBranchCatalogue(AAMProblem(endpoint, endpoint)).add_graph(changed).add_graph(other)
+    assert len({f.required_edges for f in cat.families}) == 2

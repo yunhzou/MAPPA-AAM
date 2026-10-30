@@ -99,14 +99,7 @@ BranchPtr commit_scheduled_fragment(const BranchPtr& parent,IsoOut iso,
     }
     child->snapshot_key();
     if (child->key==parent->key) return parent;
-    std::vector<uint8_t> in_fragment(source.n,0);
-    for (int r:iso.fragment) in_fragment[r]=1;
-    std::vector<Pair> preserved;
-    for (int a:iso.fragment) for (int b:source.adj[a])
-        if (a<=b && in_fragment[b] &&
-            !std::binary_search(iso.deferred_edges.begin(),iso.deferred_edges.end(),Pair{a,b}))
-            preserved.push_back({a,b});
-    std::sort(preserved.begin(),preserved.end());
+    auto preserved = iso.preserved_bonds;
     int island=child->labels[iso.mapping.front().first];
     child->node=graph.state(*child);
     graph.transitions.push_back({parent->node,child->node,graph.seed,graph.pass,graph.position,island,

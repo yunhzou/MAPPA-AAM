@@ -75,9 +75,8 @@ def _extend_sym_cands(
         derives the inverse internally only to prevent reusing locked P atoms;
         merge extension checks the pre-locked image of `n`.
     iso_tol
-        Active R-pair WBO tolerance.  For every atom `u` in the old fragment
-        with an active R-side graph edge to `n`, a proposed image `n -> v` is
-        valid only if some supported witness satisfies
+        WBO tolerance for the selected growth edge `anchor_u -> n`.
+        A proposed image `n -> v` is valid only if some supported witness satisfies
         `WBO_P[v,image(u)] >= graph_floor` and
         `abs(WBO_R[n,u] - WBO_P[v,image(u)]) <= iso_tol`.
     islands_R
@@ -94,9 +93,9 @@ def _extend_sym_cands(
         dedupe.  They are not chemistry cuts and are not removed from the WBO
         graph.
     anchor_u, anchor_wbo
-        The popped growth edge `anchor_u -> n` and its WBO.  The edge is not a
-        special chemistry rule; this just keeps trace/debug and support checks
-        tied to the exact heap edge that triggered the extension.
+        The selected growth edge `anchor_u -> n` and its WBO. Only this edge
+        adds a matching constraint; other molecular connections are retained
+        for event interpretation.
     dedupe_edges
         Optional boundary-edge set to use for deduping the child states.  The
         growth loop passes current deferred edges plus current one-hop frontier
@@ -207,9 +206,8 @@ def _strict_growth_wbos(
 ) -> dict[Node, Wbo]:
     """Exact WBO for the heap edge that triggered this extension.
 
-    The heap edge is not a special chemistry rule.  It is one active R-side
-    pair in the extension vector.  Keeping it explicit makes traces and support
-    checks use the exact value popped from the heap.
+    This selected edge is the new matching constraint. Other connections
+    from the atom to the fragment do not enter the extension test.
     """
     if anchor_u is None or anchor_u not in fragment_old:
         return {}
@@ -217,20 +215,6 @@ def _strict_growth_wbos(
         anchor_u: _edge_wbo(g_R, anchor_u, n)
         if anchor_wbo is None else anchor_wbo
     }
-
-
-def _active_fragment_neighbors(
-    fragment_old: set[Node],
-    g_R,
-    n: Node,
-) -> tuple[Node, ...]:
-    """Fragment atoms whose R-side pair to ``n`` is in the active graph.
-
-    Extension growth is local on the R graph.  The validity vector is therefore
-    scoped to active R-side pairs, rather than every zero-WBO pair to the
-    current fragment.
-    """
-    return tuple(sorted(u for u in fragment_old if g_R.has_edge(u, n)))
 
 
 def _make_extension_context(
@@ -251,9 +235,9 @@ def _make_extension_context(
     bond_tolerance=None,
 ) -> _ExtensionContext | None:
     """Collect repeated extension inputs into one typed context."""
-    bonded_in_frag = _active_fragment_neighbors(fragment_old, g_R, n)
-    if not bonded_in_frag:
-        return None
+    if anchor_u not in fragment_old or not g_R.has_edge(anchor_u, n):
+        raise ValueError("Extension requires its selected active growth edge")
+    bonded_in_frag = (anchor_u,)
     locked_p_atoms = frozenset(mapping.values())
     compatible_p_atoms = tuple(
         v for v in g_P.nodes()
@@ -323,11 +307,11 @@ def _supported_value(
 
 
 def _extend_locked_merge(cand: _SymCand, ctx: _ExtensionContext) -> list[_SymCand]:
-    """Apply the same extension invariant to each atom of a locked island."""
+    """Match the joining edge, then carry the already locked island unchanged."""
     children = [cand]
     fragment = set(ctx.fragment_old)
     for atom in (ctx.n, *(r for r in ctx.island_atoms if r != ctx.n)):
-        bonded = _active_fragment_neighbors(fragment, ctx.g_R, atom)
+        bonded = ctx.bonded_in_frag if atom == ctx.n else ()
         step = replace(ctx, n=atom, fragment_old=frozenset(fragment),
                        bonded_in_frag=bonded,
                        r_wbos=tuple((r, _edge_wbo(ctx.g_R, r, atom)) for r in bonded),

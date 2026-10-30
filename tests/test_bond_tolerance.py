@@ -106,7 +106,7 @@ def test_each_extension_matches_explicit_conditional_relation():
     candidates, fragment = [_SymCand({0: 0}, exact_fixed=(0,))], {0}
     for atom in (2, 1, 3):
         candidates = _extend_sym_cands(candidates, fragment, atom, source, target,
-            {0: 0}, .5, {0: 0}, r_orbits=ro, p_orbits=po, bond_tolerance=policy)
+            {0: 0}, .5, {0: 0}, r_orbits=ro, p_orbits=po, bond_tolerance=policy, anchor_u=min(set(source.neighbors(atom)) & set(fragment)))
         fragment.add(atom)
         atoms = sorted(fragment - {0})
         expected = {((0, 0), *zip(atoms, images)) for images in permutations(range(1, 4), len(atoms))

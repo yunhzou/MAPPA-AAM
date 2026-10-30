@@ -157,15 +157,9 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     for atom,value in zip(source_atoms,normalized):
         if complete_reference or atom in reference:encoder.restrict(value[0],{reference.get(atom,np_)})
     encoder.propagate()
-    cuts={tuple(sorted(e)) for e in path.context.cuts}
-    required={}
-    for _,fragment in placements:
-        deferred={tuple(sorted(e)) for e in fragment.deferred_edges}
-        for a,b in combinations(fragment.r_atoms,2):
-            if a not in representative or b not in representative:continue
-            pair=tuple(sorted((a,b)));w=problem.reactant.wbo[a,b]
-            if pair in cuts or pair in deferred or w<path.context.graph_floor:continue
-            required[pair]=float(w)
+    required = {(a,b): float(problem.reactant.wbo[a,b])
+                for edge,_ in placements
+                for a,b in path.graph.transitions[edge].preserved_bonds}
     for (a,b),w in required.items():
         if encoder.failed:break
         va,vb=values[a],values[b]

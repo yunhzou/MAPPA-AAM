@@ -72,7 +72,7 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
     _,ep=molecule();problem=AAMProblem(ep,ep)
     config=AAMSearchConfig(random_seed=137,cut_floor=10,iso_tolerance=.1)
     result=search_aam(problem,config)
-    assert all(c.random_seed==137 and c.growth_policy=='uniform_boundary_atom_splitmix64_v1'
+    assert all(c.random_seed==137 and c.growth_policy=='growth_edge_splitmix64_v2'
                for c in result.graph.contexts)
     assert result.graph==search_aam(problem,config).graph
     old=checkpoint_manifest(problem,config)

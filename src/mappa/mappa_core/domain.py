@@ -205,9 +205,12 @@ class FragmentMatch:
     automorph_domains: tuple[SymmetryDomain, ...] = ()
     target_generators: tuple[AtomPermutation, ...] | None = None
     compression_version: int = 1
+    preserved_bonds: tuple[tuple[int, int], ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "r_atoms", tuple(sorted(map(int, self.r_atoms))))
+        object.__setattr__(self, "preserved_bonds", tuple(sorted(tuple(sorted(map(int, edge)))
+                                                              for edge in self.preserved_bonds)))
         object.__setattr__(self, "deferred_edges", tuple(sorted(
             tuple(sorted(map(int, edge))) for edge in self.deferred_edges)))
         object.__setattr__(self, "symmetry_domains", tuple(self.symmetry_domains))
@@ -331,6 +334,7 @@ class AAMHierarchy:
                 fragment_index=int(raw.get("fragment_index", position)),
                 island_index=int(raw.get("island_idx", position)),
                 r_atoms=tuple(sorted(map(int, raw.get("fragment") or ()))),
+                preserved_bonds=tuple(map(tuple, raw.get("preserved_bonds", ()))),
                 deferred_edges=tuple(
                     tuple(sorted(map(int, edge)))
                     for edge in raw.get("deferred_edges") or ()),
@@ -389,6 +393,7 @@ class AAMHierarchy:
                 "fragment_index": int(fragment.fragment_index),
                 "island_idx": int(fragment.island_index),
                 "fragment": list(fragment.r_atoms),
+                "preserved_bonds": [list(edge) for edge in fragment.preserved_bonds],
                 "deferred_edges": [
                     list(edge) for edge in fragment.deferred_edges],
                 "symmetry": symmetry,

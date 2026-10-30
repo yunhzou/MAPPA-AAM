@@ -209,13 +209,7 @@ class FinalBranchCatalogue:
                 if edge.match is None:
                     continue
                 if eid not in constraints:
-                    raw = edge.match
-                    ignored = {tuple(sorted(e)) for e in context.cuts}
-                    ignored.update(tuple(sorted(e)) for e in raw.get('deferred_edges', ()))
-                    atoms = sorted(raw['fragment'])
-                    constraints[eid] = tuple((a, b) for a, b in combinations(atoms, 2)
-                                             if (a, b) not in ignored and
-                                             self.problem.reactant.wbo[a, b] >= context.graph_floor)
+                    constraints[eid] = edge.preserved_bonds
                 required.update(constraints[eid])
             for eid in reversed(path.transitions):
                 edge = graph.transitions[eid]

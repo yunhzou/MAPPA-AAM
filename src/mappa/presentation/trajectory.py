@@ -39,7 +39,7 @@ def replay(source, target, state, edge, po, ro, context):
     import inspect
     supports_random = 'random_seed' in inspect.signature(growth.grow_island).parameters
     policy = getattr(context, 'growth_policy', 'legacy_wbo_priority')
-    if supports_random != (policy == 'uniform_boundary_atom_splitmix64_v1'):
+    if supports_random != (policy == 'growth_edge_splitmix64_v2'):
         raise ValueError('Growth policy differs from archive; use its producing engine')
     growth_options = dict(random_seed=context.random_seed) if supports_random else {}
     calls, events, quotient = [], [], []

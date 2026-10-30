@@ -7,14 +7,15 @@ from mappa.mappa_core.core.matching.policy import BondTolerance
 
 
 class _IsoResult(dict):
-    __slots__ = ('deferred_edges', 'fragment', 'symmetry')
+    __slots__ = ('deferred_edges', 'fragment', 'symmetry', 'preserved_bonds')
 
     def __init__(self, mapping=None, deferred_edges=(), fragment=(),
-                 symmetry=None):
+                 symmetry=None, preserved_bonds=()):
         super().__init__(mapping or {})
         self.deferred_edges = frozenset(tuple(sorted(e)) for e in deferred_edges)
         self.fragment = frozenset(fragment)
         self.symmetry = symmetry or {}
+        self.preserved_bonds = tuple(sorted(tuple(sorted(e)) for e in preserved_bonds))
 
 
 class IslandBranchLimitExceeded(RuntimeError):
@@ -53,11 +54,10 @@ class FragmentPlacement(Mapping):
 
     @classmethod
     def from_match(cls, match, source):
-        """Attach the induced bonds once, without scanning unrelated atoms."""
-        atoms, cuts = match.fragment, match.deferred_edges
-        bonds = tuple(sorted((a, b) for a in atoms for b in source[a]
-                             if a <= b and b in atoms and (a, b) not in cuts))
-        return cls(dict(match), atoms, cuts, match.symmetry, bonds)
+        """Keep the accepted growth edges, not the induced molecular graph."""
+        return cls(dict(match), match.fragment, match.deferred_edges,
+                   match.symmetry, match.preserved_bonds)
+
 
 
 @dataclass(frozen=True)

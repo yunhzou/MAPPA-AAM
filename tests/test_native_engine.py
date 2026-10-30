@@ -27,6 +27,7 @@ def _iso_key(isos):
         (tuple(sorted((int(k), int(v)) for k, v in dict(iso).items())),
          tuple(sorted(tuple(e) for e in iso.deferred_edges)),
          tuple(sorted(iso.fragment)),
+         tuple(iso.preserved_bonds),
          json.dumps(iso.symmetry, sort_keys=True, default=list))
         for iso in isos
     ]

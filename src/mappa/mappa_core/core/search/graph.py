@@ -51,7 +51,7 @@ class SearchContext:
     branch_limit: int = 100
     objective: str = 'full_source'
     random_seed: int = 42
-    growth_policy: str = 'uniform_boundary_atom_splitmix64_v1'
+    growth_policy: str = 'growth_edge_splitmix64_v2'
 
     def __setstate__(self, state):
         # Identify historical pickles accurately; this does not enable legacy growth.
@@ -88,7 +88,8 @@ class FragmentTransition:
         if self.match is None:
             return None
         from mappa.mappa_core.domain import AAMHierarchy
-        return AAMHierarchy.from_record({'fragments': (self.match,)}).fragments[0]
+        return replace(AAMHierarchy.from_record({'fragments': (self.match,)}).fragments[0],
+                       preserved_bonds=self.preserved_bonds)
 
 
 @dataclass(frozen=True)

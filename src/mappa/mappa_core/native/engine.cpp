@@ -1163,10 +1163,9 @@ void extend_locked_merge(const Cand& c, const Context& ctx, std::vector<Cand>& c
         step.bonded_in_frag.clear();
         step.r_wbos.clear();
         if (atom != ctx.n) step.strict_r = -1;
-        for (int r = 0; r < NR; ++r) {
-            if (!step.fragment_old[r] || !ctx.R->has_edge(r, atom)) continue;
-            step.bonded_in_frag.push_back(r);
-            step.r_wbos.push_back(ctx.R->wbo(r, atom));
+        if (atom == ctx.n) {
+            step.bonded_in_frag = ctx.bonded_in_frag;
+            step.r_wbos = ctx.r_wbos;
         }
         int target = (*ctx.mapping)[atom];
         std::vector<Cand> extended;
@@ -1383,6 +1382,7 @@ struct IsoOut {
     std::vector<Pair> mapping;             // sorted (r, p)
     std::vector<Pair> deferred_edges;      // sorted
     std::vector<int> fragment;             // sorted
+    std::vector<Pair> preserved_bonds;     // accepted growth edges
     Cand cand;
 };
 
@@ -1395,7 +1395,8 @@ struct GrowResult {
 
 void finish_fragment(const Source& R, const Target& P, const std::vector<int>& mapping,
                      std::vector<Cand> cands, const std::vector<uint8_t>& fragment,
-                     const std::vector<Pair>& deferred, double iso_tol, int min_lock_size,
+                     const std::vector<Pair>& deferred, const std::vector<Pair>& preserved_bonds,
+                     double iso_tol, int min_lock_size,
                      long max_branches, Canonicalizer& canon, long& certificate_calls,
                      GrowResult& result) {
     auto& prof=result.profile;
@@ -1424,6 +1425,8 @@ void finish_fragment(const Source& R, const Target& P, const std::vector<int>& m
         IsoOut iso;
         for (int r:cands[i].mapped) iso.mapping.push_back({r,cands[i].img[r]});
         iso.deferred_edges=deferred;
+        iso.preserved_bonds=preserved_bonds;
+        std::sort(iso.preserved_bonds.begin(), iso.preserved_bonds.end());
         for (int r=0;r<R.n;++r) if (fragment[r]) iso.fragment.push_back(r);
         iso.cand=std::move(cands[i]);result.isos.push_back(std::move(iso));
     }
@@ -1502,6 +1505,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     int fragment_size = 1;
     std::vector<uint8_t> used_edge(NR * (size_t)NR, 0);
     auto edge_used = [&](int a, int b) -> uint8_t& { return used_edge[(size_t)std::min(a, b) * NR + std::max(a, b)]; };
+    std::vector<Pair> preserved_bonds;
     std::vector<Pair> deferred = prior_deferred;
     for (auto& e : deferred)
         if (e.first > e.second) std::swap(e.first, e.second);
@@ -1536,6 +1540,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         fragment_size = saved.fragment_size;
         used_edge = saved.used_edge;
         deferred = saved.deferred;
+        preserved_bonds = saved.preserved_bonds;
         heap = saved.heap;
         rng.state = saved.random_state;
         prof = saved.profile;
@@ -1553,7 +1558,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         } else {
             trace->checkpoints.push_back(std::make_shared<GrowthCheckpoint>(
                 GrowthCheckpoint{cands, fragment, used_edge, fragment_size,
-                                 deferred, heap, prof, certificate_calls, rng.state}));
+                                 deferred, preserved_bonds, heap, prof, certificate_calls, rng.state}));
         }
     };
 
@@ -1629,8 +1634,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         ctx.anchor_wbo = wbo;
         ctx.has_anchor_wbo = true;
         ctx.dedupe_edges = std::move(dedupe_edges);
-        for (int a = 0; a < NR; ++a)
-            if (fragment[a] && R.has_edge(a, n)) ctx.bonded_in_frag.push_back(a);
+        ctx.bonded_in_frag.push_back(u);
         std::vector<Cand> new_cands;
         if (!ctx.bonded_in_frag.empty()) {
             for (int a : ctx.bonded_in_frag) ctx.r_wbos.push_back(R.wbo(a, n));
@@ -1650,6 +1654,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
             new_cands = extend_sym_cands(cands, ctx, canon, certificate_calls, extension_cache);
         }
         if (!new_cands.empty()) {
+            preserved_bonds.push_back({std::min(u,n), std::max(u,n)});
             prof.commits++;
             prof.max_cands_after = std::max(prof.max_cands_after, (long)new_cands.size());
             cands = std::move(new_cands);
@@ -1679,7 +1684,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     // saturation quotient
     checkpoint();
     if (dependencies) dependencies->boundary(fragment);
-    finish_fragment(R,P,mapping,std::move(cands),fragment,deferred,iso_tol,min_lock_size,
+    finish_fragment(R,P,mapping,std::move(cands),fragment,deferred,preserved_bonds,iso_tol,min_lock_size,
                     max_branches,canon,certificate_calls,result);
     return result;
 }
@@ -1857,6 +1862,7 @@ py::object grow_result_dict(const GrowResult& res) {
         for (const auto& pr : iso.mapping) m[py::int_(pr.first)] = pr.second;
         d["mapping"] = m;
         d["deferred_edges"] = iso.deferred_edges;
+        d["preserved_bonds"] = iso.preserved_bonds;
         d["fragment"] = iso.fragment;
         d["symmetry"] = symmetry_state(iso.cand);
         isos.append(d);

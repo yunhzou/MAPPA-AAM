@@ -41,7 +41,7 @@ def test_ring_every_prefix_preserves_all_768_matches(order):
     fragment = {0}
     for atom in order[1:]:
         candidates = _extend_sym_cands(candidates, fragment, atom, source, target,
-                                       {}, 1, None, r_orbits=ro, p_orbits=po)
+                                       {}, 1, None, r_orbits=ro, p_orbits=po, anchor_u=min(set(source.neighbors(atom)) & set(fragment)))
         fragment.add(atom)
         expected = {tuple((r, p) for r, p in mapping if r in fragment) for mapping in ring_mappings()}
         assert represented(candidates, target, 1) == expected
@@ -108,11 +108,8 @@ def test_decoding_transports_later_fragments_with_the_earlier_group():
         first = path.hierarchy.fragments[0]
         outside = set(target) - {p for _, p in first.representative_assignments}
         assert any(g.images[p] != p for g in first.target_generators for p in outside)
-        required = set()
-        for fragment in path.hierarchy.fragments:
-            deferred = {tuple(sorted(e)) for e in fragment.deferred_edges}
-            required.update((a, b) for a, b in combinations(sorted(fragment.r_atoms), 2)
-                            if source.has_edge(a, b) and (a, b) not in deferred)
+        required = {pair for fragment in path.hierarchy.fragments
+                    for pair in fragment.preserved_bonds}
         for images in permutations(range(4)):
             expected = all(target.has_edge(images[a], images[b]) for a, b in required)
             status, _ = query_path(path, problem, dict(enumerate(images)),

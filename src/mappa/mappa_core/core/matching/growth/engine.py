@@ -146,6 +146,7 @@ def grow_island(g_R, g_P, seed, mapping,
                            'iso': None})
         return []
     fragment = {seed}
+    preserved_bonds = set()
     distance = {seed: 0}
     used_edges = set()
     deferred_edges = {tuple(sorted(e)) for e in (prior_deferred_edges or ())}
@@ -273,6 +274,7 @@ def grow_island(g_R, g_P, seed, mapping,
                     'candidate_fragment_size': int(len(candidate_fragment)),
                 }
         if new_cands:
+            preserved_bonds.add(tuple(sorted((u, n))))
             if prof is not None:
                 prof['commits'] += 1
                 prof['max_cands_after'] = max(
@@ -385,7 +387,7 @@ def grow_island(g_R, g_P, seed, mapping,
             })
         return [_IsoResult(_cand_map(cands[0]),
                            deferred_edges=deferred_edges,
-                           fragment=fragment,
+                           fragment=fragment, preserved_bonds=preserved_bonds,
                            symmetry=_symmetry_state(
                                cands[0],
                                r_orbits=r_orbits, p_orbits=p_orbits))]
@@ -410,7 +412,7 @@ def grow_island(g_R, g_P, seed, mapping,
     branches = [
         _IsoResult(
             _cand_map(c), deferred_edges=deferred_edges,
-            fragment=fragment, symmetry=_symmetry_state(
+            fragment=fragment, preserved_bonds=preserved_bonds, symmetry=_symmetry_state(
                 c, r_orbits=r_orbits, p_orbits=p_orbits))
         for c in cands
     ]

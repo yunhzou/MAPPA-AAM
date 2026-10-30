@@ -69,7 +69,7 @@ def checkpoint_manifest(problem, config):
         settings.pop('seed_selection')  # unchanged policy can resume older cuts
     return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v5',
         matching_policy='exact_fragment_target_action_v3',
-        growth_policy='uniform_boundary_atom_splitmix64_v1',
+        growth_policy='growth_edge_splitmix64_v2',
         branch_cap_policy='completed_fragment_frontier_v1',
         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
         reactant=endpoint(problem.reactant),product=endpoint(problem.product),

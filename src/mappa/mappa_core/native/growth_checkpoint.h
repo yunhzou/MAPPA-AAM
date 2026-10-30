@@ -3,7 +3,7 @@ struct GrowthCheckpoint {
     std::vector<Cand> cands;
     std::vector<uint8_t> fragment, used_edge;
     int fragment_size;
-    std::vector<Pair> deferred;
+    std::vector<Pair> deferred, preserved_bonds;
     std::vector<HeapItem> heap;
     GrowProfile profile;
     long certificate_calls;
@@ -11,7 +11,7 @@ struct GrowthCheckpoint {
 
     size_t bytes() const {
         size_t size = sizeof(*this) + fragment.capacity() + used_edge.capacity()
-            + deferred.capacity()*sizeof(Pair) + heap.size()*sizeof(HeapItem)
+            + (deferred.capacity()+preserved_bonds.capacity())*sizeof(Pair) + heap.size()*sizeof(HeapItem)
             + cands.capacity()*sizeof(Cand);
         for (const auto& c : cands) {
             size += (c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);
@@ -57,7 +57,7 @@ struct GrowthTrace {
         // Shared checkpoints are conservatively charged to each cache entry.
         for (const auto& state : checkpoints) size += state->bytes();
         for (const auto& iso : result.isos) {
-            size += sizeof(iso)+(iso.mapping.capacity()+iso.deferred_edges.capacity())*sizeof(Pair)
+            size += sizeof(iso)+(iso.mapping.capacity()+iso.deferred_edges.capacity()+iso.preserved_bonds.capacity())*sizeof(Pair)
                 +iso.fragment.capacity()*sizeof(int);
             const auto& c=iso.cand;
             size += (c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);

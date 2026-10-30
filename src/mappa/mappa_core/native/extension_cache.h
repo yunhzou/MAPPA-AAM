@@ -52,12 +52,6 @@ class ExtensionCache {
             vector(key,ctx.island_atoms);
             scalar(key,(*ctx.mapping)[ctx.n]);
             for (int r:ctx.island_atoms) scalar(key,(*ctx.mapping)[r]);
-            // Every old-fragment bond tested while adding the locked island.
-            for (int r:ctx.island_atoms) for (int a:c.mapped)
-                scalar(key,ctx.R->has_edge(r,a));
-            // Added island atoms are also included in the merged child's mapping.
-            for (int r:ctx.island_atoms) for (int a:ctx.island_atoms)
-                scalar(key,ctx.R->has_edge(r,a));
         } else {
             // Only targets of n's element are read by the free extension.
             int code=ctx.R->ecode[ctx.n];scalar(key,code);

@@ -225,6 +225,8 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
         ]
         results.append(_IsoResult(
             translated_mapping,
+            preserved_bonds=tuple((source_view.nodes[int(a)], source_view.nodes[int(b)])
+                                  for a, b in iso["preserved_bonds"]),
             deferred_edges=translated_deferred,
             fragment=translated_fragment,
             symmetry=_translate_symmetry(

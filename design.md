@@ -509,3 +509,36 @@ Headline coverage queries the original compressed ISO1 AAM, independently of
 conversion. Lossy conversion investigation is pending in tracker ticket38.
 The scheduler locates failed parents through the task-state index before looking
 up dependent children; successful dependency graphs incur no full edge scan.
+
+
+## Growth subgraph and molecular connectivity
+
+Greedy extension tests only the selected active source edge to the new atom.
+Other bonds between included atoms remain in the molecular endpoints for event
+interpretation; they are not implicitly matching constraints. A ring and an
+opened chain can therefore share a six-atom fragment through five matched edges.
+
+`preserved_bonds` stores accepted growth edges on fragment placements and search
+transitions. Checkpoint replay carries these edges. Catalogue and reference
+queries consume their union along the saved path, rather than reconstructing an
+induced graph from atom sets. Equal atom sets may share a branch index, but their
+different edge constraints remain distinct families. Joining a locked island
+checks the selected joining edge, carries its fixed assignments and retains its
+earlier path constraints. It does not retest unselected cross-bonds.
+
+```mermaid
+flowchart LR
+    Endpoints[Full R and P molecular graphs] --> Growth[Selected-edge growth]
+    Growth --> Fragment[Atoms, accepted edges, compressed assignments]
+    Fragment --> Search[Branch history and constraints]
+    Search --> Queries[Assignment validation]
+    Endpoints --> Events[Bond-event interpretation]
+    Search --> Events
+```
+
+Full-target automorphism compression remains conditioned on candidate roles and
+earlier locks. Optional intrinsic fragment symmetry annotations are not used as
+matching permissions. No new local group replaces the saved correlated actions.
+The growth policy is `growth_edge_splitmix64_v2`; old scientific checkpoints are
+not resumable under this policy. Historical saved results retain their original
+explicit preserved bonds and can still be read.
