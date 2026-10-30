@@ -418,6 +418,49 @@ def test_pair_projection_matches_independent_small_action_composition():
     assert len(index.endpoint_pairs((0,1),(('pool',tuple(range(12))),))) == 132
 
 
+def test_compiled_pair_program_matches_full_permutations_with_overlapping_actions():
+    # An independent full-permutation oracle on four atoms checks correlations,
+    # action order and unmatched endpoints. Production only projects pairs.
+    identity = tuple(range(4))
+    def closure(generators):
+        found = {identity}
+        frontier = [identity]
+        while frontier:
+            current = frontier.pop()
+            for generator in generators:
+                image = tuple(generator[i] for i in current)
+                if image not in found:
+                    found.add(image)
+                    frontier.append(image)
+        return found
+    pool = ('pool', (0, 1, 2))
+    group = ('group', ((1, 0, 2, 3), (0, 2, 3, 1)))
+    stages = {
+        pool: {tuple(p) + (3,) for p in permutations(range(3))},
+        group: closure(group[1]),
+        ('pool', (1, 3)): {identity, (0, 3, 2, 1)},
+        ('group', (identity,)): {identity},
+        ('pool', ()): {identity},
+    }
+    ep = endpoint('CCCC', [])
+    index = SignedEventIndex(AAMProblem(ep, ep))
+    programs = ((pool, group), (group, pool),
+                (pool, ('pool', (1, 3)), group),
+                (('pool', ()), ('group', (identity,))))
+    for actions in programs:
+        complete = {identity}
+        for action in actions:
+            complete = {tuple(b[a[i]] for i in range(4))
+                        for a in complete for b in stages[action]}
+        for x in range(-1, 4):
+            for y in range(-1, 4):
+                expected = {(g[x] if x >= 0 else -1, g[y] if y >= 0 else -1)
+                            for g in complete}
+                assert set(index.endpoint_pairs((x, y), actions)) == expected
+    assert len(index._pair_programs) == len(programs)
+    assert len(index._compiled_pair_actions) == len(stages)
+
+
 def test_local_contribution_components_retain_shared_actions_and_constraints():
     ep = endpoint('CCCCCC',[(0,1,1),(0,2,1.8),(3,4,1),(3,5,1.8)])
     source = saved(ep,ep,dict(enumerate(range(6))),

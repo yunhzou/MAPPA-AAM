@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <set>
@@ -196,7 +197,132 @@ static py::tuple conjugate_generators(const std::vector<Images>& generators, con
     return result;
 }
 
+// A compiled local action is shared by all branch programs that use it.
+// Projection follows action order, retaining the two endpoints jointly. It
+// visits at most (degree+1)^2 pair states, never complete permutation elements.
+class PairAction {
+public:
+    int degree;
+    Images pool;
+    std::vector<unsigned char> member;
+    std::vector<Images> generators;
+
+    static std::shared_ptr<PairAction> from_pool(int degree, const Images& atoms) {
+        auto action = std::make_shared<PairAction>(degree);
+        for (int atom : atoms) {
+            if (atom < 0 || atom >= degree || action->member[atom])
+                throw std::invalid_argument("pool must contain distinct atoms in its frame");
+            action->member[atom] = true;
+        }
+        action->pool = atoms;
+        return action;
+    }
+
+    static std::shared_ptr<PairAction> from_group(int degree, const std::vector<Images>& raw) {
+        auto action = std::make_shared<PairAction>(degree);
+        std::set<Images> seen;
+        for (const auto& permutation : raw) {
+            if (permutation.size() != static_cast<size_t>(degree))
+                throw std::invalid_argument("generator degree differs from its frame");
+            check_permutation(permutation);
+            bool moved = false;
+            for (int i = 0; i < degree; ++i) moved |= permutation[i] != i;
+            if (!moved || !seen.insert(permutation).second) continue;
+            action->generators.push_back(permutation);
+            action->generators.back().push_back(degree); // Unmatched endpoint is fixed.
+        }
+        return action;
+    }
+
+    explicit PairAction(int n) : degree(n), member(n >= 0 ? n+1 : 0, false) {
+        if (n < 0) throw std::invalid_argument("negative permutation degree");
+    }
+};
+
+class EndpointPairProgram {
+    int degree;
+    std::vector<std::shared_ptr<PairAction>> actions;
+public:
+    EndpointPairProgram(int n, std::vector<std::shared_ptr<PairAction>> program)
+        : degree(n), actions(std::move(program)) {
+        if (degree < 0) throw std::invalid_argument("negative permutation degree");
+        for (const auto& action : actions)
+            if (action->degree != degree) throw std::invalid_argument("action frame differs");
+    }
+
+    py::tuple project(Bond pair) const {
+        for (int atom : {pair.first, pair.second})
+            if (atom < -1 || atom >= degree) throw std::invalid_argument("endpoint outside frame");
+        std::vector<Bond> pairs;
+        {
+            py::gil_scoped_release release;
+            const size_t width = static_cast<size_t>(degree)+1;
+            std::vector<unsigned char> seen(width*width, false);
+            std::vector<size_t> states{static_cast<size_t>(pair.first < 0 ? degree : pair.first)*width
+                                      + (pair.second < 0 ? degree : pair.second)};
+            for (const auto& action : actions) {
+                if (action->pool.empty() && action->generators.empty()) continue;
+                std::fill(seen.begin(), seen.end(), false);
+                std::vector<size_t> next;
+                auto add = [&](int a, int b) {
+                    const size_t key = static_cast<size_t>(a)*width+b;
+                    if (!seen[key]) { seen[key] = true; next.push_back(key); }
+                };
+                if (!action->pool.empty()) {
+                    bool both_expanded[2] = {false, false};
+                    std::vector<unsigned char> rows(width, false), columns(width, false);
+                    for (size_t key : states) {
+                        const int a = key/width, b = key%width;
+                        const bool left = action->member[a], right = action->member[b];
+                        if (left && right) {
+                            const bool diagonal = a == b;
+                            if (both_expanded[diagonal]) continue;
+                            both_expanded[diagonal] = true;
+                            for (int x : action->pool) for (int y : action->pool)
+                                if ((x == y) == diagonal) add(x, y);
+                        } else if (left) {
+                            if (columns[b]) continue;
+                            columns[b] = true;
+                            for (int x : action->pool) add(x, b);
+                        } else if (right) {
+                            if (rows[a]) continue;
+                            rows[a] = true;
+                            for (int y : action->pool) add(a, y);
+                        } else {
+                            add(a, b);
+                        }
+                    }
+                } else {
+                    for (size_t key : states) add(key/width, key%width);
+                    for (size_t i = 0; i < next.size(); ++i) {
+                        const int a = next[i]/width, b = next[i]%width;
+                        for (const auto& g : action->generators) add(g[a], g[b]);
+                    }
+                }
+                states.swap(next);
+            }
+            pairs.reserve(states.size());
+            for (size_t key : states) {
+                const int a = key/width, b = key%width;
+                pairs.emplace_back(a == degree ? -1 : a, b == degree ? -1 : b);
+            }
+            std::sort(pairs.begin(), pairs.end());
+        }
+        py::tuple result(pairs.size());
+        for (size_t i = 0; i < pairs.size(); ++i)
+            result[i] = py::make_tuple(pairs[i].first, pairs[i].second);
+        return result;
+    }
+};
+
 PYBIND11_MODULE(_group_ops, m) {
+    py::class_<PairAction, std::shared_ptr<PairAction>>(m, "PairAction")
+        .def_static("pool", &PairAction::from_pool)
+        .def_static("group", &PairAction::from_group);
+    py::class_<EndpointPairProgram>(m, "EndpointPairProgram")
+        .def(py::init<int, std::vector<std::shared_ptr<PairAction>>>())
+        .def("project", &EndpointPairProgram::project);
+
     m.def("occupation_orbit", &occupation_orbit,
           py::arg("witness"), py::arg("degree"), py::arg("stages"),
           py::arg("attachments"), py::arg("fragments"), py::arg("bonds"),

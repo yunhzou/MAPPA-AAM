@@ -7,7 +7,9 @@ imports are `mappa._engine` and `mappa._group_ops`.
   growth, conditioned symmetry and reusable search work. Python calls these
   through `mappa_core/core/matching/growth/native.py` and the native search adapters.
 - `group_ops.cpp` implements permutation projection and conjugation used by
-  the shared matcher and hierarchy types.
+  the shared matcher and hierarchy types. It also compiles shared decoder actions
+  and projects ordered two-endpoint orbits without Python traversal or complete
+  permutation enumeration.
 - `autgrp.cpp` implements the automorphism graph used by conditioned symmetry.
 - `third_party/nauty/` holds the vendored dependency, separate from MAPPA code.
 

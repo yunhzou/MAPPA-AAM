@@ -278,6 +278,12 @@ k*(k-1) ordered pairs, not k! permutations. Original constraints involving other
 atoms remain enforced at realization, so projected pairs are not independent
 mapping permissions. Different fragment partitions are alternative views.
 
+The existing native permutation module compiles each distinct action once and
+shares it between ordered pair programs. Pair traversal and pool expansion run
+in C++, with a bounded pair-state bitmap; repeated pool rows/columns expand once.
+Python retains bounded action/program/result caches and vectorized bond-response
+classification. There is no alternate Python traversal.
+
 Final family provenance retains the original sweep cuts. Cut terms use original
 R/P WBOs, including zero-event cuts and cuts lying within a final fragment.
 Merged histories retain the union of recorded cuts for table annotation; this

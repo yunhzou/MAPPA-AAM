@@ -84,6 +84,8 @@ class SignedEventIndex:
         self._pair_tables = OrderedDict()
         self._event_tables = OrderedDict()
         self._endpoint_pairs = OrderedDict()
+        self._compiled_pair_actions = OrderedDict()
+        self._pair_programs = OrderedDict()
         self._domain_responses = OrderedDict()
         self._response_values = OrderedDict()
         self._orbit_tables = OrderedDict()
@@ -161,32 +163,26 @@ class SignedEventIndex:
             return (pair,)
         key = pair, actions
         if key not in self._endpoint_pairs:
-            pairs = {pair}
-            for action in actions:
-                kind, data = action
-                orbits = self._event_orbits(action)
-                if all((x < 0 or len(orbits[x]) == 1) and
-                       (y < 0 or len(orbits[y]) == 1) for x,y in pairs):
-                    continue
-                if kind == 'pool':
-                    pool = frozenset(data)
-                    pairs = {(a,b) for x,y in pairs
-                             for a in (data if x in pool else (x,))
-                             for b in (data if y in pool else (y,))
-                             if a != b or a == -1}
-                else:
-                    # Directed generators suffice: finite permutations have
-                    # inverse powers in the same orbit.
-                    frontier = list(pairs)
-                    generators = tuple(np.asarray((*g, -1), dtype=int) for g in data)
-                    while frontier:
-                        images = np.asarray(frontier, dtype=int)
-                        discovered = {tuple(map(int,p)) for g in generators for p in g[images]}
-                        frontier = list(discovered - pairs)
-                        pairs.update(frontier)
-            self._endpoint_pairs[key] = tuple(sorted(pairs))
+            from mappa._group_ops import PairAction, EndpointPairProgram
+            if actions not in self._pair_programs:
+                compiled = []
+                for action in actions:
+                    if action not in self._compiled_pair_actions:
+                        kind, data = action
+                        factory = {'pool': PairAction.pool, 'group': PairAction.group}[kind]
+                        self._compiled_pair_actions[action] = factory(self.m, data)
+                        if len(self._compiled_pair_actions) > 1024:
+                            self._compiled_pair_actions.popitem(last=False)
+                    self._compiled_pair_actions.move_to_end(action)
+                    compiled.append(self._compiled_pair_actions[action])
+                self._pair_programs[actions] = EndpointPairProgram(self.m, compiled)
+                if len(self._pair_programs) > 1024:
+                    self._pair_programs.popitem(last=False)
+            self._pair_programs.move_to_end(actions)
+            self._endpoint_pairs[key] = self._pair_programs[actions].project(pair)
             if len(self._endpoint_pairs) > 1024:
                 self._endpoint_pairs.popitem(last=False)
+        self._endpoint_pairs.move_to_end(key)
         return self._endpoint_pairs[key]
 
     def _response_from_weights(self, weight, tau, weights):
