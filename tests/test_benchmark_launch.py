@@ -49,7 +49,11 @@ def test_capacity_respects_memory_cpu_and_excludes_unavailable_nodes():
 
 def test_worker_renewal_requires_clean_exit_and_every_node_receipt(tmp_path, monkeypatch):
     job=dict(job='100',group=dict(nodes=1))
-    def output(args,**kw): return 'RUNNING\n' if args[0]=='squeue' else pytest.fail('Active job must not be renewed')
+    def output(args,**kw):
+        if args[0]=='squeue':
+            assert '-j' not in args  # Old job IDs disappear from the live scheduler.
+            return '100\n'
+        pytest.fail('Active job must not be renewed')
     monkeypatch.setattr(launch.subprocess,'check_output',output)
     assert launch.retired_workers(tmp_path,job) is None
     monkeypatch.setattr(launch.subprocess,'check_output',lambda args,**kw:'' if args[0]=='squeue' else 'FAILED|1:0\n')

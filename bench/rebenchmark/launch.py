@@ -4,6 +4,7 @@ Scientific work stays in shared.py and the public MAPPA APIs. Slurm handles
 stage dependencies; this module renews retired worker capacity, never tasks.
 """
 import argparse
+import getpass
 import hashlib
 import itertools
 import json
@@ -23,6 +24,12 @@ REPO = Path(__file__).resolve().parents[2]
 
 def read(path):
     return json.loads(Path(path).read_text())
+
+
+def active_jobs():
+    # Retired jobs disappear from squeue; their terminal state lives in sacct.
+    return set(subprocess.check_output(['squeue','-h','-u',getpass.getuser(),
+                                       '-o','%i'],text=True).split())
 
 
 def wrapper(plan, mode, output, workers=1, module='rebenchmark.shared'):
@@ -64,7 +71,7 @@ def prepared_plan(previous, plan):
     if (full/'endpoint.json').exists() or (full/'worker-jobs.json').exists():
         raise ValueError('Production already started; reconcile its queue instead')
     job = read(previous/'production-launch.json')['job']
-    if subprocess.check_output(['squeue','-h','-j',job,'-o','%T'],text=True).strip():
+    if job in active_jobs():
         raise ValueError('Previous production allocation is still active')
     state = subprocess.check_output(['sacct','-X','-n','-P','-j',job,
                                     '--format=State'],text=True).strip().strip('|')
@@ -97,11 +104,11 @@ def submit(output, configuration, prepared=None):
         raise ValueError('Commit the source before submission')
     if plan.get('commit', commit) != commit:
         raise ValueError('Requested source differs from checkout')
-    output.mkdir(parents=True, exist_ok=False)
     plan.update(commit=commit, python=sys.executable, identity=output.name+'-'+commit[:7],
                 pilots=[], pilot_commits=[commit])
     if prepared is not None:
         plan = prepared_plan(prepared, plan)
+    output.mkdir(parents=True, exist_ok=False)
     save(output/'plan.json', plan)
     binaries = {str(p.relative_to(REPO)): hashlib.sha256(p.read_bytes()).hexdigest()
                 for pattern in ('_engine*.so', '_group_ops*.so') for p in (REPO/'src/mappa').glob(pattern)}
@@ -220,7 +227,7 @@ def start_workers(full, plan, slot, generation, group):
 
 def retired_workers(full, job):
     """Never replace an active allocation or conceal a failed worker exit."""
-    if subprocess.check_output(['squeue','-h','-j',job['job'],'-o','%T'],text=True).strip():
+    if job['job'] in active_jobs():
         return None
     accounting = subprocess.check_output(['sacct','-X','-n','-P','-j',job['job'],
                                           '--format=State,ExitCode'],text=True).strip().splitlines()
@@ -268,8 +275,7 @@ def control(root):
                     jobs[slot] = dict(group=job['group'],generation=generation,
                         **start_workers(full,plan,slot,generation,job['group']))
                     save(full/'worker-jobs.json',jobs)
-            if time.time() >= plan['claim_until'] and not any(
-                subprocess.check_output(['squeue','-h','-j',j['job'],'-o','%T'],text=True).strip() for j in jobs):
+            if time.time() >= plan['claim_until'] and not ({j['job'] for j in jobs} & active_jobs()):
                 raise RuntimeError('Claim horizon reached; checkpoint retained for explicit continuation')
             time.sleep(30)
         if process.wait(): raise RuntimeError('Coordinator failed')
