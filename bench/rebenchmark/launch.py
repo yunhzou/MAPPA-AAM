@@ -285,7 +285,7 @@ def recover_linked_outputs(queue_path, members, scratch):
     """
     import sqlite3
     from dataclasses import asdict
-    from mappa.mappa_core.core.scheduler import Blob, read_blob, read_blobs
+    from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob, read_blobs
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
     db = sqlite3.connect(f'file:{Path(queue_path).resolve()}?mode=ro&immutable=1',uri=True)
     blobs = {Blob(**{k:m[k] for k in ('path','offset','size','sha256')}):m for m in members}
