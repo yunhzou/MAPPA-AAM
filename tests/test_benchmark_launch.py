@@ -9,6 +9,29 @@ import pytest
 from rebenchmark import launch
 
 
+def test_scheduler_outage_retries_same_pending_only_request(monkeypatch):
+    import subprocess
+    calls, pauses = [], []
+    def output(arguments, **options):
+        calls.append(arguments)
+        if len(calls) == 1:
+            raise subprocess.CalledProcessError(1, arguments,
+                stderr='slurm_load_jobs error: Socket timed out on send/recv operation')
+        if len(calls) == 2:
+            raise subprocess.TimeoutExpired(arguments, 60)
+        return ''
+    monkeypatch.setattr(launch.subprocess, 'check_output', output)
+    monkeypatch.setattr(launch.time, 'sleep', pauses.append)
+    command = ['scancel', '--state=PENDING', '100']
+    assert launch.scheduler_output(command) == ''
+    assert calls == [command]*3 and pauses == [5, 5]
+    def rejected(*args, **kwargs):
+        raise subprocess.CalledProcessError(1, args[0], stderr='Access denied')
+    monkeypatch.setattr(launch.subprocess, 'check_output', rejected)
+    with pytest.raises(subprocess.CalledProcessError):
+        launch.scheduler_output(command)
+
+
 def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, monkeypatch):
     repo = tmp_path/'repo'; (repo/'src/mappa').mkdir(parents=True)
     monkeypatch.setattr(launch, 'REPO', repo)

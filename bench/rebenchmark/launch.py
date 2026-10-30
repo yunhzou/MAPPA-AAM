@@ -26,10 +26,28 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
+def scheduler_output(arguments):
+    """Retry an idempotent scheduler request when the controller is unreachable.
+
+    A scheduler outage must not tear down the independently running task queue.
+    Submissions use submit_job instead: retrying sbatch could duplicate a job.
+    """
+    while True:
+        try:
+            return subprocess.check_output(arguments, text=True, stderr=subprocess.PIPE, timeout=60)
+        except subprocess.CalledProcessError as error:
+            if 'Socket timed out on send/recv operation' not in (error.stderr or ''):
+                raise
+            message = error.stderr.strip()
+        except subprocess.TimeoutExpired:
+            message = 'Scheduler request timed out'
+        print(f'{message}; retaining the queue and retrying {arguments[0]} in 5 seconds', flush=True)
+        time.sleep(5)
+
+
 def active_jobs():
     # Retired jobs disappear from squeue; their terminal state lives in sacct.
-    return set(subprocess.check_output(['squeue','-h','-u',getpass.getuser(),
-                                       '-o','%i'],text=True).split())
+    return set(scheduler_output(['squeue','-h','-u',getpass.getuser(), '-o','%i']).split())
 
 
 def wrapper(plan, mode, output, workers=1, module='rebenchmark.shared'):
@@ -238,12 +256,12 @@ def retired_workers(full, job):
     """Never replace an active allocation or conceal a failed worker exit."""
     if job['job'] in active_jobs():
         return None
-    accounting = subprocess.check_output(['sacct','-X','-n','-P','-j',job['job'],
-                                          '--format=State,ExitCode'],text=True).strip().splitlines()
+    accounting = scheduler_output(['sacct','-X','-n','-P','-j',job['job'],
+                                  '--format=State,ExitCode']).strip().splitlines()
     if not accounting: return None  # Accounting has not caught up with retirement.
     if job.get('cancel_pending') and len(accounting)==1 and accounting[0].startswith('CANCELLED'):
-        started = subprocess.check_output(['sacct','-X','-n','-P','-j',job['job'],
-                                           '--format=Start'],text=True).strip().strip('|')
+        started = scheduler_output(['sacct','-X','-n','-P','-j',job['job'],
+                                    '--format=Start']).strip().strip('|')
         if started in ('Unknown','None'):
             return []
     if accounting != ['COMPLETED|0:0']:
@@ -325,7 +343,7 @@ def next_allocation(full, plan, states):
 def control(full):
     from datetime import datetime
     plan = read(full/'plan.json');root = Path(plan['campaign_root'])
-    allocation = subprocess.check_output(['scontrol','show','job',os.environ['SLURM_JOB_ID'],'-o'],text=True)
+    allocation = scheduler_output(['scontrol','show','job',os.environ['SLURM_JOB_ID'],'-o'])
     end = datetime.fromisoformat(re.search(r'EndTime=(\S+)',allocation)[1]).timestamp()
     # Reserve the longest remaining task, publication, and a disk checkpoint.
     plan['claim_until'] = end-plan['case_seconds']-180-plan['slurm']['checkpoint_seconds']
@@ -348,7 +366,7 @@ def control(full):
             if progress.get('finished'): break
             if time.time() < plan['claim_until']:
                 if not jobs:
-                    available=capacity(subprocess.check_output(['scontrol','show','nodes','-o'],text=True),
+                    available=capacity(scheduler_output(['scontrol','show','nodes','-o']),
                         plan['memory_bytes'],plan['slurm']['max_worker_jobs'],plan['slurm']['target_workers'])
                     save(full/'capacity.json',available)
                     jobs=[dict(group=g,generation=0,**start_workers(full,plan,i,0,g))
@@ -365,7 +383,7 @@ def control(full):
                 live=active_jobs()
                 for job in jobs:
                     if job['job'] in live and not job.get('cancel_pending'):
-                        subprocess.run(['scancel','--state=PENDING',job['job']],check=True)
+                        scheduler_output(['scancel','--state=PENDING',job['job']])
                         job['cancel_pending']=True
                 save(full/'worker-jobs.json',jobs)
                 if all(retired_workers(full,job) is not None for job in jobs):
