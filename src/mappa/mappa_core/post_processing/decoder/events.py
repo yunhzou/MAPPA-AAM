@@ -39,6 +39,17 @@ def _response_bounds(values, weight, threshold):
     return tuple(int(bound) if bound.ndim == 0 else bound for bound in bounds)
 
 
+class _ActionSequence(tuple):
+    """Immutable action values with their tuple hash computed once per sequence."""
+    def __new__(cls, actions):
+        value = super().__new__(cls, actions)
+        value._hash = tuple.__hash__(value)
+        return value
+
+    def __hash__(self):
+        return self._hash
+
+
 class SignedEventIndex:
     """Reaction-local event identity; IDs are versioned separately from legacy.
 
@@ -563,6 +574,7 @@ class FragmentEventTables:
         pairs = index.neighboring_pairs(self.atom_domains)
         pairs.update((a, b) for a, b in self.cut_bonds if a in mapping or b in mapping)
         self.neighboring_pair_count = len(pairs)
+        action_sequences = {}
         for a, b in sorted(pairs):
             tau = bond_event_threshold(index.elements, a, b,
                 default_threshold=index.threshold, metal_threshold=index.metal_threshold)
@@ -573,7 +585,9 @@ class FragmentEventTables:
                 continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
             action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
-            actions = tuple(family.actions[i] for i in action_ids)
+            if action_ids not in action_sequences:
+                action_sequences[action_ids] = _ActionSequence(family.actions[i] for i in action_ids)
+            actions = action_sequences[action_ids]
             response, projected = index._refine_event_response(index.r[a, b], tau, pair, actions, response)
             self.projected_pair_states += projected
             if response.constant == 0 and not manual_cut:

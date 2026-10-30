@@ -282,7 +282,8 @@ The existing native permutation module compiles each distinct action once and
 shares it between ordered pair programs. Pair traversal and pool expansion run
 in C++, with a bounded pair-state bitmap; repeated pool rows/columns expand once.
 Python retains bounded action/program/result caches and vectorized bond-response
-classification. There is no alternate Python traversal.
+classification. Each distinct ordered action sequence computes its value hash
+once, so bond-level cache lookups do not repeatedly traverse full permutations. There is no alternate Python traversal.
 
 Final family provenance retains the original sweep cuts. Cut terms use original
 R/P WBOs, including zero-event cuts and cuts lying within a final fragment.
