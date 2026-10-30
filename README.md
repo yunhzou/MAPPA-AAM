@@ -426,9 +426,9 @@ PYTHONPATH=src:bench python -m rebenchmark.launch submit /absolute/new/run --pla
 ```
 
 The plan supplies the dataset/manifest, search settings and a `slurm` resource
-profile (`account`, `partition`, `long_qos`, `short_qos`, `worker_time`,
-`max_worker_jobs`, `claim_hours`; `prepare`, `pilot`, `coordinator`, `report` and
-`memory_stage` each specify `cpus`, `memory_gib`, `time`). It also supplies
+profile (`account`, `partition`, `short_qos`, `worker_time`,
+`max_worker_jobs`, `checkpoint_seconds`; `prepare`, `pilot`, `coordinator`, `report` and
+`memory_stage` each specify `qos`, `cpus`, `memory_gib`, `time`). It also supplies
 `expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
 `retry_workers`. The existing shared planner owns dataset/task preparation.
 
@@ -449,3 +449,12 @@ After a confirmed production startup failure *before any worker endpoint exists*
 index and passed pilot. It rejects active owners, changed scientific settings or
 code, and any previous worker endpoint. Recovery of attempted work requires its
 queue and is not covered by this preparation-only operation.
+
+Short coordinator allocations stop new claims early enough for the longest task,
+publication and `checkpoint_seconds`. After all worker owners retire cleanly, the
+controller publishes a hashed consistent queue and submits the next allocation
+with an `afterok` dependency. The next allocation restores the same task rows,
+results, attempts and remaining budgets; it does not rebuild the task grid.
+`current-allocation.json` identifies the active generation; `next-allocation.json`
+records its scheduled successor. Count the controller when setting the number of
+worker jobs under a shared QoS job limit.

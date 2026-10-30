@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -60,7 +61,7 @@ def submit_job(root, name, plan, resources, command, *, dependency=None):
 
 def stage_resources(plan, stage):
     spec = plan['slurm'][stage]
-    return ['--qos='+plan['slurm']['long_qos'], '--nodes=1',
+    return ['--qos='+spec['qos'], '--nodes=1',
             f'--cpus-per-task={spec["cpus"]}', f'--mem={spec["memory_gib"]}G',
             '--time='+spec['time']]
 
@@ -105,6 +106,7 @@ def submit(output, configuration, prepared=None):
     if plan.get('commit', commit) != commit:
         raise ValueError('Requested source differs from checkout')
     plan.update(commit=commit, python=sys.executable, identity=output.name+'-'+commit[:7],
+                campaign_root=str(output), generation=0,
                 pilots=[], pilot_commits=[commit])
     if prepared is not None:
         plan = prepared_plan(prepared, plan)
@@ -127,7 +129,7 @@ def submit(output, configuration, prepared=None):
         save(output/'prepared-reuse.json',dict(previous=str(prepared),index=plan['index'],
              index_sha256=plan['index_sha256'],pilots=plan['pilots']))
     production = submit_job(output, 'production', plan, stage_resources(plan, 'coordinator'),
-        wrapper(plan, 'control', output, module='rebenchmark.launch'),
+        wrapper(plan, 'control', output/'full', module='rebenchmark.launch'),
         dependency='afterok:'+pilot['job'] if pilot else None)
     result = dict(preparation=preparation['job'] if preparation else None,
                   pilot=pilot['job'] if pilot else None, production=production['job'],
@@ -232,6 +234,11 @@ def retired_workers(full, job):
     accounting = subprocess.check_output(['sacct','-X','-n','-P','-j',job['job'],
                                           '--format=State,ExitCode'],text=True).strip().splitlines()
     if not accounting: return None  # Accounting has not caught up with retirement.
+    if job.get('cancel_pending') and len(accounting)==1 and accounting[0].startswith('CANCELLED'):
+        started = subprocess.check_output(['sacct','-X','-n','-P','-j',job['job'],
+                                           '--format=Start'],text=True).strip().strip('|')
+        if started in ('Unknown','None'):
+            return []
     if accounting != ['COMPLETED|0:0']:
         raise RuntimeError(f'Worker {job["job"]} failed: {accounting}')
     paths = list((full/'retirements').glob(job['job']+'-*.json'))
@@ -240,50 +247,137 @@ def retired_workers(full, job):
     return [read(path) for path in paths]
 
 
-def control(root):
-    full = root/'full'; plan = read(full/'plan.json')
-    # Set the claim horizon when this allocation starts, not while queued.
-    plan['claim_until'] = time.time()+plan['slurm']['claim_hours']*3600
-    save(full/'plan.json', plan)
-    process = subprocess.Popen(wrapper(plan, 'coordinator', full), start_new_session=True)
+def file_hash(path):
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream,'sha256').hexdigest()
+
+
+def restore_queue(plan, full, scratch):
+    """Restore a retired snapshot byte-for-byte; do not replan or retry tasks."""
+    from mappa.mappa_core.core.scheduler import TaskQueue
+    receipt = read(plan['resume_receipt'])
+    if receipt['identity'] != plan['identity'] or receipt['index_sha256'] != plan['index_sha256']:
+        raise ValueError('Continuation identity differs')
+    if receipt['states'].get('running',0):
+        raise ValueError('Continuation has active owners')
+    path = Path(scratch)/'queue.sqlite'
+    shutil.copyfile(receipt['queue'],path)
+    if file_hash(path) != receipt['queue_sha256']:
+        raise ValueError('Continuation checkpoint hash differs')
+    queue = TaskQueue(path,plan['identity'])
+    try:
+        states = dict(queue.db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))
+        if states != receipt['states'] or queue.db.execute('SELECT count(*) FROM active_work').fetchone()[0]:
+            raise ValueError('Continuation queue is not retired')
+        save(full/'restored.json',dict(receipt=plan['resume_receipt'],states=states,
+            queue_sha256=receipt['queue_sha256'],attempts_and_budgets_preserved=True))
+        return queue
+    except BaseException:
+        queue.close()
+        raise
+
+
+def service(full):
+    from .shared import prepare_queue
+    from .decoder_campaign import serve_queue
+    plan = read(full/'plan.json')
     def terminate(signum, frame):
-        os.killpg(process.pid, signal.SIGTERM)
         raise SystemExit(128+signum)
-    signal.signal(signal.SIGTERM, terminate)
-    signal.signal(signal.SIGINT, terminate)
+    signal.signal(signal.SIGTERM,terminate)
+    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
+        queue = (restore_queue(plan,full,scratch) if 'resume_receipt' in plan
+                 else prepare_queue(plan,full,scratch))
+        try:
+            serve_queue(queue,full,dict(campaign='matching and original-space events'),
+                        retire_file=full/'retire.json')
+        finally:
+            queue.close()
+
+
+def next_allocation(full, plan, states):
+    if states.get('running',0) or not states.get('pending',0):
+        raise ValueError('Continuation requires pending work with no active tasks')
+    receipt = dict(identity=plan['identity'],index_sha256=plan['index_sha256'],
+        queue=str(full/'queue.sqlite'),queue_sha256=file_hash(full/'queue.sqlite'),
+        states=states,owner=os.environ['SLURM_JOB_ID'],utc=time.time())
+    save(full/'handoff.json',receipt)
+    root = Path(plan['campaign_root'])
+    following = root/'continuations'/f'{plan["generation"]+1:04d}'
+    following.mkdir(parents=True,exist_ok=False)
+    continued = dict(plan,generation=plan['generation']+1,resume_receipt=str(full/'handoff.json'))
+    continued.pop('claim_until')
+    save(following/'plan.json',continued)
+    submitted = submit_job(following,'production',continued,stage_resources(continued,'coordinator'),
+        wrapper(continued,'control',following,module='rebenchmark.launch'),
+        dependency='afterok:'+os.environ['SLURM_JOB_ID'])
+    save(root/'next-allocation.json',dict(stage=str(following),job=submitted['job'],
+        generation=continued['generation'],handoff=str(full/'handoff.json')))
+    return submitted
+
+
+def control(full):
+    from datetime import datetime
+    plan = read(full/'plan.json');root = Path(plan['campaign_root'])
+    allocation = subprocess.check_output(['scontrol','show','job',os.environ['SLURM_JOB_ID'],'-o'],text=True)
+    end = datetime.fromisoformat(re.search(r'EndTime=(\S+)',allocation)[1]).timestamp()
+    # Reserve the longest remaining task, publication, and a disk checkpoint.
+    plan['claim_until'] = end-plan['case_seconds']-180-plan['slurm']['checkpoint_seconds']
+    save(full/'plan.json',plan)
+    save(root/'current-allocation.json',dict(stage=str(full),job=os.environ['SLURM_JOB_ID'],
+        generation=plan['generation'],claim_until=plan['claim_until'],allocation_end=end))
+    process = subprocess.Popen(wrapper(plan,'service',full,module='rebenchmark.launch'),start_new_session=True)
+    def terminate(signum, frame):
+        os.killpg(process.pid,signal.SIGTERM)
+        raise SystemExit(128+signum)
+    signal.signal(signal.SIGTERM,terminate)
+    signal.signal(signal.SIGINT,terminate)
     try:
         while not ((full/'endpoint.json').exists() and (full/'progress.json').exists()):
             if process.poll() is not None: raise RuntimeError('Coordinator exited during preparation')
             time.sleep(5)
-        while time.time() < plan['claim_until']:
-            available = capacity(subprocess.check_output(['scontrol','show','nodes','-o'],text=True),
-                                 plan['memory_bytes'],plan['slurm']['max_worker_jobs'])
-            if available['groups']: break
-            time.sleep(30)
-        else: raise RuntimeError('No worker capacity before claim horizon')
-        save(full/'capacity.json',available)
-        jobs = [dict(group=g,generation=0,**start_workers(full,plan,i,0,g)) for i,g in enumerate(available['groups'])]
-        save(full/'worker-jobs.json',jobs)
+        jobs=[]
         while process.poll() is None:
-            progress = read(full/'progress.json')
+            progress=read(full/'progress.json')
             if progress.get('finished'): break
-            for slot, job in enumerate(jobs):
-                receipts = retired_workers(full, job)
-                if receipts is None or time.time() >= plan['claim_until']: continue
-                if any(r['states'].get('pending',0) or r['states'].get('running',0) for r in receipts):
-                    generation = job['generation']+1
-                    jobs[slot] = dict(group=job['group'],generation=generation,
-                        **start_workers(full,plan,slot,generation,job['group']))
-                    save(full/'worker-jobs.json',jobs)
-            if time.time() >= plan['claim_until'] and not ({j['job'] for j in jobs} & active_jobs()):
-                raise RuntimeError('Claim horizon reached; checkpoint retained for explicit continuation')
+            if time.time() < plan['claim_until']:
+                if not jobs:
+                    available=capacity(subprocess.check_output(['scontrol','show','nodes','-o'],text=True),
+                        plan['memory_bytes'],plan['slurm']['max_worker_jobs'])
+                    save(full/'capacity.json',available)
+                    jobs=[dict(group=g,generation=0,**start_workers(full,plan,i,0,g))
+                          for i,g in enumerate(available['groups'])]
+                else:
+                    for slot,job in enumerate(jobs):
+                        if retired_workers(full,job) is not None:
+                            generation=job['generation']+1
+                            jobs[slot]=dict(group=job['group'],generation=generation,
+                                **start_workers(full,plan,slot,generation,job['group']))
+                save(full/'worker-jobs.json',jobs)
+            else:
+                # Atomic Slurm filtering cancels only jobs which have not started.
+                live=active_jobs()
+                for job in jobs:
+                    if job['job'] in live and not job.get('cancel_pending'):
+                        subprocess.run(['scancel','--state=PENDING',job['job']],check=True)
+                        job['cancel_pending']=True
+                save(full/'worker-jobs.json',jobs)
+                if all(retired_workers(full,job) is not None for job in jobs):
+                    from mappa.mappa_core.core.scheduler import connect
+                    endpoint=read(full/'endpoint.json')
+                    queue=connect((endpoint['host'],endpoint['port']),(full/'worker.key').read_bytes())
+                    if queue.snapshot().get('running',0):
+                        raise RuntimeError('Workers retired with unresolved running task owners')
+                    save(full/'retire.json',dict(utc=time.time(),workers=jobs))
+                    break
             time.sleep(30)
         if process.wait(): raise RuntimeError('Coordinator failed')
-        progress = read(full/'progress.json'); save(full/'completion.json',progress)
-        if progress['states'].get('memory_limit',0):
-            stage = root/'memory-stage'; stage.mkdir(exist_ok=False)
-            retry = dict(plan, previous_stage=str(full), previous_memory_bytes=plan['memory_bytes'],
-                         memory_bytes=plan['retry_memory_bytes'], claim_until=time.time()+6*3600)
+        progress=read(full/'progress.json');save(full/'completion.json',progress)
+        if progress['states'].get('pending',0):
+            next_allocation(full,plan,progress['states'])
+        elif progress['states'].get('memory_limit',0):
+            stage=root/'memory-stage';stage.mkdir(exist_ok=False)
+            retry=dict(plan,previous_stage=str(full),previous_memory_bytes=plan['memory_bytes'],
+                       memory_bytes=plan['retry_memory_bytes'],claim_until=time.time()+6*3600)
             save(stage/'plan.json',retry)
             submit_job(stage,'memory-stage',retry,stage_resources(plan,'memory_stage'),
                        wrapper(retry,'memory-stage',stage,plan['retry_workers']))
@@ -292,18 +386,18 @@ def control(root):
                        wrapper(plan,'report',full,plan['slurm']['report']['cpus'],module='rebenchmark.launch'))
     finally:
         if process.poll() is None:
-            os.killpg(process.pid, signal.SIGTERM)
+            os.killpg(process.pid,signal.SIGTERM)
             process.wait()
 
 
 def report(full, workers):
     from .report import summarize_original_events
-    summarize_original_events(full,full.parent/'report',workers)
+    summarize_original_events(full,Path(read(full/'plan.json')['campaign_root'])/'report',workers)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('submit','pilot-check','control','report'))
+    parser.add_argument('mode', choices=('submit','pilot-check','control','service','report'))
     parser.add_argument('output',type=Path)
     parser.add_argument('--plan',type=Path)
     parser.add_argument('--prepared',type=Path,help='Reuse a passed pilot and index after pre-worker startup failure')
@@ -314,4 +408,5 @@ if __name__ == '__main__':
         submit(args.output.resolve(),args.plan,args.prepared)
     elif args.mode == 'pilot-check': pilot_check(args.output)
     elif args.mode == 'control': control(args.output)
+    elif args.mode == 'service': service(args.output)
     else: report(args.output,args.workers)

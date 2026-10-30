@@ -91,7 +91,7 @@ def execute(args):
         queue.close()
 
 
-def serve_queue(queue,out,metadata):
+def serve_queue(queue,out,metadata,*,retire_file=None):
     """Publish one endpoint and consistent snapshots for a prepared queue."""
     secret=secrets.token_bytes(32)
     with (out/'worker.key').open('xb') as stream:
@@ -99,7 +99,7 @@ def serve_queue(queue,out,metadata):
     queue.backup(out/'queue.sqlite')
     with coordinator(queue,(socket.gethostname(),0),secret) as address:
         save(out/'endpoint.json',dict(host=address[0],port=address[1],identity=queue.identity))
-        last=0.
+        last=time.monotonic()
         try:
             while True:
                 states=queue.snapshot();stamp=time.monotonic()
@@ -107,6 +107,10 @@ def serve_queue(queue,out,metadata):
                     queue.backup(out/'queue.sqlite');last=stamp
                 save(out/'progress.json',dict(metadata,states=states,utc=time.time()))
                 if not any(states.get(k,0) for k in ('pending','running')):break
+                if retire_file is not None and retire_file.exists():
+                    if states.get('running',0):
+                        raise ValueError('Cannot retire a queue with active tasks')
+                    break
                 time.sleep(10)
         finally:
             queue.backup(out/'queue.sqlite')

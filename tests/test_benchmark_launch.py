@@ -21,8 +21,8 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
                                check_returncode=lambda:None)
     monkeypatch.setattr(launch.subprocess, 'run', submitted)
     configuration = tmp_path/'config.json'
-    configuration.write_text(json.dumps(dict(slurm=dict(account='test',partition='cpu',long_qos='long',
-        **{k:dict(cpus=2,memory_gib=8,time='01:00:00') for k in ('prepare','pilot','coordinator')}))))
+    configuration.write_text(json.dumps(dict(slurm=dict(account='test',partition='cpu',
+        **{k:dict(qos='short',cpus=2,memory_gib=8,time='01:00:00') for k in ('prepare','pilot','coordinator')}))))
     result = launch.submit(tmp_path/'run',configuration)
     assert result['production']=='103'
     assert '--dependency=afterok:101' in commands[1]
@@ -116,3 +116,78 @@ def test_prepared_recovery_reuses_only_verified_unstarted_work(tmp_path,monkeypa
     with pytest.raises(ValueError,match='settings differ'):launch.prepared_plan(previous,changed)
     (previous/'full/endpoint.json').write_text('{}')
     with pytest.raises(ValueError,match='already started'):launch.prepared_plan(previous,plan)
+
+
+def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_path,monkeypatch):
+    from mappa.mappa_core.core.scheduler import Task,TaskQueue
+    from rebenchmark import decoder_campaign
+    import mappa.mappa_core.core.scheduler.queue as queue_module
+    clock=[100.]
+    monkeypatch.setattr(queue_module.time,'time',lambda:clock[0])
+    monkeypatch.setattr(decoder_campaign.time,'sleep',lambda seconds:None)
+    monkeypatch.setenv('SLURM_JOB_ID','100')
+    full=tmp_path/'full';full.mkdir()
+    queue=TaskQueue(tmp_path/'live.sqlite','handoff')
+    queue.add([Task('done','execution_helpers:value',{},case='same',case_seconds=60),
+               Task('next','execution_helpers:value',{},case='same',case_seconds=60,dependencies=('done',))])
+    claim=queue.claim('old',2**30,'handoff');clock[0]=107.
+    queue.finish('done',claim['token'],'complete',{'value':42})
+    before={table:list(queue.db.execute('SELECT * FROM '+table)) for table in ('tasks','attempts','cases')}
+    launch.save(full/'retire.json',{'workers':[]})
+    decoder_campaign.serve_queue(queue,full,{},retire_file=full/'retire.json')
+    queue.close()
+    assert launch.read(full/'progress.json')['finished'] is False
+    plan=dict(identity='handoff',index_sha256='index',campaign_root=str(tmp_path),generation=0,
+              claim_until=100,commit='source',python='python',slurm=dict(coordinator=dict(qos='short',
+              cpus=2,memory_gib=8,time='01:00:00')))
+    submissions=[]
+    def submit(*args,**kw):
+        submissions.append((args,kw));return {'job':'101'}
+    monkeypatch.setattr(launch,'submit_job',submit)
+    launch.next_allocation(full,plan,{'complete':1,'pending':1})
+    assert submissions[0][1]['dependency']=='afterok:100'
+    following=tmp_path/'continuations/0001'
+    continued=launch.read(following/'plan.json')
+    assert continued['identity']==plan['identity'] and 'claim_until' not in continued
+    scratch=tmp_path/'scratch';scratch.mkdir()
+    restored=launch.restore_queue(continued,following,scratch)
+    assert before=={table:list(restored.db.execute('SELECT * FROM '+table)) for table in before}
+    clock[0]=1000.
+    claim=restored.claim('new',2**30,'handoff')
+    assert claim['task'].key=='next' and claim['deadline']==1053.
+    restored.finish('next',claim['token'],'complete',{'value':43})
+    assert restored.snapshot()=={'complete':2}
+    assert list(restored.db.execute('SELECT task,count(*) FROM attempts GROUP BY task'))==[('done',1),('next',1)]
+    restored.close()
+    with pytest.raises(FileExistsError):launch.next_allocation(full,plan,{'complete':1,'pending':1})
+    assert len(submissions)==1
+
+
+def test_checkpoint_rejects_active_owners_and_changed_bytes(tmp_path):
+    from mappa.mappa_core.core.scheduler import Task,TaskQueue
+    queue=TaskQueue(tmp_path/'live.sqlite','handoff')
+    queue.add([Task('a','execution_helpers:value',{})])
+    queue.claim('active',2**30,'handoff')
+    queue.backup(tmp_path/'snapshot.sqlite');queue.close()
+    receipt=dict(identity='handoff',index_sha256='index',queue=str(tmp_path/'snapshot.sqlite'),
+                 queue_sha256=launch.file_hash(tmp_path/'snapshot.sqlite'),states={'running':1})
+    launch.save(tmp_path/'handoff.json',receipt)
+    plan=dict(identity='handoff',index_sha256='index',resume_receipt=str(tmp_path/'handoff.json'))
+    scratch=tmp_path/'scratch';scratch.mkdir()
+    with pytest.raises(ValueError,match='active owners'):launch.restore_queue(plan,tmp_path,scratch)
+    receipt['states']={'pending':1};launch.save(tmp_path/'handoff.json',receipt)
+    with pytest.raises(ValueError,match='not retired'):launch.restore_queue(plan,tmp_path,scratch)
+    receipt['queue_sha256']='changed';launch.save(tmp_path/'handoff.json',receipt)
+    with pytest.raises(ValueError,match='hash differs'):launch.restore_queue(plan,tmp_path,scratch)
+
+
+def test_pending_cancellation_needs_no_worker_receipt_but_started_cancellation_fails(tmp_path,monkeypatch):
+    job=dict(job='100',group=dict(nodes=1),cancel_pending=True)
+    started=['None']
+    def output(args,**kw):
+        if args[0]=='squeue':return ''
+        return started[0] if args[-1]=='--format=Start' else 'CANCELLED by 10|0:0\n'
+    monkeypatch.setattr(launch.subprocess,'check_output',output)
+    assert launch.retired_workers(tmp_path,job)==[]
+    started[0]='2026-10-30T00:00:00'
+    with pytest.raises(RuntimeError,match='failed'):launch.retired_workers(tmp_path,job)

@@ -615,6 +615,10 @@ flowchart LR
     Workers --> Production
     Production --> Queue[Core task queue and budgets]
     Queue --> Results[Verified bundles and report]
+    Production --> Drain[Stop claims and retire workers]
+    Drain --> Checkpoint[Hash consistent queue]
+    Checkpoint --> Successor[Next short allocation]
+    Successor --> Production
 ```
 
 The benchmark wrapper puts queues, checkpoints and worker scratch on verified
@@ -623,3 +627,9 @@ requires a second queue-sized file. The launcher can reuse a prepared index and
 passed pilot after confirmed pre-worker startup failure; it validates source,
 settings, index hash and retired ownership before submitting a fresh controller.
 It never treats an attempted production queue as unstarted preparation.
+
+Coordinator lifetime follows its actual Slurm allocation. The launcher reserves
+time for active computations, publication and a final disk checkpoint. Only after
+worker retirement may it hand the same queue to an `afterok` successor. Queue
+identity, accepted results, attempts and charged budgets survive unchanged. This
+lifecycle belongs to the benchmark launcher, not chemistry or task planning.

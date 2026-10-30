@@ -59,7 +59,7 @@ elif [[ "$mode" == prepare ]]; then
     "$python" -u -m "$campaign" prepare "$output"
 elif [[ "$mode" == coordinator || "$mode" == repeat ]]; then
     "$python" -u -m "$campaign" "$mode" "$output"
-elif [[ "$mode" == pilot-check || "$mode" == control || "$mode" == report ]]; then
+elif [[ "$mode" == pilot-check || "$mode" == control || "$mode" == service || "$mode" == report ]]; then
     "$python" -u -m "$campaign" "$mode" "$output" --workers "$workers"
 elif [[ "$mode" == worker ]]; then
     "$python" -u -m "$campaign" worker "$output" --workers "$workers" "${memory_arguments[@]}"
