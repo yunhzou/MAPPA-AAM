@@ -179,7 +179,7 @@ class EventInterpretation:
         fragments = self.fragment_partitions[family_id][partition]
         cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
                                   for pair in origin.get('cuts', ())}))
-        key = family.mapping, family.actions, fragments, cut_bonds
+        key = family.mapping, family.actions, family.required_edges, fragments, cut_bonds
         if key not in self._tables:
             self._tables[key] = FragmentEventTables(self.index,
                 family, fragments, cut_bonds)

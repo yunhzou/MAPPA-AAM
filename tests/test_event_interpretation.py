@@ -425,9 +425,13 @@ def test_local_contribution_components_retain_shared_actions_and_constraints():
     result = interpret_events(source)
     assert result.tables(0).components == (((0,),(0,)),((1,),(1,)))
     check_contributions(result,[[None,None],[(2,1),None],[None,(5,4)],[(2,1),(5,4)]])
-    # Original cross-fragment feasibility constraints keep the two choices joint.
-    source.families[0] = replace(source.families[0],required_edges=((1,4),))
-    assert interpret_events(source).tables(0).components == (((0,1),(0,1)),)
+    # Equal responses with different feasibility constraints need distinct
+    # dependency components, including within the same interpretation cache.
+    source.families.append(replace(source.families[0],required_edges=((1,4),)))
+    next(iter(source.branches.values())).add(1)
+    result = interpret_events(source)
+    assert result.tables(0).components == (((0,),(0,)),((1,),(1,)))
+    assert result.tables(1).components == (((0,1),(0,1)),)
     source.families[0] = replace(source.families[0],required_edges=(),
                                 actions=(('group',((0,2,1,3,5,4),)),))
     result = interpret_events(source)
