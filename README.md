@@ -415,3 +415,29 @@ Experimental hierarchical refinement is explicitly available from
 `mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`
 and `RefinementConfig`. It rematches within original fragment atom sets and can
 change coverage. Normal decoding never invokes it.
+
+## Submit a cluster benchmark
+
+Use the maintained launcher with a saved plan; do not create per-run submission
+scripts:
+
+```bash
+PYTHONPATH=src:bench python -m rebenchmark.launch submit /absolute/new/run --plan /absolute/plan.json
+```
+
+The plan supplies the dataset/manifest, search settings and a `slurm` resource
+profile (`account`, `partition`, `long_qos`, `short_qos`, `worker_time`,
+`max_worker_jobs`, `claim_hours`; `prepare`, `pilot`, `coordinator`, `report` and
+`memory_stage` each specify `cpus`, `memory_gib`, `time`). It also supplies
+`expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
+`retry_workers`. The existing shared planner owns dataset/task preparation.
+
+One command queues preparation, a small real-input pilot and production with
+scheduler dependencies. Production renews only cleanly retired worker allocations
+against the same queue. It preserves task budgets, accepted work and checkpoint
+backups; failed workers require diagnosis. Only recorded memory failures enter
+the configured larger-memory stage. Unknowns and resource limits remain unresolved.
+Launch receipts, source/native hashes, configurations and result bundles are saved
+under the run. A new submission refuses an existing run directory. Reusing a
+completed stage for timing comparisons is supported separately by the shared
+planner's explicit `repeat` mode.

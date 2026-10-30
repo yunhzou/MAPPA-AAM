@@ -592,3 +592,27 @@ CLI events, shared scheduler and fresh benchmarks call the original-space decode
 JSON v3 records retain the original catalogue, response tables, action correlations,
 manual-cut provenance and separate representative counts. They do not claim full
 pattern enumeration or a minimum across unrequested symmetry choices.
+
+### Benchmark submission ownership
+
+`bench/rebenchmark/launch.py` owns Slurm submission, stage dependencies, resource
+fitting and renewal of retired worker allocations. `shared.py` owns immutable
+scientific task planning and execution; the core scheduler owns task claims,
+budgets, publication and checkpoints. `run_conversion.sbatch` is the single
+allocation wrapper. Run folders contain configuration and evidence, not alternate
+launcher implementations. Dataset preparation, pilot and production are submitted
+in one command; a failed pilot blocks production automatically. Renewal never
+requeues a completed/live task. Explicit larger-memory recovery retains prior
+attempts and remaining budgets.
+
+```mermaid
+flowchart LR
+    Config[Saved run configuration] --> Launch[Benchmark launcher]
+    Launch --> Prep[Shared input preparation]
+    Prep --> Pilot[Small real-input pilot]
+    Pilot --> Production[Shared coordinator]
+    Launch --> Workers[Renewable Slurm workers]
+    Workers --> Production
+    Production --> Queue[Core task queue and budgets]
+    Queue --> Results[Verified bundles and report]
+```
