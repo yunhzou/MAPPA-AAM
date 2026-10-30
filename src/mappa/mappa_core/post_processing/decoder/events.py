@@ -193,9 +193,8 @@ class SignedEventIndex:
                 self._domain_responses.popitem(last=False)
         return self._domain_responses[key]
 
-    def _event_response(self, weight, tau, pair, actions, domains):
-        """Constant certificate, then joint pair projection only if needed."""
-        response = self._domain_response(weight, tau, *domains)
+    def _refine_event_response(self, weight, tau, pair, actions, response):
+        """Refine a varying domain response through its joint endpoint orbit."""
         if response.constant is not None:
             return response, 0
         key = float(weight), float(tau), pair, actions
@@ -543,13 +542,16 @@ class FragmentEventTables:
         for a, b, tau in zip(index.a, index.b, index.tau):
             if a not in mapping and b not in mapping:
                 continue
+            manual_cut = (int(a), int(b)) in self.cut_bonds
+            response = index._domain_response(index.r[a, b], tau,
+                self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,)))
+            if response.constant == 0 and not manual_cut:
+                continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
             action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
             actions = tuple(family.actions[i] for i in action_ids)
-            response, projected = index._event_response(index.r[a, b], tau, pair, actions,
-                (self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,))))
+            response, projected = index._refine_event_response(index.r[a, b], tau, pair, actions, response)
             self.projected_pair_states += projected
-            manual_cut = (int(a), int(b)) in self.cut_bonds
             if response.constant == 0 and not manual_cut:
                 continue
             left, right = int(self.owners[a]), int(self.owners[b])
