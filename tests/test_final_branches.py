@@ -65,7 +65,8 @@ def test_pool_anchor_locks_survive_flattening():
 
 def test_constraint_variants_are_retained_within_one_fragment_combination():
     value=problem('COO',[(0,1,1),(0,2,1)],[(0,1,1),(0,2,.4)])
-    old=saved_path(value,[(0,2,1)]);other=replace(old.graph,contexts=(replace(old.context,cuts=((0,1),)),))
+    old=saved_path(value,[(0,2,1)]);other=replace(old.graph,
+        transitions=tuple(replace(e, preserved_bonds=((0,2),)) for e in old.graph.transitions))
     index=FinalBranchCatalogue(value).add_graph(old.graph).add_graph(other)
     assert len(index.branches)==1 and len(index.families)==2
     for graph,family in zip((old.graph,other),index.families):

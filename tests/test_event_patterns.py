@@ -48,7 +48,9 @@ def saved_path(value, generators=(), blocks=(), fragments=None):
                         exact_fixed=[], automorph_blocks=[],
                         automorph_generators=list(generators) if step == 0 else [])
         transitions.append(FragmentTransition(step, step, step + 1, fragment[0], (step, 0),
-                                              dict(fragment=list(fragment), symmetry=symmetry)))
+                                              dict(fragment=list(fragment), symmetry=symmetry),
+                                              tuple((a,b) for a in fragment for b in fragment
+                                                    if a < b and value.reactant.wbo[a,b] >= .2)))
     graph = AAMSearchGraph((SearchContext(tuple(range(n)), tuple(range(n)), tuple(range(n)),
                                         iso_tolerance=1.0),), (0,), tuple(states), tuple(transitions),
                           (SearchStop(len(parts), 'objective_met'),))

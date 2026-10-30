@@ -24,7 +24,6 @@ class RepresentativeValidationWorkspace:
         self.r_elements = np.asarray(problem.reactant.elements)
         self.p_elements = np.asarray(problem.product.elements)
         self.fragment_masks = {}
-        self.source_bonds = {}
         self.mask_arrays = {}
         self.cache_entries = cache_entries
         self.stats = Counter()
@@ -38,30 +37,15 @@ class RepresentativeValidationWorkspace:
     def _edge_mask(self, edge, context):
         if edge.match is None:
             return 0
-        fragment = tuple(sorted(edge.match["fragment"]))
-        key = context.graph_floor, fragment
+        key = edge.preserved_bonds
         if key in self.fragment_masks:
             self.stats["fragment_mask_hits"] += 1
-            mask = self.fragment_masks[key]
-        else:
-            self.stats["fragment_mask_builds"] += 1
-            if context.graph_floor not in self.source_bonds:
-                self.source_bonds[context.graph_floor] = tuple(
-                    (int(a), int(b), self.pair_bits[int(a), int(b)])
-                    for a, b, weight in zip(self.a, self.b, self.weights)
-                    if weight >= context.graph_floor
-                )
-            atoms = set(fragment)
-            mask = 0
-            for a, b, bit in self.source_bonds[context.graph_floor]:
-                if a in atoms and b in atoms:
-                    mask |= bit
-            self._remember(self.fragment_masks, key, mask)
-        excluded = 0
-        for a, b in (*context.cuts, *edge.match.get("deferred_edges", ())):
-            if a != b:
-                excluded |= self.pair_bits[min(a, b), max(a, b)]
-        return mask & ~excluded
+            return self.fragment_masks[key]
+        self.stats["fragment_mask_builds"] += 1
+        mask = 0
+        for a, b in key:
+            mask |= self.pair_bits[min(a, b), max(a, b)]
+        return self._remember(self.fragment_masks, key, mask)
 
     def validate_path(self, path):
         """Validate a single complete path using cached preservation masks."""

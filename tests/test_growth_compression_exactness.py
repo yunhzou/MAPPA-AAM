@@ -249,6 +249,8 @@ def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, rever
         tree = nx.Graph(fragment.preserved_bonds)
         assert nx.is_tree(tree)
         assert query_path(path, problem, path.mapping, source_atoms=tuple(range(6)))[0] == 'recovered'
+        from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
+        RepresentativeValidationWorkspace(problem).validate_path(path)
     events = interpret_events(catalogue)
     for i, family in enumerate(catalogue.families):
         family.validate_representative(problem)
