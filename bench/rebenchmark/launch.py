@@ -264,6 +264,10 @@ def start_workers(full, plan, slot, generation, group):
         wrapper(plan, 'workers', full, workers))
 
 
+class WorkerFailure(RuntimeError):
+    """An allocation retired unsuccessfully; preserve the independent queue."""
+
+
 def retired_workers(full, job):
     """Never replace an active allocation or conceal a failed worker exit."""
     if job['job'] in active_jobs():
@@ -277,10 +281,10 @@ def retired_workers(full, job):
         if started in ('Unknown','None'):
             return []
     if accounting != ['COMPLETED|0:0']:
-        raise RuntimeError(f'Worker {job["job"]} failed: {accounting}')
+        raise WorkerFailure(f'Worker {job["job"]} failed: {accounting}')
     paths = list((full/'retirements').glob(job['job']+'-*.json'))
     if len(paths) != job['group']['nodes']:
-        raise RuntimeError('Worker retirement receipts incomplete: '+job['job'])
+        raise WorkerFailure('Worker retirement receipts incomplete: '+job['job'])
     return [read(path) for path in paths]
 
 
@@ -429,11 +433,32 @@ def control(full):
             if process.poll() is not None: raise RuntimeError('Coordinator exited during preparation')
             time.sleep(5)
         jobs=[]
+        worker_failure = None
         while process.poll() is None:
             progress=read(full/'progress.json')
             if progress.get('finished'): break
-            if time.time() < plan['claim_until']:
-                jobs = scale_workers(full, plan, jobs)
+            if worker_failure is not None:
+                # Healthy workers retain their original claim deadline. Never let
+                # one allocation failure tear down their queue or retry its tasks.
+                live = active_jobs()
+                for job in jobs:
+                    if job['job'] in live and not job.get('cancel_pending'):
+                        scheduler_output(['scancel', '--state=PENDING', job['job']])
+                        job['cancel_pending'] = True
+                if not any(job['job'] in live for job in jobs):
+                    from mappa.mappa_core.core.scheduler import connect
+                    endpoint = read(full/'endpoint.json')
+                    queue = connect((endpoint['host'], endpoint['port']), (full/'worker.key').read_bytes())
+                    if not queue.snapshot().get('running', 0):
+                        save(full/'retire.json', dict(utc=time.time(), workers=jobs, failure=worker_failure))
+                        break
+            elif time.time() < plan['claim_until']:
+                try:
+                    jobs = scale_workers(full, plan, jobs)
+                except WorkerFailure as error:
+                    worker_failure = str(error)
+                    save(full/'worker-failure.json', dict(utc=time.time(), error=worker_failure,
+                         workers=jobs, action='Drain existing workers; preserve queue and unresolved attempts'))
                 save(full/'worker-jobs.json',jobs)
             else:
                 # Atomic Slurm filtering cancels only jobs which have not started.
@@ -443,7 +468,14 @@ def control(full):
                         scheduler_output(['scancel','--state=PENDING',job['job']])
                         job['cancel_pending']=True
                 save(full/'worker-jobs.json',jobs)
-                if all(retired_workers(full,job) is not None for job in jobs):
+                try:
+                    retired = all(retired_workers(full,job) is not None for job in jobs)
+                except WorkerFailure as error:
+                    worker_failure = str(error)
+                    save(full/'worker-failure.json', dict(utc=time.time(), error=worker_failure,
+                         workers=jobs, action='Drain existing workers; preserve queue and unresolved attempts'))
+                    retired = False
+                if retired:
                     from mappa.mappa_core.core.scheduler import connect
                     endpoint=read(full/'endpoint.json')
                     queue=connect((endpoint['host'],endpoint['port']),(full/'worker.key').read_bytes())
