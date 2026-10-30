@@ -459,7 +459,7 @@ validation uses one constraint checker for both shared and individual histories.
 
 The old `group_mechanisms` pipeline and its mechanism-family compiler are removed,
 along with their result types, pool reduction, event signatures and Python/native
-symmetry-repair scoring. `decode_events` is the sole public event-result pipeline.
+symmetry-repair scoring. `decode_events` is the public original-space event interpreter.
 The unused analytical mapping-family compiler, historical scoring/pattern
 utilities, adaptive cut/seed runners and event certificates are removed with
 their obsolete exports and dedicated tests. Explicit mapping queries retain
@@ -565,3 +565,23 @@ matching permissions. No new local group replaces the saved correlated actions.
 The growth policy is `growth_edge_splitmix64_v2`; old scientific checkpoints are
 not resumable under this policy. Historical saved results retain their original
 explicit preserved bonds and can still be read.
+
+
+## Event decoding and hierarchical mapping separation (2026-10-30)
+
+```text
+mappa_core/post_processing/
+  final_branches.py       original compressed AAM families
+  decoder/
+    api.py                decode_events, no matching calls
+    records.py            policy and compressed event result
+    events.py             sparse local event tables and exact counts
+  hierarchical_mapping.py experimental anchored rematching and its records
+```
+
+Search → final branches → decode_events → original-space event tables.
+Explicit hierarchical refinement → separate catalogue, with changed coverage possible.
+CLI events, shared scheduler and fresh benchmarks call the original-space decoder.
+JSON v3 records retain the original catalogue, response tables, action correlations,
+manual-cut provenance and separate representative counts. They do not claim full
+pattern enumeration or a minimum across unrequested symmetry choices.

@@ -223,7 +223,7 @@ def test_compression_contract_survives_typed_hierarchy_roundtrip():
 @pytest.mark.parametrize('native', ['0', '1'])
 @pytest.mark.parametrize('reverse', [False, True])
 def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, reverse, monkeypatch):
-    from mappa import AAMProblem, MolecularEndpoint, interpret_events, query_path
+    from mappa import AAMProblem, MolecularEndpoint, decode_events, query_path
     from mappa.mappa_core.core.search.branching.construction import find_islands
     from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.mappa_core.core.search.graph import AAMSearchGraph
@@ -251,7 +251,7 @@ def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, rever
         assert query_path(path, problem, path.mapping, source_atoms=tuple(range(6)))[0] == 'recovered'
         from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
         RepresentativeValidationWorkspace(problem).validate_path(path)
-    events = interpret_events(catalogue)
+    events = decode_events(catalogue)
     for i, family in enumerate(catalogue.families):
         family.validate_representative(problem)
         assert len(family.required_edges) == 5

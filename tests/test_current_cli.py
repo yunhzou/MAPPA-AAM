@@ -24,11 +24,11 @@ def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatc
     output = tmp_path / 'events'
     main([*endpoints(tmp_path), '--output', str(output)])
     record = json.loads((output / 'events.json').read_text())
-    assert record['schema'] == 'mappa.decoded_events/v2'
-    assert record['complete'] and record['minimum_proven']
-    assert record['observed_minimum'] == 0
-    assert len(record['candidates']) == 1
-    assert record['candidates'][0]['events'] == {'broken': [], 'formed': []}
+    assert record['schema'] == 'mappa.decoded_events/v3'
+    assert record['mapping_space_preserved']
+    assert not record['global_minimum_proven']
+    assert len(record['representatives']) == 1
+    assert record['representatives'][0]['total'] == 0
     assert (output / 'aam.json').is_file()
     assert (output / 'search.html').is_file()
     assert not (output / 'rp.json').exists()

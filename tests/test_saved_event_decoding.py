@@ -1,10 +1,10 @@
 """Saved seed/cut windows must agree with direct public decoding of their union."""
 import pytest
 
-from mappa.mappa_core.utils.io.records import decoded_events_record
+from mappa.mappa_core.utils.io.records import refined_mapping_record
 from mappa.mappa_core.core.scheduler import Task
-from mappa.mappa_core.post_processing.decoder.api import decode_events
-from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from rebenchmark.decoding import seed_tasks, merge_windows, coverage
 from test_partial_event_decoding import endpoint, catalogue
@@ -16,7 +16,7 @@ def test_each_seed_window_preserves_earlier_prefixes_and_cut_unions():
                          endpoint('CCCCC', [(0,1,1),(1,2,1),(2,3,1),(3,4,1)]))
     groups = [catalogue(problem, m) for m in ({0:0,1:2,2:4}, {0:0,1:1,2:2}, {0:2,1:3,2:4})]
     rows = [dict(coverage=coverage(problem,c.families[0]),
-                 decoded=decoded_events_record(decode_events(c,EventDecodeConfig(event_slack=1)))) for c in groups]
+                 decoded=refined_mapping_record(refine_mapping(c,RefinementConfig(event_slack=1)))) for c in groups]
     assert rows[0]['decoded']['observed_minimum'] > rows[1]['decoded']['observed_minimum']
     for count in (1,2,3):
         cat=FinalBranchCatalogue(problem)
@@ -24,7 +24,7 @@ def test_each_seed_window_preserves_earlier_prefixes_and_cut_unions():
             offset=len(cat.families)
             cat.families.extend(c.families)
             for key,ids in c.branches.items():cat.branches.setdefault(key,set()).update(offset+i for i in ids)
-        direct=decode_events(cat,EventDecodeConfig(event_slack=1))
+        direct=refine_mapping(cat,RefinementConfig(event_slack=1))
         merged=merge_windows(rows[:count],slack=1)
         assert merged['complete'] and merged['minimum_proven']
         assert merged['minimum']==direct.observed_minimum
@@ -36,7 +36,7 @@ def test_original_coverage_tier_and_unknown_are_preserved():
     full=catalogue(problem,{0:0,1:1})
     empty=catalogue(problem,{})
     rows=[dict(coverage=coverage(problem,c.families[0]),
-         decoded=decoded_events_record(decode_events(c,EventDecodeConfig(event_slack=0)))) for c in (empty,full)]
+         decoded=refined_mapping_record(refine_mapping(c,RefinementConfig(event_slack=0)))) for c in (empty,full)]
     assert merge_windows(rows,slack=0)['minimum']==1
     rows[1]['decoded']['complete']=False
     assert not merge_windows(rows,slack=0)['complete']
@@ -46,7 +46,7 @@ def test_original_coverage_tier_and_unknown_are_preserved():
 
 def test_converted_record_does_not_emit_solver_evidence():
     problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CO',[]))
-    result=decode_events(catalogue(problem,{0:0,1:1}))
+    result=refine_mapping(catalogue(problem,{0:0,1:1}))
     assert result.complete
     assert all(r['solver_queries']==0 and 'query_evidence' not in r for r in result.family_reports)
 
@@ -73,9 +73,10 @@ def test_saved_worker_checks_native_pairs_and_publishes_partial_mapping(monkeypa
     monkeypatch.setattr('rebenchmark.decoding.prepare_cut',lambda payload,workspace:
         (SimpleNamespace(problem=problem),{},graph,'checked',None))
     workspace=Workspace(tmp_path,tmp_path/'bundles')
-    value=decode_seed(dict(seed=0,slack=5,branch_limit=100,random_seed=42,decoder='anchored_fragment_conversion',task_id=0,cut=0,
+    value=decode_seed(dict(seed=0,slack=5,branch_limit=100,random_seed=42,decoder='compressed_event_interpretation',task_id=0,cut=0,
         source={},raw={},graph={}),workspace)
-    assert value['decoded']['complete'] and value['decoded']['observed_minimum']==2
+    assert value['decoded']['mapping_space_preserved']
+    assert min(r['total'] for r in value['decoded']['representatives'])==2
     assert value['coverage']==(2,2) and value['search_rerun'] is False
 
 
@@ -93,8 +94,8 @@ def test_prefix_representatives_bound_later_seed_without_minimum_stage():
         tier=coverage(problem,cat.families[0])
         bound=representative_bound(problem,graph,seed,tier,1)
         bounds.append(bound)
-        result=decode_events(cat,EventDecodeConfig(max_events=bound))
-        rows.append(dict(coverage=tier,decoded=decoded_events_record(result)))
+        result=refine_mapping(cat,RefinementConfig(max_events=bound))
+        rows.append(dict(coverage=tier,decoded=refined_mapping_record(result)))
         merged=merge_windows(rows,slack=1)
         direct=FinalBranchCatalogue(problem)
         for m in maps[:seed+1]:
@@ -102,7 +103,7 @@ def test_prefix_representatives_bound_later_seed_without_minimum_stage():
             offset=len(direct.families)
             direct.families.extend(c.families)
             for key,ids in c.branches.items():direct.branches.setdefault(key,set()).update(offset+i for i in ids)
-        expected=decode_events(direct,EventDecodeConfig(event_slack=1))
+        expected=refine_mapping(direct,RefinementConfig(event_slack=1))
         assert merged['complete'] and merged['minimum']==expected.observed_minimum
         assert {r['id'] for r in merged['candidates']}=={r.id for r in expected.candidates}
     assert bounds[2]==bounds[1]<bounds[0]

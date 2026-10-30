@@ -30,13 +30,13 @@ _CHECKPOINT_MODULES = {
     ('mappa.domain', 'TSMechanismResult'): 'mappa.mappa_workflow.ts_analytics.records',
     ('mappa.domain', 'TSResult'): 'mappa.mappa_workflow.ts_analytics.records',
 
-    ('mappa.postprocessing', 'EventDecodeConfig'): 'mappa.mappa_core.post_processing.decoder.records',
-    ('mappa.postprocessing', 'EventCandidate'): 'mappa.mappa_core.post_processing.decoder.records',
+    ('mappa.postprocessing', 'RefinementConfig'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
+    ('mappa.postprocessing', 'RefinementCandidate'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
     ('mappa.postprocessing', 'ShuffleQuery'): 'mappa.mappa_workflow.mapping_analytics.queries',
-    ('mappa.postprocessing', 'DecodedEvents'): 'mappa.mappa_core.post_processing.decoder.records',
-    ('mappa.fragment_conversion', 'FragmentRematch'): 'mappa.mappa_core.post_processing.decoder.conversion',
-    ('mappa.fragment_conversion', 'ConvertedBranch'): 'mappa.mappa_core.post_processing.decoder.conversion',
-    ('mappa.fragment_conversion', 'FragmentConversion'): 'mappa.mappa_core.post_processing.decoder.conversion',
+    ('mappa.postprocessing', 'RefinedMapping'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
+    ('mappa.fragment_conversion', 'FragmentRematch'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
+    ('mappa.fragment_conversion', 'ConvertedBranch'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
+    ('mappa.fragment_conversion', 'FragmentConversion'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
     ('mappa.event_patterns', 'SignedEventIndex'): 'mappa.mappa_core.post_processing.decoder.events',
     ('mappa.event_patterns', '_EventTerms'): 'mappa.mappa_workflow.mapping_analytics.event_query',
     ('mappa.final_branches', 'FinalFamily'): 'mappa.mappa_core.post_processing.final_branches',
@@ -162,6 +162,11 @@ class _CheckpointUnpickler(pickle.Unpickler):
             if module == legacy or module.startswith(legacy + "."):
                 module = "mappa" + module[len(legacy):]
                 break
+        if module in ('mappa.postprocessing', 'mappa.mappa_core.post_processing.decoder.records') and name in ('EventDecodeConfig', 'EventCandidate', 'DecodedEvents'):
+            name = dict(EventDecodeConfig='RefinementConfig', EventCandidate='RefinementCandidate', DecodedEvents='RefinedMapping')[name]
+            module = 'mappa.mappa_core.post_processing.hierarchical_mapping'
+        if module == 'mappa.mappa_core.post_processing.decoder.conversion':
+            module = 'mappa.mappa_core.post_processing.hierarchical_mapping'
         # Explicit class-path relocation for checkpoints saved before ownership consolidation.
         module = _CHECKPOINT_MODULES.get((module, name), module)
         return super().find_class(module, name)

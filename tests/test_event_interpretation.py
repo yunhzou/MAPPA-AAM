@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from mappa import AAMProblem, interpret_events
+from mappa import AAMProblem, decode_events
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex, _response_bounds
 from mappa.mappa_core.utils.bonds import is_metal_element
 from test_fragment_conversion import endpoint, saved
@@ -49,7 +49,7 @@ def test_original_correlations_and_event_effects(elements, edges, generators, wo
     ep = endpoint(elements, edges)
     catalogue = saved(ep, ep, dict(enumerate(range(len(elements)))), actions=(('group',generators),))
     before = catalogue.to_record()
-    interpreted = interpret_events(catalogue)
+    interpreted = decode_events(catalogue)
     assert interpreted.catalogue is catalogue and catalogue.to_record() == before
     actual = []
     for word in words:
@@ -100,7 +100,7 @@ def test_batched_generator_checks_equal_dense_response_signatures():
 def test_pool_order_original_constraints_and_inverse_words():
     ep = endpoint('CCC', [(0,1,1),(0,2,2)])
     catalogue = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(1,2)),('group',((1,2,0),))))
-    interpreted = interpret_events(catalogue)
+    interpreted = decode_events(catalogue)
     assert interpreted.realize(0, [(2,1),(-1,)]) == {0:2,1:1,2:0}
     with pytest.raises(ValueError, match='pool choice'):
         interpreted.realize(0, [(1,1),None])
@@ -108,7 +108,7 @@ def test_pool_order_original_constraints_and_inverse_words():
     # though the stored pool supplies both permutations.
     catalogue.families[0] = replace(catalogue.families[0], actions=(('pool',(1,2)),),
                                     required_edges=((0,1),), policy=(.2,.5))
-    interpreted = interpret_events(catalogue)
+    interpreted = decode_events(catalogue)
     with pytest.raises(ValueError, match='original fragment constraints'):
         interpreted.realize(0, [(2,1)])
     assert interpreted.realize(0) == {0:0,1:1,2:2}
@@ -118,7 +118,7 @@ def test_invariant_action_is_not_removed_before_overlapping_action():
     ep = endpoint('CCC', [(0,1,.8),(0,2,.8),(1,2,1.6)])
     catalogue = saved(ep,ep,{0:0,1:1,2:2},
         actions=(('group',((0,2,1),)),('group',((1,0,2),))))
-    result = interpret_events(catalogue)
+    result = decode_events(catalogue)
     assert result.family_actions[0][0].response_invariant
     assert len(result.family_actions[0]) == 2
     assert result.evaluate(0,[(1,),(1,)])['events'] != result.evaluate(0,[None,(1,)])['events']
@@ -128,7 +128,7 @@ def test_partial_boundaries_and_empty_mapping():
     r, p = endpoint('CCC',[(0,1,1),(1,2,2)]), endpoint('CCCC',[(0,1,1),(2,3,2)])
     for mapping in ({0:0},{0:0,1:1},{}):
         source = saved(r,p,mapping,actions=(('pool',(0,1,2,3)),))
-        result = interpret_events(source)
+        result = decode_events(source)
         for choice in ((0,1,2,3),(2,3,0,1)):
             actual = result.realize(0,[choice])
             assert list(result.evaluate(0,[choice])['counts'].values()) == dense_counts(source.problem,actual)
@@ -136,7 +136,7 @@ def test_partial_boundaries_and_empty_mapping():
 
 def test_count_batches_bound_pair_scratch(monkeypatch):
     ep = endpoint('C'*300,[(0,1,1.)])
-    result = interpret_events(saved(ep,ep,{0:0,1:1}))
+    result = decode_events(saved(ep,ep,{0:0,1:1}))
     original, sizes = result.index.counts, []
     def checked(vectors):
         sizes.append(len(vectors))
@@ -148,7 +148,7 @@ def test_count_batches_bound_pair_scratch(monkeypatch):
 
 def test_response_certificate_does_not_freeze_unmatched_target_identity():
     source = saved(endpoint('C',[]), endpoint('CC',[(0,1,1)]), {0:0}, actions=(('pool',(0,1)),))
-    result = interpret_events(source)
+    result = decode_events(source)
     assert result.family_actions[0][0].response_invariant
     first, second = result.evaluate(0), result.evaluate(0,[(1,0)])
     assert first['total'] == second['total'] == 1
@@ -161,8 +161,8 @@ def test_saved_search_graph_uses_same_families_at_each_event_tolerance():
     record = json.loads((Path(__file__).parent / 'fixtures/package_rename/legacy-aam.json').read_text())
     value = SimpleNamespace(problem=problem_from_record(record), graph=AAMSearchGraph.from_record(record['graph']))
     original = json.dumps(value.graph.to_record(),sort_keys=True)
-    loose = interpret_events(value,threshold=1.,metal_threshold=1.)
-    strict = interpret_events(loose.catalogue)
+    loose = decode_events(value,threshold=1.,metal_threshold=1.)
+    strict = decode_events(loose.catalogue)
     assert strict.catalogue is loose.catalogue
     assert json.dumps(value.graph.to_record(),sort_keys=True) == original
     for fid, family in enumerate(strict.catalogue.families):
@@ -176,7 +176,8 @@ def test_large_compressed_space_never_enumerated(monkeypatch):
     import z3
     def forbidden(*args, **kwargs):
         pytest.fail('interpretation invoked rematching, a solver, or group enumeration')
-    monkeypatch.setattr(api,'convert_fragments',forbidden)
+    import mappa.mappa_core.post_processing.hierarchical_mapping as hierarchy
+    monkeypatch.setattr(hierarchy,'convert_fragments',forbidden)
     monkeypatch.setattr(groups.PermutationGroup,'generate_schreier_sims',forbidden)
     monkeypatch.setattr(z3,'Solver',forbidden)
     n = 60
@@ -187,7 +188,7 @@ def test_large_compressed_space_never_enumerated(monkeypatch):
     source.families.append(replace(source.families[0]))
     started = time.process_time()
     tracemalloc.start()
-    result = interpret_events(source)
+    result = decode_events(source)
     _,peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     elapsed = time.process_time()-started
@@ -255,7 +256,7 @@ def test_sparse_boundaries_keep_shared_choices_and_manual_cut_bonds():
     actions = (('pool',(0,1)),('pool',(2,3)))
     catalogue = saved(ep,ep,dict(enumerate(range(4))),actions=actions,
                       pairs=(((0,1),(0,1)),((2,3),(2,3))))
-    interpreted = interpret_events(catalogue)
+    interpreted = decode_events(catalogue)
     choices = [[None,None],[(1,0),None],[None,(3,2)],[(1,0),(3,2)]]
     check_contributions(interpreted,choices)
     table = interpreted.tables(0)
@@ -265,7 +266,7 @@ def test_sparse_boundaries_keep_shared_choices_and_manual_cut_bonds():
     assert [interpreted.contributions(0,c)['total'] for c in choices] == [0,4,4,0]
     # No independent minima of boundary terms or fragment choices are combined.
     catalogue.families[0] = replace(catalogue.families[0],actions=(('group',((1,0,3,2),)),))
-    check_contributions(interpret_events(catalogue),[[None],[(1,)]])
+    check_contributions(decode_events(catalogue),[[None],[(1,)]])
 
 
 @pytest.mark.parametrize('partial',[False,True])
@@ -274,7 +275,7 @@ def test_boundary_categories_against_exhaustive_small_permutations(partial):
     p = endpoint('CCCCC',[(0,1,.7),(1,2,1.8),(2,3,.4),(0,4,1.2),(3,4,1)])
     mapping = {0:0,1:1} if partial else {0:0,1:1,2:2,3:3}
     pairs = tuple(((a,),(b,)) for a,b in mapping.items())
-    interpreted = interpret_events(saved(r,p,mapping,actions=(('pool',tuple(range(5))),),pairs=pairs))
+    interpreted = decode_events(saved(r,p,mapping,actions=(('pool',tuple(range(5))),),pairs=pairs))
     check_contributions(interpreted,[[perm] for perm in permutations(range(5))])
 
 
@@ -284,7 +285,7 @@ def test_boundary_categorization_float_thresholds_and_metals():
         for weight in (tau,np.nextafter(tau,1.),.8,1.8):
             r = endpoint(elements,[(0,1,weight)])
             p = endpoint(elements,[(0,1,tau),(0,2,1.8)])
-            result = interpret_events(saved(r,p,{0:0,1:1,2:2},actions=(('pool',(1,2)),),
+            result = decode_events(saved(r,p,{0:0,1:1,2:2},actions=(('pool',(1,2)),),
                 pairs=(((0,),(0,)),((1,2),(1,2)))))
             check_contributions(result,[[None],[(2,1)]])
 
@@ -293,12 +294,12 @@ def test_tables_follow_ordered_overlapping_actions_and_required_edges():
     ep = endpoint('CCC',[(0,1,.6),(0,2,1),(1,2,1.4)])
     source = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(0,1)),('pool',(1,2))),
         pairs=(((0,),(0,)),((1,2),(1,2))))
-    result = interpret_events(source)
+    result = decode_events(source)
     assert result.tables(0).atom_domains == {0:(0,1,2),1:(0,1,2),2:(1,2)}
     check_contributions(result,[[None,None],[(1,0),None],[None,(2,1)],[(1,0),(2,1)]])
     source.families[0] = replace(source.families[0],required_edges=((0,1),),policy=(.2,.1))
     with pytest.raises(ValueError,match='original fragment constraints'):
-        interpret_events(source).contributions(0,[None,(2,1)])
+        decode_events(source).contributions(0,[None,(2,1)])
 
 
 def test_fixed_internal_and_boundary_responses_share_across_families():
@@ -307,7 +308,7 @@ def test_fixed_internal_and_boundary_responses_share_across_families():
     source = saved(ep,target,dict(enumerate(range(4))),pairs=(((0,1),(0,1)),((2,3),(2,3))))
     source.families.append(replace(source.families[0]))
     next(iter(source.branches.values())).add(1)
-    result = interpret_events(source)
+    result = decode_events(source)
     check_contributions(result,[None])
     assert result.tables(0) is result.tables(1)
     assert result.tables(0).statistics['variable_terms'] == 0
@@ -318,14 +319,14 @@ def test_fragment_partitions_are_alternative_views_not_double_counts():
     ep = endpoint('CCC',[(0,1,1),(1,2,1.8)])
     source = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(0,2)),))
     source.branches[(source.families[0].policy,(((0,),(0,)),((1,2),(1,2))))] = {0}
-    interpreted = interpret_events(source)
+    interpreted = decode_events(source)
     assert len(interpreted.fragment_partitions[0]) == 2
     counts = [interpreted.contributions(0,[(2,0)],partition=i)['counts'] for i in range(2)]
     assert counts[0] == counts[1]
 
 
 def test_empty_mapping_has_no_internal_or_boundary_events():
-    result = interpret_events(saved(endpoint('CC',[(0,1,1)]),endpoint('CCC',[(0,1,1)]),{}))
+    result = decode_events(saved(endpoint('CC',[(0,1,1)]),endpoint('CCC',[(0,1,1)]),{}))
     check_contributions(result,[None])
     assert result.tables(0).statistics['boundary_terms'] == 0
 
@@ -339,7 +340,7 @@ def test_large_boundary_tables_do_not_expand_combinations(monkeypatch):
     ep = endpoint('C'*n,[(i,i+1,1.8) for i in range(n-1)])
     actions = tuple(('pool',(i,i+1)) for i in range(0,n,2))
     pairs = tuple(((i,i+1),(i,i+1)) for i in range(0,n,2))
-    result = interpret_events(saved(ep,ep,dict(enumerate(range(n))),actions=actions,pairs=pairs))
+    result = decode_events(saved(ep,ep,dict(enumerate(range(n))),actions=actions,pairs=pairs))
     before = time.process_time()
     table = result.tables(0)
     elapsed = time.process_time()-before
@@ -355,7 +356,7 @@ def test_large_boundary_tables_do_not_expand_combinations(monkeypatch):
 def test_single_atom_mapping_has_no_bond_tables():
     ep = endpoint('C',[])
     for mapping in ({}, {0:0}):
-        result = interpret_events(saved(ep,ep,mapping))
+        result = decode_events(saved(ep,ep,mapping))
         check_contributions(result,[None])
         assert result.contributions(0)['total'] == 0
 
@@ -371,7 +372,7 @@ def test_cut_endpoint_cases_use_original_bonds(actions, expected_case):
     source = saved(r,p,dict(enumerate(range(4))),actions=actions,
                    pairs=(((0,1),(0,1)),((2,3),(2,3))))
     source.families[0].provenance.append(dict(cuts=((0,2),)))
-    result = interpret_events(source)
+    result = decode_events(source)
     table = result.tables(0)
     term = next(t for t in table.boundary[0,1] if t.atoms == (0,2))
     assert term.manual_cut and term.endpoint_case == expected_case
@@ -385,7 +386,7 @@ def test_joint_cut_endpoint_projection_certifies_constant_boundary():
     source = saved(ep,ep,dict(enumerate(range(4))),
         actions=(('group',((1,0,3,2),)),),pairs=(((0,1),(0,1)),((2,3),(2,3))))
     source.families[0].provenance.append(dict(cuts=((0,2),)))
-    result = interpret_events(source)
+    result = decode_events(source)
     table = result.tables(0)
     term = next(t for t in table.boundary[0,1] if t.atoms == (0,2))
     assert term.target_pairs == ((0,2),(1,3))
@@ -422,19 +423,19 @@ def test_local_contribution_components_retain_shared_actions_and_constraints():
     source = saved(ep,ep,dict(enumerate(range(6))),
         actions=(('pool',(1,2)),('pool',(4,5))),
         pairs=(((0,1,2),(0,1,2)),((3,4,5),(3,4,5))))
-    result = interpret_events(source)
+    result = decode_events(source)
     assert result.tables(0).components == (((0,),(0,)),((1,),(1,)))
     check_contributions(result,[[None,None],[(2,1),None],[None,(5,4)],[(2,1),(5,4)]])
     # Equal responses with different feasibility constraints need distinct
     # dependency components, including within the same interpretation cache.
     source.families.append(replace(source.families[0],required_edges=((1,4),)))
     next(iter(source.branches.values())).add(1)
-    result = interpret_events(source)
+    result = decode_events(source)
     assert result.tables(0).components == (((0,),(0,)),((1,),(1,)))
     assert result.tables(1).components == (((0,1),(0,1)),)
     source.families[0] = replace(source.families[0],required_edges=(),
                                 actions=(('group',((0,2,1,3,5,4),)),))
-    result = interpret_events(source)
+    result = decode_events(source)
     assert result.tables(0).components == (((0,1),(0,)),)
     check_contributions(result,[[None],[(1,)]])
 
@@ -449,7 +450,7 @@ def test_sweep_cut_provenance_survives_catalogue_roundtrip():
     cuts = {tuple(map(tuple,p['cuts'])) for f in restored.families for p in f.provenance}
     assert cuts == {c.cuts for c in aam.graph.contexts}
     assert cuts == {(),((0,1),),((1,2),)}
-    result = interpret_events(restored)
+    result = decode_events(restored)
     for fid,family in enumerate(restored.families):
         assert result.tables(fid).cut_bonds == frozenset(tuple(p) for row in family.provenance for p in row['cuts'])
         assert result.contributions(fid)['total'] == sum(dense_counts(source.problem,dict(family.mapping)))
@@ -460,7 +461,7 @@ def test_constant_boundary_certificate_does_not_expand_pair_orbits(monkeypatch):
     source = saved(ep,ep,dict(enumerate(range(12))),actions=(('pool',tuple(range(12))),),
         pairs=tuple(((a,),(a,)) for a in range(12)))
     source.families[0].provenance.append(dict(cuts=((0,1),)))
-    result = interpret_events(source)
+    result = decode_events(source)
     def forbidden(*args,**kwargs):
         pytest.fail('constant response expanded an endpoint orbit')
     monkeypatch.setattr(result.index,'endpoint_pairs',forbidden)
@@ -477,7 +478,7 @@ def test_preparation_visits_only_bond_neighbors_and_recorded_cut(monkeypatch):
         endpoint('C'*n, source_edges + [(17,42,1.)]), dict(enumerate(range(n))),
         pairs=tuple(((a,),(a,)) for a in range(n)))
     source.families[0].provenance.append(dict(cuts=((0,79),)))
-    result = interpret_events(source)
+    result = decode_events(source)
     original = result.index._domain_response
     visits = []
     def record(weight, tau, xs, ys):
@@ -496,9 +497,31 @@ def test_product_neighbors_follow_allowed_images_not_representative_only():
     ep = endpoint('CCCCCC', [(0,2,1.),(3,4,.5)])
     source = saved(ep, ep, dict(enumerate(range(6))), actions=(('pool',(0,1)),),
         pairs=(((0,1),(0,1)),((2,),(2,)),((3,4,5),(3,4,5))))
-    result = interpret_events(source)
+    result = decode_events(source)
     table = result.tables(0)
     assert table.statistics['neighboring_pairs'] == 2
     assert {term.atoms for terms in table.boundary.values() for term in terms} == {(0,2),(1,2)}
     check_contributions(result, [[None],[(1,0)]])
     assert result.contributions(0, [(1,0)])['counts'] == dict(breaking=1, forming=1, strengthening=0, weakening=0)
+
+
+def test_event_record_keeps_original_choices_and_shared_tables():
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    ep = endpoint('CCC', [(0,1,1.), (0,2,1.8)])
+    catalogue = saved(ep,ep,{0:0,1:1,2:2},actions=(('pool',(1,2)),))
+    before = catalogue.to_record()
+    result = decode_events(catalogue)
+    record = decoded_events_record(result)
+    assert record['catalogue'] == before
+    assert record['mapping_space_preserved']
+    assert not record['exhaustive_event_patterns']
+    assert not record['global_minimum_proven']
+    assert record['tables'] and record['responses']
+    json.dumps(record)
+    assert result.evaluate(0,[(2,1)])['total'] == 2
+
+
+def test_decoder_rejects_rematching_configuration():
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    with pytest.raises(TypeError):
+        EventDecodeConfig(branch_limit=100)

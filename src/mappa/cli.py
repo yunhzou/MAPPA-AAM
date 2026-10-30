@@ -69,7 +69,6 @@ def _parser():
     parser.add_argument("--output", default="mappa_output")
     parser.add_argument("--workers", type=int, default=1,
                         help="CPU processes used by the cut sweep")
-    parser.add_argument("--max-events", type=int)
     parser.add_argument("--cut-floor", type=float, default=0.2)
     parser.add_argument("--graph-floor", type=float, default=0.2)
     parser.add_argument("--iso-tolerance", type=float, default=1.0)
@@ -108,9 +107,7 @@ def main(argv=None):
         if args.stage == "events":
             decoded = decode_events(aam, EventDecodeConfig(
                 threshold=args.event_threshold,
-                metal_threshold=args.metal_event_threshold,
-                max_events=args.max_events,
-                branch_limit=args.branch_limit))
+                metal_threshold=args.metal_event_threshold))
             (output / "events.json").write_text(
                 json.dumps(decoded_events_record(decoded), indent=2))
         print(output.resolve())

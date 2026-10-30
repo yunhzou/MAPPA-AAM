@@ -5,8 +5,8 @@ TS analysis consumes an explicitly supplied ReactionContext.
 """
 from mappa.mappa_core.core.search.api import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, plan_aam_search
-from mappa.mappa_core.post_processing.decoder.conversion import convert_fragments, FragmentConversion
-from mappa.mappa_core.post_processing.decoder.api import interpret_events
+from mappa.mappa_core.post_processing.hierarchical_mapping import convert_fragments, FragmentConversion
+from mappa.mappa_core.post_processing.decoder.api import decode_events
 from mappa.mappa_workflow.mapping_analytics.family import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
@@ -32,7 +32,7 @@ from mappa.mappa_workflow.ts_analytics.scoring import POLICY as TS_SCORING_POLIC
 from mappa.mappa_core.core.search.queries.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
-    "query_path", "convert_fragments", "FragmentConversion", "interpret_events",
+    "query_path", "convert_fragments", "FragmentConversion", "decode_events",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
     "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",

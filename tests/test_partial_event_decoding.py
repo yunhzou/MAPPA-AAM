@@ -10,8 +10,8 @@ from mappa import AAMProblem, MolecularEndpoint
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _same_event_orbit
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
-from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
-from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
 from mappa.mappa_workflow.mapping_analytics.family import compile_path
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from reference_event_decoder import extract_path_events
@@ -53,7 +53,7 @@ def test_disconnected_unmatched_material_is_ignored_in_both_directions():
     with_water = endpoint('COHH', [(1, 2, 1), (1, 3, 1)])
     for r, p in [(core, with_water), (with_water, core)]:
         problem = AAMProblem(r, p)
-        decoded = decode_events(catalogue(problem, {0: 0}), EventDecodeConfig(event_slack=0))
+        decoded = refine_mapping(catalogue(problem, {0: 0}), RefinementConfig(event_slack=0))
         assert decoded.complete and decoded.minimum_proven and decoded.observed_minimum == 0
         assert decoded.candidates[0].mapping == {0: 0}
         assert decoded.candidates[0].endpoint_events == {'broken': (), 'formed': ()}
@@ -63,11 +63,11 @@ def test_mapped_boundary_and_interfragment_bonds_use_same_rule():
     r = endpoint('CCOH', [(0,1,1), (1,2,1), (2,3,1)])
     p = endpoint('CCNH', [(0,2,1), (2,3,1)])
     problem = AAMProblem(r, p)
-    decoded = decode_events(catalogue(problem, {0:0,1:1}), EventDecodeConfig(event_slack=0))
+    decoded = refine_mapping(catalogue(problem, {0:0,1:1}), RefinementConfig(event_slack=0))
     assert decoded.minimum_proven and decoded.observed_minimum == 3
     candidate = decoded.candidates[0]
     assert candidate.endpoint_events == {'broken': ((0,1),(1,2)), 'formed': ((0,2),)}
-    reverse = decode_events(catalogue(AAMProblem(p,r), {0:0,1:1}), EventDecodeConfig(event_slack=0))
+    reverse = refine_mapping(catalogue(AAMProblem(p,r), {0:0,1:1}), RefinementConfig(event_slack=0))
     assert reverse.minimum_proven and reverse.observed_minimum == 3
     assert reverse.candidates[0].endpoint_events == {'broken': ((0,2),), 'formed': ((0,1),(1,2))}
 
@@ -113,19 +113,19 @@ def test_partial_target_symmetry_needs_no_solver(monkeypatch):
     def forbidden(*args,**kwargs):
         raise AssertionError('Exact target symmetry needs no solver')
     monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path',forbidden)
-    result=decode_events(cat,EventDecodeConfig(event_slack=0))
+    result=refine_mapping(cat,RefinementConfig(event_slack=0))
     assert result.minimum_proven and result.observed_minimum==2
     assert len(result.candidates)==1 and result.family_reports[0]['solver_queries']==0
 
 
 def test_saved_partial_graph_survives_catalogue_and_artifact():
-    from mappa.mappa_core.utils.io.records import decoded_events_record
+    from mappa.mappa_core.utils.io.records import refined_mapping_record
     problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CON',[(0,2,1)]))
     family=catalogue(problem,{0:0,1:1}).families[0]
     cat=FinalBranchCatalogue(problem).add_graph(family.as_path(problem).graph)
     assert len(cat.families)==1 and cat.families[0].mapping==family.mapping
-    decoded=decode_events(cat,EventDecodeConfig(event_slack=0))
-    record=decoded_events_record(decoded)
+    decoded=refine_mapping(cat,RefinementConfig(event_slack=0))
+    record=refined_mapping_record(decoded)
     assert record['complete'] and record['observed_minimum']==2
     assert record['candidates'][0]['endpoint_events']['formed']==((0,2),)
     candidate=decoded.candidates[0]
@@ -134,7 +134,7 @@ def test_saved_partial_graph_survives_catalogue_and_artifact():
 
 def test_empty_mapping_has_no_events_and_creates_no_atoms():
     problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CCC',[(0,1,1),(1,2,1)]))
-    decoded=decode_events(catalogue(problem,{}),EventDecodeConfig(event_slack=0))
+    decoded=refine_mapping(catalogue(problem,{}),RefinementConfig(event_slack=0))
     assert decoded.complete and decoded.minimum_proven and decoded.observed_minimum==0
     assert decoded.candidates[0].mapping=={}
 
@@ -182,7 +182,7 @@ def test_distinct_fixed_boundary_elements_match_exhaustive_events():
     cat = catalogue(problem, {0: 0}, (0, 1))
     index = SignedEventIndex(problem)
     expected = {index.describe(index.vector({0: p}))['id'] for p in (0, 1)}
-    result = decode_events(cat)
+    result = refine_mapping(cat)
     # Conversion keeps this saved singleton target set; it does not enumerate
     # the old pool's alternative target regions.
     assert result.complete and result.minimum_proven and result.observed_minimum == 2

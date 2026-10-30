@@ -102,7 +102,7 @@ def test_empty_endpoints_keep_empty_scalar_event_result():
 
 def test_fragment_contributions_match_dense_events_for_all_small_partial_maps():
     from itertools import permutations
-    from mappa.mappa_core.post_processing.decoder.events import FragmentEventCounter
+    from mappa.mappa_core.post_processing.hierarchical_mapping import FragmentEventCounter
     from test_partial_event_decoding import endpoint
     from mappa import AAMProblem
     rng = np.random.default_rng(719)
@@ -151,7 +151,7 @@ def test_fragment_contributions_match_dense_events_for_all_small_partial_maps():
 
 def test_decoder_uses_cached_events_for_candidate_identity(monkeypatch):
     import mappa.mappa_core.post_processing.decoder.events as module
-    from mappa.mappa_core.post_processing.decoder.api import decode_events
+    from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
     from test_fragment_conversion import saved, endpoint
     ep = endpoint('COHH', [(0,1,1), (1,2,1), (1,3,1)])
     other = endpoint('COHH', [(0,2,1), (1,2,1), (1,3,1)])
@@ -163,7 +163,7 @@ def test_decoder_uses_cached_events_for_candidate_identity(monkeypatch):
     import pytest
     monkeypatch.setattr(module, 'classify_bonds', forbidden)
     monkeypatch.setattr(module.SignedEventIndex, 'counts', forbidden)
-    result = decode_events(source)
+    result = refine_mapping(source)
     assert result.candidates[0].id == expected['id']
     assert result.candidates[0].endpoint_events == expected['endpoint_events']
     assert result.candidates[0].total == expected['total']
@@ -172,7 +172,7 @@ def test_decoder_uses_cached_events_for_candidate_identity(monkeypatch):
 
 def test_many_combinations_reuse_fragment_and_boundary_counts():
     from itertools import product
-    from mappa.mappa_core.post_processing.decoder.events import FragmentEventCounter
+    from mappa.mappa_core.post_processing.hierarchical_mapping import FragmentEventCounter
     import json
     # Twelve two-atom fragments, each with two internal correspondences.
     # Only neighboring fragments interact, so each link needs four evaluations.

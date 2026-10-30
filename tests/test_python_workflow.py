@@ -10,8 +10,8 @@ from mappa import (
     search_aam,
     search_aam_directions,
 )
-from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
-from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def searched(reaction):
 
 
 def test_event_classes_and_conditional_shuffles(searched):
-    decoded = decode_events(searched)
+    decoded = refine_mapping(searched)
     assert decoded.complete
     assert [c.total for c in decoded.candidates] == [4, 6]
     assert len({c.id for c in decoded.candidates}) == 2
@@ -60,15 +60,15 @@ def test_thresholds_are_separate_and_partial_results_are_marked(searched):
     before = searched.graph.to_record()
     assert [
         c.total
-        for c in decode_events(searched, EventDecodeConfig(threshold=1.1)).candidates
+        for c in refine_mapping(searched, RefinementConfig(threshold=1.1)).candidates
     ] == [0]
-    incomplete = decode_events(searched)
+    incomplete = refine_mapping(searched)
     incomplete.conversion.rematches[0].complete = False
     assert not incomplete.complete and not incomplete.minimum_proven
     assert incomplete.candidates
     assert before == searched.graph.to_record()
     with pytest.raises(ValueError):
-        query_assignments(incomplete, decode_events(searched).candidates[0], {})
+        query_assignments(incomplete, refine_mapping(searched).candidates[0], {})
 
 
 def test_bidirectional_anchors_and_unequal_sizes():
@@ -85,7 +85,7 @@ def test_bidirectional_anchors_and_unequal_sizes():
     assert search_aam_directions(AAMProblem(r, p), config, direction="smaller_first")[
         0
     ].plan.reversed
-    partial = decode_events(runs[0].aam)
+    partial = refine_mapping(runs[0].aam)
     assert partial.complete
     assert all(len(c.mapping) == 2 for c in partial.candidates)
 
@@ -121,8 +121,8 @@ def test_competition_retains_baseline_and_hard_anchors(reaction):
         assert all(
             dict(repair.graph.states[t].mapping)[0] == 0 for t in repair.graph.terminals
         )
-    ids = {c.id for c in decode_events(aam).candidates}
-    assert ids <= {c.id for c in decode_events(result.final_catalogue()).candidates}
+    ids = {c.id for c in refine_mapping(aam).candidates}
+    assert ids <= {c.id for c in refine_mapping(result.final_catalogue()).candidates}
 
 
 def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
@@ -137,9 +137,9 @@ def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
         == expected
     )
     # Shared policies intentionally store a different DAG with shared contexts.
-    reference_ids = {c.id for c in decode_events(search_aam(reaction, cfg)).candidates}
+    reference_ids = {c.id for c in refine_mapping(search_aam(reaction, cfg)).candidates}
     shared = search_aam(reaction, cfg, execution="shared_policies")
-    assert {c.id for c in decode_events(shared).candidates} == reference_ids
+    assert {c.id for c in refine_mapping(shared).candidates} == reference_ids
 
 
 def test_aam_distribution_excludes_separate_retrosynthesis_packages():

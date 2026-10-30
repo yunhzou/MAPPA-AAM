@@ -126,7 +126,7 @@ def test_saved_bidirectional_membership_needs_no_search_or_conversion_rerun(tmp_
             payload['expected'].append(key)
             payload['outputs'].append(dict(key=key,blob=asdict(writer.put(value))))
     def forbidden(*args,**kwargs):raise AssertionError('Saved-result membership must not rerun science')
-    monkeypatch.setattr('mappa.mappa_core.post_processing.decoder.api.decode_events',forbidden)
+    monkeypatch.setattr('mappa.mappa_core.post_processing.hierarchical_mapping.refine_mapping',forbidden)
     monkeypatch.setattr('mappa.mappa_core.core.search.api.search_aam',forbidden)
     result=case_membership(payload,Workspace(tmp_path,tmp_path/'reports'))
     assert len(result['modes'])==80

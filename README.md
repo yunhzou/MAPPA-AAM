@@ -70,10 +70,10 @@ from mappa import search_aam
 from mappa.mappa_core.post_processing.decoder import decode_events
 
 aam = search_aam(problem)       # Compressed fragment-matching families
-decoded = decode_events(aam)     # Distinct bond-event candidates
+decoded = decode_events(aam)     # Original-space event functions
 
-for candidate in decoded.candidates:
-    print(candidate.events, candidate.mapping)
+for fid in range(len(decoded.catalogue.families)):
+    print(decoded.evaluate(fid), decoded.realize(fid))
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
@@ -175,7 +175,7 @@ The video illustrates an O–H → N–H transfer in a 57-atom guess. The select
 The main Python workflow keeps search and event decoding separate:
 
 ```text
-search_aam -> AAMResult -> decode_events -> DecodedEvents
+search_aam -> AAMResult -> decode_events -> EventInterpretation
                                           |- unique event candidates
                                           |- witness mappings
                                           `- symmetry and shuffle queries
@@ -197,46 +197,21 @@ Retrosynthesis is maintained separately on [codex/retrosynthesis](https://github
 Start with the executed, self-contained [AAM notebook](docs/AAM_SIMPLE.ipynb): embedded molecules, matching, raw branch inspection, unique bond-event candidates, certified symmetry queries, py3Dmol inspection, and a growth animation for each sweep. All inputs and display helpers are in the notebook; no benchmark files are needed. The [Python API guide](docs/PYTHON_API.md) lists anchors, directions, conditional matching, all configuration controls, and current chirality limitations. Install its dependencies with `python -m pip install -e ".[notebook]"`.
 
 ```python
-from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, decode_events
 
-# Arrays for both endpoints are embedded in docs/AAM_SIMPLE.ipynb.
-problem = AAMProblem(
-    MolecularEndpoint(elements_R, xyz_R, wbo_R, label="R"),
-    MolecularEndpoint(elements_P, xyz_P, wbo_P, label="P"),
-    name="reaction",
-)
-aam = search_aam(
-    problem,
-    AAMSearchConfig(iso_tolerance=1.0, seed_count=1,
-                    sweep_cuts=True, branch_limit=100),
-    workers=1,
-)
-decoded = decode_events(
-    aam, EventDecodeConfig(threshold=0.5, metal_threshold=0.3, event_slack=0),
-)
-print("Search capped:", aam.graph.capped)
-print("Fragment conversion complete:", decoded.complete)
-for candidate in decoded.candidates:
-    print(candidate.total, candidate.events, candidate.mapping)
-
-if decoded.candidates:
-    candidate = decoded.candidates[0]
-    symmetry = decoded.symmetry(candidate)
-    # Edit this condition to ask whether a proposed assignment is allowed.
-    from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
-    answer = query_assignments(decoded, candidate, {0: candidate.mapping[0]}, same_events=True)
-    print(answer.status)  # allowed, forbidden, or unknown within saved families
+problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
+                     MolecularEndpoint(elements_P, xyz_P, wbo_P))
+aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
+decoded = decode_events(aam, threshold=0.5, metal_threshold=0.3)
+for fid in range(len(decoded.catalogue.families)):
+    print(decoded.realize(fid), decoded.contributions(fid))
 ```
 
-A candidate groups converted branch witnesses by signed event class; it retains
-their family IDs. `decoded.conversion` exposes the rematched search graphs and
-branch provenance. `decoded.complete` means the retained fragment contexts were
-converted without caps, missing assignments, or counted events inside a new
-fragment. It does not certify exhaustive AAM search or enumerate every symmetry
-bijection. The minimum is the lowest direct count across converted branches.
-There is no solver minimization or fallback decoder. Search and final event
-tolerances remain separate; ordinary events start at 0.5 and metal events at 0.3.
+Decoding attaches local event functions to the unchanged compressed mappings.
+Explicit choices preserve their correlations and original growth constraints.
+Calling `evaluate` selects one realization; it does not enumerate all symmetry
+alternatives or prove their minimum. Hierarchical rematching is a separate,
+experimental operation in `post_processing/hierarchical_mapping.py`.
 
 Anchors use `AAMSearchConfig(anchors=((r_atom, p_atom),))`.
 `from mappa import search_aam_directions` exposes forward, reverse,
@@ -428,21 +403,15 @@ bond differences touching mapped atoms, including bonds across the mapped/unmapp
 boundary, and ignores bonds whose atoms are both unmatched. Existing WBO-change
 and metal thresholds apply in both directions. No missing atoms are invented.
 
-`decode_events(..., EventDecodeConfig(event_slack=n))` returns the retained
-minimum+n window across converted branches. `minimum_proven` is scoped to those
-branches when conversion is complete; it is not an exhaustive old-family claim.
-There is no separate minimum-scoring pass. Each candidate's `mapping` contains
-only actual correspondences. `endpoint_events` gives broken bonds in native R
-indices and formed bonds in native P indices. Internal `events` retain the R
-frame, using `nR+p` for an unmatched product boundary atom; serialized records
-include this convention in `event_policy`. A difference equal to the ordinary or metal tolerance stays unchanged (`<=`);
-only a larger difference is an event (`>`). When both tolerances equal the saved
-AAM iso tolerance, conversion reuses its compressed fragments directly, without
-rematching or recombination. Requested event counts are still computed. Event
-IDs use version3 to distinguish this rule from earlier boundary conventions.
+`decode_events(aam)` attaches sparse internal and boundary event functions to the
+original compressed AAM families. It preserves ordered correlated choices and
+required growth edges. `result.evaluate(family_id, choices)` gives one requested
+realization; `result.contributions(...)` gives breaking, forming, strengthening
+and weakening counts. It does not enumerate all bijections or claim a global
+minimum. `decoded_events_record(result)` saves shared event tables and the original
+catalogue; representative counts are explicitly separate from compressed choices.
 
-Event counting reuses each converted fragment alternative and each interacting
-pair of alternatives across branches. Branch totals sum these stored contributions;
-only candidates inside the requested window assemble and canonicalize event lists.
-Saved `counting_statistics` report the number of bond comparisons and reused
-regions/pairs. Requested branch records are still materialized.
+Experimental hierarchical refinement is explicitly available from
+`mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`
+and `RefinementConfig`. It rematches within original fragment atom sets and can
+change coverage. Normal decoding never invokes it.

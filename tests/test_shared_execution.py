@@ -292,8 +292,8 @@ def test_seed_batch_graph_and_prefix_equality(batch, sizes):
 
 @pytest.mark.parametrize('workers,remote,batch', [(1, False, 2), (3, False, 1), (3, True, 5)])
 def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, workers, remote, batch):
-    from mappa.mappa_core.post_processing.decoder.api import decode_events
-    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
+    from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
     writer = BundleWriter(tmp_path/'inputs', tmp_path)
     expected = []
@@ -322,7 +322,7 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
             if not cut and case.balanced:
                 def decode(graph):
                     result = AAMResult(case, config, graph, AAMSearchMetrics.from_record({}, 0))
-                    decoded = decode_events(result, EventDecodeConfig(max_events=8))
+                    decoded = refine_mapping(result, RefinementConfig(max_events=8))
                     assert decoded.complete
                     return {str(sorted(c.events.items())) for c in decoded.candidates}
                 assert decode(original) == decode(observed['graph'])
@@ -389,9 +389,9 @@ def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')
     catalogue = FinalBranchCatalogue(case).add_aam(aam)
-    config = EventDecodeConfig(event_slack=5)
+    config = EventDecodeConfig()
     expected = decode_events(catalogue, config)
-    assert expected.complete
+    assert expected.catalogue is catalogue
     writer = BundleWriter(tmp_path/'inputs', tmp_path)
     queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
     tasks = plan_event_decoding('decode', case, catalogue, config, writer)
@@ -402,9 +402,9 @@ def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
     patterns = set()
     for row in queue.results().values():
         result = read_blob(row['result']['blob'], tmp_path)
-        assert result['complete']
-        patterns.update(p['id'] for p in result['candidates'])
-    assert patterns == {candidate.id for candidate in expected.candidates}
+        assert result['mapping_space_preserved']
+        patterns.update(p['id'] for p in result['representatives'])
+    assert patterns == {expected.evaluate(i)['id'] for i in range(len(expected.catalogue.families))}
     queue.close()
 
 

@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, MolecularEndpoint, convert_fragments
-from mappa.mappa_core.utils.io.records import decoded_events_record
+from mappa.mappa_core.utils.io.records import refined_mapping_record
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
-from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
-from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
 
 
 def endpoint(elements, edges):
@@ -40,7 +40,7 @@ def test_free_mapping_is_rediscovered_and_input_untouched(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
     catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
     before = catalogue.to_record()
-    decoded = decode_events(catalogue)
+    decoded = refine_mapping(catalogue)
     assert decoded.complete and decoded.observed_minimum == 0
     assert decoded.candidates[0].mapping == {0: 0, 1: 1, 2: 2}
     assert decoded.conversion.rematches[0].anchors == ((0, 0),)
@@ -51,7 +51,7 @@ def test_free_mapping_is_rediscovered_and_input_untouched(backend):
 def test_direct_anchors_keep_a_bond_at_the_exact_threshold(backend):
     r = endpoint('CO', [(0, 1, 1.)])
     p = endpoint('CO', [(0, 1, 1.5)])
-    decoded = decode_events(saved(r, p, {0: 0, 1: 1}))
+    decoded = refine_mapping(saved(r, p, {0: 0, 1: 1}))
     assert decoded.complete and decoded.observed_minimum == 0
     assert decoded.candidates[0].endpoint_events['formed'] == ()
     owners = dict(decoded.conversion.branches[0].islands)
@@ -63,7 +63,7 @@ def test_direct_anchors_keep_a_bond_at_the_exact_threshold(backend):
 def test_native_conditional_metal_rule_is_used(backend):
     r = endpoint(('Co', 'C', 'O'), [(0, 1, 1.), (1, 2, 1.)])
     p = endpoint(('Co', 'C', 'O'), [(0, 1, 1.4), (1, 2, 1.4)])
-    decoded = decode_events(saved(r, p, dict(enumerate(range(3)))))
+    decoded = refine_mapping(saved(r, p, dict(enumerate(range(3)))))
     assert decoded.complete and decoded.observed_minimum == 1
     owners = dict(decoded.conversion.branches[0].islands)
     assert owners[0] != owners[1] == owners[2]
@@ -71,7 +71,7 @@ def test_native_conditional_metal_rule_is_used(backend):
 
 def test_free_hydrogens_stay_compressed_and_queryable(backend):
     ep = endpoint('CHHH', [(0, h, 1.) for h in (1, 2, 3)])
-    decoded = decode_events(saved(ep, ep, {0: 0, 1: 2, 2: 3, 3: 1},
+    decoded = refine_mapping(saved(ep, ep, {0: 0, 1: 2, 2: 3, 3: 1},
                                   actions=(('pool', (1, 2, 3)),)))
     assert decoded.complete and len(decoded.conversion.branches) == 1
     assert decoded.catalogue.families[0].actions
@@ -82,7 +82,7 @@ def test_free_hydrogens_stay_compressed_and_queryable(backend):
 
 def test_jointly_moving_atoms_are_not_fixed(backend):
     ep = endpoint('CCC', [(0, 1, 1.), (1, 2, 1.), (2, 0, 1.)])
-    decoded = decode_events(saved(ep, ep, dict(enumerate(range(3))),
+    decoded = refine_mapping(saved(ep, ep, dict(enumerate(range(3))),
         actions=(('group', ((1, 2, 0),)),)))
     assert decoded.complete
     assert decoded.conversion.rematches[0].anchors == ()
@@ -106,7 +106,7 @@ def test_partial_boundary_and_wholly_unmatched_material(backend):
     r = endpoint('COHH', [(0, 1, 1), (2, 3, 1)])
     p = endpoint('C', [])
     for left, right in ((r, p), (p, r)):
-        decoded = decode_events(saved(left, right, {0: 0}))
+        decoded = refine_mapping(saved(left, right, {0: 0}))
         assert decoded.complete and decoded.observed_minimum == 1
         assert decoded.candidates[0].mapping == {0: 0}
 
@@ -131,7 +131,7 @@ def test_filtered_minimum_is_over_converted_branches(backend):
     catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
     catalogue.families.append(replace(catalogue.families[0], actions=()))
     next(iter(catalogue.branches.values())).add(1)
-    decoded = decode_events(catalogue, EventDecodeConfig(event_slack=0))
+    decoded = refine_mapping(catalogue, RefinementConfig(event_slack=0))
     assert decoded.complete and decoded.minimum_proven and decoded.event_window == 0
     assert [c.total for c in decoded.candidates] == [0]
     assert sorted(r['total'] for r in decoded.family_reports) == [0, 2]
@@ -139,12 +139,12 @@ def test_filtered_minimum_is_over_converted_branches(backend):
 
 def test_empty_and_missing_fragment_catalogues_are_explicit():
     ep = endpoint('C', [])
-    empty = decode_events(FinalBranchCatalogue(AAMProblem(ep, ep)))
+    empty = refine_mapping(FinalBranchCatalogue(AAMProblem(ep, ep)))
     assert not empty.candidates and not empty.minimum_proven
     catalogue = saved(ep, ep, {0: 0})
     catalogue.branches.clear()
     with pytest.raises(ValueError, match='fragment atom sets'):
-        decode_events(catalogue)
+        refine_mapping(catalogue)
 
 
 def test_no_decoder_solver_or_old_budget_option(backend, monkeypatch):
@@ -153,17 +153,17 @@ def test_no_decoder_solver_or_old_budget_option(backend, monkeypatch):
         pytest.fail('conversion invoked a solver')
     monkeypatch.setattr(z3, 'Solver', forbidden)
     ep = endpoint('CH', [(0, 1, 1.)])
-    decoded = decode_events(saved(ep, ep, {0: 0, 1: 1}))
+    decoded = refine_mapping(saved(ep, ep, {0: 0, 1: 1}))
     assert decoded.complete
     assert all(row['solver_queries'] == 0 for row in decoded.family_reports)
     with pytest.raises(TypeError):
-        EventDecodeConfig(seconds_per_family=10)
+        RefinementConfig(seconds_per_family=10)
 
 
 def test_artifact_preserves_converted_compression_and_scope(backend):
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
-    decoded = decode_events(saved(ep, ep, dict(enumerate(range(3))), actions=(('pool', (1, 2)),)))
-    record = decoded_events_record(decoded)
+    decoded = refine_mapping(saved(ep, ep, dict(enumerate(range(3))), actions=(('pool', (1, 2)),)))
+    record = refined_mapping_record(decoded)
     assert record['schema'] == 'mappa.decoded_events/v2'
     assert record['scope'] == 'Direct counts across retained converted branches'
     restored = FinalBranchCatalogue.from_record(decoded.catalogue.problem, record['converted_catalogue'])
@@ -173,7 +173,7 @@ def test_artifact_preserves_converted_compression_and_scope(backend):
 
 @pytest.mark.smoke
 def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
-    import mappa.mappa_core.post_processing.decoder.conversion as module
+    import mappa.mappa_core.post_processing.hierarchical_mapping as module
     from mappa.mappa_core.core.search.graph import SearchStop
     original = module.find_islands
     def capped(*args, **kwargs):
@@ -181,16 +181,16 @@ def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
         return replace(graph, stops=graph.stops + (SearchStop(graph.roots[0], 'capped'),))
     monkeypatch.setattr(module, 'find_islands', capped)
     ep = endpoint('C', [])
-    decoded = decode_events(saved(ep, ep, {0: 0}))
+    decoded = refine_mapping(saved(ep, ep, {0: 0}))
     assert decoded.observed_minimum == 0 and not decoded.minimum_proven
     assert not decoded.complete
 
 
 def test_grouping_precedes_recombination_and_result_return(backend, monkeypatch):
-    import mappa.mappa_core.post_processing.decoder.conversion as module
+    import mappa.mappa_core.post_processing.hierarchical_mapping as module
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
     catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
-    baseline = decode_events(catalogue)
+    baseline = refine_mapping(catalogue)
     catalogue.families.extend(replace(catalogue.families[0]) for _ in range(99))
     next(iter(catalogue.branches.values())).update(range(100))
     original = module.product
@@ -199,13 +199,13 @@ def test_grouping_precedes_recombination_and_result_return(backend, monkeypatch)
         calls.append(1)
         return original(*args)
     monkeypatch.setattr(module, 'product', counted)
-    result = decode_events(catalogue)
+    result = refine_mapping(catalogue)
     assert len(calls) == 1
     assert len(result.conversion.branches) == len(result.catalogue.families) == 1
     assert result.conversion.branches[0].source_family_ids == tuple(range(100))
     assert result.complete == baseline.complete and result.observed_minimum == baseline.observed_minimum
     assert [(c.id, c.mapping, c.total) for c in result.candidates] == [(c.id, c.mapping, c.total) for c in baseline.candidates]
-    record = decoded_events_record(result)
+    record = refined_mapping_record(result)
     assert record['converted_branches'][0]['source_family_ids'] == tuple(range(100))
     assert len(record['family_reports']) == 1
 
@@ -240,7 +240,7 @@ def test_same_pairs_in_coupled_and_regular_inputs_share_conversion(backend):
 @pytest.mark.parametrize('metal_threshold', [1., None])
 @pytest.mark.parametrize('coupled', [False, True])
 def test_equal_tolerances_reuse_saved_choices_without_rematching(monkeypatch, metal_threshold, coupled):
-    import mappa.mappa_core.post_processing.decoder.conversion as module
+    import mappa.mappa_core.post_processing.hierarchical_mapping as module
     ep = endpoint(('Co', 'C', 'C'), [(0, 1, 1.), (0, 2, 2.)])
     source = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
     if coupled:
@@ -251,14 +251,14 @@ def test_equal_tolerances_reuse_saved_choices_without_rematching(monkeypatch, me
         pytest.fail('identical tolerances must not rematch or recombine')
     for name in ('find_islands', 'build_graph', 'product', 'canonical_actions'):
         monkeypatch.setattr(module, name, forbidden)
-    result = decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=metal_threshold))
+    result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=metal_threshold))
     assert result.catalogue is source and not result.conversion.rematches
     assert result.candidates[0].mapping == {0: 0, 1: 2, 2: 1}
     assert result.complete and result.observed_minimum == 0
     assert source.to_record() == before
     assert result.conversion.branches[0].source_family_ids == (0,)
     source.incomplete_paths = 1
-    assert not decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=metal_threshold)).complete
+    assert not refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=metal_threshold)).complete
 
 
 @pytest.mark.parametrize('threshold,metal_threshold', [(1., .3), (.5, 1.)])
@@ -279,7 +279,7 @@ def test_inclusive_conversion_boundary(backend, elements, limit, offset):
         upper = np.nextafter(upper, -np.inf if offset < 0 else np.inf)
     r = endpoint(elements, [(0, 1, lower)])
     p = endpoint(elements, [(0, 1, upper)])
-    result = decode_events(saved(r, p, {0: 0, 1: 1}))
+    result = refine_mapping(saved(r, p, {0: 0, 1: 1}))
     expected = int(abs(upper - lower) > limit)
     assert result.complete and result.observed_minimum == expected
     owners = dict(result.conversion.branches[0].islands)
@@ -291,7 +291,7 @@ def test_reused_family_keeps_distinct_partitions_without_duplicate_candidate_sup
     ep = endpoint('HH', [])
     source = saved(ep, ep, {0: 0, 1: 1}, actions=(('pool', (0, 1)),))
     source.coupled_branches[0] = {(((0,), (0,)), ((1,), (1,)))}
-    result = decode_events(source, EventDecodeConfig(threshold=1., metal_threshold=1.))
+    result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=1.))
     assert len(result.conversion.branches) == len(result.family_reports) == 2
     assert result.candidates[0].family_ids == [0]
     assert result.catalogue is source

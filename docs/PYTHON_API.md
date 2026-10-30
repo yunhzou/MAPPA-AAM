@@ -4,45 +4,44 @@ Start with [AAM_SIMPLE.ipynb](AAM_SIMPLE.ipynb): a self-contained six-atom react
 
 Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for optional symbolic mapping queries without notebook packages. Event conversion itself needs no solver. A C++17 compiler builds the bookkeeping extensions. The optional fast growth engine requires `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Ordinary `search_aam` can use the Python reference growth implementation. `compete_fragments` and `execution="reused_native"` / `"shared_policies"` require that optional engine and fail explicitly if unavailable. No xTB is needed when coordinates and bond-order matrices are supplied.
 
-## Default pipeline; separate post-processing
+## Default pipeline
 
 ```python
-from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, decode_events
+from mappa.mappa_core.utils.io.records import decoded_events_record
 
-problem = AAMProblem(
-    MolecularEndpoint(elements_R, xyz_R, wbo_R),
-    MolecularEndpoint(elements_P, xyz_P, wbo_P))
-aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0), workers=1)
-decoded = decode_events(aam,
-                        EventDecodeConfig(threshold=0.5, metal_threshold=0.3, event_slack=0))
-candidates = decoded.candidates
-witness = candidates[0].mapping if candidates else None
+problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
+                     MolecularEndpoint(elements_P, xyz_P, wbo_P))
+aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
+decoded = decode_events(aam, threshold=0.5, metal_threshold=0.3)
+witness = decoded.realize(0)
+events = decoded.evaluate(0)
+contributions = decoded.contributions(0)
+record = decoded_events_record(decoded)
 ```
 
-Default MAPPA uses one-seed cut sweep followed by separate event decoding. Competition is off by default; the standard search and decoding functions never invoke it.
+Decoding keeps the original compressed mappings, their correlated actions and
+required growth edges. Only event interpretation changes with the thresholds.
+Sparse local tables retain internal and boundary responses, including manual cuts.
+Requested choices are applied in saved order. No rematching, solver search,
+Cartesian branch combination or full symmetry enumeration is performed.
 
-Matrices must be nonnegative and symmetric, and coordinates finite. Both search and event conversion support partial mappings and unequal endpoint sizes. Counts include differences touching mapped atoms and their boundaries, while wholly unmatched bonds are ignored. A completed conversion does not imply all endpoint atoms were mapped.
+Records preserve the original catalogue, shared tables and representative events.
+Representatives are not all symmetry alternatives; their minimum is not a global
+minimum. Partial mappings count bonds touching mapped atoms and ignore wholly
+unmatched bonds. Both ordinary and metal thresholds treat equality as unchanged.
 
-A candidate is a **signed bond-event class**, with one explicit witness, its event edges, and supporting family IDs. Use `endpoint_events` for bond lists in the original reactant/product indices. A deduplicated final fragment branch (`aam.final_catalogue()`) retains compressed mapping choices. Neither API enumerates every atom bijection.
-
-`decoded.complete` covers conversion of the retained fragment contexts, including preservation of mapped atoms and absence of internal counted events. A capped rematch remains incomplete. `decoded.minimum_candidates` selects the lowest direct branch counts. This is not an exhaustive old-family or global-search claim. The decoder uses the existing fragment matcher and no solver enumeration. `decoded.conversion` retains the rematched compressed graphs and recombination provenance. Hard wall/memory limits belong to the caller's process or shared executor.
-
-## Ask about symmetry after choosing a witness
+## Experimental hierarchical refinement
 
 ```python
-candidate = decoded.candidates[0]
-evidence = decoded.symmetry(candidate)
-from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
-answer = query_assignments(decoded, candidate, {source_atom: desired_target}, same_events=True)
-if answer.status == "allowed":
-    alternative_witness = answer.mapping
-    certificate = answer.actions
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping, RefinementConfig
+refined = refine_mapping(aam, RefinementConfig(event_slack=5))
 ```
 
-This is a conditional existence query over the converted family union. Unspecified atoms may move together. Supply the entire modified mapping to test exactly one swap while fixing everything else. `same_events=True` preserves the selected signed-event class; `False` asks only about the converted matching relation. Answers are `allowed`, `forbidden` within these saved families, or `unknown`. A timeout is never a negative proof.
-
-The evidence retains ordered target generators/pools, required fragment edges, matching policy, and archive/path provenance. Individual orbit memberships are not independent shuffle permissions. Intrinsic fragment automorphisms and event-preserving equivalences are different objects. Final event symmetry uses exact response labels at the selected thresholds, rather than a second approximate tolerance. Changing event thresholds never changes the saved search. Advanced callers can use `convert_fragments` to retain converted branches before event grouping, and `query_path` for explicitly requested mapping queries.
+This separate operation rematches fragment pairs at tighter tolerances. It can
+change the retained mapping space. It remains available for hierarchical mapping
+experiments and is never called by the normal decoder. The historical tutorial
+notebooks currently demonstrate this explicitly named experimental operation.
 
 ## Inspect growth directly from a result
 
@@ -69,8 +68,8 @@ config = AAMSearchConfig(anchors=((r0, p0),), seed_count=1)
 runs = search_aam_directions(problem, config, direction="both", workers=1)
 for run in runs:
     directed_decoding = decode_events(run.aam)
-    for candidate in directed_decoding.candidates:
-        input_mapping = run.to_input_mapping(candidate.mapping)
+    for fid in range(len(directed_decoding.catalogue.families)):
+        input_mapping = run.to_input_mapping(directed_decoding.realize(fid))
 ```
 
 `direction` accepts `forward`, `reverse`, `both`, `smaller_first`, and `larger_first`. Size counts explicit atoms, including H. On ties smaller-first uses input R→P; larger-first uses the reverse. The example converts each direction separately; partial mappings use the same bond-difference rule. Both directions run sequentially under the same worker ceiling. Each direction has its own checkpoint directory when `intermediate_dir` is supplied. Anchors are always supplied in input R→P indexing and reversed automatically. Anchors constrain search, not just the displayed witness. The `reference` and `reused_native` backends accept anchors; the optional `shared_policies` backend currently rejects anchored searches.
@@ -89,7 +88,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 |---|---|
 | `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
-| `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
+| `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |
@@ -97,14 +96,14 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 
 The library and this notebook use the branch-limit default of 100. A cap bounds a growth call's live alternatives, not the number of saved histories or all permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
-Raw search does not classify or repair events. `decode_events` owns event conversion and counting through `EventDecodeConfig`. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Saved raw/finalized graph-only checkpoints remain readable.
+Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Saved raw/finalized graph-only checkpoints remain readable.
 
 ## Experimental fragment competition (optional; default off)
 
 ```python
 from mappa.mappa_core.core.search.branching.competition import CompetitionConfig, compete_fragments
 augmented = compete_fragments(aam, CompetitionConfig(operation_budget=128))
-decoded = decode_events(augmented.final_catalogue())
+decoded = refine_mapping(augmented.final_catalogue())
 ```
 
 This exposes the bounded local B-priority takeover policy used in the coordinate campaign. It returns the untouched baseline plus independently validated repair families, counters, and proposal provenance. It performs no decoding or reference comparison. Growth/completion use the supplied AAM branch limit and tolerances; hard user anchors remain fixed. Parent selection uses the AAM configuration's observed event counts. Competition requires an explicit call and the native growth engine. It is excluded from the published method and its reported results.
@@ -123,7 +122,7 @@ The September 2026 Python audit added importable direction orchestration, signed
 `mappa.alignment.index_chirality` have been removed, including the legacy
 orientation-graph selector. There are no deprecated wrappers, compatibility
 aliases, automatic substitutions, or fallback options. Callers must use
-`search_aam` and `decode_events` explicitly. Coordinate orientation is not
+`search_aam` and `refine_mapping` explicitly. Coordinate orientation is not
 selected or certified by the default mapping workflow.
 
 The CLI accepts `--stage aam`, `--stage events` (default), and `--stage ts`.
@@ -138,14 +137,14 @@ Neither entry point computes missing R/P selections.
 ## Event decoding
 
 ```python
-from mappa.mappa_core.post_processing.decoder import EventDecodeConfig, decode_events
-from mappa.mappa_core.utils.io.records import decoded_events_record
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig, refine_mapping
+from mappa.mappa_core.utils.io.records import refined_mapping_record
 
-result = decode_events(aam, EventDecodeConfig(event_slack=0))
+result = refine_mapping(aam, RefinementConfig(event_slack=0))
 print(result.observed_minimum, result.complete)
 for candidate in result.candidates:
     print(candidate.total, candidate.mapping, candidate.endpoint_events)
-record = decoded_events_record(result)
+record = refined_mapping_record(result)
 ```
 
 `aam` can be an `AAMResult` or a `FinalBranchCatalogue` with recorded fragment pairs. A flattened family list alone does not contain the required fragment atom sets and is rejected. `convert_fragments(aam)` exposes the same reusable conversion without event grouping. The experiment and shared execution adapter call this public implementation; there is no cluster-specific decoder.
@@ -187,9 +186,9 @@ fragment competition remain supported.
 ## Interpret events without rematching
 
 ```python
-from mappa import interpret_events
+from mappa import decode_events
 
-events = interpret_events(aam, threshold=0.5, metal_threshold=0.3)
+events = decode_events(aam, threshold=0.5, metal_threshold=0.3)
 pattern = events.evaluate(0)  # Original representative of saved family 0.
 actions = events.family_actions[0]
 ```
@@ -235,12 +234,12 @@ If a family has multiple saved partitions, select one with `partition=` in
 `tables` / `contributions`; counts are independent of that bookkeeping choice.
 Tables never select independent per-bond minima or claim a global optimum.
 
-`convert_fragments` and `decode_events` retain their existing hierarchical
+`convert_fragments` and `refine_mapping` retain their existing hierarchical
 rematching behavior. They do not replace this lossless interpretation.
 
 ## Local event contributions and sweep cuts
 
-`interpret_events(aam).tables(family_id)` exposes internal and boundary bond
+`decode_events(aam).tables(family_id)` exposes internal and boundary bond
 terms. Each term retains `target_pairs`, original `action_ids`, `endpoint_case`
 (`fixed_fixed`, `fixed_shuffle`, or `shuffle_shuffle`) and `manual_cut` provenance.
 Pair projection preserves correlated moves and saved action order without

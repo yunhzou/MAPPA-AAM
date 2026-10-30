@@ -1,5 +1,3 @@
-"""Public anchored-fragment event decoding."""
-from .api import decode_events, interpret_events
-from .conversion import convert_fragments, FragmentConversion
-from .records import (EventDecodeConfig, EventCandidate, DecodedEvents,
-                      EventInterpretation, SymmetryEventResponse)
+"""Event decoding preserves the original compressed mapping space."""
+from .api import decode_events
+from .records import EventDecodeConfig, EventInterpretation, SymmetryEventResponse

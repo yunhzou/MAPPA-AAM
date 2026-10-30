@@ -314,7 +314,7 @@ def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
     import mappa.mappa_core.post_processing.decoder.api as postprocessing
     def forbidden(*args, **kwargs):
         raise AssertionError('raw search must not score mechanisms')
-    monkeypatch.setattr(postprocessing, 'decode_events', forbidden)
+    monkeypatch.setattr(postprocessing, 'refine_mapping', forbidden)
     base = problem()
     enriched = AAMProblem(replace(base.reactant, energy=-1.2, metadata={'origin': 'saved-test'}),
                           base.product)

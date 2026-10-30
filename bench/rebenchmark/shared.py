@@ -55,7 +55,8 @@ def conversion_tasks(case, tasks, cuts, *, slack=5):
         final = finals[key]
         for seed in range(final.payload['seeds']):
             payload = dict(input=final.payload['input'], cut=key, number=final.payload['number'],
-                task_id=int(case), seed=seed, slack=slack, branch_limit=100, random_seed=42)
+                task_id=int(case), seed=seed, slack=slack, branch_limit=100, random_seed=42,
+                decoder='compressed_event_interpretation')
             yield replace(final, key=f'{case}/cut/{payload["number"]:05d}/seed/{seed:02d}',
                 operation='rebenchmark.shared:convert_seed', payload=payload, dependencies=(key,))
 
@@ -64,6 +65,8 @@ def convert_seed(payload, workspace):
     from mappa.mappa_core.core.scheduler.search import _session
     from .decoding import decode_graph
     import time
+    if payload['decoder'] != 'compressed_event_interpretation':
+        raise ValueError('Create a fresh plan for the current decoder')
     start, cpu = time.perf_counter(), time.process_time()
     session = _session(payload, workspace)
     finalized = workspace.dependency(payload['cut'])

@@ -102,7 +102,7 @@ full-event decoding or all benchmark-report metrics are complete.
 
 `execution.decoding.plan_event_decoding` schedules one saved case/cut catalogue
 through the public anchored-fragment converter. It accepts partial mappings and
-the ordinary `EventDecodeConfig`, including relative minimum+n filtering. It
+the ordinary `RefinementConfig`, including relative minimum+n filtering. It
 retains converted branch records, direct counts and explicit incomplete flags.
 There is no separate solver/minimum stage or cluster-specific decoder.
 

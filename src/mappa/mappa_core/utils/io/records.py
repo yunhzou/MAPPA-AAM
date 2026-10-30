@@ -59,11 +59,11 @@ def _mapping_record(mapping):
             for source, target in mapping.as_dict().items()}
 
 
-def decoded_events_record(result):
+def refined_mapping_record(result):
     """Serialize event witnesses and their explicitly scoped completeness."""
-    from mappa.mappa_core.post_processing.decoder.records import DecodedEvents
-    if not isinstance(result, DecodedEvents):
-        raise TypeError("decoded_events_record requires DecodedEvents")
+    from mappa.mappa_core.post_processing.hierarchical_mapping import RefinedMapping
+    if not isinstance(result, RefinedMapping):
+        raise TypeError("refined_mapping_record requires RefinedMapping")
     return {
         "schema": "mappa.decoded_events/v2",
         "method": "anchored_fragment_conversion",
@@ -89,6 +89,59 @@ def decoded_events_record(result):
             "family_ids": candidate.family_ids,
         } for candidate in result.candidates],
     }
+
+
+def decoded_events_record(result):
+    """Persist unchanged mappings and local event functions, not an enumeration.
+
+    Tables and responses shared across branches are stored once. Representative
+    counts are labelled explicitly; they do not prove a minimum over choices.
+    """
+    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
+    from dataclasses import asdict
+    if not isinstance(result, EventInterpretation):
+        raise TypeError('decoded_events_record requires EventInterpretation')
+    tables, table_ids, responses, response_ids, families = [], {}, [], {}, []
+    def term_record(term):
+        response = term.response
+        if response not in response_ids:
+            response_ids[response] = len(responses)
+            responses.append(dict(source_weight=response.source_weight,
+                threshold=response.threshold, target_weights=response.target_weights.tolist(),
+                categories=response.categories.tolist()))
+        return dict(atoms=term.atoms, action_ids=term.action_ids,
+            response=response_ids[response], initial_pair=term.initial_pair,
+            endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
+    for fid, partitions in enumerate(result.fragment_partitions):
+        saved = []
+        for partition in range(len(partitions)):
+            table = result.tables(fid, partition)
+            identity = id(table)
+            if identity not in table_ids:
+                table_ids[identity] = len(tables)
+                tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
+                    internal=[dict(fragment=k, terms=[term_record(t) for t in v])
+                              for k,v in table.internal.items()],
+                    boundary=[dict(fragments=k, terms=[term_record(t) for t in v])
+                              for k,v in table.boundary.items()],
+                    product_boundary_pairs=table.product_boundary_pairs.tolist(),
+                    atom_domains=table.atom_domains, atom_actions=table.atom_actions,
+                    components=table.components, statistics=table.statistics))
+            saved.append(table_ids[identity])
+        families.append(dict(family_id=fid, tables=saved,
+            action_responses=[asdict(r) for r in result.family_actions[fid]]))
+    representatives = [dict(family_id=i, **result.evaluate(i))
+                       for i in range(len(result.catalogue.families))]
+    return dict(schema='mappa.decoded_events/v3', method='compressed_event_interpretation',
+        scope='Original compressed mappings with correlated local event responses',
+        catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
+        problem=dict(name=result.catalogue.problem.name,
+            reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
+            product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
+        families=families, tables=tables, responses=responses,
+        representatives=representatives, mapping_space_preserved=True,
+        incomplete_paths=result.catalogue.incomplete_paths,
+        exhaustive_event_patterns=False, global_minimum_proven=False)
 
 
 def reaction_record(reaction: ReactionContext):

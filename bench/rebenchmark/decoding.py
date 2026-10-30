@@ -1,7 +1,7 @@
 """Decode saved Golden seed/cut graphs through the public event decoder.
 
-Each seed/cut converts its saved fragment pairs and counts the resulting branches.
-Local minimum+slack windows contain the corresponding prefix-union window.
+Each seed/cut retains its original compressed mappings and local event functions.
+Historical converted-branch summaries remain explicitly scoped to their schema.
 """
 import time
 
@@ -17,7 +17,7 @@ def seed_tasks(cut_tasks, *, seeds=10, slack=5, branch_limit=100, random_seed=42
             saved = {name: cut.payload[name] for name in
                      ('task_id', 'cut', 'source', 'raw', 'graph', 'finalized')}
             payload = dict(saved, seed=seed, slack=slack, branch_limit=branch_limit, random_seed=random_seed,
-                           decoder='anchored_fragment_conversion')
+                           decoder='compressed_event_interpretation')
             yield Task(f'{payload["task_id"]:05d}/cut/{payload["cut"]:05d}/seed/{seed:02d}',
                        'rebenchmark.decoding:decode_seed', payload,
                        case=f'{payload["task_id"]:05d}', case_seconds=case_seconds,
@@ -53,8 +53,8 @@ def representative_bound(problem, graph, seed, tier, slack):
 
 
 def decode_seed(payload, workspace):
-    if payload.get('decoder') != 'anchored_fragment_conversion' or 'family_seconds' in payload:
-        raise ValueError('Create conversion tasks explicitly; retired solver tasks cannot be resumed here')
+    if payload.get('decoder') != 'compressed_event_interpretation' or 'family_seconds' in payload:
+        raise ValueError('Create current event tasks explicitly; retired solver tasks cannot be resumed here')
     started, cpu = time.perf_counter(), time.process_time()
     plan, _, graph, digest, finalized = prepare_cut(payload, workspace)
     loading = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
@@ -66,45 +66,39 @@ def decode_seed(payload, workspace):
 
 
 def decode_graph(problem, graph, payload):
-    """One public conversion for a selected seed, shared by fresh and saved runs."""
+    """Prepare every retained family's local event functions without rematching."""
     from mappa.mappa_core.utils.io.records import decoded_events_record
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-    from mappa.mappa_core.post_processing.decoder.events import classify_bonds
-    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.post_processing.decoder.api import decode_events
     started, cpu = time.perf_counter(), time.process_time()
-    one = select_contexts(graph, [payload['seed']])
-    catalogue = FinalBranchCatalogue(problem).add_graph(one)
+    catalogue = FinalBranchCatalogue(problem).add_graph(select_contexts(graph, [payload['seed']]))
     all_families = len(catalogue.families)
     tier = max((coverage(problem, f) for f in catalogue.families), default=None)
-    selected_ids = {i for i, f in enumerate(catalogue.families) if coverage(problem, f) == tier}
-    catalogue.branches = {key: ids & selected_ids for key, ids in catalogue.branches.items()
-                          if ids & selected_ids}
-    catalogue.coupled_branches = {i: pairs for i, pairs in catalogue.coupled_branches.items()
-                                  if i in selected_ids}
-    setup = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    selected_ids = [i for i,f in enumerate(catalogue.families) if coverage(problem,f) == tier]
+    setup = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
     started, cpu = time.perf_counter(), time.process_time()
-    result = decode_events(catalogue, EventDecodeConfig(event_slack=payload['slack'],
-        branch_limit=payload['branch_limit'], random_seed=payload['random_seed']))
-    timing = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    result = decode_events(catalogue)
+    for fid, partitions in enumerate(result.fragment_partitions):
+        for partition in range(len(partitions)):
+            result.tables(fid, partition)
+    decoding = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
     started, cpu = time.perf_counter(), time.process_time()
-    for candidate in result.candidates:
-        broken, formed, *_ = classify_bonds(candidate.mapping, problem.reactant.wbo,
-            problem.product.wbo, dwbo_threshold=result.config.threshold,
-            elements_R=problem.reactant.elements, elements_P=problem.product.elements,
-            metal_dwbo_threshold=result.config.metal_threshold)
-        assert candidate.total == len(broken)+len(formed)
-        assert candidate.endpoint_events == dict(broken=tuple(sorted((a,b) for a,b,*_ in broken)),
-                                                 formed=tuple(sorted((a,b) for a,b,*_ in formed)))
-    verification = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    # Independent dense recounts check the sparse factors on each saved branch.
+    for fid, partitions in enumerate(result.fragment_partitions):
+        vector = result.index.vector(result.realize(fid))
+        expected = result.index.describe(vector)['counts']
+        for partition in range(len(partitions)):
+            actual = result.tables(fid,partition).evaluate(vector)['counts']
+            if actual != expected:
+                raise ValueError(f'event table recount differs for family {fid}')
+    verification = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
     started, cpu = time.perf_counter(), time.process_time()
     record = decoded_events_record(result)
-    serialization = dict(wall_seconds=time.perf_counter()-started, cpu_seconds=time.process_time()-cpu)
+    serialization = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
     return dict(seed=payload['seed']+1, coverage=tier,
-        conversion_scope='retained_converted_branches',
-        all_families=all_families, selected_families=len(selected_ids),
-        decoded=record, families=record['converted_catalogue']['families'],
-        timing=dict(setup=setup, decoding=timing, verification=verification, record=serialization))
+        decoding_scope='original_compressed_mapping_space', selected_family_ids=selected_ids,
+        all_families=all_families,selected_families=len(selected_ids),decoded=record,
+        timing=dict(setup=setup,decoding=decoding,verification=verification,record=serialization))
 
 
 def merge_windows(rows, *, slack=5):
