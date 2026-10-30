@@ -36,15 +36,19 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
     assert len(commands)==3
 
 
-def test_capacity_respects_memory_cpu_and_excludes_unavailable_nodes():
-    nodes = '\n'.join([
-        'NodeName=cpu-0001 State=MIXED CPUTot=64 CPUAlloc=48 RealMemory=65536 AllocMem=20480',
-        'NodeName=cpu-0002 State=MIXED CPUTot=64 CPUAlloc=16 RealMemory=65536 AllocMem=32768',
-        'NodeName=cpu-0003 State=IDLE+RESERVED CPUTot=64 CPUAlloc=0 RealMemory=65536 AllocMem=0'])
-    result = launch.capacity(nodes,2*2**30,2)
-    assert result['compute_workers']==29
-    assert len(result['groups'])==2
-    assert launch.capacity('',2*2**30,4)['groups']==[]
+def test_capacity_requests_target_even_when_nodes_are_busy():
+    nodes = '\n'.join(
+        f'NodeName=cpu-{i:04d} State=MIXED CPUTot=96 CPUAlloc=90 RealMemory=207698 AllocMem=204800'
+        for i in range(1,12))
+    result = launch.capacity(nodes,2*2**30,3,800)
+    assert result['compute_workers']==801
+    assert result['groups']==[dict(nodes=3,workers_per_node=89)]*3
+    assert launch.capacity(nodes.replace('CPUAlloc=90','CPUAlloc=0'),2*2**30,3,800)==result
+    reserved=nodes.replace('State=MIXED','State=IDLE+RESERVED')
+    with pytest.raises(ValueError,match='exceeds'):launch.capacity(reserved,2*2**30,3,800)
+    with pytest.raises(ValueError,match='exceeds'):launch.capacity(nodes,32*2**30,3,800)
+    tiny=launch.capacity(nodes,2*2**30,3,1)
+    assert tiny['groups']==[dict(nodes=1,workers_per_node=1)]
 
 
 def test_worker_renewal_requires_clean_exit_and_every_node_receipt(tmp_path, monkeypatch):

@@ -427,7 +427,7 @@ PYTHONPATH=src:bench python -m rebenchmark.launch submit /absolute/new/run --pla
 
 The plan supplies the dataset/manifest, search settings and a `slurm` resource
 profile (`account`, `partition`, `short_qos`, `worker_time`,
-`max_worker_jobs`, `checkpoint_seconds`; `prepare`, `pilot`, `coordinator`, `report` and
+`max_worker_jobs`, `target_workers`, `checkpoint_seconds`; `prepare`, `pilot`, `coordinator`, `report` and
 `memory_stage` each specify `qos`, `cpus`, `memory_gib`, `time`). It also supplies
 `expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
 `retry_workers`. The existing shared planner owns dataset/task preparation.
@@ -458,3 +458,8 @@ results, attempts and remaining budgets; it does not rebuild the task grid.
 `current-allocation.json` identifies the active generation; `next-allocation.json`
 records its scheduled successor. Count the controller when setting the number of
 worker jobs under a shared QoS job limit.
+
+Worker requests target `slurm.target_workers` using eligible node CPU/RAM totals.
+Busy nodes remain eligible for queued requests; an idle-capacity snapshot must
+not silently lower the throughput target. Groups can start independently as
+Slurm releases capacity. Reserved/down/drained nodes are excluded.

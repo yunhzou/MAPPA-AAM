@@ -6,7 +6,6 @@ stage dependencies; this module renews retired worker capacity, never tasks.
 import argparse
 import getpass
 import hashlib
-import itertools
 import json
 import os
 from pathlib import Path
@@ -193,28 +192,36 @@ def pilot_check(root):
     save(full/'plan.json', plan)
 
 
-def capacity(node_output, memory_bytes, max_jobs):
-    """Group available nodes into a few memory-fitting sizes without pinning."""
-    observed = []
+def capacity(node_output, memory_bytes, max_jobs, target_workers):
+    """Request the configured throughput; current occupancy is not a ceiling."""
+    import math
+    if min(max_jobs,target_workers) < 1:
+        raise ValueError('Worker target and job count must be positive')
     memory_mib = (memory_bytes+2**20-1)//2**20
+    observed = []
     for line in node_output.splitlines():
-        fields = dict(re.findall(r'(\w+)=([^ ]+)', line))
-        if not fields['NodeName'].startswith('cpu-') or any(s in fields['State'] for s in ('DRAIN','DOWN','FAIL','RESERVED')):
+        fields = dict(re.findall(r'(\w+)=([^ ]+)',line))
+        if not fields['NodeName'].startswith('cpu-') or any(
+                s in fields['State'] for s in ('DRAIN','DOWN','FAIL','RESERVED')):
             continue
-        count = min(int(fields['CPUTot'])-int(fields['CPUAlloc'])-1,
-                    (int(fields['RealMemory'])-int(fields['AllocMem'])-4096)//memory_mib)
-        if count >= 1:
+        count = min(int(fields['CPUTot'])-1,(int(fields['RealMemory'])-4096)//memory_mib)
+        if count > 0:
             observed.append(dict(node=fields['NodeName'],workers=count))
-    if not observed:
-        return dict(observed=[],groups=[],compute_workers=0)
-    levels = sorted({r['workers'] for r in observed})
-    sizes = max(itertools.combinations(levels,min(max_jobs,len(levels))),
-                key=lambda group:sum(max((n for n in group if n<=r['workers']),default=0) for r in observed))
-    groups = []
-    for workers in sizes:
-        nodes = sum(max((n for n in sizes if n<=r['workers']),default=0)==workers for r in observed)
-        if nodes: groups.append(dict(nodes=nodes,workers_per_node=workers))
-    return dict(observed=observed,groups=groups,compute_workers=sum(g['nodes']*g['workers_per_node'] for g in groups))
+    # Choose a uniform per-node request that the eligible physical nodes can fit.
+    options = []
+    for limit in {row['workers'] for row in observed}:
+        nodes = math.ceil(target_workers/limit)
+        if nodes <= sum(row['workers']>=limit for row in observed):
+            workers = math.ceil(target_workers/nodes)
+            options.append((nodes*workers-target_workers,nodes,workers))
+    if not options:
+        raise ValueError('Requested worker target exceeds eligible CPU-node capacity')
+    _,nodes,workers = min(options)
+    jobs = min(max_jobs,nodes)
+    groups = [dict(nodes=nodes//jobs+(slot<nodes%jobs),workers_per_node=workers)
+              for slot in range(jobs)]
+    return dict(observed=observed,groups=groups,target_workers=target_workers,
+                compute_workers=nodes*workers)
 
 
 def start_workers(full, plan, slot, generation, group):
@@ -342,7 +349,7 @@ def control(full):
             if time.time() < plan['claim_until']:
                 if not jobs:
                     available=capacity(subprocess.check_output(['scontrol','show','nodes','-o'],text=True),
-                        plan['memory_bytes'],plan['slurm']['max_worker_jobs'])
+                        plan['memory_bytes'],plan['slurm']['max_worker_jobs'],plan['slurm']['target_workers'])
                     save(full/'capacity.json',available)
                     jobs=[dict(group=g,generation=0,**start_workers(full,plan,i,0,g))
                           for i,g in enumerate(available['groups'])]

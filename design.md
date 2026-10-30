@@ -633,3 +633,9 @@ time for active computations, publication and a final disk checkpoint. Only afte
 worker retirement may it hand the same queue to an `afterok` successor. Queue
 identity, accepted results, attempts and charged budgets survive unchanged. This
 lifecycle belongs to the benchmark launcher, not chemistry or task planning.
+
+The launcher sizes worker allocations from the explicit throughput target and
+physical node limits. Current occupancy affects admission, not the requested
+capacity or renewal size. With 96-CPU/202GiB nodes and 2GiB guards, a target of
+800 produces three independently scheduled groups of three nodes ×89 workers
+(801 compute processes). This resource change never modifies scientific tasks.
