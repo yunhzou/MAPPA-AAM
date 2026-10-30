@@ -338,8 +338,178 @@ def aggregate_fresh(plan, output, scratch):
     return summary
 
 
+def event_mode_summary(reference_rows, event_rows):
+    """Union saved coverage verdicts; event minima concern representatives only."""
+    outcomes = [r['reference_recovery'] for r in reference_rows]
+    status = ('recovered' if 'recovered' in outcomes else
+              'unknown' if not outcomes or 'unknown' in outcomes else 'not_recovered')
+    tier = max((tuple(r['coverage']) for r in event_rows if r['coverage'] is not None), default=None)
+    selected = [r for r in event_rows if r['coverage'] is not None and tuple(r['coverage']) == tier]
+    minimum = min((r['representative_minimum'] for r in selected
+                   if r['representative_minimum'] is not None), default=None)
+    return dict(reference_recovery=status,
+        representative_recovery=any(r['representative_recovery'] for r in reference_rows),
+        mapping_space_preserved=bool(event_rows) and all(r['mapping_space_preserved'] for r in event_rows),
+        incomplete_event_outputs=sum(bool(r['incomplete_paths']) for r in event_rows),
+        coverage_tier=tier, representative_minimum=minimum,
+        minimum_categories=sorted({tuple(c) for r in selected if r['representative_minimum']==minimum
+                                   for c in r['minimum_categories']}),
+        global_minimum_proven=False, exhaustive_event_patterns=False)
+
+
+def _representative_categories(decoded, representative, reverse):
+    """Classify saved signed events, with reverse directions in original R/P."""
+    from mappa.mappa_core.utils.bonds import is_metal_element
+    problem=decoded['problem']; policy=decoded['event_policy']
+    mapping={a:representative['mapping'][a] for a in representative['mapped_source']}
+    inverse={p:r for r,p in mapping.items()}; counts=[0,0,0,0]
+    for backwards, name in ((False,'broken'),(True,'formed')):
+        source=problem['product' if backwards else 'reactant']
+        target=problem['reactant' if backwards else 'product']
+        images=inverse if backwards else mapping
+        for a,b in representative['endpoint_events'][name]:
+            tau=policy['metal_threshold'] if any(is_metal_element(source['elements'][i]) for i in (a,b)) else policy['threshold']
+            persists=a in images and b in images and target['wbo'][images[a]][images[b]]>tau
+            counts[(2 if backwards else 3) if persists else (1 if backwards else 0)]+=1
+    if sum(counts)!=representative['total']:
+        raise ValueError('Saved event count differs')
+    return (counts[1],counts[0],counts[3],counts[2]) if reverse else tuple(counts)
+
+
+def _event_direction_report(arguments):
+    """Read only exact accepted output ranges; no graph search or decoding."""
+    import sqlite3
+    from mappa.mappa_core.core.scheduler import Blob, read_blob
+    from mappa.mappa_core.core.scheduler.bundles import read_blobs
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    queue, direction, scratch = arguments
+    db=sqlite3.connect('file:'+queue+'?mode=ro&immutable=1',uri=True)
+    expected=read_blob(Blob(**direction['blob']),scratch)
+    rows=db.execute('SELECT key,specification,state,result FROM tasks WHERE case_name=?',
+                    (f"{direction['direction']:05d}",)).fetchall();db.close()
+    actual={k:(s,state,r) for k,s,state,r in rows}
+    if set(actual)!={t.key for t in expected}:
+        raise ValueError('Expected task grid differs')
+    accepted={}; resources=[]
+    for task in expected:
+        spec,state,raw=actual[task.key]
+        if task!=_loads_checkpoint(spec) or state!='complete':
+            raise ValueError('Task specification or completion differs: '+task.key)
+        result=_loads_checkpoint(raw);accepted[task.key]=result
+        resources.append(dict(key=task.key,operation=task.operation.rsplit(':',1)[1],
+            **{k:result[k] for k in ('cpu_seconds','compute_seconds','publish_seconds',
+                                    'publish_cpu_seconds','peak_tree_rss_bytes')}))
+    selected={}
+    for task in expected:
+        if task.operation.rsplit(':',1)[1] in ('verify_seed','convert_seed'):
+            blob=accepted[task.key]['blob'];selected[blob.path,blob.offset]=(task,blob)
+    ordered=sorted(selected)
+    references=[];events=[]
+    for blob,value in read_blobs([selected[k][1] for k in ordered],scratch):
+        task=selected[blob.path,blob.offset][0];p=task.payload
+        base=dict(key=task.key,cut=int(task.key.split('/')[2]),seed=p['seed'],sha256=blob.sha256)
+        if task.operation.endswith(':verify_seed'):
+            if value['scope']!='original_iso1_aam' or value['reference']!=p['reference']:
+                raise ValueError('Reference policy differs')
+            references.append(dict(base,reference_recovery=value['reference_recovery'],
+                representative_recovery=value.get('representative_recovery',False),
+                capped=value.get('capped'),unknown_queries=value.get('unknown_queries'),
+                evaluation_seconds=value.get('evaluation_seconds')))
+            continue
+        parent=accepted[p['cut']]['blob'];d=value['decoded']
+        if (value['task_id']!=direction['direction'] or value['cut']!=base['cut'] or
+            value['seed']!=p['seed']+1 or value['input']!=p['input'] or
+            value['finalized']!=parent or value['finalized_sha256']!=parent.sha256 or
+            d['schema']!='mappa.decoded_events/v3' or not d['mapping_space_preserved'] or
+            d['exhaustive_event_patterns'] or d['global_minimum_proven']):
+            raise ValueError('Event output identity or scope differs')
+        representatives=d['representatives'];families=d['catalogue']['families']
+        if len(representatives)!=value['all_families'] or len(families)!=len(representatives):
+            raise ValueError('Incomplete representative catalogue')
+        for fid,(rep,family) in enumerate(zip(representatives,families)):
+            saved=tuple((a,rep['mapping'][a]) for a in rep['mapped_source'])
+            if rep['family_id']!=fid or saved!=tuple(map(tuple,family['mapping'])):
+                raise ValueError('Representative mapping changed')
+        chosen=[representatives[i] for i in value['selected_family_ids']]
+        minimum=min((r['total'] for r in chosen),default=None)
+        categories=sorted({_representative_categories(d,r,direction['reversed'])
+                           for r in chosen if r['total']==minimum})
+        events.append(dict(base,coverage=value['coverage'],mapping_space_preserved=True,
+            incomplete_paths=d['incomplete_paths'],families=len(families),tables=len(d['tables']),
+            representative_minimum=minimum,minimum_categories=categories,timing=value['timing']))
+    return dict(case=direction['case'],direction=direction['direction'],
+                references=references,events=events,resources=resources)
+
+
+def summarize_original_events(run, output, workers):
+    """Report the original-space decoder from the full frozen task denominator."""
+    import gzip,os,shutil,sqlite3,tempfile
+    from collections import defaultdict
+    from concurrent.futures import ProcessPoolExecutor
+    from .timings import distribution,execution_timeline
+    run,output=Path(run),Path(output);output.mkdir(parents=True,exist_ok=True)
+    plan=read(run/'plan.json');index_path=Path(plan['index'])
+    if sha(index_path)!=plan['index_sha256'] or not read(run/'progress.json')['finished']:
+        raise ValueError('Need the finished frozen campaign')
+    index=read(index_path);counts=Counter();directions={};phases=defaultdict(lambda:defaultdict(list))
+    with tempfile.TemporaryDirectory(dir=os.environ['TMPDIR']) as scratch:
+        local=Path(scratch)/'queue.sqlite';shutil.copyfile(run/'queue.sqlite',local)
+        digest=sha(local)
+        db=sqlite3.connect('file:'+str(local)+'?mode=ro&immutable=1',uri=True)
+        if db.execute('SELECT count(*) FROM tasks').fetchone()[0]!=index['tasks']:
+            raise ValueError('Task denominator differs')
+        db.close()
+        with gzip.open(output/'task-summary.jsonl.gz','wt') as stream, ProcessPoolExecutor(max_workers=workers) as pool:
+            arguments=((str(local),d,scratch) for d in index['directions'])
+            for record in pool.map(_event_direction_report,arguments,chunksize=1):
+                stream.write(json.dumps(record,separators=(',',':'))+'\n')
+                resources=record.pop('resources')
+                for resource in resources:
+                    op=resource['operation'];counts[op]+=1
+                    for name in ('cpu_seconds','compute_seconds','publish_cpu_seconds','publish_seconds','peak_tree_rss_bytes'):
+                        phases[op][name].append(resource[name])
+                for row in record['events']:
+                    counts['families']+=row['families'];counts['event_tables']+=row['tables']
+                    counts['incomplete_event_outputs']+=bool(row['incomplete_paths'])
+                    for name,timing in row.pop('timing').items():
+                        for measure,value in timing.items():phases['decoder_'+name][measure].append(value)
+                directions[record['direction']]=record
+                if len(directions)%100==0:
+                    save(output/'progress.json',dict(directions=len(directions),expected=len(index['directions'])))
+                    print(f"{len(directions)}/{len(index['directions'])} directions read",flush=True)
+        timeline=execution_timeline(local)
+    if {k:counts[k] for k in index['counts']}!=index['counts']:
+        raise ValueError('Operation denominators differ')
+    cases=[];modes=defaultdict(Counter)
+    for case in sorted({d['case'] for d in index['directions']}):
+        case_modes={}
+        for scope in ('uncut','sweep'):
+            for direction,ids in (('R_to_P',[2*case]),('P_to_R',[2*case+1]),('bidirectional',[2*case,2*case+1])):
+                refs=[r for i in ids for r in directions[i]['references'] if scope=='sweep' or r['cut']==0]
+                events=[r for i in ids for r in directions[i]['events'] if scope=='sweep' or r['cut']==0]
+                value=event_mode_summary(refs,events);name=f'{scope}/{direction}'
+                case_modes[name]=value;modes[name][value['reference_recovery']]+=1
+                modes[name]['representative_recovered']+=value['representative_recovery']
+                modes[name]['mapping_space_preserved']+=value['mapping_space_preserved']
+        cases.append(dict(case=case,modes=case_modes))
+    summary=dict(schema='mappa.original_event_report/v1',cases=len(cases),config=index['config'],
+        counts=dict(counts),modes={k:dict(v) for k,v in modes.items()},
+        timing={k:{m:distribution(v) for m,v in values.items()} for k,values in phases.items()},
+        execution=timeline,queue_sha256=digest,index_sha256=plan['index_sha256'],source=plan['commit'],
+        representative_minima=distribution([r['modes']['sweep/bidirectional']['representative_minimum']
+            for r in cases if r['modes']['sweep/bidirectional']['representative_minimum'] is not None]),
+        scope='One seed, both directions, full cut sweep. Exact annotated heavy-atom relation modulo endpoint chemical symmetry. Decoder retains original compressed mappings. Minima below are over saved representatives, not exhaustive symmetry assignments.',
+        event_category_order=['breaking','forming','strengthening','weakening'],
+        global_minimum_proven=False,exhaustive_event_patterns=False)
+    save(output/'summary.json',summary);save(output/'cases.json',cases)
+    save(output/'progress.json',dict(finished=True,directions=len(directions),cases=len(cases)))
+    return summary
+
+
 if __name__=='__main__':
     import argparse
     p=argparse.ArgumentParser();p.add_argument('run');p.add_argument('output');p.add_argument('--workers',type=int,default=1)
-    p.add_argument('--replacements',type=Path)
-    a=p.parse_args();summarize(a.run,a.output,a.workers,read(a.replacements) if a.replacements else None)
+    p.add_argument('--replacements',type=Path);p.add_argument('--original-events',action='store_true')
+    a=p.parse_args()
+    if a.original_events:summarize_original_events(a.run,a.output,a.workers)
+    else:summarize(a.run,a.output,a.workers,read(a.replacements) if a.replacements else None)

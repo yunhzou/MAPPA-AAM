@@ -164,3 +164,35 @@ def test_claim_concurrency_is_not_summed_latency(tmp_path):
     assert value['claimed_task_seconds']==5.
     assert value['seconds_with_claimed_work']==4.
     assert value['peak_claimed_tasks']==2
+
+
+def test_original_event_coverage_keeps_unknowns_and_representative_scope():
+    from rebenchmark.report import event_mode_summary
+    event=dict(coverage=[3,4],representative_minimum=2,minimum_categories=[(1,1,0,0)],
+               mapping_space_preserved=True,incomplete_paths=0)
+    refs=[dict(reference_recovery='unknown',representative_recovery=False)]
+    row=event_mode_summary(refs,[event])
+    assert row['reference_recovery']=='unknown'
+    assert row['representative_minimum']==2 and not row['global_minimum_proven']
+    refs.append(dict(reference_recovery='recovered',representative_recovery=False))
+    assert event_mode_summary(refs,[event])['reference_recovery']=='recovered'
+
+
+def test_original_event_minimum_respects_coverage_tier():
+    from rebenchmark.report import event_mode_summary
+    low=dict(coverage=[1,2],representative_minimum=0,minimum_categories=[(0,0,0,0)],
+             mapping_space_preserved=True,incomplete_paths=0)
+    high=dict(low,coverage=[2,2],representative_minimum=3,minimum_categories=[(1,2,0,0)])
+    result=event_mode_summary([], [low,high])
+    assert result['representative_minimum']==3
+    assert result['minimum_categories']==[(1,2,0,0)]
+
+
+def test_saved_event_categories_normalize_reverse_direction():
+    from rebenchmark.report import _representative_categories
+    d=dict(problem=dict(reactant=dict(elements=['C','C'],wbo=[[0,2],[2,0]]),
+                        product=dict(elements=['C','C'],wbo=[[0,1],[1,0]])),
+           event_policy=dict(threshold=.5,metal_threshold=.3))
+    r=dict(mapping=[0,1],mapped_source=[0,1],endpoint_events=dict(broken=[(0,1)],formed=[]),total=1)
+    assert _representative_categories(d,r,False)==(0,0,0,1)
+    assert _representative_categories(d,r,True)==(0,0,1,0)
