@@ -634,8 +634,11 @@ Queues and scratch live on verified node-local disk, not RAM-backed `/tmp` on
 NRT. Failed owners retain their database/WAL with a location receipt. A clean
 handoff restores the same task rows, results, attempts and remaining budgets.
 Only idempotent scheduler transport operations are retried; submission is never
-blindly repeated. Target capacity uses eligible physical nodes rather than idle
-capacity. Requested, running and actually used CPUs remain separate measurements.
+blindly repeated. The configured worker count is a strict ceiling. Capacity uses currently
+unallocated CPUs and scheduler-allocatable RAM on unreserved eligible nodes.
+Pending requests are reconsidered; running allocations are preserved. Free slots
+and cleanly retired allocations are sized again against current availability,
+so an initially small pool is not renewed at the same fixed size forever. Requested, running and actually used CPUs remain separate measurements.
 
 Reporting verifies the complete expected task grid, immutable specifications and
 accepted parent identities. Unknown, missing and resource-limited work remains

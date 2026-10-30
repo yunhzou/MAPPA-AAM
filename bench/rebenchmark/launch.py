@@ -176,35 +176,83 @@ def pilot_check(root):
 
 
 def capacity(node_output, memory_bytes, max_jobs, target_workers):
-    """Request the configured throughput; current occupancy is not a ceiling."""
-    import math
-    if min(max_jobs,target_workers) < 1:
-        raise ValueError('Worker target and job count must be positive')
+    """Fit currently unallocated CPU/RAM; the worker target is a ceiling."""
+    from functools import lru_cache
+    if min(max_jobs, target_workers) < 1:
+        raise ValueError('Worker ceiling and job count must be positive')
     memory_mib = (memory_bytes+2**20-1)//2**20
     observed = []
     for line in node_output.splitlines():
-        fields = dict(re.findall(r'(\w+)=([^ ]+)',line))
+        fields = dict(re.findall(r'(\w+)=([^ ]+)', line))
         if not fields['NodeName'].startswith('cpu-') or any(
-                s in fields['State'] for s in ('DRAIN','DOWN','FAIL','RESERVED')):
+                state in fields['State'] for state in ('DRAIN', 'DOWN', 'FAIL', 'RESERVED', 'MAINT')):
             continue
-        count = min(int(fields['CPUTot'])-1,(int(fields['RealMemory'])-4096)//memory_mib)
+        if fields.get('ReservationName', '(null)') not in ('(null)', 'N/A'):
+            continue
+        cpus = int(fields.get('CPUEfctv', fields['CPUTot']))-int(fields['CPUAlloc'])-1
+        memory = int(fields['RealMemory'])-int(fields['AllocMem'])-4096
+        count = min(cpus, memory//memory_mib)
         if count > 0:
-            observed.append(dict(node=fields['NodeName'],workers=count))
-    # Choose a uniform per-node request that the eligible physical nodes can fit.
-    options = []
-    for limit in {row['workers'] for row in observed}:
-        nodes = math.ceil(target_workers/limit)
-        if nodes <= sum(row['workers']>=limit for row in observed):
-            workers = math.ceil(target_workers/nodes)
-            options.append((nodes*workers-target_workers,nodes,workers))
-    if not options:
-        raise ValueError('Requested worker target exceeds eligible CPU-node capacity')
-    _,nodes,workers = min(options)
-    jobs = min(max_jobs,nodes)
-    groups = [dict(nodes=nodes//jobs+(slot<nodes%jobs),workers_per_node=workers)
-              for slot in range(jobs)]
-    return dict(observed=observed,groups=groups,target_workers=target_workers,
-                compute_workers=nodes*workers)
+            observed.append(dict(node=fields['NodeName'], workers=count))
+    limits = sorted((row['workers'] for row in observed), reverse=True)
+
+    @lru_cache(None)
+    def fit(start, slots, remaining):
+        if not slots or not remaining:
+            return 0, ()
+        best = (0, ())
+        for count in range(1, len(limits)-start+1):
+            workers = min(limits[start+count-1], remaining//count)
+            if not workers:
+                break
+            used = count*workers
+            tail, groups = fit(start+count, slots-1, remaining-used)
+            if used+tail > best[0]:
+                best = used+tail, ((count, workers),)+groups
+        return best
+
+    total, groups = fit(0, max_jobs, target_workers)
+    return dict(observed=observed,
+                groups=[dict(nodes=n, workers_per_node=w) for n, w in groups],
+                target_workers=target_workers, compute_workers=total)
+
+
+def scale_workers(full, plan, jobs):
+    """Reconsider free slots and pending requests; never resize running workers."""
+    for job in jobs:
+        if not job.get('retired') and retired_workers(full, job) is not None:
+            job['retired'] = True
+    live = dict(line.split('|', 1) for line in scheduler_output(
+        ['squeue', '-h', '-u', getpass.getuser(), '-o', '%i|%T']).splitlines())
+    active = [job for job in jobs if not job.get('retired')]
+    pending = [job for job in active if live.get(job['job']) == 'PENDING']
+    retained = [job for job in active if job not in pending]
+    occupied = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in retained)
+    slots = plan['slurm']['max_worker_jobs']-len(retained)
+    remaining = plan['slurm']['target_workers']-occupied
+    available = capacity(scheduler_output(['scontrol', 'show', 'nodes', '-o']),
+        plan['memory_bytes'], slots, remaining) if slots > 0 and remaining > 0 else dict(groups=[], compute_workers=0)
+    save(full/'capacity.json', dict(available, retained_compute_workers=occupied, utc=time.time()))
+    signature = lambda groups: sorted((g['nodes'], g['workers_per_node']) for g in groups)
+    if pending:
+        if signature(j['group'] for j in pending) != signature(available['groups']):
+            for job in pending:
+                scheduler_output(['scancel', '--state=PENDING', job['job']])
+                job['cancel_pending'] = True
+            # Cancellation can race with admission. Recheck ownership and resources
+            # on the next cycle before filling the slots.
+        return jobs
+    vacant = [slot for slot in range(plan['slurm']['max_worker_jobs'])
+              if slot >= len(jobs) or jobs[slot].get('retired')]
+    for slot, group in zip(vacant, available['groups']):
+        generation = jobs[slot]['generation']+1 if slot < len(jobs) else 0
+        job = dict(group=group, generation=generation,
+                   **start_workers(full, plan, slot, generation, group))
+        if slot < len(jobs):
+            jobs[slot] = job
+        else:
+            jobs.append(job)
+    return jobs
 
 
 def start_workers(full, plan, slot, generation, group):
@@ -265,7 +313,7 @@ def status(root):
         checkpoint=dict(bytes=checkpoint.stat().st_size,age_seconds=now-checkpoint.stat().st_mtime)
                    if checkpoint.exists() else None)
     worker_jobs = read(stage/'worker-jobs.json') if (stage/'worker-jobs.json').exists() else []
-    result['requested_compute_workers'] = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in worker_jobs)
+    result['requested_compute_workers'] = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in worker_jobs if not j.get('retired'))
     result['running_compute_workers'] = sum(j['group']['nodes']*j['group']['workers_per_node'] for j in worker_jobs
         if live.get(str(j['job']),'').split('|')[1:2]==['RUNNING'])
     if allocation and allocation.get('kind') == 'memory':
@@ -328,18 +376,7 @@ def control(full):
             progress=read(full/'progress.json')
             if progress.get('finished'): break
             if time.time() < plan['claim_until']:
-                if not jobs:
-                    available=capacity(scheduler_output(['scontrol','show','nodes','-o']),
-                        plan['memory_bytes'],plan['slurm']['max_worker_jobs'],plan['slurm']['target_workers'])
-                    save(full/'capacity.json',available)
-                    jobs=[dict(group=g,generation=0,**start_workers(full,plan,i,0,g))
-                          for i,g in enumerate(available['groups'])]
-                else:
-                    for slot,job in enumerate(jobs):
-                        if retired_workers(full,job) is not None:
-                            generation=job['generation']+1
-                            jobs[slot]=dict(group=job['group'],generation=generation,
-                                **start_workers(full,plan,slot,generation,job['group']))
+                jobs = scale_workers(full, plan, jobs)
                 save(full/'worker-jobs.json',jobs)
             else:
                 # Atomic Slurm filtering cancels only jobs which have not started.
