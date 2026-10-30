@@ -28,6 +28,8 @@ def test_submission_records_dependencies_and_refuses_duplicate_run(tmp_path, mon
     assert '--dependency=afterok:101' in commands[1]
     assert '--dependency=afterok:102' in commands[2]
     assert commands[0][-1]=='rebenchmark.shared'
+    assert 'bash' not in commands[0]
+    assert any(a.endswith('/run_conversion.sbatch') for a in commands[0])
     assert commands[1][-1]=='rebenchmark.launch'
     assert all((tmp_path/'run'/f'{stage}-launch.json').exists() for stage in ('prepare','pilot','production'))
     with pytest.raises(FileExistsError):launch.submit(tmp_path/'run',configuration)

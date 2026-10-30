@@ -41,7 +41,7 @@ def submit_job(root, name, plan, resources, command, *, dependency=None):
             '--output='+str(root/(name+'-%j.log')), *resources]
     if dependency:
         args.append('--dependency='+dependency)
-    result = subprocess.run([*args, *command], text=True, capture_output=True)
+    result = subprocess.run([*args, *command[1:]], text=True, capture_output=True)
     row = dict(command=result.args, stdout=result.stdout, stderr=result.stderr,
                returncode=result.returncode, utc=time.time())
     if result.returncode == 0:
