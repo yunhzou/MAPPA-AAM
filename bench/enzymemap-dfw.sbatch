@@ -17,5 +17,5 @@ export PYTHONPATH="$SOURCE/src:$SOURCE/bench"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
 export TMPDIR="${SLURM_TMPDIR:-/tmp}"
 export MAPPA_BUNDLE_ROOTS="{\"/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa\":\"$ROOT\",\"/lustre/fsw/portfolios/nvr/users/yunhengz/mappa\":\"$ROOT\"}"
-BATCH="$ROOT/enzymemap_pool_20261030/dfw160/$SLURM_ARRAY_TASK_ID"
+BATCH="${MAPPA_BATCH_ROOT:-$ROOT/enzymemap_pool_20261030/dfw160}/$SLURM_ARRAY_TASK_ID"
 exec "$ROOT/venv/bin/python" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 56 --memory-gib 4 --window 128 --run-seconds 12600 --resume "$@"
