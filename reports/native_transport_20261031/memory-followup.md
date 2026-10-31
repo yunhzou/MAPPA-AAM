@@ -5,6 +5,11 @@ Two storage problems remain in the accepted native implementation: an oversized
 canonical-certificate cache and repeated deferred-bond lists in transition records.
 This is a diagnosis and controlled experiment, not a deployed production change.
 
+**Follow-up:** the 512-entry cache experiment fails the performance requirement
+and is rejected. See [cache-regression.md](cache-regression.md). The user approved
+retaining the accepted implementation and increasing benchmark worker memory to
+4 GiB; the measurements below describe the earlier 2 GiB investigation.
+
 Production revision: `3b43327462d11b587a51e61305436fd71374207d`.
 Reaction 5735 forward, 387 atoms per endpoint, original cut/seed plan, branch
 limit 100, one seed, random seed 42, matching tolerance 1.0. Measurements below

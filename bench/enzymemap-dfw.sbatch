@@ -4,8 +4,8 @@
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=1
 #SBATCH --array=0-4
-#SBATCH --cpus-per-task=84
-#SBATCH --mem=180G
+#SBATCH --cpus-per-task=60
+#SBATCH --mem=240G
 #SBATCH --time=03:45:00
 #SBATCH --signal=B:USR1@180
 #SBATCH --job-name=mappa-enzymemap
@@ -18,4 +18,4 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFER
 export TMPDIR="${SLURM_TMPDIR:-/tmp}"
 export MAPPA_BUNDLE_ROOTS="{\"/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa\":\"$ROOT\",\"/lustre/fsw/portfolios/nvr/users/yunhengz/mappa\":\"$ROOT\"}"
 BATCH="$ROOT/enzymemap_pool_20261030/dfw160/$SLURM_ARRAY_TASK_ID"
-exec "$ROOT/venv/bin/python" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 80 --window 128 --run-seconds 12600 --resume "$@"
+exec "$ROOT/venv/bin/python" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 56 --memory-gib 4 --window 128 --run-seconds 12600 --resume "$@"

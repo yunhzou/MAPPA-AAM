@@ -94,7 +94,7 @@ class Ledger:
                 self.db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state')]
 
 
-def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
+def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
         retry_memory_limits=False):
     output = Path(output); output.mkdir(parents=True, exist_ok=True)
@@ -126,7 +126,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
     if not local:
         signal.signal(signal.SIGUSR1, stop_feeding)
     started = time.monotonic()
-    status = dict(job=os.environ.get('SLURM_JOB_ID'), source=code_identity(),
+    status = dict(job=os.environ.get('SLURM_JOB_ID'), source=code_identity(), memory_bytes=memory_bytes,
                   expected_cases=requested['cases'], expected_directions=len(rows))
     with tempfile.TemporaryDirectory(prefix='mappa-campaign-', dir=os.environ.get('SLURM_TMPDIR')) as scratch:
         ledger = Ledger(output, scratch, resume=resume)
@@ -168,7 +168,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
                                         result = pool.retry_matching(name, audit)
                                     except ValueError:
                                         continue  # Other failure types still block the next pass.
-                                    ledger.retire_failure(name, stage, 'explicit retry after native transport repair')
+                                    ledger.retire_failure(name, stage, 'explicit retry of diagnosed matching memory failure')
                                     active[name] = result
                             continue
                         try:
@@ -234,6 +234,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('index'); parser.add_argument('output')
     parser.add_argument('--workers',type=int,default=32)
+    parser.add_argument('--memory-gib',type=float,default=4.,help='Memory limit per compute worker (GiB)')
     parser.add_argument('--window',type=int,default=128)
     parser.add_argument('--limit',type=int)
     parser.add_argument('--local',action='store_true')
@@ -243,7 +244,7 @@ def main():
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
     parser.add_argument('--run-seconds',type=float,default=12600.)
     args=parser.parse_args()
-    status = run(args.index,args.output,workers=args.workers,window=args.window,limit=args.limit,
+    status = run(args.index,args.output,workers=args.workers,memory_bytes=int(args.memory_gib*2**30),window=args.window,limit=args.limit,
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
         retry_memory_limits=args.retry_memory_limits)
     if status.get("allocation_drained"):
