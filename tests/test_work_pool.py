@@ -38,6 +38,8 @@ def test_separate_stages_preserve_full_graph_catalogue_and_decoding(tmp_path, st
     cases = {'forward': problem(), 'unbalanced': problem(5, 7)}
     config = AAMSearchConfig(seed_count=3, branch_limit=4)
     with WorkPool.local(workers, store=store) as pool:
+        assert len(pool.queue.ready_workers()) == workers
+        assert pool.queue.snapshot() == {}
         matched = pool.search(cases, config).wait_and_validate()
         matching_workers = {r['result']['worker'] for r in pool.queue.results().values()}
         catalogues = pool.deduplicate(matched).wait_and_validate()
@@ -120,6 +122,8 @@ def test_one_slurm_startup_serves_all_stages_with_separate_remote_process(tmp_pa
     monkeypatch.setattr(module.subprocess, 'Popen', start)
     store = MemoryStore() if storage == 'ram' else BundleStore(tmp_path/'results')
     with WorkPool.slurm(store=store) as pool:
+        assert len(pool.queue.ready_workers()) == 2
+        assert pool.queue.snapshot() == {}
         matched = pool.search({'case': problem()}, AAMSearchConfig(seed_count=2)).wait_and_validate()
         pids = {r['result']['compute_pid'] for r in pool.queue.results().values()}
         catalogues = pool.deduplicate(matched).wait_and_validate()
@@ -160,3 +164,18 @@ def test_handoff_rejects_missing_cuts_and_different_memory_store(tmp_path):
         other.deduplicate(matched)
     with pytest.raises(ValueError, match='same storage mode'):
         WorkPool.local(store=BundleStore(tmp_path/'bundles')).deduplicate(matched)
+
+
+def test_pool_startup_timeout_closes_waiting_supervisor(monkeypatch):
+    import time
+    import mappa.execution.pool as module
+    def never_ready(queue, **options):
+        while queue.keep_open:
+            time.sleep(.001)
+        return {}
+    monkeypatch.setattr(module, 'run', never_ready)
+    pool = WorkPool.local(startup_seconds=.05)
+    with pytest.raises(TimeoutError, match='0/1 workers'):
+        with pool:
+            pytest.fail('Unready pool returned')
+    assert pool._runner.done()

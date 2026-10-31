@@ -31,8 +31,10 @@ with WorkPool.local(workers=4) as pool:
     result = decoding.load('reaction-1-forward')
 ```
 
-`problems` is a dictionary of names to `AAMProblem` objects. Workers stay alive
-through all three passes. Every requested matching task must finish before the
+`problems` is a dictionary of names to `AAMProblem` objects. Pool entry waits until all requested compute workers are ready.
+`startup_elapsed_seconds` reports that cost separately; `startup_seconds` sets
+the startup timeout (120 seconds by default). Workers stay alive through all
+three passes. Every requested matching task must finish before the
 reduction pass can start; every catalogue must finish before decoding can start.
 Loading a reaction is explicit. The coordinator handles references, not a merged
 dataset-wide graph. Matching uses `reused_native` by default; `execution='reference'`

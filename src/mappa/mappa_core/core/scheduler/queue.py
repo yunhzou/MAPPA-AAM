@@ -157,6 +157,10 @@ class TaskQueue:
             self.db.execute('INSERT INTO workers VALUES (?,?,?,?,?)',
                             (worker, process, time.time(), pending, runnable))
 
+    def ready_workers(self):
+        with self.lock:
+            return dict(self.db.execute('SELECT name,process FROM workers'))
+
     def claim(self, worker, memory_bytes, identity):
         if identity != self.identity:
             raise ValueError('Worker code/input identity differs')

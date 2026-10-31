@@ -23,19 +23,17 @@ def main():
     store = BundleStore(folder/'bundles')
     report = dict(job=os.environ['SLURM_JOB_ID'], source=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(), passes=[])
     with WorkPool.slurm(workers=2, store=store, memory_bytes=2*2**30, case_seconds=120) as pool:
-        for name in ('immediate', 'all-ready'):
-            if name == 'all-ready':
-                deadline = time.monotonic()+60
-                while pool.queue.db.execute('SELECT count(*) FROM workers').fetchone()[0] < 4:
-                    pool.check_workers()
-                    if time.monotonic() > deadline:
-                        raise TimeoutError('Not all four workers became ready')
-                    time.sleep(.02)
+        report['pool_returned'] = time.time()
+        report['startup_seconds'] = pool.startup_elapsed_seconds
+        report['ready_at_return'] = pool.queue.ready_workers()
+        assert len(report['ready_at_return']) == 4
+        for name in ('first', 'second'):
             submitted = time.time()
             matched = pool.search({name:problem}, config).wait_and_validate()
             completed = time.time()
             cuts = [store.load(ref) for ref in matched.load(name).cuts]
             assert AAMSearchGraph.combine([cut.graph for cut in cuts]) == baseline.graph
+            assert completed >= submitted >= max(row[0] for row in pool.queue.db.execute('SELECT ready FROM workers'))
             keys = [key for group in matched.tasks.values() for key in group]
             rows = pool.queue.results(keys)
             attempts = [pool.queue.db.execute('SELECT worker,started,finished FROM attempts WHERE task=?',(key,)).fetchone() for key in keys]

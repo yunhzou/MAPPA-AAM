@@ -101,12 +101,13 @@ class StageResults:
 class WorkPool:
     """One worker lifetime, explicit stages, RAM or aggregated bundle transport."""
     def __init__(self, *, workers=1, store=None, memory_bytes=2**30,
-                 case_seconds=3600., scratch=None, slurm=False):
-        if workers < 1 or memory_bytes < 1 or case_seconds <= 0:
+                 case_seconds=3600., scratch=None, slurm=False, startup_seconds=120.):
+        if workers < 1 or memory_bytes < 1 or case_seconds <= 0 or startup_seconds <= 0:
             raise ValueError('Positive workers, memory and stage time are required')
         self.workers = workers
         self.store = store if store is not None else MemoryStore()
         self.memory_bytes, self.case_seconds = memory_bytes, case_seconds
+        self.startup_seconds = startup_seconds
         self.scratch_parent, self.use_slurm = scratch, slurm
         self.identity = uuid.uuid4().hex
         self.code_identity = code_identity()
@@ -128,6 +129,7 @@ class WorkPool:
         return cls(workers=workers, slurm=True, **options)
 
     def __enter__(self):
+        started = time.monotonic()
         self._stack = ExitStack()
         try:
             self.scratch = Path(self._stack.enter_context(
@@ -150,8 +152,20 @@ class WorkPool:
                 self._runner = supervisors.submit(run, self.queue, workers=self.workers,
                     identity=self.identity, scratch=self.scratch, store=worker_store,
                     memory_bytes=self.memory_bytes)
+            expected = self.workers * (int(os.environ['SLURM_JOB_NUM_NODES']) if self.use_slurm else 1)
+            while len(self.queue.ready_workers()) < expected:
+                self.check_workers()
+                if time.monotonic()-started >= self.startup_seconds:
+                    raise TimeoutError(f'Only {len(self.queue.ready_workers())}/{expected} workers became ready')
+                time.sleep(.01)
+            self.startup_elapsed_seconds = time.monotonic()-started
             return self
         except BaseException:
+            if hasattr(self, 'queue'):
+                self.queue.finish_input(cancel_pending=True)
+            if self._launch is not None and self._launch.poll() is None:
+                self._launch.terminate()
+                self._launch.wait()
             self._stack.close()
             raise
 

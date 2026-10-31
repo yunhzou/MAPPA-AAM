@@ -275,7 +275,10 @@ index. Loading one reaction is explicit. Both modes still need enough worker RAM
 for that reaction's catalogue and local event tables.
 
 Local direct calls remain `search_aam`, `deduplicate`, `decode_events`; they need
-no pool. Pool workers persist across all stages. Slurm is invoked once to start
+no pool. Pool entry waits for every requested compute worker to report ready;
+startup has its own timeout and elapsed-time measurement. A failed startup closes
+the allocation step instead of returning a partially initialized pool.
+Pool workers persist across all stages. Slurm is invoked once to start
 node services inside an existing allocation; no task submits jobs. Source and
 compiled-engine fingerprints are checked at node-service startup. Scheduling,
 leases, transport, task granularity and storage belong entirely to the execution
