@@ -213,6 +213,19 @@ they do not establish large-reaction RAM usage or distributed throughput.
 The paired check is reproducible with `compare.py --paired-worker ring24`;
 `results.json` retains both the separate-process samples and the paired check.
 
+A subsequent complete-cut diagnostic used the archived EnzymeMap 10383 forward,
+cut 334 failure (374 atoms per endpoint). First matching plus symmetry finalization
+fell from 438.60 to 35.54 CPU seconds and peak RSS from 4.193 to 0.586 GiB.
+All complete finalized search graphs were exactly equal. However, repeating the
+same cut took 12.046 seconds with existence versus 0.442 seconds with incremental:
+incremental reused all 2,476 fragment results, while existence recomputed them.
+The new policy is therefore not yet a performance-safe replacement for reused
+workers. Compatible fragment-result reuse remains necessary before enabling it
+in the production reaction/work-pool API. This diagnostic changed only the growth
+call in a separate native test build; the installed implementation was untouched.
+See [the large-case report](reports/fragment_growth_20261031/large-case.md) for
+the exact test boundary, measurements and reproduction.
+
 ## Search records, grouping and deduplication
 
 The retained representation has three distinct levels:

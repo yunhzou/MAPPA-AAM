@@ -1,0 +1,410 @@
+{
+  "measurements": [
+    {
+      "policy": "incremental",
+      "task": "7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "atoms": [
+        374,
+        374
+      ],
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "input_sha256": "5ee2540da696f0adbb9a88f8ec4efee4a12ccbb54ebccd6e4b75de76cf6315a9",
+      "engine_sha256": "9b6cfd684f41b60dd2d9f75b9c58170d7b08aea327fa796b0c620192e8bd27f9",
+      "runs": [
+        {
+          "repetition": 0,
+          "search_wall_seconds": 438.4378631671425,
+          "search_cpu_seconds": 438.24919600000004,
+          "finalization_wall_seconds": 0.3489027500618249,
+          "finalization_cpu_seconds": 0.34948099999996884,
+          "peak_process_rss_bytes": 4502257664,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 438.4344158330932,
+            "max_live_branches": 100,
+            "max_growth_candidates": 224
+          },
+          "growth": {
+            "growth_calls": 2476,
+            "feasibility_searches": 0,
+            "feasibility_nodes": 0,
+            "completion_seconds": 0.0,
+            "completion_pruned": 0
+          },
+          "repair": {
+            "calls": 2476,
+            "full_hits": 1019,
+            "prefix_hits": 0,
+            "history_hits": 1019,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1021,
+            "mapping_misses": 2,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 23698,
+            "reused_extensions": 1963,
+            "logical_certificates": 51022,
+            "reused_certificates": 752,
+            "entries": 1457,
+            "resident_bytes": 22706745,
+            "peak_resident_bytes": 22706745,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 188924868,
+            "value_bytes": 3512310336,
+            "entries": 48978,
+            "hits": 1292,
+            "misses": 48978
+          }
+        },
+        {
+          "repetition": 1,
+          "search_wall_seconds": 0.43314375006593764,
+          "search_cpu_seconds": 0.43295100000000275,
+          "finalization_wall_seconds": 0.009322207886725664,
+          "finalization_cpu_seconds": 0.009322999999994863,
+          "peak_process_rss_bytes": 4543561728,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.4293169160373509,
+            "max_live_branches": 100,
+            "max_growth_candidates": 224
+          },
+          "growth": {
+            "growth_calls": 2476,
+            "feasibility_searches": 0,
+            "feasibility_nodes": 0,
+            "completion_seconds": 0.0,
+            "completion_pruned": 0
+          },
+          "repair": {
+            "calls": 4952,
+            "full_hits": 3495,
+            "prefix_hits": 0,
+            "history_hits": 2038,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 3499,
+            "mapping_misses": 4,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 47396,
+            "reused_extensions": 25661,
+            "logical_certificates": 102044,
+            "reused_certificates": 51774,
+            "entries": 1457,
+            "resident_bytes": 22706745,
+            "peak_resident_bytes": 22706745,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 188924868,
+            "value_bytes": 3512310336,
+            "entries": 48978,
+            "hits": 1292,
+            "misses": 48978
+          }
+        }
+      ]
+    },
+    {
+      "policy": "existence",
+      "task": "7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "atoms": [
+        374,
+        374
+      ],
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "input_sha256": "5ee2540da696f0adbb9a88f8ec4efee4a12ccbb54ebccd6e4b75de76cf6315a9",
+      "engine_sha256": "9b6cfd684f41b60dd2d9f75b9c58170d7b08aea327fa796b0c620192e8bd27f9",
+      "runs": [
+        {
+          "repetition": 0,
+          "search_wall_seconds": 35.213797624921426,
+          "search_cpu_seconds": 35.199040000000004,
+          "finalization_wall_seconds": 0.345024999929592,
+          "finalization_cpu_seconds": 0.34563200000000194,
+          "peak_process_rss_bytes": 629080064,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 35.21175824990496,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "growth": {
+            "growth_calls": 2476,
+            "feasibility_searches": 8235,
+            "feasibility_nodes": 128700,
+            "completion_seconds": 24.794772230000238,
+            "completion_pruned": 21774
+          },
+          "repair": {
+            "calls": 0,
+            "full_hits": 0,
+            "prefix_hits": 0,
+            "history_hits": 0,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 0,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 0,
+            "reused_extensions": 0,
+            "logical_certificates": 0,
+            "reused_certificates": 0,
+            "entries": 0,
+            "resident_bytes": 0,
+            "peak_resident_bytes": 0,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 18656892,
+            "value_bytes": 326217888,
+            "entries": 4549,
+            "hits": 72,
+            "misses": 4549
+          }
+        },
+        {
+          "repetition": 1,
+          "search_wall_seconds": 12.046072042081505,
+          "search_cpu_seconds": 12.038052,
+          "finalization_wall_seconds": 0.007653124863281846,
+          "finalization_cpu_seconds": 0.007652999999997689,
+          "peak_process_rss_bytes": 662224896,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 12.043875667033717,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "growth": {
+            "growth_calls": 2476,
+            "feasibility_searches": 8235,
+            "feasibility_nodes": 128700,
+            "completion_seconds": 1.6456891400000015,
+            "completion_pruned": 21774
+          },
+          "repair": {
+            "calls": 0,
+            "full_hits": 0,
+            "prefix_hits": 0,
+            "history_hits": 0,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 0,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 0,
+            "reused_extensions": 0,
+            "logical_certificates": 0,
+            "reused_certificates": 0,
+            "entries": 0,
+            "resident_bytes": 0,
+            "peak_resident_bytes": 0,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 18656892,
+            "value_bytes": 326217888,
+            "entries": 4549,
+            "hits": 4693,
+            "misses": 4549
+          }
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "policy": "incremental",
+      "repetition": 0,
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 1,
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 0,
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 1,
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    }
+  ],
+  "exact_graph_equal": true,
+  "stops": {
+    "capped": 6764,
+    "objective_met": 100
+  },
+  "scope": "Single archived cut, one compute thread per process. Complete native hierarchy, matching and symmetry finalization. No decoding or verification. Incremental retains production fragment replay; existence has no candidate replay. Peak RSS is cumulative process residency measured before saving each graph. Repeated-run peak can include earlier serialization. Equality checks include complete ordered compressed records, not expanded atom bijections.",
+  "summary": {
+    "incremental": [
+      {
+        "repetition": 0,
+        "total_cpu_seconds": 438.598677,
+        "total_wall_seconds": 438.7867659172043,
+        "peak_process_gib": 4.19305419921875,
+        "certificate_cache_gib": 3.447043899446726
+      },
+      {
+        "repetition": 1,
+        "total_cpu_seconds": 0.4422739999999976,
+        "total_wall_seconds": 0.4424659579526633,
+        "peak_process_gib": 4.2315216064453125,
+        "certificate_cache_gib": 3.447043899446726
+      }
+    ],
+    "existence": [
+      {
+        "repetition": 0,
+        "total_cpu_seconds": 35.544672000000006,
+        "total_wall_seconds": 35.55882262485102,
+        "peak_process_gib": 0.58587646484375,
+        "certificate_cache_gib": 0.32118966802954674
+      },
+      {
+        "repetition": 1,
+        "total_cpu_seconds": 12.045704999999998,
+        "total_wall_seconds": 12.053725166944787,
+        "peak_process_gib": 0.6167449951171875,
+        "certificate_cache_gib": 0.32118966802954674
+      }
+    ]
+  },
+  "build": {
+    "revision": "e9481be1f0be6fdeb6c50d4271f46a655dd48934",
+    "native_sources": {
+      "src/mappa/mappa_core/native/autgrp.cpp": "ec24d77d830b1fcb93cad774a3f437f943818ef2cb40a10b82a5295f9fd48ae0",
+      "src/mappa/mappa_core/native/engine.cpp": "469ae9a803755836b6f4fdf0d6c8d817de58e5a44b30f019de1167b2d8b95f54",
+      "src/mappa/mappa_core/native/extension_cache.h": "6385c7fd9814cc786fd0aa52c154eaa595ed0ee2f7760c78cd67401b8c931672",
+      "src/mappa/mappa_core/native/fragment_completion.h": "779ce7bdab167361234f0e7a6fce30563fd69db684894c1b136171da30c3f89c",
+      "src/mappa/mappa_core/native/fragment_query.h": "cc373d7bddb80fd01c48c3a4492a2fc08df855d0d71ef82acf290b3fadebcb96",
+      "src/mappa/mappa_core/native/fragment_repair.h": "d5d93979395a13c0a0f866afcaf63c90933036cf776174e2f5dc12d040d00806",
+      "src/mappa/mappa_core/native/fragment_scheduler.h": "9a978815e22b6a75794c4688595411b03a56796170654f3dc43f153f989c7a74",
+      "src/mappa/mappa_core/native/fragment_scheduler_binding.h": "dfd9dbd85cadb5fd62b462feb193558c5bac09f1bc22dc1e5efb52922dee99a2",
+      "src/mappa/mappa_core/native/group_ops.cpp": "405742aa89125bcedd73aef76844ea2a2f592f2041930d6504e8f16b015ee19a",
+      "src/mappa/mappa_core/native/growth_checkpoint.h": "06a9b8b271bc58dba5458d0203b27866b1b8b2e37f5ee4a90d78d76b4523560c",
+      "src/mappa/mappa_core/native/growth_dependencies.h": "1e3949a4d7325a4beeef93d9de793a462026abf59ebd6767441189736c15169c",
+      "src/mappa/mappa_core/native/growth_replay.h": "2baa0af38b1752211b26cca89645cfbe6ce227e5c84ac67cd3267f787d6c6825"
+    },
+    "change": "Select existing growth policy at native hierarchy call; collect counters. No branch admission, deduplication, cap or transport edits."
+  },
+  "historical_comparison": {
+    "archive_task": "mac-check/7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
+    "archive_blob": {
+      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/mac-failures-20261031/replay-8g/bundles/f73d2eeca2d5403eb30b1b0e4fa6eaf4-00000.bundle",
+      "offset": 0,
+      "size": 315564,
+      "sha256": "c2ebf7129ea7f901713ea97e73754820d743170e9b89e10366e8d2b3ae751802"
+    },
+    "comparisons": [
+      {
+        "repetition": 0,
+        "equal": true,
+        "fields": {
+          "contexts": true,
+          "roots": true,
+          "states": true,
+          "transitions": true,
+          "stops": true
+        }
+      },
+      {
+        "repetition": 1,
+        "equal": true,
+        "fields": {
+          "contexts": true,
+          "roots": true,
+          "states": true,
+          "transitions": true,
+          "stops": true
+        }
+      }
+    ]
+  },
+  "measurement_conditions": "One fresh process per policy, two consecutive identical cuts per process; policies overlapped on separate CPUs on the 14-core M4 Pro. No other benchmark launched. Report CPU and wall time; one sample per condition, not statistical estimates."
+}
