@@ -219,12 +219,16 @@ class WorkPool:
         self.queue.optimize()
         return StageResults('matching', self.store, pool=self, tasks=keys, plans=plans)
 
-    def retry_matching(self, case, audit, *, states=('memory_limit',)):
-        """Retry diagnosed failures; reuse completed cuts and retain every attempt."""
+    def retry_matching(self, case, audit, *, states=('memory_limit',), retry_seconds=None):
+        """Reuse completed cuts and attempts; optionally grant fresh retry time."""
         record = self.store.load(audit)
+        if not states or any(state not in ('lost', 'error', 'memory_limit', 'timeout') for state in states):
+            raise ValueError('Retry states must identify diagnosed failures')
         failed = [row for row in record['tasks'] if row[4] != 'complete']
         if not failed or any(row[4] not in (*states, 'blocked') for row in failed):
             raise ValueError('Audit contains outcomes outside the requested retry states')
+        if retry_seconds is None and record['case'][3] >= record['case'][1]:
+            raise ValueError('Exhausted case budget requires explicit retry_seconds')
         tasks = [_loads_checkpoint(row[1]) for row in record['tasks']]
         prefix = 'mappa.mappa_core.core.scheduler.search:'
         if any(task.operation not in (prefix+'search_batch', prefix+'finalize_cut', prefix+'search_complete_cut') for task in tasks):
@@ -233,7 +237,7 @@ class WorkPool:
                         key=lambda task: task.payload['number'])
         scopes = tuple(CutScope(task.payload['number'], tuple(task.payload['cut']),
                                tuple(range(task.payload['seeds']))) for task in finals)
-        self.queue.restore_case(record)
+        self.queue.restore_case(record, retry_seconds=retry_seconds, memory_bytes=self.memory_bytes)
         for row in failed:
             if row[4] in states:
                 self.queue.retry(row[0])

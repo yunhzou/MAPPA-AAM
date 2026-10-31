@@ -164,11 +164,17 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                             if retry_memory_limits and stage == 'matching' and existing[0] == 'error':
                                 audit = ledger.retry_audit(name, stage)
                                 if audit is not None:
+                                    record = store.load(audit)
+                                    failed = [task for task in record['tasks'] if task[4] != 'complete']
+                                    if not failed or any(task[3] >= memory_bytes for task in failed):
+                                        continue
                                     try:
-                                        result = pool.retry_matching(name, audit)
+                                        result = pool.retry_matching(name, audit,
+                                            states=('memory_limit', 'timeout'), retry_seconds=case_seconds)
                                     except ValueError:
                                         continue  # Other failure types still block the next pass.
-                                    ledger.retire_failure(name, stage, 'explicit retry of diagnosed matching memory failure')
+                                    ledger.retire_failure(name, stage,
+                                        f'resource retry at {memory_bytes} bytes with {case_seconds} fresh seconds')
                                     active[name] = result
                             continue
                         try:
@@ -240,7 +246,7 @@ def main():
     parser.add_argument('--local',action='store_true')
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--retry-memory-limits',action='store_true',
-                        help='Retry archived matching memory failures; preserve completed cuts and attempts')
+                        help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
     parser.add_argument('--run-seconds',type=float,default=12600.)
     args=parser.parse_args()

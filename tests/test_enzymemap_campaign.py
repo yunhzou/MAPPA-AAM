@@ -78,6 +78,40 @@ def test_retry_ledger_retains_original_failure_and_audit(tmp_path):
         assert json.loads(error)=='memory_limit'
 
 
+def test_resource_retry_recovers_old_timeout_but_keeps_same_memory_failure(tmp_path):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    index = prepared_index(tmp_path)
+    output = tmp_path/'result'
+    run(index, output, local=True, workers=2, stop_after='matching')
+    store = BundleStore(output/'bundles')
+    originals = {}
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute('SELECT case_name,audit FROM results ORDER BY case_name').fetchall()
+        for (case, raw), memory in zip(rows, (2*2**30, 4*2**30)):
+            audit = store.load(Blob(**json.loads(raw)))
+            originals[case] = audit
+            task = list(audit['tasks'][-1])
+            task[3], task[4] = memory, 'timeout' if memory == 2*2**30 else 'memory_limit'
+            audit['tasks'][-1] = tuple(task)
+            budget = list(audit['case']); budget[3] = budget[1]
+            audit['case'] = tuple(budget)
+            db.execute("UPDATE results SET state='error',reference=NULL,audit=? WHERE case_name=?",
+                (json.dumps(asdict(store.put(audit))), case))
+    with pytest.raises(RuntimeError, match='matching contains failed'):
+        run(index, output, local=True, workers=2, resume=True, stop_after='matching',
+            retry_memory_limits=True, case_seconds=60.)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT case_name,state FROM results ORDER BY case_name').fetchall() == [
+            ('00000/forward', 'complete'), ('00000/reverse', 'error')]
+        assert db.execute('SELECT case_name FROM retries').fetchall() == [('00000/forward',)]
+        raw, = db.execute("SELECT audit FROM results WHERE case_name='00000/forward'").fetchone()
+    recovered = store.load(Blob(**json.loads(raw)))
+    original = originals['00000/forward']
+    assert len(recovered['attempts']) == len(original['attempts'])+1
+    assert recovered['tasks'][:-1] == original['tasks'][:-1]
+    assert recovered['retries'][0][4:] == (60., 4*2**30)
+
+
 def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
     from prepare_batches import prepare
     index=prepared_index(tmp_path)

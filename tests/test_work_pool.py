@@ -148,7 +148,8 @@ def test_failed_matching_blocks_the_next_stage():
         assert len(pool.queue.results()) == 2
 
 
-def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path):
+@pytest.mark.parametrize('failure_state', ['memory_limit', 'timeout'])
+def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path, failure_state):
     from mappa.mappa_core.core.scheduler import TaskQueue
     from mappa.mappa_core.core.scheduler.runtime import Workspace
     from mappa.mappa_core.core.scheduler.search import plan_search, search_complete_cut
@@ -167,12 +168,21 @@ def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path):
             first = store.put(search_complete_cut(task.payload, workspace))
             queue.finish(task.key, claimed['token'], 'complete', dict(blob=first))
         else:
-            queue.finish(task.key, claimed['token'], 'memory_limit', dict(memory_guard_bytes=2**30))
+            queue.finish(task.key, claimed['token'], failure_state, dict(memory_guard_bytes=2**30))
+    if failure_state == 'timeout':
+        with queue.db:
+            queue.db.execute('UPDATE cases SET spent=seconds')
     audit = queue.archive_case(keys[0], store)
     before = store.load(audit)
     queue.close()
-    with WorkPool.local(workers=2, store=store) as pool:
-        matched = pool.retry_matching('case', audit).wait_and_validate()
+    with WorkPool.local(workers=2, store=store, memory_bytes=2*2**30) as pool:
+        options = dict(states=(failure_state,))
+        if failure_state == 'timeout':
+            with pytest.raises(ValueError, match='explicit retry_seconds'):
+                pool.retry_matching('case', audit, **options)
+            assert not pool.queue.snapshot()
+            options['retry_seconds'] = 60.
+        matched = pool.retry_matching('case', audit, **options).wait_and_validate()
         assert matched.load('case').cuts[0] == first
         assert pool.queue.db.execute('SELECT count(*) FROM attempts WHERE task=?', (keys[0],)).fetchone()[0] == 1
         assert pool.queue.db.execute('SELECT count(*) FROM attempts').fetchone()[0] == 2*len(tasks)-1
@@ -181,6 +191,14 @@ def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path):
         decoded = pool.decode(catalogue).wait_and_validate()
         assert decoded.load('case').record['mapping_space_preserved']
         again = store.load(pool.queue.archive_case(keys[0], store))
+        if failure_state == 'timeout':
+            assert again['case'][1] == before['case'][3]+60.
+            assert again['retries'][0][1:] == (
+                before['case'][0], before['case'][1], before['case'][3], 60., 2*2**30)
+            assert all(row[3] == 2*2**30 for row in again['tasks'] if row[0] != keys[0])
+        else:
+            assert again['case'][1] == before['case'][1]
+            assert not again['retries']
         old_tokens = {row[0] for row in before['attempts']}
         assert old_tokens <= {row[0] for row in again['attempts']}
 

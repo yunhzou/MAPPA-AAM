@@ -66,6 +66,9 @@ class TaskQueue:
             CREATE INDEX IF NOT EXISTS dependency_parent ON dependencies(dependency);
             CREATE TABLE IF NOT EXISTS resource_changes (
                 utc REAL, reason TEXT, memory INTEGER, changed_tasks INTEGER);
+            CREATE TABLE IF NOT EXISTS case_retries (
+                utc REAL, case_name TEXT, previous_seconds REAL, spent REAL,
+                retry_seconds REAL, memory INTEGER);
         ''')
         row = self.db.execute('SELECT value FROM identity').fetchone()
         if row and row[0] != identity:
@@ -242,9 +245,11 @@ class TaskQueue:
     def retry(self, key):
         """Explicit recovery after diagnosis; completed work and budgets survive."""
         with self.lock, self.db:
-            row = self.db.execute('SELECT state FROM tasks WHERE key=?', (key,)).fetchone()
-            if row is None or row[0] not in ('lost', 'error', 'memory_limit'):
+            row = self.db.execute('SELECT t.state,c.seconds-c.spent FROM tasks t JOIN cases c ON c.name=t.case_name WHERE t.key=?', (key,)).fetchone()
+            if row is None or row[0] not in ('lost', 'error', 'memory_limit', 'timeout'):
                 raise ValueError('Only diagnosed failed/lost tasks may be retried')
+            if row[0] == 'timeout' and row[1] <= 0:
+                raise ValueError('Timeout recovery requires an explicit fresh time allowance')
             self.db.execute("UPDATE tasks SET state='pending',token=NULL,worker=NULL WHERE key=?", (key,))
             self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
             self._refresh(time.time())
@@ -337,16 +342,21 @@ class TaskQueue:
             attempts = self.db.execute('SELECT a.* FROM attempts a JOIN tasks t ON t.key=a.task WHERE t.case_name=?', (case,)).fetchall()
             dependencies = self.db.execute('SELECT d.* FROM dependencies d JOIN tasks t ON t.key=d.task WHERE t.case_name=?', (case,)).fetchall()
             budget = self.db.execute('SELECT * FROM cases WHERE name=?', (case,)).fetchone()
+            retries = self.db.execute('SELECT * FROM case_retries WHERE case_name=?', (case,)).fetchall()
             reference = store.put(dict(schema='mappa.task_audit/v1', case=budget,
-                                       tasks=tasks, attempts=attempts, dependencies=dependencies))
+                                       tasks=tasks, attempts=attempts, dependencies=dependencies,
+                                       retries=retries))
             self.db.execute('DELETE FROM attempts WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
             self.db.execute('DELETE FROM dependencies WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
             self.db.execute('DELETE FROM tasks WHERE case_name=?', (case,))
             self.db.execute('DELETE FROM cases WHERE name=?', (case,))
+            self.db.execute('DELETE FROM case_retries WHERE case_name=?', (case,))
             return reference
 
-    def restore_case(self, audit):
-        """Restore archived terminal work and its original budget, without retrying."""
+    def restore_case(self, audit, *, retry_seconds=None, memory_bytes=None):
+        """Restore terminal work; an explicit resource retry retains spent time."""
+        if retry_seconds is not None and (retry_seconds <= 0 or memory_bytes is None or memory_bytes <= 0):
+            raise ValueError('A resource retry requires positive time and memory')
         if audit['schema'] != 'mappa.task_audit/v1':
             raise ValueError('Unsupported task audit')
         if any(row[4] in ('pending', 'running') for row in audit['tasks']):
@@ -359,6 +369,12 @@ class TaskQueue:
             self.db.executemany('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)', audit['tasks'])
             self.db.executemany('INSERT INTO attempts VALUES (?,?,?,?,?,?,?)', audit['attempts'])
             self.db.executemany('INSERT INTO dependencies VALUES (?,?)', audit['dependencies'])
+            self.db.executemany('INSERT INTO case_retries VALUES (?,?,?,?,?,?)', audit.get('retries', ()))
+            if retry_seconds is not None:
+                self.db.execute('INSERT INTO case_retries VALUES (?,?,?,?,?,?)',
+                    (time.time(), case[0], case[1], case[3], retry_seconds, memory_bytes))
+                self.db.execute('UPDATE cases SET seconds=spent+? WHERE name=?', (retry_seconds, case[0]))
+                self.db.execute("UPDATE tasks SET memory=? WHERE case_name=? AND state!='complete'", (memory_bytes, case[0]))
 
     def optimize(self):
         """Prepare planner statistics after bulk task insertion, before workers.

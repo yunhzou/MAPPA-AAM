@@ -346,9 +346,13 @@ recovery must not silently change the scientific scope.
 
 `WorkPool.retry_matching(case, audit)` restores a retired matching case and
 retries explicitly selected failed task states. Completed cut references,
-original tasks, prior attempts and consumed case time survive. The benchmark's
-explicit memory-failure retry records the previous ledger row before replacing
-it; it does not recompute successful cuts or silently retry other failures.
+original tasks, prior attempts and consumed case time survive. An explicit
+`retry_seconds` grants that much additional available time and uses the new
+pool's memory allowance for failed work. The old limit, consumed time and new
+allowances remain in the archived retry history. Default retries never replenish
+time. The benchmark's explicit memory retry selects memory/time failures from
+smaller allocations and records the previous ledger row before replacing it;
+it does not recompute successful cuts or retry failures at the same memory limit.
 
 Local multicore and localhost remote tests do not establish multi-node scaling.
 Coordinator traffic, shared-storage costs and recovery must be measured on the
