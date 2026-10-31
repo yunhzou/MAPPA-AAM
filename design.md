@@ -198,6 +198,14 @@ passes. Complete and audit the matching pass before starting the decoding pool.
 A scheduling barrier is an execution decision; the event algorithm itself does
 not require all reactions in the dataset to be present at once.
 
+The benchmark coordinator feeds a bounded window of reaction/direction jobs.
+After each job finishes, its task specifications and attempt history are saved
+in aggregated bundles before retiring its rows from the active queue. One
+checkpointed ledger records stage outputs and failures for the whole campaign.
+This bounds dispatch history without dropping scientific provenance or creating
+a file per cut. Campaign pass ordering belongs in `bench/`; queue retirement
+belongs in the execution layer and does not change matching or decoding.
+
 ```mermaid
 flowchart LR
     Plan[Reaction/direction/cut/seed manifest] --> Pool[Matching work pool]

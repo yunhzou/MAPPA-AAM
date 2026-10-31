@@ -529,3 +529,29 @@ def test_worker_ready_records_runnable_backlog_and_survives_backup(tmp_path):
     restored = TaskQueue(tmp_path/'saved.sqlite', IDENTITY)
     assert restored.db.execute('SELECT process,ready,pending,runnable FROM workers').fetchone() == row
     restored.close()
+
+
+def test_case_archival_keeps_evidence_and_bounds_dispatch_history(tmp_path):
+    from mappa.mappa_core.core.scheduler.storage import BundleStore
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    store = BundleStore(tmp_path/'bundles')
+    queue.add([task('a', case='one'), task('b', case='one', dependencies=('a',))])
+    assert queue.states(['a','b']) == {'a':'pending','b':'pending'}
+    with pytest.raises(ValueError, match='active case'):
+        queue.archive_case('a', store)
+    for key in ['a','b']:
+        claimed = queue.claim('worker', MEMORY, IDENTITY)
+        queue.finish(key, claimed['token'], 'complete', {'value': key})
+    queue.add([task('outside', dependencies=('b',))])
+    with pytest.raises(ValueError, match='still depends'):
+        queue.archive_case('a', store)
+    claimed = queue.claim('worker', MEMORY, IDENTITY)
+    queue.finish('outside', claimed['token'], 'complete', {})
+    queue.archive_case('outside', store)
+    reference = queue.archive_case('a', store)
+    audit = store.load(reference)
+    assert len(audit['tasks']) == len(audit['attempts']) == 2
+    assert audit['dependencies'] == [('b','a')]
+    assert queue.snapshot() == {}
+    assert queue.db.execute('SELECT count(*) FROM cases').fetchone()[0] == 0
+    queue.close()

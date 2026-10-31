@@ -312,6 +312,39 @@ class TaskQueue:
                           for key in keys))
             return {k: dict(state=s, result=_loads_checkpoint(r) if r else None) for k, s, r in rows}
 
+    def states(self, keys):
+        """Poll a bounded working set without deserializing completed payloads."""
+        keys = list(keys)
+        with self.lock:
+            result = {}
+            for first in range(0, len(keys), 400):
+                batch = keys[first:first+400]
+                marks = ','.join('?' for _ in batch)
+                result.update(self.db.execute(f'SELECT key,state FROM tasks WHERE key IN ({marks})', batch))
+            return result
+
+    def archive_case(self, task_key, store):
+        """Publish terminal task/attempt evidence before removing it from dispatch."""
+        with self.lock, self.db:
+            case, = self.db.execute('SELECT case_name FROM tasks WHERE key=?', (task_key,)).fetchone()
+            if self.db.execute("SELECT 1 FROM tasks WHERE case_name=? AND state IN ('pending','running') LIMIT 1", (case,)).fetchone():
+                raise ValueError('Cannot archive an active case')
+            if self.db.execute('''SELECT 1 FROM tasks p JOIN dependencies d ON d.dependency=p.key
+                    JOIN tasks child ON child.key=d.task WHERE p.case_name=? AND child.case_name!=? LIMIT 1''',
+                    (case, case)).fetchone():
+                raise ValueError('Another case still depends on this case')
+            tasks = self.db.execute('SELECT * FROM tasks WHERE case_name=?', (case,)).fetchall()
+            attempts = self.db.execute('SELECT a.* FROM attempts a JOIN tasks t ON t.key=a.task WHERE t.case_name=?', (case,)).fetchall()
+            dependencies = self.db.execute('SELECT d.* FROM dependencies d JOIN tasks t ON t.key=d.task WHERE t.case_name=?', (case,)).fetchall()
+            budget = self.db.execute('SELECT * FROM cases WHERE name=?', (case,)).fetchone()
+            reference = store.put(dict(schema='mappa.task_audit/v1', case=budget,
+                                       tasks=tasks, attempts=attempts, dependencies=dependencies))
+            self.db.execute('DELETE FROM attempts WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
+            self.db.execute('DELETE FROM dependencies WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
+            self.db.execute('DELETE FROM tasks WHERE case_name=?', (case,))
+            self.db.execute('DELETE FROM cases WHERE name=?', (case,))
+            return reference
+
     def optimize(self):
         """Prepare planner statistics after bulk task insertion, before workers.
 
