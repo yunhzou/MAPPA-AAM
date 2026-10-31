@@ -1,14 +1,11 @@
-"""One exact cut on macOS; select historical transport only in this diagnostic."""
+"""Replay one exact cut on macOS using the current production implementation."""
 import argparse
 from dataclasses import asdict
 import gzip
-import importlib.abc
-import importlib.util
 import json
 from pathlib import Path
 import pickle
 import resource
-import sys
 import tempfile
 import time
 
@@ -16,21 +13,10 @@ import time
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input'); parser.add_argument('output')
-    parser.add_argument('--historical-build')
     parser.add_argument('--downstream',action='store_true')
     parser.add_argument('--profile-gc',action='store_true')
     args=parser.parse_args()
     output=Path(args.output); output.mkdir(parents=True,exist_ok=True)
-    if args.historical_build:
-        before=Path(args.historical_build)
-        paths={'mappa._engine':next((before/'src/mappa').glob('_engine*.so')),
-               'mappa.mappa_core.core.search.graph':before/'graph.py',
-               'mappa.mappa_core.core.search.branching.native':before/'adapter.py'}
-        class HistoricalTransport(importlib.abc.MetaPathFinder):
-            def find_spec(self,fullname,path=None,target=None):
-                if fullname in paths:
-                    return importlib.util.spec_from_file_location(fullname,paths[fullname])
-        sys.meta_path.insert(0,HistoricalTransport())
     from mappa.mappa_core.core.scheduler.runtime import Workspace
     from mappa.mappa_core.core.scheduler import search
     from mappa.mappa_core.core.search.session import SearchSession
@@ -41,7 +27,7 @@ def main():
         saved=pickle.load(stream)
     source=saved['source']; task=saved['task']
     record=dict(task=task.key,atoms=[len(source.problem.reactant.elements),len(source.problem.product.elements)],
-                config=repr(source.config),historical_build=args.historical_build,runs=[])
+                config=repr(source.config),runs=[])
     search_cut=SearchSession.search_cut
     def measured(self,*values,**options):
         started=time.perf_counter()

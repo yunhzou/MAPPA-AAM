@@ -91,6 +91,13 @@ Binary checkpoints and pool handoffs preserve shared blocks. Explicit
 therefore require substantially more RAM than normal matching/publication.
 Existing record schemas and atom-pair iteration remain unchanged.
 
+The user accepted this transport on 2026-10-31 after the Mac point comparison
+and 654 passing tests. It is the sole native search transport. Historical build
+selectors and the expanded exporter are retired; Git retains their evidence.
+Independent Python scientific oracles remain for validation. The measured
+garbage-collection overhead during deduplication remains documented in
+`reports/native_transport_20261031/mac-point.md`.
+
 `AAMSearchGraph.combine()` concatenates/reindexes graph records. **It does not
 perform final-family deduplication.** Live-state sharing and final-result grouping
 are different operations: continuation contexts cannot be discarded simply

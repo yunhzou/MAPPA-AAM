@@ -37,3 +37,8 @@ export and reduce overlapping temporary graph representations, preserving every
 state, transition and scientific alternative. Do not lower branch/search caps or
 silently discard provenance to reduce memory. No such optimization was applied
 as part of this investigation.
+
+The optimized transport was subsequently validated and accepted; see
+[the Mac comparison](../native_transport_20261031/mac-point.md). The old-export
+diagnostic `probe.py` is retained in Git at `246aa3d` and removed from the current
+tree because its expanded-record interface no longer exists.

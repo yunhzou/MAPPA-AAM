@@ -34,7 +34,8 @@ stages is 16.1% lower. This sum excludes interpreter startup and checkpoint
 reload; it is not an end-to-end complete-reaction benchmark. Independent row
 medians do not necessarily add up to the median of their per-trial sums.
 
-**The candidate does not yet meet a strict no-stage-regression requirement.**
+**Accepted by the user on 2026-10-31 as the sole production version.**
+The measured stage tradeoff remains recorded:
 Deduplication costs about 0.132 s more in this sequence of operations. A separate
 instrumented run measured 0.138 s in one generation-2 Python garbage collection
 during the 0.486 s deduplication step. The cost is included in the timings;
@@ -56,9 +57,10 @@ sweep. No scientific result difference was observed.
 Raw timings, comparison assertions and machine metadata:
 [mac-point.json](mac-point.json). The exact small input artifact is
 `mac-point-input.pkl.gz`; it contains trusted internal records. The diagnostic
-runner is [mac_point.py](mac_point.py), and the historical build preparation is
-[build_mac_baseline.py](build_mac_baseline.py). The historical import selection
-exists only in this test, not in the production API.
+runner is [mac_point.py](mac_point.py), which now runs only the approved version.
+Historical build preparation and import selection are retained in Git at
+`246aa3d`, under this report directory. Those switches and the temporary old
+native build were removed after acceptance; the comparison data remain saved.
 
 Full local validation: **654 tests passed in 45.26 s**. This includes native/Python
 graph equality, independent compression/decoder oracles, RAM and bundle handoffs,
