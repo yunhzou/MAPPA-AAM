@@ -1,0 +1,393 @@
+{
+  "machine": "Apple M4 Pro, 48 GiB RAM",
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "cpu_threads": 1,
+  "trials": 3,
+  "before_revision": "733adfc",
+  "after_revision": "ec0bc91",
+  "input_sha256": "5a09562f69fe76f450e856b72c9bcc7ee023b8df8632157263f5785255a39d14",
+  "medians": {
+    "old": {
+      "compute_seconds": 3.9094032081775367,
+      "search_seconds": 3.576137457974255,
+      "total_seconds": 4.1567772082053125,
+      "peak_rss_bytes": 2624471040,
+      "warm_compute_seconds": 1.9332229590509087,
+      "publish_seconds": 0.24737400002777576,
+      "deduplication_seconds": 0.3533103750087321,
+      "decoding_seconds": 2.1376019169110805,
+      "verification_seconds": 0.9124477079603821,
+      "stage_total_seconds": 7.648552583064884
+    },
+    "new": {
+      "compute_seconds": 2.82540070801042,
+      "search_seconds": 2.4912439580075443,
+      "total_seconds": 3.101256625028327,
+      "peak_rss_bytes": 895860736,
+      "warm_compute_seconds": 0.8689480421599001,
+      "publish_seconds": 0.2843779169488698,
+      "deduplication_seconds": 0.4989104999694973,
+      "decoding_seconds": 1.960826792055741,
+      "verification_seconds": 0.9046594160608947,
+      "stage_total_seconds": 6.476830626139417
+    }
+  },
+  "comparisons": [
+    {
+      "build": "old",
+      "trial": 1,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    },
+    {
+      "build": "old",
+      "trial": 2,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    },
+    {
+      "build": "old",
+      "trial": 3,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    },
+    {
+      "build": "new",
+      "trial": 1,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    },
+    {
+      "build": "new",
+      "trial": 2,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    },
+    {
+      "build": "new",
+      "trial": 3,
+      "full_graph": true,
+      "catalogue": true,
+      "decoded_record": true,
+      "verification": true
+    }
+  ],
+  "measurements": {
+    "old": [
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": "/private/tmp/mappa-mac-point/before",
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 3.576137457974255,
+            "compute_seconds": 3.905941874952987,
+            "compute_cpu_seconds": 3.9041390000000002,
+            "peak_rss_bytes": 2622226432,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 4.150177791947499,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-1/bundles/167c54767f014cac89414298004a06f9-00000.bundle",
+              "offset": 22128,
+              "size": 1125604,
+              "sha256": "928bd1921c3e992463416c7cf30dfc8c6eeefa7e7adba99fb78820d1c7da3461"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 1.936380792176351,
+            "compute_seconds": 1.945463249925524,
+            "compute_cpu_seconds": 1.9451590000000003,
+            "peak_rss_bytes": 2730115072,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 2.207775041926652,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-1/bundles/167c54767f014cac89414298004a06f9-00000.bundle",
+              "offset": 1147732,
+              "size": 1125597,
+              "sha256": "10fcc96bea13f9042ace9e703271a06df51aeea32b0d0adb244abfab9266986d"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.3492369579616934,
+        "decoding_seconds": 2.1288976250216365,
+        "verification_seconds": 1.0450860830023885,
+        "verification_status": "not_recovered",
+        "families": 100
+      },
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": "/private/tmp/mappa-mac-point/before",
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 3.570812333142385,
+            "compute_seconds": 3.9094032081775367,
+            "compute_cpu_seconds": 3.9021800000000004,
+            "peak_rss_bytes": 2624471040,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 4.1567772082053125,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-2/bundles/308459e02f4c4a789d4ea38721f8d6d1-00000.bundle",
+              "offset": 22128,
+              "size": 1125603,
+              "sha256": "ce5d76681018cb00e091aa73f743a96cb7a230c326da732a85a37a27979762c5"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 1.924459584057331,
+            "compute_seconds": 1.9332229590509087,
+            "compute_cpu_seconds": 1.9330410000000002,
+            "peak_rss_bytes": 2734850048,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 2.1972202921751887,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-2/bundles/308459e02f4c4a789d4ea38721f8d6d1-00000.bundle",
+              "offset": 1147731,
+              "size": 1125599,
+              "sha256": "215eb6cd103043441a65af850221e3944caf5d9a36516c1fb97ae0086a944f12"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.3533103750087321,
+        "decoding_seconds": 2.1376019169110805,
+        "verification_seconds": 0.9124477079603821,
+        "verification_status": "not_recovered",
+        "families": 100
+      },
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": "/private/tmp/mappa-mac-point/before",
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 3.594281957950443,
+            "compute_seconds": 3.9331070829648525,
+            "compute_cpu_seconds": 3.931977,
+            "peak_rss_bytes": 2626158592,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 4.189253292046487,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-3/bundles/f7c0c962c8674d0cb1938f670bf12637-00000.bundle",
+              "offset": 22128,
+              "size": 1125602,
+              "sha256": "4a05ed8f9e951b7535146cb0e08ec26f405f0972a764d33b52a17d69fd7c1de8"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 1.914678790839389,
+            "compute_seconds": 1.9237000420689583,
+            "compute_cpu_seconds": 1.9235259999999998,
+            "peak_rss_bytes": 2736488448,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 2.190920041874051,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/old-3/bundles/f7c0c962c8674d0cb1938f670bf12637-00000.bundle",
+              "offset": 1147730,
+              "size": 1125598,
+              "sha256": "11fd713ab02ae0db23169b29e069abaeb0be71969c8322589f966a194347086b"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.3598265410400927,
+        "decoding_seconds": 2.2002724159974605,
+        "verification_seconds": 0.8992003339808434,
+        "verification_status": "not_recovered",
+        "families": 100
+      }
+    ],
+    "new": [
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": null,
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 2.4912439580075443,
+            "compute_seconds": 2.82540070801042,
+            "compute_cpu_seconds": 2.823369,
+            "peak_rss_bytes": 895746048,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 3.101256625028327,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
+              "offset": 22128,
+              "size": 665121,
+              "sha256": "2efa42be8ff808722889190b5d44ea7856d4c8e635910a1c337897d2fb90fcd1"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 0.85764304199256,
+            "compute_seconds": 0.8659745841287076,
+            "compute_cpu_seconds": 0.8658710000000003,
+            "peak_rss_bytes": 935231488,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 1.1424160420428962,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
+              "offset": 687249,
+              "size": 665118,
+              "sha256": "ced6e80aeae3b1a84eda05d3e4cd6e559fdce365c94d8889509b1db353b6471c"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.4989104999694973,
+        "decoding_seconds": 1.960826792055741,
+        "verification_seconds": 0.9034983338788152,
+        "verification_status": "not_recovered",
+        "families": 100
+      },
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": null,
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 2.4694233329501003,
+            "compute_seconds": 2.8024780419655144,
+            "compute_cpu_seconds": 2.801354,
+            "peak_rss_bytes": 895860736,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 3.0868559589143842,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
+              "offset": 22128,
+              "size": 665124,
+              "sha256": "d4167db988d248218878b2dac090c09258b5fc3ee6e253151fefa100845e14b8"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 0.8607888338156044,
+            "compute_seconds": 0.8689480421599001,
+            "compute_cpu_seconds": 0.868862,
+            "peak_rss_bytes": 940507136,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 1.1551093750167638,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
+              "offset": 687252,
+              "size": 665125,
+              "sha256": "1cb1c1e5c0f27d0122c93ac78c8a0c6e07749c0d5e78f69c4c5fbb6c1f075e02"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.49632950010709465,
+        "decoding_seconds": 1.9555217921733856,
+        "verification_seconds": 0.9381233749445528,
+        "verification_status": "not_recovered",
+        "families": 100
+      },
+      {
+        "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+        "atoms": [
+          387,
+          387
+        ],
+        "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+        "historical_build": null,
+        "runs": [
+          {
+            "repetition": 0,
+            "search_seconds": 2.532937625190243,
+            "compute_seconds": 2.8730032090097666,
+            "compute_cpu_seconds": 2.871366,
+            "peak_rss_bytes": 897695744,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 3.1628983339760453,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
+              "offset": 22128,
+              "size": 665122,
+              "sha256": "294836bce1b4a0709f97b6004c6904d13e58ccac79c24372014fc9fd285099bb"
+            }
+          },
+          {
+            "repetition": 1,
+            "search_seconds": 0.8701711669564247,
+            "compute_seconds": 0.878573999973014,
+            "compute_cpu_seconds": 0.8783460000000001,
+            "peak_rss_bytes": 942391296,
+            "states": 24758,
+            "transitions": 24757,
+            "terminals": 100,
+            "total_seconds": 1.158893666928634,
+            "reference": {
+              "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
+              "offset": 687250,
+              "size": 665126,
+              "sha256": "1a98c70f03409fcd3135f862b3082db2a0c858faf74bb292f44078f381e3432c"
+            }
+          }
+        ],
+        "deduplication_seconds": 0.5025392090901732,
+        "decoding_seconds": 1.9940247498452663,
+        "verification_seconds": 0.9046594160608947,
+        "verification_status": "not_recovered",
+        "families": 100
+      }
+    ]
+  },
+  "caveat": "One cut, not a complete reaction sweep; stage sum excludes graph reload and interpreter startup. Warm timing repeats the identical cut in one prepared worker."
+}
