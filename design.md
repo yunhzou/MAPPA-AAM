@@ -1,683 +1,354 @@
-# MAPPA architecture
+# MAPPA design
 
-This is the authoritative design for the current code. Usage belongs in
-[the Python guide](docs/PYTHON_API.md), [execution guide](docs/shared-execution.md),
-and [viewer guide](docs/VIEWERS.md). Measurements and validation records belong
-in `reports/`; historical implementations and superseded designs remain in Git.
+This document defines the scientific stages and their execution boundaries.
+It replaces the previous mixed descriptions of event interpretation and
+hierarchical rematching. Historical designs remain in Git. The scientific
+contracts below describe the current core; the benchmark orchestration section
+separately identifies the approved workflow and remaining implementation work.
 
-## Source hierarchy
-
-```text
-mappa/
-├── mappa_core/
-│   ├── domain.py                 shared endpoint, hierarchy and result data
-│   ├── core/
-│   │   ├── matching/
-│   │   │   ├── api.py, policy.py, graphs.py
-│   │   │   ├── representation/   candidate state and fragment contracts
-│   │   │   ├── symmetry/         canonical forms, orbits and workspaces
-│   │   │   └── growth/           extension, compression and frontier
-│   │   ├── search/
-│   │   │   ├── api.py, planning.py, session.py, graph.py
-│   │   │   ├── branching/        locking, branch engines, reuse and validation
-│   │   │   └── queries/          partial and subgraph objectives
-│   │   └── scheduler/            local and distributed task execution
-│   ├── post_processing/
-│   │   ├── final_branches.py
-│   │   └── decoder/              records, conversion, events and public API
-│   ├── utils/                    shared bond rules and file I/O
-│   └── native/                   C++ engine and vendored nauty
-├── mappa_workflow/
-│   ├── mapping_analytics/        explicit mapping and event-membership queries
-│   └── ts_analytics/             TS records, scoring and serialization
-├── presentation/                viewers, trajectory, coordinates and assets
-├── __init__.py                   public exports
-└── cli.py
-```
-
-The subfolders express dependencies: growth uses representation and symmetry;
-reaction branching uses matching; sessions combine branches and plans; the
-scheduler executes sessions. Matching does not call reaction search. Core I/O
-has no workflow or presentation imports. Trusted saved-data class relocation is
-explicit in the checkpoint reader; no retired import modules remain.
-
-## Workflow and ownership
+## Scientific pipeline
 
 ```mermaid
 flowchart LR
-    Input[Endpoint graphs and settings] --> Search[AAM search]
-    Search --> Result[Search graph and grouped branches]
-    Result --> Conversion[Fragment rematching and recombination]
-    Conversion --> Events[Bond-event counts and classes]
-    Search --> Matcher[Shared fragment matcher]
-    Conversion --> Matcher
-    Result --> View[Viewers and saved artifacts]
-    Events --> View
-    Events --> Reaction[Explicitly selected reaction context]
-    Reaction --> TS[Transition-state analysis]
+    Input[Original endpoint graphs and settings] --> Matching[Matching across seeds and cut sweeps]
+    Matching --> Finalize[Finalize saved symmetry]
+    Finalize --> Dedup[Group branches and deduplicate families across seeds and cuts]
+    Dedup --> Catalogue[Saved catalogue for one reaction and direction]
+    Catalogue --> Local[Local fragment and boundary event tables]
+    Local --> Decode[Compressed event interpretation]
+    Catalogue --> Verify[Explicit reference-membership query]
+    Decode --> Inspect[Requested choices, counts and views]
 ```
 
-| Owner | Responsibility | Current implementation |
+The required benchmark order is **matching → cross-seed/cross-cut grouping and
+family deduplication → local fragment/boundary decoding**. Reference verification
+is a separate operation. Scheduling must preserve these stages and their meaning.
+A cut is a search condition and provenance field; it is not the fundamental unit
+of the decoder. A representative mapping is one witness of a compressed family.
+
+## Inputs and matching
+
+`AAMProblem` contains reactant and product `MolecularEndpoint` records: elements,
+coordinates and bond-order matrices. Matching uses the supplied endpoint graphs
+and declared policies. Element/WBO inputs alone do not establish a general
+stereochemistry, charge or isotope guarantee. Preparation and reference policy
+must state which information is actually represented.
+
+Each direction has its own seed/cut plan and atom indexing. Reverse-direction
+compressed families remain in their search frame; only concrete witnesses are
+inverted into input indexing. Directions must not be merged by merely reversing
+already reduced event identifiers.
+
+The fragment matcher represents injective assignments using a witness, pools,
+fixed roles and ordered correlated group actions. Compression must preserve the
+allowed mapping relation. Equal atom orbits or equal representatives alone are
+not sufficient grounds to merge alternatives. Independent Cartesian choices of
+atom destinations can introduce mappings that the saved family never allowed.
+
+Growth chooses a boundary atom uniformly and then a frontier incident
+edge uniformly, without WBO ranking. Extension constrains the selected growth
+edge. Other molecular bonds between included atoms are not implicitly matching
+constraints. Accepted edges are saved as `preserved_bonds`; complete original
+endpoint bonds remain available for event interpretation. Joining a locked
+fragment retains its assignments and earlier constraints.
+
+Reaction search locks completed fragment placements and branches over retained
+alternatives. The branch cap limits the completed-fragment frontier/subtrees;
+it does not convert pruning into a proof of equivalence or absence. Completion,
+stalls and caps remain recorded. Exact compression within a fixed matching
+context does not prove exhaustive search over every possible fragment.
+
+`SearchSession` owns prepared matching state. Scheduling independent seed batches
+must preserve the original seed indices, orders, random settings and full seed
+count. Batching must not reseed separate searches. The `shared_policies` backend
+is an indivisible cut operation and does not accept seed splitting.
+
+Final symmetry is conditioned on saved candidate roles and earlier locks.
+Intrinsic fragment symmetry annotations cannot enlarge the allowed saved mapping
+relation. Python and native execution must obey the same scientific contracts;
+unsupported capabilities or execution failure must not silently change policy.
+
+## Search records, grouping and deduplication
+
+The retained representation has three distinct levels:
+
+| Level | Identity and responsibility |
+|---|---|
+| `AAMSearchGraph` | Contexts, states, transitions, roots and stop evidence; retains seed/cut histories and compressed placements. |
+| `AAMResult.branches` | Groups paths by the unordered collection of final reactant/product fragment atom-set pairs. |
+| `FinalBranchCatalogue` | Deduplicates saved mapping families, associates them with fragment partitions and preserves provenance. |
+
+`AAMSearchGraph.combine()` concatenates/reindexes graph records. **It does not
+perform final-family deduplication.** Live-state sharing and final-result grouping
+are different operations: continuation contexts cannot be discarded simply
+because two histories eventually have the same fragment atom sets.
+
+`AAMResult` constructs its public branch groups before returning. Seed order,
+growth history, island labels, anchors and the representative mapping do not
+split the atom-set branch identity. Different labelled atom sets or different
+reactant/product fragment pairings do. Every retained path remains accessible
+inside its branch; grouping does not select only the first representative.
+
+`AAMResult.final_catalogue()` constructs the deduplicated catalogue explicitly.
+`decode_events(aam)` also constructs it when passed an `AAMResult`. Constructing
+an `AAMResult` alone does not materialize this catalogue.
+
+The catalogue can ingest many finalized graphs for the **same endpoint problem
+and direction**. Deduplication therefore spans all supplied seeds and sweep cuts.
+Its family key contains:
+
+- Matching policy, including graph floor and isomorphism tolerance.
+- Representative mapping.
+- Required preserved edges.
+- Canonical ordered pool/group action program.
+
+Canonicalization preserves the order of dependent actions; only proven commuting
+choices may be reordered. Identical keys share a family. This is conservative
+representation-based deduplication, not a general proof that every differently
+represented mapping set has been reduced to one semantic normal form.
+
+The catalogue retains each family's source histories, archive/context references
+and cut provenance, plus its associated fragment partitions. Different constraints
+or action correlations remain distinct families even if representatives coincide.
+Policy-qualified catalogue branch keys are distinct from the public atom-set
+branch grouping. Raw paths, public branches and unique families are separate
+counts and must be reported separately.
+
+The cross-cut reduction stage must use one shared catalogue per reaction and
+direction. Building one catalogue per cut and concatenating their decoded outputs
+does not perform that reduction. Matching graphs may be read one at a time into
+the catalogue; they do not all need to reside in memory together. The accumulated
+catalogue and its provenance still consume memory.
+
+## Decoder: local responses with shared constraints
+
+The core entry point is `decode_events(aam_or_catalogue, config)`. It interprets
+original compressed mappings. It does not rematch fragments, replace their
+choices, enumerate all complete bijections, select a minimum-event mapping or
+claim an exhaustive list of event patterns.
+
+`EventDecodeSession` prepares the original endpoint event index for a fixed
+reaction and event policy. It reuses bounded action-response and endpoint caches.
+`EventInterpretation` retains the catalogue, action annotations and lazily built
+tables for each family's saved fragment partition.
+
+The event computation is local:
+
+1. Build response terms for bonds **within each saved fragment**.
+2. Build response terms **between fragments** and across mapped/unmapped boundaries.
+3. Share equivalent bond-response tables and accumulate constant contributions.
+4. For a requested valid joint choice, look up variable responses and sum each
+   bond's contribution once.
+
+```mermaid
+flowchart LR
+    Family[Family, fragment partition and ordered actions] --> Internal[Internal fragment terms]
+    Family --> Boundary[Inter-fragment and unmatched boundary terms]
+    Internal --> Tables[Shared local response tables]
+    Boundary --> Tables
+    Choice[Requested joint choice] --> Constraints[Validate original constraints]
+    Constraints --> Sum[Evaluate and sum local contributions]
+    Tables --> Sum
+```
+
+“Local fragments first” describes factorized event preparation and composition.
+It does not authorize choosing fragment outcomes independently. Boundary terms,
+shared actions, required-edge constraints and partial target occupancy can couple
+fragments. `FragmentEventTables.components` records dependency components;
+separation must preserve shared action identities and feasibility constraints.
+It is not currently a distributed fragment-task executor.
+
+Preparation follows relevant original bond neighborhoods and pairs reachable
+under the saved actions. A recorded cut adds its own endpoints, even when its
+response is zero. Endpoint-pair projection follows ordered actions and retains
+correlated motion. A constant-response certificate may avoid pair expansion;
+it cannot authorize independently choosing endpoints. Pair work can still grow
+quadratically in reachable atom domains, but it does not enumerate full group
+elements or Cartesian combinations of complete mappings.
+
+Event tables use **original endpoint WBOs**, not the cut search graph. Fragment
+separation and cutting a bond do not themselves imply a chemical event. When
+histories merge, their recorded cuts remain available for table annotation.
+Alternative fragment partitions are alternative decompositions of the same
+family; their totals must not be added together.
+
+The ordinary event threshold defaults to 0.5 and the metal threshold to 0.3.
+An event requires a strict WBO difference greater than the applicable threshold;
+equality is unchanged. The four exclusive categories are breaking, forming,
+strengthening and weakening. Matching tolerance is a separate parameter.
+Count changes touching mapped atoms, including mapped/unmapped boundaries, and
+omit bonds wholly within unmatched material. Do not invent correspondences for
+unmatched atoms.
+
+Actions with invariant responses remain in the ordered program because later
+overlapping actions may depend on their motion. Saved constraints are checked
+before evaluating a requested realization. Response invariance is not permission
+to remove an action or treat its atom destinations independently.
+
+`decoded_events_record()` saves the unchanged catalogue, partitions, shared
+response tables, action dependencies, cut annotations and separately labelled
+representative counts. `exhaustive_event_patterns` and `global_minimum_proven`
+remain false. Representative agreement alone cannot establish equivalence of
+complete decoded records.
+
+## Benchmark pools and their connection
+
+The approved massive-benchmark workflow has separate matching and decoding
+passes. Complete and audit the matching pass before starting the decoding pool.
+A scheduling barrier is an execution decision; the event algorithm itself does
+not require all reactions in the dataset to be present at once.
+
+```mermaid
+flowchart LR
+    Plan[Reaction/direction/cut/seed manifest] --> Pool[Matching work pool]
+    Pool --> Graphs[Persist finalized cut graphs]
+    Graphs --> Reduce[Per-reaction/direction grouping and family deduplication]
+    Reduce --> Catalogues[Persist catalogues and completion manifest]
+    Catalogues --> Barrier[Matching pass closed and audited]
+    Barrier --> Decoders[Decoding work pool]
+    Decoders --> Records[Persist decoded records]
+    Catalogues --> Verification[Separate reference verification]
+```
+
+The handoff is a manifest of saved catalogue inputs. It is not a dataset-wide
+collection of graphs in RAM. Each decoding job identifies:
+
+| Input | Required meaning |
+|---|---|
+| Reaction and direction | Stable identity and endpoint atom-index frame. |
+| Original endpoint reference | Elements, coordinates and WBO records consistent with the catalogue fingerprint. |
+| Deduplicated catalogue reference | Families across the declared seeds/cuts, fragment partitions, original constraints, action programs and provenance. |
+| Coverage/completion record | Planned and completed seed/cut identities, caps, failed or missing work, and explicitly restricted scope if applicable. |
+| Event configuration | Ordinary and metal thresholds, independent of the search tolerance. |
+| Integrity and version metadata | Input/artifact hashes, source revision and scientific settings. |
+
+A decoder loads the assigned reaction/direction catalogue, computes its local
+tables and saves the decoded record. It releases catalogue-specific graphs,
+tables and output after publication. Prepared endpoint state and bounded caches
+may be reused while processing the same reaction and policy. Switching reactions
+clears derived state; changing event policy replaces the decoder.
+
+This is the initial scheduling unit for the separated pass. Splitting a large
+catalogue into smaller jobs requires an explicit design preserving family IDs,
+partitions, deduplication, provenance and correlated actions. Neither a sweep cut
+nor an isolated fragment should be assumed to be an independent decoder job.
+There is no constant-memory guarantee: catalogue size and retained sparse tables
+must be measured when choosing per-worker memory and concurrency.
+
+Failed, missing or capped matching work must remain visible. An incomplete scope
+must not be silently presented as the full benchmark input. Re-running decoding
+with different event thresholds uses saved catalogues and does not rerun matching.
+
+### Current implementation and remaining orchestration
+
+- `plan_search(..., seed_batch=...)` schedules original cut/seed matching work;
+  each cut finalization depends on its seed batches.
+- `FinalBranchCatalogue.add_graph()` provides incremental cross-graph family
+  reduction. Archives need distinct identities so local context IDs remain traceable.
+- `plan_event_decoding()` already schedules a saved catalogue together with its
+  endpoint input and event configuration.
+- `plan_cut_decoding()` and `decode_cut()` still exist as per-cut scheduling
+  helpers. They only deduplicate within the supplied cut. They are not the approved
+  final benchmark handoff and must not be described as the decoder's algorithm.
+- The new benchmark's complete matching-pass barrier, cross-cut catalogue
+  publication and manifest-to-decoding-pool orchestration are not yet assembled.
+  Writing this design does not imply that those adapters have been implemented.
+
+## Execution and recovery
+
+The shared scheduler owns task dependencies, leases, budgets and publication.
+Workers run one compute process each without nested pools. Original seed/cut
+identities and scientific settings are independent of task completion order.
+Prepared search, symmetry-finalization and decoder resources are reused within
+a worker. Cache reuse saves computation; it does not replace family deduplication.
+
+Resource inspection follows a worker clock, normally every 0.2 seconds, across
+task and message boundaries. Actual sample counts are recorded; an unsampled
+short task's zero reported peak is not zero memory use. Memory guards cover the
+compute process tree. Process-reported computation/publication CPU timings are
+separate from sampled CPU measurements.
+
+Small compressed payloads use bounded memory spools; larger payloads spill to
+node-local scratch. Result bundles retain checksum verification and durable
+publication. The coordinator owns its local SQLite queue; workers exchange task
+metadata and artifact references. Cross-node execution requires consistent
+artifact paths, code/input versions and appropriately synchronized clocks.
+
+Case budgets count overlapping active computation once and pause when no
+computation remains active. Publication and idle allocation gaps do not reset or
+consume the computation allowance. Failures, resource limits and lost leases are
+explicit states. Retry is deliberate and retains attempt history. Checkpoint
+recovery must not silently change the scientific scope.
+
+Local multicore and localhost remote tests do not establish multi-node scaling.
+Coordinator traffic, shared-storage costs and recovery must be measured on the
+intended deployment. Current worker assignment has no reaction-affinity policy,
+and coordinator disconnection requires explicit recovery rather than automatic
+failover. Report scientific, publication and scheduling costs separately.
+
+## Verification and acceptance
+
+Reference verification queries the retained mapping relation under an explicitly
+specified atom subset and endpoint-equivalence policy. Element sets, one
+representative or its event count cannot prove coverage of all compressed choices.
+Heavy-atom annotations leave hydrogen correspondence unspecified. Full explicit-H
+event totals must not be compared as though they were heavy-only reference counts.
+Solver unknown, timeout, search pruning and missing work remain distinguishable
+from a proven absence within the retained relation.
+
+Acceptance of an execution refactor requires more than matching representatives:
+
+- Retained search graphs or an explicitly justified equivalent mapping relation.
+- Cross-seed/cross-cut branch grouping and full family keys.
+- Fragment partitions, constraints, correlated actions and source provenance.
+- Shared local event responses and valid joint-choice evaluation against independent counts.
+- Completion/cap metadata, reference witnesses and recovery behavior.
+
+The per-cut EnzymeMap case study checked combined graphs, family unions,
+representative events and dense recounts. That establishes those checks only;
+it does not validate the complete catalogue handoff and deduplicated decoded
+record of the approved two-pass benchmark.
+
+Use the smoke checks and affected tests described in [README.md](README.md).
+Matcher changes need the exhaustive compression/native-equivalence checks.
+Scheduling changes need dependency, recovery, resource and representation checks.
+Documentation-only changes need content and link verification, not another
+benchmark run. State the actual validation scope.
+
+## Module ownership
+
+Paths below are relative to `src/mappa/`.
+
+| Owner | Responsibility | Location |
 |---|---|---|
-| Graph/chemistry primitives | Endpoint graphs, bond rules, input conversion | `mappa_core/core/matching/graphs.py`, `mappa_core/utils/bonds.py`, `mappa_core/utils/io/` |
-| Fragment matcher | Conditional injective matches with compressed correlated choices | `mappa_core/core/matching/`, native engine |
-| AAM search | Fragment locking, completed-branch frontier, seeds and cuts | `mappa_core/core/search/` |
-| Representation | Shared decisions, paths, atom-set branches, saved mapping families | `mappa_core/domain.py`, `mappa_core/core/search/graph.py`, `mappa_core/post_processing/final_branches.py` |
-| Symmetry | Conditioned group reconstruction and action reduction | `mappa_core/core/matching/symmetry/`, `mappa_core/core/search/branching/symmetry.py`, private helpers in `mappa_core/post_processing/final_branches.py` |
-| Decoding | Anchored rematching, recombination, direct counts and event classes | `mappa_core/post_processing/decoder/` |
-| Explicit queries | Membership of a supplied mapping in saved correlated choices | `mappa_workflow/mapping_analytics/` |
-| Execution | Task dependencies, workers, budgets and verified publication | `mappa_core/core/scheduler/` |
-| TS analysis | Supplied reaction context, endpoint-to-TS cores and scoring | `mappa_workflow/ts_analytics/`, `mappa_core/core/search/queries/partial.py` |
-| Artifacts/presentation | Versioned persistence, molecular views and growth replay | `mappa_core/utils/io/`, `presentation/`, TS workflow serialization |
-| Coordinate display | Rigid alignment and mapped-coordinate interpolation | `presentation/interpolation.py` |
-
-CLIs, benchmark adapters and viewers consume these owners. They must not contain
-another matcher or decoder. Scheduling changes do not change scientific settings.
-
-The ownership stages in [refactor.md](refactor.md) are implemented. Matching owns fragment growth and compressed choices.
-Search owns direction/seed/cut plans, fragment locking, branch admission, saved
-graphs and optional competition. `session.py` owns per-cut scientific operations;
-`api.py` combines and persists their results. Existing local worker lifecycle and
-pool loops live in `mappa_core/core/scheduler/search.py`; local and remote workers retain the same task and budget semantics.
-
-```mermaid
-flowchart TD
-    API[Search API] --> Plans[Direction / seed / cut planning]
-    API --> Workers[Execution: local worker lifecycle]
-    Workers --> Session[Per-cut search session]
-    Distributed[Execution: shared task queue] --> Session
-    Session --> Branch[Branch construction / frontier cap]
-    Session --> Shared[Shared seed policies]
-    Branch --> Matching[Fragment matching and growth]
-    Shared --> Matching
-    Branch --> Graph[Persistent search graph]
-    Shared --> Graph
-    API --> Finalize[Saved-graph symmetry finalization]
-    Finalize --> Graph
-```
-
-Node/bond policies and matching result records remain under matching. Search's
-partial-assignment helpers replace the old mixed `alignment/sweep.py` owner.
-The unused adaptive closure engine and its dedicated native adapter are removed;
-shared seed policies and their condition/result records remain. These changes
-preserve scientific decisions and result semantics.
-
-The old `alignment/` package is removed. Its fragment hierarchies, permutations
-and bijections now belong to shared core data in `mappa_core/domain.py`;
-coordinate interpolation belongs to presentation. The core data owner has no
-presentation dependency. Obsolete interpolation aliases are removed. Trusted
-saved checkpoints resolve the previous hierarchy class paths through the existing
-explicit relocation table. Shared endpoint, search-result and reaction types now share the core domain
-owner. TS-specific types and scoring live in the TS workflow; generic mode
-parsing lives in core I/O.
-
-## Matching dependency levels
-
-```mermaid
-flowchart TD
-    Match[Matching API] --> Growth[Growth: extension / compression / frontier]
-    Growth --> Symmetry[Symmetry: canonical forms / orbits / workspaces]
-    Growth --> Representation[Representation: candidate state / fragment records]
-    Symmetry --> Representation
-    Representation --> Policy[Node and bond policies]
-    Symmetry --> Policy
-```
-
-These are dependency levels inside the fragment matcher, not new stages in the
-scientific algorithm. Growth and iso matching retain their shared compressed
-representation. Only the public entry and contracts are exported from matching.
-
-## Search dependency levels
-
-```mermaid
-flowchart TD
-    API[Public / bidirectional API] --> Execution[Scheduler transport]
-    Execution --> Session[Per-cut session]
-    Session --> Plans[Seed / cut plans]
-    Session --> Branching[Branching: locking / shared seeds / reuse]
-    Queries[Partial / subgraph queries] --> Branching
-    Branching --> Matcher[Fragment matcher]
-    Branching --> Graph[Saved search graph]
-```
-
-`branching/` contains the branch engines; `queries/` contains searches with partial
-or subgraph objectives. Planning produces inputs and never invokes the public API.
-The native and Python branch engines retain their existing policies.
-
-## Data architecture
-
-```text
-AAMProblem
-  reactant, product: MolecularEndpoint
-    elements, coordinates, bond-order matrix
-AAMResult
-  problem, config, metrics
-  graph: AAMSearchGraph
-    contexts: seed/cut/settings/anchor provenance
-    roots: context -> initial state
-    states: cumulative mapping, island ownership, continuation position
-    transitions: source/target state references and committed fragment evidence
-      placement: FragmentMatch
-        witness, pools, fixed assignments, automorphism domains/generators
-    stops: completion, stall or explicit limit
-  branches: SearchBranch[]
-    unordered R/P fragment atom-set pairs
-    paths: all retained alternatives referencing the graph
-```
-
-The graph shares prefixes and exact reconvergence. A path references committed
-fragment decisions; it is not a list of enumerated atom bijections. A viewer may
-unfold the graph into a tree without changing the stored relation.
-
-`FragmentMatch`, `SymmetryDomain`, `PermutationGroup` and `AAMHierarchy` are
-existing typed views of fragment choices. Graph parsing caches these views and
-shares exact permutations. A representative is one valid witness, not the entire
-represented mapping set. Encounter multiplicity is not a mapping cardinality.
-
-`FinalBranchCatalogue` is a downstream view of saved paths. `FinalFamily` retains
-a representative, required bonds, ordered pool/group actions, matching policy
-and provenance. Its policy-qualified storage buckets are not the public AAM
-branch identity. Reading a catalogue must preserve correlations and coverage.
-
-## Matching and growth invariants
-
-For a fixed fragment, locked context and retained source bonds, the compressed
-candidate union must represent every permitted injective match under that
-context. This is representation fidelity; it does not assert that greedy search
-or a capped frontier discovers every possible fragment.
-
-A candidate stores a witness, set-valued pools, fixed roles and exact correlated
-symmetry actions. Equal per-atom orbit labels do not establish equality of whole
-mapping relations. Compression requires a relation-preserving certificate and
-transporter. Moving a fragment transports dependent assignments consistently;
-independent Cartesian products of atom destinations are invalid.
-
-Growth selects boundary atoms uniformly without a bond-order preference. It
-extends the represented relation and locks completed fragment placements. The
-branch cap applies to the completed-fragment frontier/subtrees, not intermediate
-one-to-many iso matches. A cap is a recorded loss of search completeness, not
-an equivalence rule or an algorithmic absence result.
-
-Live-state sharing requires compatible continuation contexts and equal state.
-It retains incoming histories. Do not merge live states solely because final
-atom sets or endpoint automorphisms agree. Separate cuts and seed runs retain
-provenance; their contexts are not interchangeable continuation states.
-
-`match_fragment` is the reusable boundary. The Python and native implementations
-must preserve the same mapping relation for supported inputs. Explicit native
-execution requires the built engine. Node policy, pair-dependent bond tolerance
-and trace requirements determine applicable implementations. No failure may
-silently select another scientific policy or relax a constraint.
-
-## Final branch identity
-
-A fragment pair is identified by its R atom set and P atom set. A public AAM
-branch is the unordered collection of these pairs. Atom ordering, island labels,
-seed, history, anchors and representative mappings do not split that identity.
-Different labelled atom sets or different pairings remain different branches.
-
-`AAMResult` groups before returning and retains every path/context alternative
-inside each group. `retained_branch_count` counts these groups; raw terminal/path
-counts remain separate. The first representative or hierarchy is only a witness.
-Grouping must not discard other allowed mappings or manufacture new ones.
-
-## Event conversion and counting
-
-### Lossless event interpretation of saved symmetry
-
-`interpret_events` attaches event responses to the original `FinalBranchCatalogue`.
-It retains its fragment pairs, ordered group/pool actions, fixed assignments and
-required-edge constraints. Event thresholds do not restrict the matching space.
-The returned `EventInterpretation` represents an event function over those saved
-choices, not a list of every pattern or a claim of a global minimum.
-
-The existing `SignedEventIndex` batches response-bound searches over unique bond
-weights. Generator checks gather response labels for touched pairs in bounded
-NumPy batches, including cross-fragment and unmatched boundaries. All opposite
-weights of the same element pair, plus zero, enter the response certificate.
-Unique actions share checks across families. This is a sufficient certificate;
-failure does not establish that different events are attainable under all saved
-constraints. A certificate preserves responses/counts, not the individual names
-of unmatched target atoms.
-
-Event-changing actions remain compressed with their original order and
-correlations. Even invariant actions stay in place: a later overlapping action
-can depend on their motion. No group closure, solver, or Cartesian expansion is
-used. Explicit requests can supply a generator word or a pool permutation;
-realization checks the original fragment constraints before vectorized event
-counting. Shared bonds are evaluated jointly, never by adding independent swap
-deltas. Complexity follows endpoint pairs and stored generators, not group order;
-large endpoint graphs can still require quadratic response storage.
-
-```mermaid
-flowchart LR
-    Original[Original compressed AAM] --> Interpretation[Event interpretation]
-    Thresholds[Ordinary / metal thresholds] --> Responses[Vectorized bond responses]
-    Responses --> Interpretation
-    Interpretation --> Compressed[Original choices + response annotations]
-    Compressed --> Requested[Explicit requested choices]
-    Requested --> Constraints[Original fragment constraints]
-    Constraints --> Events[Vectorized counts and event identities]
-```
-
-Internal variations and boundary responses are separate sparse tables, built
-lazily for a saved fragment partition. Each bond term refers to the original
-ordered action IDs. Preparation visits source bonds above the event threshold
-and the source pairs that can reach product bonds above that threshold through
-the saved atom domains. Pairs with both weights below or equal to their threshold
-cannot contribute an event. Recorded cuts add only their own endpoint pair,
-including zero-event cuts; no all-atom-pair scan is repeated for each family.
-Product neighbors are projected through allowed images, not just the representative.
-Endpoint-pair orbits follow those actions in saved order,
-keeping correlated swaps joint. A constant-response certificate on the endpoint
-domain superset is checked first; only varying responses require pair projection.
-This certificate cannot authorize independent endpoint choices. Fixed–fixed, fixed–shuffle and shuffle–shuffle
-are one projected-pair operation, not separate decoding modes. A group closes
-its two-endpoint orbit before the next action; a k-atom pool produces at most
-k*(k-1) ordered pairs, not k! permutations. Original constraints involving other
-atoms remain enforced at realization, so projected pairs are not independent
-mapping permissions. Different fragment partitions are alternative views.
-
-The existing native permutation module compiles each distinct action once and
-shares it between ordered pair programs. Pair traversal and pool expansion run
-in C++, with a bounded pair-state bitmap; repeated pool rows/columns expand once.
-Python retains bounded action/program/result caches and vectorized bond-response
-classification. Each distinct ordered action sequence computes its value hash
-once, so bond-level cache lookups do not repeatedly traverse full permutations. There is no alternate Python traversal.
-
-Final family provenance retains the original sweep cuts. Cut terms use original
-R/P WBOs, including zero-event cuts and cuts lying within a final fragment.
-Merged histories retain the union of recorded cuts for table annotation; this
-does not change their mapping space. Historical records without cut provenance
-remain unlabelled and use the same exact bond calculation. Natural boundaries
-are accumulated as constants only when all projected category responses agree;
-the calculation never infers an event merely from fragment separation.
-
-`tables.components` groups fragment contributions by shared action dependencies.
-Variable cut terms couple their endpoint fragments; original required-edge
-constraints and partial target occupancy also retain their dependencies. These
-components can be processed separately while joint action IDs are preserved.
-No independent selection of incompatible boundary outcomes is introduced.
-
-A shared bond-response table stores the reachable target weights and their four
-exclusive categories: breaking, forming, strengthening and weakening. Bonded
-means WBO greater than the existing ordinary/metal pair threshold; an event still
-requires an absolute difference greater than that threshold. Source decrease
-with a remaining bond is weakening; source increase with an existing bond is
-strengthening. Thus the historical decrease/increase totals equal
-breaking+weakening / forming+strengthening. Signed-response action certificates
-alone do not certify these finer categories; table constants are checked against
-the full category responses.
-
-Identical response tables are shared even across different endpoint domains.
-Constant contributions are summed once; variable contributions use batched NumPy
-lookups. Required-edge constraints are checked before any requested realization
-is counted. Product-only bonds and dynamically unmatched product boundaries are
-included; bonds wholly between unmatched atoms are omitted. No fictitious pairing
-of unmatched material is introduced. Pair projection can be quadratic in atom
-domain size; it never enumerates full group elements or fragment combinations.
-Pair and response reuse caches are bounded. Selected family tables live with the
-interpretation and scale with the retained sparse terms.
-
-```mermaid
-flowchart LR
-    Saved[Saved fragment sets and correlated choices] --> Internal[Internal event variations]
-    Saved --> Boundary[Boundary response tables]
-    Choice[One requested joint choice] --> Check[Original constraints]
-    Check --> Lookup[Shared response lookups]
-    Internal --> Lookup
-    Boundary --> Lookup
-    Lookup --> Sum[Four event counts and optional endpoint pairs]
-```
-
-The anchored rematcher below remains a distinct hierarchical mapping operation.
-It is not a fallback for interpretation or a lossless replacement of the original
-family. Existing benchmark calls remain unchanged. Exhaustive event-pattern
-listing and optimization over event-changing choices are not part of this API.
-
-### Hierarchical rematching and retained-branch counting
-
-AAM matching tolerance and bond-event thresholds serve different purposes.
-`convert_fragments` rematches inside the saved R/P fragment atom sets at the event
-thresholds. Only directly fixed assignments become anchors. A role moved by a
-joint symmetry remains free. The matcher rediscovers free choices; it does not
-pin the old representative or require the old free-choice program.
-
-Distinct pair/anchor contexts share rematching work. Identical full conversion
-inputs share recombination work and retain every source-family reference. This
-work cache is not branch identity. Rematching can split a fragment; compatible
-results are recombined into converted compressed branches.
-Original fragment atom sets remain fixed; any splitting is internal to them.
-Event counting caches internal contributions per converted fragment alternative
-and boundary contributions per interacting pair of alternatives. Each branch
-sums these contributions; only selected candidates assemble event lists for
-canonicalization. Unmapped atoms form a boundary-only region. Sparse endpoint
-bonds determine which fragments can interact, and identical atom-set partitions
-share this topology. No complete-mapping bond scan or vector recount occurs in
-the decoder. Branch records and selected event-class records are still emitted;
-this removes repeated bond comparisons, not the cost of requested output.
-
-The ordinary event threshold is 0.5 and the metal threshold is 0.3 by default.
-An unchanged bond differs by at most its threshold (`<=`); an event requires
-a strictly larger difference (`>`). When both requested tolerances equal the
-saved uniform AAM tolerance, conversion directly reuses the saved catalogue,
-fragment partitions and compressed choices without rematching or recombination.
-Requested event counts are still computed. Signed-event policy v3 records this
-inclusive matching convention; earlier benchmark counts retain their old policy. Count breaking/weakening and forming/strengthening differences touching
-mapped atoms, including mapped/unmapped boundaries. Ignore bonds wholly between
-unmatched atoms. Do not invent atoms or correspondences.
-
-`decode_events` counts all retained converted branches, then constructs event
-classes within the requested window. The minimum is the lowest count among
-these branches. `event_slack=0` selects the minimum; minimum+n and absolute bounds
-filter retained results. These are not hidden-bijection optimization bounds.
-Identical literal mappings share count work; partition/provenance checks remain
-attached to each branch.
-
-Completeness requires uncapped completed rematches, retained mapped atoms and no
-counted events internal to a converted fragment. Incomplete internal-event cases
-must remain flagged. Neither completion nor `minimum_proven` establishes a global
-minimum across unexplored AAM branches or exhaustive old-family enumeration.
-Event-class identity uses the correlated decorated-graph relation, not a union
-of per-atom orbit IDs.
-
-A user-requested shuffle or reference-membership query is separate from decoding.
-It may use the optional solver on saved choices. The public conversion/counting
-path does not call solver enumeration or use a solver decoder as a fallback.
-
-## Transition states and presentation
-
-TS analysis requires an explicit `ReactionContext`: selected mappings and bond
-events. `mappa_core/core/search/queries/partial.py` serves endpoint-to-TS core assignment, not a replacement
-full-reaction search. Raw AAM and event conversion do not select 3D orientation or
-claim a general stereochemistry guarantee from element/WBO inputs.
-
-Viewers consume recorded mappings, fragments and symmetry. Display alignment
-must not alter scientific correspondences. Saved traces show actual search
-choices; compressed alternatives must not be presented as independently
-selectable atom pairs. Shared reaction/batch renderers own presentation.
-
-## Execution, storage and evidence
-
-One operation runs on a single CPU, local workers or cluster workers through
-`mappa_core/core/scheduler/`. Decompose independent case/direction/seed/cut work using original
-seed identities; do not create a second cluster implementation. Shared queues
-own leases, dependencies and remaining case budgets. A case's wall allowance
-runs only while at least one of its computations is active. Overlapping tasks
-count once; queue waiting, allocation gaps and publication do not consume it.
-The clock pauses at the last compute completion and survives checkpoints.
-Scheduling cannot reset scientific budgets or silently retry completed/failed work.
-
-Resource stages may change pending tasks' admission estimates without changing
-their immutable scientific specifications. A higher estimate can drain existing
-workers through normal retirement; lower-memory workers then consume the same
-queue. An explicitly authorized larger-memory stage retries only failures from
-the specified smaller guard, retaining original attempts and remaining budgets.
-Record the actual worker guard with every outcome. Completed work is never
-repeated, and unrelated errors are not promoted to memory retries.
-
-Use node-local scratch and SQLite writes. Publish verified bounded bundles and
-consistent queue backups through a separate read connection so publication cannot
-block worker heartbeats. Pin one read transaction during each local backup so
-concurrent updates cannot restart it; copy only the completed file to shared storage.
-Queue maintenance starts from expired cases and dependency edges, rather than
-scanning large task payloads on every heartbeat or result submission.
-Serialize queue closure with active requests. Do not copy a live WAL database's main file alone or
-create a shared file for every tiny intermediate. Preserve source/input hashes,
-settings, timings, memory, attempts, output provenance and incomplete flags.
-Execution success is not scientific completeness. Resource limits, unknowns,
-missing outputs and unattempted tasks are never algorithmic negatives.
-
-## Repository boundaries
-
-`src/` contains the reusable Python and native algorithms; `tests/` contains their checks.
-`docs/` contains current usage guides and executable examples. `bench/` owns
-the current Golden pipeline and its shared evaluators; retired experiment and
-campaign scripts are removed. Test-only inputs and reference oracles live under
-`tests/`. `reports/` owns measurements and provenance. `tools/` provides
-user adapters; cluster launch settings live under `bench/`; `manuscript/` owns paper artifacts. Historical
-code is recovered from its recorded Git revision, not kept as runnable fallback
-copies in the current tree. Task status belongs in the MAPPA_AAM tracker.
-
-Shared search scheduling and its supporting condition/result types remain in
-use. New code must use these owners, remove superseded paths and update this
-one design. The refactor retains one scientific implementation per selected
-engine and one shared task executor.
-
-Standalone examples are removed. Paper witness inputs stay beside the relevant
-manuscript evidence. Keep `skills/` unchanged pending a separate review.
-
-## Removed competing paths
-
-`alignment.api` and its search/ranking wrappers are removed. The old sweep
-executor, worker pool, reduction and minimum-selection entry points are removed;
-the former `alignment/sweep.py` is now removed. Its live cut and partial-assignment
-helpers belong to search; unused historical symmetry-completion helpers are gone.
-`mappa_core/core/search/` owns reaction search and `mappa_core/post_processing/decoder/` owns
-anchored conversion/counting.
-
-The unused post-AAM chirality/RMSD selection framework is removed. Fragment,
-permutation, hierarchy and branch types remain. Native selection fails explicitly
-when the selected engine is missing or broken; `MAPPA_NATIVE=0` explicitly selects
-Python. Capability selection for custom node policies and recorded growth traces
-remains deliberate, before execution; a failed native call cannot switch engines.
-Graph
-validation uses one constraint checker for both shared and individual histories.
-
-The old `group_mechanisms` pipeline and its mechanism-family compiler are removed,
-along with their result types, pool reduction, event signatures and Python/native
-symmetry-repair scoring. `decode_events` is the public original-space event interpreter.
-The unused analytical mapping-family compiler, historical scoring/pattern
-utilities, adaptive cut/seed runners and event certificates are removed with
-their obsolete exports and dedicated tests. Explicit mapping queries retain
-`mappa_workflow/mapping_analytics/family.py`; shared fragment and hierarchy types remain in use.
-Search configurations no longer accept symmetry-repair options. Exact fragment
-symmetry and TS core assignment keep their shared helpers.
-
-## Native implementation ownership
-
-`src/mappa/mappa_core/native/` owns our C++ implementations, headers and engine build script.
-Vendored nauty sources and licenses are isolated under
-`src/mappa/mappa_core/native/third_party/nauty/`. There is no top-level native source tree.
-The compiled interfaces are `mappa._engine` and `mappa._group_ops`.
-The unused paired-mapping extension and freeze exports are removed.
-`autgrp.cpp` remains required by conditioned symmetry.
-
-```mermaid
-flowchart LR
-    Matcher[Python fragment matcher] --> Bridge[matching/growth/native.py]
-    Bridge --> Engine[mappa._engine]
-    Source[src/mappa/mappa_core/native] --> Engine
-    Vendor[third_party/nauty] --> Engine
-```
-
-
-Reference coverage uses ground-truth-first compatibility in `mapping_analytics`.
-Reject impossible annotated atom sets before constructing fragment choices.
-Apply exact reference assignments, with the declared endpoint equivalence, and
-propagate them before constructing fragment bond tables. Fixed choices settle
-directly. Only unresolved choices connected by a shared constraint enter one
-feasibility query; independent components reuse conclusive checks keyed by their
-complete reduced constraints and reference restrictions. Never enumerate full
-bijections or rerun growth. Atom sets alone cannot prove compatibility, and a
-fragment's literal representative set is not invariant when saved actions move it.
-
-Golden and EnzymeMap compare heavy-atom relations modulo endpoint chemical
-symmetry, including their declared charge/stereo/unmatched policy. A comparable
-heavy-bond event count rejects concrete representatives before chemical graph
-comparison. A representative's count cannot reject all compressed choices when
-those choices can change that count. Hydrogen correspondence is unannotated;
-full all-H decoded counts are not comparable to the heavy reference count.
-
-Stop at a verified witness for each direction/cut scope and seed prefix. Raw AAM
-membership and membership in all retained converted branches remain distinct
-from event-window representative accuracy. Report verification time separately
-from original matching, conversion, publication and scheduling time.
-
-```mermaid
-flowchart LR
-    Reference[Annotated ground truth] --> Sets[Allowed atom-set check]
-    Saved[Saved fragment constraints] --> Sets
-    Sets --> Fixed[Restrict exact assignments and propagate]
-    Fixed --> Bonds[Check fragment bonds on remaining assignments]
-    Bonds --> Components[Independent or coupled constraints]
-    Components --> Cache[Reuse conclusive component checks]
-    Cache --> Branch[Joint saved-branch witness or rejection]
-```
-
-## Dataset-independent benchmark planning
-
-The shared benchmark adapter plans Golden and EnzymeMap through the same public
-search, conversion and execution queue. Dataset parsing stays in this adapter;
-parallel preparation reuses one bounded bundle writer per process. EnzymeMap
-inputs come only from its unmapped reaction column. Reference molecules and
-annotations are prepared separately and never change search inputs. A reference
-whose atom coordinate system differs is explicitly unresolved until aligned.
-
-The 2026-10-29 EnzymeMap run uses one seed, both directions and the full cut sweep.
-Headline coverage queries the original compressed ISO1 AAM, independently of
-conversion. Lossy conversion investigation is pending in tracker ticket38.
-The scheduler locates failed parents through the task-state index before looking
-up dependent children; successful dependency graphs incur no full edge scan.
-
-
-## Growth subgraph and molecular connectivity
-
-Greedy extension tests only the selected active source edge to the new atom.
-Other bonds between included atoms remain in the molecular endpoints for event
-interpretation; they are not implicitly matching constraints. A ring and an
-opened chain can therefore share a six-atom fragment through five matched edges.
-
-`preserved_bonds` stores accepted growth edges on fragment placements and search
-transitions. Checkpoint replay carries these edges. Catalogue and reference
-queries consume their union along the saved path, rather than reconstructing an
-induced graph from atom sets. Equal atom sets may share a branch index, but their
-different edge constraints remain distinct families. Joining a locked island
-checks the selected joining edge, carries its fixed assignments and retains its
-earlier path constraints. It does not retest unselected cross-bonds.
-
-```mermaid
-flowchart LR
-    Endpoints[Full R and P molecular graphs] --> Growth[Selected-edge growth]
-    Growth --> Fragment[Atoms, accepted edges, compressed assignments]
-    Fragment --> Search[Branch history and constraints]
-    Search --> Queries[Assignment validation]
-    Endpoints --> Events[Bond-event interpretation]
-    Search --> Events
-```
-
-Full-target automorphism compression remains conditioned on candidate roles and
-earlier locks. Optional intrinsic fragment symmetry annotations are not used as
-matching permissions. No new local group replaces the saved correlated actions.
-The growth policy is `growth_edge_splitmix64_v2`; old scientific checkpoints are
-not resumable under this policy. Historical saved results retain their original
-explicit preserved bonds and can still be read.
-
-
-## Event decoding and hierarchical mapping separation (2026-10-30)
-
-```text
-mappa_core/post_processing/
-  final_branches.py       original compressed AAM families
-  decoder/
-    api.py                decode_events, no matching calls
-    records.py            policy and compressed event result
-    events.py             sparse local event tables and exact counts
-  hierarchical_mapping.py experimental anchored rematching and its records
-```
-
-Search → final branches → decode_events → original-space event tables.
-Explicit hierarchical refinement → separate catalogue, with changed coverage possible.
-CLI events, shared scheduler and fresh benchmarks call the original-space decoder.
-JSON v3 records retain the original catalogue, response tables, action correlations,
-manual-cut provenance and separate representative counts. They do not claim full
-pattern enumeration or a minimum across unrequested symmetry choices.
-
-### Reusable benchmark ownership
-
-Prepared inputs and execution state have separate lifetimes. `inputs.py` freezes
-hash-verified endpoint/reference data and task specifications into bounded bundles.
-A new run explicitly names a compatible index; it cannot trigger implicit dataset
-preparation. Compatibility includes search policy, seed/cut/direction scope,
-reference policy and task resource specifications. Operational worker placement
-is independent. A fresh run owns a new queue, pilot and attempt history.
-
-The benchmark uses the core task planners directly. Matching's logical unit is
-one reaction, direction, sweep cut and seed. Fresh benchmark plans use one seed
-per search task. Core `finalize_cut` assembles that cut's seed results and their
-symmetry representation. Core `plan_cut_decoding` attaches one `decode_cut` task
-to each finalized cut; it does not wait for other cuts or reactions.
-
-Decoding compares an oriented R/P pair through its saved AAM catalogue. All
-seeds in a cut share one event index, deduplicated families and response tables.
-Each family's provenance retains its original context index, so the output
-records exact per-seed family membership and coverage tiers. Seed-prefix reports
-select those memberships; they do not decode again. Resource and phase timings
-belong to the cut task and are counted once, regardless of seed count. R→P and
-P→R remain separate tasks; reports normalize reverse event categories.
-
-`operations.py` contains only benchmark reference/evaluation adapters. It does
-not implement a second matching or decoding planner. Independent dense checks
-of saved representatives and their serialized event tables run in the pilot
-and reporting, outside decoder timing.
-The prepared operation schema is v2; old task grids cannot be silently reused
-or have their operation names rewritten.
-
-```mermaid
-flowchart TD
-    Inputs[Dataset adapter: R/P and settings] --> Search[Core plan_search: cut × seed]
-    Search --> Final[Core finalize_cut: one cut's seeds]
-    Final --> Decode[Core decode_cut: shared event catalogue]
-    Final --> Reference[Benchmark: ground-truth checks per seed]
-    Decode --> Report[Saved-output report: seed prefixes and timings]
-    Reference --> Report
-    Slurm[Slurm: worker capacity] --> Pool[Core task pool: dependencies and execution]
-    Pool -. executes .-> Search
-    Pool -. executes .-> Final
-    Pool -. executes .-> Decode
-    Pool -. executes .-> Reference
-```
-
-`execution.py` alone owns benchmark queue preparation, pilot reuse, worker entry,
-checkpoint publication and retired-queue restoration. The core scheduler remains
-the sole owner of claims, dependencies, budgets and result acceptance. Common
-atomic JSON, hashes and archives belong to `evidence.py`.
-
-`launch.py` owns Slurm dependencies, target capacity, clean handoff and stage
-completion. Every retired stage either continues pending work, performs the one
-authorized memory escalation, or reports terminal results including unresolved
-outcomes. The memory stage follows the same checkpoint and completion rules.
-`run_conversion.sbatch` is the only benchmark allocation wrapper. Run directories
-contain configuration and receipts, never alternate implementations.
-
-```mermaid
-flowchart LR
-    Dataset --> Inputs[inputs: immutable artifact]
-    Inputs --> Launch[launch: new run and stage lifecycle]
-    Launch --> Pilot[core task pool: real-input pilot]
-    Pilot --> Execution[execution: prepare and serve queue]
-    Launch --> Workers[execution: workers]
-    Workers --> Queue[core scheduler: claims and budgets]
-    Execution --> Queue
-    Queue --> Evidence[evidence: verified bundles and checkpoints]
-    Evidence --> Report[report and timings: bounded saved-result analysis]
-    Evidence --> Handoff[launch: clean continuation or memory stage]
-    Handoff --> Execution
-```
-
-Queues and scratch live on verified node-local disk, not RAM-backed `/tmp` on
-NRT. Failed owners retain their database/WAL with a location receipt. A clean
-handoff restores the same task rows, results, attempts and remaining budgets.
-Only idempotent scheduler transport operations are retried; submission is never
-blindly repeated. The configured worker count is a strict ceiling. Capacity uses currently
-unallocated CPUs and scheduler-allocatable RAM on unreserved eligible nodes.
-Pending requests are reconsidered; running allocations are preserved. Free slots
-and cleanly retired allocations are sized again against current availability,
-so an initially small pool is not renewed at the same fixed size forever. Requested, running and actually used CPUs remain separate measurements.
-
-Reporting verifies the complete expected task grid, immutable specifications and
-accepted parent identities. Unknown, missing and resource-limited work remains
-explicit. Cases are processed in bounded batches; exact resource quantiles use
-local disk samples and concurrency uses a streamed timeline. Scientific checks
-and saved-result readers remain available; obsolete campaign executors and their
-exclusive tests are removed. No matching or decoder logic changes for this refactor.
+| Shared records | Endpoints, AAM configuration and results | `mappa_core/domain.py` |
+| Fragment matcher | Conditional matching, selected-edge growth and compression | `mappa_core/core/matching/` |
+| Reaction search | Seed/cut planning, locking, branching and saved graphs | `mappa_core/core/search/` |
+| Grouping/reduction | Final fragment pairs, family keys, partitions and provenance | `mappa_core/post_processing/final_branches.py` |
+| Event decoder | Original-space local event responses and composition | `mappa_core/post_processing/decoder/` |
+| Execution | Local/distributed workers, dependencies, budgets and bundles | `mappa_core/core/scheduler/` |
+| Explicit queries | Mapping and event-membership questions on saved choices | `mappa_workflow/mapping_analytics/` |
+| Native engine | Shared C++ implementation and vendored nauty | `mappa_core/native/` |
+| Persistence | Versioned records and trusted checkpoint relocation | `mappa_core/utils/io/` |
+| TS workflow | Explicit reaction context, endpoint-to-TS cores and scoring | `mappa_workflow/ts_analytics/` |
+| Presentation | Saved-result views, growth replay and coordinate display | `presentation/` |
+
+Schedulers, CLIs, viewers and benchmark adapters consume these owners; they do
+not implement competing scientific algorithms. Matching does not depend on
+benchmark orchestration or presentation. Historical implementations belong in
+Git rather than fallback paths.
+
+`mappa_core/post_processing/hierarchical_mapping.py` is an explicit experimental rematching
+operation. It may change retained coverage and is separate from normal event
+decoding. Rematching, recombination and minimum-event-window selection must not
+be placed on the normal matching → deduplication → decoding diagram.
+
+TS analysis requires a supplied reaction context. Display alignment does not
+change scientific atom correspondence. Viewers must preserve the distinction
+between recorded witnesses and correlated alternatives.
+
+The former benchmark implementation was removed; this document records the
+replacement's approved stage boundaries, not a restored benchmark framework.
+Usage guides: [Python API](docs/PYTHON_API.md), [shared execution](docs/shared-execution.md),
+and [viewers](docs/VIEWERS.md). Measurements belong in `reports/`; independent
+scientific oracles belong in `tests/`.
