@@ -83,7 +83,7 @@ class Ledger:
 
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
-        case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600.):
+        case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None):
     output = Path(output); output.mkdir(parents=True, exist_ok=True)
     raw = Path(index_path).read_bytes()
     index = json.loads(raw)
@@ -195,6 +195,10 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
                 checkpoint(stage,active)
                 if ledger.db.execute("SELECT count(*) FROM results WHERE stage=? AND state!='complete'",(stage,)).fetchone()[0]:
                     raise RuntimeError(f'{stage} contains failed directions; next pass was not started')
+                if stage == stop_after:
+                    status['pass_finished'] = stage
+                    checkpoint(stage,{})
+                    return status
             status['finished'] = True
             checkpoint('finished',{})
         ledger.db.close()
@@ -209,10 +213,13 @@ def main():
     parser.add_argument('--limit',type=int)
     parser.add_argument('--local',action='store_true')
     parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
     parser.add_argument('--run-seconds',type=float,default=12600.)
     args=parser.parse_args()
-    run(args.index,args.output,workers=args.workers,window=args.window,limit=args.limit,
-        local=args.local,resume=args.resume,run_seconds=args.run_seconds)
+    status = run(args.index,args.output,workers=args.workers,window=args.window,limit=args.limit,
+        local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after)
+    if status.get("allocation_drained"):
+        raise SystemExit(75)
 
 
 if __name__ == '__main__':

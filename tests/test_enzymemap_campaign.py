@@ -56,3 +56,20 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         run(index,output,local=True,workers=1)
     with sqlite3.connect(output/'ledger.sqlite') as db:
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
+
+
+def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
+    from prepare_batches import prepare
+    index=prepared_index(tmp_path)
+    data=json.loads(index.read_text())
+    data['directions'] += [dict(row,case=1) for row in data['directions']]
+    index.write_text(json.dumps(data))
+    baseline=tmp_path/'baseline'
+    assert run(index,baseline,local=True,workers=2,stop_after='matching')['pass_finished']=='matching'
+    prepare(index,baseline,tmp_path/'batches',count=2)
+    for batch in range(2):
+        root=tmp_path/'batches'/str(batch)
+        assert {r['case'] for r in json.loads((root/'index.json').read_text())['directions']}=={batch}
+        with sqlite3.connect(root/'result/ledger.sqlite') as db:
+            assert db.execute('SELECT stage,count(*) FROM results GROUP BY stage').fetchall()==[('matching',2)]
+        assert run(root/'index.json',root/'result',local=True,workers=1,resume=True)['finished']

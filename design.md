@@ -398,3 +398,8 @@ replacement's approved stage boundaries, not a restored benchmark framework.
 Usage guides: [Python API](docs/PYTHON_API.md), [shared execution](docs/shared-execution.md),
 and [viewers](docs/VIEWERS.md). Measurements belong in `reports/`; independent
 scientific oracles belong in `tests/`.
+
+Small Slurm allocations may own disjoint reaction-ID batches, each with its own
+ledger and persistent worker pool. An array-wide successful matching dependency
+precedes later passes; an allocation that drains early is not successful stage
+completion. Original aggregated artifacts remain shared read-only inputs.
