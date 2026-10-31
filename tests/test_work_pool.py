@@ -148,6 +148,47 @@ def test_failed_matching_blocks_the_next_stage():
         assert len(pool.queue.results()) == 2
 
 
+def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path):
+    from mappa.mappa_core.core.scheduler import TaskQueue
+    from mappa.mappa_core.core.scheduler.runtime import Workspace
+    from mappa.mappa_core.core.scheduler.search import plan_search, search_complete_cut
+    store = BundleStore(tmp_path/'results')
+    config = AAMSearchConfig(seed_count=1, branch_limit=10)
+    tasks, keys = plan_search('original/case', problem(), config, store)
+    assert len(tasks) > 1
+    queue = TaskQueue(tmp_path/'old.sqlite', 'old-code')
+    queue.add(tasks)
+    workspace = Workspace(str(tmp_path), store=store)
+    first = None
+    for _ in tasks:
+        claimed = queue.claim('old-worker', 2**30, 'old-code')
+        task = claimed['task']
+        if first is None:
+            first = store.put(search_complete_cut(task.payload, workspace))
+            queue.finish(task.key, claimed['token'], 'complete', dict(blob=first))
+        else:
+            queue.finish(task.key, claimed['token'], 'memory_limit', dict(memory_guard_bytes=2**30))
+    audit = queue.archive_case(keys[0], store)
+    before = store.load(audit)
+    queue.close()
+    with WorkPool.local(workers=2, store=store) as pool:
+        matched = pool.retry_matching('case', audit).wait_and_validate()
+        assert matched.load('case').cuts[0] == first
+        assert pool.queue.db.execute('SELECT count(*) FROM attempts WHERE task=?', (keys[0],)).fetchone()[0] == 1
+        assert pool.queue.db.execute('SELECT count(*) FROM attempts').fetchone()[0] == 2*len(tasks)-1
+        assert pool.queue.db.execute('SELECT spent FROM cases').fetchone()[0] >= before['case'][3]
+        catalogue = pool.deduplicate(matched).wait_and_validate()
+        decoded = pool.decode(catalogue).wait_and_validate()
+        assert decoded.load('case').record['mapping_space_preserved']
+        again = store.load(pool.queue.archive_case(keys[0], store))
+        old_tokens = {row[0] for row in before['attempts']}
+        assert old_tokens <= {row[0] for row in again['attempts']}
+
+    reference = search_aam(problem(), config, execution='reused_native')
+    cuts = [store.load(ref) for ref in matched.load('case').cuts]
+    assert AAMSearchGraph.combine([cut.graph for cut in cuts]) == reference.graph
+
+
 def test_handoff_rejects_missing_cuts_and_different_memory_store(tmp_path):
     from dataclasses import replace
     from mappa.mappa_core.core.scheduler.decoding import reduce_matching

@@ -18,6 +18,7 @@ def main():
     parser.add_argument('input'); parser.add_argument('output')
     parser.add_argument('--historical-build')
     parser.add_argument('--downstream',action='store_true')
+    parser.add_argument('--profile-gc',action='store_true')
     args=parser.parse_args()
     output=Path(args.output); output.mkdir(parents=True,exist_ok=True)
     if args.historical_build:
@@ -65,11 +66,20 @@ def main():
             del result
         if args.downstream:
             graph=workspace.load(reference).graph
+            import gc
+            collections=[]
+            def collected(phase,info):
+                collections.append((phase,info['generation'],time.perf_counter()))
+            if args.profile_gc:
+                gc.callbacks.append(collected)
             started=time.perf_counter()
             catalogue=FinalBranchCatalogue(source.problem)
             catalogue.add_graph(graph,archive='mac-point')
             reduced=catalogue.to_record()
             record['deduplication_seconds']=time.perf_counter()-started
+            if args.profile_gc:
+                gc.callbacks.remove(collected)
+                record['deduplication_gc']=collections
             started=time.perf_counter()
             decoded=decoded_events_record(decode_events(catalogue))
             record['decoding_seconds']=time.perf_counter()-started

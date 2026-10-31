@@ -47,22 +47,25 @@ def test_typed_cli_decodes_then_uses_explicit_reaction_for_ts(tmp_path):
     ])
 
     decoded = json.loads((output / "events.json").read_text())
-    assert decoded["complete"]
-    assert len(decoded["candidates"]) == 1
-    candidate = decoded["candidates"][0]
-    assert candidate["mapping"] == {"0": 0, "1": 1, "2": 2, "3": 3}
-    assert candidate["events"] == {
-        "broken": [[0, 1], [2, 3]], "formed": [[0, 2], [1, 3]]}
+    assert decoded["mapping_space_preserved"]
+    assert not decoded["exhaustive_event_patterns"]
+    assert not decoded["global_minimum_proven"]
+    assert decoded["representatives"]
+    for candidate in decoded["representatives"]:
+        assert candidate["mapping"] == [0, 1, 2, 3]
+        assert candidate["events"] == {
+            "broken": [[0, 1], [2, 3]], "formed": [[0, 2], [1, 3]]}
+    candidate = decoded["representatives"][0]
     view = (output / "search.html").read_text()
     assert "$3Dmol.createViewer" in view
     assert "<script src=" not in view
     assert not (output / "rp.json").exists()
     assert not (output / "reaction.json").exists()
-    # Choose the sole decoded event class explicitly for downstream TS analysis.
+    # Choose a recorded witness explicitly; decoding does not select a mechanism.
     record = {
         "schema": "rxn_core.resolved_reaction/v1", "atom_count": 4,
         "mechanisms": [{
-            "mapping": candidate["mapping"],
+            "mapping": {str(atom): image for atom, image in enumerate(candidate["mapping"])},
             "broken_bonds": candidate["events"]["broken"],
             "formed_bonds": candidate["events"]["formed"],
             "core_atoms": [0, 1, 2, 3],

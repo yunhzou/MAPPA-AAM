@@ -345,6 +345,21 @@ class TaskQueue:
             self.db.execute('DELETE FROM cases WHERE name=?', (case,))
             return reference
 
+    def restore_case(self, audit):
+        """Restore archived terminal work and its original budget, without retrying."""
+        if audit['schema'] != 'mappa.task_audit/v1':
+            raise ValueError('Unsupported task audit')
+        if any(row[4] in ('pending', 'running') for row in audit['tasks']):
+            raise ValueError('Only terminal cases may be restored')
+        case = audit['case']
+        if case[2] is not None or case[4] is not None:
+            raise ValueError('Archived case still has an active budget')
+        with self.lock, self.db:
+            self.db.execute('INSERT INTO cases VALUES (?,?,?,?,?)', case)
+            self.db.executemany('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)', audit['tasks'])
+            self.db.executemany('INSERT INTO attempts VALUES (?,?,?,?,?,?,?)', audit['attempts'])
+            self.db.executemany('INSERT INTO dependencies VALUES (?,?)', audit['dependencies'])
+
     def optimize(self):
         """Prepare planner statistics after bulk task insertion, before workers.
 

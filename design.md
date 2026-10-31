@@ -337,6 +337,12 @@ consume the computation allowance. Failures, resource limits and lost leases are
 explicit states. Retry is deliberate and retains attempt history. Checkpoint
 recovery must not silently change the scientific scope.
 
+`WorkPool.retry_matching(case, audit)` restores a retired matching case and
+retries explicitly selected failed task states. Completed cut references,
+original tasks, prior attempts and consumed case time survive. The benchmark's
+explicit memory-failure retry records the previous ledger row before replacing
+it; it does not recompute successful cuts or silently retry other failures.
+
 Local multicore and localhost remote tests do not establish multi-node scaling.
 Coordinator traffic, shared-storage costs and recovery must be measured on the
 intended deployment. Current worker assignment has no reaction-affinity policy,

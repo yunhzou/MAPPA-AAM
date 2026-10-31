@@ -20,6 +20,7 @@ from mappa.mappa_core.core.scheduler.bundles import Blob
 from mappa.mappa_core.core.scheduler.results import MatchingResult, CutScope
 from mappa.mappa_core.domain import AAMSearchConfig
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 from .identity import code_identity
 
 
@@ -217,6 +218,29 @@ class WorkPool:
         self.queue.add(tasks)
         self.queue.optimize()
         return StageResults('matching', self.store, pool=self, tasks=keys, plans=plans)
+
+    def retry_matching(self, case, audit, *, states=('memory_limit',)):
+        """Retry diagnosed failures; reuse completed cuts and retain every attempt."""
+        record = self.store.load(audit)
+        failed = [row for row in record['tasks'] if row[4] != 'complete']
+        if not failed or any(row[4] not in (*states, 'blocked') for row in failed):
+            raise ValueError('Audit contains outcomes outside the requested retry states')
+        tasks = [_loads_checkpoint(row[1]) for row in record['tasks']]
+        prefix = 'mappa.mappa_core.core.scheduler.search:'
+        if any(task.operation not in (prefix+'search_batch', prefix+'finalize_cut', prefix+'search_complete_cut') for task in tasks):
+            raise ValueError('Matching recovery requires a matching task audit')
+        finals = sorted((task for task in tasks if task.operation != prefix+'search_batch'),
+                        key=lambda task: task.payload['number'])
+        scopes = tuple(CutScope(task.payload['number'], tuple(task.payload['cut']),
+                               tuple(range(task.payload['seeds']))) for task in finals)
+        self.queue.restore_case(record)
+        for row in failed:
+            if row[4] in states:
+                self.queue.retry(row[0])
+        self.queue.optimize()
+        return StageResults('matching', self.store, pool=self,
+            tasks={case: tuple(task.key for task in finals)},
+            plans={case: (tasks[0].payload['input'], scopes)})
 
     def _stage(self, previous, expected, stage, operation, field, **options):
         if previous.stage != expected:

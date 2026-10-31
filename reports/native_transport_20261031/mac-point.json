@@ -5,7 +5,7 @@
   "cpu_threads": 1,
   "trials": 3,
   "before_revision": "733adfc",
-  "after_revision": "ec0bc91",
+  "after_revision": "e86fee4",
   "input_sha256": "5a09562f69fe76f450e856b72c9bcc7ee023b8df8632157263f5785255a39d14",
   "medians": {
     "old": {
@@ -21,16 +21,16 @@
       "stage_total_seconds": 7.648552583064884
     },
     "new": {
-      "compute_seconds": 2.82540070801042,
-      "search_seconds": 2.4912439580075443,
-      "total_seconds": 3.101256625028327,
-      "peak_rss_bytes": 895860736,
-      "warm_compute_seconds": 0.8689480421599001,
-      "publish_seconds": 0.2843779169488698,
-      "deduplication_seconds": 0.4989104999694973,
-      "decoding_seconds": 1.960826792055741,
-      "verification_seconds": 0.9046594160608947,
-      "stage_total_seconds": 6.476830626139417
+      "compute_seconds": 2.8150685830041766,
+      "search_seconds": 2.48085620906204,
+      "total_seconds": 3.0531465830281377,
+      "peak_rss_bytes": 894205952,
+      "warm_compute_seconds": 0.8465423330198973,
+      "publish_seconds": 0.23807800002396107,
+      "deduplication_seconds": 0.4853844998870045,
+      "decoding_seconds": 1.967137916944921,
+      "verification_seconds": 0.9067965000867844,
+      "stage_total_seconds": 6.417004958027974
     }
   },
   "comparisons": [
@@ -248,42 +248,42 @@
         "runs": [
           {
             "repetition": 0,
-            "search_seconds": 2.4912439580075443,
-            "compute_seconds": 2.82540070801042,
-            "compute_cpu_seconds": 2.823369,
-            "peak_rss_bytes": 895746048,
+            "search_seconds": 2.476086749928072,
+            "compute_seconds": 2.811782999895513,
+            "compute_cpu_seconds": 2.810616,
+            "peak_rss_bytes": 894205952,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 3.101256625028327,
+            "total_seconds": 3.046057082945481,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
+              "path": "/private/tmp/mappa-mac-point/final-1/bundles/18c28f40ef6a4837b1630f75f1faf41a-00000.bundle",
               "offset": 22128,
-              "size": 665121,
-              "sha256": "2efa42be8ff808722889190b5d44ea7856d4c8e635910a1c337897d2fb90fcd1"
+              "size": 642485,
+              "sha256": "46b3f4f17800932317757003ddd75b95d735712c2f97918694884312e5c5acd9"
             }
           },
           {
             "repetition": 1,
-            "search_seconds": 0.85764304199256,
-            "compute_seconds": 0.8659745841287076,
-            "compute_cpu_seconds": 0.8658710000000003,
-            "peak_rss_bytes": 935231488,
+            "search_seconds": 0.8258212499786168,
+            "compute_seconds": 0.8341370827984065,
+            "compute_cpu_seconds": 0.8340760000000005,
+            "peak_rss_bytes": 933806080,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 1.1424160420428962,
+            "total_seconds": 1.077501457883045,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
-              "offset": 687249,
-              "size": 665118,
-              "sha256": "ced6e80aeae3b1a84eda05d3e4cd6e559fdce365c94d8889509b1db353b6471c"
+              "path": "/private/tmp/mappa-mac-point/final-1/bundles/18c28f40ef6a4837b1630f75f1faf41a-00000.bundle",
+              "offset": 664613,
+              "size": 642480,
+              "sha256": "9d1e8313d25908512aad73408bcc9e5c60b7138aceb282a91e2c91a8587bfa71"
             }
           }
         ],
-        "deduplication_seconds": 0.4989104999694973,
-        "decoding_seconds": 1.960826792055741,
-        "verification_seconds": 0.9034983338788152,
+        "deduplication_seconds": 0.4851641249842942,
+        "decoding_seconds": 1.9789872500114143,
+        "verification_seconds": 0.9067965000867844,
         "verification_status": "not_recovered",
         "families": 100
       },
@@ -298,42 +298,42 @@
         "runs": [
           {
             "repetition": 0,
-            "search_seconds": 2.4694233329501003,
-            "compute_seconds": 2.8024780419655144,
-            "compute_cpu_seconds": 2.801354,
-            "peak_rss_bytes": 895860736,
+            "search_seconds": 2.487647208152339,
+            "compute_seconds": 2.8175308748614043,
+            "compute_cpu_seconds": 2.816576,
+            "peak_rss_bytes": 897449984,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 3.0868559589143842,
+            "total_seconds": 3.05672674998641,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
+              "path": "/private/tmp/mappa-mac-point/final-2/bundles/96a7aff72ac14cbea8faacc4b9dd4e14-00000.bundle",
               "offset": 22128,
-              "size": 665124,
-              "sha256": "d4167db988d248218878b2dac090c09258b5fc3ee6e253151fefa100845e14b8"
+              "size": 642484,
+              "sha256": "85aa83286df257fa5154e242f5d0e0affef483e014868fdeaed31dcab959e454"
             }
           },
           {
             "repetition": 1,
-            "search_seconds": 0.8607888338156044,
-            "compute_seconds": 0.8689480421599001,
-            "compute_cpu_seconds": 0.868862,
-            "peak_rss_bytes": 940507136,
+            "search_seconds": 0.8382285840343684,
+            "compute_seconds": 0.8465423330198973,
+            "compute_cpu_seconds": 0.8464910000000003,
+            "peak_rss_bytes": 936935424,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 1.1551093750167638,
+            "total_seconds": 1.0824569170363247,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
-              "offset": 687252,
-              "size": 665125,
-              "sha256": "1cb1c1e5c0f27d0122c93ac78c8a0c6e07749c0d5e78f69c4c5fbb6c1f075e02"
+              "path": "/private/tmp/mappa-mac-point/final-2/bundles/96a7aff72ac14cbea8faacc4b9dd4e14-00000.bundle",
+              "offset": 664612,
+              "size": 642478,
+              "sha256": "ba7a5f39ba4dd9a553eb43ade0f2c60c96cc4b6ff53dc25bdecba4fd621de465"
             }
           }
         ],
-        "deduplication_seconds": 0.49632950010709465,
-        "decoding_seconds": 1.9555217921733856,
-        "verification_seconds": 0.9381233749445528,
+        "deduplication_seconds": 0.4863418750464916,
+        "decoding_seconds": 1.9466395841445774,
+        "verification_seconds": 0.943203458096832,
         "verification_status": "not_recovered",
         "families": 100
       },
@@ -348,46 +348,1398 @@
         "runs": [
           {
             "repetition": 0,
-            "search_seconds": 2.532937625190243,
-            "compute_seconds": 2.8730032090097666,
-            "compute_cpu_seconds": 2.871366,
-            "peak_rss_bytes": 897695744,
+            "search_seconds": 2.48085620906204,
+            "compute_seconds": 2.8150685830041766,
+            "compute_cpu_seconds": 2.814139,
+            "peak_rss_bytes": 893566976,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 3.1628983339760453,
+            "total_seconds": 3.0531465830281377,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
+              "path": "/private/tmp/mappa-mac-point/final-3/bundles/3af331e651c04f88a832baed2c251a08-00000.bundle",
               "offset": 22128,
-              "size": 665122,
-              "sha256": "294836bce1b4a0709f97b6004c6904d13e58ccac79c24372014fc9fd285099bb"
+              "size": 642483,
+              "sha256": "97ae30a98d1b163162a3df584ab071efe8746581090be872f87619eec10430b0"
             }
           },
           {
             "repetition": 1,
-            "search_seconds": 0.8701711669564247,
-            "compute_seconds": 0.878573999973014,
-            "compute_cpu_seconds": 0.8783460000000001,
-            "peak_rss_bytes": 942391296,
+            "search_seconds": 0.8406284579541534,
+            "compute_seconds": 0.8488807498943061,
+            "compute_cpu_seconds": 0.8488000000000002,
+            "peak_rss_bytes": 933150720,
             "states": 24758,
             "transitions": 24757,
             "terminals": 100,
-            "total_seconds": 1.158893666928634,
+            "total_seconds": 1.0822981249075383,
             "reference": {
-              "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
-              "offset": 687250,
-              "size": 665126,
-              "sha256": "1a98c70f03409fcd3135f862b3082db2a0c858faf74bb292f44078f381e3432c"
+              "path": "/private/tmp/mappa-mac-point/final-3/bundles/3af331e651c04f88a832baed2c251a08-00000.bundle",
+              "offset": 664611,
+              "size": 642479,
+              "sha256": "51956b49294da76989f662530693122065364aa8d3f3110050891bff416a190a"
             }
           }
         ],
-        "deduplication_seconds": 0.5025392090901732,
-        "decoding_seconds": 1.9940247498452663,
-        "verification_seconds": 0.9046594160608947,
+        "deduplication_seconds": 0.4853844998870045,
+        "decoding_seconds": 1.967137916944921,
+        "verification_seconds": 0.900101708015427,
         "verification_status": "not_recovered",
         "families": 100
       }
     ]
   },
-  "caveat": "One cut, not a complete reaction sweep; stage sum excludes graph reload and interpreter startup. Warm timing repeats the identical cut in one prepared worker."
+  "caveat": "One cut, not a complete reaction sweep; stage sum excludes graph reload and interpreter startup. Warm timing repeats the identical cut in one prepared worker.",
+  "initial_candidate": {
+    "after_revision": "ec0bc91",
+    "medians": {
+      "old": {
+        "compute_seconds": 3.9094032081775367,
+        "search_seconds": 3.576137457974255,
+        "total_seconds": 4.1567772082053125,
+        "peak_rss_bytes": 2624471040,
+        "warm_compute_seconds": 1.9332229590509087,
+        "publish_seconds": 0.24737400002777576,
+        "deduplication_seconds": 0.3533103750087321,
+        "decoding_seconds": 2.1376019169110805,
+        "verification_seconds": 0.9124477079603821,
+        "stage_total_seconds": 7.648552583064884
+      },
+      "new": {
+        "compute_seconds": 2.82540070801042,
+        "search_seconds": 2.4912439580075443,
+        "total_seconds": 3.101256625028327,
+        "peak_rss_bytes": 895860736,
+        "warm_compute_seconds": 0.8689480421599001,
+        "publish_seconds": 0.2843779169488698,
+        "deduplication_seconds": 0.4989104999694973,
+        "decoding_seconds": 1.960826792055741,
+        "verification_seconds": 0.9046594160608947,
+        "stage_total_seconds": 6.476830626139417
+      }
+    },
+    "comparisons": [
+      {
+        "build": "old",
+        "trial": 1,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      },
+      {
+        "build": "old",
+        "trial": 2,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      },
+      {
+        "build": "old",
+        "trial": 3,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      },
+      {
+        "build": "new",
+        "trial": 1,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      },
+      {
+        "build": "new",
+        "trial": 2,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      },
+      {
+        "build": "new",
+        "trial": 3,
+        "full_graph": true,
+        "catalogue": true,
+        "decoded_record": true,
+        "verification": true
+      }
+    ],
+    "measurements": {
+      "old": [
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": "/private/tmp/mappa-mac-point/before",
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 3.576137457974255,
+              "compute_seconds": 3.905941874952987,
+              "compute_cpu_seconds": 3.9041390000000002,
+              "peak_rss_bytes": 2622226432,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 4.150177791947499,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-1/bundles/167c54767f014cac89414298004a06f9-00000.bundle",
+                "offset": 22128,
+                "size": 1125604,
+                "sha256": "928bd1921c3e992463416c7cf30dfc8c6eeefa7e7adba99fb78820d1c7da3461"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 1.936380792176351,
+              "compute_seconds": 1.945463249925524,
+              "compute_cpu_seconds": 1.9451590000000003,
+              "peak_rss_bytes": 2730115072,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 2.207775041926652,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-1/bundles/167c54767f014cac89414298004a06f9-00000.bundle",
+                "offset": 1147732,
+                "size": 1125597,
+                "sha256": "10fcc96bea13f9042ace9e703271a06df51aeea32b0d0adb244abfab9266986d"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.3492369579616934,
+          "decoding_seconds": 2.1288976250216365,
+          "verification_seconds": 1.0450860830023885,
+          "verification_status": "not_recovered",
+          "families": 100
+        },
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": "/private/tmp/mappa-mac-point/before",
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 3.570812333142385,
+              "compute_seconds": 3.9094032081775367,
+              "compute_cpu_seconds": 3.9021800000000004,
+              "peak_rss_bytes": 2624471040,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 4.1567772082053125,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-2/bundles/308459e02f4c4a789d4ea38721f8d6d1-00000.bundle",
+                "offset": 22128,
+                "size": 1125603,
+                "sha256": "ce5d76681018cb00e091aa73f743a96cb7a230c326da732a85a37a27979762c5"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 1.924459584057331,
+              "compute_seconds": 1.9332229590509087,
+              "compute_cpu_seconds": 1.9330410000000002,
+              "peak_rss_bytes": 2734850048,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 2.1972202921751887,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-2/bundles/308459e02f4c4a789d4ea38721f8d6d1-00000.bundle",
+                "offset": 1147731,
+                "size": 1125599,
+                "sha256": "215eb6cd103043441a65af850221e3944caf5d9a36516c1fb97ae0086a944f12"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.3533103750087321,
+          "decoding_seconds": 2.1376019169110805,
+          "verification_seconds": 0.9124477079603821,
+          "verification_status": "not_recovered",
+          "families": 100
+        },
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": "/private/tmp/mappa-mac-point/before",
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 3.594281957950443,
+              "compute_seconds": 3.9331070829648525,
+              "compute_cpu_seconds": 3.931977,
+              "peak_rss_bytes": 2626158592,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 4.189253292046487,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-3/bundles/f7c0c962c8674d0cb1938f670bf12637-00000.bundle",
+                "offset": 22128,
+                "size": 1125602,
+                "sha256": "4a05ed8f9e951b7535146cb0e08ec26f405f0972a764d33b52a17d69fd7c1de8"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 1.914678790839389,
+              "compute_seconds": 1.9237000420689583,
+              "compute_cpu_seconds": 1.9235259999999998,
+              "peak_rss_bytes": 2736488448,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 2.190920041874051,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/old-3/bundles/f7c0c962c8674d0cb1938f670bf12637-00000.bundle",
+                "offset": 1147730,
+                "size": 1125598,
+                "sha256": "11fd713ab02ae0db23169b29e069abaeb0be71969c8322589f966a194347086b"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.3598265410400927,
+          "decoding_seconds": 2.2002724159974605,
+          "verification_seconds": 0.8992003339808434,
+          "verification_status": "not_recovered",
+          "families": 100
+        }
+      ],
+      "new": [
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": null,
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 2.4912439580075443,
+              "compute_seconds": 2.82540070801042,
+              "compute_cpu_seconds": 2.823369,
+              "peak_rss_bytes": 895746048,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 3.101256625028327,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
+                "offset": 22128,
+                "size": 665121,
+                "sha256": "2efa42be8ff808722889190b5d44ea7856d4c8e635910a1c337897d2fb90fcd1"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 0.85764304199256,
+              "compute_seconds": 0.8659745841287076,
+              "compute_cpu_seconds": 0.8658710000000003,
+              "peak_rss_bytes": 935231488,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 1.1424160420428962,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-1/bundles/66236c7a4cd44137b3a804dc08946142-00000.bundle",
+                "offset": 687249,
+                "size": 665118,
+                "sha256": "ced6e80aeae3b1a84eda05d3e4cd6e559fdce365c94d8889509b1db353b6471c"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.4989104999694973,
+          "decoding_seconds": 1.960826792055741,
+          "verification_seconds": 0.9034983338788152,
+          "verification_status": "not_recovered",
+          "families": 100
+        },
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": null,
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 2.4694233329501003,
+              "compute_seconds": 2.8024780419655144,
+              "compute_cpu_seconds": 2.801354,
+              "peak_rss_bytes": 895860736,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 3.0868559589143842,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
+                "offset": 22128,
+                "size": 665124,
+                "sha256": "d4167db988d248218878b2dac090c09258b5fc3ee6e253151fefa100845e14b8"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 0.8607888338156044,
+              "compute_seconds": 0.8689480421599001,
+              "compute_cpu_seconds": 0.868862,
+              "peak_rss_bytes": 940507136,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 1.1551093750167638,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-2/bundles/b3ff4afd4e004f44af5f7d029ab7fb5f-00000.bundle",
+                "offset": 687252,
+                "size": 665125,
+                "sha256": "1cb1c1e5c0f27d0122c93ac78c8a0c6e07749c0d5e78f69c4c5fbb6c1f075e02"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.49632950010709465,
+          "decoding_seconds": 1.9555217921733856,
+          "verification_seconds": 0.9381233749445528,
+          "verification_status": "not_recovered",
+          "families": 100
+        },
+        {
+          "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+          "atoms": [
+            387,
+            387
+          ],
+          "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+          "historical_build": null,
+          "runs": [
+            {
+              "repetition": 0,
+              "search_seconds": 2.532937625190243,
+              "compute_seconds": 2.8730032090097666,
+              "compute_cpu_seconds": 2.871366,
+              "peak_rss_bytes": 897695744,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 3.1628983339760453,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
+                "offset": 22128,
+                "size": 665122,
+                "sha256": "294836bce1b4a0709f97b6004c6904d13e58ccac79c24372014fc9fd285099bb"
+              }
+            },
+            {
+              "repetition": 1,
+              "search_seconds": 0.8701711669564247,
+              "compute_seconds": 0.878573999973014,
+              "compute_cpu_seconds": 0.8783460000000001,
+              "peak_rss_bytes": 942391296,
+              "states": 24758,
+              "transitions": 24757,
+              "terminals": 100,
+              "total_seconds": 1.158893666928634,
+              "reference": {
+                "path": "/private/tmp/mappa-mac-point/new-3/bundles/cb46ad4426bf4142b50db97b202d71d2-00000.bundle",
+                "offset": 687250,
+                "size": 665126,
+                "sha256": "1a98c70f03409fcd3135f862b3082db2a0c858faf74bb292f44078f381e3432c"
+              }
+            }
+          ],
+          "deduplication_seconds": 0.5025392090901732,
+          "decoding_seconds": 1.9940247498452663,
+          "verification_seconds": 0.9046594160608947,
+          "verification_status": "not_recovered",
+          "families": 100
+        }
+      ]
+    }
+  },
+  "deduplication_gc_profile": {
+    "task": "82c1417747944d9c9d4bac8e822db952/05735/forward/cut/00111/finalize",
+    "atoms": [
+      387,
+      387
+    ],
+    "config": "AAMSearchConfig(cut_floor=0.2, graph_floor=0.2, iso_tolerance=1, event_threshold=0.5, metal_event_threshold=0.3, seed_count=1, branch_limit=100, task_chunksize=1, anchors=(), seed_selection='random', random_seed=42, sweep_cuts=True)",
+    "historical_build": null,
+    "runs": [
+      {
+        "repetition": 0,
+        "search_seconds": 2.5121066251304,
+        "compute_seconds": 2.849082250148058,
+        "compute_cpu_seconds": 2.847013,
+        "peak_rss_bytes": 894926848,
+        "states": 24758,
+        "transitions": 24757,
+        "terminals": 100,
+        "total_seconds": 3.0862399160396308,
+        "reference": {
+          "path": "/private/tmp/mappa-mac-point/gc-profile/bundles/984a673c271d472aa4c0b62f1d6d1fb3-00000.bundle",
+          "offset": 22128,
+          "size": 642483,
+          "sha256": "d873d4c62e9882b2fed6ebc3e40a1fadaa647a897b2bd1313c510f8a1f82390a"
+        }
+      },
+      {
+        "repetition": 1,
+        "search_seconds": 0.8319407501257956,
+        "compute_seconds": 0.8405723329633474,
+        "compute_cpu_seconds": 0.8404969999999996,
+        "peak_rss_bytes": 934838272,
+        "states": 24758,
+        "transitions": 24757,
+        "terminals": 100,
+        "total_seconds": 1.0820916658267379,
+        "reference": {
+          "path": "/private/tmp/mappa-mac-point/gc-profile/bundles/984a673c271d472aa4c0b62f1d6d1fb3-00000.bundle",
+          "offset": 664611,
+          "size": 642478,
+          "sha256": "24c870de36a57b43849c9e7c205822d43bd128c0d891892813b9b29a5bf4bf0d"
+        }
+      }
+    ],
+    "deduplication_seconds": 0.48596116597764194,
+    "deduplication_gc": [
+      [
+        "start",
+        0,
+        1331184.776285958
+      ],
+      [
+        "stop",
+        0,
+        1331184.776453791
+      ],
+      [
+        "start",
+        0,
+        1331184.776463916
+      ],
+      [
+        "stop",
+        0,
+        1331184.776471208
+      ],
+      [
+        "start",
+        0,
+        1331184.776480541
+      ],
+      [
+        "stop",
+        0,
+        1331184.776485916
+      ],
+      [
+        "start",
+        0,
+        1331184.776493666
+      ],
+      [
+        "stop",
+        0,
+        1331184.776498541
+      ],
+      [
+        "start",
+        1,
+        1331184.776508833
+      ],
+      [
+        "stop",
+        1,
+        1331184.776975875
+      ],
+      [
+        "start",
+        0,
+        1331184.776989958
+      ],
+      [
+        "stop",
+        0,
+        1331184.776995875
+      ],
+      [
+        "start",
+        0,
+        1331184.777007375
+      ],
+      [
+        "stop",
+        0,
+        1331184.777013416
+      ],
+      [
+        "start",
+        0,
+        1331184.77702475
+      ],
+      [
+        "stop",
+        0,
+        1331184.777030458
+      ],
+      [
+        "start",
+        0,
+        1331184.777038625
+      ],
+      [
+        "stop",
+        0,
+        1331184.777043166
+      ],
+      [
+        "start",
+        0,
+        1331184.777050916
+      ],
+      [
+        "stop",
+        0,
+        1331184.777056208
+      ],
+      [
+        "start",
+        0,
+        1331184.777065916
+      ],
+      [
+        "stop",
+        0,
+        1331184.777071125
+      ],
+      [
+        "start",
+        0,
+        1331184.777079
+      ],
+      [
+        "stop",
+        0,
+        1331184.777083833
+      ],
+      [
+        "start",
+        0,
+        1331184.777091083
+      ],
+      [
+        "stop",
+        0,
+        1331184.777096041
+      ],
+      [
+        "start",
+        0,
+        1331184.777107
+      ],
+      [
+        "stop",
+        0,
+        1331184.777112125
+      ],
+      [
+        "start",
+        0,
+        1331184.777121666
+      ],
+      [
+        "stop",
+        0,
+        1331184.777126416
+      ],
+      [
+        "start",
+        0,
+        1331184.777135
+      ],
+      [
+        "stop",
+        0,
+        1331184.777139791
+      ],
+      [
+        "start",
+        1,
+        1331184.777148166
+      ],
+      [
+        "stop",
+        1,
+        1331184.777349375
+      ],
+      [
+        "start",
+        0,
+        1331184.777358125
+      ],
+      [
+        "stop",
+        0,
+        1331184.77736275
+      ],
+      [
+        "start",
+        0,
+        1331184.777370833
+      ],
+      [
+        "stop",
+        0,
+        1331184.777375875
+      ],
+      [
+        "start",
+        0,
+        1331184.777384125
+      ],
+      [
+        "stop",
+        0,
+        1331184.777389
+      ],
+      [
+        "start",
+        0,
+        1331184.777398583
+      ],
+      [
+        "stop",
+        0,
+        1331184.777403333
+      ],
+      [
+        "start",
+        0,
+        1331184.777417291
+      ],
+      [
+        "stop",
+        0,
+        1331184.777422666
+      ],
+      [
+        "start",
+        0,
+        1331184.777432208
+      ],
+      [
+        "stop",
+        0,
+        1331184.777437833
+      ],
+      [
+        "start",
+        0,
+        1331184.777448875
+      ],
+      [
+        "stop",
+        0,
+        1331184.777453541
+      ],
+      [
+        "start",
+        0,
+        1331184.777465291
+      ],
+      [
+        "stop",
+        0,
+        1331184.777470708
+      ],
+      [
+        "start",
+        0,
+        1331184.777479583
+      ],
+      [
+        "stop",
+        0,
+        1331184.77748375
+      ],
+      [
+        "start",
+        0,
+        1331184.777493375
+      ],
+      [
+        "stop",
+        0,
+        1331184.777497791
+      ],
+      [
+        "start",
+        0,
+        1331184.777510916
+      ],
+      [
+        "stop",
+        0,
+        1331184.77751575
+      ],
+      [
+        "start",
+        1,
+        1331184.777527208
+      ],
+      [
+        "stop",
+        1,
+        1331184.777743416
+      ],
+      [
+        "start",
+        2,
+        1331184.777753375
+      ],
+      [
+        "stop",
+        2,
+        1331184.915935833
+      ],
+      [
+        "start",
+        0,
+        1331184.915961875
+      ],
+      [
+        "stop",
+        0,
+        1331184.915967791
+      ],
+      [
+        "start",
+        0,
+        1331184.915989208
+      ],
+      [
+        "stop",
+        0,
+        1331184.915993625
+      ],
+      [
+        "start",
+        0,
+        1331184.91601275
+      ],
+      [
+        "stop",
+        0,
+        1331184.91601875
+      ],
+      [
+        "start",
+        0,
+        1331184.916039
+      ],
+      [
+        "stop",
+        0,
+        1331184.916043666
+      ],
+      [
+        "start",
+        0,
+        1331184.916061958
+      ],
+      [
+        "stop",
+        0,
+        1331184.91606725
+      ],
+      [
+        "start",
+        0,
+        1331184.920050166
+      ],
+      [
+        "stop",
+        0,
+        1331184.92007675
+      ],
+      [
+        "start",
+        0,
+        1331184.92086425
+      ],
+      [
+        "stop",
+        0,
+        1331184.920885791
+      ],
+      [
+        "start",
+        0,
+        1331184.921950708
+      ],
+      [
+        "stop",
+        0,
+        1331184.921972958
+      ],
+      [
+        "start",
+        0,
+        1331184.924826333
+      ],
+      [
+        "stop",
+        0,
+        1331184.924872375
+      ],
+      [
+        "start",
+        0,
+        1331184.9276515
+      ],
+      [
+        "stop",
+        0,
+        1331184.927696541
+      ],
+      [
+        "start",
+        0,
+        1331184.930262625
+      ],
+      [
+        "stop",
+        0,
+        1331184.930339875
+      ],
+      [
+        "start",
+        1,
+        1331184.938574541
+      ],
+      [
+        "stop",
+        1,
+        1331184.938791291
+      ],
+      [
+        "start",
+        0,
+        1331184.943481375
+      ],
+      [
+        "stop",
+        0,
+        1331184.943516625
+      ],
+      [
+        "start",
+        0,
+        1331184.950031208
+      ],
+      [
+        "stop",
+        0,
+        1331184.950062291
+      ],
+      [
+        "start",
+        0,
+        1331184.956711458
+      ],
+      [
+        "stop",
+        0,
+        1331184.956746583
+      ],
+      [
+        "start",
+        0,
+        1331184.963176208
+      ],
+      [
+        "stop",
+        0,
+        1331184.963206833
+      ],
+      [
+        "start",
+        0,
+        1331184.969820375
+      ],
+      [
+        "stop",
+        0,
+        1331184.969847916
+      ],
+      [
+        "start",
+        0,
+        1331184.976626041
+      ],
+      [
+        "stop",
+        0,
+        1331184.976656333
+      ],
+      [
+        "start",
+        0,
+        1331184.983065541
+      ],
+      [
+        "stop",
+        0,
+        1331184.983094875
+      ],
+      [
+        "start",
+        0,
+        1331184.989730125
+      ],
+      [
+        "stop",
+        0,
+        1331184.989757875
+      ],
+      [
+        "start",
+        0,
+        1331184.996549166
+      ],
+      [
+        "stop",
+        0,
+        1331184.996585458
+      ],
+      [
+        "start",
+        0,
+        1331185.002908625
+      ],
+      [
+        "stop",
+        0,
+        1331185.0029405
+      ],
+      [
+        "start",
+        0,
+        1331185.009318958
+      ],
+      [
+        "stop",
+        0,
+        1331185.009348958
+      ],
+      [
+        "start",
+        1,
+        1331185.015916958
+      ],
+      [
+        "stop",
+        1,
+        1331185.016049791
+      ],
+      [
+        "start",
+        0,
+        1331185.022492416
+      ],
+      [
+        "stop",
+        0,
+        1331185.022517083
+      ],
+      [
+        "start",
+        0,
+        1331185.029143666
+      ],
+      [
+        "stop",
+        0,
+        1331185.0291685
+      ],
+      [
+        "start",
+        0,
+        1331185.032889458
+      ],
+      [
+        "stop",
+        0,
+        1331185.032915708
+      ],
+      [
+        "start",
+        0,
+        1331185.039306375
+      ],
+      [
+        "stop",
+        0,
+        1331185.039329125
+      ],
+      [
+        "start",
+        0,
+        1331185.045574041
+      ],
+      [
+        "stop",
+        0,
+        1331185.045602625
+      ],
+      [
+        "start",
+        0,
+        1331185.052151333
+      ],
+      [
+        "stop",
+        0,
+        1331185.052174791
+      ],
+      [
+        "start",
+        0,
+        1331185.058696416
+      ],
+      [
+        "stop",
+        0,
+        1331185.05872225
+      ],
+      [
+        "start",
+        0,
+        1331185.065214958
+      ],
+      [
+        "stop",
+        0,
+        1331185.065240166
+      ],
+      [
+        "start",
+        0,
+        1331185.071788625
+      ],
+      [
+        "stop",
+        0,
+        1331185.071817333
+      ],
+      [
+        "start",
+        0,
+        1331185.078337208
+      ],
+      [
+        "stop",
+        0,
+        1331185.078366291
+      ],
+      [
+        "start",
+        0,
+        1331185.084899833
+      ],
+      [
+        "stop",
+        0,
+        1331185.084930083
+      ],
+      [
+        "start",
+        1,
+        1331185.09061575
+      ],
+      [
+        "stop",
+        1,
+        1331185.090723958
+      ],
+      [
+        "start",
+        0,
+        1331185.095342791
+      ],
+      [
+        "stop",
+        0,
+        1331185.095368291
+      ],
+      [
+        "start",
+        0,
+        1331185.101613208
+      ],
+      [
+        "stop",
+        0,
+        1331185.1016385
+      ],
+      [
+        "start",
+        0,
+        1331185.108183916
+      ],
+      [
+        "stop",
+        0,
+        1331185.108207125
+      ],
+      [
+        "start",
+        0,
+        1331185.114724625
+      ],
+      [
+        "stop",
+        0,
+        1331185.114753333
+      ],
+      [
+        "start",
+        0,
+        1331185.121242
+      ],
+      [
+        "stop",
+        0,
+        1331185.121265708
+      ],
+      [
+        "start",
+        0,
+        1331185.127767666
+      ],
+      [
+        "stop",
+        0,
+        1331185.127795875
+      ],
+      [
+        "start",
+        0,
+        1331185.134368541
+      ],
+      [
+        "stop",
+        0,
+        1331185.134396333
+      ],
+      [
+        "start",
+        0,
+        1331185.140955083
+      ],
+      [
+        "stop",
+        0,
+        1331185.140984958
+      ],
+      [
+        "start",
+        0,
+        1331185.147578666
+      ],
+      [
+        "stop",
+        0,
+        1331185.147618833
+      ],
+      [
+        "start",
+        0,
+        1331185.154147958
+      ],
+      [
+        "stop",
+        0,
+        1331185.154177125
+      ],
+      [
+        "start",
+        0,
+        1331185.161089833
+      ],
+      [
+        "stop",
+        0,
+        1331185.161124958
+      ],
+      [
+        "start",
+        1,
+        1331185.167676583
+      ],
+      [
+        "stop",
+        1,
+        1331185.16780975
+      ],
+      [
+        "start",
+        0,
+        1331185.174380666
+      ],
+      [
+        "stop",
+        0,
+        1331185.17441125
+      ],
+      [
+        "start",
+        0,
+        1331185.181072833
+      ],
+      [
+        "stop",
+        0,
+        1331185.181105125
+      ],
+      [
+        "start",
+        0,
+        1331185.187625541
+      ],
+      [
+        "stop",
+        0,
+        1331185.187652208
+      ],
+      [
+        "start",
+        0,
+        1331185.19427775
+      ],
+      [
+        "stop",
+        0,
+        1331185.194310083
+      ],
+      [
+        "start",
+        0,
+        1331185.200988458
+      ],
+      [
+        "stop",
+        0,
+        1331185.201018916
+      ],
+      [
+        "start",
+        0,
+        1331185.207489041
+      ],
+      [
+        "stop",
+        0,
+        1331185.207517791
+      ],
+      [
+        "start",
+        0,
+        1331185.214043375
+      ],
+      [
+        "stop",
+        0,
+        1331185.214079583
+      ],
+      [
+        "start",
+        0,
+        1331185.220672458
+      ],
+      [
+        "stop",
+        0,
+        1331185.220705875
+      ],
+      [
+        "start",
+        0,
+        1331185.227388791
+      ],
+      [
+        "stop",
+        0,
+        1331185.227428875
+      ],
+      [
+        "start",
+        0,
+        1331185.234016375
+      ],
+      [
+        "stop",
+        0,
+        1331185.234053166
+      ],
+      [
+        "start",
+        0,
+        1331185.240526291
+      ],
+      [
+        "stop",
+        0,
+        1331185.240562
+      ],
+      [
+        "start",
+        1,
+        1331185.247069333
+      ],
+      [
+        "stop",
+        1,
+        1331185.247201916
+      ],
+      [
+        "start",
+        0,
+        1331185.253816291
+      ],
+      [
+        "stop",
+        0,
+        1331185.253853958
+      ]
+    ],
+    "decoding_seconds": 1.9412914589047432,
+    "verification_seconds": 0.8930332080926746,
+    "verification_status": "not_recovered",
+    "families": 100
+  },
+  "validation": {
+    "tests_passed": 654,
+    "seconds": 45.26,
+    "scope": "Full local pytest suite, with worker sockets and process monitoring permitted"
+  }
 }

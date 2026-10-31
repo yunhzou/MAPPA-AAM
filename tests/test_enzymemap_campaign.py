@@ -58,6 +58,26 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
 
 
+def test_retry_ledger_retains_original_failure_and_audit(tmp_path):
+    from enzymemap import Ledger
+    output=tmp_path/'result'; output.mkdir()
+    scratch=tmp_path/'scratch'; scratch.mkdir()
+    store=BundleStore(output/'bundles')
+    audit=store.put({'attempts': ['original memory failure']})
+    ledger=Ledger(output,scratch,resume=False)
+    ledger.put('case','matching','error',audit=audit,error='memory_limit')
+    assert ledger.retry_audit('case','matching')==audit
+    ledger.retire_failure('case','matching','diagnosed native export defect')
+    ledger.put('case','matching','complete',reference=store.put('replacement'))
+    ledger.checkpoint(); ledger.db.close()
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT state FROM results').fetchone()==('complete',)
+        reason,raw,error=db.execute('SELECT reason,audit,error FROM retries').fetchone()
+        assert reason=='diagnosed native export defect'
+        assert json.loads(raw)==asdict(audit)
+        assert json.loads(error)=='memory_limit'
+
+
 def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
     from prepare_batches import prepare
     index=prepared_index(tmp_path)

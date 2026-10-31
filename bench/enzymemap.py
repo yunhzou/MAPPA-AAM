@@ -58,6 +58,7 @@ class Ledger:
             raise ValueError('Existing results require --resume')
         self.db = sqlite3.connect(self.path)
         self.db.execute('CREATE TABLE IF NOT EXISTS results (case_name TEXT, stage TEXT, state TEXT, reference TEXT, audit TEXT, error TEXT, PRIMARY KEY(case_name,stage))')
+        self.db.execute('CREATE TABLE IF NOT EXISTS retries (utc REAL, reason TEXT, case_name TEXT, stage TEXT, state TEXT, reference TEXT, audit TEXT, error TEXT)')
         self.db.commit()
 
     def get(self, case, stage):
@@ -68,6 +69,17 @@ class Ledger:
             self.db.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
                 (case, stage, state, json.dumps(asdict(reference)) if reference else None,
                  json.dumps(asdict(audit)) if audit else None, json.dumps(error) if error else None))
+
+    def retry_audit(self, case, stage):
+        row = self.db.execute('SELECT audit FROM results WHERE case_name=? AND stage=? AND state=?',
+                              (case, stage, 'error')).fetchone()
+        return Blob(**json.loads(row[0])) if row and row[0] else None
+
+    def retire_failure(self, case, stage, reason):
+        with self.db:
+            self.db.execute('INSERT INTO retries SELECT ?,?,* FROM results WHERE case_name=? AND stage=? AND state=?',
+                            (time.time(), reason, case, stage, 'error'))
+            self.db.execute('DELETE FROM results WHERE case_name=? AND stage=? AND state=?', (case, stage, 'error'))
 
     def checkpoint(self):
         local = self.path.with_name('snapshot.sqlite')
@@ -83,7 +95,8 @@ class Ledger:
 
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
-        case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None):
+        case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
+        retry_memory_limits=False):
     output = Path(output); output.mkdir(parents=True, exist_ok=True)
     raw = Path(index_path).read_bytes()
     index = json.loads(raw)
@@ -146,7 +159,17 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
                             exhausted = True
                             break
                         name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
-                        if ledger.get(name, stage):
+                        existing = ledger.get(name, stage)
+                        if existing:
+                            if retry_memory_limits and stage == 'matching' and existing[0] == 'error':
+                                audit = ledger.retry_audit(name, stage)
+                                if audit is not None:
+                                    try:
+                                        result = pool.retry_matching(name, audit)
+                                    except ValueError:
+                                        continue  # Other failure types still block the next pass.
+                                    ledger.retire_failure(name, stage, 'explicit retry after native transport repair')
+                                    active[name] = result
                             continue
                         try:
                             if stage == 'matching':
@@ -215,11 +238,14 @@ def main():
     parser.add_argument('--limit',type=int)
     parser.add_argument('--local',action='store_true')
     parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--retry-memory-limits',action='store_true',
+                        help='Retry archived matching memory failures; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
     parser.add_argument('--run-seconds',type=float,default=12600.)
     args=parser.parse_args()
     status = run(args.index,args.output,workers=args.workers,window=args.window,limit=args.limit,
-        local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after)
+        local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
+        retry_memory_limits=args.retry_memory_limits)
     if status.get("allocation_drained"):
         raise SystemExit(75)
 
