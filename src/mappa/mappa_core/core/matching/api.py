@@ -41,7 +41,7 @@ def match_fragment(source, target, *, seed, context=None, config=None,
             allow_mapped_seed=config.allow_mapped_seed,
             replay=context.growth_replay, random_seed=config.random_seed,
             events=events, profile=profile, profile_context=profile_context,
-            bond_tolerance=config.bond_tolerance)
+            bond_tolerance=config.bond_tolerance, growth_policy=config.growth_policy)
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,
                                    time.perf_counter() - started)

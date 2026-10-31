@@ -50,6 +50,7 @@ def _extend_sym_cands(
     dedupe_edges: Iterable[EdgeKey] | None = None,
     node_policy=None,
     bond_tolerance=None,
+    completion=None,
 ) -> list[_SymCand]:
     """Symmetry-compressed incremental extension.
 
@@ -122,7 +123,11 @@ def _extend_sym_cands(
     children: list[_SymCand] = []
     for raw_cand in cands:
         cand = raw_cand if isinstance(raw_cand, _SymCand) else _SymCand(raw_cand)
-        children.extend(_extend_one_candidate(cand, ctx))
+        proposed = _extend_one_candidate(cand, ctx)
+        if completion is not None:
+            proposed = [child for child in proposed
+                        if completion.find(candidate=child) is not None]
+        children.extend(proposed)
     return _dedupe_children(children, ctx)
 
 

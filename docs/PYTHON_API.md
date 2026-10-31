@@ -85,6 +85,22 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 
 `match_fragment(source_graph, target_graph, seed=..., context=FragmentMatchContext(locked_mapping=...), config=FragmentMatchConfig(...))` grows a seeded saturated fragment subject to existing assignments. Each extension constrains only the selected growth edge. Returned placements expose those accepted edges as `preserved_bonds`; other bonds between included atoms remain available in the original molecular graphs for event interpretation. Its result includes compressed placements and an explicit cap flag. It does not promise a globally largest common subgraph.
 
+```python
+from mappa import FragmentMatchConfig, match_fragment
+
+result = match_fragment(source_graph, target_graph, seed=0,
+    config=FragmentMatchConfig(growth_policy="existence"))
+```
+
+`growth_policy="incremental"` is the default and carries compressed alternatives
+through growth. The experimental `"existence"` policy finds one valid placement
+per extension, allowing earlier assignments inside the growing fragment to change.
+At saturation it recovers the compressed alternatives using the full accepted
+constraints, then applies the same branch cap. Earlier completed-fragment locks
+remain fixed. Both policies support Python and native fragment matching; a speedup
+is not guaranteed. Existence growth currently rejects `growth_replay` and is not
+exposed as a reaction-search/work-pool setting.
+
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 
 ## Adjustable parameters
@@ -95,7 +111,7 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 | `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance`; `growth_policy="incremental"` or `"existence"` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 

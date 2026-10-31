@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <chrono>
 
 extern "C" {
 #include "nauty.h"
@@ -1308,10 +1309,12 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
 }
 
 #include "extension_cache.h"
+#include "fragment_query.h"
 
 std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context& ctx,
                                    const Canonicalizer& canon, long& certificate_calls,
-                                   ExtensionCache* extension_cache=nullptr) {
+                                   ExtensionCache* extension_cache=nullptr,
+                                   FragmentQuery* completion=nullptr) {
     std::vector<Cand> children;
     for (const auto& c : cands) {
         bool covers = true;
@@ -1326,6 +1329,8 @@ std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context
             extend_free_atom(c, ctx, children);
         }
     }
+    if (completion) children.erase(std::remove_if(children.begin(),children.end(),
+        [&](const Cand& c){return completion->find(&c).empty();}),children.end());
     return dedup_sym_cands(children, ctx, canon, ctx.sig_fragment, ctx.dedupe_edges,
                            certificate_calls);
 }
@@ -1366,6 +1371,9 @@ struct GrowthRandom {
 };
 
 struct GrowProfile {
+    std::string growth_policy="incremental";
+    long feasibility_calls=0,feasibility_nodes=0,completion_steps=0,completion_queries=0,completion_pruned=0;
+    double completion_seconds=0;
     long seed_targets = 0, seed_groups = 0, init_cands = 0, initial_heap = 0, heap_pops = 0,
          stale_pops = 0, fragment_skip_pops = 0, extend_calls = 0, max_cands_before = 0,
          max_cands_after = 0, max_fragment_size = 0, max_heap_len = 0, commits = 0,
@@ -1392,6 +1400,76 @@ struct GrowResult {
     bool capped = false;
     BranchCap cap{0, 0};
 };
+
+struct AcceptedGrowthStep { int anchor,atom; double weight; std::vector<Pair> deferred; };
+
+std::vector<Cand> seed_candidates(const Source& R,const Target& P,int seed,
+                                 const std::vector<int>& mapping,GrowProfile* profile=nullptr,
+                                 bool first_only=false) {
+    std::vector<Cand> candidates;
+    std::vector<int> targets;
+    if (mapping[seed]>=0) targets.push_back(mapping[seed]);
+    else {
+        std::vector<uint8_t> occupied(P.n,0);
+        for (int p:mapping) if (p>=0) occupied[p]=1;
+        for (int p=0;p<P.n;++p)
+            if (!occupied[p] && P.ecode[p]==R.ecode[seed]) targets.push_back(p);
+    }
+    if (profile) profile->seed_targets=(long)targets.size();
+    if (targets.empty()) return candidates;
+    if (first_only || mapping[seed]>=0) {
+        std::vector<int> raw(R.n,-1);raw[seed]=targets.front();
+        Cand c;
+        make_cand(raw,{},mapping[seed]>=0 ? std::vector<int>{seed} : std::vector<int>{},1,{},P.n,c);
+        candidates.push_back(std::move(c));
+        if (profile) profile->seed_groups=1;
+        return candidates;
+    }
+    std::map<int,std::vector<int>> by_orbit;
+    for (int p:targets) by_orbit[P.orbit[p]].push_back(p);
+    std::vector<std::pair<std::string,std::vector<int>>> groups;
+    for (auto& item:by_orbit)
+        groups.push_back({"('"+R.elem[seed]+"', "+std::to_string(item.first)+")",item.second});
+    std::stable_sort(groups.begin(),groups.end(),[](const auto& a,const auto& b){return a.first<b.first;});
+    if (profile) profile->seed_groups=(long)groups.size();
+    for (const auto& group:groups) {
+        std::vector<int> raw(R.n,-1);raw[seed]=group.second.front();
+        Cand c;
+        std::vector<Block> blocks;
+        if (group.second.size()>1) blocks.push_back(make_block({seed},group.second,false));
+        make_cand(raw,blocks,{},1,{},P.n,c);candidates.push_back(std::move(c));
+    }
+    return candidates;
+}
+
+Context growth_context(const Source& R,const Target& P,const std::vector<int>& mapping,
+                       const std::vector<uint8_t>& locked_p,const std::vector<Pair>* islands,
+                       const std::vector<int>& island_of,const std::vector<uint8_t>& fragment,
+                       int u,int n,double weight,const std::vector<Pair>& deferred,
+                       double graph_floor,double tolerance,bool include_boundary=true) {
+    Context ctx;
+    ctx.R=&R;ctx.P=&P;ctx.mapping=&mapping;ctx.locked_p=locked_p;
+    ctx.fragment_old=fragment;ctx.n=n;ctx.iso_tol=tolerance;
+    ctx.islands=islands;ctx.island_of=&island_of;ctx.deferred_edges=deferred;
+    ctx.anchor_u=u;ctx.anchor_wbo=weight;ctx.has_anchor_wbo=true;
+    ctx.bonded_in_frag={u};ctx.r_wbos={R.wbo(u,n)};
+    ctx.strict_r=fragment[u] ? u : -1;ctx.strict_w=weight;
+    if (mapping[n]>=0 && islands && island_of[n]>=0) {
+        for (auto [r,label]:*islands)
+            if (label==island_of[n] && !fragment[r]) ctx.island_atoms.push_back(r);
+    } else ctx.island_atoms={n};
+    ctx.sig_fragment=fragment;ctx.sig_fragment[n]=1;
+    for (int r:ctx.island_atoms) ctx.sig_fragment[r]=1;
+    if (include_boundary) {
+        ctx.dedupe_edges=deferred;
+        for (int a=0;a<R.n;++a) if (ctx.sig_fragment[a])
+            for (int b:R.neighbors(a)) if (!ctx.sig_fragment[b] && R.wbo(a,b)>=graph_floor)
+                ctx.dedupe_edges.push_back({std::min(a,b),std::max(a,b)});
+        std::sort(ctx.dedupe_edges.begin(),ctx.dedupe_edges.end());
+        ctx.dedupe_edges.erase(std::unique(ctx.dedupe_edges.begin(),ctx.dedupe_edges.end()),ctx.dedupe_edges.end());
+    }
+    return ctx;
+}
 
 void finish_fragment(const Source& R, const Target& P, const std::vector<int>& mapping,
                      std::vector<Cand> cands, const std::vector<uint8_t>& fragment,
@@ -1443,7 +1521,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        GrowthDependencies* dependencies = nullptr,
                        ExtensionCache* extension_cache = nullptr,
                        uint64_t random_seed = 42,
-                       GrowthObservation* observation = nullptr) {
+                       GrowthObservation* observation = nullptr, bool existence = false) {
     SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);
     GrowResult result;
     GrowProfile& prof = result.profile;
@@ -1455,47 +1533,13 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     if (islands)
         for (const auto& item : *islands) island_of[item.first] = item.second;
 
-    std::vector<Cand> cands;
+    prof.growth_policy=existence ? "existence" : "incremental";
+    if (existence && (previous || trace || extension_cache))
+        throw std::invalid_argument("existence growth does not support candidate-based replay caches");
     if (dependencies) dependencies->mapping_at(seed);
-    if (mapping[seed] >= 0) {
-        if (!allow_mapped_seed) {
-            prof.result = "already_mapped";
-            return result;
-        }
-        prof.seed_targets = 1;
-        prof.seed_groups = 1;
-        std::vector<int> raw(NR, -1);
-        raw[seed] = mapping[seed];
-        Cand c;
-        make_cand(raw, {}, {seed}, 1, {}, NP, c);
-        cands.push_back(std::move(c));
-    } else {
-        std::vector<int> targets;
-        for (int v = 0; v < NP; ++v)
-            if (!locked_p[v] && P.ecode[v] == R.ecode[seed]) targets.push_back(v);
-        prof.seed_targets = (long)targets.size();
-        // groups keyed by (element, orbit), ordered by Python str(key)
-        std::map<int, std::vector<int>> by_orbit;
-        for (int v : targets) by_orbit[P.orbit[v]].push_back(v);
-        std::vector<std::pair<std::string, std::vector<int>>> groups;
-        for (auto& item : by_orbit) {
-            std::string repr = "('" + R.elem[seed] + "', " + std::to_string(item.first) + ")";
-            groups.push_back({repr, item.second});
-        }
-        std::stable_sort(groups.begin(), groups.end(),
-                         [](const auto& a, const auto& b) { return a.first < b.first; });
-        prof.seed_groups = (long)groups.size();
-        for (auto& g : groups) {
-            std::vector<int> raw(NR, -1);
-            raw[seed] = g.second[0];
-            Cand c;
-            if (g.second.size() > 1)
-                make_cand(raw, {make_block({seed}, g.second, false)}, {}, 1, {}, NP, c);
-            else
-                make_cand(raw, {}, {}, 1, {}, NP, c);
-            cands.push_back(std::move(c));
-        }
-    }
+    if (mapping[seed]>=0 && !allow_mapped_seed) {prof.result="already_mapped";return result;}
+    auto cands=seed_candidates(R,P,seed,mapping,&prof,existence);
+    std::vector<AcceptedGrowthStep> accepted_steps;
     if (cands.empty()) {
         prof.result = "no_initial_cands";
         return result;
@@ -1597,63 +1641,22 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         long old_count = (long)cands.size();
         prof.max_cands_before = std::max(prof.max_cands_before, old_count);
 
-        // dedupe fragment: fragment | {n} | n's whole island (if any)
-        std::vector<uint8_t> dedupe_fragment = fragment;
-        dedupe_fragment[n] = 1;
-        if (n_in_mapping && islands && island_of[n] >= 0) {
-            int iid = island_of[n];
-            for (const auto& it : *islands)
-                if (it.second == iid) dedupe_fragment[it.first] = 1;
-        }
-        // dedupe edges: deferred | one-hop frontier of dedupe_fragment
-        std::vector<Pair> dedupe_edges = deferred;
-        for (int a = 0; a < NR; ++a) {
-            if (!dedupe_fragment[a]) continue;
-            for (int nb : R.neighbors(a)) {
-                if (dedupe_fragment[nb]) continue;
-                if (R.wbo(a, nb) >= graph_floor)
-                    dedupe_edges.push_back({std::min(a, nb), std::max(a, nb)});
-            }
-        }
-        std::sort(dedupe_edges.begin(), dedupe_edges.end());
-        dedupe_edges.erase(std::unique(dedupe_edges.begin(), dedupe_edges.end()), dedupe_edges.end());
-
-        // context
-        Context ctx;
-        ctx.R = &R;
-        ctx.P = &P;
-        ctx.fragment_old = fragment;
-        ctx.n = n;
-        ctx.mapping = &mapping;
-        ctx.locked_p = locked_p;
-        ctx.iso_tol = iso_tol;
-        ctx.islands = islands;
-        ctx.island_of = &island_of;
-        ctx.deferred_edges = deferred;
-        ctx.anchor_u = u;
-        ctx.anchor_wbo = wbo;
-        ctx.has_anchor_wbo = true;
-        ctx.dedupe_edges = std::move(dedupe_edges);
-        ctx.bonded_in_frag.push_back(u);
+        auto ctx=growth_context(R,P,mapping,locked_p,islands,island_of,fragment,
+                                u,n,wbo,deferred,graph_floor,iso_tol,!existence);
+        if (dependencies) dependencies->boundary(ctx.sig_fragment);
         std::vector<Cand> new_cands;
-        if (!ctx.bonded_in_frag.empty()) {
-            for (int a : ctx.bonded_in_frag) ctx.r_wbos.push_back(R.wbo(a, n));
-            ctx.strict_r = fragment[u] ? u : -1;
-            ctx.strict_w = wbo;
-            if (!n_in_mapping || !islands || island_of[n] < 0) {
-                ctx.island_atoms = {n};
-            } else {
-                int iid = island_of[n];
-                for (const auto& it : *islands)
-                    if (it.second == iid && !fragment[it.first]) ctx.island_atoms.push_back(it.first);
+        if (existence) {
+            auto edges=preserved_bonds;edges.push_back({u,n});
+            FragmentQuery query(R,P,ctx.sig_fragment,edges,mapping,iso_tol);
+            auto witness=query.find(nullptr,&cands.front().img);
+            prof.feasibility_calls+=query.calls;prof.feasibility_nodes+=query.nodes;
+            if (!witness.empty()) {
+                Cand child;make_cand(witness,{}, {},1,{},NP,child);
+                new_cands.push_back(std::move(child));
             }
-            ctx.sig_fragment = fragment;
-            ctx.sig_fragment[n] = 1;
-            for (int a : ctx.island_atoms) ctx.sig_fragment[a] = 1;
-            if (dependencies) dependencies->boundary(ctx.sig_fragment);
-            new_cands = extend_sym_cands(cands, ctx, canon, certificate_calls, extension_cache);
-        }
+        } else new_cands=extend_sym_cands(cands,ctx,canon,certificate_calls,extension_cache);
         if (!new_cands.empty()) {
+            if (existence) accepted_steps.push_back({u,n,wbo,deferred});
             preserved_bonds.push_back({std::min(u,n), std::max(u,n)});
             prof.commits++;
             prof.max_cands_after = std::max(prof.max_cands_after, (long)new_cands.size());
@@ -1680,6 +1683,25 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
             auto pos = std::lower_bound(deferred.begin(), deferred.end(), e);
             if (pos == deferred.end() || *pos != e) deferred.insert(pos, e);
         }
+    }
+    // Saturation: recover compressed alternatives using every accepted constraint.
+    if (existence) {
+        auto started=std::chrono::steady_clock::now();
+        FragmentQuery completion(R,P,fragment,preserved_bonds,mapping,iso_tol);
+        cands=seed_candidates(R,P,seed,mapping);
+        cands.erase(std::remove_if(cands.begin(),cands.end(),
+            [&](const Cand& c){return completion.find(&c).empty();}),cands.end());
+        std::vector<uint8_t> prefix(NR,0);prefix[seed]=1;
+        for (const auto& step:accepted_steps) {
+            auto ctx=growth_context(R,P,mapping,locked_p,islands,island_of,prefix,
+                step.anchor,step.atom,step.weight,step.deferred,graph_floor,iso_tol);
+            cands=extend_sym_cands(cands,ctx,canon,certificate_calls,nullptr,&completion);
+            prefix=std::move(ctx.sig_fragment);
+        }
+        if (cands.empty()) throw std::runtime_error("completed fragment lost its proven matching witness");
+        prof.completion_steps=(long)accepted_steps.size();
+        prof.completion_queries=completion.calls;prof.completion_pruned=completion.rejected;
+        prof.completion_seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
     }
     // saturation quotient
     checkpoint();
@@ -1873,6 +1895,10 @@ py::object grow_result_dict(const GrowResult& res) {
     out["cap_limit"] = res.cap.limit;
     py::dict prof;
     const GrowProfile& p = res.profile;
+    prof["growth_policy"]=p.growth_policy;
+    prof["feasibility_calls"]=p.feasibility_calls;prof["feasibility_nodes"]=p.feasibility_nodes;
+    prof["completion_seconds"]=p.completion_seconds;prof["completion_steps"]=p.completion_steps;
+    prof["completion_queries"]=p.completion_queries;prof["completion_pruned"]=p.completion_pruned;
     prof["seed_targets"] = p.seed_targets;
     prof["seed_groups"] = p.seed_groups;
     prof["init_cands"] = p.init_cands;
@@ -1901,7 +1927,10 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe) {
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,
+                          const std::string& growth_policy) {
+    if (growth_policy!="incremental" && growth_policy!="existence")
+        throw std::invalid_argument("growth_policy must be incremental or existence");
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -1914,7 +1943,8 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr);
+                          nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr,
+                          growth_policy=="existence");
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -1967,11 +1997,16 @@ PYBIND11_MODULE(_engine, mod) {
         .def("memo_stats", [](const PyTarget& t) {
             return py::make_tuple(t.g.nauty->memo_hits, t.g.nauty->memo_misses,
                                   (long)t.g.nauty->memo.size());
+        })
+        .def("memo_storage_bytes", [](const PyTarget& t) {
+            size_t keys=0,values=0;
+            for (const auto& entry:t.g.nauty->memo) {keys+=entry.first.size();values+=entry.second.size();}
+            return py::make_tuple(keys,values);
         });
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false);
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("growth_policy")="incremental");
     register_growth_replay(mod);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);

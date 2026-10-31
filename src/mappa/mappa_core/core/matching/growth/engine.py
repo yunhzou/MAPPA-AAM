@@ -12,6 +12,15 @@ from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.growth.frontier import _frontier_boundary_edges, _push_edges_from, _set_unique, _pop_random_atom, GrowthRandom
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, _IsoResult
 from mappa.mappa_core.core.matching.growth.trace import cand_possible_values, cands_pattern_sample, cands_sample, heap_snapshot, pool_by_frag_atom, represented_assignment_expr, why_extend_failed, why_merge_failed
+from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
+
+
+def _seed_candidates(seed, groups, locked):
+    if seed in locked:
+        return [_SymCand({seed: locked[seed]}, exact_fixed=(seed,))]
+    return [_SymCand({seed: group[0]},
+                     (_SymBlock((seed,), group, extendable=False),)
+                     if len(group) > 1 else ()) for group in groups]
 
 
 def grow_island(g_R, g_P, seed, mapping,
@@ -27,7 +36,8 @@ def grow_island(g_R, g_P, seed, mapping,
                 node_policy=None,
                 allow_mapped_seed=False,
                 profile=None,
-                profile_context=None, replay=None, random_seed=42, bond_tolerance=None):
+                profile_context=None, replay=None, random_seed=42, bond_tolerance=None,
+                growth_policy='incremental'):
     """
     Grow a fragment from `seed` by uniformly sampling the live boundary atoms.
 
@@ -48,6 +58,11 @@ def grow_island(g_R, g_P, seed, mapping,
     existing trace_run.HTML viewer.
     """
     node_policy = as_node_match_policy(node_policy)
+    if growth_policy not in ('incremental', 'existence'):
+        raise ValueError("growth_policy must be 'incremental' or 'existence'")
+    existence = growth_policy == 'existence'
+    if existence and replay is not None:
+        raise ValueError('existence growth does not support candidate-based cut replay')
     bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
     if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):
         raise ValueError("cut replay requires the native element-policy matcher without trace events")
@@ -59,7 +74,7 @@ def grow_island(g_R, g_P, seed, mapping,
             prior_deferred_edges=prior_deferred_edges,
             allow_mapped_seed=allow_mapped_seed, profile=profile,
             profile_context=profile_context, replay=replay, random_seed=random_seed,
-            bond_tolerance=bond_tolerance)
+            bond_tolerance=bond_tolerance, growth_policy=growth_policy)
         if out is None:
             raise ValueError("Selected native growth cannot represent these inputs")
         return out
@@ -89,6 +104,13 @@ def grow_island(g_R, g_P, seed, mapping,
             'merge_calls': 0,
             'free_extend_calls': 0,
             'slowest_extend': None,
+            'growth_policy': growth_policy,
+            'feasibility_calls': 0,
+            'feasibility_nodes': 0,
+            'completion_seconds': 0.,
+            'completion_steps': 0,
+            'completion_queries': 0,
+            'completion_pruned': 0,
         }
         if profile_context:
             prof.update(profile_context)
@@ -123,18 +145,9 @@ def grow_island(g_R, g_P, seed, mapping,
     if prof is not None:
         prof['seed_targets'] = int(len(seed_targets))
         prof['seed_groups'] = int(len(seed_groups))
-    cands = []
-    for group in seed_groups:
-        if seed in mapping:
-            cands.append(_SymCand(
-                {seed: mapping[seed]},
-                exact_fixed=(seed,)))
-        elif len(group) > 1:
-            cands.append(_SymCand({seed: group[0]},
-                                  (_SymBlock((seed,), group,
-                                             extendable=False),)))
-        else:
-            cands.append(_SymCand({seed: group[0]}))
+    cands = ([_SymCand({seed: seed_targets[0]})] if seed_targets else []) if existence else (
+        _seed_candidates(seed, seed_groups, mapping))
+    accepted_steps = []
     if not cands:
         _finish_profile('no_initial_cands')
         if record:
@@ -163,6 +176,8 @@ def grow_island(g_R, g_P, seed, mapping,
     if record:
         events.append({
             'type': 'seed_start',
+            'growth_policy': growth_policy,
+            'candidate_kind': 'witness' if existence else 'compressed_match',
             'seed': int(seed),
             'init_cands': len(cands),
             'represented_assignments': represented_assignment_expr(cands),
@@ -250,11 +265,20 @@ def grow_island(g_R, g_P, seed, mapping,
         # element/WBO checks as the concrete incremental matcher, but groups
         # target atoms by local orbit/context before constructing children.
         extend_t0 = time.perf_counter() if prof is not None else None
-        new_cands = _extend_sym_cands(
-            cands, fragment, n, g_R, g_P, mapping,
-            iso_tol, islands_R, p_orbits=p_orbits, r_orbits=r_orbits,
-            deferred_edges=deferred_edges, anchor_u=u, anchor_wbo=wbo,
-            dedupe_edges=dedupe_edges, node_policy=node_policy, bond_tolerance=bond_tolerance)
+        if existence:
+            query = FragmentQuery(g_R, g_P, dedupe_fragment,
+                [*preserved_bonds, (u, n)], mapping, node_policy, iso_tol, bond_tolerance)
+            witness = query.find(preferred=cands[0].mapping)
+            new_cands = [] if witness is None else [_SymCand(witness)]
+            if prof is not None:
+                prof['feasibility_calls'] += query.calls
+                prof['feasibility_nodes'] += query.nodes
+        else:
+            new_cands = _extend_sym_cands(
+                cands, fragment, n, g_R, g_P, mapping,
+                iso_tol, islands_R, p_orbits=p_orbits, r_orbits=r_orbits,
+                deferred_edges=deferred_edges, anchor_u=u, anchor_wbo=wbo,
+                dedupe_edges=dedupe_edges, node_policy=node_policy, bond_tolerance=bond_tolerance)
         if prof is not None:
             extend_elapsed = time.perf_counter() - extend_t0
             prof['extend_elapsed_sec'] += extend_elapsed
@@ -274,6 +298,8 @@ def grow_island(g_R, g_P, seed, mapping,
                     'candidate_fragment_size': int(len(candidate_fragment)),
                 }
         if new_cands:
+            if existence:
+                accepted_steps.append((u, n, wbo, tuple(sorted(deferred_edges))))
             preserved_bonds.add(tuple(sorted((u, n))))
             if prof is not None:
                 prof['commits'] += 1
@@ -338,7 +364,7 @@ def grow_island(g_R, g_P, seed, mapping,
                     'reason': ('merge_failed' if n_in_mapping else 'cut_all_cands'),
                     'island_image': int(mapping[n]) if n_in_mapping else None,
                     'island_id': int(islands_R[n]) if islands_R and n in islands_R else None,
-                    'why_per_cand': (why_merge_failed(cands, fragment, n, mapping, islands_R, g_R, g_P, iso_tol, bond_tolerance=bond_tolerance) if n_in_mapping
+                    'why_per_cand': None if existence else (why_merge_failed(cands, fragment, n, mapping, islands_R, g_R, g_P, iso_tol, bond_tolerance=bond_tolerance) if n_in_mapping
                                      else why_extend_failed(cands, fragment, n, u, wbo, g_R, g_P, mapping, iso_tol, node_policy=node_policy, bond_tolerance=bond_tolerance)),
                     'cands_count': len(cands),
                     'represented_assignments': represented_assignment_expr(cands),
@@ -349,6 +375,31 @@ def grow_island(g_R, g_P, seed, mapping,
                     'heap_top': heap_snapshot(heap, used_edges, fragment, mapping, 8),
                     'pool_by_frag_atom': pool_by_frag_atom(heap, used_edges, fragment, mapping, g_R),
                 })
+
+    if existence:
+        completion_started = time.perf_counter()
+        completion = FragmentQuery(g_R, g_P, fragment, preserved_bonds, mapping,
+                                   node_policy, iso_tol, bond_tolerance)
+        cands = [c for c in _seed_candidates(seed, seed_groups, mapping)
+                 if completion.find(candidate=c) is not None]
+        prefix = {seed}
+        for u, n, wbo, prior_deferred in accepted_steps:
+            enlarged = prefix | {n}
+            if n in mapping and islands_R is not None and n in islands_R:
+                enlarged.update(r for r, label in islands_R.items() if label == islands_R[n])
+            cands = _extend_sym_cands(cands, prefix, n, g_R, g_P, mapping,
+                iso_tol, islands_R, p_orbits=p_orbits, r_orbits=r_orbits,
+                deferred_edges=prior_deferred, anchor_u=u, anchor_wbo=wbo,
+                dedupe_edges=set(prior_deferred) | _frontier_boundary_edges(g_R, enlarged, graph_floor),
+                node_policy=node_policy, bond_tolerance=bond_tolerance, completion=completion)
+            prefix = enlarged
+        if not cands:
+            raise RuntimeError('completed fragment lost its proven matching witness')
+        if prof is not None:
+            prof['completion_seconds'] = time.perf_counter() - completion_started
+            prof['completion_steps'] = len(accepted_steps)
+            prof['completion_queries'] = completion.calls
+            prof['completion_pruned'] = completion.rejected
 
     # Apply the same exact product-automorphism quotient at saturation.  This
     # is normally a no-op after incremental canonicalization, but also covers
