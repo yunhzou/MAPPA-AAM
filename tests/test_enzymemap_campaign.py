@@ -66,7 +66,8 @@ def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
     index.write_text(json.dumps(data))
     baseline=tmp_path/'baseline'
     assert run(index,baseline,local=True,workers=2,stop_after='matching')['pass_finished']=='matching'
-    prepare(index,baseline,tmp_path/'batches',count=2)
+    prepare(index,baseline,tmp_path/'batches',count=2,
+            additional_ledgers=[baseline/'ledger.sqlite'])
     for batch in range(2):
         root=tmp_path/'batches'/str(batch)
         assert {r['case'] for r in json.loads((root/'index.json').read_text())['directions']}=={batch}
