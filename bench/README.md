@@ -50,3 +50,11 @@ next pass; there are no automatic retries or automatic Slurm resubmissions.
 `progress.json` reports stage counts, ready workers and active work.
 `ledger.sqlite` indexes outputs and archived task evidence. These files and the
 bundle directory are the handoff; no dataset-wide graph is collected in RAM.
+
+DFW uses `enzymemap-dfw.sbatch`: five independently scheduled two-node bins,
+160 compute workers each (800 total), within cpu_short's ten-node limit.
+The account is `nemotron_omni_vision`. The relocated campaign keeps aggregated
+bundles intact and sets `MAPPA_BUNDLE_ROOTS` for original NRT references. Inputs
+and results are verified by their original checksums when read. Matching runs
+with `--stop-after matching`; downstream submissions depend on the entire array
+completing successfully.

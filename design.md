@@ -403,3 +403,10 @@ Small Slurm allocations may own disjoint reaction-ID batches, each with its own
 ledger and persistent worker pool. An array-wide successful matching dependency
 precedes later passes; an allocation that drains early is not successful stage
 completion. Original aggregated artifacts remain shared read-only inputs.
+
+Moving aggregated artifacts between clusters may remap storage roots through
+`MAPPA_BUNDLE_ROOTS` (a JSON source-root to destination-root map). Reads retain
+original offsets and checksums, including nested references. Publication uses
+the destination's native paths. This is a storage concern; algorithms and saved
+scientific content do not change. Stop source writers before transferring a
+checkpoint and give destination batches disjoint reaction ownership.

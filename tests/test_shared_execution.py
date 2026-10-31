@@ -555,3 +555,25 @@ def test_case_archival_keeps_evidence_and_bounds_dispatch_history(tmp_path):
     assert queue.snapshot() == {}
     assert queue.db.execute('SELECT count(*) FROM cases').fetchone()[0] == 0
     queue.close()
+
+
+def test_bundle_relocation_preserves_nested_references_and_checksums(tmp_path, monkeypatch):
+    from mappa.mappa_core.core.scheduler.bundles import _bundle_roots
+    import json
+    import shutil
+    original=tmp_path/'original'
+    writer=BundleWriter(original,tmp_path)
+    child=writer.put({'value':17})
+    parent=writer.put({'child':child})
+    relocated=tmp_path/'relocated'
+    shutil.move(original,relocated)
+    monkeypatch.setenv('MAPPA_BUNDLE_ROOTS',json.dumps({str(original):str(relocated)}))
+    _bundle_roots.cache_clear()
+    try:
+        assert read_blob(read_blob(parent,tmp_path)['child'],tmp_path)=={'value':17}
+        with open(relocated/Path(child.path).name,'r+b') as stream:
+            stream.seek(child.offset); stream.write(b'broken')
+        with pytest.raises(ValueError,match='checksum'):
+            read_blob(child,tmp_path)
+    finally:
+        _bundle_roots.cache_clear()

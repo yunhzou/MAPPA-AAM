@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import gzip
 import hashlib
 from itertools import groupby
+from functools import lru_cache
+import json
 import os
 from pathlib import Path
 import pickle
@@ -18,6 +20,20 @@ class Blob:
     sha256: str
 
 
+@lru_cache(maxsize=1)
+def _bundle_roots():
+    return json.loads(os.environ.get('MAPPA_BUNDLE_ROOTS', '{}'))
+
+
+def _bundle_path(path):
+    # Relocation changes the storage root, never the saved byte range or checksum.
+    for source, destination in _bundle_roots().items():
+        relative = Path(path).relative_to(source) if Path(path).is_relative_to(source) else None
+        if relative is not None:
+            return Path(destination)/relative
+    return path
+
+
 def read_blob(blob, scratch):
     """Only load trusted internal results; verify bytes before unpickling."""
     return next(read_blobs([blob], scratch))[1]
@@ -31,7 +47,7 @@ def read_blobs(blobs, scratch):
     """
     with tempfile.SpooledTemporaryFile(max_size=8*2**20, dir=scratch) as local:
         for path, group in groupby(blobs, key=lambda blob: blob.path):
-            with open(path, 'rb') as stream:
+            with open(_bundle_path(path), 'rb') as stream:
                 for blob in group:
                     yield blob, _read_verified(stream, local, blob)
 
