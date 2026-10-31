@@ -82,3 +82,38 @@ configuration did not make those single-reaction stages parallel.
 `parallelism.json` retains the calculations for every pass. The first pass's
 limited worker participation was not identified in the original completion/PID
 audit; the timestamp analysis above corrects that incomplete characterization.
+
+## Readiness diagnosis: job 189373
+
+A readiness-instrumented rerun on NRT `cpu-short` reproduced the first-pass symptom
+without changing scheduling or adding reactions. All timestamps below are from
+the coordinator clock, relative to submitting the first 116-cut sweep.
+
+| Event | Seconds |
+|---|---:|
+| First worker on cpu-0004 ready; 116 runnable cuts | 6.3574 |
+| Second worker on cpu-0004 ready; 111 runnable cuts | 6.5015 |
+| Last cut in the first sweep completed | 8.3484 |
+| Both workers on cpu-0008 ready; no runnable cuts | 9.1156–9.1158 |
+| Same sweep submitted after all four were ready | 9.1279 |
+| Second sweep's first task claimed | 9.1952 |
+| Second sweep's last task completed | 10.3008 |
+
+Each first-node worker claimed its first task about 0.2 ms after reporting ready.
+The second-node workers became ready after the entire first sweep had finished.
+After all four were ready, the same 116 cuts used all four workers, with task counts
+30, 33, 35 and 18. The active matching window was 1.106 s, peak overlap was four,
+and summed computation CPU time was 2.464 s. Both retained graphs exactly matched
+direct execution; all 232 tasks completed and the job exited 0:0.
+
+The reproduced cause is asynchronous pool startup without a worker-readiness
+barrier. `WorkPool.__enter__` returns after launching srun, while services and
+compute processes are still starting. The queue dispatches runnable work to the
+workers already ready. The first sweep finishes before the late node joins.
+There is enough cut parallelism; this observation does not show ready workers
+being starved by task dispatch. The original test mixed startup with execution.
+A ready-pool API should await all requested workers and report startup separately.
+This diagnostic adds telemetry only; it has not yet changed that startup behavior.
+
+`readiness.json` retains worker-ready times, runnable backlog at readiness and all
+claim/completion timestamps. `readiness.py` contains the controlled comparison.
