@@ -10,7 +10,8 @@ Total allocation elapsed time was 2:01 including native builds.
 ## Scientific and execution checks
 
 - All **821 tasks** completed with no failed, lost or retried task.
-- The same **four compute PIDs** served all matching, reduction and decoding passes
+- The **four compute PIDs** stayed stable throughout the run. The first matching
+  pass used only two workers on one node; later matching passes used all four
   across both nodes.
 - Complete graphs and decoded records matched direct execution; the one-seed
   decoded record also matched the saved pre-refactor result. Only archive-local
@@ -56,3 +57,28 @@ verification results. The original output directory retains the Slurm log,
 compressed task metrics, manifests and result bundles. The test driver and batch
 script are versioned here; this is one case-study validation, not a benchmark
 campaign framework.
+
+## Measured parallelism
+
+This post-run calculation joins coordinator-recorded claim/completion timestamps
+with each compute process's CPU timings. Peak overlap includes computation and
+publication; CPU seconds divided by the first-claim-to-last-completion interval
+independently measures simultaneous CPU consumption. It excludes pool startup
+and submission time and is not an end-to-end speedup ratio.
+
+| Matching pass | Workers / nodes used | Peak overlapping tasks | Computation CPU s | Active wall s | Average compute cores |
+|---|---:|---:|---:|---:|---:|
+| One seed, first | 2 / 1 | 2 | 2.751 | 2.040 | 1.35 |
+| One seed, second | 4 / 2 | 4 | 2.618 | 1.530 | 1.71 |
+| One seed, third | 4 / 2 | 4 | 2.636 | 1.172 | 2.25 |
+| Three seeds, split batches | 4 / 2 | 4 | 9.571 | 3.832 | 2.50 |
+
+The split-seed pass had four tasks in flight for 3.404 seconds of its 3.832-second
+active window. This confirms real computation in parallel, with average compute
+utilization of about 62% of the four compute workers for that pass. Single-reaction
+deduplication and decoding each used one task and one worker. The four-worker
+configuration did not make those single-reaction stages parallel.
+
+`parallelism.json` retains the calculations for every pass. The first pass's
+limited worker participation was not identified in the original completion/PID
+audit; the timestamp analysis above corrects that incomplete characterization.

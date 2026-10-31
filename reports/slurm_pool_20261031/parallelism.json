@@ -1,0 +1,262 @@
+[
+  {
+    "batch": "45b66cd5bc86436a87f2a22773e158a4",
+    "case": "446",
+    "stage": "matching",
+    "tasks": 116,
+    "workers": 2,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 2.0399210453033447,
+    "computation_cpu_seconds": 2.750536009000001,
+    "total_worker_cpu_seconds": 2.9895786760000007,
+    "computation_cpu_per_wall": 1.348354150927927,
+    "peak_overlapping_tasks": 2,
+    "seconds_by_active_task_count": {
+      "0": 0.0003237724304199219,
+      "1": 0.340728759765625,
+      "2": 1.6988685131072998
+    }
+  },
+  {
+    "batch": "2a3734509e744a51a6f9c89e1294726d",
+    "case": "446",
+    "stage": "deduplication",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 0.47171568870544434,
+    "computation_cpu_seconds": 0.3821509329999997,
+    "total_worker_cpu_seconds": 0.4002934149999997,
+    "computation_cpu_per_wall": 0.8101297924789354,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 0.47171568870544434
+    }
+  },
+  {
+    "batch": "40dec4114d8e4d2ea676db5c74e3a167",
+    "case": "446",
+    "stage": "decoding",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 2.074634552001953,
+    "computation_cpu_seconds": 1.9589396130000005,
+    "total_worker_cpu_seconds": 2.052865677,
+    "computation_cpu_per_wall": 0.944233581335898,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 2.074634552001953
+    }
+  },
+  {
+    "batch": "a0e9a32b2ede496b9ec69afa1e8ebfb4",
+    "case": "446",
+    "stage": "matching",
+    "tasks": 116,
+    "workers": 4,
+    "nodes": [
+      "cpu-0006",
+      "cpu-0012"
+    ],
+    "active_window_seconds": 1.5296523571014404,
+    "computation_cpu_seconds": 2.617551334,
+    "total_worker_cpu_seconds": 2.835917926999998,
+    "computation_cpu_per_wall": 1.7112066816018474,
+    "peak_overlapping_tasks": 4,
+    "seconds_by_active_task_count": {
+      "0": 4.601478576660156e-05,
+      "1": 0.39784908294677734,
+      "2": 0.010512113571166992,
+      "3": 0.03342485427856445,
+      "4": 1.087820291519165
+    }
+  },
+  {
+    "batch": "7ba75499c383447ca1c9948e5c862df8",
+    "case": "446",
+    "stage": "deduplication",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 0.4978914260864258,
+    "computation_cpu_seconds": 0.3924591589999995,
+    "total_worker_cpu_seconds": 0.4114073490000001,
+    "computation_cpu_per_wall": 0.7882424529477136,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 0.4978914260864258
+    }
+  },
+  {
+    "batch": "a14ddaae51774c25a1cb74c6a56632c8",
+    "case": "446",
+    "stage": "decoding",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 2.2148749828338623,
+    "computation_cpu_seconds": 2.096037201,
+    "total_worker_cpu_seconds": 2.203529311,
+    "computation_cpu_per_wall": 0.9463456029099154,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 2.2148749828338623
+    }
+  },
+  {
+    "batch": "a60c8e96f17b42f4a7db47422dfd0bb3",
+    "case": "446",
+    "stage": "matching",
+    "tasks": 116,
+    "workers": 4,
+    "nodes": [
+      "cpu-0006",
+      "cpu-0012"
+    ],
+    "active_window_seconds": 1.171943187713623,
+    "computation_cpu_seconds": 2.6362357550000013,
+    "total_worker_cpu_seconds": 2.851899220999998,
+    "computation_cpu_per_wall": 2.2494569554545625,
+    "peak_overlapping_tasks": 4,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 0.35307884216308594,
+      "2": 0.0159761905670166,
+      "3": 0.033530235290527344,
+      "4": 0.7693579196929932
+    }
+  },
+  {
+    "batch": "0b0416a18b3e44e4bf6cbc12dbca4611",
+    "case": "446",
+    "stage": "deduplication",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0006"
+    ],
+    "active_window_seconds": 0.5027098655700684,
+    "computation_cpu_seconds": 0.3947897789999999,
+    "total_worker_cpu_seconds": 0.41235058199999974,
+    "computation_cpu_per_wall": 0.7853233167650527,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 0.5027098655700684
+    }
+  },
+  {
+    "batch": "3b136bdee90a4b23a727df52b203421e",
+    "case": "446",
+    "stage": "decoding",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 2.272069215774536,
+    "computation_cpu_seconds": 2.1616797619999994,
+    "total_worker_cpu_seconds": 2.2565166250000006,
+    "computation_cpu_per_wall": 0.9514145726687708,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 2.272069215774536
+    }
+  },
+  {
+    "batch": "2a07b12f745b423d88b1028c16c6609f",
+    "case": "446",
+    "stage": "decoding",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 2.1678404808044434,
+    "computation_cpu_seconds": 2.0403261419999996,
+    "total_worker_cpu_seconds": 2.1558901419999996,
+    "computation_cpu_per_wall": 0.9411790950793918,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 2.1678404808044434
+    }
+  },
+  {
+    "batch": "764a41f8e26f419d83eab873957dc059",
+    "case": "446-three-seeds",
+    "stage": "matching",
+    "tasks": 464,
+    "workers": 4,
+    "nodes": [
+      "cpu-0006",
+      "cpu-0012"
+    ],
+    "active_window_seconds": 3.8321101665496826,
+    "computation_cpu_seconds": 9.571086247999986,
+    "total_worker_cpu_seconds": 10.86294895999999,
+    "computation_cpu_per_wall": 2.4976020604902143,
+    "peak_overlapping_tasks": 4,
+    "seconds_by_active_task_count": {
+      "0": 0.0004611015319824219,
+      "1": 0.26770758628845215,
+      "2": 0.023508787155151367,
+      "3": 0.13674187660217285,
+      "4": 3.403690814971924
+    }
+  },
+  {
+    "batch": "2358af0f4b804067935f16d8507da92b",
+    "case": "446-three-seeds",
+    "stage": "deduplication",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 1.3953635692596436,
+    "computation_cpu_seconds": 1.269757833,
+    "total_worker_cpu_seconds": 1.3248325549999986,
+    "computation_cpu_per_wall": 0.9099835060719781,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 1.3953635692596436
+    }
+  },
+  {
+    "batch": "3c3aa6ecafbd45d488734829ac9e33a9",
+    "case": "446-three-seeds",
+    "stage": "decoding",
+    "tasks": 1,
+    "workers": 1,
+    "nodes": [
+      "cpu-0012"
+    ],
+    "active_window_seconds": 6.752425909042358,
+    "computation_cpu_seconds": 6.3733961180000005,
+    "total_worker_cpu_seconds": 6.733791590000001,
+    "computation_cpu_per_wall": 0.9438676120037409,
+    "peak_overlapping_tasks": 1,
+    "seconds_by_active_task_count": {
+      "0": 0.0,
+      "1": 6.752425909042358
+    }
+  }
+]
