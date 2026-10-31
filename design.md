@@ -70,110 +70,118 @@ unsupported capabilities or execution failure must not silently change policy.
 
 ## Selectable fragment growth
 
-On 2026-10-31 the user authorized implementing and comparing two fragment growth
-policies. `FragmentMatchConfig.growth_policy` selects `incremental` (the existing
-default) or `existence`. Both return the same compressed `FragmentMatchResult`
-contract. This is an explicit experiment switch, not an automatic fallback.
+On 2026-10-31 the user authorized comparing `incremental` (the existing default)
+and `existence` through `FragmentMatchConfig.growth_policy`. This is an explicit
+experiment switch, not an automatic fallback.
 
-### Growth asks for one match; completion resolves the alternatives
+**The replacement boundary is fragment growth, before branch formation. For the
+same inputs, its final `FragmentMatchResult` must be exactly the same as before
+(apart from elapsed time).**
+That includes ordered results, witnesses, pools, symmetry metadata, accepted and
+deferred bonds, branch counts and capped outcomes. Equal expanded mapping sets
+alone do not satisfy this contract. Branch formation and branch caps at every
+hierarchy level remain unchanged, including combined live leaves across parents.
+For each current parent branch, each retained completed-fragment match produces
+one child continuation. One match continues one branch; multiple matches offer
+multiple child branches, subject to the existing deduplication and caps. Symmetric
+bijections represented inside one compressed match are not separate branches.
 
-The incremental policy carries compressed alternatives through growth. The
-existence policy carries one witness and the accepted constraints. Each proposed
-extension asks for one injective, policy-compatible placement of the whole
-enlarged fragment. A previous witness orders the search but never restricts it:
-assignments inside the growing fragment may change, while earlier completed
-fragment locks remain fixed.
+### One witness during growth
 
-On success, accept the edge and enlarged fragment. On proven failure, defer
-that edge and try the remaining frontier. The first rejection does not end the
-fragment. A timeout or incomplete search cannot stand for absence. Frontier
-selection, random draws, occupancy and lock handling retain their existing rules.
+Incremental growth carries compressed alternatives. Existence growth carries one
+witness and the accepted constraints. Each proposal asks whether the enlarged
+fragment has an injective, policy-compatible placement. The previous witness is
+a hint: try extending it first; if that fails, search again with earlier growing
+assignments free to change. Earlier completed-fragment locks remain fixed.
 
-At saturation, recover all compressed matching alternatives for the successful
-fragment before applying the existing completed-fragment cap and locking rules.
-This is part of matching, separate from cross-seed/cross-cut family deduplication
-and decoding. It cannot be replaced by finalizing the single witness: the old
-finalizer only conditions alternatives already supplied to it.
+Accept the edge when a witness exists. Otherwise defer that edge and try the
+remaining frontier. Only an exhaustive failure proves absence. Frontier selection,
+random draws, occupancy, island joins and edge tolerances keep their existing
+rules. Matching enforces the accepted growth edges, not all original bonds between
+included atoms. For example, a three-carbon ring may grow onto a three-carbon
+chain through two accepted edges.
 
 ```mermaid
 flowchart TD
     Frontier{Remaining frontier?} -->|Yes| Trial[Propose a growth edge]
-    Trial --> Query[Find one whole-fragment match with earlier locks fixed]
+    Trial --> Query[Find one match with earlier locks fixed]
     Query -->|Found| Accept[Accept edge and replace witness]
-    Query -->|Proven absent| Defer[Defer edge; retain successful fragment]
+    Query -->|Absent| Defer[Defer edge]
     Accept --> Frontier
     Defer --> Frontier
-    Frontier -->|No| Complete[Recover compressed matching alternatives]
-    Complete --> Cap[Existing branch cap and locking]
+    Frontier -->|No| Complete[Construct the original compressed fragment results]
+    Complete --> Return[Same fragment return and cap outcome]
+    Return --> Branch[Unchanged hierarchy branching and caps]
 ```
 
-Both stages enforce the accepted growth bonds, target graph floor, exact bond
-tolerances, node compatibility and injectivity. They do not implicitly require
-all original molecular bonds between included atoms to match. For example, a
-three-carbon ring can grow onto a three-carbon chain through two accepted edges;
-the unmatched ring bond remains available for later event interpretation.
-A locked-island join fixes the island's assignments and adds the selected joining
-edge; earlier fragment evidence stays in its history.
+### Completion preserves the existing representation
 
-### Implementation boundaries
+`growth/existence.py` and native `fragment_query.h` implement first-solution
+queries. They do not choose a new pool factorization. The growth loop saves the
+accepted extension order and boundary evidence. At saturation it uses the existing
+compressed seed, extension and deduplication operations in that order to construct
+the original return. This reconstruction happens inside fragment matching, before
+hierarchy branch formation. It never expands a compressed family into all its
+bijections.
 
-`growth/existence.py` and native `fragment_query.h` implement the first-solution
-query. They prune incompatible atom domains using accepted bonds, then search
-injective assignments until the first full witness or exhaustive failure. They
-neither enumerate all matches nor create symmetry certificates during growth.
+The whole finished fragment can reject intermediate candidates that cannot
+complete. Those checks happen after exact deduplication: equivalent children have
+the same feasibility. A sole candidate contains the already-proven match, and
+completed candidates already satisfy the accepted constraints, so neither needs
+another feasibility query. Filtering does not repack surviving candidates.
+The ordinary final deduplication, cap and return construction are shared unchanged.
 
-At completion, the engine reconstructs compressed candidates in accepted growth
-order with the existing pool/group operations. A query over the **whole finished
-fragment** rejects impossible partial candidates before canonical deduplication.
-Thus future accepted constraints can prune a prefix immediately. This preserves
-the existing compressed representation, representative ordering and cap units;
-it does not enumerate complete bijections and compress them afterward. It still
-performs intermediate compressed candidate construction at completion, so it is
-not a claim that prefix work has disappeared or that the policy must be faster.
+This implementation still reconstructs compressed prefixes during completion.
+Consequently, one-witness growth alone does not establish a total speed or memory
+improvement. Performance must include completion. A faster replacement must retain
+the exact fragment return; changing its representation or cap behavior is not an
+acceptable shortcut.
 
-Pool compression is essential even when the exact target group is trivial. A
-center with two equivalent neighbors can match three tolerated target neighbors
-as one pool containing six assignments. Keeping six concrete matches would change
-a branch-limit-1 result. Both policies must retain the one compressed placement.
+The direct completed-query experiment was rejected: it produced different
+witnesses and pools, and changed record counts in 31 of 160 diagnostic cases.
+Its approximately 2× ring speedup therefore was not a valid drop-in comparison.
+That alternate completion implementation and its relaxed equality checks have
+been removed.
 
-The public fragment API and direct native fragment call support the switch.
-Custom node policies run through the existing Python matching path. Trace seed
-records identify the existence witness, and profiles separate feasibility calls
-from final reconstruction. Matching profiles do not describe decoder work.
+### Scope and validation
 
-Reaction search, work pools and candidate-based cut/extension reuse continue to
-use incremental growth. Existence growth explicitly rejects a supplied growth
-replay cache. Enabling it for reaction search requires dependency-aware replay,
-whole-search/cap equivalence and decoder validation; it must not silently reuse
-incremental candidate checkpoints. No scheduling logic belongs in these modules.
+Both Python and native fragment APIs support the switch. Custom node policies use
+the existing Python path. Trace records label growth witnesses explicitly; profiles
+separate growth feasibility from final compressed reconstruction.
 
-### Validation and performance evidence
+Reaction search, work pools and candidate-based cut replay remain incremental.
+Existence growth rejects a supplied replay cache. Enabling it at reaction level
+requires compatible replay and whole-search validation, with the same exact-return
+contract. Scheduling logic does not belong in the matcher.
 
-`tests/test_existence_growth.py` compares complete returned fragment records in
-Python and C++, including representative ordering, pools, accepted/deferred edges
-and caps. Independent small-case assignment oracles cover rings, hydrogen
-symmetry and tolerance pools. Other cases cover locks, witness reassignment,
-rejection followed by successful growth, distinct bond tolerances, custom node
-attributes and reproducible random graphs. These tests establish their tested
-scope, not universal reaction-search equivalence.
+`tests/test_existence_growth.py` compares complete ordered fragment returns
+between policies and across Python/native execution. It also independently expands
+small families to check their allowed mappings. Coverage includes rings, hydrogen
+choices, tolerance pools, locks, accepted/deferred edges, witness reassignment,
+custom node attributes, weighted random graphs and caps immediately below and at
+the original result count. A regression case requires two old compressed results
+to remain two even though an alternate factorization could combine them.
 
-`reports/fragment_growth_20261031/compare.py` compares both compiled policies on
-plain rings and a ring with hydrogen choices. It measures complete matching,
-including final compressed reconstruction, in separate single-thread processes.
-It records cold and warm time, peak process RSS, exact certificate-cache payload,
-profiles and identical-result digests in `results.json`. Process RSS includes
-Python/imported libraries; tiny RSS differences are not evidence of cache savings.
-The existing default stays in place pending representative workload measurements.
+`reports/fragment_growth_20261031/compare.py` measures the full native fragment
+operation on prepared graphs in separate single-thread processes. It requires
+identical compressed-result digests and independently checks small mapping
+relations after timing and memory sampling. `results.json` records the measured
+implementation; a relation-only speed comparison is insufficient.
 
-The Mac comparison (M4 Pro, three fresh processes per case/policy) returned
-identical compressed records throughout. Warm total matching was slower with
-existence growth: 1.26× on C3, 1.61× on C6, 3.05× on C12, 8.96× on C24 and 2.60×
-on the hydrogen-choice ring. Peak process RSS was about 54–55 MiB for both;
-certificate-cache payloads were identical. Full-fragment completion checks
-rejected no candidates on these symmetric rings, so they added work without
-reducing final reconstruction. This implementation has not demonstrated a speed
-or memory benefit on rings. The repository suite passed all 679 tests; 30 local
-worker tests required running outside the filesystem/network sandbox.
+The corrected Mac comparison returned identical compressed records for every
+ring case. The full local suite passed 692 tests. Total matching remains slower:
+
+| Case | Incremental CPU ms | Existence CPU ms |
+|---|---:|---:|
+| ring3 | 0.032 | 0.035 |
+| ring6 | 0.075 | 0.087 |
+| ring12 | 0.169 | 0.201 |
+| ring24 | 0.409 | 0.526 |
+| ring6_hydrogens | 0.153 | 0.188 |
+
+Peak process RSS was approximately 54–55 MiB for both policies, and the
+certificate-cache payload was unchanged on these cases. This establishes
+compatibility on the measured cases, not a performance improvement.
 
 ## Search records, grouping and deduplication
 
