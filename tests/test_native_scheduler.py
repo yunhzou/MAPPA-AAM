@@ -72,6 +72,10 @@ def test_shared_state_transport_preserves_graph_and_binary_sharing():
         assert all(isinstance(state.mapping,SharedPairs) for state in saved.states)
         parts=[block for state in saved.states for block in state.mapping.blocks]
         assert len({id(block) for block in parts})<len(parts)
+        sequences={}
+        for state in saved.states:
+            for sequence in (state.mapping,state.islands):
+                assert sequences.setdefault(sequence.blocks,sequence) is sequence
 
 
 @pytest.mark.parametrize('tol',[.5,1.])

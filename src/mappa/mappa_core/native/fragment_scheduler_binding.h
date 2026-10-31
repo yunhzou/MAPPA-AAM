@@ -3,6 +3,7 @@
 class SharedStatePairs {
     std::unordered_map<uint64_t,py::tuple> rows;
     std::unordered_map<std::string,py::tuple> blocks;
+    std::unordered_map<std::string,py::object> sequences;
     py::object sequence_type=py::module_::import("mappa.mappa_core.core.search.pairs").attr("SharedPairs");
 public:
     py::tuple pairs(const std::vector<Pair>& values) {
@@ -29,15 +30,27 @@ public:
                      const std::vector<int>* target_ids=nullptr) {
         constexpr size_t width=32;
         py::list parts;
+        std::string key;
         size_t count=0;
         for (size_t start=0;start<values.size();start+=width) {
             std::vector<Pair> block;
             for (size_t r=start;r<std::min(start+width,values.size());++r) if (values[r]>=0)
                 block.push_back({source_ids[r],target_ids ? (*target_ids)[values[r]] : values[r]});
             count+=block.size();
-            if (!block.empty()) parts.append(pairs(block));
+            if (!block.empty()) {
+                auto shared=pairs(block);
+                parts.append(shared);
+                // Blocks already have unique identities in this export. Reuse
+                // whole sequences without hashing or copying every atom again.
+                auto identity=shared.ptr();
+                key.append(reinterpret_cast<const char*>(&identity),sizeof(identity));
+            }
         }
-        return sequence_type(py::tuple(parts),count);
+        auto found=sequences.find(key);
+        if (found!=sequences.end()) return found->second;
+        auto result=sequence_type(py::tuple(parts),count);
+        sequences.emplace(std::move(key),result);
+        return result;
     }
 };
 

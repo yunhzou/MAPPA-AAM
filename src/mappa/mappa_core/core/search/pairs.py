@@ -45,3 +45,7 @@ class SharedPairs(Sequence):
 
     def __deepcopy__(self, memo):
         return self
+
+    def __reduce__(self):
+        # Persist shared blocks directly; the cached hash is derived local data.
+        return type(self), (self.blocks, self.size)
