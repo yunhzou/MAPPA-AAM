@@ -72,4 +72,6 @@ def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
         assert {r['case'] for r in json.loads((root/'index.json').read_text())['directions']}=={batch}
         with sqlite3.connect(root/'result/ledger.sqlite') as db:
             assert db.execute('SELECT stage,count(*) FROM results GROUP BY stage').fetchall()==[('matching',2)]
-        assert run(root/'index.json',root/'result',local=True,workers=1,resume=True)['finished']
+        alias=tmp_path/f'alias-{batch}'
+        alias.symlink_to(root, target_is_directory=True)
+        assert run(alias/'index.json',alias/'result',local=True,workers=1,resume=True)['finished']

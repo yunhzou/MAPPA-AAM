@@ -92,13 +92,15 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=2*2**30,
     identities = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}" for row in rows}
     if len(identities) != len(rows):
         raise ValueError('Duplicate reaction/direction inputs')
-    requested = dict(input_index=str(index_path), input_index_sha256=hashlib.sha256(raw).hexdigest(),
+    requested = dict(input_index=str(Path(index_path).resolve()), input_index_sha256=hashlib.sha256(raw).hexdigest(),
         config=asdict(config), cases=len({r['case'] for r in rows}), directions=len(rows),
         reference_policy='exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
     requested = json.loads(json.dumps(requested))
     plan = output/'plan.json'
     if resume:
-        if json.loads(plan.read_text()) != requested:
+        saved_plan = json.loads(plan.read_text())
+        saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
+        if saved_plan != requested:
             raise ValueError('Resume input/configuration differs')
     else:
         if plan.exists():
