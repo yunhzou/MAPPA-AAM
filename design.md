@@ -239,20 +239,53 @@ Failed, missing or capped matching work must remain visible. An incomplete scope
 must not be silently presented as the full benchmark input. Re-running decoding
 with different event thresholds uses saved catalogues and does not rerun matching.
 
-### Current implementation and remaining orchestration
+### Explicit execution API
 
-- `plan_search(..., seed_batch=...)` schedules original cut/seed matching work;
-  each cut finalization depends on its seed batches.
-- `FinalBranchCatalogue.add_graph()` provides incremental cross-graph family
-  reduction. Archives need distinct identities so local context IDs remain traceable.
-- `plan_event_decoding()` already schedules a saved catalogue together with its
-  endpoint input and event configuration.
-- `plan_cut_decoding()` and `decode_cut()` still exist as per-cut scheduling
-  helpers. They only deduplicate within the supplied cut. They are not the approved
-  final benchmark handoff and must not be described as the decoder's algorithm.
-- The new benchmark's complete matching-pass barrier, cross-cut catalogue
-  publication and manifest-to-decoding-pool orchestration are not yet assembled.
-  Writing this design does not imply that those adapters have been implemented.
+The implementation exposes `mappa.execution.WorkPool` with separate `search`,
+`deduplicate` and `decode` submissions. `StageResults.wait_and_validate()` closes
+and checks each pass before the next is submitted. `MatchingResult`,
+`CatalogueResult` and `DecodingResult` are public typed handoffs. Search settings,
+cut/seed scope and scientific stop counts remain visible through decoding.
+
+`plan_search(..., seed_batch=...)` preserves original seed indices/orders and
+finalizes each cut after its seed batches complete. When a cut fits in one batch,
+that task finalizes and publishes directly, avoiding an unnecessary handoff.
+`reduce_matching` reads finalized graphs one at a time into the existing
+`FinalBranchCatalogue.add_graph()` implementation. `decode_catalogue` consumes
+that complete deduplicated catalogue through the existing event decoder.
+The superseded per-cut decoding scheduling helpers have been removed.
+
+```mermaid
+flowchart TB
+    User[Simple local calls or explicit three-pass pool API] --> Core[Existing search, reduction and decoding operations]
+    User --> Pool[mappa.execution WorkPool]
+    Pool --> Local[Persistent local processes]
+    Pool --> Slurm[One srun inside one existing allocation]
+    Local --> Adapter[Stage adapters and typed handoffs]
+    Slurm --> Adapter
+    Adapter --> Core
+    Adapter --> Storage[MemoryStore or aggregated BundleStore]
+```
+
+`MemoryStore` retains intermediates in RAM and transfers worker objects through
+the pool. `BundleStore` appends immutable ranges to rolling worker-owned bundles.
+Persistent file count grows with workers and byte volume, never with seed/cut task
+count. Ordinary single-reaction checkpoints use the same bundles plus one reaction
+index. Loading one reaction is explicit. Both modes still need enough worker RAM
+for that reaction's catalogue and local event tables.
+
+Local direct calls remain `search_aam`, `deduplicate`, `decode_events`; they need
+no pool. Pool workers persist across all stages. Slurm is invoked once to start
+node services inside an existing allocation; no task submits jobs. Source and
+compiled-engine fingerprints are checked at node-service startup. Scheduling,
+leases, transport, task granularity and storage belong entirely to the execution
+layer. They must never become policies inside the core scientific algorithms.
+
+Performance is an acceptance condition: preserve direct execution and compare
+identical scientific scope before and after changes. Measure task computation,
+publication and scheduling separately. Do not claim an unconditional speed
+guarantee from one local timing or compare per-cut decoding against a globally
+deduplicated pass as though they were the same work.
 
 ## Execution and recovery
 
@@ -304,10 +337,11 @@ Acceptance of an execution refactor requires more than matching representatives:
 - Shared local event responses and valid joint-choice evaluation against independent counts.
 - Completion/cap metadata, reference witnesses and recovery behavior.
 
-The per-cut EnzymeMap case study checked combined graphs, family unions,
-representative events and dense recounts. That establishes those checks only;
-it does not validate the complete catalogue handoff and deduplicated decoded
-record of the approved two-pass benchmark.
+The separated-pool tests compare complete search graphs, catalogues and decoded
+records, normalizing only archive-local provenance IDs. The saved EnzymeMap case
+also compares the complete decoded record against the pre-refactor baseline and
+checks exact heavy-atom reference membership and independent dense event counts.
+This is one case, not a dataset-wide benchmark or a multi-node scaling claim.
 
 Use the smoke checks and affected tests described in [README.md](README.md).
 Matcher changes need the exhaustive compression/native-equivalence checks.
@@ -326,7 +360,8 @@ Paths below are relative to `src/mappa/`.
 | Reaction search | Seed/cut planning, locking, branching and saved graphs | `mappa_core/core/search/` |
 | Grouping/reduction | Final fragment pairs, family keys, partitions and provenance | `mappa_core/post_processing/final_branches.py` |
 | Event decoder | Original-space local event responses and composition | `mappa_core/post_processing/decoder/` |
-| Execution | Local/distributed workers, dependencies, budgets and bundles | `mappa_core/core/scheduler/` |
+| Execution API | Persistent local/Slurm pool and explicit stage manifests | `execution/` |
+| Execution internals | Workers, dependencies, budgets, typed handoffs and bundles | `mappa_core/core/scheduler/` |
 | Explicit queries | Mapping and event-membership questions on saved choices | `mappa_workflow/mapping_analytics/` |
 | Native engine | Shared C++ implementation and vendored nauty | `mappa_core/native/` |
 | Persistence | Versioned records and trusted checkpoint relocation | `mappa_core/utils/io/` |
