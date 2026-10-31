@@ -95,11 +95,16 @@ result = match_fragment(source_graph, target_graph, seed=0,
 `growth_policy="incremental"` is the default and carries compressed alternatives
 through growth. The experimental `"existence"` policy finds one valid placement
 per extension, allowing earlier assignments inside the growing fragment to change.
-At saturation it recovers the compressed alternatives using the full accepted
-constraints, then applies the same branch cap. Earlier completed-fragment locks
-remain fixed. Both policies support Python and native fragment matching; a speedup
-is not guaranteed. Existence growth currently rejects `growth_replay` and is not
-exposed as a reaction-search/work-pool setting.
+It checks the new edge against the existing witness first and constructs a whole
+fragment search only when reassignment is needed. At saturation it constructs the
+original compressed results using the existing compression rules. Earlier completed-fragment locks remain fixed. The final
+ordered return, witnesses, pools, symmetry data, result counts and cap outcomes
+must match the default policy exactly. Branch formation and caps at every
+hierarchy level are unchanged. Both policies support Python and native fragment
+matching. The experimental policy still reconstructs compressed prefixes at
+completion, so speed and memory improvements are not assumed. It rejects
+`growth_replay` and is not exposed as a reaction-search/work-pool setting.
+See `reports/fragment_growth_20261031/results.json` for the Mac ring comparison.
 
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 

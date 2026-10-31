@@ -116,19 +116,34 @@ flowchart TD
 
 ### Completion preserves the existing representation
 
-`growth/existence.py` and native `fragment_query.h` implement first-solution
-queries. They do not choose a new pool factorization. The growth loop saves the
-accepted extension order and boundary evidence. At saturation it uses the existing
-compressed seed, extension and deduplication operations in that order to construct
-the original return. This reconstruction happens inside fragment matching, before
-hierarchy branch formation. It never expands a compressed family into all its
-bijections.
+The implementation has three responsibilities:
+
+| Module | Responsibility |
+|---|---|
+| `growth/engine.py` and the native growth loop | Select frontier proposals and record accepted/deferred edges. |
+| `growth/existence.py` and native `fragment_query.h` | Maintain one concrete witness; find a replacement when the proposed edge cannot extend it. |
+| `growth/completion.py` and native `fragment_completion.h` | Construct the original compressed return using the shared extension/deduplication primitives. |
+
+A witness is a concrete assignment, not a compressed candidate. A successful local
+extension checks the new edge and occupancy only: its existing assignments already
+prove the accepted old edges. Locked-island joins also carry the newly joined
+locked atoms. The whole-fragment query is constructed only when assignments must
+be reconsidered. Failure of the local witness never proves the proposal impossible.
+No canonical certificates or compressed alternatives are built during this stage.
+
+The growth loop saves accepted extension order and boundary evidence. At saturation,
+completion uses the existing compressed seed, extension and deduplication operations
+in that order. It does not choose a new pool factorization or enumerate a family's
+bijections. Matching primitives have no knowledge of scheduling or worker pools.
 
 The whole finished fragment can reject intermediate candidates that cannot
 complete. Those checks happen after exact deduplication: equivalent children have
 the same feasibility. A sole candidate contains the already-proven match, and
 completed candidates already satisfy the accepted constraints, so neither needs
-another feasibility query. Filtering does not repack surviving candidates.
+another feasibility query. The completion query is created lazily, only if an
+ambiguous unfinished prefix needs it. Filtering does not repack surviving
+candidates. Native completion prepares its matching context once and reuses its
+storage across accepted steps; only the proposal and fragment boundary change.
 The ordinary final deduplication, cap and return construction are shared unchanged.
 
 This implementation still reconstructs compressed prefixes during completion.
@@ -147,7 +162,9 @@ been removed.
 
 Both Python and native fragment APIs support the switch. Custom node policies use
 the existing Python path. Trace records label growth witnesses explicitly; profiles
-separate growth feasibility from final compressed reconstruction.
+separate growth feasibility from final compressed reconstruction. The
+`feasibility_searches` count distinguishes a whole-fragment search from a cheap
+extension of the existing witness.
 
 Reaction search, work pools and candidate-based cut replay remain incremental.
 Existence growth rejects a supplied replay cache. Enabling it at reaction level
@@ -168,20 +185,33 @@ identical compressed-result digests and independently checks small mapping
 relations after timing and memory sampling. `results.json` records the measured
 implementation; a relation-only speed comparison is insufficient.
 
-The corrected Mac comparison returned identical compressed records for every
-ring case. The full local suite passed 692 tests. Total matching remains slower:
+The cleaned implementation passed the full local suite: **693 tests**. Three
+fresh processes per case/policy measured total native fragment matching,
+including completion. All returned compressed records were identical.
 
 | Case | Incremental CPU ms | Existence CPU ms |
 |---|---:|---:|
-| ring3 | 0.032 | 0.035 |
-| ring6 | 0.075 | 0.087 |
-| ring12 | 0.169 | 0.201 |
-| ring24 | 0.409 | 0.526 |
-| ring6_hydrogens | 0.153 | 0.188 |
+| ring3 | 0.031 | 0.031 |
+| ring6 | 0.075 | 0.074 |
+| ring12 | 0.165 | 0.165 |
+| ring24 | 0.399 | 0.408 |
+| ring6_hydrogens | 0.152 | 0.150 |
+| late_oxygen | 0.216 | 0.048 |
 
-Peak process RSS was approximately 54–55 MiB for both policies, and the
-certificate-cache payload was unchanged on these cases. This establishes
-compatibility on the measured cases, not a performance improvement.
+Ring medians ranged from 1.4% faster to 2.2% slower across separate processes.
+To check the C24 difference, an additional 21 alternating pairs of 200 calls
+used the same prepared target and warm cache. Existence was 1.2% faster there.
+These measurements show no consistent ring slowdown after removing the earlier
+10–28% overhead. The late-oxygen case was 4.5× faster: a final constraint
+eliminates most of the shorter fragment placements before compression.
+
+Total peak process RSS stayed approximately 54–55 MiB on these small cases.
+Ring certificate-cache payload was unchanged. In the late-oxygen case it fell
+from 24,800 to 1,240 bytes (95% less). These are local fragment measurements;
+they do not establish large-reaction RAM usage or distributed throughput.
+
+The paired check is reproducible with `compare.py --paired-worker ring24`;
+`results.json` retains both the separate-process samples and the paired check.
 
 ## Search records, grouping and deduplication
 

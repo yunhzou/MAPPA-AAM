@@ -1,26 +1,99 @@
-// Exact first-solution search over accepted growth edges. No symmetry expansion.
+// Exact first-solution matching of accepted growth constraints.
 class FragmentQuery {
     const Source& source;
     const Target& target;
     struct Edge { int a,b; double weight,tolerance; };
+    using Domains = std::vector<std::vector<int>>;
     std::vector<int> atoms;
     std::vector<Edge> edges;
-    std::vector<std::vector<int>> domains, incident;
+    Domains domains,incident;
 
-    bool supports(const Edge& e,int p,int q) const {
-        return p!=q && growth_edge_supported(e.weight,target.wbo(p,q),e.tolerance,
-                                             target.bond_cut,source.tolerance_inclusive);
+    bool supports(const Edge& edge,int p,int q) const {
+        return p!=q && target.has_edge(p,q) &&
+            growth_edge_supported(edge.weight,target.wbo(p,q),edge.tolerance,
+                                  target.bond_cut,source.tolerance_inclusive);
     }
+
+    bool reduce(Domains& allowed) const {
+        bool changed=true;
+        while (changed) {
+            changed=false;
+            std::vector<uint8_t> occupied(target.n,0);
+            for (int r:atoms) if (allowed[r].size()==1) {
+                int p=allowed[r][0];
+                if (occupied[p]) return false;
+                occupied[p]=1;
+            }
+            for (int r:atoms) {
+                auto& values=allowed[r];
+                size_t before=values.size();
+                if (before>1) values.erase(std::remove_if(values.begin(),values.end(),
+                    [&](int p){return occupied[p];}),values.end());
+                if (values.empty()) return false;
+                changed|=before!=values.size();
+            }
+            for (const auto& edge:edges) for (const auto& direction:{Pair{edge.a,edge.b},Pair{edge.b,edge.a}}) {
+                int a=direction.first,b=direction.second;
+                auto& values=allowed[a];
+                size_t before=values.size();
+                values.erase(std::remove_if(values.begin(),values.end(),[&](int p) {
+                    return std::none_of(allowed[b].begin(),allowed[b].end(),
+                                        [&](int q){return supports(edge,p,q);});
+                }),values.end());
+                if (values.empty()) return false;
+                changed|=before!=values.size();
+            }
+        }
+        std::vector<uint8_t> reachable(target.n,0);
+        for (int r:atoms) for (int p:allowed[r]) reachable[p]=1;
+        return (size_t)std::count(reachable.begin(),reachable.end(),1)>=atoms.size();
+    }
+
+    int variable(const Domains& allowed) const {
+        int selected=-1;
+        for (int r:atoms) if (allowed[r].size()>1 && (selected<0 ||
+            allowed[r].size()<allowed[selected].size() ||
+            (allowed[r].size()==allowed[selected].size() && incident[r].size()>incident[selected].size())))
+            selected=r;
+        return selected;
+    }
+
+    std::vector<int> preferred_extension(const std::vector<int>& preferred,const Domains& allowed) const {
+        std::vector<int> witness(source.n,-1);
+        std::vector<uint8_t> used(target.n,0);
+        for (int r:atoms) if (preferred[r]>=0) {
+            int p=preferred[r];
+            if (!contains(allowed[r],p) || used[p]) return {};
+            witness[r]=p;used[p]=1;
+        }
+        for (const auto& edge:edges)
+            if (witness[edge.a]>=0 && witness[edge.b]>=0 && !supports(edge,witness[edge.a],witness[edge.b]))
+                return {};
+        for (int r:atoms) if (witness[r]<0) {
+            for (int p:allowed[r]) if (!used[p]) {
+                bool valid=true;
+                for (int index:incident[r]) {
+                    const auto& edge=edges[index];
+                    int other=edge.a==r ? edge.b : edge.a;
+                    if (witness[other]>=0 && !supports(edge,p,witness[other])) {valid=false;break;}
+                }
+                if (valid) {witness[r]=p;used[p]=1;break;}
+            }
+            if (witness[r]<0) return {};
+        }
+        return witness;
+    }
+
 public:
     long calls=0,nodes=0,rejected=0;
     FragmentQuery(const Source& R,const Target& P,const std::vector<uint8_t>& fragment,
-                  const std::vector<Pair>& bonds,const std::vector<int>& locked,double tolerance)
+                  const std::vector<Pair>& bonds,const std::vector<int>& mapping,double tolerance)
         :source(R),target(P),domains(R.n),incident(R.n) {
         std::vector<uint8_t> occupied(P.n,0);
-        for (int p:locked) if (p>=0) occupied[p]=1;
+        for (int p:mapping) if (p>=0) occupied[p]=1;
         for (int r=0;r<R.n;++r) if (fragment[r]) {
             atoms.push_back(r);
-            if (locked[r]>=0) domains[r].push_back(locked[r]);
+            if (mapping[r]>=0) domains[r].push_back(mapping[r]);
             else if (R.ecode[r]>=0 && R.ecode[r]<(int)P.same_element.size())
                 for (int p:P.same_element[R.ecode[r]]) if (!occupied[p]) domains[r].push_back(p);
         }
@@ -45,67 +118,109 @@ public:
             }
             if (!preferred) preferred=&candidate->img;
         }
-        // Full-fragment arc consistency prunes future constraints before
-        // compressed final matching constructs the corresponding prefix.
-        bool changed=true;
-        while (changed) {
-            changed=false;
-            for (const auto& e:edges) for (const auto& direction:{Pair{e.a,e.b},Pair{e.b,e.a}}) {
-                int a=direction.first,b=direction.second;
-                auto& values=allowed[a];
-                size_t before=values.size();
-                values.erase(std::remove_if(values.begin(),values.end(),[&](int p) {
-                    return std::none_of(allowed[b].begin(),allowed[b].end(),
-                                        [&](int q){return supports(e,p,q);});
-                }),values.end());
-                if (values.empty()) {++rejected;return {};}
-                changed|=values.size()!=before;
-            }
+        if (preferred) {
+            auto witness=preferred_extension(*preferred,allowed);
+            if (!witness.empty()) {++nodes;return witness;}
         }
-        std::vector<uint8_t> reachable(target.n,0);
-        for (int r:atoms) {
-            if (allowed[r].empty()) {++rejected;return {};}
-            for (int p:allowed[r]) reachable[p]=1;
-        }
-        if ((size_t)std::count(reachable.begin(),reachable.end(),1)<atoms.size()) {
-            ++rejected;return {};
-        }
-        std::vector<int> witness(source.n,-1);
-        std::vector<uint8_t> used(target.n,0);
-        std::function<bool(size_t)> search=[&](size_t assigned) {
+        std::vector<int> witness;
+        std::function<bool(Domains)> search=[&](Domains allowed) {
             ++nodes;
-            if (assigned==atoms.size()) return true;
-            int selected=-1;
-            std::vector<int> choices;
-            for (int r:atoms) if (witness[r]<0) {
-                std::vector<int> values;
-                for (int p:allowed[r]) if (!used[p]) {
-                    bool valid=true;
-                    for (int index:incident[r]) {
-                        const auto& e=edges[index];
-                        int other=e.a==r ? e.b : e.a;
-                        if (witness[other]>=0 && !supports(e,p,witness[other])) {valid=false;break;}
-                    }
-                    if (valid) values.push_back(p);
-                }
-                if (values.empty()) return false;
-                if (selected<0 || values.size()<choices.size() ||
-                    (values.size()==choices.size() && incident[r].size()>incident[selected].size())) {
-                    selected=r;choices=std::move(values);
-                }
+            if (!reduce(allowed)) return false;
+            int r=variable(allowed);
+            if (r<0) {
+                witness.assign(source.n,-1);
+                for (int a:atoms) witness[a]=allowed[a][0];
+                return true;
             }
-            if (preferred) {
-                auto hint=std::find(choices.begin(),choices.end(),(*preferred)[selected]);
-                if (hint!=choices.end()) std::rotate(choices.begin(),hint,hint+1);
-            }
+            const auto choices=allowed[r];
             for (int p:choices) {
-                witness[selected]=p;used[p]=1;
-                if (search(assigned+1)) return true;
-                used[p]=0;witness[selected]=-1;
+                allowed[r]={p};
+                if (search(allowed)) return true;
             }
             return false;
         };
-        if (search(0)) return witness;
+        if (search(std::move(allowed))) return witness;
         ++rejected;return {};
+    }
+};
+
+// One concrete assignment during growth. It is not a compressed candidate:
+// accepted extensions update only new atoms; old edges remain proven.
+class WitnessGrowth {
+    const Source& source;
+    const Target& target;
+    const std::vector<int>& locked;
+    const std::vector<uint8_t>& occupied;
+    double tolerance;
+    std::vector<uint8_t> used;
+    std::vector<int> image;
+
+    void assign(int atom,int value) { image[atom]=value;used[value]=1; }
+public:
+    long calls=0,nodes=0,searches=0,seed_targets=0;
+
+    WitnessGrowth(const Source& source,const Target& target,const std::vector<int>& locked,
+                  const std::vector<uint8_t>& occupied,double tolerance,int seed)
+        :source(source),target(target),locked(locked),occupied(occupied),tolerance(tolerance),
+         used(target.n,0),image(source.n,-1) {
+        if (locked[seed]>=0) {assign(seed,locked[seed]);seed_targets=1;}
+        else for (int p=0;p<target.n;++p) if (!occupied[p] && source.ecode[seed]==target.ecode[p]) {
+            if (!seed_targets) assign(seed,p);
+            ++seed_targets;
+        }
+    }
+
+    Cand observation_candidate() const {
+        std::vector<int> fixed;
+        for (int r=0;r<source.n;++r) if (image[r]>=0 && locked[r]>=0) fixed.push_back(r);
+        Cand candidate;
+        make_cand(image,{},fixed,1,{},target.n,candidate);
+        return candidate;
+    }
+
+    bool extend(int anchor,int atom,double weight,const std::vector<uint8_t>& fragment,
+                const std::vector<Pair>& bonds,const std::vector<Pair>* islands,
+                const std::vector<int>& island_of) {
+        ++calls;
+        const int previous=image[anchor];
+        const double limit=source.tolerance(anchor,atom,tolerance);
+        auto supports=[&](int value) {
+            return target.has_edge(previous,value) && growth_edge_supported(
+                weight,target.wbo(previous,value),limit,target.bond_cut,source.tolerance_inclusive);
+        };
+        std::vector<int> added;
+        if (locked[atom]>=0) {
+            added.push_back(atom);
+            if (islands && island_of[atom]>=0)
+                for (auto [r,label]:*islands)
+                    if (r!=atom && !fragment[r] && label==island_of[atom]) added.push_back(r);
+            bool valid=supports(locked[atom]);
+            std::vector<int> values;
+            for (int r:added) {
+                int p=locked[r];
+                if (used[p] || std::find(values.begin(),values.end(),p)!=values.end()) valid=false;
+                values.push_back(p);
+            }
+            if (valid) {
+                for (int r:added) assign(r,locked[r]);
+                ++nodes;return true;
+            }
+        } else {
+            for (int p:target.adj[previous])
+                if (!used[p] && !occupied[p] && target.ecode[p]==source.ecode[atom] && supports(p)) {
+                    assign(atom,p);++nodes;return true;
+                }
+        }
+        auto enlarged=fragment;enlarged[atom]=1;
+        for (int r:added) enlarged[r]=1;
+        auto edges=bonds;edges.push_back({anchor,atom});
+        FragmentQuery query(source,target,enlarged,edges,locked,tolerance);
+        ++searches;
+        auto next=query.find();nodes+=query.nodes;
+        if (next.empty()) return false;
+        image=std::move(next);
+        std::fill(used.begin(),used.end(),0);
+        for (int p:image) if (p>=0) used[p]=1;
+        return true;
     }
 };

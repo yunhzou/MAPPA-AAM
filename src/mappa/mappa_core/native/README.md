@@ -6,6 +6,10 @@ imports are `mappa._engine` and `mappa._group_ops`.
 - `engine.cpp` and the fragment/growth headers implement compressed matching,
   growth, conditioned symmetry and reusable search work. Python calls these
   through `mappa_core/core/matching/growth/native.py` and the native search adapters.
+- `fragment_query.h` owns first-witness matching and witness extension.
+  `fragment_completion.h` owns reconstruction of the unchanged compressed return.
+  Frontier selection stays in `engine.cpp`; neither module owns hierarchy caps
+  or work-pool scheduling.
 - `group_ops.cpp` implements permutation projection and conjugation used by
   the shared matcher and hierarchy types. It also compiles shared decoder actions
   and projects ordered two-endpoint orbits without Python traversal or complete

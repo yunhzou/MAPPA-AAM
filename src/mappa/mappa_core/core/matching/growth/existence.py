@@ -1,9 +1,47 @@
-"""First-solution matching of accepted growth constraints, without symmetry expansion."""
+"""First-solution matching of accepted growth constraints."""
 from mappa.mappa_core.core.matching.policy import _edge_wbo, _growth_edge_supported
 
 
+def extend_witness(source, target, witness, anchor, atom, enlarged, bonds, locked,
+                   node_policy, tolerance, bond_tolerance=None):
+    """Reuse a proven witness; search the whole fragment only to reassign it.
+
+    Earlier accepted edges are already satisfied. Only the proposed edge and
+    newly joined locked atoms need checking when the old assignment is retained.
+    Returns the witness, visited search nodes, and whether reassignment was tried.
+    """
+    limit = tolerance if bond_tolerance is None else bond_tolerance.limit(anchor, atom)
+    inclusive = bond_tolerance is None or bond_tolerance.inclusive
+    weight = _edge_wbo(source, anchor, atom)
+    floor = target.graph.get('bond_cut', .2)
+    image = witness[anchor]
+
+    def supports(value):
+        return target.has_edge(image, value) and _growth_edge_supported(
+            weight, _edge_wbo(target, image, value), limit, floor, inclusive=inclusive)
+
+    used = set(witness.values())
+    if atom in locked:
+        added = {r: locked[r] for r in enlarged if r not in witness}
+        if (supports(locked[atom]) and not used.intersection(added.values())
+                and len(set(added.values())) == len(added)
+                and all(node_policy.compatible(source, r, target, p) for r, p in added.items())):
+            return {**witness, **added}, 1, False
+    else:
+        occupied = used | set(locked.values())
+        for value in sorted(target.neighbors(image)):
+            if (value not in occupied and node_policy.compatible(source, atom, target, value)
+                    and supports(value)):
+                return {**witness, atom: value}, 1, False
+
+    query = FragmentQuery(source, target, enlarged, [*bonds, (anchor, atom)], locked,
+                          node_policy, tolerance, bond_tolerance)
+    result = query.find()
+    return result, query.nodes, True
+
+
 class FragmentQuery:
-    """A fixed fragment query; witnesses are hints, never additional constraints."""
+    """A fixed fragment query; a previous witness is a hint, never a constraint."""
 
     def __init__(self, source, target, atoms, edges, locked, node_policy,
                  tolerance, bond_tolerance=None):
@@ -34,78 +72,89 @@ class FragmentQuery:
                         _growth_edge_supported(weight, _edge_wbo(target, p, q),
                                                limit, floor, inclusive=inclusive))
                     for p in target}
-            allowed = relations[key]
-            self.supports[a, b] = allowed
-            self.supports[b, a] = allowed
+            self.supports[a, b] = self.supports[b, a] = relations[key]
+
+    def _preferred_extension(self, preferred, domains):
+        mapping = {r: preferred[r] for r in self.atoms if r in preferred}
+        used = set(mapping.values())
+        if len(used) != len(mapping) or any(p not in domains[r] for r, p in mapping.items()):
+            return None
+        if any(a in mapping and b in mapping and mapping[b] not in allowed[mapping[a]]
+               for (a, b), allowed in self.supports.items()):
+            return None
+        for r in self.atoms:
+            if r in mapping:
+                continue
+            p = next((p for p in domains[r] if p not in used and all(
+                mapping[b] in self.supports[r, b][p]
+                for b in self.neighbors[r] if b in mapping)), None)
+            if p is None:
+                return None
+            mapping[r] = p
+            used.add(p)
+        return mapping
+
+    def _reduce(self, domains):
+        """Propagate bonds and occupied singleton domains to a fixed point."""
+        changed = True
+        while changed:
+            changed = False
+            singles = [values[0] for values in domains.values() if len(values) == 1]
+            if len(set(singles)) != len(singles):
+                return False
+            occupied = set(singles)
+            for r, values in domains.items():
+                if len(values) > 1:
+                    remaining = tuple(p for p in values if p not in occupied)
+                    changed |= remaining != values
+                    domains[r] = remaining
+                if not domains[r]:
+                    return False
+            for (a, b), allowed in self.supports.items():
+                values = tuple(p for p in domains[a]
+                               if not allowed[p].isdisjoint(domains[b]))
+                changed |= values != domains[a]
+                domains[a] = values
+                if not values:
+                    return False
+        return len(set().union(*domains.values())) >= len(self.atoms)
+
+    def _variable(self, domains):
+        return min((r for r in self.atoms if len(domains[r]) > 1),
+                   key=lambda r: (len(domains[r]), -len(self.neighbors[r]), r), default=None)
 
     def find(self, *, candidate=None, preferred=None):
-        """Return one full witness, or None only after proving absence.
-
-        A candidate restricts this query to its witness/pool relation for final
-        compressed matching. Its exact target-group images have the same
-        feasibility because the graph, constraints and earlier locks are fixed.
-        """
+        """Return one witness; only an exhaustive failure means no match."""
         self.calls += 1
-        result = self._find(candidate, preferred)
-        self.rejected += result is None
-        return result
-
-    def _find(self, candidate, preferred):
         domains = dict(self.domains)
         if candidate is not None:
             restrictions = {r: (p,) for r, p in candidate.mapping.items()}
             for block in candidate.blocks:
                 for r in block.r_atoms:
                     restrictions[r] = block.p_atoms
-            for r, allowed in restrictions.items():
-                domains[r] = tuple(p for p in domains[r] if p in allowed)
-        # All final constraints participate in pruning, including edges whose
-        # atoms have not yet been reached by compressed candidate construction.
-        changed = True
-        while changed:
-            changed = False
-            for (a, b), allowed in self.supports.items():
-                values = tuple(p for p in domains[a]
-                               if not allowed[p].isdisjoint(domains[b]))
-                changed |= len(values) != len(domains[a])
-                domains[a] = values
-                if not values:
-                    return None
-        if any(not values for values in domains.values()):
-            return None
-        if len(set().union(*(set(d) for d in domains.values()))) < len(self.atoms):
-            return None
-        mapping, used = {}, set()
-        preferred = preferred or (candidate.mapping if candidate is not None else {})
+            for r, values in restrictions.items():
+                domains[r] = tuple(p for p in domains[r] if p in values)
+            if preferred is None:
+                preferred = candidate.mapping
+        if preferred is not None:
+            result = self._preferred_extension(preferred, domains)
+            if result is not None:
+                self.nodes += 1
+                return result
 
-        def search():
+        def search(domains):
             self.nodes += 1
-            if len(mapping) == len(self.atoms):
-                return dict(mapping)
-            selected, values, rank = None, (), None
-            for r in self.atoms:
-                if r in mapping:
-                    continue
-                available = [p for p in domains[r] if p not in used and all(
-                    mapping[b] in self.supports[r, b][p]
-                    for b in self.neighbors[r] if b in mapping)]
-                if not available:
-                    return None
-                score = (len(available), -len(self.neighbors[r]), r)
-                if rank is None or score < rank:
-                    selected, values, rank = r, available, score
-            hint = preferred.get(selected)
-            if hint in values:
-                values.remove(hint)
-                values.insert(0, hint)
-            for p in values:
-                mapping[selected] = p
-                used.add(p)
-                found = search()
+            if not self._reduce(domains):
+                return None
+            r = self._variable(domains)
+            if r is None:
+                return {r: values[0] for r, values in domains.items()}
+            for p in domains[r]:
+                found = search({**domains, r: (p,)})
                 if found is not None:
                     return found
-                used.remove(p)
-                del mapping[selected]
             return None
 
-        return search()
+        result = search(domains)
+        self.rejected += result is None
+        return result
