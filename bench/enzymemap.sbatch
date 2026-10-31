@@ -2,10 +2,10 @@
 #SBATCH --account=nvr_lpr_agentic
 #SBATCH --partition=cpu
 #SBATCH --qos=cpu-short
-#SBATCH --nodes=2
+#SBATCH --nodes=10
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=36
-#SBATCH --mem=96G
+#SBATCH --cpus-per-task=84
+#SBATCH --mem=180G
 #SBATCH --time=03:45:00
 #SBATCH --signal=B:USR1@180
 #SBATCH --job-name=mappa-enzymemap
@@ -18,6 +18,4 @@ cd "$SOURCE"
 export PYTHONPATH="$SOURCE/src:$SOURCE/bench"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
 export TMPDIR="${SLURM_TMPDIR:-/tmp}"
-# Verify the prepared-data adapter through every stage before opening the full pool.
-"$PYTHON" bench/enzymemap.py "$INDEX" "$OUTPUT/input-check" --local --workers 2 --window 4 --limit 2
-exec "$PYTHON" bench/enzymemap.py "$INDEX" "$OUTPUT/full" --workers 32 --window 128 --run-seconds 12600
+exec "$PYTHON" bench/enzymemap.py "$INDEX" "$OUTPUT/full" --workers 80 --window 128 --run-seconds 12600 "$@"

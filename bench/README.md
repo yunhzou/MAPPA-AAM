@@ -16,11 +16,11 @@ full cut sweep. Verification asks for exact annotated heavy-atom indices, with
 hydrogens unconstrained and no endpoint-symmetry relaxation. It does not claim
 stereochemical validation. The manifest records this policy explicitly.
 
-One `sbatch` allocation supplies two nodes, 32 compute workers per node, with
+One `sbatch` allocation supplies ten nodes, 80 compute workers per node, with
 extra CPUs and RAM for supervision/coordinator work. One `srun` starts persistent
-node services. The included batch job first checks two prepared reactions through
-all stages locally, then starts the full pool. It waits for all requested workers
-before submitting matching.
+node services. The two-reaction input check was completed before the first launch. The pool
+waits for all 800 requested workers before submitting matching. Submit the batch
+script with `--resume` to continue the existing campaign ledger.
 
 At most 128 reaction/directions are active. Completed histories and attempt
 records are appended to bundles before their tasks are removed from the dispatch
