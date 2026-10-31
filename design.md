@@ -78,6 +78,19 @@ The retained representation has three distinct levels:
 | `AAMResult.branches` | Groups paths by the unordered collection of final reactant/product fragment atom-set pairs. |
 | `FinalBranchCatalogue` | Deduplicates saved mapping families, associates them with fragment partitions and preserves provenance. |
 
+Native matching returns the typed `AAMSearchGraph` directly. Its immutable
+mapping/island sequences share unchanged atom blocks across states; the binding
+does not first expand every state into a separate Python list of atom pairs.
+This storage sharing preserves every state, transition, join, stop and compressed
+fragment placement. It does not merge scientific alternatives or enumerate
+fragment bijections. Native transport belongs in `fragment_scheduler_binding.h`,
+separate from reaction branching and distributed worker scheduling.
+
+Binary checkpoints and pool handoffs preserve shared blocks. Explicit
+`to_record()`/JSON export expands sequence views only when requested, and can
+therefore require substantially more RAM than normal matching/publication.
+Existing record schemas and atom-pair iteration remain unchanged.
+
 `AAMSearchGraph.combine()` concatenates/reindexes graph records. **It does not
 perform final-family deduplication.** Live-state sharing and final-result grouping
 are different operations: continuation contexts cannot be discarded simply

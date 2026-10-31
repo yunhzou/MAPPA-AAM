@@ -5,6 +5,7 @@ import copy, gc, json
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from functools import cached_property
+from .pairs import SharedPairs
 
 
 def frozen_value(value):
@@ -67,8 +68,8 @@ class SearchContext:
 class SearchState:
     id: int
     context: int
-    mapping: tuple[tuple[int, int], ...]
-    islands: tuple[tuple[int, int], ...]
+    mapping: tuple[tuple[int, int], ...] | SharedPairs
+    islands: tuple[tuple[int, int], ...] | SharedPairs
     deferred_edges: tuple[tuple[int, int], ...]
 
 
@@ -340,17 +341,21 @@ class AAMSearchGraph:
         The read-only serialization view avoids recursively copying shared
         fragment/group records. It must not be retained or mutated by callers.
         """
-        from dataclasses import asdict, fields
-        if not copy:
-            def rows(items):
-                return tuple({field.name: getattr(item, field.name)
-                              for field in fields(item)} for item in items)
-            return dict(schema='rxn_core.aam_search_graph/v1',
-                        contexts=rows(self.contexts), roots=self.roots,
-                        states=rows(self.states), transitions=rows(self.transitions),
-                        stops=rows(self.stops))
-        return {"schema": "rxn_core.aam_search_graph/v1",
-                **asdict(self)}
+        from copy import deepcopy
+        from dataclasses import fields
+        def rows(items):
+            return tuple({field.name: getattr(item, field.name)
+                          for field in fields(item)} for item in items)
+        record = dict(schema='rxn_core.aam_search_graph/v1',
+                      contexts=rows(self.contexts), roots=self.roots,
+                      states=rows(self.states), transitions=rows(self.transitions),
+                      stops=rows(self.stops))
+        # Expansion is explicit at the JSON/export boundary, never during search
+        # or binary checkpoint publication. Binary storage preserves block sharing.
+        for state in record['states']:
+            state['mapping'] = tuple(state['mapping'])
+            state['islands'] = tuple(state['islands'])
+        return deepcopy(record) if copy else record
 
     def to_json(self):
         """Encode an acyclic archive without collecting its temporary views."""

@@ -1936,6 +1936,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
 #include "growth_replay.h"
 #include "fragment_repair.h"
 #include "fragment_scheduler.h"
+#include "fragment_scheduler_binding.h"
 
 }  // namespace
 

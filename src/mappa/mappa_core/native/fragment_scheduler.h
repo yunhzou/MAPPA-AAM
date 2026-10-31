@@ -1,6 +1,5 @@
-// Native port of alignment.branch.find_islands scheduling and DAG construction.
-// Growth is unchanged. This experimental entry point does not replace the
-// Python scheduler; exact state/transition/stop equality is its acceptance test.
+// Reaction branch search and decision DAG construction, without worker scheduling
+// or Python transport. The Python search is the full-graph equivalence oracle.
 struct ScheduledBranch {
     std::vector<int> mapping, labels;
     std::vector<Pair> islands, deferred;
@@ -223,86 +222,4 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
     }
     for (const auto& b:branches) graph.stop(*b,b->mapped==source.n ? "objective_met" : "stalled");
     return graph;
-}
-
-py::dict scheduled_graph_record(const ScheduledGraph& graph,const std::vector<int>& r_ids,const std::vector<int>& p_ids) {
-    auto r_pairs=[&](const std::vector<Pair>& pairs) {
-        py::list out;for (auto [a,b]:pairs) out.append(py::make_tuple(r_ids[a],r_ids[b]));return out;
-    };
-    auto translated_symmetry=[&](const Cand& candidate) {
-        auto translate=[&](const Block& old) {
-            Block b=old;
-            for (int& r:b.r) r=r_ids[r];for (int& p:b.p) p=p_ids[p];return b;
-        };
-        py::dict out;out["multiplicity"]=candidate.mult;
-        py::dict witness;
-        for (int r:candidate.mapped) witness[py::int_(r_ids[r])]=p_ids[candidate.img[r]];
-        out["witness"]=witness;
-        py::list fixed,blocks,automorph;
-        for (int r:candidate.exact_fixed) fixed.append(r_ids[r]);
-        for (const auto& b:candidate.blocks) blocks.append(block_dict(translate(b),false));
-        for (const auto& b:candidate.automorph) automorph.append(block_dict(translate(b),true));
-        for (auto b:automorph) blocks.append(b);
-        out["exact_fixed"]=fixed;out["blocks"]=blocks;out["automorph_blocks"]=automorph;
-        out["compression_version"]=3;
-        return out;
-    };
-    py::list states,transitions,stops;
-    for (size_t i=0;i<graph.states.size();++i) {
-        const auto& state=graph.states[i];py::dict out;py::list mapping,islands;
-        for (size_t r=0;r<state.mapping.size();++r) {
-            if (state.mapping[r]>=0) mapping.append(py::make_tuple(r_ids[r],p_ids[state.mapping[r]]));
-            if (state.labels[r]>=0) islands.append(py::make_tuple(r_ids[r],state.labels[r]));
-        }
-        out["id"]=i;out["context"]=0;out["mapping"]=mapping;out["islands"]=islands;
-        out["deferred_edges"]=r_pairs(state.deferred);states.append(out);
-    }
-    for (size_t i=0;i<graph.transitions.size();++i) {
-        const auto& edge=graph.transitions[i];py::dict out;
-        out["id"]=i;out["source"]=edge.source;out["target"]=edge.target;
-        out["seed"]=edge.seed<0 ? py::object(py::none()) : py::object(py::int_(r_ids[edge.seed]));
-        out["step"]=py::make_tuple(edge.pass,edge.position);out["preserved_bonds"]=r_pairs(edge.preserved);
-        if (edge.match) {
-            py::dict match;py::list fragment;
-            for (int r:edge.match->fragment) fragment.append(r_ids[r]);
-            match["island_idx"]=edge.island;match["fragment"]=fragment;
-            py::list deferred;
-            for (auto [a,b]:edge.match->deferred_edges) {
-                py::list pair;pair.append(r_ids[a]);pair.append(r_ids[b]);deferred.append(pair);
-            }
-            match["deferred_edges"]=deferred;match["symmetry"]=translated_symmetry(edge.match->cand);
-            out["match"]=match;
-        } else out["match"]=py::none();
-        transitions.append(out);
-    }
-    for (const auto& stop:graph.stops) {
-        py::dict out;
-        out["state"]=stop.state;out["reason"]=stop.reason;out["stage"]=stop.stage;
-        out["count"]=stop.count;out["limit"]=stop.limit;
-        out["step"]=py::make_tuple(stop.pass,stop.position);
-        out["seed"]=stop.seed<0 ? py::object(py::none()) : py::object(py::int_(r_ids[stop.seed]));
-        stops.append(out);
-    }
-    py::dict out;out["states"]=states;out["transitions"]=transitions;out["stops"]=stops;
-    out["roots"]=py::make_tuple(0);out["growth_calls"]=graph.growth_calls;
-    out["max_growth_candidates"]=graph.max_growth_candidates;
-    return out;
-}
-
-void register_fragment_scheduler(py::module_& mod) {
-    mod.def("search_fragments",[](const PySource& r,const PyTarget& p,const std::vector<int>& order,
-                                  double floor,double tol,long cap,const std::vector<Pair>& anchors,
-                                  const std::vector<int>& core,bool stop_at_core,
-                                  const std::vector<int>& r_ids,const std::vector<int>& p_ids,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
-        ScheduledGraph graph;
-        {
-            py::gil_scoped_release release;
-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);
-        }
-        return scheduled_graph_record(graph,r_ids,p_ids);
-    },py::arg("source"),py::arg("target"),py::arg("seed_order"),py::arg("graph_floor"),
-       py::arg("iso_tolerance"),py::arg("branch_cap"),py::arg("anchors"),py::arg("core_atoms"),
-       py::arg("stop_at_core"),py::arg("source_ids"),py::arg("target_ids"),
-       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42);
 }

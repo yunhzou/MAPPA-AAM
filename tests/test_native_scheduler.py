@@ -18,23 +18,23 @@ pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built
 @pytest.mark.parametrize('failure', [None, 'search', 'construction'])
 def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
     import gc
-    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    import mappa.mappa_core.core.search.graph as records
     original_state = gc.isenabled()
     source = graph(3, [(0, 1), (1, 2)], ['C', 'O', 'H'])
     search = native._engine.search_fragments
-    construct = AAMSearchGraph.from_record
+    construct = records.SearchState
     def checked_search(*args, **kwargs):
         assert not gc.isenabled()
         if failure == 'search':
             raise RuntimeError('injected search failure')
         return search(*args, **kwargs)
-    def checked_construction(cls, *args, **kwargs):
+    def checked_construction(*args, **kwargs):
         assert not gc.isenabled()
         if failure == 'construction':
             raise RuntimeError('injected construction failure')
         return construct(*args, **kwargs)
     monkeypatch.setattr(native._engine, 'search_fragments', checked_search)
-    monkeypatch.setattr(AAMSearchGraph, 'from_record', classmethod(checked_construction))
+    monkeypatch.setattr(records, 'SearchState', checked_construction)
     try:
         (gc.enable if enabled else gc.disable)()
         if failure:
@@ -53,6 +53,25 @@ def compare(source,target,order,**options):
     actual=find_islands_native(source,target,order,p_orbits=orbits,**options)
     assert actual==expected
     return expected
+
+
+def test_shared_state_transport_preserves_graph_and_binary_sharing():
+    import pickle
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    from mappa.mappa_core.core.search.pairs import SharedPairs
+    # More than one block, with successive locks leaving prior blocks unchanged.
+    source=graph(72, [], ['C']*72)
+    expected=find_islands(source,source,list(source),max_branches=100)
+    actual=find_islands_native(source,source,list(source),max_branches=100)
+    assert actual==expected
+    assert actual.to_record()==expected.to_record()
+    assert AAMSearchGraph.from_record(actual.to_record())==expected
+    restored=pickle.loads(pickle.dumps(actual))
+    assert restored==expected
+    for saved in (actual,restored):
+        assert all(isinstance(state.mapping,SharedPairs) for state in saved.states)
+        parts=[block for state in saved.states for block in state.mapping.blocks]
+        assert len({id(block) for block in parts})<len(parts)
 
 
 @pytest.mark.parametrize('tol',[.5,1.])

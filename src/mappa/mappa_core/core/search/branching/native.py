@@ -1,12 +1,11 @@
 """Native branch-search adapter."""
 
 from __future__ import annotations
-from dataclasses import asdict
 import gc, time
 from mappa.mappa_core.core.search.branching.construction import _normalize_anchor_map
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext
+from mappa.mappa_core.core.search.graph import SearchContext
 
 
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
@@ -39,26 +38,19 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
     wall=time.perf_counter() if profile is not None else 0.
     enabled = gc.isenabled()
     try:
-        # Native records and the resulting decision DAG contain no cycles.
-        # Avoid rescanning retained cuts while constructing this one record;
-        # reference counting still releases temporary acyclic objects normally.
+        # The decision DAG is acyclic. Avoid rescanning retained cuts while
+        # the binding constructs this cut's shared immutable state blocks.
         gc.disable()
-        record=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],
+        graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],
             float(graph_floor),float(iso_tol),int(max_branches),
             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
-            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,repair,repair_cuts,int(random_seed) & ((1<<64)-1))
+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,int(random_seed) & ((1<<64)-1))
         native_cpu=time.process_time()-cpu if profile is not None else 0.
         native_wall=time.perf_counter()-wall if profile is not None else 0.
-        growth_calls=record.pop('growth_calls')
-        max_growth_candidates=record.pop('max_growth_candidates')
-        record.update(schema='rxn_core.aam_search_graph/v1',contexts=(asdict(context),))
-        cpu=time.process_time() if profile is not None else 0.
-        graph=AAMSearchGraph.from_record(record,copy=False)
-        del record
     finally:
         if enabled:
             gc.enable()
     if profile is not None:
         profile.append(dict(growth_calls=growth_calls,max_cands_before=max_growth_candidates,native_schedule_and_export_cpu=native_cpu,
-            python_graph_cpu=time.process_time()-cpu,extend_elapsed_sec=native_wall))
+            extend_elapsed_sec=native_wall))
     return graph
