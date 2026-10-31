@@ -119,6 +119,7 @@ def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds
             if not parent.poll(60) or parent.recv()[0] != 'ready':
                 raise RuntimeError('Compute worker failed to initialize')
             process_stats = psutil.Process(process.pid)
+            queue.worker_ready(worker_id, process.pid)
             next_sample = 0.
             while True:
                 if claim_until is not None and time.time() >= claim_until:
@@ -258,7 +259,7 @@ def coordinator(queue, address, authkey, *, store=None):
     class Manager(BaseManager):
         pass
     Manager.register('queue', callable=lambda: queue,
-                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results', 'wait_for_work'))
+                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results', 'wait_for_work', 'worker_ready'))
     if store is not None:
         Manager.register('store', callable=lambda: store, exposed=('put', 'load'))
     server = _QueueServer(Manager._registry, address, authkey, 'pickle')

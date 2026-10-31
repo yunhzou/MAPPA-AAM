@@ -45,6 +45,9 @@ class TaskQueue:
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS identity (value TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS workers (
+                name TEXT PRIMARY KEY, process INTEGER, ready REAL,
+                pending INTEGER, runnable INTEGER);
             CREATE TABLE IF NOT EXISTS cases (
                 name TEXT PRIMARY KEY, seconds REAL, deadline REAL,
                 spent REAL NOT NULL DEFAULT 0, active_since REAL);
@@ -143,6 +146,16 @@ class TaskQueue:
             (SELECT d.task FROM tasks p INDEXED BY task_state
              CROSS JOIN dependencies d ON d.dependency=p.key WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
             pass
+
+    def worker_ready(self, worker, process):
+        """Timestamp readiness at the coordinator, on the same clock as claims."""
+        with self.lock, self.db:
+            pending = self.db.execute("SELECT count(*) FROM tasks WHERE state='pending'").fetchone()[0]
+            runnable = self.db.execute("""SELECT count(*) FROM tasks t WHERE state='pending'
+                AND NOT EXISTS (SELECT 1 FROM dependencies d JOIN tasks p ON p.key=d.dependency
+                                WHERE d.task=t.key AND p.state!='complete')""").fetchone()[0]
+            self.db.execute('INSERT INTO workers VALUES (?,?,?,?,?)',
+                            (worker, process, time.time(), pending, runnable))
 
     def claim(self, worker, memory_bytes, identity):
         if identity != self.identity:

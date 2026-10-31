@@ -511,3 +511,21 @@ def test_dependency_refresh_skips_successful_parents(tmp_path):
     queue._refresh(time.time())
     queue.db.set_progress_handler(None,0)
     queue.close()
+
+
+def test_worker_ready_records_runnable_backlog_and_survives_backup(tmp_path):
+    queue = TaskQueue(tmp_path/'ready.sqlite', IDENTITY)
+    queue.add([task('a'), task('b', dependencies=('a',))])
+    with coordinator(queue, ('127.0.0.1', 0), b'readiness-test') as address:
+        remote = connect(address, b'readiness-test')
+        before = time.time()
+        remote.worker_ready('worker', 123)
+        after = time.time()
+    row = queue.db.execute('SELECT process,ready,pending,runnable FROM workers').fetchone()
+    assert row[0] == 123 and before <= row[1] <= after
+    assert row[2:] == (2, 1)
+    queue.backup(tmp_path/'saved.sqlite')
+    queue.close()
+    restored = TaskQueue(tmp_path/'saved.sqlite', IDENTITY)
+    assert restored.db.execute('SELECT process,ready,pending,runnable FROM workers').fetchone() == row
+    restored.close()
