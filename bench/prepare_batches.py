@@ -37,5 +37,6 @@ def prepare(index_path, previous, output, count=40):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('index'); parser.add_argument('previous'); parser.add_argument('output')
+    parser.add_argument('--count',type=int,default=40)
     args = parser.parse_args()
-    prepare(args.index, args.previous, args.output)
+    prepare(args.index, args.previous, args.output,count=args.count)

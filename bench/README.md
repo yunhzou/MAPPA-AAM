@@ -16,12 +16,13 @@ full cut sweep. Verification asks for exact annotated heavy-atom indices, with
 hydrogens unconstrained and no endpoint-symmetry relaxation. It does not claim
 stereochemical validation. The manifest records this policy explicitly.
 
-The campaign uses a Slurm array of 40 independent one-node allocations, each
-with 20 compute workers and 22 allocated CPUs. Each allocation starts one
+The campaign uses a Slurm array of four independent two-node allocations, each
+with 100 compute workers and 104 allocated CPUs. Each allocation starts one
 persistent pool. Slurm may start batches independently as capacity is available;
-800 workers is the total target, not a guarantee of simultaneous availability.
+The current wave requests 400 workers. The cpu-short per-user limit is four
+submitted jobs; reaching 800 requires increasing each allocation to 200 workers.
 
-`prepare_batches.py` partitions reaction IDs modulo 40 and copies only the
+`prepare_batches.py` partitions reaction IDs modulo the requested batch count (four for this wave) and copies only the
 corresponding ledger rows from the stopped original campaign. Saved bundle
 references remain valid; keep the original bundle directory. Each batch has its
 own output directory and ledger, with no concurrent writers across batches.
@@ -30,7 +31,7 @@ with `afterok` on the entire matching array. A drained allocation exits 75 so it
 cannot release the dependency before completing matching. Resume unfinished
 batches explicitly before releasing downstream work.
 
-At most 32 reaction/directions per batch are active. Completed histories and attempt
+At most 128 reaction/directions per batch are active. Completed histories and attempt
 records are appended to bundles before their tasks are removed from the dispatch
 queue. Task polling reads states without repeatedly unpickling results. This
 keeps the active queue bounded while preserving audit evidence. There are no
