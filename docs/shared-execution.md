@@ -157,6 +157,8 @@ repeating after node loss. Plan allocation walltime accordingly.
 Local tests exercise RAM/file transport, full scientific-record equivalence,
 deadlines, worker replacement, dependency barriers, checkpoint resume and the
 actual network worker entry point with an intercepted single `srun` launch.
-They do not establish real multi-node Slurm performance or network recovery.
+A [real two-node NRT test](../reports/slurm_pool_20261031/README.md) also verifies
+BundleStore handoff, persistent workers and complete scientific equivalence. Its
+small-case timing does not establish a throughput improvement or network recovery.
 Scheduling stays in `mappa.execution` and `mappa_core/core/scheduler`; matching,
 family reduction and event algorithms remain their existing independent owners.

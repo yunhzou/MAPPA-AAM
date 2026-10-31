@@ -1,0 +1,92 @@
+{
+  "job": "187503",
+  "nodes": "cpu-[0012,0006]",
+  "partition": "cpu",
+  "coordinator": "cpu-0012",
+  "source_commit": "7548fd2c413756aa7edc0cd8561c309e749d6f67",
+  "source_identity": "4ce376546bfdadf290668b0ba7e8f85a4610da7c03c76bd529da5bffe444d472",
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 1.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "direct": [
+    {
+      "search": 2.550992073956877,
+      "deduplication": 0.25075757992453873,
+      "decoding": 1.9514241060242057
+    },
+    {
+      "search": 2.5911698939744383,
+      "deduplication": 0.25552218803204596,
+      "decoding": 1.7637046261224896
+    },
+    {
+      "search": 2.5200952568557113,
+      "deduplication": 0.26428036601282656,
+      "decoding": 1.9720313269644976
+    }
+  ],
+  "distributed": [
+    {
+      "search": 5.064268606947735,
+      "deduplication": 0.5209866890218109,
+      "decoding": 2.1440811660140753
+    },
+    {
+      "search": 2.5004091281443834,
+      "deduplication": 0.5523201010655612,
+      "decoding": 2.307147213956341
+    },
+    {
+      "search": 1.3075460749678314,
+      "deduplication": 0.5540868449024856,
+      "decoding": 2.3256536908447742
+    }
+  ],
+  "pool_creation_seconds": 0.02817216981202364,
+  "worker_service_pid": 2033910,
+  "persistent_workers": {
+    "cpu-0012:2033950:1e34c100b2f94b109b00502e5a87838e": [
+      2033959
+    ],
+    "cpu-0012:2033950:9d60b46896614007a3670d5856a98654": [
+      2033960
+    ],
+    "cpu-0006:2056142:7e6e5fc88af8467b9f63826715ef1c51": [
+      2056190
+    ],
+    "cpu-0006:2056142:c39062d7c5214bb89740153f0d8becd4": [
+      2056189
+    ]
+  },
+  "tasks": 821,
+  "states": {
+    "complete": 821
+  },
+  "verification": {
+    "status": "recovered",
+    "family": 0,
+    "heavy_atoms": 64,
+    "partition_checks": 778
+  },
+  "pool_wall_seconds": 60.88243242679164,
+  "bundle_files": 5,
+  "median_seconds": {
+    "direct": 4.753173759905621,
+    "distributed": 5.359876443166286
+  },
+  "full_records_equal": true,
+  "multi_batch_seed_equivalence": true,
+  "manifest_reopen_equal": true,
+  "success": true
+}
