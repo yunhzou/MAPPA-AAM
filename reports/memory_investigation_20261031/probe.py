@@ -12,6 +12,24 @@ def child(task, pipe, directory):
     from mappa.mappa_core.core.search.session import SearchSession
     def event(phase, **fields):
         pipe.send(dict(phase=phase, rss=psutil.Process().memory_info().rss, time=time.monotonic(), **fields))
+    from mappa.mappa_core.core.matching.growth import native
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    native_search=native._engine.search_fragments
+    def measured_native(*args,**kwargs):
+        event('native_search_start')
+        record=native_search(*args,**kwargs)
+        event('native_record_exported',states=len(record['states']),transitions=len(record['transitions']),
+              mapping_pairs=sum(len(s['mapping']) for s in record['states']),
+              island_pairs=sum(len(s['islands']) for s in record['states']))
+        return record
+    native._engine.search_fragments=measured_native
+    from_record=AAMSearchGraph.from_record
+    def measured_record(cls,*args,**kwargs):
+        event('python_graph_start')
+        graph=from_record(*args,**kwargs)
+        event('python_graph_end')
+        return graph
+    AAMSearchGraph.from_record=classmethod(measured_record)
     original_search=SearchSession.search_cut
     def measured_search(self,*args,**kwargs):
         event('growth_start')
@@ -63,7 +81,7 @@ def main():
         with tempfile.TemporaryDirectory(prefix='mappa-memory-') as temporary:
             parent,connection=mp.get_context('spawn').Pipe(False)
             process=mp.get_context('spawn').Process(target=child,args=(task,connection,temporary));process.start();connection.close()
-            started=time.monotonic();peak=0;phase='startup'
+            started=time.monotonic();result['started']=started;peak=0;phase='startup'
             while process.is_alive() or parent.poll():
                 while parent.poll():
                     try:event=parent.recv()
