@@ -602,7 +602,42 @@ preparation. Compatibility includes search policy, seed/cut/direction scope,
 reference policy and task resource specifications. Operational worker placement
 is independent. A fresh run owns a new queue, pilot and attempt history.
 
-`operations.py` contains scientific task adapters to public MAPPA APIs.
+The benchmark uses the core task planners directly. Matching's logical unit is
+one reaction, direction, sweep cut and seed. Fresh benchmark plans use one seed
+per search task. Core `finalize_cut` assembles that cut's seed results and their
+symmetry representation. Core `plan_cut_decoding` attaches one `decode_cut` task
+to each finalized cut; it does not wait for other cuts or reactions.
+
+Decoding compares an oriented R/P pair through its saved AAM catalogue. All
+seeds in a cut share one event index, deduplicated families and response tables.
+Each family's provenance retains its original context index, so the output
+records exact per-seed family membership and coverage tiers. Seed-prefix reports
+select those memberships; they do not decode again. Resource and phase timings
+belong to the cut task and are counted once, regardless of seed count. R→P and
+P→R remain separate tasks; reports normalize reverse event categories.
+
+`operations.py` contains only benchmark reference/evaluation adapters. It does
+not implement a second matching or decoding planner. Independent dense checks
+of saved representatives and their serialized event tables run in the pilot
+and reporting, outside decoder timing.
+The prepared operation schema is v2; old task grids cannot be silently reused
+or have their operation names rewritten.
+
+```mermaid
+flowchart TD
+    Inputs[Dataset adapter: R/P and settings] --> Search[Core plan_search: cut × seed]
+    Search --> Final[Core finalize_cut: one cut's seeds]
+    Final --> Decode[Core decode_cut: shared event catalogue]
+    Final --> Reference[Benchmark: ground-truth checks per seed]
+    Decode --> Report[Saved-output report: seed prefixes and timings]
+    Reference --> Report
+    Slurm[Slurm: worker capacity] --> Pool[Core task pool: dependencies and execution]
+    Pool -. executes .-> Search
+    Pool -. executes .-> Final
+    Pool -. executes .-> Decode
+    Pool -. executes .-> Reference
+```
+
 `execution.py` alone owns benchmark queue preparation, pilot reuse, worker entry,
 checkpoint publication and retired-queue restoration. The core scheduler remains
 the sole owner of claims, dependencies, budgets and result acceptance. Common
@@ -619,7 +654,7 @@ contain configuration and receipts, never alternate implementations.
 flowchart LR
     Dataset --> Inputs[inputs: immutable artifact]
     Inputs --> Launch[launch: new run and stage lifecycle]
-    Launch --> Pilot[operations: real-input pilot]
+    Launch --> Pilot[core task pool: real-input pilot]
     Pilot --> Execution[execution: prepare and serve queue]
     Launch --> Workers[execution: workers]
     Workers --> Queue[core scheduler: claims and budgets]

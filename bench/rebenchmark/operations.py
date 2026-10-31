@@ -6,7 +6,7 @@ from mappa.mappa_core.core.scheduler import Task
 from mappa.mappa_core.core.scheduler.search import plan_search
 
 
-def plan_direction(case, plan, reference, writer, *, seed_batch=10, case_seconds=3600., memory_bytes=2**30):
+def plan_direction(case, plan, reference, writer, *, seed_batch=1, case_seconds=3600., memory_bytes=2**30):
     tasks, cuts = plan_search(case, plan.problem, plan.config, writer,
         seed_batch=seed_batch, case_seconds=case_seconds, memory_bytes=memory_bytes)
     evidence = writer.put(dict(reference=reference, reversed=plan.reversed))
@@ -44,37 +44,6 @@ def evaluate_seed(payload, workspace):
         proof = workspace.writer.put_file(archive)
         return dict(summary=summary, evaluation=read(folder/'evaluation.json'),
                     classes=read(folder/'classes.json'), evidence=proof)
-
-
-def conversion_tasks(case, tasks, cuts, *, slack=5):
-    """Attach the public converter to every seed of each finalized cut."""
-    from dataclasses import replace
-    finals = {t.key: t for t in tasks if t.key in cuts}
-    for key in cuts:
-        final = finals[key]
-        for seed in range(final.payload['seeds']):
-            payload = dict(input=final.payload['input'], cut=key, number=final.payload['number'],
-                task_id=int(case), seed=seed, slack=slack, branch_limit=100, random_seed=42,
-                decoder='compressed_event_interpretation')
-            yield replace(final, key=f'{case}/cut/{payload["number"]:05d}/seed/{seed:02d}',
-                operation='rebenchmark.operations:convert_seed', payload=payload, dependencies=(key,))
-
-
-def convert_seed(payload, workspace):
-    from mappa.mappa_core.core.scheduler.search import _session
-    from .decoding import decode_graph
-    import time
-    if payload['decoder'] != 'compressed_event_interpretation':
-        raise ValueError('Create a fresh plan for the current decoder')
-    start, cpu = time.perf_counter(), time.process_time()
-    session = _session(payload, workspace)
-    finalized = workspace.dependency(payload['cut'])
-    loading = dict(wall_seconds=time.perf_counter()-start, cpu_seconds=time.process_time()-cpu)
-    value = decode_graph(session.context[0], finalized['graph'], payload)
-    value['timing']['loading'] = loading
-    blob = workspace.dependencies[payload['cut']]['blob']
-    return dict(value, task_id=payload['task_id'], cut=payload['number'], input=payload['input'],
-        finalized=blob, finalized_sha256=blob.sha256, search_rerun=True)
 
 
 def reference_tasks(case, tasks, cuts, reference, reverse):

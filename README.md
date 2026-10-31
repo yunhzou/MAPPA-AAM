@@ -430,18 +430,24 @@ profile (`account`, `partition`, `short_qos`, `worker_time`,
 `max_worker_jobs`, `target_workers`, `checkpoint_seconds`; `prepare`, `pilot`, `queue`, `coordinator`, `report` and
 `memory_stage` each specify `qos`, `cpus`, `memory_gib`, `time`). It also supplies
 `expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
-`retry_workers`. The existing shared planner owns dataset/task preparation.
+`retry_workers`. The core scheduler owns matching and decoding work: one search
+task per direction/cut/seed, followed by one finalized AAM and one decoding task
+per cut. Decoding shares its event tables across seeds while retaining each
+seed's branch membership. The benchmark adds reference checks and reports; it
+does not implement another matching or decoding scheduler. Prepared task schema
+v2 requires a new compatible index, not rewritten operations in an old queue.
 
-One command queues input preparation, a small real-input pilot, task-queue
-construction and production with scheduler dependencies. Queue construction
+Prepare a compatible input artifact once with `rebenchmark.launch prepare-inputs`.
+Subsequent run plans name its `index` and `index_sha256`. Submission validates that
+artifact, then queues a small real-input pilot, task-queue construction and
+production with scheduler dependencies. Queue construction
 finishes on local disk before the production coordinator allocation starts. Production renews only cleanly retired worker allocations
 against the same queue. It preserves task budgets, accepted work and checkpoint
 backups; failed workers require diagnosis. Only recorded memory failures enter
 the configured larger-memory stage. Unknowns and resource limits remain unresolved.
 Launch receipts, source/native hashes, configurations and result bundles are saved
-under the run. A new submission refuses an existing run directory. Reusing a
-completed stage for timing comparisons is supported separately by the shared
-planner's explicit `repeat` mode.
+under the run. A new submission refuses an existing run directory. Compatible prepared inputs can be reused by subsequent fresh runs; completed
+scientific results are reused only through the explicitly verified pilot.
 
 The Slurm wrapper uses `/var/tmp` on node-local disk and rejects RAM-backed or
 shared mounts. `/tmp` on NRT is RAM-backed and must not hold a large queue.

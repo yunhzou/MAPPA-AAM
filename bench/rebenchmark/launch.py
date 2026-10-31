@@ -153,22 +153,23 @@ def pilot_check(root):
         for specification, raw in queue.db.execute('SELECT specification,result FROM tasks'):
             task, resource = _loads_checkpoint(specification), _loads_checkpoint(raw)
             value = read_blob(resource['blob'], scratch)
-            if task.operation.endswith(':convert_seed'):
+            if task.operation.endswith(':decode_cut'):
                 d = value['decoded']
                 if d['schema'] != 'mappa.decoded_events/v3' or not d['mapping_space_preserved']:
                     raise ValueError('Pilot decoder policy differs')
-                if value['finalized_sha256'] != value['finalized'].sha256:
+                if value['finalized'] != queue.results([task.payload['cut']])[task.payload['cut']]['result']['blob']:
                     raise ValueError('Pilot parent identity differs')
-                events += 1; representatives += len(d['representatives'])
+                from .decoding import verify_event_output
+                events += 1; representatives += verify_event_output(value)
             elif task.operation.endswith(':verify_seed'):
                 if value['scope'] != 'original_iso1_aam':
                     raise ValueError('Pilot reference policy differs')
                 references += 1
-        if events != len(selected)*plan['config']['seed_count'] or references != events:
+        if events != len(selected) or references != events*plan['config']['seed_count']:
             raise ValueError('Pilot output denominator differs')
         save(pilot/'check.json', dict(verified=True,selected_cuts=selected,states=states,
             event_outputs=events,reference_outputs=references,representatives=representatives,
-            event_validation='Independent dense recounts in decode_graph; unknown references remain unknown'))
+            event_validation='Independent dense recounts of saved representatives and tables; unknown references remain unknown'))
     full = root/'full'; full.mkdir(exist_ok=False)
     plan.pop('selected_cuts')
     plan.update(identity=read(root/'plan.json')['identity']+'-full', pilots=[str(pilot)])

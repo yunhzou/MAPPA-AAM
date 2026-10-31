@@ -2,7 +2,8 @@
 from pathlib import Path
 import tempfile
 from mappa.mappa_core.core.scheduler.search import plan_search
-from .operations import conversion_tasks, reference_tasks
+from mappa.mappa_core.core.scheduler.decoding import plan_cut_decoding
+from .operations import reference_tasks
 from .evidence import read, save, sha
 
 
@@ -55,11 +56,11 @@ def _prepare_record(payload):
         direction = 2*case+int(reverse)
         directed = AAMProblem(problem.product,problem.reactant,problem.name) if reverse else problem
         tasks, cuts = plan_search(f'{direction:05d}', directed, config, writer,
-            seed_batch=plan['seed_batch'], case_seconds=plan['case_seconds'], memory_bytes=plan['memory_bytes'])
-        tasks += list(conversion_tasks(f'{direction:05d}',tasks,cuts,slack=plan['slack']))
+            seed_batch=1, case_seconds=plan['case_seconds'], memory_bytes=plan['memory_bytes'])
+        tasks += list(plan_cut_decoding(tasks, cuts))
         if plan.get('reference_checks', False):
             tasks += reference_tasks(f'{direction:05d}', tasks, cuts, reference, reverse)
-        order = {'search_batch':0,'finalize_cut':1,'verify_seed':2,'convert_seed':3}
+        order = {'search_batch':0,'finalize_cut':1,'verify_seed':2,'decode_cut':3}
         tasks.sort(key=lambda t: (t.key.split('/')[2], order[t.operation.rsplit(':',1)[1]], t.key))
         rows.append(dict(direction=direction,case=case,reversed=reverse,cuts=len(cuts),
             tasks=len(tasks),counts=dict(Counter(t.operation.rsplit(':',1)[1] for t in tasks)),
@@ -144,10 +145,10 @@ def specification(plan):
     import json
     return json.loads(json.dumps(dict(dataset=plan['dataset'], input_manifest_sha256=plan['input_manifest_sha256'],
         config=asdict(AAMSearchConfig(**plan['config'])), directions=plan['directions'],
-        selected_cases=plan.get('selected_cases'), seed_batch=plan['seed_batch'],
+        selected_cases=plan.get('selected_cases'), seed_batch=1,
         case_seconds=plan['case_seconds'], memory_bytes=plan['memory_bytes'],
-        slack=plan['slack'], reference_checks=plan['reference_checks'],
-        task_schema='mappa.benchmark.operations/v1')))
+        reference_checks=plan['reference_checks'],
+        task_schema='mappa.benchmark.operations/v2')))
 
 
 def validate(plan):

@@ -26,7 +26,7 @@ def _session(payload, workspace):
     return workspace.prepared(reference, prepare)
 
 
-def plan_search(case, problem, config, writer, *, seed_batch=10, case_seconds=3600., memory_bytes=2**30):
+def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=3600., memory_bytes=2**30):
     """Plan a direction once; combine several plans in the same TaskQueue.
 
     Inputs occur once in a bundle. Every task names its original seed indices

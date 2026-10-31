@@ -407,52 +407,61 @@ def _event_direction_report(arguments):
                                     'publish_cpu_seconds','peak_tree_rss_bytes')}))
     selected={}
     for task in expected:
-        if task.key in accepted and task.operation.rsplit(':',1)[1] in ('verify_seed','convert_seed'):
+        if task.key in accepted and task.operation.rsplit(':',1)[1] in ('verify_seed','decode_cut'):
             blob=accepted[task.key]['blob'];selected[blob.path,blob.offset]=(task,blob)
     ordered=sorted(selected)
-    references=[];events=[]
+    references=[];events=[];decodings=[]
     for task in expected:
         if task.key in accepted: continue
-        base=dict(key=task.key,cut=int(task.key.split('/')[2]),seed=task.payload.get('seed'))
+        base=dict(key=task.key,cut=int(task.key.split('/')[2]))
         if task.operation.endswith(':verify_seed'):
-            references.append(dict(base,reference_recovery='unknown',representative_recovery=False))
-        elif task.operation.endswith(':convert_seed'):
-            events.append(dict(base,coverage=None,mapping_space_preserved=False,incomplete_paths=['missing_output'],
-                families=0,tables=0,representative_minimum=None,minimum_categories=[],timing={}))
+            references.append(dict(base,seed=task.payload['seed'],reference_recovery='unknown',representative_recovery=False))
+        elif task.operation.endswith(':decode_cut'):
+            for seed in range(task.payload['seeds']):
+                events.append(dict(base,seed=seed,coverage=None,mapping_space_preserved=False,
+                    incomplete_paths=['missing_output'],representative_minimum=None,minimum_categories=[]))
     for blob,value in read_blobs([selected[k][1] for k in ordered],scratch):
         task=selected[blob.path,blob.offset][0];p=task.payload
-        base=dict(key=task.key,cut=int(task.key.split('/')[2]),seed=p['seed'],sha256=blob.sha256)
+        base=dict(key=task.key,cut=int(task.key.split('/')[2]),sha256=blob.sha256)
         if task.operation.endswith(':verify_seed'):
             if value['scope']!='original_iso1_aam' or value['reference']!=p['reference']:
                 raise ValueError('Reference policy differs')
-            references.append(dict(base,reference_recovery=value['reference_recovery'],
+            references.append(dict(base,seed=p['seed'],reference_recovery=value['reference_recovery'],
                 representative_recovery=value.get('representative_recovery',False),
                 capped=value.get('capped'),unknown_queries=value.get('unknown_queries'),
                 evaluation_seconds=value.get('evaluation_seconds')))
             continue
         parent=accepted[p['cut']]['blob'];d=value['decoded']
-        if (value['task_id']!=direction['direction'] or value['cut']!=base['cut'] or
-            value['seed']!=p['seed']+1 or value['input']!=p['input'] or
-            value['finalized']!=parent or value['finalized_sha256']!=parent.sha256 or
+        if (value['cut']!=base['cut'] or value['input']!=p['input'] or value['finalized']!=parent or
             d['schema']!='mappa.decoded_events/v3' or not d['mapping_space_preserved'] or
-            d['exhaustive_event_patterns'] or d['global_minimum_proven']):
+            d['exhaustive_event_patterns'] or d['global_minimum_proven'] or
+            [r['seed'] for r in value['seeds']] != list(range(p['seeds']))):
             raise ValueError('Event output identity or scope differs')
+        from .decoding import verify_event_output
+        verify_event_output(value)
         representatives=d['representatives'];families=d['catalogue']['families']
-        if len(representatives)!=value['all_families'] or len(families)!=len(representatives):
-            raise ValueError('Incomplete representative catalogue')
-        for fid,(rep,family) in enumerate(zip(representatives,families)):
-            saved=tuple((a,rep['mapping'][a]) for a in rep['mapped_source'])
-            if rep['family_id']!=fid or saved!=tuple(map(tuple,family['mapping'])):
-                raise ValueError('Representative mapping changed')
-        chosen=[representatives[i] for i in value['selected_family_ids']]
-        minimum=min((r['total'] for r in chosen),default=None)
-        categories=sorted({_representative_categories(d,r,direction['reversed'])
-                           for r in chosen if r['total']==minimum})
-        events.append(dict(base,coverage=value['coverage'],mapping_space_preserved=True,
-            incomplete_paths=d['incomplete_paths'],families=len(families),tables=len(d['tables']),
-            representative_minimum=minimum,minimum_categories=categories,timing=value['timing']))
+        decodings.append(dict(base,families=len(families),tables=len(d['tables']),
+                              incomplete_paths=d['incomplete_paths'],timing=value['timing']))
+        for seed in value['seeds']:
+            ids=[fid for fid,family in enumerate(families)
+                 if any(origin['context']==seed['seed'] for origin in family['provenance'])]
+            if ids != seed['family_ids']:
+                raise ValueError('Seed membership differs from saved provenance')
+            elements=d['problem']['reactant']['elements']
+            tiers={fid:(sum(elements[a]!='H' for a,_ in families[fid]['mapping']),
+                        len(families[fid]['mapping'])) for fid in ids}
+            tier=max(tiers.values(),default=None)
+            chosen_ids=[fid for fid in ids if tiers[fid]==tier]
+            if seed['coverage'] != tier or seed['selected_family_ids'] != chosen_ids:
+                raise ValueError('Seed coverage selection differs')
+            chosen=[representatives[i] for i in chosen_ids]
+            minimum=min((r['total'] for r in chosen),default=None)
+            categories=sorted({_representative_categories(d,r,direction['reversed'])
+                               for r in chosen if r['total']==minimum})
+            events.append(dict(base,seed=seed['seed'],coverage=tier,mapping_space_preserved=True,
+                incomplete_paths=d['incomplete_paths'],representative_minimum=minimum,minimum_categories=categories))
     return dict(case=direction['case'],direction=direction['direction'],
-                references=references,events=events,resources=resources,missing=missing,states=dict(states))
+                references=references,events=events,decodings=decodings,resources=resources,missing=missing,states=dict(states))
 
 
 def summarize_original_events(run, output, workers):
@@ -516,7 +525,7 @@ def summarize_original_events(run, output, workers):
                             op=resource['operation'];counts[op]+=1
                             for name in ('cpu_seconds','compute_seconds','publish_cpu_seconds','publish_seconds','peak_tree_rss_bytes'):
                                 samples.add(op,name,resource[name])
-                        for row in record['events']:
+                        for row in record['decodings']:
                             counts['families']+=row['families'];counts['event_tables']+=row['tables']
                             counts['incomplete_event_outputs']+=bool(row['incomplete_paths'])
                             for name,timing in row.pop('timing').items():

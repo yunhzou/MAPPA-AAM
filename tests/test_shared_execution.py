@@ -552,28 +552,27 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     import hashlib
     import json
     from golden_evaluation import prepare
-    from rebenchmark.operations import conversion_tasks
+    from mappa.mappa_core.core.scheduler.decoding import plan_cut_decoding, decode_graph
     from rebenchmark.execution import prepare_queue
-    from rebenchmark.decoding import decode_graph
     case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
     config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
     writer = BundleWriter(tmp_path/'inputs',tmp_path)
     tasks,cuts = plan_search('00000',case,config,writer,seed_batch=1,memory_bytes=MEMORY)
-    tasks += list(conversion_tasks('00000',tasks,cuts))
+    tasks += list(plan_cut_decoding(tasks,cuts))
     pilot = tmp_path/'pilot'; pilot.mkdir()
     queue = TaskQueue(pilot/'queue.sqlite',IDENTITY)
     queue.add(tasks)
     run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',memory_bytes=MEMORY)
-    assert queue.snapshot() == {'complete':5}
+    assert queue.snapshot() == {'complete':4}
     rows = queue.results()
     graph = read_blob(rows[cuts[0]]['result']['blob'],tmp_path)['graph']
-    for task_spec in tasks[-2:]:
+    for task_spec in tasks[-1:]:
         result = read_blob(rows[task_spec.key]['result']['blob'],tmp_path)
-        direct = decode_graph(case,graph,task_spec.payload)
+        direct = decode_graph(case,graph)
         assert result['decoded'] == direct['decoded']
         assert result['decoded']['mapping_space_preserved']
-        assert result['search_rerun'] is True
-        assert result['finalized_sha256'] == rows[cuts[0]]['result']['blob'].sha256
+        assert result['finalized'] == rows[cuts[0]]['result']['blob']
+        assert [s['seed'] for s in result['seeds']] == [0, 1]
     queue.backup(pilot/'published.sqlite')
     queue.close()
     # Move the consistent backup into the location used by production reuse.
@@ -588,9 +587,9 @@ def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_
     scratch = tmp_path/'scratch'; scratch.mkdir()
     plan['pilots'] = [str(pilot)]
     reused = prepare_queue(plan,full,scratch)
-    assert reused.snapshot() == {'complete':5}
+    assert reused.snapshot() == {'complete':4}
     assert reused.db.execute('SELECT seconds FROM cases').fetchone()[0] < 3600
-    assert len(json.loads((full/'reused.json').read_text())) == 5
+    assert len(json.loads((full/'reused.json').read_text())) == 4
     reused.close()
     plan['pilot_commits'] = []
     other = tmp_path/'other'; other.mkdir()
@@ -643,7 +642,7 @@ def test_enzyme_planner_keeps_input_independent_and_checks_both_directions(tmp_p
     rows = _prepare_record((plan,item,str(tmp_path)))
     queue = TaskQueue(tmp_path/'queue.db',IDENTITY)
     for row in rows:
-        assert row['counts'] == dict(search_batch=1,finalize_cut=1,verify_seed=1,convert_seed=1)
+        assert row['counts'] == dict(search_batch=1,finalize_cut=1,verify_seed=1,decode_cut=1)
         queue.add(read_blob(Blob(**row['blob']),tmp_path))
     run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'results',memory_bytes=MEMORY)
     assert queue.snapshot() == {'complete':8}
@@ -692,7 +691,7 @@ def test_repeat_stage_reuses_exact_parents_and_keeps_source_immutable(tmp_path):
     scratch = tmp_path/'scratch'; scratch.mkdir()
     parent = task('00000/cut/00000/final', case='00000')
     child = replace(task('00000/cut/00000/seed/00', case='00000', dependencies=(parent.key,)),
-                    operation='rebenchmark.operations:convert_seed')
+                    operation='mappa.mappa_core.core.scheduler.decoding:decode_cut')
     writer = BundleWriter(tmp_path/'bundles', scratch)
     blob = writer.put([parent, child])
     index = tmp_path/'index.json'
@@ -726,3 +725,53 @@ def test_repeat_stage_reuses_exact_parents_and_keeps_source_immutable(tmp_path):
     (prior_path/'progress.json').write_text(json.dumps(dict(finished=False,states=dict(running=1))))
     with pytest.raises(ValueError,match='completed source'):
         prepare_repeat_queue(plan,output,scratch)
+
+
+def test_cut_decoding_shares_families_but_preserves_each_seed(tmp_path, monkeypatch):
+    from golden_evaluation import prepare
+    from mappa import search_aam
+    from mappa.mappa_core.core.scheduler import decoding
+    from rebenchmark.search import select_contexts
+    from rebenchmark.decoding import verify_event_output
+    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
+    aam = search_aam(case, AAMSearchConfig(seed_count=3, sweep_cuts=False), execution='reused_native')
+    # Two seeds retain exactly the same family; the third may differ.
+    graph = AAMSearchGraph.combine([select_contexts(aam.graph, [seed]) for seed in (0, 0, 2)])
+    single = [decoding.decode_graph(case, select_contexts(graph, [seed])) for seed in range(3)]
+    calls = []
+    public = decoding.decode_events
+    def counted(*args):
+        calls.append(1)
+        return public(*args)
+    monkeypatch.setattr(decoding, 'decode_events', counted)
+    combined = decoding.decode_graph(case, graph)
+    assert len(calls) == 1
+    verify_event_output(combined)
+    saved = combined['decoded']['representatives']
+    assert len(saved) < sum(len(s['decoded']['representatives']) for s in single)
+    for seed, independent in zip(combined['seeds'], single):
+        expected = independent['decoded']['representatives']
+        assert seed['coverage'] == independent['seeds'][0]['coverage']
+        def signatures(rows):
+            return {(tuple(r['mapping']), r['id'], r['total']) for r in rows}
+        assert signatures(saved[i] for i in seed['family_ids']) == signatures(expected)
+        assert signatures(saved[i] for i in seed['selected_family_ids']) == signatures(
+            expected[i] for i in independent['seeds'][0]['selected_family_ids'])
+
+
+
+def test_saved_table_validation_detects_changed_event_response():
+    from copy import deepcopy
+    from test_partial_event_decoding import endpoint, catalogue
+    from mappa import AAMProblem
+    from mappa.mappa_core.core.scheduler.decoding import decode_graph
+    from rebenchmark.decoding import verify_event_output
+    problem = AAMProblem(endpoint('CO', [(0,1,1)]), endpoint('CON', [(0,2,1)]))
+    graph = catalogue(problem, {0:0,1:1}).families[0].as_path(problem).graph
+    combined = decode_graph(problem, graph)
+    verify_event_output(combined)
+    damaged = deepcopy(combined)
+    response = damaged['decoded']['responses'][0]
+    response['categories'] = [0] * len(response['categories'])
+    with pytest.raises(ValueError, match='table differs'):
+        verify_event_output(damaged)

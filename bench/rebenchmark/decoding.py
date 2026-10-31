@@ -42,7 +42,7 @@ def decode_seed(payload, workspace):
         finalized=finalized, finalized_sha256=digest, search_rerun=False)
 
 
-def dense_event_categories(problem, mapping):
+def dense_event_categories(problem, mapping, threshold=.5, metal_threshold=.3):
     """Independent original-matrix recount for saved representative validation."""
     import numpy as np
     from mappa.mappa_core.utils.bonds import is_metal_element
@@ -57,7 +57,7 @@ def dense_event_categories(problem, mapping):
         opposite = np.zeros(len(a))
         opposite[both] = other.wbo[mapped[a[both]],mapped[b[both]]]
         metal = np.array([is_metal_element(e) for e in ep.elements])
-        tau = np.where(metal[a]|metal[b],.3,.5)
+        tau = np.where(metal[a]|metal[b], threshold if metal_threshold is None else metal_threshold, threshold)
         decrease = touched & (ep.wbo[a,b]-opposite>tau)
         persists = opposite>tau
         counts[1 if reverse else 0] += np.count_nonzero(decrease & ~persists)
@@ -66,39 +66,65 @@ def dense_event_categories(problem, mapping):
 
 
 def decode_graph(problem, graph, payload):
-    """Prepare every retained family's local event functions without rematching."""
-    from mappa.mappa_core.utils.io.records import decoded_events_record
-    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-    from mappa.mappa_core.post_processing.decoder.api import decode_events
-    started, cpu = time.perf_counter(), time.process_time()
-    catalogue = FinalBranchCatalogue(problem).add_graph(select_contexts(graph, [payload['seed']]))
-    all_families = len(catalogue.families)
-    tier = max((coverage(problem, f) for f in catalogue.families), default=None)
-    selected_ids = [i for i,f in enumerate(catalogue.families) if coverage(problem,f) == tier]
-    setup = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
-    started, cpu = time.perf_counter(), time.process_time()
-    result = decode_events(catalogue)
-    for fid, partitions in enumerate(result.fragment_partitions):
-        for partition in range(len(partitions)):
-            result.tables(fid, partition)
-    decoding = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
-    started, cpu = time.perf_counter(), time.process_time()
-    # Independent dense recounts check the sparse factors on each saved branch.
-    for fid, partitions in enumerate(result.fragment_partitions):
-        vector = result.index.vector(result.realize(fid))
-        expected = dense_event_categories(problem,result.realize(fid))
-        for partition in range(len(partitions)):
-            actual = result.tables(fid,partition).evaluate(vector)['counts']
-            if actual != expected:
-                raise ValueError(f'event table recount differs for family {fid}')
-    verification = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
-    started, cpu = time.perf_counter(), time.process_time()
-    record = decoded_events_record(result)
-    serialization = dict(wall_seconds=time.perf_counter()-started,cpu_seconds=time.process_time()-cpu)
-    return dict(seed=payload['seed']+1, coverage=tier,
-        decoding_scope='original_compressed_mapping_space', selected_family_ids=selected_ids,
-        all_families=all_families,selected_families=len(selected_ids),decoded=record,
-        timing=dict(setup=setup,decoding=decoding,verification=verification,record=serialization))
+    """Saved-input adapter; use the same core interpretation as fresh cuts."""
+    from mappa.mappa_core.core.scheduler.decoding import decode_graph as interpret
+    value = interpret(problem, select_contexts(graph, [payload['seed']]))
+    seed = value.pop('seeds')[0]
+    verify_event_output(value)
+    return dict(value, seed=payload['seed']+1, coverage=seed['coverage'],
+        decoding_scope='original_compressed_mapping_space', selected_family_ids=seed['selected_family_ids'],
+        all_families=len(seed['family_ids']), selected_families=len(seed['selected_family_ids']))
+
+
+def verify_event_output(value):
+    """Check saved tables and representatives against dense endpoint counts."""
+    import numpy as np
+    from collections import defaultdict
+    from mappa.mappa_core.utils.io.records import problem_from_record
+    record = value['decoded']
+    problem = problem_from_record(record['problem'])
+    representatives = record['representatives']
+    families = record['catalogue']['families']
+    if len(representatives) != len(families):
+        raise ValueError('Incomplete representative catalogue')
+    tables = []
+    for table in record['tables']:
+        groups = defaultdict(list)
+        for region in (*table['internal'], *table['boundary']):
+            for term in region['terms']:
+                groups[term['response']].append(term['atoms'])
+        tables.append(({rid: np.array(pairs, dtype=int) for rid, pairs in groups.items()},
+                       np.array(table['product_boundary_pairs'], dtype=int).reshape(-1, 2)))
+    product = np.pad(problem.product.wbo, ((0, 1), (0, 1)))
+    for fid, (representative, family) in enumerate(zip(representatives, families)):
+        mapping = {a: representative['mapping'][a] for a in representative['mapped_source']}
+        if representative['family_id'] != fid or sorted(mapping.items()) != [tuple(p) for p in family['mapping']]:
+            raise ValueError('Representative mapping differs from saved family')
+        counts = dense_event_categories(problem, mapping, record['event_policy']['threshold'],
+                                        record['event_policy']['metal_threshold'])
+        expected = dict(broken=counts['breaking']+counts['weakening'],
+                        formed=counts['forming']+counts['strengthening'])
+        if representative['counts'] != expected or representative['total'] != sum(expected.values()):
+            raise ValueError('Independent representative bond recount differs')
+        vector = np.array(representative['mapping'], dtype=int)
+        mapped = np.zeros(problem.target_atom_count, dtype=bool)
+        mapped[list(mapping.values())] = True
+        for tid in record['families'][fid]['tables']:
+            groups, boundary = tables[tid]
+            actual = np.zeros(5, dtype=int)
+            for rid, pairs in groups.items():
+                response = record['responses'][rid]
+                weights = product[vector[pairs[:, 0]], vector[pairs[:, 1]]]
+                allowed = np.array(response['target_weights'])
+                indices = np.searchsorted(allowed, weights)
+                if np.any(indices >= len(allowed)) or not np.array_equal(allowed[indices], weights):
+                    raise ValueError('Saved table omits a representative bond weight')
+                codes = np.array(response['categories'])[indices]
+                actual += np.bincount(codes, minlength=5)
+            actual[2] += np.count_nonzero(mapped[boundary[:, 0]] ^ mapped[boundary[:, 1]])
+            if tuple(actual[1:]) != tuple(counts.values()):
+                raise ValueError('Saved event table differs from dense representative recount')
+    return len(representatives)
 
 
 def merge_windows(rows, *, slack=5):

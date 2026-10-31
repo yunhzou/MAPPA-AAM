@@ -162,7 +162,7 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     manifest.write_text(json.dumps(dict(cases=1,dataset_sha256=hashlib.sha256(dataset.read_bytes()).hexdigest())))
     plan=dict(dataset='EnzymeMap',dataset_path=str(dataset),input_manifest=str(manifest),
         input_manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),directions=[False,True],
-        config=asdict(AAMSearchConfig(seed_count=1,iso_tolerance=1,sweep_cuts=False)),
+        config=asdict(AAMSearchConfig(seed_count=2,iso_tolerance=1,sweep_cuts=False)),
         seed_batch=1,case_seconds=60,memory_bytes=2**30,slack=5,reference_checks=True,preparation_workers=1,
         identity='test-launch',commit='source',pilot_commits=['source'],pilots=[],expected_cases=1,
         pilot_cases=[0],pilot_workers=2)
@@ -173,10 +173,10 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     from rebenchmark.inputs import validate
     validate(plan)
     with pytest.raises(ValueError,match='settings'):
-        validate(dict(plan,slack=6))
+        validate(dict(plan,config=dict(plan['config'],seed_count=3)))
     launch.pilot_check(tmp_path)
     check=launch.read(tmp_path/'pilot/check.json')
-    assert check['verified'] and check['event_outputs']==check['reference_outputs']==2
+    assert check['verified'] and check['event_outputs']==2 and check['reference_outputs']==4
     scratch=tmp_path/'production-scratch';scratch.mkdir()
     queue=prepare_queue(launch.read(tmp_path/'full/plan.json'),tmp_path/'full',scratch)
     assert set(queue.snapshot())=={'complete'}
@@ -186,19 +186,22 @@ def test_small_enzyme_pipeline_prepares_checks_and_reuses_pilot(tmp_path,monkeyp
     from rebenchmark.report import summarize_original_events
     report=summarize_original_events(tmp_path/'full',tmp_path/'complete-report',1)
     assert report['unresolved_tasks']==0
+    assert report['timing']['decode_cut']['compute_seconds']['count']==2
+    assert report['timing']['decoder_decoding']['cpu_seconds']['count']==2
+    assert report['modes']['sweep/bidirectional/seeds2']['recovered']==1
     assert report['modes']['sweep/bidirectional/seeds1']['recovered']==1
     # Failed reference/decode rows must report unknowns without hiding their keys.
     queue.db.execute("UPDATE tasks SET state='timeout',result=NULL WHERE key LIKE '%/verify/%'")
-    queue.db.execute("UPDATE tasks SET state='blocked',result=NULL WHERE key LIKE '%/seed/%'")
+    queue.db.execute("UPDATE tasks SET state='blocked',result=NULL WHERE key LIKE '%/decode'")
     queue.db.commit();queue.backup(tmp_path/'full/queue.sqlite')
     launch.save(tmp_path/'full/progress.json',dict(finished=True,states=queue.snapshot()))
     queue.close()
     from rebenchmark.report import summarize_original_events
     report=summarize_original_events(tmp_path/'full',tmp_path/'report',1)
-    assert report['unresolved_tasks']==4
+    assert report['unresolved_tasks']==6
     assert report['modes']['sweep/bidirectional/seeds1']['unknown']==1
     assert report['modes']['sweep/bidirectional/seeds1']['mapping_space_preserved']==0
-    assert report['counts']['verify_seed']==2 and report['counts']['convert_seed']==2
+    assert report['counts']['verify_seed']==4 and report['counts']['decode_cut']==2
 
 
 def test_retired_checkpoint_handoff_preserves_results_attempts_and_budget(tmp_path,monkeypatch):
