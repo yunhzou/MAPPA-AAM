@@ -2,11 +2,11 @@
 #SBATCH --account=nvr_lpr_agentic
 #SBATCH --partition=cpu
 #SBATCH --qos=cpu-short
-#SBATCH --nodes=2
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=1
 #SBATCH --array=0-3
 #SBATCH --cpus-per-task=52
-#SBATCH --mem=216G
+#SBATCH --mem=200G
 #SBATCH --time=03:45:00
 #SBATCH --signal=B:USR1@180
 #SBATCH --job-name=mappa-enzymemap
@@ -20,4 +20,4 @@ export PYTHONPATH="$SOURCE/src:$SOURCE/bench"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
 export TMPDIR="${SLURM_TMPDIR:-/tmp}"
 BATCH="$OUTPUT/bins100/$SLURM_ARRAY_TASK_ID"
-exec "$PYTHON" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 50 --memory-gib 4 --window 128 --run-seconds 12600 --resume "$@"
+exec "$PYTHON" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 48 --memory-gib 4 --window 128 --run-seconds 12600 --resume "$@"
