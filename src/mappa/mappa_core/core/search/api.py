@@ -3,6 +3,8 @@
 from __future__ import annotations
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, checkpoint_manifest, cut_sweep_items
 from mappa.mappa_core.core.scheduler.search import iter_cut_tasks, iter_finalized_tasks
+from mappa.mappa_core.core.scheduler.archive import CutArchive
+from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
 import json, gc, time
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -21,8 +23,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     group finalization and a final reusable graph record. No path or bijection
     enumeration is needed to collect worker results.
 
-    archive_format selects both raw-cut and final persistence: JSON interchange
-    records, or trusted compact checkpoints that preserve shared storage.
+    Intermediate cuts share append-only bundles and one reaction index.
+    archive_format selects the final JSON or compact checkpoint export.
     Completed cuts are persisted by workers and collected out of order, but
     the returned graph always retains canonical cut/context ordering.
 
@@ -49,7 +51,6 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
         from mappa.mappa_core.core.matching.growth.native import available
         if not available():
             raise ValueError('reused_native execution requires the built native engine')
-    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut
     config = config or AAMSearchConfig()
     requested_workers=max(1,int(workers))
     if archive_format not in ('json','checkpoint'):
@@ -59,19 +60,12 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     directory = None if intermediate_dir is None else Path(intermediate_dir)
     if resume and directory is None:
         raise ValueError('Resuming requires an intermediate directory')
+    archive = None
     if directory is not None:
-        directory.mkdir(parents=True, exist_ok=True)
-        manifest_path = directory / 'manifest.json'
-        identity = checkpoint_manifest(problem,config)
+        identity = checkpoint_manifest(problem, config)
         if execution == 'shared_policies':
             identity['execution'] = execution
-        if resume:
-            if json.loads(manifest_path.read_text()) != identity:
-                raise ValueError('Checkpoint input or configuration differs from this search')
-        else:
-            if manifest_path.exists() or raw_cut_paths(directory):
-                raise ValueError('Existing checkpoints require explicit resume=True')
-            manifest_path.write_text(json.dumps(identity)+'\n')
+        archive = CutArchive(directory, identity, resume=resume)
     metrics = {'max_live_branches': 0, 'max_growth_candidates': 0}
 
     checkpoint_seconds = worker_search_seconds = 0.0
@@ -80,19 +74,21 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
         for index, graph, counts in payloads:
             worker_search_seconds += counts['search_seconds']
             checkpoint_seconds += counts['checkpoint_seconds']
-            if isinstance(graph, str):
-                saved[index] = Path(graph)
-            else:
+            if 'checkpoint' in counts:
+                reference = counts.pop('checkpoint')
+                archive.record('raw', index, reference)
+                saved[index] = reference
+            if isinstance(graph, AAMSearchGraph):
                 graphs[index] = graph
             for key in ('max_live_branches', 'max_growth_candidates'):
                 metrics[key] = max(metrics[key], counts[key])
 
     graphs = [None] * len(cuts)
-    saved = {int(path.name.split('_')[1].split('.')[0]):path for path in raw_cut_paths(directory)} if resume else {}
+    saved = archive.references('raw') if archive else {}
+    if set(saved) - set(range(len(cuts))):
+        raise ValueError('Unexpected cut checkpoint index')
     missing = [index for index in range(len(cuts)) if index not in saved]
-    raw_suffix = '.raw.pkl.gz' if archive_format=='checkpoint' else '.json'
-    tasks = [(index, cuts[index], str(directory/f'cut_{index:05d}{raw_suffix}') if directory else None)
-             for index in missing]
+    tasks = [(index, cuts[index], str(directory) if directory else None) for index in missing]
     # Finish independent missing cuts before rebuilding the large cached DAG.
     # This also prevents forked cut workers from inheriting that archive heap.
     workers = min(max(1, int(workers)), max(1,len(missing)))
@@ -103,8 +99,9 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     # Restore the caller's GC setting before any new matching begins.
     restore_started=time.perf_counter()
     if requested_workers>1:
-        payloads=[(index,str(saved[index]) if index in saved else graphs[index],
-                   str(directory/f'cut_{index:05d}.finalized.pkl.gz') if directory else None)
+        finalized = archive.references('final') if archive else {}
+        payloads=[(index,saved[index] if index in saved else graphs[index],
+                   finalized.get(index, str(directory)) if directory else None)
                   for index in range(len(cuts))]
         gc_enabled=gc.isenabled()
         try:
@@ -112,6 +109,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
             for index, graph, counts in iter_finalized_tasks(
                     problem, config, execution, payloads, min(requested_workers, len(cuts))):
                 graphs[index] = graph
+                if 'checkpoint' in counts:
+                    archive.record('final', index, counts.pop('checkpoint'))
                 for key, value in counts.items():
                     metrics[key] = metrics.get(key, 0) + value
         finally:
@@ -119,14 +118,13 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
         del payloads
     else:
         gc_enabled = gc.isenabled()
-        tuple_pool = {}
         try:
             gc.disable()
             for index in sorted(saved):
-                graphs[index] = read_raw_cut(saved[index],tuple_pool=tuple_pool)
+                if graphs[index] is None:
+                    graphs[index] = read_blob(saved[index], None)
         finally:
             if gc_enabled:gc.enable()
-        del tuple_pool
     metrics['checkpoint_restore_and_finalize_seconds']=time.perf_counter()-restore_started
     if execution != 'shared_policies':
         for graph in graphs:
@@ -167,6 +165,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
             temporary = directory / 'aam.json.tmp'
             temporary.write_text(aam_json(result))
             temporary.replace(directory / 'aam.json')
+    if archive is not None:
+        archive.close()
     return result
 
 
@@ -174,7 +174,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
 class AAMCheckpointResult:
     """Complete raw cut archives; symmetry is finalized when a cut is consumed."""
     directory: Path
-    cut_paths: tuple[Path, ...]
+    cut_refs: tuple[Blob, ...]
     metrics: AAMSearchMetrics
     capped: bool
 
@@ -189,7 +189,6 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     consumers finalize and release individual cuts. Memory can still grow with
     one cut's history; this is not a universal memory bound.
     """
-    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut
     if not isinstance(problem, AAMProblem):
         raise TypeError('search_aam_checkpoints requires an AAMProblem')
     if execution not in ('reference', 'reused_native', 'shared_policies'):
@@ -205,26 +204,19 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     manifest = checkpoint_manifest(problem, config)
     if execution == 'shared_policies':
         manifest['execution'] = execution
-    manifest_path = directory / 'manifest.json'
-    if resume:
-        if json.loads(manifest_path.read_text()) != manifest:
-            raise ValueError('Checkpoint input or configuration differs from this search')
-    else:
-        if manifest_path.exists() or raw_cut_paths(directory):
-            raise ValueError('Existing checkpoints require explicit resume=True')
-        manifest_path.write_text(json.dumps(manifest) + '\n')
+    archive = CutArchive(directory, manifest, resume=resume)
     cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
-    saved = {int(p.name.split('_')[1].split('.')[0]): p for p in raw_cut_paths(directory)}
+    saved = archive.references('raw')
     if set(saved) - set(range(len(cuts))):
         raise ValueError('Unexpected cut checkpoint index')
-    tasks = [(i, cut, str(directory / f'cut_{i:05d}.raw.pkl.gz'))
-             for i, cut in enumerate(cuts) if i not in saved]
+    tasks = [(i, cut, str(directory)) for i, cut in enumerate(cuts) if i not in saved]
     metrics = dict(cuts=len(cuts), worker_search_seconds=0., checkpoint_seconds=0.,
                    max_growth_candidates=0, max_live_branches=0,
                    raw_result_count=0, retained_branch_count=0, subtree_branch_cap_count=0)
     def collect(results):
-        for i, path, counts in results:
-            saved[i] = Path(path)
+        for i, reference, counts in results:
+            saved[i] = reference
+            archive.record('raw', i, counts.pop('checkpoint'))
             metrics['worker_search_seconds'] += counts['search_seconds']
             metrics['checkpoint_seconds'] += counts['checkpoint_seconds']
             metrics['max_growth_candidates'] = max(metrics['max_growth_candidates'], counts['max_growth_candidates'])
@@ -234,7 +226,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     # Reduce archive statistics one cut at a time, including resumed cuts.
     paths = tuple(saved[i] for i in range(len(cuts)))
     for path in paths:
-        graph = read_raw_cut(path)
+        graph = read_blob(path, None)
         count = len(graph.terminals)
         metrics['raw_result_count'] += count
         metrics['retained_branch_count'] += count
@@ -245,6 +237,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
             by_context[context] = by_context.get(context, 0) + 1
         metrics['max_live_branches'] = max(metrics['max_live_branches'], max(by_context.values(), default=0))
         del graph
+    archive.close()
     return AAMCheckpointResult(directory, paths,
         AAMSearchMetrics.from_record(metrics, time.perf_counter() - started),
         bool(metrics['subtree_branch_cap_count']))

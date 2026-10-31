@@ -118,7 +118,10 @@ def test_cut_worker_backend_preserves_full_fragment_content_and_checkpoint_ident
                         intermediate_dir=directory, archive_format='checkpoint')
     # Conditioned symmetry is finalized too: compare complete records, not only scores.
     assert contents(shared.graph) == contents(original.graph)
-    assert len(list(directory.glob('*.raw.pkl.gz'))) == shared.metrics.cut_count
+    import sqlite3
+    with sqlite3.connect(directory/'archive.sqlite') as index:
+        assert index.execute("SELECT count(*) FROM cuts WHERE stage='raw'").fetchone()[0] == shared.metrics.cut_count
+    assert not list(directory.glob('cut_*'))
     resumed = search_aam(problem(6), config, workers=workers, execution='shared_policies',
                          intermediate_dir=directory, archive_format='checkpoint', resume=True)
     assert resumed.graph == shared.graph

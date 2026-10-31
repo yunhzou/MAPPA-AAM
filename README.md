@@ -2,7 +2,7 @@
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder rematches saved fragments at the bond-event thresholds, retains their compressed branches, and counts bond changes directly. Each returned event candidate has a concrete atom mapping and supporting converted branches.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder interprets the original compressed mappings using local fragment and boundary event tables. It preserves their correlated choices and constraints; requested realizations have concrete atom mappings and bond-change counts.
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
@@ -63,20 +63,24 @@ python -m pip install -e ".[notebook]"
 
 Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molecules, public Python imports, matching, unique candidates, symmetry queries, and py3Dmol visualization. For a smaller installation without notebook dependencies, use `python -m pip install -e ".[postprocessing]"`. Building the native extensions requires a C++17 compiler. xTB is needed separately only if you want to compute WBO inputs; matching supplied arrays does not invoke it.
 
-The core workflow has two steps:
+The core workflow keeps matching, deduplication and decoding explicit:
 
 ```python
-from mappa import search_aam
-from mappa.mappa_core.post_processing.decoder import decode_events
+from mappa import search_aam, deduplicate, decode_events
 
-aam = search_aam(problem)       # Compressed fragment-matching families
-decoded = decode_events(aam)     # Original-space event functions
+aam = search_aam(problem)       # Retained seed/cut search histories
+catalogue = deduplicate(aam)    # Families across all retained seeds and cuts
+decoded = decode_events(catalogue)  # Original-space event functions
 
 for fid in range(len(decoded.catalogue.families)):
     print(decoded.evaluate(fid), decoded.realize(fid))
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
+
+For many reactions, the [persistent work pool](docs/shared-execution.md) offers
+the same separate stages on local CPUs or inside one Slurm allocation, using RAM
+or aggregated result bundles. Scheduling stays outside the core algorithms.
 
 ## Grow, branch, decode
 
@@ -339,7 +343,6 @@ which tests ran; passing smoke checks does not mean the full suite passed.
 |---|---|
 | `src/mappa/` | `mappa_core` algorithms/I/O, `mappa_workflow` analytics, and `presentation` |
 | `docs/` | Executed notebooks and public API documentation |
-| `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
 | `tests/`, `tools/` | Functional checks and user utilities |
@@ -415,67 +418,3 @@ Experimental hierarchical refinement is explicitly available from
 `mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`
 and `RefinementConfig`. It rematches within original fragment atom sets and can
 change coverage. Normal decoding never invokes it.
-
-## Submit a cluster benchmark
-
-Use the maintained launcher with a saved plan; do not create per-run submission
-scripts:
-
-```bash
-PYTHONPATH=src:bench python -m rebenchmark.launch submit /absolute/new/run --plan /absolute/plan.json
-```
-
-The plan supplies the dataset/manifest, search settings and a `slurm` resource
-profile (`account`, `partition`, `short_qos`, `worker_time`,
-`max_worker_jobs`, `target_workers`, `checkpoint_seconds`; `prepare`, `pilot`, `queue`, `coordinator`, `report` and
-`memory_stage` each specify `qos`, `cpus`, `memory_gib`, `time`). It also supplies
-`expected_cases`, `pilot_cases`, `pilot_workers`, `retry_memory_bytes` and
-`retry_workers`. The core scheduler owns matching and decoding work: one search
-task per direction/cut/seed, followed by one finalized AAM and one decoding task
-per cut. Decoding shares its event tables across seeds while retaining each
-seed's branch membership. The benchmark adds reference checks and reports; it
-does not implement another matching or decoding scheduler. Prepared task schema
-v2 requires a new compatible index, not rewritten operations in an old queue.
-
-Prepare a compatible input artifact once with `rebenchmark.launch prepare-inputs`.
-Subsequent run plans name its `index` and `index_sha256`. Submission validates that
-artifact, then queues a small real-input pilot, task-queue construction and
-production with scheduler dependencies. Queue construction
-finishes on local disk before the production coordinator allocation starts. Production renews only cleanly retired worker allocations
-against the same queue. It preserves task budgets, accepted work and checkpoint
-backups; failed workers require diagnosis. Only recorded memory failures enter
-the configured larger-memory stage. Unknowns and resource limits remain unresolved.
-Launch receipts, source/native hashes, configurations and result bundles are saved
-under the run. A new submission refuses an existing run directory. Compatible prepared inputs can be reused by subsequent fresh runs; completed
-scientific results are reused only through the explicitly verified pilot.
-
-The Slurm wrapper uses `/var/tmp` on node-local disk and rejects RAM-backed or
-shared mounts. `/tmp` on NRT is RAM-backed and must not hold a large queue.
-Failed jobs retain their local scratch and publish its location. Historical failed
-runs are evidence, not automatic recovery inputs. A fresh submission uses a new
-run directory and new task budgets; it never mixes old partial results.
-
-Inspect the whole active pipeline with one repeatable command:
-
-```bash
-PYTHONPATH=src:bench python -m rebenchmark.launch status /absolute/run
-```
-
-This writes `status.json` with current stage, scheduler states, requested/running
-compute workers, progress, preparation progress, checkpoint age/size, local-disk
-space and allocation CPU/memory statistics. It reads no output archives. Running
-capacity is distinct from actual CPU usage and scientific completeness.
-
-Short coordinator allocations stop new claims early enough for the longest task,
-publication and `checkpoint_seconds`. After all worker owners retire cleanly, the
-controller publishes a hashed consistent queue and submits the next allocation
-with an `afterok` dependency. The next allocation restores the same task rows,
-results, attempts and remaining budgets; it does not rebuild the task grid.
-`current-allocation.json` identifies the active generation; `next-allocation.json`
-records its scheduled successor. Count the controller when setting the number of
-worker jobs under a shared QoS job limit.
-
-Worker requests target `slurm.target_workers` using eligible node CPU/RAM totals.
-Busy nodes remain eligible for queued requests; an idle-capacity snapshot must
-not silently lower the throughput target. Groups can start independently as
-Slurm releases capacity. Reserved/down/drained nodes are excluded.

@@ -1,12 +1,14 @@
 """Composable atom mapping and signed-event decoding.
 
-The main workflow is search_aam -> mappa.mappa_core.post_processing.decoder.api.decode_events.
+The main workflow is search_aam -> deduplicate -> decode_events.
 TS analysis consumes an explicitly supplied ReactionContext.
 """
 from mappa.mappa_core.core.search.api import search_aam, search_aam_checkpoints, AAMCheckpointResult
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, plan_aam_search
 from mappa.mappa_core.post_processing.hierarchical_mapping import convert_fragments, FragmentConversion
 from mappa.mappa_core.post_processing.decoder.api import decode_events
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig, EventInterpretation
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, deduplicate_final_branches as deduplicate
 from mappa.mappa_workflow.mapping_analytics.family import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
@@ -32,6 +34,7 @@ from mappa.mappa_workflow.ts_analytics.scoring import POLICY as TS_SCORING_POLIC
 from mappa.mappa_core.core.search.queries.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
+    "deduplicate", "FinalBranchCatalogue", "EventDecodeConfig", "EventInterpretation",
     "query_path", "convert_fragments", "FragmentConversion", "decode_events",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",

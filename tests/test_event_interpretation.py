@@ -33,6 +33,28 @@ def dense_counts(problem, mapping, threshold=.5, metal_threshold=.3):
     return result
 
 
+@pytest.mark.parametrize('threshold', [.3, .5, 1.])
+def test_decoder_session_reuses_responses_without_changing_saved_interpretations(threshold, monkeypatch):
+    from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    ep = endpoint('CCC', [(0,1,1),(0,2,1.4)])
+    catalogue = saved(ep, ep, {0:0,1:1,2:2}, actions=(('pool',(1,2)),))
+    config = EventDecodeConfig(threshold, None)
+    expected = decoded_events_record(decode_events(catalogue, config))
+    session = EventDecodeSession(catalogue.problem, config)
+    first = session.decode(catalogue)
+    assert decoded_events_record(first) == expected
+    def repeated(*args, **kwargs):
+        pytest.fail('repeated an already cached action-response check')
+    monkeypatch.setattr(session.index, 'target_action_responses', repeated)
+    assert decoded_events_record(session.decode(catalogue)) == expected
+    assert decoded_events_record(first) == expected
+    other = saved(endpoint('CC', []), endpoint('CC', []), {0:0,1:1})
+    with pytest.raises(ValueError, match='different endpoints'):
+        session.decode(other)
+
+
 @pytest.mark.parametrize('elements,edges,generators,words,expected', [
     ('CCCCCC', [(0,1,1),(0,2,1.8),(3,4,1),(3,5,1.8)],
      ((0,2,1,3,4,5),(0,1,2,3,5,4)), [(),(1,),(2,),(1,2)], [0,2,2,4]),

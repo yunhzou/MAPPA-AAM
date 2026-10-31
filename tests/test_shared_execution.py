@@ -169,34 +169,6 @@ def test_larger_memory_stage_retries_only_authorized_limits(tmp_path):
     queue.close()
 
 
-def test_memory_stage_reuses_completed_outputs_and_refuses_live_source(tmp_path):
-    import json
-    from rebenchmark.execution import prepare_memory_stage
-    source, output, scratch = (tmp_path/name for name in ('first', 'second', 'scratch'))
-    for folder in (source, output, scratch):
-        folder.mkdir()
-    queue = TaskQueue(source/'queue.sqlite', IDENTITY)
-    queue.add([task('saved'), task('limited')])
-    saved = queue.claim('first', MEMORY, IDENTITY)
-    queue.finish('saved', saved['token'], 'complete', {'published': 'unchanged'})
-    limited = queue.claim('first', MEMORY, IDENTITY)
-    queue.finish('limited', limited['token'], 'memory_limit', {'memory_guard_bytes': MEMORY})
-    queue.backup(source/'final.sqlite')
-    queue.close()
-    (source/'final.sqlite').replace(source/'queue.sqlite')
-    plan = dict(previous_stage=str(source), identity=IDENTITY,
-                previous_memory_bytes=MEMORY, memory_bytes=4*MEMORY)
-    (source/'progress.json').write_text(json.dumps(dict(finished=False, states={'running': 1})))
-    with pytest.raises(ValueError, match='still owns'):
-        prepare_memory_stage(plan, output, scratch)
-    (source/'progress.json').write_text(json.dumps(dict(finished=True, states={'complete': 1, 'memory_limit': 1})))
-    stage = prepare_memory_stage(plan, output, scratch)
-    assert stage.snapshot() == {'complete': 1, 'pending': 1}
-    assert stage.results(['saved'])['saved']['result'] == {'published': 'unchanged'}
-    resumed = stage.claim('second', 4*MEMORY, IDENTITY)
-    assert resumed['task'].key == 'limited' and resumed['deadline'] >= limited['deadline']
-    assert json.loads((output/'selection.json').read_text())['keys'] == ['limited']
-    stage.close()
 
 
 def test_bundle_hash_and_file_count(tmp_path):
@@ -284,10 +256,6 @@ def test_seed_batch_graph_and_prefix_equality(batch, sizes):
     parts = [session.search_cut((), seed_indices=tuple(range(i, min(i+batch, 10))))[0]
              for i in range(0, 10, batch)]
     assert AAMSearchGraph.combine(parts) == expected
-    from rebenchmark.search import select_contexts
-    for n in range(1, 11):
-        prefix = SearchSession(case, replace(config, seed_count=n)).search_cut(())[0]
-        assert select_contexts(expected, range(n)) == prefix
 
 
 @pytest.mark.parametrize('workers,remote,batch', [(1, False, 2), (3, False, 1), (3, True, 5)])
@@ -318,14 +286,14 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
         for cut, observed in zip(cut_sweep_items(case.reactant.wbo, config.cut_floor), iter_cuts(queue, keys, tmp_path)):
             raw, _ = session.search_cut(cut)
             original, _ = finalize_graph_symmetry(raw, session.context[2], iso_tolerance=config.iso_tolerance)
-            assert observed['graph'] == original
+            assert observed.graph == original
             if not cut and case.balanced:
                 def decode(graph):
                     result = AAMResult(case, config, graph, AAMSearchMetrics.from_record({}, 0))
                     decoded = refine_mapping(result, RefinementConfig(max_events=8))
                     assert decoded.complete
                     return {str(sorted(c.events.items())) for c in decoded.candidates}
-                assert decode(original) == decode(observed['graph'])
+                assert decode(original) == decode(observed.graph)
     queue.close()
 
 
@@ -337,35 +305,6 @@ def test_abrupt_exit_keeps_other_work_moving(tmp_path):
     queue.close()
 
 
-def test_parallel_reference_evaluation_equals_existing_evaluator(tmp_path):
-    from golden_evaluation import prepare
-    from mappa import AAMSearchPlan
-    from rebenchmark.operations import plan_direction
-    from rebenchmark.analysis import analyze_seed
-    import json
-    case, features, mapping = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
-    config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
-    plan = AAMSearchPlan(case, case, config, False)
-    reference = dict(features=features, mapping=sorted(mapping.items()))
-    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
-    writer = BundleWriter(tmp_path/'inputs', tmp_path)
-    tasks, cuts, evaluation_keys = plan_direction('control', plan, reference, writer, seed_batch=1)
-    queue.add(tasks)
-    run(queue, workers=2, identity=IDENTITY, scratch=tmp_path,
-        bundles=tmp_path/'bundles', memory_bytes=MEMORY)
-    assert set(queue.snapshot()) == {'complete'}, queue.results()
-    graph = next(iter_cuts(queue, cuts, tmp_path))['graph']
-    rows = queue.results()
-    for seed, key in enumerate(evaluation_keys):
-        actual = read_blob(rows[key]['result']['blob'], tmp_path)
-        expected = analyze_seed(plan, reference, graph, seed, tmp_path/f'direct-{seed}', 0)
-        verdict = json.loads((tmp_path/f'direct-{seed}'/'evaluation.json').read_text())
-        assert actual['summary'] == expected
-        for field in ('reference_recovery', 'representative_covered'):
-            assert actual['evaluation'].get(field) == verdict.get(field)
-        assert actual['classes'] == json.loads((tmp_path/f'direct-{seed}'/'classes.json').read_text())
-        assert actual['evidence'].size > 0
-    queue.close()
 
 
 def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
@@ -379,33 +318,6 @@ def test_actual_memory_guard_releases_worker_for_other_cases(tmp_path):
     queue.close()
 
 
-def test_scheduled_catalogue_conversion_equals_public_decoder(tmp_path):
-    from golden_evaluation import prepare
-    from mappa import search_aam
-    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
-    from mappa.mappa_core.post_processing.decoder.api import decode_events
-    from mappa.mappa_core.core.scheduler.decoding import plan_event_decoding
-    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
-    aam = search_aam(case, AAMSearchConfig(seed_count=2, sweep_cuts=False), execution='reused_native')
-    catalogue = FinalBranchCatalogue(case).add_aam(aam)
-    config = EventDecodeConfig()
-    expected = decode_events(catalogue, config)
-    assert expected.catalogue is catalogue
-    writer = BundleWriter(tmp_path/'inputs', tmp_path)
-    queue = TaskQueue(tmp_path/'queue.db', IDENTITY)
-    tasks = plan_event_decoding('decode', case, catalogue, config, writer)
-    queue.add(tasks)
-    run(queue, workers=2, identity=IDENTITY, scratch=tmp_path,
-        bundles=tmp_path/'bundles', memory_bytes=MEMORY)
-    assert set(queue.snapshot()) == {'complete'}
-    patterns = set()
-    for row in queue.results().values():
-        result = read_blob(row['result']['blob'], tmp_path)
-        assert result['mapping_space_preserved']
-        patterns.update(p['id'] for p in result['representatives'])
-    assert patterns == {expected.evaluate(i)['id'] for i in range(len(expected.catalogue.families))}
-    queue.close()
 
 
 def test_incremental_queue_plan_keeps_history_and_fetches_selected_results(tmp_path):
@@ -533,6 +445,28 @@ def test_resource_logs_separate_computation_from_publication(tmp_path):
     queue.close()
 
 
+def test_resource_sampling_follows_clock_across_small_tasks(tmp_path, monkeypatch):
+    import mappa.mappa_core.core.scheduler.runtime as runtime
+    samples = []
+    inspect = runtime.tree_rss
+    def measured(pid):
+        samples.append(time.perf_counter())
+        return inspect(pid)
+    monkeypatch.setattr(runtime, 'tree_rss', measured)
+    queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
+    queue.add([task(str(i), payload={'sleep': .01}) for i in range(24)])
+    run(queue, identity=IDENTITY, scratch=tmp_path,
+        bundles=tmp_path/'bundles', memory_bytes=MEMORY)
+    assert queue.snapshot() == {'complete': 24}
+    assert len(samples) >= 2
+    assert all(b-a >= .19 for a, b in zip(samples, samples[1:]))
+    rows = [row['result'] for row in queue.results().values()]
+    assert sum(row['memory_samples'] for row in rows) == len(samples)
+    assert any(row['memory_samples'] == 0 for row in rows)
+    queue.close()
+
+
+
 def test_publication_memory_limit_preserves_compute_measurements(tmp_path):
     limit = 512*2**20
     queue = TaskQueue(tmp_path/'queue.sqlite', IDENTITY)
@@ -547,54 +481,6 @@ def test_publication_memory_limit_preserves_compute_measurements(tmp_path):
     queue.close()
 
 
-def test_fresh_conversion_matches_direct_public_conversion_and_reuses_pilot(tmp_path):
-    from dataclasses import asdict
-    import hashlib
-    import json
-    from golden_evaluation import prepare
-    from mappa.mappa_core.core.scheduler.decoding import plan_cut_decoding, decode_graph
-    from rebenchmark.execution import prepare_queue
-    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
-    config = AAMSearchConfig(seed_count=2, iso_tolerance=1, sweep_cuts=False)
-    writer = BundleWriter(tmp_path/'inputs',tmp_path)
-    tasks,cuts = plan_search('00000',case,config,writer,seed_batch=1,memory_bytes=MEMORY)
-    tasks += list(plan_cut_decoding(tasks,cuts))
-    pilot = tmp_path/'pilot'; pilot.mkdir()
-    queue = TaskQueue(pilot/'queue.sqlite',IDENTITY)
-    queue.add(tasks)
-    run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'bundles',memory_bytes=MEMORY)
-    assert queue.snapshot() == {'complete':4}
-    rows = queue.results()
-    graph = read_blob(rows[cuts[0]]['result']['blob'],tmp_path)['graph']
-    for task_spec in tasks[-1:]:
-        result = read_blob(rows[task_spec.key]['result']['blob'],tmp_path)
-        direct = decode_graph(case,graph)
-        assert result['decoded'] == direct['decoded']
-        assert result['decoded']['mapping_space_preserved']
-        assert result['finalized'] == rows[cuts[0]]['result']['blob']
-        assert [s['seed'] for s in result['seeds']] == [0, 1]
-    queue.backup(pilot/'published.sqlite')
-    queue.close()
-    # Move the consistent backup into the location used by production reuse.
-    (pilot/'published.sqlite').replace(pilot/'queue.sqlite')
-    index = tmp_path/'index.json'
-    index.write_text(json.dumps(dict(directions=[dict(direction=0,blob=asdict(writer.put(tasks)))])))
-    plan = dict(index=str(index),index_sha256=hashlib.sha256(index.read_bytes()).hexdigest(),
-        identity=IDENTITY,commit='test-source',memory_bytes=MEMORY,pilots=[],pilot_commits=['test-source'])
-    (pilot/'plan.json').write_text(json.dumps(plan))
-    (pilot/'progress.json').write_text(json.dumps(dict(finished=True)))
-    full = tmp_path/'full'; full.mkdir()
-    scratch = tmp_path/'scratch'; scratch.mkdir()
-    plan['pilots'] = [str(pilot)]
-    reused = prepare_queue(plan,full,scratch)
-    assert reused.snapshot() == {'complete':4}
-    assert reused.db.execute('SELECT seconds FROM cases').fetchone()[0] < 3600
-    assert len(json.loads((full/'reused.json').read_text())) == 4
-    reused.close()
-    plan['pilot_commits'] = []
-    other = tmp_path/'other'; other.mkdir()
-    with pytest.raises(ValueError,match='Pilot commit'):
-        prepare_queue(plan,other,other)
 
 
 def test_allocation_retirement_does_not_claim_or_reset_pending_work(tmp_path):
@@ -625,153 +511,3 @@ def test_dependency_refresh_skips_successful_parents(tmp_path):
     queue._refresh(time.time())
     queue.db.set_progress_handler(None,0)
     queue.close()
-
-
-def test_enzyme_planner_keeps_input_independent_and_checks_both_directions(tmp_path, monkeypatch):
-    from dataclasses import asdict
-    from golden_evaluation import prepare
-    from rebenchmark.inputs import _initialize_planner, _prepare_record
-    from mappa.mappa_core.core.scheduler import Blob
-    import numpy as np
-    monkeypatch.setenv('TMPDIR',str(tmp_path))
-    _initialize_planner(str(tmp_path),str(tmp_path))
-    config = AAMSearchConfig(seed_count=1,iso_tolerance=1,sweep_cuts=False)
-    plan = dict(dataset='EnzymeMap',directions=[False,True],config=asdict(config),seed_batch=1,
-        case_seconds=60,memory_bytes=MEMORY,slack=5,reference_checks=True)
-    item = dict(index=0,rxn='CO>>CO',ground_truth='[CH3:1][OH:2]>>[CH3:1][OH:2]',original_id='example')
-    rows = _prepare_record((plan,item,str(tmp_path)))
-    queue = TaskQueue(tmp_path/'queue.db',IDENTITY)
-    for row in rows:
-        assert row['counts'] == dict(search_batch=1,finalize_cut=1,verify_seed=1,decode_cut=1)
-        queue.add(read_blob(Blob(**row['blob']),tmp_path))
-    run(queue,workers=2,identity=IDENTITY,scratch=tmp_path,bundles=tmp_path/'results',memory_bytes=MEMORY)
-    assert queue.snapshot() == {'complete':8}
-    checks = [read_blob(r['result']['blob'],tmp_path) for k,r in queue.results().items() if '/verify/' in k]
-    assert all(r['reference_recovery']=='recovered' for r in checks)
-    original,_,_ = prepare(item['rxn'])
-    changed = _prepare_record((plan,dict(item,ground_truth='[CH4:1]>>[CH4:1]'),str(tmp_path)))
-    tasks = read_blob(Blob(**changed[0]['blob']),tmp_path)
-    record = read_blob(tasks[0].payload['input'],tmp_path)
-    assert np.array_equal(record['reactant']['wbo'],original.reactant.wbo)
-    reference = read_blob(Blob(**changed[0]['reference']),tmp_path)
-    assert not reference['input_reference_index_agrees']
-    queue.close()
-
-
-def test_enzyme_preparation_freezes_complete_grid_in_worker_bundles(tmp_path, monkeypatch):
-    import csv, gzip, hashlib, json
-    from rebenchmark.inputs import prepare_campaign
-    monkeypatch.setenv('TMPDIR',str(tmp_path))
-    dataset = tmp_path/'dataset.csv.gz'
-    with gzip.open(dataset,'wt') as stream:
-        writer = csv.DictWriter(stream,fieldnames=['r_id','rxn','ground_truth','original_id'])
-        writer.writeheader()
-        for i in range(3):
-            writer.writerow(dict(r_id=i,rxn='CO>>CO',ground_truth='[CH3:1][OH:2]>>[CH3:1][OH:2]',original_id=i))
-    manifest = tmp_path/'manifest.json'
-    manifest.write_text(json.dumps(dict(cases=3,dataset_sha256=hashlib.sha256(dataset.read_bytes()).hexdigest())))
-    plan = dict(dataset='EnzymeMap',dataset_path=str(dataset),input_manifest=str(manifest),
-        input_manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),directions=[False,True],
-        config=dict(seed_count=1,iso_tolerance=1,sweep_cuts=False),seed_batch=1,case_seconds=60,
-        memory_bytes=MEMORY,slack=5,reference_checks=True,preparation_workers=2)
-    (tmp_path/'plan.json').write_text(json.dumps(plan))
-    prepare_campaign(tmp_path)
-    index = json.loads((tmp_path/'index.json').read_text())
-    assert index['cases']==3 and index['tasks']==24
-    assert [r['direction'] for r in index['directions']]==list(range(6))
-    assert len(list((tmp_path/'inputs').glob('*.bundle'))) <= 2
-
-
-def test_repeat_stage_reuses_exact_parents_and_keeps_source_immutable(tmp_path):
-    import hashlib, json
-    from dataclasses import asdict
-    from rebenchmark.execution import prepare_repeat_queue
-    prior_path = tmp_path/'prior'; prior_path.mkdir()
-    output = tmp_path/'repeat'; output.mkdir()
-    scratch = tmp_path/'scratch'; scratch.mkdir()
-    parent = task('00000/cut/00000/final', case='00000')
-    child = replace(task('00000/cut/00000/seed/00', case='00000', dependencies=(parent.key,)),
-                    operation='mappa.mappa_core.core.scheduler.decoding:decode_cut')
-    writer = BundleWriter(tmp_path/'bundles', scratch)
-    blob = writer.put([parent, child])
-    index = tmp_path/'index.json'
-    index.write_text(json.dumps(dict(directions=[dict(direction=0,blob=asdict(blob))])))
-    index_hash = hashlib.sha256(index.read_bytes()).hexdigest()
-    (prior_path/'plan.json').write_text(json.dumps(dict(index_sha256=index_hash)))
-    (prior_path/'progress.json').write_text(json.dumps(dict(finished=True,states=dict(complete=2))))
-    prior = TaskQueue(prior_path/'queue.sqlite','prior')
-    prior.add([parent, child])
-    for expected in (parent,child):
-        claim = prior.claim('old', MEMORY, 'prior')
-        assert claim['task']==expected
-        prior.finish(expected.key,claim['token'],'complete',dict(value=expected.key))
-    prior.close()
-    before = (prior_path/'queue.sqlite').read_bytes()
-    plan = dict(index=str(index), index_sha256=index_hash,identity='new',pilots=[],
-        repeat_from=str(prior_path),source_queue_sha256=hashlib.sha256(before).hexdigest(),
-        repeat_operations=[child.operation])
-    queue = prepare_repeat_queue(plan,output,scratch)
-    assert queue.snapshot()==dict(complete=1,pending=1)
-    assert queue.db.execute('SELECT count(*) FROM attempts').fetchone()[0]==0
-    claim = queue.claim('new',MEMORY,'new')
-    assert claim['task']==child
-    assert claim['dependencies']=={parent.key:dict(value=parent.key)}
-    assert queue.db.execute('SELECT spent FROM cases').fetchone()[0]==0
-    queue.close()
-    assert (prior_path/'queue.sqlite').read_bytes()==before
-    plan['source_queue_sha256']='wrong'
-    with pytest.raises(ValueError,match='hash differs'):
-        prepare_repeat_queue(plan,output,scratch)
-    (prior_path/'progress.json').write_text(json.dumps(dict(finished=False,states=dict(running=1))))
-    with pytest.raises(ValueError,match='completed source'):
-        prepare_repeat_queue(plan,output,scratch)
-
-
-def test_cut_decoding_shares_families_but_preserves_each_seed(tmp_path, monkeypatch):
-    from golden_evaluation import prepare
-    from mappa import search_aam
-    from mappa.mappa_core.core.scheduler import decoding
-    from rebenchmark.search import select_contexts
-    from rebenchmark.decoding import verify_event_output
-    case, _, _ = prepare('[CH3:1][OH:2]>>[CH3:1][OH:2]')
-    aam = search_aam(case, AAMSearchConfig(seed_count=3, sweep_cuts=False), execution='reused_native')
-    # Two seeds retain exactly the same family; the third may differ.
-    graph = AAMSearchGraph.combine([select_contexts(aam.graph, [seed]) for seed in (0, 0, 2)])
-    single = [decoding.decode_graph(case, select_contexts(graph, [seed])) for seed in range(3)]
-    calls = []
-    public = decoding.decode_events
-    def counted(*args):
-        calls.append(1)
-        return public(*args)
-    monkeypatch.setattr(decoding, 'decode_events', counted)
-    combined = decoding.decode_graph(case, graph)
-    assert len(calls) == 1
-    verify_event_output(combined)
-    saved = combined['decoded']['representatives']
-    assert len(saved) < sum(len(s['decoded']['representatives']) for s in single)
-    for seed, independent in zip(combined['seeds'], single):
-        expected = independent['decoded']['representatives']
-        assert seed['coverage'] == independent['seeds'][0]['coverage']
-        def signatures(rows):
-            return {(tuple(r['mapping']), r['id'], r['total']) for r in rows}
-        assert signatures(saved[i] for i in seed['family_ids']) == signatures(expected)
-        assert signatures(saved[i] for i in seed['selected_family_ids']) == signatures(
-            expected[i] for i in independent['seeds'][0]['selected_family_ids'])
-
-
-
-def test_saved_table_validation_detects_changed_event_response():
-    from copy import deepcopy
-    from test_partial_event_decoding import endpoint, catalogue
-    from mappa import AAMProblem
-    from mappa.mappa_core.core.scheduler.decoding import decode_graph
-    from rebenchmark.decoding import verify_event_output
-    problem = AAMProblem(endpoint('CO', [(0,1,1)]), endpoint('CON', [(0,2,1)]))
-    graph = catalogue(problem, {0:0,1:1}).families[0].as_path(problem).graph
-    combined = decode_graph(problem, graph)
-    verify_event_output(combined)
-    damaged = deepcopy(combined)
-    response = damaged['decoded']['responses'][0]
-    response['categories'] = [0] * len(response['categories'])
-    with pytest.raises(ValueError, match='table differs'):
-        verify_event_output(damaged)

@@ -27,9 +27,9 @@ def read_blobs(blobs, scratch):
     """Read adjacent ranges from each bundle through one shared-file handle.
 
     Callers can order metadata by path and offset without scanning other bytes.
-    The reusable temporary file stays on local scratch.
+    The bounded memory spool spills larger payloads to local scratch.
     """
-    with tempfile.TemporaryFile(dir=scratch) as local:
+    with tempfile.SpooledTemporaryFile(max_size=8*2**20, dir=scratch) as local:
         for path, group in groupby(blobs, key=lambda blob: blob.path):
             with open(path, 'rb') as stream:
                 for blob in group:
@@ -61,20 +61,22 @@ def _read_verified(stream, local, blob):
 class BundleWriter:
     """Each worker owns its append stream; metadata names only committed ranges.
 
-    Serialize/compress on node-local scratch. Publication appends bounded chunks
+    Serialize/compress in a bounded memory spool, spilling to local scratch.
+    Publication appends bounded chunks
     without creating a shared file per task. An unacknowledged partial range is
     unreachable; completed ranges are never overwritten, even after retries.
     """
     def __init__(self, directory, scratch, *, limit_bytes=256*2**20):
-        self.directory, self.scratch = Path(directory), Path(scratch)
+        self.directory = Path(directory)
+        self.scratch = None if scratch is None else Path(scratch)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.limit_bytes = limit_bytes
         self.prefix = uuid.uuid4().hex
         self.sequence, self.size = 0, 0
 
     def put(self, value):
-        with tempfile.TemporaryFile(dir=self.scratch) as local:
-            with gzip.GzipFile(fileobj=local, mode='wb', mtime=0) as compressed:
+        with tempfile.SpooledTemporaryFile(max_size=8*2**20, dir=self.scratch) as local:
+            with gzip.GzipFile(fileobj=local, mode='wb', mtime=0, compresslevel=1) as compressed:
                 pickle.dump(value, compressed, protocol=5)
             return self._append(local)
 

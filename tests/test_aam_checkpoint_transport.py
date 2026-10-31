@@ -8,18 +8,18 @@ from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut, w
 
 
 def test_cut_worker_persists_graph_and_returns_only_reference(tmp_path, monkeypatch):
+    from mappa.mappa_core.core.scheduler.bundles import read_blob
     graph = SearchGraphBuilder(SearchContext((), (), ())).finish()
+    monkeypatch.setattr(aam, '_CHECKPOINT_STORE', None)
     monkeypatch.setattr(aam, '_search_cut', lambda cut: (graph, {
         'search_seconds': 1., 'max_live_branches': 2, 'max_growth_candidates': 3}))
-    path = tmp_path/'cut_00007.json'
-    index, payload, counts = aam._search_cut_task((7, (), str(path)))
-    assert index == 7 and payload == str(path)
-    assert AAMSearchGraph.from_record(json.loads(path.read_text())) == graph
-    assert counts['max_live_branches'] == 2
-    assert counts['checkpoint_seconds'] >= 0
-    assert not path.with_suffix('.json.tmp').exists()
-    _,owned,_=aam._search_cut_task((7,(),str(path)),in_process=True)
-    assert owned is graph  # serial calls do not serialize then reload the graph
+    for index in range(20):
+        returned, reference, counts = aam._search_cut_task((index, (), str(tmp_path)))
+        assert returned == index and read_blob(reference, tmp_path) == graph
+        assert counts['checkpoint'] == reference
+    assert len(list(tmp_path.glob('*.bundle'))) == 1
+    _, owned, _ = aam._search_cut_task((21, (), str(tmp_path)), in_process=True)
+    assert owned is graph
 
 
 def test_in_memory_worker_and_online_profile_reducer(monkeypatch):
@@ -44,11 +44,3 @@ def test_raw_cut_formats_and_order_are_explicit(tmp_path):
     write_raw_cut(graph,tmp_path/'cut_00002.json')
     with pytest.raises(ValueError,match='Duplicate raw cut'):
         raw_cut_paths(tmp_path)
-
-
-def test_binary_worker_sends_only_saved_reference(tmp_path,monkeypatch):
-    graph = SearchGraphBuilder(SearchContext((), (), ())).finish()
-    monkeypatch.setattr(aam,'_search_cut',lambda cut:(graph,{'search_seconds':0.}))
-    path=tmp_path/'cut_00000.raw.pkl.gz'
-    _,payload,_=aam._search_cut_task((0,(),str(path)))
-    assert payload==str(path) and read_raw_cut(path)==graph

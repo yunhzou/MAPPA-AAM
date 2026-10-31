@@ -15,36 +15,44 @@ import time
 import traceback
 import uuid
 
-from mappa.mappa_core.core.scheduler.bundles import BundleWriter, read_blob
 from mappa.mappa_core.core.scheduler.resources import tree_rss
+from mappa.mappa_core.core.scheduler.storage import BundleStore
 
 
 class Workspace:
     """One prepared case per worker, plus bounded native caches inside that case."""
-    def __init__(self, scratch, bundles):
+    def __init__(self, scratch, bundles=None, *, store=None):
         self.scratch = scratch
-        self.writer = BundleWriter(bundles, scratch)
+        self.writer = store if store is not None else BundleStore(bundles, scratch=scratch)
         self.prepared_key, self.prepared_value = None, None
+        self.resources = {}
         self.dependencies = {}
 
     def prepared(self, key, factory):
         if key != self.prepared_key:
             self.prepared_value = None
             self.prepared_key = None
+            self.resources.clear()
             self.prepared_value = factory()
             self.prepared_key = key
         return self.prepared_value
 
+    def resource(self, name, key, factory):
+        """Keep one derived resource per stage within the current case."""
+        if name not in self.resources or self.resources[name][0] != key:
+            self.resources[name] = key, factory()
+        return self.resources[name][1]
+
     def load(self, blob):
-        return read_blob(blob, self.scratch)
+        return self.writer.load(blob)
 
     def dependency(self, key):
         return self.load(self.dependencies[key]['blob'])
 
 
-def _compute(connection, scratch, bundles):
+def _compute(connection, scratch, bundles, store=None):
     os.setsid()
-    workspace = Workspace(scratch, bundles)
+    workspace = Workspace(scratch, bundles, store=store)
     connection.send(('ready', None))
     while True:
         work = connection.recv()
@@ -57,7 +65,8 @@ def _compute(connection, scratch, bundles):
             module, name = task.operation.split(':', 1)
             operation = getattr(importlib.import_module(module), name)
             output = operation(task.payload, workspace)
-            metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall)
+            metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall,
+                           compute_pid=os.getpid())
             # Stop the work deadline at the compute boundary; allow evidence to publish.
             connection.send(('publishing', metrics))
             start, publish_cpu = time.perf_counter(), time.process_time()
@@ -93,7 +102,7 @@ def _stop(process):
     process.join()
 
 
-def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, publish_seconds=120., claim_until=None):
+def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds=.2, publish_seconds=120., claim_until=None, store=None):
     """One compute CPU, no nested pool; limits produce explicit incomplete states.
 
     psutil is required by the execution extra. The task's memory request is an
@@ -103,12 +112,14 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
     worker_id = f'{os.uname().nodename}:{os.getpid()}:{uuid.uuid4().hex}'
     with tempfile.TemporaryDirectory(prefix='mappa-worker-', dir=scratch) as temporary:
         parent, child = mp.get_context('spawn').Pipe()
-        process = mp.get_context('spawn').Process(target=_compute, args=(child, temporary, bundles))
+        process = mp.get_context('spawn').Process(target=_compute, args=(child, temporary, bundles, store))
         process.start()
         child.close()
         try:
             if not parent.poll(60) or parent.recv()[0] != 'ready':
                 raise RuntimeError('Compute worker failed to initialize')
+            process_stats = psutil.Process(process.pid)
+            next_sample = 0.
             while True:
                 if claim_until is not None and time.time() >= claim_until:
                     return 'retired'
@@ -116,27 +127,33 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                 if claim['state'] in ('finished', 'insufficient_memory'):
                     return claim['state']
                 if claim['state'] == 'waiting':
-                    time.sleep(max(.5, poll_seconds))
+                    queue.wait_for_work(claim['generation'], max(.5, poll_seconds))
                     continue
                 task, token = claim['task'], claim['token']
                 parent.send((task, claim['dependencies']))
                 peak, publishing, publication_deadline, monitoring = 0, False, None, 0.
                 phase_peaks = dict(compute=0, publication=0)
-                process_stats = psutil.Process(process.pid)
-                initial_cpu = process_stats.cpu_times()
-                sampled_cpu = 0.
+                initial_cpu = None
+                sampled_cpu, samples = 0., 0
                 start, heartbeat = time.perf_counter(), time.monotonic()
                 result = {}
                 while True:
                     try:
                         stamp = time.perf_counter()
-                        resident = tree_rss(process.pid)
-                        peak = max(peak, resident)
-                        phase = 'publication' if publishing else 'compute'
-                        phase_peaks[phase] = max(phase_peaks[phase], resident)
-                        current_cpu = process_stats.cpu_times()
-                        sampled_cpu = current_cpu.user + current_cpu.system - initial_cpu.user - initial_cpu.system
-                        monitoring += time.perf_counter()-stamp
+                        # Sampling follows the worker clock, not task/message frequency.
+                        if stamp >= next_sample:
+                            resident = tree_rss(process.pid)
+                            peak = max(peak, resident)
+                            phase = 'publication' if publishing else 'compute'
+                            phase_peaks[phase] = max(phase_peaks[phase], resident)
+                            current_cpu = process_stats.cpu_times()
+                            current_cpu = current_cpu.user + current_cpu.system
+                            if initial_cpu is None:
+                                initial_cpu = current_cpu
+                            sampled_cpu = current_cpu - initial_cpu
+                            samples += 1
+                            monitoring += time.perf_counter()-stamp
+                            next_sample = time.perf_counter()+poll_seconds
                     except psutil.NoSuchProcess:
                         state = 'error'
                         result.update(error='Compute process disappeared', exit_code=process.exitcode)
@@ -144,7 +161,7 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                     if peak > memory_bytes:
                         state = 'memory_limit'
                         break
-                    if parent.poll(poll_seconds):
+                    if parent.poll(max(0., next_sample-time.perf_counter())):
                         state, result = parent.recv()
                         if state == 'publishing':
                             if time.time() > claim['deadline']:
@@ -172,6 +189,7 @@ def worker(queue, *, identity, scratch, bundles, memory_bytes, poll_seconds=.2, 
                 result.update(peak_tree_rss_bytes=peak, phase_peak_tree_rss_bytes=phase_peaks,
                               memory_guard_bytes=memory_bytes,
                               memory_sample_interval_seconds=poll_seconds, sampled_cpu_seconds=sampled_cpu,
+                              memory_samples=samples,
                               phase_at_exit='publication' if publishing else 'compute',
                               worker=worker_id, monitoring_seconds=monitoring,
                               elapsed_seconds=time.perf_counter()-start)
@@ -196,7 +214,7 @@ def _supervise(queue, options):
         pass
 
 
-def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes, claim_until=None):
+def run(queue, *, workers=1, identity, scratch, bundles=None, memory_bytes, claim_until=None, store=None):
     """Use the common worker with one CPU or several local compute processes.
 
     memory_bytes is a per-worker reservation: workers * memory_bytes must fit
@@ -206,7 +224,7 @@ def run(queue, *, workers=1, identity, scratch, bundles, memory_bytes, claim_unt
         raise ValueError('Positive worker count and per-worker memory are required')
     for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
         os.environ[name] = '1'
-    options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes, claim_until=claim_until)
+    options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes, claim_until=claim_until, store=store)
     if workers == 1:
         _supervise(queue, options)
     else:
@@ -231,7 +249,7 @@ class _QueueServer(Server):
 
 
 @contextmanager
-def coordinator(queue, address, authkey):
+def coordinator(queue, address, authkey, *, store=None):
     """Authenticated trusted-cluster transport; metadata stays with its owner.
 
     Use a private network or SSH tunnel. Never expose Python manager/pickle
@@ -240,7 +258,9 @@ def coordinator(queue, address, authkey):
     class Manager(BaseManager):
         pass
     Manager.register('queue', callable=lambda: queue,
-                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results'))
+                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results', 'wait_for_work'))
+    if store is not None:
+        Manager.register('store', callable=lambda: store, exposed=('put', 'load'))
     server = _QueueServer(Manager._registry, address, authkey, 'pickle')
     server.stop_event = threading.Event()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -260,3 +280,12 @@ def connect(address, authkey):
     manager = Manager(address=address, authkey=authkey)
     manager.connect()
     return manager.queue()
+
+
+def connect_store(address, authkey):
+    class Manager(BaseManager):
+        pass
+    Manager.register('store')
+    manager = Manager(address=address, authkey=authkey)
+    manager.connect()
+    return manager.store()

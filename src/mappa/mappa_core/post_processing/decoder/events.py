@@ -90,7 +90,7 @@ class SignedEventIndex:
         self.product_bonds = np.column_stack((self.pa, self.pb))[
             self.p[self.pa, self.pb] > self.ptau]
         self.padded_product = np.pad(self.p, ((0, 1), (0, 1)))
-        self.cache = {}
+        self.cache = OrderedDict()
         self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
         self._event_tables = OrderedDict()
@@ -495,6 +495,8 @@ class SignedEventIndex:
                                   vertex_coloring=colors)
             payload = json.dumps(self.policy, sort_keys=True).encode() + pynauty.certificate(graph)
             self.cache[key] = self.schema + ':' + hashlib.sha256(payload).hexdigest()
+            if len(self.cache) > 4096:
+                self.cache.popitem(last=False)
         counts = dict(zip(('broken', 'formed'), map(len, events)))
         return dict(id=self.cache[key], mapping=vector.tolist(), mapped_source=mapped,
                     events=dict(zip(('broken', 'formed'), events)),

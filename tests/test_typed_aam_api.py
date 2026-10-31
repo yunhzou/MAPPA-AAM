@@ -86,7 +86,9 @@ def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, mon
     resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
     assert not calls
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
-    (tmp_path/'cut_00000.json').unlink()
+    import sqlite3
+    with sqlite3.connect(tmp_path/'archive.sqlite') as index:
+        index.execute("DELETE FROM cuts WHERE stage='raw' AND number=0")
     resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
     assert len(calls)==1
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
@@ -113,8 +115,10 @@ def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,m
     parallel=search_aam(problem,config,workers=2,intermediate_dir=tmp_path)
     normalize=lambda result:json.dumps(result.graph.to_record(),sort_keys=True)
     assert normalize(parallel)==normalize(serial)
-    checkpoints=list(tmp_path.glob('*.finalized.pkl.gz'))
-    assert len(checkpoints)==len(list(tmp_path.glob('cut_*.json')))
+    import sqlite3
+    with sqlite3.connect(tmp_path/'archive.sqlite') as index:
+        assert index.execute("SELECT count(*) FROM cuts WHERE stage='final'").fetchone()[0] == len(parallel.graph.contexts)//config.seed_count
+    checkpoints=list(tmp_path.glob('*.bundle'))
     stamps={p:p.stat().st_mtime_ns for p in checkpoints}
     resumed=search_aam(problem,config,workers=2,intermediate_dir=tmp_path,resume=True)
     assert normalize(resumed)==normalize(serial)
@@ -131,24 +135,23 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
     assert json.dumps(aam_record(restored),sort_keys=True)==json.dumps(aam_record(result),sort_keys=True)
     assert restored.graph.fragment_placement(0)==result.graph.fragment_placement(0)
     assert not list(tmp_path.glob('*.tmp'))
-    assert list(tmp_path.glob('cut_*.raw.pkl.gz'))
+    assert list(tmp_path.glob('*.bundle'))
+    assert (tmp_path/'archive.sqlite').exists()
     assert not list(tmp_path.glob('cut_*.json'))
 
 
-def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
+def test_checkpoint_resume_can_change_final_export_without_repeating_search(tmp_path, monkeypatch):
     from mappa.mappa_core.core.scheduler import search as aam
-    from mappa.mappa_core.utils.io.checkpoints import raw_cut_paths, read_raw_cut, write_raw_cut
-    problem=AAMProblem(_endpoint('R'),_endpoint('P'))
-    config=AAMSearchConfig(seed_count=1)
-    original=search_aam(problem,config,intermediate_dir=tmp_path)
-    raw=raw_cut_paths(tmp_path)[0]
-    write_raw_cut(read_raw_cut(raw),raw.with_name(raw.stem+'.raw.pkl.gz'))
-    raw.unlink()
-    def forbidden(cut):raise AssertionError('Completed cut was searched again')
-    monkeypatch.setattr(aam,'_search_cut',forbidden)
-    resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True,
-                       workers=2,archive_format='checkpoint')
-    assert resumed.graph.to_record()==original.graph.to_record()
+    problem = AAMProblem(_endpoint('R'), _endpoint('P'))
+    config = AAMSearchConfig(seed_count=1)
+    original = search_aam(problem, config, intermediate_dir=tmp_path)
+    def forbidden(cut):
+        raise AssertionError('Completed cut was searched again')
+    monkeypatch.setattr(aam, '_search_cut', forbidden)
+    resumed = search_aam(problem, config, intermediate_dir=tmp_path, resume=True,
+                         workers=2, archive_format='checkpoint')
+    assert resumed.graph.to_record() == original.graph.to_record()
+    assert not list(tmp_path.glob('cut_*'))
 
 
 def test_search_aam_returns_complete_typed_hierarchy():

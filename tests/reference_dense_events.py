@@ -9,8 +9,30 @@ import hashlib
 import numpy as np
 import pynauty
 from mappa.mappa_core.utils.bonds import is_metal_element
-from golden_evaluation import colored_graph
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
+
+
+def colored_graph(features, mapping=None):
+    adjacency, colors = defaultdict(set), defaultdict(set)
+    offsets, count = [], 0
+    for side, feature in enumerate(features):
+        offsets.append(count)
+        for color in feature['colors']:
+            colors[('atom',side,tuple(color))].add(count); count += 1
+    def link(a,b,color):
+        nonlocal count
+        colors[color].add(count)
+        adjacency[count].update((a,b)); adjacency[a].add(count);adjacency[b].add(count)
+        count += 1
+    for side,feature in enumerate(features):
+        for a,b,color in feature['bonds']:
+            link(offsets[side]+a,offsets[side]+b,('bond',side,tuple(color)))
+    if mapping is not None:
+        for a,b in sorted(mapping.items()):
+            link(a,offsets[1]+b,('mapping',))
+    return pynauty.Graph(count, adjacency_dict={i:sorted(adjacency[i]) for i in range(count)},
+                         vertex_coloring=[colors[k] for k in sorted(colors,key=repr)])
+
 
 class DeltaPatterns:
     """Signed delta events modulo exact symmetry of the score-response graph.

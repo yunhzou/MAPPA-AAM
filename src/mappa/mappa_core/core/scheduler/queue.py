@@ -30,8 +30,11 @@ class TaskQueue:
     Place the database on the coordinator's local disk, with explicit backups
     to shared storage. Lost leases require an explicit retry; no silent reruns.
     """
-    def __init__(self, path, identity, *, lease_seconds=120.):
+    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False):
         self.lock = threading.RLock()
+        self.changed = threading.Condition(self.lock)
+        self.generation = 0
+        self.keep_open = keep_open
         self.lease_seconds = lease_seconds
         self.path = Path(path)
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
@@ -106,6 +109,23 @@ class TaskQueue:
                     (task.key, specifications[task.key], case, task.memory_bytes, 'pending', None, None, None, None))
                 self.db.executemany('INSERT INTO dependencies VALUES (?,?)',
                     [(task.key, d) for d in task.dependencies])
+            self._notify()
+
+    def _notify(self):
+        self.generation += 1
+        self.changed.notify_all()
+
+    def wait_for_work(self, generation, timeout):
+        with self.changed:
+            self.changed.wait_for(lambda: self.generation != generation, timeout)
+
+    def finish_input(self, *, cancel_pending=False):
+        """Drain accepted work and let persistent workers exit when it is finished."""
+        with self.lock, self.db:
+            self.keep_open = False
+            if cancel_pending:
+                self.db.execute("UPDATE tasks SET state='cancelled' WHERE state='pending'")
+            self._notify()
 
     def _refresh(self, now):
         for token, expires in self.db.execute(
@@ -138,9 +158,9 @@ class TaskQueue:
             if row is None:
                 active = self.db.execute("SELECT count(*) FROM tasks WHERE state IN ('pending','running')").fetchone()[0]
                 if not active:
-                    return {'state': 'finished'}
+                    return {'state': 'waiting' if self.keep_open else 'finished', 'generation': self.generation}
                 running = self.db.execute("SELECT count(*) FROM tasks WHERE state='running'").fetchone()[0]
-                return {'state': 'waiting' if running else 'insufficient_memory'}
+                return {'state': 'waiting' if running else 'insufficient_memory', 'generation': self.generation}
             key, specification, case = row
             self.db.execute('UPDATE cases SET active_since=?,deadline=?+seconds-spent WHERE name=? AND active_since IS NULL',
                             (now, now, case))
@@ -198,6 +218,7 @@ class TaskQueue:
                 self._end_work(token, time.time())
                 self.db.execute('UPDATE attempts SET state=?,result=?,finished=? WHERE token=?',
                                 (state, data, time.time(), token))
+                self._notify()
             return accepted
 
 

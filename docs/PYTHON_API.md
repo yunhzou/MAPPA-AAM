@@ -7,13 +7,14 @@ Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postpro
 ## Default pipeline
 
 ```python
-from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, decode_events
+from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, deduplicate, decode_events
 from mappa.mappa_core.utils.io.records import decoded_events_record
 
 problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
                      MolecularEndpoint(elements_P, xyz_P, wbo_P))
 aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
-decoded = decode_events(aam, threshold=0.5, metal_threshold=0.3)
+catalogue = deduplicate(aam)
+decoded = decode_events(catalogue, threshold=0.5, metal_threshold=0.3)
 witness = decoded.realize(0)
 events = decoded.evaluate(0)
 contributions = decoded.contributions(0)
@@ -30,6 +31,10 @@ Records preserve the original catalogue, shared tables and representative events
 Representatives are not all symmetry alternatives; their minimum is not a global
 minimum. Partial mappings count bonds touching mapped atoms and ignore wholly
 unmatched bonds. Both ordinary and metal thresholds treat equality as unchanged.
+
+For explicit matching/deduplication/decoding passes over many reactions, see the
+[persistent local and Slurm pool](shared-execution.md). Its RAM and bundle storage
+share the same scientific operations. Direct calls above need no pool.
 
 ## Experimental hierarchical refinement
 
@@ -134,7 +139,7 @@ The cached TS utility (`tools/run_typed_ts_case.py`) likewise requires
 with `reaction_record`. Its batch launcher requires `TS_REACTION_ROOT`.
 Neither entry point computes missing R/P selections.
 
-## Event decoding
+## Experimental event refinement
 
 ```python
 from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig, refine_mapping
@@ -147,7 +152,7 @@ for candidate in result.candidates:
 record = refined_mapping_record(result)
 ```
 
-`aam` can be an `AAMResult` or a `FinalBranchCatalogue` with recorded fragment pairs. A flattened family list alone does not contain the required fragment atom sets and is rejected. `convert_fragments(aam)` exposes the same reusable conversion without event grouping. The experiment and shared execution adapter call this public implementation; there is no cluster-specific decoder.
+`aam` can be an `AAMResult` or a `FinalBranchCatalogue` with recorded fragment pairs. A flattened family list alone does not contain the required fragment atom sets and is rejected. `convert_fragments(aam)` exposes the same reusable conversion without event grouping. This is the experimental refinement API. The work pool uses the original-space decoder described above.
 
 `result.conversion.rematches` retains the compressed rematched graphs. `result.conversion.branches` links each recombined branch to its saved family and fragment paths. `result.catalogue` contains the converted mapping families. Event records use schema `mappa.decoded_events/v2` and preserve this representation and the explicit scope.
 

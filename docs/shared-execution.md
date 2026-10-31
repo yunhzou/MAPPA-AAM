@@ -1,119 +1,162 @@
-# Shared execution
+# Separate stages, one persistent pool
 
-`mappa.mappa_core.core.scheduler` distributes independent work across cases. One scientific
-operation runs unchanged on a single CPU, local processes, or remote workers.
-Each worker owns one compute process and one prepared case; it reuses that
-case's existing bounded native caches. It never starts a nested compute pool.
-
-`SearchSession` is the common search implementation behind the existing public
-search APIs and distributed search tasks. Matching, locking, symmetry, branch
-admission and random growth are unchanged. `plan_search` splits the original
-seed list into batches, verifies the executed seed orders, then finalizes each
-cut after all its batches complete. `rebenchmark.shared.plan_direction` adds
-independent reference-evaluation tasks using the existing Golden evaluator.
-The benchmark adapter preserves direction and partial-mapping policy.
-
-## Local use
-
-Install the `execution` extra for process-tree memory supervision. Place this
-example inside `main()` and call it under `if __name__ == '__main__':`, as required
-by Python's portable process startup. `problem` is an `AAMProblem` and `config`
-is the ordinary `AAMSearchConfig`.
+Ordinary local use remains three calls, without a scheduler:
 
 ```python
-from pathlib import Path
-import tempfile
-from mappa.mappa_core.core.scheduler import TaskQueue, BundleWriter, run
-from mappa.mappa_core.core.scheduler.search import plan_search, iter_cuts
+from mappa import search_aam, deduplicate, decode_events
 
-with tempfile.TemporaryDirectory() as scratch:
-    queue = TaskQueue(Path(scratch) / 'queue.sqlite', identity='frozen-manifest-id')
-    writer = BundleWriter('/absolute/output/inputs', scratch)
-    tasks, cuts = plan_search('case-1-forward', problem, config, writer,
-                             seed_batch=10, memory_bytes=4 * 2**30)
-    queue.add(tasks)  # Add other cases/directions to this SAME queue.
-    state = run(queue, workers=4, identity='frozen-manifest-id', scratch=scratch,
-                bundles='/absolute/output/results', memory_bytes=4 * 2**30)
-    queue.backup('/absolute/output/queue-backup.sqlite')
-    for cut in iter_cuts(queue, cuts, scratch):
-        consume(cut['graph'])
-    queue.close()
+matched = search_aam(problem, config, workers=4)
+catalogue = deduplicate(matched)
+decoded = decode_events(catalogue)
 ```
 
-Use `workers=1` for one CPU. Memory is **per worker**: four workers at 4 GiB
-require at least 16 GiB plus coordinator/supervisor overhead. Task memory is an
-admission estimate; workers enforce the specified aggregate child-process-tree
-guard. An insufficient allocation leaves tasks pending, not successful.
+`deduplicate` uses MAPPA's existing family catalogue. It groups results across
+seeds and cuts while preserving fragment partitions, ordered actions, constraints
+and provenance. Decoding prepares local fragment and boundary responses from
+that catalogue. A cut is a matching work unit, not an independent decoding input.
 
-## Cluster use
+## Many reactions on a computer
 
-Prepare the same queue and inputs once. Put the live queue database on the
-coordinator's node-local disk. Give every worker the same frozen code, manifest
-identity, shared bundle directory and private authentication key. Slurm only
-allocates CPUs and starts the common worker; no Slurm logic enters the matcher.
-Use a private cluster network or SSH tunnels for this authenticated Python
-transport. It is for trusted internal artifacts/workers, not public clients.
+Install `.[execution]` for worker memory supervision. Put process-pool calls in
+`main()` under `if __name__ == '__main__':` so spawned workers can import the script.
+Each case names one reaction and direction in its own atom-index frame.
 
-The coordinator and worker commands are:
+```python
+from mappa.execution import WorkPool
 
-```text
-python -m mappa.mappa_core.core.scheduler serve --database /tmp/queue.sqlite \
-  --backup /shared/run/queue-backup.sqlite --identity MANIFEST \
-  --host COORDINATOR --port PORT --auth-file /shared/private-worker.key
-
-python -m mappa.mappa_core.core.scheduler worker --host COORDINATOR --port PORT \
-  --auth-file /shared/private-worker.key --identity MANIFEST \
-  --workers 4 --memory-mib 4096 --scratch /tmp --bundles /shared/run/results
+with WorkPool.local(workers=4) as pool:
+    matching = pool.search(problems, config).wait_and_validate()
+    catalogues = pool.deduplicate(matching).wait_and_validate()
+    decoding = pool.decode(catalogues).wait_and_validate()
+    result = decoding.load('reaction-1-forward')
 ```
 
-The key must contain at least 32 random bytes and have private permissions.
-Workers exit when no ready/running work remains. The coordinator stays available
-until its launcher stops it after workers exit, avoiding a shutdown race with
-final acknowledgments. The embedded `coordinator()` context supports that same
-lifecycle in a Python launcher. The launcher must verify the frozen code/input
-manifest on every machine; the queue checks its supplied identity at connection.
+`problems` is a dictionary of names to `AAMProblem` objects. Workers stay alive
+through all three passes. Every requested matching task must finish before the
+reduction pass can start; every catalogue must finish before decoding can start.
+Loading a reaction is explicit. The coordinator handles references, not a merged
+dataset-wide graph. Matching uses `reused_native` by default; `execution='reference'`
+selects the existing reference implementation. Seed scheduling does not support
+the indivisible `shared_policies` backend.
+
+`seed_batch` changes task granularity without changing seed count, order or random
+policy. A cut with several batches has an explicit finalization dependency. If
+all its seeds fit in one batch, the worker finalizes it directly and publishes
+once. There is no intermediate scheduling or storage round trip for that cut.
+
+The typed handoffs are exported from `mappa.execution`:
+
+| Result | Contents |
+|---|---|
+| `MatchingResult` | Input/configuration reference, planned cut/seed scope, finalized cut references. |
+| `CatalogueResult` | One reaction/direction catalogue deduplicated across the declared cuts/seeds, search configuration, scope and stop counts. |
+| `DecodingResult` | Original-space decoded record, event/search configurations, scope and stop counts. |
+
+`wait_and_validate()` checks execution completion. It does not certify exhaustive
+matching: branch caps and scientific stop reasons remain in the saved results.
+Reference verification is a separate query on the retained mapping relation.
+
+## RAM or aggregated storage
+
+`MemoryStore` is the default. Intermediate objects remain in coordinator RAM;
+workers transfer objects through the pool connection. Loading locally returns
+the stored object, which callers must treat as immutable. RAM storage retains
+published artifacts for the lifetime of the store. It is not bounded-memory
+storage for an arbitrarily large benchmark.
+
+For durable handoff or a large dataset:
+
+```python
+from mappa.execution import WorkPool, BundleStore, StageResults
+
+store = BundleStore('/shared/run/results')
+with WorkPool.local(4, store=store) as pool:
+    matching = pool.search(problems, config).wait_and_validate()
+    catalogues = pool.deduplicate(matching).wait_and_validate()
+    catalogues.save_manifest('/shared/run/catalogues.json')
+
+# A later process can decode without repeating matching or deduplication.
+catalogues = StageResults.open('/shared/run/catalogues.json', store=store)
+with WorkPool.local(4, store=store) as pool:
+    decoding = pool.decode(catalogues).wait_and_validate()
+    decoding.save_manifest('/shared/run/decoded.json')
+```
+
+Workers append checksum-verified records to their own bundles, rolling over at a
+256 MiB target. One larger record can exceed that target. **There is no file per
+seed or cut.** Small compressed records use an 8 MiB memory spool; larger ones
+spill to node-local scratch. Manifests contain references to immutable byte
+ranges and the publishing source fingerprint. Keep the referenced bundle paths
+available. These are trusted Python checkpoints, not an interchange format for
+untrusted inputs. Stage transitions use the same storage mode; RAM transitions
+also require the same `MemoryStore` instance.
+
+The ordinary `search_aam(..., intermediate_dir=...)` checkpoint API also uses
+worker bundles and one reaction index. Resume requires that index and the same
+input/configuration manifest. Earlier directories containing standalone cut
+files require their producing revision. `AAMCheckpointResult.cut_refs` exposes
+bundle references rather than one path per cut.
+
+## One Slurm allocation
+
+Submit one batch job, for example:
+
+```bash
+#!/bin/bash
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=40G
+#SBATCH --time=02:00:00
+python campaign.py
+```
+
+Inside `campaign.py`, use the same three stages:
+
+```python
+from mappa.execution import WorkPool, BundleStore
+
+with WorkPool.slurm(workers=16, memory_bytes=2 * 2**30,
+                    store=BundleStore('/shared/run/results')) as pool:
+    matching = pool.search(problems, config).wait_and_validate()
+    catalogues = pool.deduplicate(matching).wait_and_validate()
+    decoding = pool.decode(catalogues).wait_and_validate()
+    decoding.save_manifest('/shared/run/decoded.json')
+```
+
+`WorkPool.slurm` requires an existing allocation. It makes **one startup `srun`**
+with one worker service per node. Each service starts the requested number of
+persistent compute processes; tasks never invoke Slurm. The coordinator's queue
+lives on local scratch. Worker services must reach its hostname over the private
+cluster network, share the Python environment and bundle paths, and use matching
+Python source and compiled engines. Source/engine fingerprints are checked at
+worker startup. RAM transport is also available, with coordinator memory and
+network traffic proportional to the retained artifacts.
+
+Memory limits are per compute worker. Leave additional allocation memory and CPU
+capacity for the coordinator, supervisors and operating system. Each worker runs
+one scientific operation at a time with native thread counts set to one. There
+are no nested compute pools. Worker memory is sampled on a clock, normally every
+0.2 seconds; zero samples on a short task do not mean zero memory use.
 
 ## Completion and recovery
 
-A task is accepted once, with a lease token. Dependencies become ready only
-after successful publication. Timeouts, memory limits, exceptions, worker exits
-and lost leases are separate states. A failed worker is replaced to serve other
-work; its failed task is not silently retried. `retry(key)` is an explicit action
-after diagnosis, retains prior attempts, and does not reset the case deadline.
-Completed tasks cannot be retried or overwritten. A case budget starts on its
-first claim and is shared by all tasks bearing that case identity, including
-subsequent queue wait. It is a wall deadline, not summed CPU time.
+Dependencies become ready after successful publication. Exceptions, timeouts,
+memory limits and lost leases remain explicit failures. A failed compute process
+is replaced; its task is not silently retried. A case budget counts overlapping
+active computation once and pauses when no computation is active. Publication
+has a separate 120-second guard.
 
-Publication has a separate 120-second guard after computation finishes. Results
-are compressed on node-local scratch, then appended as verified immutable ranges
-to per-worker bundles (256 MiB target size). One large result may exceed that
-size. Shared storage has no file per task, seed or solver query. Queue backups
-contain the result indexes and checksums. A crash may leave an unreferenced
-partial range; that is never accepted as evidence. Restore the last queue backup
-locally, wait for stale leases to expire, diagnose them and explicitly retry.
-Work accepted after the last backup can be repeated after coordinator loss;
-this implementation does not claim transactional durability across node loss.
+Bundle-backed pools checkpoint the queue at stage completion and context exit.
+Completed stage manifests can be reopened in a new pool. The lower-level
+`TaskQueue` provides deliberate retry and recovery from queue backups, retaining
+attempt history. The public pool does not automatically resume an interrupted
+pass or fail over its coordinator. Work after the latest checkpoint can require
+repeating after node loss. Plan allocation walltime accordingly.
 
-Execution completion only means the callable returned and its result was
-published. A scientific result can still contain solver unknowns or incomplete
-decoding. Reporting must audit those results separately. In particular, the
-Golden adapter runs search and reference analysis; it does not claim that
-full-event decoding or all benchmark-report metrics are complete.
-
-`execution.decoding.plan_event_decoding` schedules one saved case/cut catalogue
-through the public anchored-fragment converter. It accepts partial mappings and
-the ordinary `RefinementConfig`, including relative minimum+n filtering. It
-retains converted branch records, direct counts and explicit incomplete flags.
-There is no separate solver/minimum stage or cluster-specific decoder.
-
-Additional stages use `Task(operation='module:function', dependencies=(...))`.
-The function receives its payload and a `Workspace`; `workspace.dependency(key)`
-loads a verified predecessor result. The operation owns its scientific policy;
-the executor does not change thresholds, mapping coverage or result scope.
-
-## Verification
-
-`tests/test_shared_execution.py` covers graph and seed-prefix equivalence,
-partial mappings, deadlines, process memory interruption, dependencies, identity,
-leases, explicit recovery and bundles. `tests/test_saved_event_decoding.py` covers
-the public conversion adapter. Historical performance records belong in `reports/`.
+Local tests exercise RAM/file transport, full scientific-record equivalence,
+deadlines, worker replacement, dependency barriers, checkpoint resume and the
+actual network worker entry point with an intercepted single `srun` launch.
+They do not establish real multi-node Slurm performance or network recovery.
+Scheduling stays in `mappa.execution` and `mappa_core/core/scheduler`; matching,
+family reduction and event algorithms remain their existing independent owners.
