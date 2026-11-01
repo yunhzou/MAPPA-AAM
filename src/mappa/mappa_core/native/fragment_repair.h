@@ -201,7 +201,11 @@ public:
             auto bucket=cache.find(key);
             auto chosen=lru.end();
             if (bucket!=cache.end()) for (auto item=bucket->second.rbegin();item!=bucket->second.rend();++item)
-                if (valid(**item,mapping,islands,cuts,deferred)) {chosen=*item;break;}
+                if (valid(**item,mapping,islands,cuts,deferred)) {
+                    chosen=*item;
+                    std::iter_swap(item,bucket->second.rbegin());
+                    break;
+                }
             if (chosen!=lru.end()) {
                 ++hits;
                 history_hits+=(chosen->mapping!=mapping || chosen->islands!=islands);

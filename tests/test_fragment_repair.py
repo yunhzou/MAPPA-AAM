@@ -242,3 +242,18 @@ def test_recent_cut_hit_does_not_scan_older_cut_results(growth_policy):
     after=cache.stats()
     assert after['full_hits']-before['full_hits']==10
     assert after['dependency_checks']-before['dependency_checks']==10
+
+
+def test_reused_older_entry_becomes_first_choice_for_next_request(growth_policy):
+    source=graph(10,[(i,i+1) for i in (0,1,2,3,5,6,7,8)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    cache=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    for cut in (((8,9),),((2,3),),((7,8),)):
+        assert raw(source,source,orbits,0,[-1]*10,cut,replay=cache)==raw(source,source,orbits,0,[-1]*10,cut)
+    before=cache.stats()
+    for _ in range(10):
+        assert raw(source,source,orbits,0,[-1]*10,((6,7),),replay=cache)==raw(
+            source,source,orbits,0,[-1]*10,((6,7),))
+    after=cache.stats()
+    assert after['full_hits']-before['full_hits']==10
+    assert after['dependency_checks']-before['dependency_checks']==10
