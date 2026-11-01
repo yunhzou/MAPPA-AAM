@@ -17,6 +17,7 @@ import uuid
 
 from mappa.mappa_core.core.scheduler.resources import tree_rss
 from mappa.mappa_core.core.scheduler.storage import BundleStore
+from mappa.mappa_core.core.scheduler.cache import WorkerCache
 
 
 class Workspace:
@@ -27,12 +28,15 @@ class Workspace:
         self.prepared_key, self.prepared_value = None, None
         self.resources = {}
         self.dependencies = {}
+        self.cache = WorkerCache()
+        self.cache.begin(None)
 
     def prepared(self, key, factory):
         if key != self.prepared_key:
             self.prepared_value = None
             self.prepared_key = None
             self.resources.clear()
+            self.cache.clear()
             self.prepared_value = factory()
             self.prepared_key = key
         return self.prepared_value
@@ -58,8 +62,9 @@ def _compute(connection, scratch, bundles, store=None):
         work = connection.recv()
         if work is None:
             break
-        task, dependencies = work
+        task, dependencies, cache = work
         workspace.dependencies = dependencies
+        workspace.cache.begin(cache)
         cpu, wall = time.process_time(), time.perf_counter()
         try:
             module, name = task.operation.split(':', 1)
@@ -68,10 +73,17 @@ def _compute(connection, scratch, bundles, store=None):
             metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall,
                            compute_pid=os.getpid())
             # Stop the work deadline at the compute boundary; allow evidence to publish.
-            connection.send(('publishing', metrics))
+            connection.send(('publishing', dict(metrics, cache_update=workspace.cache.proposal())))
+            cache_plan = connection.recv()
             start, publish_cpu = time.perf_counter(), time.process_time()
             blob = workspace.writer.put(output)
             del output
+            if workspace.cache.used:
+                try:
+                    metrics['cache_publication'] = workspace.cache.save(cache_plan)
+                except (OSError, ValueError, KeyError) as error:
+                    workspace.cache.metrics['errors'].append(f'save: {error}')
+                metrics['cache'] = workspace.cache.metrics
             metrics['publish_seconds'] = time.perf_counter()-start
             metrics['publish_cpu_seconds'] = time.process_time()-publish_cpu
             metrics['total_cpu_seconds'] = time.process_time()-cpu
@@ -131,7 +143,7 @@ def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds
                     queue.wait_for_work(claim['generation'], max(.5, poll_seconds))
                     continue
                 task, token = claim['task'], claim['token']
-                parent.send((task, claim['dependencies']))
+                parent.send((task, claim['dependencies'], claim.get('cache')))
                 peak, publishing, publication_deadline, monitoring = 0, False, None, 0.
                 phase_peaks = dict(compute=0, publication=0)
                 initial_cpu = None
@@ -168,10 +180,12 @@ def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds
                             if time.time() > claim['deadline']:
                                 state = 'timeout'
                                 break
-                            if not queue.computed(task.key, token):
+                            permission = queue.computed(task.key, token, result.pop('cache_update', None))
+                            if not permission:
                                 return
                             publishing = True
                             publication_deadline = time.monotonic()+publish_seconds
+                            parent.send(permission if isinstance(permission, dict) else None)
                             continue
                         break
                     if not process.is_alive():
@@ -194,6 +208,8 @@ def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds
                               phase_at_exit='publication' if publishing else 'compute',
                               worker=worker_id, monitoring_seconds=monitoring,
                               elapsed_seconds=time.perf_counter()-start)
+                if state != 'complete':
+                    _stop(process)
                 queue.finish(task.key, token, state, result)
                 if state != 'complete':
                     print(f'{task.key}: {state}: {result}', flush=True)

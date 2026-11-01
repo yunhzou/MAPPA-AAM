@@ -1,0 +1,35 @@
+{
+  "raw_bytes": 20827869,
+  "compressed_bytes": 2071374,
+  "load_seconds": 0.006199666997417808,
+  "median_seconds": {
+    "dump": 0.00773229100741446,
+    "compress": 0.03777974983677268,
+    "decompress": 0.006955832941457629
+  },
+  "exact_graph": true,
+  "cache": {
+    "calls": 2476,
+    "full_hits": 2476,
+    "prefix_hits": 0,
+    "history_hits": 1019,
+    "topology_hits": 0,
+    "boundary_rebases": 0,
+    "dependency_checks": 2478,
+    "mapping_misses": 2,
+    "island_misses": 0,
+    "topology_misses": 0,
+    "boundary_misses": 0,
+    "logical_extensions": 23698,
+    "reused_extensions": 23698,
+    "logical_certificates": 4621,
+    "reused_certificates": 4621,
+    "entries": 1457,
+    "resident_bytes": 23458236,
+    "peak_resident_bytes": 23458236,
+    "cache_budget_bytes": 67108864,
+    "evictions": 0,
+    "oversized_results": 0,
+    "revision": 1457
+  }
+}

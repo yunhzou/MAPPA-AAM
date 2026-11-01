@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
+from functools import cached_property
+import hashlib
 from mappa.mappa_core.core.matching.growth import native
 
 
@@ -57,3 +59,13 @@ class FragmentRepair(_CutSession):
         self.engine = native._engine.FragmentRepair(
             self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes,
             growth_policy)
+
+    @cached_property
+    def snapshot_identity(self):
+        return hashlib.sha256(self.engine.snapshot_context()).hexdigest()
+
+    def dumps(self):
+        return self.engine.dump(self.snapshot_identity)
+
+    def loads(self, data):
+        self.engine.load(data, self.snapshot_identity)

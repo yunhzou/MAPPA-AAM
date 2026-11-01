@@ -1,6 +1,8 @@
 // Reuse complete conditional fragment results across changed earlier histories.
 // This is NOT witness-only repair: the whole compressed candidate result must
 // have identical constraints. Different histories can pass that dependency test.
+#include "fragment_cache_io.h"
+
 class FragmentRepair {
     Source base, active_source;
     const Target& target;
@@ -24,6 +26,7 @@ class FragmentRepair {
     long calls=0, hits=0, history_hits=0, topology_hits=0, boundary_rebases=0;
     long checks=0, evictions=0, oversized=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;
     long logical_extensions=0, reused_extensions=0, logical_certificates=0, reused_certificates=0;
+    uint64_t revision=0;
 
     static std::vector<Pair> normalized(std::vector<Pair> pairs) {
         for (auto& [a,b]:pairs) if (a>b) std::swap(a,b);
@@ -76,6 +79,7 @@ class FragmentRepair {
         peak_resident=std::max(peak_resident,resident);
         lru.push_back(std::move(entry));
         auto added=std::prev(lru.end());cache[added->key].push_back(added);
+        ++revision;
     }
     bool valid(const Entry& entry,const std::vector<int>& mapping,
                const std::vector<Pair>& islands,const std::vector<Pair>& cuts,
@@ -104,6 +108,41 @@ class FragmentRepair {
         return true;
     }
 public:
+    py::bytes snapshot_context() const {
+        fragment_cache_io::Writer out;
+        out(std::string("mappa.fragment-cache/1"),uint64_t(sizeof(long)),existence);
+        for (const Graph* g:{static_cast<const Graph*>(&base),static_cast<const Graph*>(&target)})
+            // Element codes are process-local interned IDs; names are portable.
+            out(g->n,g->elem,g->adj,g->edge,g->w,g->bond_cut,g->bond_tolerances,g->tolerance_inclusive);
+        out(target.orbit,target.bucket,target.zero_bucket);
+        return py::bytes(out.data);
+    }
+    py::bytes dump(const std::string& identity) const {
+        fragment_cache_io::Writer out;
+        out(identity,uint64_t(lru.size()));
+        for (const auto& e:lru)
+            out(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
+        return py::bytes(out.data);
+    }
+    void load(const std::string& data,const std::string& identity) {
+        fragment_cache_io::Reader in(data);
+        std::string observed; in(observed);
+        if (observed!=identity) throw std::invalid_argument("Fragment cache context differs");
+        auto count=in.size();
+        Entries parsed;
+        for (uint64_t i=0;i<count;++i) {
+            Entry e(base.n);
+            in(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
+            if (e.mapping.size()!=size_t(base.n) || e.row_reads.size()!=size_t(base.n)
+                || e.dependencies.mapping_reads.size()!=size_t(base.n) || e.dependencies.boundary_atoms.size()!=size_t(base.n))
+                throw std::invalid_argument("Fragment cache dependency size differs");
+            e.bytes=entry_bytes(e);
+            parsed.push_back(std::move(e));
+        }
+        in.finish(); // Failed reads must leave the existing cache usable.
+        cache.clear();lru.clear();resident=0;
+        for (auto& e:parsed) if (e.bytes<=budget) insert(std::move(e));
+    }
     FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,
                    const std::string& growth_policy="incremental")
         :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),
@@ -221,6 +260,7 @@ public:
         out["logical_certificates"]=logical_certificates;out["reused_certificates"]=reused_certificates;
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
+        out["revision"]=revision;
         if (extensions) out.attr("update")(extensions->stats());
         return out;
     }
@@ -234,6 +274,9 @@ void register_fragment_repair(py::module_& mod) {
         .def_property_readonly("growth_policy",[](const FragmentRepair& cache) {
             return cache.uses_existence() ? "existence" : "incremental";
         })
+        .def("snapshot_context",&FragmentRepair::snapshot_context)
+        .def("dump",&FragmentRepair::dump)
+        .def("load",&FragmentRepair::load)
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
              py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42)

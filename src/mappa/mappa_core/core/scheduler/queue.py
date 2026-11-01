@@ -11,6 +11,7 @@ import threading
 import time
 import uuid
 from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+from .cache import ReactionCaches
 
 
 @dataclass(frozen=True)
@@ -30,11 +31,12 @@ class TaskQueue:
     Place the database on the coordinator's local disk, with explicit backups
     to shared storage. Lost leases require an explicit retry; no silent reruns.
     """
-    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False):
+    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False, cache_directory=None):
         self.lock = threading.RLock()
         self.changed = threading.Condition(self.lock)
         self.generation = 0
         self.keep_open = keep_open
+        self.caches = ReactionCaches(cache_directory) if cache_directory is not None else None
         self.lease_seconds = lease_seconds
         self.path = Path(path)
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
@@ -137,6 +139,8 @@ class TaskQueue:
         for token, expires in self.db.execute(
                 "SELECT token,expires FROM tasks WHERE state='running' AND expires<? ORDER BY expires", (now,)).fetchall():
             self._end_work(token, expires)
+            if self.caches is not None:
+                self.caches.finish(token)
         self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
             (SELECT token FROM tasks WHERE state='running' AND expires<?)""", (now, now))
         self.db.execute("UPDATE tasks SET state='lost' WHERE state='running' AND expires<?", (now,))
@@ -193,8 +197,10 @@ class TaskQueue:
                             (token, key, worker, now, 'running'))
             dependencies = {d: _loads_checkpoint(r) for d, r in self.db.execute('''
                 SELECT p.key,p.result FROM dependencies d JOIN tasks p ON p.key=d.dependency WHERE d.task=?''', (key,))}
-            return dict(state='work', task=_loads_checkpoint(specification), token=token,
-                        deadline=deadline, dependencies=dependencies)
+            task = _loads_checkpoint(specification)
+            cache = self.caches.describe(task.payload['cache']) if self.caches is not None and isinstance(task.payload, dict) and 'cache' in task.payload else None
+            return dict(state='work', task=task, token=token,
+                        deadline=deadline, dependencies=dependencies, cache=cache)
 
     def _end_work(self, token, now):
         row = self.db.execute('SELECT case_name FROM active_work WHERE token=?', (token,)).fetchone()
@@ -206,7 +212,7 @@ class TaskQueue:
             self.db.execute('UPDATE cases SET spent=spent+max(0,?-active_since),active_since=NULL,deadline=NULL WHERE name=?',
                             (now, case))
 
-    def computed(self, key, token):
+    def computed(self, key, token, cache_update=None):
         """Pause a direction once its last computation reaches publication.
 
         Overlapping tasks share one active wall clock. Queued dependencies,
@@ -219,6 +225,9 @@ class TaskQueue:
                                     (key, token)).fetchone() is not None
             if valid:
                 self._end_work(token, now)
+                if cache_update is not None and self.caches is not None:
+                    task = _loads_checkpoint(self.db.execute('SELECT specification FROM tasks WHERE key=?', (key,)).fetchone()[0])
+                    return self.caches.reserve(task.payload['cache'], cache_update['version'], token) or True
             return valid
 
     def heartbeat(self, key, token):
@@ -231,6 +240,15 @@ class TaskQueue:
             raise ValueError('Invalid task outcome')
         with self.lock, self.db:
             self._refresh(time.time())
+            valid = self.db.execute("SELECT 1 FROM tasks WHERE key=? AND token=? AND state='running'", (key,token)).fetchone() is not None
+            publication = result.pop('cache_publication', None)
+            if self.caches is not None:
+                try:
+                    published = self.caches.finish(token, publication if valid and state == 'complete' else None)
+                    if 'cache' in result:
+                        result['cache']['published'] = published
+                except OSError as error:
+                    result.setdefault('cache', {}).setdefault('errors', []).append(f'publication: {error}')
             data = pickle.dumps(result, protocol=5)
             accepted = bool(self.db.execute("UPDATE tasks SET state=?,result=? WHERE key=? AND token=? AND state='running'",
                 (state, data, key, token)).rowcount)
@@ -417,4 +435,6 @@ class TaskQueue:
 
     def close(self):
         with self.lock:
+            if self.caches is not None:
+                self.caches.close()
             self.db.close()

@@ -205,6 +205,63 @@ cap. Statistics expose resident/peak accounted bytes, hits, evictions and oversi
 results. This budget covers retained fragment entries, not all process RAM or the
 separate symmetry-certificate cache.
 
+### Shared reaction cache snapshots
+
+On 2026-10-31 the user approved disk-backed reuse across pool workers, including
+an explicit permanent first-snapshot fallback when a newer cache cannot load.
+This is an authorized cache recovery path, not an alternative matching algorithm.
+The matcher only exports/imports completed compressed entries and their dependency
+evidence. It never schedules work, reads shared files, or publishes versions.
+
+`scheduler/cache.py` owns snapshots. A BundleStore pool enables them by default;
+RAM-only pools retain their existing process-local caches. `shared_cache=False`
+disables snapshot exchange for measurement without disabling the native RAM cache.
+The reaction key binds endpoint atom indexing/WBOs, settings and actual code/engine
+identity. Forward and reverse occupy separate sections of the same two files.
+Snapshots contain no expanded bijections, intermediate growth checkpoints or
+symmetry-certificate memo. Element names, not process-local element IDs, establish
+native graph compatibility. Native cache import is transactional and re-applies
+the destination's retention budget.
+
+Each reaction/configuration has a **baseline** and **latest** file. The first
+completed cache for each direction is immutable in the baseline; adding the
+other direction preserves its first section. Latest versions replace their
+predecessor atomically. A reader opens once so its header and payload belong to
+the same inode. Loading verifies checksums and graph/policy compatibility; a
+failed latest load tries the baseline and records the failure. Both unusable
+versions are an explicit error. Missing snapshots start an empty cache.
+
+```mermaid
+flowchart LR
+    Claim[Task claim and latest cache version] --> RAM{Worker already has it?}
+    RAM -->|Yes| Search[Existing matching with lock-checked RAM reuse]
+    RAM -->|No| Load[Load latest; use baseline if load fails]
+    Load --> Search
+    Search --> Changed{New retained entries?}
+    Changed -->|Yes| Reserve[Coordinator accepts one publisher for that version]
+    Reserve --> Write[Write complete staged snapshot]
+    Write --> Publish[Atomic replacement; retain first-snapshot baseline]
+```
+
+Versions ride existing task claims. Only the accepted publisher serializes and
+writes; competitors skip their stale update. No merging or per-fragment network
+traffic occurs. Publication is acknowledged through the next claim, so a worker
+does not reread its own saved snapshot. Only changed retained entries cause a
+save. Switching reactions releases the complete prepared session and cache.
+All cache I/O time, bytes, hits, fallbacks and errors are recorded per task.
+Snapshots use fast level-1 compression to reduce shared-file traffic. The archived
+large-cut cache serialized to 20.83 MB and compressed to 2.07 MB; local median
+export/compression/decompression took 7.7/37.8/7.0 ms, with native import at 6.2 ms.
+The imported cache hit on all 2,476 requests and reproduced the complete raw graph.
+
+One coordinator owns each cache directory, protected by one directory-wide
+ownership lock. A publisher writes staging files; the coordinator alone replaces
+the published files after accepting its task. Failed/stale publication cannot
+replace a newer snapshot. The next owner removes abandoned staging files. Disk
+file count is two per reaction/configuration plus temporary publication and one
+ownership file, never one per seed or cut. Reading an old baseline cannot bypass
+the existing occupancy, lock, boundary and topology checks.
+
 `tests/test_existence_growth.py` compares complete ordered fragment returns
 between policies and across Python/native execution. It also independently expands
 small families to check their allowed mappings. Coverage includes rings, hydrogen

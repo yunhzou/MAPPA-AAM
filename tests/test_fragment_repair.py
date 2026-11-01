@@ -149,3 +149,63 @@ def test_public_fragment_cache_reuses_results_and_rejects_policy_mismatch():
     assert cache.stats()['full_hits']==2
     with pytest.raises(ValueError,match='growth_policy'):
         match_fragment(view.source,source,seed=0,context=context)
+
+
+def test_snapshot_preserves_results_dependencies_and_caps(growth_policy):
+    source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    cache=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    requests=[(0,[-1]*9,(),dict(cap=cap)) for cap in (1,3,100)]
+    requests += [(0,[-1]*6+[6,7,8],((2,3),),dict(cap=3,islands=[(6,1),(7,1),(8,2)])),
+                 (2,[-1]*9,((0,1),),dict(cap=100,deferred=((2,3),)))]
+    for seed,mapping,cut,options in requests:
+        raw(source,source,orbits,seed,mapping,cut,replay=cache,**options)
+    restored=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    restored.loads(cache.dumps())
+    for seed,mapping,cut,options in requests:
+        assert raw(source,source,orbits,seed,mapping,cut,replay=restored,**options)==raw(
+            source,source,orbits,seed,mapping,cut,**options)
+    assert restored.stats()['full_hits']==len(requests)
+    # A changed lock must still invalidate a saved entry after transport.
+    mapping=[-1]*8+[8]
+    assert raw(source,source,orbits,0,mapping,(),replay=restored)==raw(source,source,orbits,0,mapping,())
+    assert restored.stats()['full_hits']==len(requests)
+    before=restored.stats()['entries']
+    with pytest.raises(ValueError,match='Truncated'):
+        restored.loads(cache.dumps()[:-1])
+    assert restored.stats()['entries']==before
+    changed=FragmentRepair(source,source,orbits,growth_policy='existence' if growth_policy=='incremental' else 'incremental')
+    with pytest.raises(ValueError,match='context differs'):
+        changed.loads(cache.dumps())
+    tiny=FragmentRepair(source,source,orbits,cache_bytes=1,growth_policy=growth_policy)
+    tiny.loads(cache.dumps())
+    assert tiny.stats()['resident_bytes']==tiny.stats()['entries']==0
+
+
+def test_snapshot_is_portable_across_process_element_tables(tmp_path):
+    import subprocess, sys
+    from mappa import AAMSearchConfig
+    from mappa.mappa_core.core.search.session import SearchSession
+    from test_reused_aam_api import problem
+    search=SearchSession(problem(), AAMSearchConfig(growth_policy='existence'))
+    search.search_cut(())
+    snapshot=tmp_path/'fragment.cache'
+    snapshot.write_bytes(search.repair.dumps())
+    script='''
+import sys
+from pathlib import Path
+from mappa import AAMSearchConfig
+from mappa.mappa_core.core.search.session import SearchSession
+from mappa.mappa_core.core.matching.growth.native import source_graph
+from test_cut_replay import graph
+from test_reused_aam_api import problem
+source_graph(graph(2, [(0,1)], ['Xe','Ne']))
+search=SearchSession(problem(), AAMSearchConfig(growth_policy='existence'))
+search.repair.loads(Path(sys.argv[1]).read_bytes())
+actual,_=search.search_cut(())
+fresh,_=SearchSession(problem(), AAMSearchConfig(growth_policy='existence')).search_cut(())
+assert actual==fresh
+stats=search.repair.stats()
+assert stats['full_hits']==stats['calls'] and stats['calls']>0
+'''
+    subprocess.run([sys.executable,'-c',script,str(snapshot)],check=True)

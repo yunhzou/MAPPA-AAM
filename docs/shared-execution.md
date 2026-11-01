@@ -93,6 +93,30 @@ available. These are trusted Python checkpoints, not an interchange format for
 untrusted inputs. Stage transitions use the same storage mode; RAM transitions
 also require the same `MemoryStore` instance.
 
+BundleStore pools also share completed-fragment caches between workers by
+default. At task start a worker loads a newer reaction snapshot if needed;
+otherwise it keeps using its prepared RAM cache. Existing lock, occupancy,
+topology and boundary checks still decide every cache hit. Only a worker granted
+publication by the coordinator writes an update. Its own next task acknowledges
+that update without reading the same snapshot back from disk.
+
+The `cache/` directory retains two files per reaction/configuration: the first
+cache for each direction in `baseline.cache`, and an atomically replaced
+`latest.cache`. Forward and reverse use separate sections within these files.
+Failed latest loads try the checked baseline and record the error. Versions do
+not accumulate; there are no seed/cut cache files. One ownership file prevents
+two independent coordinators from writing the same cache directory. Result
+bundles remain independent of cache snapshots.
+
+The native cache keeps its 64 MiB accounted retention budget per prepared
+direction. Snapshots retain compressed results and dependency checks, not the
+separate symmetry-certificate memo. Task metrics report cache hits, bytes, load
+and save time, successful publication and baseline recovery. For comparisons,
+`pool.search(problems, config, shared_cache=False)` disables disk exchange while
+keeping native RAM reuse. `WorkPool.local(..., shared_cache=False)` disables it
+for the whole pool. RAM-only pools create no cache files. Snapshot compatibility
+includes the actual code/native-engine fingerprint as well as inputs/settings.
+
 The ordinary `search_aam(..., intermediate_dir=...)` checkpoint API also uses
 worker bundles and one reaction index. Resume requires that index and the same
 input/configuration manifest. Earlier directories containing standalone cut

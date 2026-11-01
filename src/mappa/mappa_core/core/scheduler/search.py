@@ -23,7 +23,7 @@ def _session(payload, workspace):
     return workspace.prepared(reference, prepare)
 
 
-def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=3600., memory_bytes=2**30, execution='reused_native'):
+def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=3600., memory_bytes=2**30, execution='reused_native', shared_cache=False):
     """Plan a direction once; combine several plans in the same TaskQueue.
 
     Inputs occur once in the store. Every task names its original seed indices
@@ -66,11 +66,28 @@ def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=360
             dict(input=reference, cut=cut, number=number, seeds=len(orders), batches=tuple(dependencies)),
             dependencies=tuple(dependencies), case=case, case_seconds=case_seconds, memory_bytes=memory_bytes))
         final_keys.append(key)
+    if shared_cache and execution == 'reused_native':
+        from mappa.execution.identity import code_identity
+        from .cache import cache_identity
+        identity = cache_identity(problem, config, code_identity())
+        for task in tasks:
+            if task.operation.endswith((':search_batch', ':search_complete_cut')):
+                task.payload['cache'] = identity
     return tasks, tuple(final_keys)
 
 
 def search_batch(payload, workspace):
     session = _session(payload, workspace)
+    if workspace.cache.descriptor is not None:
+        from mappa.execution.identity import code_identity
+        from .cache import cache_identity
+        problem, config, *_ = session.context
+        identity = workspace.resource('cache_identity', workspace.prepared_key,
+            lambda: cache_identity(problem, config, code_identity()))
+        descriptor = workspace.cache.descriptor
+        if identity != (descriptor['key'], descriptor['direction']):
+            raise ValueError('Task cache input, settings or code identity differs')
+    workspace.cache.use(session.repair)
     graph, counts = session.search_cut(payload['cut'], seed_indices=payload['indices'])
     if tuple(context.seed_order for context in graph.contexts) != payload['orders']:
         raise ValueError('Executed seed orders differ from the planned orders')

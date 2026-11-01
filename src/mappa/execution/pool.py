@@ -102,11 +102,12 @@ class StageResults:
 class WorkPool:
     """One worker lifetime, explicit stages, RAM or aggregated bundle transport."""
     def __init__(self, *, workers=1, store=None, memory_bytes=2**30,
-                 case_seconds=3600., scratch=None, slurm=False, startup_seconds=120.):
+                 case_seconds=3600., scratch=None, slurm=False, startup_seconds=120., shared_cache=True):
         if workers < 1 or memory_bytes < 1 or case_seconds <= 0 or startup_seconds <= 0:
             raise ValueError('Positive workers, memory and stage time are required')
         self.workers = workers
         self.store = store if store is not None else MemoryStore()
+        self.cache_directory = self.store.directory/'cache' if shared_cache and isinstance(self.store, BundleStore) else None
         self.memory_bytes, self.case_seconds = memory_bytes, case_seconds
         self.startup_seconds = startup_seconds
         self.scratch_parent, self.use_slurm = scratch, slurm
@@ -136,7 +137,7 @@ class WorkPool:
             self.scratch = Path(self._stack.enter_context(
                 tempfile.TemporaryDirectory(prefix='mappa-pool-', dir=self.scratch_parent)))
             database = self.scratch/'queue.sqlite' if isinstance(self.store, BundleStore) else ':memory:'
-            self.queue = TaskQueue(database, self.identity, keep_open=True)
+            self.queue = TaskQueue(database, self.identity, keep_open=True, cache_directory=self.cache_directory)
             self._stack.callback(self.queue.close)
             worker_store = self.store
             if self.use_slurm or isinstance(self.store, MemoryStore):
@@ -198,9 +199,12 @@ class WorkPool:
         if isinstance(self.store, BundleStore):
             self.queue.backup(self.store.directory/'queue.sqlite')
 
-    def search(self, problems, config=None, *, seed_batch=1, execution='reused_native'):
+    def search(self, problems, config=None, *, seed_batch=1, execution='reused_native', shared_cache=None):
         """Submit named reaction/direction inputs; only matching runs here."""
         config = config or AAMSearchConfig()
+        use_cache = self.cache_directory is not None if shared_cache is None else shared_cache
+        if use_cache and self.cache_directory is None:
+            raise ValueError('Shared cache requires a cache-enabled BundleStore pool')
         keys, plans, tasks = {}, {}, []
         batch = uuid.uuid4().hex
         for case, problem in problems.items():
@@ -208,7 +212,7 @@ class WorkPool:
                 raise ValueError('Cases require nonempty string identities')
             planned, cuts = plan_search(f'{batch}/{case}', problem, config, self.store,
                 seed_batch=seed_batch, case_seconds=self.case_seconds,
-                memory_bytes=self.memory_bytes, execution=execution)
+                memory_bytes=self.memory_bytes, execution=execution, shared_cache=use_cache)
             finals = {task.key: task for task in planned}
             scopes = tuple(CutScope(finals[key].payload['number'], tuple(finals[key].payload['cut']),
                 tuple(range(finals[key].payload['seeds']))) for key in cuts)
