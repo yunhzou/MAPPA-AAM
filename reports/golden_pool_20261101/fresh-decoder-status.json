@@ -1,0 +1,23 @@
+{
+  "fd8f409f362343ff9dc89054f3e37106/01561/forward/decoding": {
+    "state": "memory_limit",
+    "result": {
+      "cpu_seconds": 89.853663184,
+      "compute_seconds": 89.90094655693974,
+      "compute_pid": 2663299,
+      "peak_tree_rss_bytes": 2169737216,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 1752473600,
+        "publication": 2169737216
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 91.39999999999999,
+      "memory_samples": 457,
+      "phase_at_exit": "publication",
+      "worker": "cpu1-00052:2663296:0ad911b60777493a9e0e348cbb528f23",
+      "monitoring_seconds": 0.1273404115345329,
+      "elapsed_seconds": 91.4526191909099
+    }
+  }
+}

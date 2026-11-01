@@ -1,0 +1,164 @@
+{
+  "observed_utc": "2026-11-01T05:22:11.984713+00:00",
+  "counts": [
+    {
+      "stage": "decoding",
+      "state": "complete",
+      "count": 3701
+    },
+    {
+      "stage": "decoding",
+      "state": "error",
+      "count": 1
+    },
+    {
+      "stage": "deduplication",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "matching",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "verification",
+      "state": "complete",
+      "count": 3702
+    }
+  ],
+  "reference_directions": {
+    "recovered": 3617,
+    "not_recovered": 85
+  },
+  "reference_reactions": {
+    "recovered": 1830,
+    "not_recovered": 21
+  },
+  "stage_metrics": {
+    "deduplication": {
+      "tasks": 3702,
+      "cpu_seconds": 2886.490053526004,
+      "compute_cpu_seconds": 2822.626719771008,
+      "peak_sampled_worker_rss_bytes": 272531456,
+      "peak_process_lifetime_rss_bytes": 289239040
+    },
+    "decoding": {
+      "tasks": 3702,
+      "cpu_seconds": 14473.031371539993,
+      "compute_cpu_seconds": 13899.63511755499,
+      "peak_sampled_worker_rss_bytes": 2186715136,
+      "peak_process_lifetime_rss_bytes": 1929080832
+    },
+    "verification": {
+      "tasks": 3702,
+      "cpu_seconds": 1310.3849627429995,
+      "compute_cpu_seconds": 1306.1240262079991,
+      "peak_sampled_worker_rss_bytes": 1219067904,
+      "peak_process_lifetime_rss_bytes": 1929080832
+    }
+  },
+  "failures": [
+    {
+      "case": "01561/forward",
+      "stage": "decoding",
+      "state": "error",
+      "error": "{\"bb2dd08f2f9c4bc6b806932310cd26d1/01561/forward/decoding\": \"memory_limit\"}",
+      "audit": {
+        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/1/result/bundles/c6c6dfda698d4f2db9156a62c40e0652-00000.bundle",
+        "offset": 1634950,
+        "size": 995,
+        "sha256": "d9b460e73d8a52a0e2f61712aa6a096a372f424b5eb443afaa203683370cba3c"
+      },
+      "metrics": {
+        "cpu_seconds": 92.411822208,
+        "compute_seconds": 92.41870696400292,
+        "compute_pid": 3978057,
+        "peak_tree_rss_bytes": 2186715136,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1752666112,
+          "publication": 2186715136
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 93.79,
+        "memory_samples": 469,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00109:3978013:67ce35eaa66a4f0ea950880cd86bfb3c",
+        "monitoring_seconds": 0.08041833818424493,
+        "elapsed_seconds": 93.96972445002757
+      }
+    }
+  ],
+  "fresh_decoder_retry": {
+    "fd8f409f362343ff9dc89054f3e37106/01561/forward/decoding": {
+      "state": "memory_limit",
+      "result": {
+        "cpu_seconds": 89.853663184,
+        "compute_seconds": 89.90094655693974,
+        "compute_pid": 2663299,
+        "peak_tree_rss_bytes": 2169737216,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1752473600,
+          "publication": 2169737216
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 91.39999999999999,
+        "memory_samples": 457,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00052:2663296:0ad911b60777493a9e0e348cbb528f23",
+        "monitoring_seconds": 0.1273404115345329,
+        "elapsed_seconds": 91.4526191909099
+      }
+    }
+  },
+  "independent_verification": {
+    "job": "21135583",
+    "memory_bytes": 2147483648,
+    "counts": [
+      {
+        "stage": "decoding",
+        "state": "complete",
+        "count": 739
+      },
+      {
+        "stage": "decoding",
+        "state": "error",
+        "count": 1
+      },
+      {
+        "stage": "deduplication",
+        "state": "complete",
+        "count": 740
+      },
+      {
+        "stage": "matching",
+        "state": "complete",
+        "count": 740
+      },
+      {
+        "stage": "verification",
+        "state": "complete",
+        "count": 740
+      }
+    ],
+    "elapsed_seconds": 51.55831744999159,
+    "note": "Independent catalogue reference verification; original decoder failure preserved"
+  },
+  "slurm_accounting": [
+    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS",
+    "21135189_0|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:01:59|00:01:32|112",
+    "21135189_1|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:02:15|00:01:48|112",
+    "21135189_2|COMPLETED|0:0|2026-10-31T22:02:13|2026-10-31T22:03:52|00:01:39|112",
+    "21135189_3|COMPLETED|0:0|2026-10-31T22:02:47|2026-10-31T22:04:24|00:01:37|112",
+    "21135189_4|COMPLETED|0:0|2026-10-31T22:03:57|2026-10-31T22:06:40|00:02:43|112",
+    "21135190_0|COMPLETED|0:0|2026-10-31T22:06:51|2026-10-31T22:08:51|00:02:00|112",
+    "21135190_1|FAILED|1:0|2026-10-31T22:06:51|2026-10-31T22:10:35|00:03:44|112",
+    "21135190_2|COMPLETED|0:0|2026-10-31T22:09:10|2026-10-31T22:12:42|00:03:32|112",
+    "21135190_3|COMPLETED|0:0|2026-10-31T22:11:08|2026-10-31T22:13:03|00:01:55|112",
+    "21135190_4|COMPLETED|0:0|2026-10-31T22:12:50|2026-10-31T22:16:31|00:03:41|112",
+    "21135465|FAILED|1:0|2026-10-31T22:14:01|2026-10-31T22:15:40|00:01:39|2",
+    "21135583|COMPLETED|0:0|2026-10-31T22:20:39|2026-10-31T22:21:38|00:00:59|112"
+  ]
+}

@@ -1,14 +1,31 @@
 {
-  "created_utc": "2026-11-01T04:54:56.975927+00:00",
-  "source_commit": "ebfa3efcf48e6bce05326653afdd7d65aabb0cf6",
-  "matching_job": "21135108",
-  "finishing_job": "21135109",
+  "created_utc": "2026-11-01T05:00:20.109580+00:00",
+  "source_commit": "6397d461156f86b877efeb46ea40e4fe6056fc18",
+  "matching_job": "21135189",
+  "finishing_job": "21135190",
   "requested_workers": 500,
   "workers_per_batch": 100,
   "batches": 5,
-  "allocated_cpus_when_all_running": 520,
+  "nodes_per_batch": 4,
+  "allocated_cpus_per_batch": 112,
+  "maximum_simultaneous_workers_under_node_quota": 200,
   "memory_bytes_per_worker": 2147483648,
   "cases": 1851,
   "directions": 3702,
-  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101"
+  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101",
+  "replaced_pending_launch": {
+    "created_utc": "2026-11-01T04:54:56.975927+00:00",
+    "source_commit": "ebfa3efcf48e6bce05326653afdd7d65aabb0cf6",
+    "matching_job": "21135108",
+    "finishing_job": "21135109",
+    "requested_workers": 500,
+    "workers_per_batch": 100,
+    "batches": 5,
+    "allocated_cpus_when_all_running": 520,
+    "memory_bytes_per_worker": 2147483648,
+    "cases": 1851,
+    "directions": 3702,
+    "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101"
+  },
+  "reason": "Spread each 100-worker pool across four nodes with 54 GiB each to fit available unreserved memory; one-hour allocation"
 }

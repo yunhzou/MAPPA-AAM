@@ -1,0 +1,53 @@
+{
+  "observed_utc": "2026-11-01T05:02:49.648692+00:00",
+  "batches": [
+    {
+      "batch": 0,
+      "stage": "matching",
+      "ready_workers": 100,
+      "completed": [
+        {
+          "stage": "matching",
+          "state": "complete",
+          "count": 742
+        }
+      ],
+      "queue": {},
+      "elapsed_seconds": 80.4207998070051,
+      "startup_seconds": 8.43996278202394,
+      "memory_bytes": 2147483648
+    },
+    {
+      "batch": 1,
+      "stage": "matching",
+      "ready_workers": 100,
+      "completed": [
+        {
+          "stage": "matching",
+          "state": "complete",
+          "count": 740
+        }
+      ],
+      "queue": {},
+      "elapsed_seconds": 85.61364090896677,
+      "startup_seconds": 3.5629178640665486,
+      "memory_bytes": 2147483648
+    },
+    {
+      "batch": 2,
+      "stage": "matching",
+      "ready_workers": 100,
+      "completed": [],
+      "queue": {},
+      "elapsed_seconds": 3.7280804019537754,
+      "startup_seconds": 3.297020425030496,
+      "memory_bytes": 2147483648
+    }
+  ],
+  "slurm": [
+    "21135189_4|PENDING|0:00|112|4|(QOSMaxNodePerUserLimit)",
+    "21135190_[0-4]|PENDING|0:00|112|4|(Dependency)",
+    "21135189_3|RUNNING|0:04|112|4|cpu1-[00103-00104,00109,00112]",
+    "21135189_2|RUNNING|0:38|112|4|cpu1-[00011-00012,00036,00052]"
+  ]
+}

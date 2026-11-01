@@ -1,0 +1,118 @@
+{
+  "observed_utc": "2026-11-01T05:08:17.769557+00:00",
+  "matching_batches": [
+    {
+      "batch": 0,
+      "states": {
+        "complete": 742
+      },
+      "directions": 742,
+      "tasks": 35562,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 70.72273707389832,
+      "task_start_utc": 1793509246.08996,
+      "task_finish_utc": 1793509316.8126972,
+      "total_worker_cpu_seconds": 1391.862313910005,
+      "compute_cpu_seconds": 1238.4399610300018,
+      "mean_compute_cpus": 19.68054930418835,
+      "peak_worker_rss_bytes": 266731520,
+      "cache_errors": 0,
+      "cache_hits": 15062167,
+      "cache_calls": 16681561
+    },
+    {
+      "batch": 1,
+      "states": {
+        "complete": 740
+      },
+      "directions": 740,
+      "tasks": 35593,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 81.49986958503723,
+      "task_start_utc": 1793509249.7212312,
+      "task_finish_utc": 1793509331.2211008,
+      "total_worker_cpu_seconds": 1491.2917985220079,
+      "compute_cpu_seconds": 1326.3616048529937,
+      "mean_compute_cpus": 18.29808815787109,
+      "peak_worker_rss_bytes": 333619200,
+      "cache_errors": 0,
+      "cache_hits": 23237409,
+      "cache_calls": 24981402
+    },
+    {
+      "batch": 2,
+      "states": {
+        "complete": 740
+      },
+      "directions": 740,
+      "tasks": 34940,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 88.24141645431519,
+      "task_start_utc": 1793509342.6313138,
+      "task_finish_utc": 1793509430.8727303,
+      "total_worker_cpu_seconds": 1470.4384881000037,
+      "compute_cpu_seconds": 1311.047943929013,
+      "mean_compute_cpus": 16.663813288415277,
+      "peak_worker_rss_bytes": 434335744,
+      "cache_errors": 0,
+      "cache_hits": 19542022,
+      "cache_calls": 21202225
+    },
+    {
+      "batch": 3,
+      "states": {
+        "complete": 740
+      },
+      "directions": 740,
+      "tasks": 35674,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 85.87426161766052,
+      "task_start_utc": 1793509377.0069594,
+      "task_finish_utc": 1793509462.881221,
+      "total_worker_cpu_seconds": 1437.9333740719962,
+      "compute_cpu_seconds": 1291.457705283004,
+      "mean_compute_cpus": 16.74463741503982,
+      "peak_worker_rss_bytes": 203386880,
+      "cache_errors": 0,
+      "cache_hits": 21925370,
+      "cache_calls": 23507670
+    },
+    {
+      "batch": 4,
+      "states": {
+        "complete": 740
+      },
+      "directions": 740,
+      "tasks": 35783,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 153.14630937576294,
+      "task_start_utc": 1793509445.3536587,
+      "task_finish_utc": 1793509598.499968,
+      "total_worker_cpu_seconds": 3367.1553141980025,
+      "compute_cpu_seconds": 3210.7639221680156,
+      "mean_compute_cpus": 21.98652600851308,
+      "peak_worker_rss_bytes": 291717120,
+      "cache_errors": 0,
+      "cache_hits": 15536541,
+      "cache_calls": 17149912
+    }
+  ],
+  "total_directions": 3702,
+  "total_tasks": 177552,
+  "total_worker_cpu_seconds": 9158.681288802014,
+  "peak_worker_rss_bytes": 434335744,
+  "cache_errors": 0,
+  "slurm_accounting": [
+    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS|TotalCPU",
+    "21135189_0|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:01:59|00:01:32|112|00:00:00",
+    "21135189_1|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:02:15|00:01:48|112|00:00:00",
+    "21135189_2|COMPLETED|0:0|2026-10-31T22:02:13|2026-10-31T22:03:52|00:01:39|112|00:00:00",
+    "21135189_3|COMPLETED|0:0|2026-10-31T22:02:47|2026-10-31T22:04:24|00:01:37|112|00:00:00",
+    "21135189_4|COMPLETED|0:0|2026-10-31T22:03:57|2026-10-31T22:06:40|00:02:43|112|00:00:00"
+  ]
+}
