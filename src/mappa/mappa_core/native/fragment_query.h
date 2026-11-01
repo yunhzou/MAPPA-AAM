@@ -41,6 +41,8 @@ public:
     }
 
     bool reduce(Domains& allowed) const {
+        std::vector<size_t> domain_marks(target.n,0);
+        size_t mark=0;
         bool changed=true;
         while (changed) {
             changed=false;
@@ -62,17 +64,24 @@ public:
                 int a=direction.first,b=direction.second;
                 auto& values=allowed[a];
                 size_t before=values.size();
+                int fixed=allowed[b].size()==1 ? allowed[b][0] : -1;
+                // Each stamp marks one domain without clearing the scratch array.
+                ++mark;
+                if (fixed<0) for (int q:allowed[b]) domain_marks[q]=mark;
                 values.erase(std::remove_if(values.begin(),values.end(),[&](int p) {
-                    return std::none_of(allowed[b].begin(),allowed[b].end(),
-                                        [&](int q){return supports(edge,p,q);});
+                    if (fixed>=0) return !supports(edge,p,fixed);
+                    const auto& neighbors=target.adj[p];
+                    return std::none_of(neighbors.begin(),neighbors.end(),[&](int q) {
+                        return domain_marks[q]==mark && supports(edge,p,q);
+                    });
                 }),values.end());
                 if (values.empty()) return false;
                 changed|=before!=values.size();
             }
         }
-        std::vector<uint8_t> reachable(target.n,0);
-        for (int r:atoms) for (int p:allowed[r]) reachable[p]=1;
-        return (size_t)std::count(reachable.begin(),reachable.end(),1)>=atoms.size()
+        ++mark;
+        for (int r:atoms) for (int p:allowed[r]) domain_marks[p]=mark;
+        return (size_t)std::count(domain_marks.begin(),domain_marks.end(),mark)>=atoms.size()
             && distinct_destinations(allowed);
     }
 

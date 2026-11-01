@@ -16,7 +16,8 @@ with all source atoms, including later fragments.
 
 ## Correctness
 
-The final full suite passed **753/753**, with no skips or failures, in **55.22 s**:
+The direct-completion repair passed **753/753**, with no skips or failures, in
+**55.22 s**. The subsequent support-check optimization is validated below.
 
 ```sh
 PYTHONPATH=src:tests MAPPA_NATIVE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python -m pytest -q
@@ -107,3 +108,50 @@ Inputs and original failure measurements are alongside this report.
 section with final source/native identities, raw timing samples, reference hashes,
 reference mappings and per-cut accuracy evidence. `memory_probe.py` in
 `reports/native_transport_20261031/` is the existing replay/measurement entry point.
+
+## Native support-check optimization, 2026-11-01
+
+Compared with commit `85e1fcb`, the native constraint reducer now marks the allowed
+destinations in a temporary lookup array and checks only actual bonded neighbors.
+It reuses that scratch array within the reduction, then releases it. Matching
+rules, search order, compressed completion, caps and persistent caches are
+unchanged. Packed support tables and binary-search variants were tested and
+removed because they added overhead to small queries.
+
+The final full suite passed **763/763**, with no skips or failures, in **54.39 s**.
+Ten added critical cases cover locks/occupied destinations, exact conditional
+tolerance boundaries, and a positive/negative path pair with an independent
+articulation-based absence proof. All fourteen performance probes retain identical
+answers and search counters.
+
+Fresh-process medians on the same Mac, one thread, eleven timed batches per probe:
+
+| Prepared query | Baseline → current |
+|---|---:|
+| Saved 73-atom positive | 3.151 → 0.812 ms |
+| Saved 317-atom negative | 1.473 → 0.483 ms |
+| C5 into C66, impossible | 53.66 → 40.17 µs |
+| Fourteen-atom path through three joined C6 rings, impossible | 155.15 → 148.51 µs |
+| Small competing-destination positive | 14.85 → 16.10 µs |
+
+C6 completion remains about **16 µs** for one ring and **32 µs** for two rings,
+producing exactly one and two compressed matches. The small positive query costs
+about 1.25 µs more; this is not a claim that every individual call becomes faster.
+The large-query improvements repeat in both final timing rounds.
+
+| Saved real scope | Native search baseline → current | Full cut scope baseline → current | Peak RSS baseline → current |
+|---|---:|---:|---:|
+| 03855 forward, cuts 0–262 | 28.87 → 26.28 s | 59.94 → 56.55 s | 508.8 → 502.3 MiB |
+| 37270 forward, cut 144 | 8.53 → 8.38 s | 11.70 → 11.47 s | 1914.9 → 1901.0 MiB |
+| 16175 reverse, cut 0 | 0.829 → 0.097 s | 0.970 → 0.240 s | 104.0 → 102.8 MiB |
+
+Every field of all **265/265 finalized search graphs** is identical to the saved
+baseline, including contexts, roots, states, transitions and stops. Native search
+includes graph export; full scope runs from the first cut start to the last
+publication. RSS is sampled every 20 ms. These are local point measurements,
+not cluster throughput or a uniform runtime guarantee for hard absence queries.
+
+`summary.json` → `repair_validation.propagation_experiment` retains final source,
+header and engine identities, raw probe samples, exact per-cut comparisons and
+phase timings. The earlier 400-query permutation check remains historical; the
+full regression suite and these exact comparisons validate this further change.

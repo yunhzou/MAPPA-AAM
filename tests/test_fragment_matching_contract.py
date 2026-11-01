@@ -5,6 +5,7 @@ or invokes candidate deduplication. Do not mark those failures xfail.
 """
 import json
 from contextlib import nullcontext
+import math
 import multiprocessing as mp
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ import networkx as nx
 import pytest
 
 from growth_cases import graph, represented
-from mappa import FragmentMatchConfig, match_fragment
+from mappa import BondTolerance, FragmentMatchConfig, match_fragment
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
 from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY
@@ -49,6 +50,14 @@ def query_case(name):
         source, target = rings(), rings(2)
         return source, target, dict(atoms=list(source), bonds=list(source.edges),
                                    locked=[], tolerance=.2)
+    if name in ('articulation_yes', 'articulation_no'):
+        count = 13 if name.endswith('_yes') else 14
+        source = graph(count, [(r, r + 1) for r in range(count - 1)])
+        target = graph(19, [(0, 1 + 6 * c) for c in range(3)]
+            + [(1 + 6 * c + i, 1 + 6 * c + (i + 1) % 6)
+               for c in range(3) for i in range(6)])
+        return source, target, dict(atoms=list(source), bonds=list(source.edges),
+                                   locked=[], tolerance=.2)
     # All carbon atoms pass element/degree tests and the total target pool is
     # large enough. Twelve of them compete for only eleven reachable images.
     count = 12 if name == 'competing_no' else 11
@@ -73,6 +82,62 @@ def assert_witness(source, target, query, witness):
         p, q = witness[a], witness[b]
         assert target.has_edge(p, q)
         assert abs(source.graph['wbo_matrix'][a, b] - target.graph['wbo_matrix'][p, q]) <= query['tolerance']
+
+
+def matching_witnesses(source, target, query, bond_tolerance=None):
+    """Compare the accelerated kernel with the independent Python solver."""
+    locked = dict(query['locked'])
+    source_view = native.source_graph(source, bond_tolerance)
+    target_view = native.target_graph(target, _nauty_orbits(target, wbo_tol=query['tolerance']))
+    result = native._engine.find_fragment_witness(
+        source_view.graph, target_view.graph, query['atoms'], query['bonds'],
+        [locked.get(r, -1) for r in source], query['tolerance'])['witness']
+    expected = FragmentQuery(source, target, query['atoms'], query['bonds'],
+        locked, DEFAULT_NODE_POLICY, query['tolerance'], bond_tolerance).find()
+    assert result == expected
+    return result
+
+
+@pytest.mark.parametrize('connected', [False, True], ids=['absent', 'present'])
+def test_sparse_locked_query_ignores_unavailable_targets(connected):
+    size = 65
+    source = graph(4, [(0, 1), (0, 2), (1, 2)], ['O', 'C', 'C', 'C'])
+    occupied, first, last = range(size - 3, size)
+    edges = [(0, p) for p in (occupied, first, last)] + [(occupied, first), (occupied, last)]
+    if connected:
+        edges.append((first, last))
+    target = graph(size, edges, ['O'] + ['He'] * (size - 4) + ['C'] * 3)
+    query = dict(atoms=[0, 1, 2], bonds=list(source.edges),
+                 locked=[(0, 0), (3, occupied)], tolerance=.2)
+    result = matching_witnesses(source, target, query)
+    # Only these two free carbons can fill the triangle. Both pass degree
+    # filtering even when their connecting edge is absent; the occupied third
+    # carbon cannot rescue that missing edge.
+    expected = {((0, 0), (1, a), (2, b)) for a, b in ((first, last), (last, first))}
+    if connected:
+        assert tuple(sorted(result.items())) in expected
+        assert_witness(source, target, query, result)
+    else:
+        assert result is None
+
+
+@pytest.mark.parametrize('inclusive', [False, True])
+@pytest.mark.parametrize('position', [-1, 0, 1])
+def test_conditional_tolerance_support_at_exact_threshold(inclusive, position):
+    source = graph(4, [(0, 1), (0, 2), (1, 2)], ['O', 'C', 'C', 'C'])
+    weight = 1.25
+    if position:
+        weight = math.nextafter(weight, -math.inf if position < 0 else math.inf)
+    target = graph(65, [(0, 62), (0, 63, weight), (0, 64, 1.125), (63, 64)],
+                   ['O'] + ['He'] * 61 + ['C'] * 3)
+    limits = {(0, 1): .25, (0, 2): .5, (1, 2): .125}
+    policy = BondTolerance(lambda graph, a, b: limits[a, b], inclusive=inclusive).resolve(source)
+    query = dict(atoms=[0, 1, 2], bonds=list(source.edges),
+                 locked=[(0, 0), (2, 64), (3, 62)], tolerance=.5)
+    result = matching_witnesses(source, target, query, policy)
+    difference = abs(weight - 1.)
+    allowed = difference <= .25 if inclusive else difference < .25
+    assert result == ({0: 0, 1: 63, 2: 64} if allowed else None)
 
 
 def query_worker(engine, name, connection):
@@ -160,6 +225,26 @@ def test_real_no_match_has_an_independent_proof_and_a_matching_predecessor():
     oracle = nx.isomorphism.GraphMatcher(target, pattern,
         node_match=lambda a, b: a['element'] == b['element'])
     assert not oracle.subgraph_is_monomorphic()
+
+
+@pytest.mark.parametrize('engine', ['python', 'native'])
+def test_articulation_obstruction_has_a_matching_predecessor(engine):
+    source, target, query = query_case('articulation_yes')
+    witness = dict(enumerate([2, 3, 4, 5, 6, 1, 0, 7, 8, 9, 10, 11, 12]))
+    assert_witness(source, target, query, witness)
+    without_hub = target.copy()
+    without_hub.remove_node(0)
+    assert sorted(map(len, nx.connected_components(without_hub))) == [6, 6, 6]
+    # A simple path can enter at most two components through a single hub:
+    # at most six atoms, then the hub, then six atoms. Fourteen is impossible.
+    for name in ('articulation_yes', 'articulation_no'):
+        result = bounded_query(engine, name)
+        if name.endswith('_yes'):
+            assert_witness(source, target, query, result['witness'])
+        else:
+            assert result['witness'] is None
+        assert result['seconds'] < 2
+        assert result['peak_rss_bytes'] < 512 * 2**20
 
 
 @pytest.mark.parametrize('engine', ['0', '1'], ids=['python', 'native'])
