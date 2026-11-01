@@ -308,9 +308,11 @@ Historical timing and memory comparisons are retained in the
 Their producing Git revisions retain the retired comparison implementations.
 
 The 2026-11-01 cleanup passed all **719 local tests** after rebuilding the native
-engine. The final viewer update passed its nine affected tests and a headless
-Chrome check through every frame of a saved path. No scientific benchmark was
-rerun for this structural cleanup.
+engine on both Mac and DFW (Slurm job `21140102`). The final viewer changes
+passed their affected tests, including mapped/unmapped boundary events. The
+maintained browser validator checked all four branches of a saved case: witness
+frames, completed placements, playback, seeking, persistent locks, event overlays
+and offline/mobile rendering. No scientific benchmark was rerun for this cleanup.
 
 ## Search records, grouping and deduplication
 

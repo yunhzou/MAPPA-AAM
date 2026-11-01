@@ -120,3 +120,11 @@ def test_event_overlay_uses_decoder_thresholds_and_target_indexing():
     assert all(e['p'] == [mapping[a] for a in e['r']] for e in events)
     uniform = bond_events(raw, mapping, metal_tolerance=None)
     assert {tuple(e['r']) for e in uniform} == {(0, 1), (1, 3)}
+
+
+def test_event_overlay_keeps_mapped_unmapped_boundary_bonds():
+    from mappa.presentation.trajectory import bond_events
+    raw = dict(reactant=dict(elements=['C', 'O'], wbo=[[0., 0.], [0., 0.]]),
+               product=dict(elements=['C', 'O', 'O'], wbo=[[0., 0., .8], [0., 0., 0.], [.8, 0., 0.]]))
+    events = bond_events(raw, {0: 0, 1: 1})
+    assert events == [dict(kind='formed', r=[0], p=[0, 2], wbo=[None, .8])]

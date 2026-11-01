@@ -45,7 +45,6 @@ body[data-viewer-layout="growth_trace"] .trace-grid{display:grid;grid-template-c
 body[data-viewer-layout="growth_trace"] #mapping{font-family:ui-monospace,monospace;font-size:12px;line-height:1.8}
 body[data-viewer-layout="growth_trace"] table{width:100%;border-collapse:collapse;font-size:12px}
 body[data-viewer-layout="growth_trace"] th,body[data-viewer-layout="growth_trace"] td{text-align:left;padding:6px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
-body[data-viewer-layout="growth_trace"] .selected-trial{background:#fff5bf}
 body[data-viewer-layout="growth_trace"] #graph{overflow:auto}
 body[data-viewer-layout="growth_trace"] #graph circle{cursor:pointer}
 body[data-viewer-layout="growth_trace"] #explanation{margin:6px 0}

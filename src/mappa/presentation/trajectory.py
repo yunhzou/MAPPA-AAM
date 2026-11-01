@@ -45,12 +45,13 @@ def bond_events(raw, mapping, floor=.2, tolerance=.5, metal_tolerance=.3):
     inverse={p:r for r,p in mapping.items()}
     out=[]
     for a,b,x,y in broken:
-        out.append(dict(kind='broken' if y<=floor else 'weakened',r=[a,b],
-                        p=[mapping[a],mapping[b]],wbo=[x,y]))
+        out.append(dict(kind='broken' if y is None or y<=floor else 'weakened',r=[a,b],
+                        p=[mapping[r] for r in (a,b) if r in mapping],wbo=[x,y]))
     for u,v,x,y in formed:
-        a,b=sorted((inverse[u],inverse[v]))
-        out.append(dict(kind='formed' if x<=floor else 'strengthened',r=[a,b],
-                        p=[mapping[a],mapping[b]],wbo=[x,y]))
+        atoms=sorted(inverse[p] for p in (u,v) if p in inverse)
+        targets=[mapping[r] for r in atoms] if len(atoms)==2 else [u,v]
+        out.append(dict(kind='formed' if x is None or x<=floor else 'strengthened',r=atoms,
+                        p=targets,wbo=[x,y]))
     return out
 
 

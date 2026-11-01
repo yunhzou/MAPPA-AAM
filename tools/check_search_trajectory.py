@@ -6,18 +6,12 @@ from pathlib import Path
 import numpy as np
 from playwright.sync_api import sync_playwright
 
-ROOT=Path(__file__).resolve().parents[1]
-
-
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('bundle',type=Path)
     a=p.parse_args();bundle=a.bundle.resolve();data=json.loads((bundle/'trace.json').read_text())
     environment=dict(os.environ)
-    libraries=ROOT/'manuscript/build/browser-libs/root/usr/lib/x86_64-linux-gnu'
-    if libraries.exists():environment['LD_LIBRARY_PATH']=str(libraries)+':'+environment.get('LD_LIBRARY_PATH','')
-    cached=Path('/h/399/yunhengzou/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome')
-    executable=os.environ.get('MANUSCRIPT_BROWSER',str(cached) if cached.exists() else None)
+    executable=os.environ.get('MANUSCRIPT_BROWSER')
     errors,external,checks=[],[],[]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=executable,env=environment,args=['--no-sandbox','--enable-unsafe-swiftshader'])
@@ -34,15 +28,14 @@ def main():
                 start=page.evaluate('searchTrajectory.getState()')['frame']
                 frame=path['frames'][start]
                 if run.get('focus'):
-                    assert frame['kind']=='pop' and frame['trial']['edge']==run['focus']['source_edge']
-                    assert page.locator('.selected-trial').count()==1
-                    assert f'P{run["focus"]["target"]}' in page.locator('.selected-trial').inner_text()
-                    assert len(frame['trial']['trials'][frame['preferred']])==page.locator('#trials tr').count()-1
-                    compatible=next((r for r in frame['trial']['trials'][frame['preferred']] if r['status']=='compatible'),None)
-                    if compatible:
-                        page.get_by_role('button',name=f'P{compatible["target"]}',exact=True).click()
-                        expected_preview={**frame['locked'],**compatible['witness']}
-                        assert page.evaluate('searchTrajectory.mapping()')==expected_preview
+                    assert frame['kind']=='pop' and frame['edge']==run['focus']['source_edge']
+                for fi,frame in enumerate(path['frames']):
+                    page.evaluate('(i)=>searchTrajectory.setFrame(i)',fi)
+                    if frame.get('candidate_kind')=='witness':
+                        assert len(frame['candidates'])<=1
+                        assert page.locator('#candidate-title').inner_text()=='Growth witness'
+                    if frame['kind']=='seed_end':
+                        assert frame['candidate_kind']=='compressed_match'
                 branching=next((i for i,f in enumerate(path['frames']) if len(f['candidates'])>1),None)
                 if branching is not None:
                     page.evaluate('(i)=>searchTrajectory.setFrame(i)',branching)
