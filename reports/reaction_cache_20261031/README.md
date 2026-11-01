@@ -1,29 +1,94 @@
 # Reaction cache snapshots
 
-The user approved sharing completed-fragment caches across workers, with the
-first snapshot retained as a permanent fallback. The implementation stores
-baseline/latest files per reaction/configuration, with separate directional
-sections. Native snapshot import/export preserves compressed results and their
-lock/topology/boundary dependencies; scheduling stays in the execution layer.
+Implemented the user-approved shared cache with a permanent first snapshot.
+The final DFW pilot preserved all 1,842 matching graphs and recovered all 20
+directional references. Shared exchange cost 4.8% more wall time and 7.0% more
+worker CPU than RAM reuse alone on this small workload; it does not demonstrate
+a throughput improvement. Implementation and validation are complete.
 
-Workers receive the latest version with the existing task claim. They load only
-changed versions, retain RAM caches across seeds/cuts, and do not reread their
-own successful publication. Only the coordinator-selected publisher serializes
-and writes. Latest updates atomically replace old versions; first directional
-entries remain unchanged in the baseline. Failed latest loads use the checked
-baseline and record the failure. A cache directory has one active coordinator.
+## Loading, using and saving
 
-## Local validation
+Each reaction/configuration has two files: `baseline.cache` and `latest.cache`.
+Forward and reverse occupy separate sections. The first saved section for each
+direction remains unchanged in the baseline. Latest versions atomically replace
+their predecessor, so open readers can finish using the previous inode. A failed
+latest load tries the validated baseline and records the failure. Both unusable
+copies cause an explicit error. Versions do not accumulate into seed/cut files.
 
-**724 tests passed in 55.08 seconds.** Tests include exact raw/finalized matching,
-locks and cut invalidation after transport, branch caps, budget-limited imports,
-cross-process element-table differences, immutable first snapshots, failed/missing
-latest loads, explicit failure when both copies are unusable, concurrent publisher
-admission, readers holding the replaced file open, failed publication cleanup,
-pool restart, RAM/bundle transport and complete deduplication/decoded records.
+Workers receive the latest version with their existing task claim. They keep
+prepared sessions and useful cache entries in RAM, load only changed directional
+payloads, and do not reread their own publication. Import retains useful local
+entries within the same 64 MiB accounted retention budget and skips identical
+requests. Every hit still checks occupancy, locks, topology and boundaries.
+Most recently successful entries are checked first within a conditional key.
+Snapshots contain completed compressed results and their dependencies, without
+expanded bijections or the separate symmetry-certificate memo.
 
-The archived 374-atom EnzymeMap 10383 forward / cut 334 cache contains 1,457
-entries. Export/import measurements on the M4 Pro Mac are saved in
+One coordinator owns the cache directory and admits one publisher per reaction
+version. Only that worker serializes and stages an update. The coordinator
+accepts the task before replacing the published file. First snapshots are
+immediately eligible; later writes are coalesced to at most one per second per
+reaction. Workers continue checking the latest published version at task start.
+Complete scientific outputs are saved independently of cache publication.
+
+Workers prefer their current reaction/direction, then an unassigned case, then
+any runnable task. This preserves reaction reuse while letting surplus workers
+process cuts. Scheduling and file I/O remain outside the matching algorithm.
+See [design.md](../../design.md#shared-reaction-cache-snapshots) and the
+[execution API](../../docs/shared-execution.md).
+
+## Final validation
+
+The final source revision is `8ba48aa0c4bae1c6d69f766311eb99018a6625c2`.
+The Mac full suite passed **733 tests in 56.68 seconds**. Linux cache contract
+tests passed **40 tests in 5.63 seconds** before the final pilot. Coverage includes
+exact raw/finalized matching, lock/cut invalidation after transport, branch caps,
+budget-limited imports, cross-process element IDs, immutable baseline sections,
+failed/missing latest loads, simultaneous readers and publication, stale writers,
+pool restart, RAM/bundle transport, global deduplication and decoded records.
+
+DFW job **21133973** completed with exit `0:0` in **1 minute 37 seconds**,
+including the native build and Linux tests. It allocated two `cpu_short` nodes,
+`cpu1-00042` and `cpu1-00052`, with ten CPUs and 48 GiB per node. One persistent
+pool used one `srun` and eight compute workers per node, with a 4 GiB worker
+limit. All 16 workers processed tasks; peak task overlap was 16. This measures
+task concurrency, not continuous saturation of all CPUs.
+
+The pilot used EnzymeMap record IDs 0–9 in both directions. These **ten records
+represent five unique endpoint-graph pairs**, not ten independent chemistries.
+Both passes used the full cut sweep, one seed, branch cap 100, tolerance 1,
+random seed 42 and existence growth. RAM-only ran first, shared exchange second
+in the same pool. All finalized cut graphs were compared exactly; shared results
+then underwent global deduplication, decoding and reference verification.
+
+| Final measurement | Worker RAM cache | Shared snapshots |
+|---|---:|---:|
+| Matching wall time | 5.667 s | 5.942 s |
+| Total worker CPU | 44.419 s | 47.542 s |
+| Fragment cache hits / 92,132 requests | 55,024 | 56,670 |
+| Dependency checks | 77,322 | 80,523 |
+| Cache load + save, summed worker time | 0 | 1.564 s |
+| Snapshot publications | 0 | 22 |
+| Cache errors | 0 | 0 |
+
+Deduplication took 1.483 s, decoding 6.504 s and verification 1.722 s. All
+**20/20** directional heavy-atom reference queries recovered the annotation.
+Peak observed worker memory across the stages was **221.8 MiB**. The cache
+directory ended with ten snapshot files plus one ownership file, **2,598,652
+bytes** total, and no pending files. No fallback was needed in this pilot;
+fallback recovery was exercised by the contract tests.
+
+Full inputs, configuration, code/engine fingerprint, task metrics, file sizes
+and reference witnesses are retained in [dfw-pilot.json](dfw-pilot.json).
+The maintained runner is [cache_pilot.py](../../bench/cache_pilot.py) with
+[cache-pilot-dfw.sbatch](../../bench/cache-pilot-dfw.sbatch). One ordered pair of
+short runs cannot establish a general speedup or slowdown on the full benchmark.
+The measured cost remains visible rather than claiming zero overhead.
+
+## Large-cache local serialization measurement
+
+The archived 374-atom EnzymeMap 10383 forward / cut 334 cache contained 1,457
+entries. Measurements on the M4 Pro Mac are in
 [snapshot-profile.json](snapshot-profile.json):
 
 | Operation | Measurement |
@@ -35,76 +100,25 @@ entries. Export/import measurements on the M4 Pro Mac are saved in
 | Median decompression | 6.96 ms |
 | Native import | 6.20 ms |
 
-Five export/compression samples and one import were measured. The receiving
-prepared session had an independent empty symmetry-certificate memo. Its complete
-raw search graph equalled the original, and all 2,476 fragment requests were
-served from imported completed results. No mapping bijections were expanded.
-These are local serialization measurements, not shared-filesystem timings.
+Five export/compression samples and one fresh import were measured before the
+later import-retention and lookup-order improvements. The receiving session had
+an empty symmetry-certificate memo. Its complete raw search graph equalled the
+original, and all 2,476 fragment requests hit imported completed results. These
+are local serialization measurements, not shared-filesystem timings.
 
-## DFW pilot
+## Earlier pilot evidence
 
-`bench/cache-pilot-dfw.sbatch` allocates two cpu_short nodes, ten CPUs and 48 GiB
-per node, and starts one persistent pool of eight compute workers per node
-(4 GiB per compute worker). It uses the first ten distinct prepared EnzymeMap
-reactions in both directions, the full cut sweep, and the original one-seed,
-cap-100, tolerance-1 settings with `growth_policy='existence'`.
+All three earlier pilots also preserved all 1,842 graphs and recovered all 20
+references. Their results document why local entries are retained on import and
+why reaction placement and publication coalescing are part of the final design.
 
-`bench/cache_pilot.py` compares native RAM reuse alone against shared snapshot
-exchange in the same pool, checks every complete finalized cut graph for exact
-equality, then deduplicates across all cuts/seeds before decoding and verification.
-The full code/engine identity, settings, source bundle checksums, per-stage times,
-cache traffic/errors, memory, workers and task overlap are saved in results.json.
-First the batch builds the native Linux engine and runs the cache contract tests.
+| Job / saved evidence | RAM / shared wall time | RAM / shared worker CPU | Publications |
+|---|---:|---:|---:|
+| [21132532: initial](dfw-pilot-initial.json) | 5.342 / 5.810 s | 48.989 / 51.607 s | 151 |
+| [21132861: retain local entries](dfw-pilot-retained.json) | 5.299 / 5.841 s | 48.480 / 52.267 s | 150 |
+| [21133470: placement and coalescing](dfw-pilot-locality.json) | 8.443 / 5.318 s | 41.331 / 46.581 s | 20 |
 
-The first pilot, job **21132532**, completed successfully with 16 workers on
-`cpu1-00102` and `cpu1-00105`. All 1,842 complete finalized cut graphs were exactly
-equal. Deduplication and decoding completed for all 20 directions; all 20 exact
-heavy-atom reference queries recovered the annotation. There were no cache
-errors. The ten input records contain five unique endpoint-graph pairs, so the
-cache directory held ten snapshots plus one ownership file (332,113 bytes total).
-
-However, replacing each worker's RAM cache on import cost more than the additional
-reuse saved in this small pilot: shared exchange took 5.810 s / 51.607 CPU s,
-versus 5.342 s / 48.989 CPU s for RAM reuse alone. Cache load/save summed to
-3.272 worker-seconds; hits increased from 53,036 to 54,040 out of 92,132 requests.
-The initial result is retained in [dfw-pilot-initial.json](dfw-pilot-initial.json).
-This motivated retaining useful local cache entries during import, with exact
-request deduplication and the same memory budget. Updates to the other direction
-also no longer force loading an unchanged directional payload. Coordinator
-publication still selects one snapshot; it does not merge caches or branches.
-
-A follow-up pilot will measure that correction on the same ten records and scope.
-The local full suite after retaining imported/local entries passed **726 tests
-in 54.19 seconds**. A further targeted check covers acknowledgement when another
-direction has published before the original worker's next task.
-
-The second pilot, **21132861**, again completed all 1,842 exact graph comparisons
-and all downstream stages. Retaining local entries raised cache hits to 55,273,
-but shared exchange still took 5.841 s / 52.267 CPU s versus 5.299 s / 48.480 CPU s
-for worker-only reuse. Loading/saving cost 4.061 summed worker-seconds. The
-measurements are retained in [dfw-pilot-retained.json](dfw-pilot-retained.json).
-
-The remaining correction is outside the matcher: prefer a worker's current
-reaction/direction, then an unassigned case, then any runnable task to keep the
-pool saturated. Coalesce rapid latest-snapshot writes to at most once per second
-while allowing each first directional snapshot immediately. This preserves
-latest-version checks and baseline recovery without writing after every tiny cut.
-The final pilot will compare snapshot exchange on/off under this same placement.
-The final local implementation passed **729 tests in 52.46 seconds**. Its
-execution tests explicitly check that distinct reactions are assigned first,
-workers retain their current reaction, surplus workers still receive cuts,
-and first snapshots are exempt from the publication interval.
-
-The reaction-local pilot, **21133470**, completed all 1,842 graph comparisons and
-recovered all 20 references. Snapshot writes fell to 20, with 0.949 s loading and
-0.894 s saving summed across workers. RAM-only/shared matching measured
-8.443/5.318 wall seconds and 41.331/46.581 CPU seconds. The RAM-only pass had
-substantially higher output-publication delay (18.268 versus 9.478 summed worker
-seconds), so its wall-time difference cannot establish a cache speedup.
-See [dfw-pilot-locality.json](dfw-pilot-locality.json).
-
-One final lookup optimization checks recently inserted fragment entries before
-old cut conditions. The exact-result suite passed **731 tests in 55.30 seconds**;
-a targeted test verifies one dependency check per recent-cut hit after 18 distinct
-cuts. Cache metrics now expose dependency-check counts in addition to hits and
-I/O. The next pilot measures this final implementation on the unchanged scope.
+Job 21133470 had substantially greater output-publication delay in its RAM-only
+pass (18.268 versus 9.478 summed worker seconds); its wall-time difference does
+not establish a cache speedup. The final pilot also records dependency checks
+after changing lookup order while retaining every validity check.
