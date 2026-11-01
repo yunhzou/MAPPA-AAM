@@ -130,3 +130,41 @@ def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
         alias=tmp_path/f'alias-{batch}'
         alias.symlink_to(root, target_is_directory=True)
         assert run(alias/'index.json',alias/'result',local=True,workers=1,resume=True)['finished']
+
+
+def test_fresh_batches_preserve_inputs_and_import_no_old_results(tmp_path):
+    from prepare_batches import prepare_fresh
+    index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['config']['growth_policy'] = 'incremental'
+    data['directions'] = [dict(row, case=case) for case in range(8)
+                          for row in data['directions']]
+    index.write_text(json.dumps(data))
+    output = tmp_path/'fresh'
+    manifest = prepare_fresh([index], output, workers=[3, 1])
+    assert manifest['directions'] == 16
+    assert manifest['config']['growth_policy'] == 'existence'
+    assert manifest['reused_scientific_results'] == 0
+    assert not list(output.rglob('*.sqlite'))
+    assert not list(output.rglob('*.bundle'))
+    batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(2)]
+    assert [len(batch['directions']) for batch in batches] == [12, 4]
+    actual = [row for batch in batches for row in batch['directions']]
+    key = lambda row: (row['case'], row['reversed'])
+    assert sorted(actual, key=key) == sorted(data['directions'], key=key)
+    assert not ({r['case'] for r in batches[0]['directions']} &
+                {r['case'] for r in batches[1]['directions']})
+    with pytest.raises(FileExistsError):
+        prepare_fresh([index], output, workers=[3, 1])
+
+
+def test_fresh_batches_reject_duplicate_and_incomplete_inputs(tmp_path):
+    from prepare_batches import prepare_fresh
+    index = prepared_index(tmp_path)
+    with pytest.raises(ValueError, match='Duplicate reaction/direction'):
+        prepare_fresh([index, index], tmp_path/'duplicate', workers=[1])
+    data = json.loads(index.read_text())
+    data['directions'].pop()
+    index.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match='both directions'):
+        prepare_fresh([index], tmp_path/'partial', workers=[1])

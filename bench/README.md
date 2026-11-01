@@ -11,25 +11,29 @@ endpoint/reference records are read from the existing immutable input bundles.
 Saved legacy task lists are used to locate endpoint records; their operations
 are never executed. Old scientific outputs are not reused.
 
-The first run uses one seed, branch cap 100, tolerance 1.0, random seed 42 and the
-full cut sweep. Verification asks for exact annotated heavy-atom indices, with
+The current run uses existence growth, one seed, branch cap 100, tolerance 1.0,
+random seed 42 and the full cut sweep. Verification asks for exact annotated heavy-atom indices, with
 hydrogens unconstrained and no endpoint-symmetry relaxation. It does not claim
 stereochemical validation. The manifest records this policy explicitly.
 
-The campaign uses a Slurm array of four independent two-node allocations, each
-with 100 compute workers and 104 allocated CPUs. Each allocation starts one
-persistent pool. Slurm may start batches independently as capacity is available;
-The current wave requests 400 workers. The cpu-short per-user limit is four
-submitted jobs; reaching 800 requires increasing each allocation to 200 workers.
+`prepare_batches.py fresh OUTPUT INDEX... --workers COUNT...` makes a completely
+new campaign. It preserves immutable endpoint/reference inputs, explicitly sets
+existence growth, and imports no matching results, ledgers or cache snapshots.
+It keeps both directions together and balances prepared-input byte sizes per
+planned worker. This is a workload estimate, not a measured CPU cost. Larger
+inputs run first. The preparation rejects duplicate or missing directions.
 
-`prepare_batches.py` partitions reaction IDs modulo the requested batch count (four for this wave) and copies only the
-corresponding ledger rows from the stopped original campaign. Saved bundle
-references remain valid; keep the original bundle directory. Each batch has its
-own output directory and ledger, with no concurrent writers across batches.
-Submit matching with `--stop-after matching`, then submit the remaining passes
-with `afterok` on the entire matching array. A drained allocation exits 75 so it
-cannot release the dependency before completing matching. Resume unfinished
-batches explicitly before releasing downstream work.
+Each independently scheduled allocation starts one persistent work pool. Workers
+prefer their current reaction and retain bounded caches; idle workers can take
+other available cuts. Shared snapshots remain enabled. Each batch owns its output
+directory and ledger. Submit matching with `--stop-after matching`, then submit
+the remaining passes with `--resume` and `afterok` on **all** matching jobs.
+A drained allocation exits 75 and does not release downstream work. Resume an
+unfinished batch explicitly; no task invokes Slurm.
+
+`prepare_batches.py resume INDEX PREVIOUS OUTPUT` is the separate operation for
+repartitioning a stopped campaign while preserving its results. It is not used
+to initialize a fresh benchmark.
 
 At most 128 reaction/directions per batch are active. Completed histories and attempt
 records are appended to bundles before their tasks are removed from the dispatch
@@ -38,9 +42,9 @@ keeps the active queue bounded while preserving audit evidence. There are no
 per-cut or per-seed files. The coordinator owns local SQLite databases and
 publishes ledger/queue snapshots and progress every 30 seconds.
 
-The run stops admitting work after 3.5 hours and drains accepted work. Individual
-case budgets are one hour, so an unusually long in-flight case can outlast the
-remaining allocation. Slurm termination then leaves it incomplete. Reuse the
+The DFW script stops admitting work after 2 hours 40 minutes and drains accepted
+work within its 3-hour-45-minute allocation. Individual case budgets are one
+hour. Slurm termination can still leave work incomplete. Reuse the
 same output with `--resume` in a later explicit allocation; completed directions
 in the last published ledger are reused. Work since that checkpoint or incomplete
 directions can repeat. Failed directions are retained and stop transition to the
@@ -51,13 +55,19 @@ next pass; there are no automatic retries or automatic Slurm resubmissions.
 `ledger.sqlite` indexes outputs and archived task evidence. These files and the
 bundle directory are the handoff; no dataset-wide graph is collected in RAM.
 
-DFW uses `enzymemap-dfw.sbatch`: five independently scheduled two-node bins,
-160 compute workers each (800 total), within cpu_short's ten-node limit.
-The account is `nemotron_omni_vision`. The relocated campaign keeps aggregated
-bundles intact and sets `MAPPA_BUNDLE_ROOTS` for original NRT references. Inputs
-and results are verified by their original checksums when read. Matching runs
-with `--stop-after matching`; downstream submissions depend on the entire array
-completing successfully.
+DFW uses `enzymemap-dfw.sbatch`, account `nemotron_omni_vision`, partition
+`cpu_short`, and 2 GiB per worker. Set `MAPPA_BATCH_ROOT` and the validated
+`MAPPA_EXPECTED_CODE_IDENTITY`; the script rejects a changed source/native build.
+Override Slurm nodes, CPUs and memory together with `MAPPA_WORKERS_PER_NODE`
+to fit available resources. The default is 100 workers across two nodes;
+`MAPPA_ACTIVE_DIRECTIONS` controls the bounded admission window (default 128).
+Requested workers are not evidence that they have started. Check Slurm and
+`progress.json` for actual readiness, task overlap and worker CPU consumption.
+
+The relocated campaign keeps aggregated bundles intact and sets
+`MAPPA_BUNDLE_ROOTS` for original input references. Inputs and results are
+verified by their original checksums when read. Old campaign outputs remain
+untouched. Current DFW `cpu_short` limits the user to ten nodes across jobs.
 
 ## Golden with the same work pool
 

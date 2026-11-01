@@ -795,6 +795,14 @@ ledger and persistent worker pool. An array-wide successful matching dependency
 precedes later passes; an allocation that drains early is not successful stage
 completion. Original aggregated artifacts remain shared read-only inputs.
 
+A fresh benchmark imports only immutable endpoint/reference inputs, sets the
+current growth policy explicitly, and creates empty result and cache stores.
+The benchmark preparation layer may balance batches using input sizes per
+planned worker and process larger inputs first. This scheduling estimate never
+changes seeds, cut order within a search, hierarchy caps or scientific results.
+The 2026-11-01 EnzymeMap rerun recomputes every direction; prior campaign results
+are a comparison baseline, not completed work in the fresh denominator.
+
 Moving aggregated artifacts between clusters may remap storage roots through
 `MAPPA_BUNDLE_ROOTS` (a JSON source-root to destination-root map). Reads retain
 original offsets and checksums, including nested references. Publication uses
