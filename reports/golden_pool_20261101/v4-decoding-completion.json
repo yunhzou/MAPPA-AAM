@@ -1,0 +1,114 @@
+{
+  "observed_utc": "2026-11-01T06:58:07.618048+00:00",
+  "source_commit": "2f009516016efe3e1dbf97079908ac2f712e0327",
+  "code_identity": "508c5850742f4c3ebc7f8c26dda5948d7446ea3a4febed0bc44c49c10a1ab992",
+  "job": "21137977",
+  "schema": "mappa.decoded_events/v4",
+  "cases": 1851,
+  "directions": 3702,
+  "counts": {
+    "matching": 3702,
+    "deduplication": 3702,
+    "verification": 3702,
+    "decoding": 3702
+  },
+  "reused_decoding": [
+    "01561/forward"
+  ],
+  "new_decoding": 3701,
+  "failures": [],
+  "all_output_checksums_verified": true,
+  "unique_reaction_directions": true,
+  "preserved_stages_identical": true,
+  "memory_bytes_per_worker": 2147483648,
+  "output_bytes": 815213754,
+  "result_bundle_files": 501,
+  "manifest": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_decode_v4_20261101/decoded.json",
+  "manifest_sha256": "746bf4a86074d6e604a4233d931ff4e566cd1052fd06cb3ce1cf3aaed965e391",
+  "task_operations": {
+    "mappa.mappa_core.core.scheduler.decoding:decode_catalogue": 3702
+  },
+  "metrics": {
+    "new_decoding": {
+      "tasks": 3701,
+      "compute_cpu_seconds": 7974.985429098019,
+      "publication_cpu_seconds": 272.6037877260003,
+      "total_cpu_seconds": 8248.505518385982,
+      "peak_sampled_worker_rss_bytes": 1102872576,
+      "peak_process_lifetime_rss_bytes": 1102872576
+    },
+    "reused_point": {
+      "tasks": 1,
+      "compute_cpu_seconds": 21.461264339,
+      "publication_cpu_seconds": 1.1773148969999987,
+      "total_cpu_seconds": 22.638967765999997,
+      "peak_sampled_worker_rss_bytes": 950726656,
+      "peak_process_lifetime_rss_bytes": 1017638912
+    }
+  },
+  "batches": [
+    {
+      "batch": 0,
+      "workers_ready": 100,
+      "elapsed_seconds": 39.168116247979924,
+      "startup_seconds": 3.4521245441865176,
+      "workers_used": 100,
+      "max_overlapping_tasks": 100,
+      "new_tasks": 742,
+      "task_span_seconds": 35.07153081893921,
+      "average_worker_cpu_cores": 47.68594557275114
+    },
+    {
+      "batch": 1,
+      "workers_ready": 100,
+      "elapsed_seconds": 47.504080416983925,
+      "startup_seconds": 3.5889797309646383,
+      "workers_used": 100,
+      "max_overlapping_tasks": 100,
+      "new_tasks": 739,
+      "task_span_seconds": 43.29119110107422,
+      "average_worker_cpu_cores": 39.22905824189392
+    },
+    {
+      "batch": 2,
+      "workers_ready": 100,
+      "elapsed_seconds": 54.545369156985544,
+      "startup_seconds": 2.6309737749397755,
+      "workers_used": 100,
+      "max_overlapping_tasks": 100,
+      "new_tasks": 740,
+      "task_span_seconds": 51.423506021499634,
+      "average_worker_cpu_cores": 32.52043653314541
+    },
+    {
+      "batch": 3,
+      "workers_ready": 100,
+      "elapsed_seconds": 36.0783678740263,
+      "startup_seconds": 2.7087336159311235,
+      "workers_used": 100,
+      "max_overlapping_tasks": 100,
+      "new_tasks": 740,
+      "task_span_seconds": 32.79740524291992,
+      "average_worker_cpu_cores": 44.374436235506
+    },
+    {
+      "batch": 4,
+      "workers_ready": 100,
+      "elapsed_seconds": 71.75680683995597,
+      "startup_seconds": 3.1376595030305907,
+      "workers_used": 100,
+      "max_overlapping_tasks": 100,
+      "new_tasks": 740,
+      "task_span_seconds": 68.09183382987976,
+      "average_worker_cpu_cores": 25.702531736515144
+    }
+  ],
+  "slurm_accounting": [
+    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS",
+    "21137977_0|COMPLETED|0:0|2026-10-31T23:53:50|2026-10-31T23:54:38|00:00:48|112",
+    "21137977_1|COMPLETED|0:0|2026-10-31T23:53:50|2026-10-31T23:54:50|00:01:00|112",
+    "21137977_2|COMPLETED|0:0|2026-10-31T23:55:03|2026-10-31T23:56:06|00:01:03|112",
+    "21137977_3|COMPLETED|0:0|2026-10-31T23:55:40|2026-10-31T23:56:24|00:00:44|112",
+    "21137977_4|COMPLETED|0:0|2026-10-31T23:56:16|2026-10-31T23:57:35|00:01:19|112"
+  ]
+}

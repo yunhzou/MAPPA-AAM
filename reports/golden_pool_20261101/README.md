@@ -1,7 +1,13 @@
 # Golden persistent-pool run, 2026-11-01
 
-**Complete:** all 3,702 directions now have matching, deduplication, decoding and
-reference-verification outputs. The unique-fragment decoder refactor recovered
+**Complete:** all 3,702 directions now also have the current **v4 decoded output**.
+The decoding-only pass finished in **3 minutes 45 seconds**, including staggered
+allocation starts, with no failures and **1.03 GiB peak worker RSS** under the
+unchanged 2 GiB limit. All saved output checksums were verified. Matching,
+deduplication and reference-verification records were reused unchanged.
+[v4 run report](v4-decoding.md) · [combined decoded manifest](v4-decoded.json)
+
+The original run completed all four stages. Its unique-fragment refactor recovered
 the last failed decoded output at the unchanged 2 GiB worker guard, with
 **1.14 GiB peak worker RSS**. Completed scientific results were preserved.
 [Refactor and equivalence evidence](decoder-refactor.md) ·
