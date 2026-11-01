@@ -1,17 +1,14 @@
 """Exact target actions must transport future atoms, not discard their matches."""
-from itertools import product, permutations, combinations
+from itertools import product, permutations
 
 import numpy as np
 import pytest
 
 from mappa import FragmentMatchConfig, match_fragment
-from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand
-from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
-from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.representation.state import _SymCand
 from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
-from test_growth_compression_exactness import graph, represented, assert_prefixes
+from test_growth_compression_exactness import graph, represented, assert_completed_constraints, complete
 
 
 def rings():
@@ -34,15 +31,14 @@ def ring_mappings():
 
 
 @pytest.mark.parametrize('order', [list(range(12)), [a for i in range(6) for a in (i, 6 + i)]])
-def test_ring_every_prefix_preserves_all_768_matches(order):
+def test_ring_constraints_preserve_all_768_matches(order):
     source, target = rings()
-    ro, po = _nauty_orbits(source, wbo_tol=1), _nauty_orbits(target, wbo_tol=1)
-    candidates = [_SymCand({0: 0}, (_SymBlock((0,), tuple(range(6)), False),))]
     fragment = {0}
+    bonds = []
     for atom in order[1:]:
-        candidates = _extend_sym_cands(candidates, fragment, atom, source, target,
-                                       {}, 1, None, r_orbits=ro, p_orbits=po, anchor_u=min(set(source.neighbors(atom)) & set(fragment)))
+        bonds.append((min(set(source.neighbors(atom)) & fragment), atom))
         fragment.add(atom)
+        candidates = complete(source, target, fragment, bonds, 1)
         expected = {tuple((r, p) for r, p in mapping if r in fragment) for mapping in ring_mappings()}
         assert represented(candidates, target, 1) == expected
     assert len(candidates) == 1
@@ -77,24 +73,27 @@ def test_weak_weight_breaks_apparent_ring_symmetry():
     assert all(np.array_equal(weights, weights[np.ix_(g, g)]) for g in generators)
 
 
-def test_new_branch_is_not_constrained_by_old_automorph_domain_metadata():
+def test_saved_v3_metadata_does_not_restrict_global_action():
     target = graph(['C'] * 4, [(i, (i + 1) % 4, 1) for i in range(4)])
-    first = _SymCand({0: 0, 1: 1}, automorph_blocks=(_SymBlock((0,), (0, 2), False),))
-    second = _SymCand({0: 1, 1: 2})
-    candidates = _dedup_sym_cands([first, second], target, target)
-    assert len(candidates) == 1
+    record = dict(compression_version=3, witness={0: 0, 1: 1}, blocks=[],
+                  automorph_blocks=[dict(r_atoms=[0], p_atoms=[0, 2])])
+    candidate = candidate_from_record(record)
+    expected = {((0, offset), (1, (offset + direction) % 4))
+                for offset in range(4) for direction in (-1, 1)}
+    assert represented([candidate], target, .2) == expected
 
 
 def test_asymmetric_future_neighbors_keep_non_equivalent_matches():
     source = graph(['C', 'C', 'O'], [(0, 1, 1), (1, 2, 1)])
     target = graph(['C', 'C', 'C', 'O'], [(0, 1, 1), (1, 2, 1), (2, 3, 1)])
-    assert_prefixes(source, target, [0, 1, 2])
+    assert_completed_constraints(source, target, [0, 1, 2])
 
 
 def test_decoding_transports_later_fragments_with_the_earlier_group():
     from mappa import AAMProblem, query_path
     from mappa.mappa_core.core.search.branching.construction import find_islands
     from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
+    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
     from test_family_query import endpoint
 
     source = graph(['C'] * 4, [(0, 1, 1), (1, 2, 1), (2, 0, 1)])
@@ -110,11 +109,16 @@ def test_decoding_transports_later_fragments_with_the_earlier_group():
         assert any(g.images[p] != p for g in first.target_generators for p in outside)
         required = {pair for fragment in path.hierarchy.fragments
                     for pair in fragment.preserved_bonds}
+        expected_core = set()
         for images in permutations(range(4)):
             expected = all(target.has_edge(images[a], images[b]) for a, b in required)
+            if expected:
+                expected_core.add(((0, images[0]), (3, images[3])))
             status, _ = query_path(path, problem, dict(enumerate(images)),
                                    source_atoms=tuple(range(4)), timeout_ms=2000)
             assert status == ('recovered' if expected else 'not_recovered')
+        assert {tuple(mapping.items()) for mapping in project_path_assignments(
+            path, problem, (0, 3), assignment_limit=100)} == expected_core
 
 
 def test_locked_ring_then_free_hydrogen():

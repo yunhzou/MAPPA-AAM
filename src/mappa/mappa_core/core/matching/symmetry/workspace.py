@@ -27,6 +27,8 @@ class SymmetryWorkspace:
         return self.canonicalizers[version]
 
     def conditioned_generators(self, candidate, locked, intern=tuple):
+        if candidate.target_generators is not None:
+            return self._condition_saved_group(candidate.target_generators, locked, intern)
         canonicalizer = self.canonicalizer_for(candidate.compression_version)
         locked_roles = defaultdict(list)
         for r, p in sorted(locked):
@@ -38,6 +40,20 @@ class SymmetryWorkspace:
         if key not in self.coloring_cache:
             self.coloring_cache[key] = intern(canonicalizer.atom_generators(candidate, colored_vertices=coloring))
         return self.coloring_cache[key]
+
+    @staticmethod
+    def _condition_saved_group(generators, locked, intern):
+        """Retain the matching policy's exact action under any additional locks."""
+        points = sorted({p for _, p in locked
+                         if any(p < len(action) and action[p] != p for action in generators)})
+        if not points:
+            return intern(generators)
+        from sympy.combinatorics import Permutation, PermutationGroup
+        degree = max(map(len, generators))
+        group = PermutationGroup([Permutation(list(action), size=degree) for action in generators])
+        fixed = group.pointwise_stabilizer(points)
+        return intern(tuple(tuple(action.array_form) for action in fixed.generators
+                            if not action.is_Identity))
 
     def coloring_count(self):
         return len(self.coloring_cache)
@@ -68,6 +84,8 @@ class ConditionedSymmetryWorkspace(SymmetryWorkspace):
         return engine
 
     def conditioned_generators(self, candidate, locked, intern=tuple):
+        if candidate.target_generators is not None:
+            return self._condition_saved_group(candidate.target_generators, locked, intern)
         version = candidate.compression_version
         # Version 2 fixes every outside/pool atom pointwise. Without an
         # automorphism block, each remaining atom has its unique source role.

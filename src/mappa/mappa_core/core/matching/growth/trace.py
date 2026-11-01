@@ -59,8 +59,9 @@ def cands_pattern_sample(cands, k=5):
         }
         if isinstance(cand, _SymCand):
             item['compression_version'] = cand.compression_version
-            item['multiplicity'] = int(cand.multiplicity)
-            item['automorph_domains'] = len(cand.automorph_blocks)
+            if cand.compression_version < 3:
+                item['multiplicity'] = int(cand.multiplicity)
+                item['automorph_domains'] = len(cand.automorph_blocks)
             for block in cand.blocks:
                 item['blocks'].append({
                     'r_atoms': [int(x) for x in block.r_atoms],

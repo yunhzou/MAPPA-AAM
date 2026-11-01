@@ -24,7 +24,7 @@ class FragmentRepair {
     std::unordered_map<std::string,std::vector<Entries::iterator>> cache;
     long calls=0, hits=0, history_hits=0, topology_hits=0, boundary_rebases=0;
     long checks=0, evictions=0, oversized=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;
-    long logical_extensions=0, reused_extensions=0, logical_certificates=0, reused_certificates=0;
+    long logical_extensions=0, reused_extensions=0;
     uint64_t revision=0;
 
     static std::vector<Pair> normalized(std::vector<Pair> pairs) {
@@ -58,10 +58,8 @@ class FragmentRepair {
                 +iso.fragment.capacity()*sizeof(int);
             const auto& c=iso.cand;
             out+=(c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);
-            for (const auto* blocks:{&c.blocks,&c.automorph}) {
-                out+=blocks->capacity()*sizeof(Block);
-                for (const auto& b:*blocks) out+=(b.r.capacity()+b.p.capacity())*sizeof(int);
-            }
+            out+=c.blocks.capacity()*sizeof(Block);
+            for (const auto& b:c.blocks) out+=(b.r.capacity()+b.p.capacity())*sizeof(int);
         }
         return out;
     }
@@ -109,11 +107,11 @@ class FragmentRepair {
 public:
     py::bytes snapshot_context() const {
         fragment_cache_io::Writer out;
-        out(std::string("mappa.fragment-cache/2"),uint64_t(sizeof(long)));
+        out(std::string("mappa.fragment-cache/4"),uint64_t(sizeof(long)));
         for (const Graph* g:{static_cast<const Graph*>(&base),static_cast<const Graph*>(&target)})
             // Element codes are process-local interned IDs; names are portable.
             out(g->n,g->elem,g->adj,g->edge,g->w,g->bond_cut,g->bond_tolerances,g->tolerance_inclusive);
-        out(target.orbit,target.bucket,target.zero_bucket);
+        out(target.orbit);
         return py::bytes(out.data);
     }
     py::bytes dump(const std::string& identity) const {
@@ -212,7 +210,6 @@ public:
                 }
                 saved_extensions=result.profile.extend_calls;
                 reused_extensions+=saved_extensions;
-                reused_certificates+=result.profile.certificate_calls;
                 lru.splice(lru.end(),lru,chosen);
             } else {
                 Entry entry(base.n);
@@ -239,7 +236,6 @@ public:
                 }
             }
             logical_extensions+=result.profile.extend_calls;
-            logical_certificates+=result.profile.certificate_calls;
         }
         return {std::move(result),saved_extensions};
     }
@@ -266,7 +262,6 @@ public:
         out["dependency_checks"]=checks;out["mapping_misses"]=mapping_misses;out["island_misses"]=island_misses;
         out["topology_misses"]=topology_misses;out["boundary_misses"]=boundary_misses;
         out["logical_extensions"]=logical_extensions;out["reused_extensions"]=reused_extensions;
-        out["logical_certificates"]=logical_certificates;out["reused_certificates"]=reused_certificates;
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
         out["revision"]=revision;

@@ -65,6 +65,19 @@ def test_cache_budget_does_not_limit_search():
     assert replay.stats()['entries']==0
 
 
+def test_snapshot_preserves_completion_measurements():
+    ring = graph(6, [(r, (r + 1) % 6) for r in range(6)])
+    orbits = _nauty_orbits(ring, wbo_tol=.5)
+    original = FragmentRepair(ring, ring, orbits)
+    expected = raw(ring, ring, orbits, 0, [-1] * 6, (), replay=original, tol=.5)
+    assert expected['profile']['completion_generated'] > 0
+    restored = FragmentRepair(ring, ring, orbits)
+    restored.loads(original.dumps())
+    actual = raw(ring, ring, orbits, 0, [-1] * 6, (), replay=restored, tol=.5)
+    assert actual == expected
+    assert restored.stats()['full_hits'] == 1
+
+
 def test_invalid_cut_does_not_change_session_topology():
     source=graph(4,[(0,1),(1,2),(2,3)])
     orbits=_nauty_orbits(source,wbo_tol=1.)

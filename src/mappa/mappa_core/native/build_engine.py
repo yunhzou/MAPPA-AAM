@@ -63,7 +63,12 @@ def main():
         cmd.run()
         built = next((build / "lib" / "mappa").glob("_engine*.so"))
         target = ROOT / "src" / "mappa" / built.name
-        shutil.copy2(built, target)
+        # Replace the image atomically. Overwriting a loaded Mach-O inode can
+        # leave macOS using its previous code-signature cache for the new bytes.
+        with tempfile.TemporaryDirectory(prefix=".mappa-engine-", dir=target.parent) as staging:
+            image = Path(staging) / built.name
+            shutil.copy2(built, image)
+            image.replace(target)
         print("built", target)
 
 

@@ -15,8 +15,7 @@ import sys
 import psutil
 
 
-def replay(input_path, cuts, directory, connection, trace=False, instrumented_engine=None,
-           memo_entries=None, share_deferred=False):
+def replay(input_path, cuts, directory, connection, trace=False, instrumented_engine=None):
     try:
         if instrumented_engine:
             import importlib.util
@@ -37,7 +36,8 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
             tracemalloc.start()
         def phase(name, **details):
             record = dict(phase=name, cut=current, rss=process.memory_info().rss,
-                          time=time.perf_counter(), **details)
+                          pid=process.pid, time=time.perf_counter(),
+                          cpu_seconds=time.process_time(), **details)
             if trace:
                 record['python_bytes'], record['python_peak'] = tracemalloc.get_traced_memory()
             connection.send(record)
@@ -48,11 +48,8 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
             by_number = {task.payload['number']: task for task in tasks}
             original_native = _engine.search_fragments
             def native(*args, **kwargs):
-                if memo_entries is not None:
-                    args[1].diagnostic_memo_limit(memo_entries)
                 from mappa.mappa_core.core.search import graph as records
                 originals = {name: getattr(records, name) for name in ('SearchState', 'FragmentTransition', 'SearchStop')}
-                deferred_pool = {}
                 def boundary(name, stage):
                     original = originals[name]
                     first = True
@@ -60,12 +57,7 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
                         nonlocal first
                         if first:
                             first = False
-                            phase(stage, memo=args[1].memo_stats())
-                        if share_deferred and name == 'FragmentTransition' and values[5] is not None:
-                            match = values[5]
-                            rows = match['deferred_edges']
-                            key = tuple(map(tuple, rows))
-                            match['deferred_edges'] = deferred_pool.setdefault(key, rows)
+                            phase(stage, symmetry_work=args[1].symmetry_stats())
                         return original(*values, **options)
                     return construct
                 for name, stage in [('SearchState', 'growth_finished'), ('FragmentTransition', 'states_exported'),
@@ -77,7 +69,8 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
                 finally:
                     for name, value in originals.items():
                         setattr(records, name, value)
-                phase('native_finished', states=len(result[0].states), transitions=len(result[0].transitions))
+                phase('native_finished', states=len(result[0].states), transitions=len(result[0].transitions),
+                      symmetry_work=args[1].symmetry_stats())
                 if hasattr(args[1], 'memory_stats'):
                     phase('target_memory', **args[1].memory_stats())
                 matches = [edge.match for edge in result[0].transitions if edge.match is not None]
@@ -119,6 +112,7 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
             gc.collect()
             phase('symmetry_released')
             workspace.prepared_value = None
+            workspace.cache.clear()
             gc.collect()
             phase('session_released')
             phase('complete')
@@ -134,22 +128,16 @@ def main():
     parser.add_argument('--cuts', type=int, nargs='+', required=True)
     parser.add_argument('--trace', action='store_true')
     parser.add_argument('--instrumented-engine')
-    parser.add_argument('--memo-entries', type=int,
-                        help='Controlled cache-retention experiment; requires the instrumented engine')
-    parser.add_argument('--share-deferred', action='store_true',
-                        help='Controlled storage-sharing experiment; does not alter bond values')
     parser.add_argument('--guard-gib', type=float, default=8.)
+    parser.add_argument('--seconds', type=float, default=900.)
     args = parser.parse_args()
-    if args.memo_entries is not None and not args.instrumented_engine:
-        parser.error('--memo-entries requires --instrumented-engine')
     output = Path(args.output); output.mkdir(parents=True, exist_ok=True)
     context = mp.get_context('spawn')
     parent, connection = context.Pipe(False)
     process = context.Process(target=replay, args=(args.input, args.cuts, str(output), connection,
-                                                  args.trace, args.instrumented_engine, args.memo_entries,
-                                                  args.share_deferred))
+                                                  args.trace, args.instrumented_engine))
     record = dict(cuts=args.cuts, events=[], peaks={}, guard_gib=args.guard_gib,
-                  memo_entries=args.memo_entries, share_deferred=args.share_deferred)
+                  seconds=args.seconds)
     process.start(); connection.close()
     started = time.monotonic()
     current = 'startup'
@@ -170,12 +158,15 @@ def main():
         except psutil.NoSuchProcess:
             break
         record['peaks'][current] = max(record['peaks'].get(current, 0), rss)
-        if rss > args.guard_gib*2**30 or time.monotonic()-started > 900:
-            record['stopped'] = 'diagnostic memory or time guard'
+        elapsed = time.monotonic()-started
+        if rss > args.guard_gib*2**30 or elapsed > args.seconds:
+            record['stopped'] = 'memory_guard' if rss > args.guard_gib*2**30 else 'time_guard'
+            record['guard_sample'] = dict(rss=rss, elapsed_seconds=elapsed, phase=current)
             process.terminate()
             break
         time.sleep(.02)
     process.join()
+    record['elapsed_seconds'] = time.monotonic()-started
     record['exitcode'] = process.exitcode
     (output/'measurements.json').write_text(json.dumps(record, indent=2)+'\n')
     if process.exitcode or record['events'][-1]['phase'] != 'complete':

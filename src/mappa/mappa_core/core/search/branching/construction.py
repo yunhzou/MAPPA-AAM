@@ -167,12 +167,10 @@ def _anchor_nodes_compatible(anchor_map, g_R, g_P, node_policy):
 
 def find_islands(g_R, g_P, seed_order,
                  graph_floor=0.2, iso_tol=1.0,
-                 dwbo_threshold=0.5, symmetry_wbo_tol=0.2,
-                 metal_dwbo_threshold=None,
                  max_branches=1_000_000, events=None,
-                 orbit_dedup=True, core_R=None,
+                 core_R=None,
                  stop_when_core_mapped=False,
-                 p_orbits=None, r_orbits=None,
+                 p_orbits=None,
                  node_policy=None,
                  anchor_map=None,
                  profile=None, cuts=(), fragment_cache=None, random_seed=42,
@@ -183,12 +181,9 @@ def find_islands(g_R, g_P, seed_order,
     Optional `events` only records the FIRST (best-mapped) branch's
     trajectory — multi-branch traces would be confusing on a slider.
 
-    orbit_dedup: when True (default), uses exact automorphism orbits on a
-    tolerance-bucketed WBO-colored graph via pynauty as the compression key
-    for orbit-equivalence. Callers that run many seed orders against the same
-    graph can pass precomputed `p_orbits` / `r_orbits`; missing maps are
-    computed here. Chemistry signatures and active R-pair extension checks
-    remain the verifier.
+    Callers that run many seed orders against the same graph can pass
+    precomputed `p_orbits`; a missing map is computed here.
+    Completion uses the exact global target symmetry in every search.
 
     core_R: optional R atoms that define the scoring-relevant alignment.
     With stop_when_core_mapped=True the search
@@ -202,10 +197,6 @@ def find_islands(g_R, g_P, seed_order,
     bond_tolerance: optional conditional bond rule forwarded unchanged to the
     shared fragment matcher, including during anchored internal rematching.
     """
-    # Orbit equivalence and edge compatibility must describe the same
-    # tolerance model.  Keep symmetry_wbo_tol in the signature for callers
-    # written against older releases, but do not permit it to diverge.
-    symmetry_wbo_tol = float(iso_tol)
     node_policy = as_node_match_policy(node_policy)
     anchor_map = _normalize_anchor_map(anchor_map, g_R, g_P)
     seed_order = list(dict.fromkeys(seed_order))
@@ -219,18 +210,9 @@ def find_islands(g_R, g_P, seed_order,
         branch = _Branch.from_anchor_map({}, graph)
         graph.stop(branch, 'incompatible_anchors')
         return graph.finish()
-    if orbit_dedup:
-        if p_orbits is None:
-            p_orbits = _nauty_orbits(
-                g_P, wbo_tol=symmetry_wbo_tol,
-                node_policy=node_policy)
-        if r_orbits is None:
-            r_orbits = _nauty_orbits(
-                g_R, wbo_tol=symmetry_wbo_tol,
-                node_policy=node_policy)
-    else:
-        p_orbits = None
-        r_orbits = None
+    if p_orbits is None:
+        p_orbits = _nauty_orbits(
+            g_P, wbo_tol=iso_tol, node_policy=node_policy)
     # Completed hierarchy/coset equivalence is richer than the live
     # mapping/island state.  Do not quotient distinct concrete live states by
     # endpoint automorphism here: two such states can carry different exact
@@ -346,12 +328,12 @@ def find_islands(g_R, g_P, seed_order,
                 result = match_fragment(
                         g_R, g_P, seed=seed,
                         context=FragmentMatchContext(
-                            b.mapping, b.islands_R, tuple(b.deferred_edges), r_orbits, p_orbits,
+                            b.mapping, b.islands_R, tuple(b.deferred_edges), p_orbits,
                             fragment_cache),
                         config=FragmentMatchConfig(
                             graph_floor=graph_floor, iso_tolerance=iso_tol,
                             branch_limit=max_branches, node_policy=node_policy,
-                            orbit_dedup=orbit_dedup, random_seed=random_seed,
+                            random_seed=random_seed,
                             allow_mapped_seed=seed_is_mapped_anchor,
                             bond_tolerance=bond_tolerance),
                         events=ev_arg,
@@ -371,10 +353,8 @@ def find_islands(g_R, g_P, seed_order,
                 if not isos:
                     _admit_subtree([b], source_branch=bi)
                     continue
-                # Fragment candidates were already quotiented by an exact
-                # pynauty transporter inside ``grow_island``.  Distinct
-                # surviving candidates are distinct symbolic branch choices;
-                # do not collapse them by a mechanism/event summary here.
+                # Completion supplies distinct compressed choices. Event
+                # summaries cannot replace their mapping relationships.
                 subtree = []
                 subtree_progressed = False
                 for ii, iso in enumerate(isos):

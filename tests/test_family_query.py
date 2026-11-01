@@ -24,12 +24,18 @@ def synthetic_path(blocks,automorph_blocks=(),preserved_bonds=()):
 def test_open_pools_keep_same_pair_and_different_pair_assignments():
     problem=AAMProblem(endpoint('OO',[]),endpoint('OOOO',[(0,1),(2,3)]))
     result=search_aam(problem,AAMSearchConfig(seed_count=1))
-    path=next(result.graph.paths())
+    paths=list(result.graph.paths())
+    # Target molecules are separate placements; their paths jointly cover
+    # both atoms in one pair and atoms in different pairs.
     # Exhaustive oracle only for this tiny unit test, never production search.
     for image in permutations(range(4),2):
-        status,witness=query_path(path,problem,dict(enumerate(image)),source_atoms=(0,1),timeout_ms=2000)
-        assert status=='recovered'
-        assert dict(witness['mapping'])==dict(enumerate(image))
+        reference=dict(enumerate(image))
+        answers=[query_path(path,problem,reference,source_atoms=(0,1),timeout_ms=2000)
+                 for path in paths]
+        assert all(status in ('recovered','not_recovered') for status,_ in answers)
+        witnesses=[witness for status,witness in answers if status=='recovered']
+        assert len(witnesses)==1
+        assert dict(witnesses[0]['mapping'])==reference
 
 
 def test_correlated_fragment_is_not_independent_atom_membership():

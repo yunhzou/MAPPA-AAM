@@ -65,7 +65,6 @@ class FragmentMatchContext:
     locked_mapping: dict = field(default_factory=dict)
     islands: dict | None = None
     deferred_edges: tuple = ()
-    source_orbits: object = None
     target_orbits: object = None
     fragment_cache: object = None
 
@@ -86,10 +85,9 @@ class FragmentMatchConfig:
     graph_floor: float = 0.2
     iso_tolerance: float = 0.5
     minimum_size: int = 1
-    branch_limit: int = 100  # Distinct placements after growth and deduplication.
+    branch_limit: int = 100  # Distinct compressed placements after completion.
     node_policy: object = None
     allow_mapped_seed: bool = False
-    orbit_dedup: bool = True
     random_seed: int = 42
     bond_tolerance: BondTolerance | None = None
 

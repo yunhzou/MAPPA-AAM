@@ -1,5 +1,6 @@
 // Exact first-solution matching of accepted growth constraints.
 class FragmentQuery {
+public:
     const Source& source;
     const Target& target;
     struct Edge { int a,b; double weight,tolerance; };
@@ -12,6 +13,31 @@ class FragmentQuery {
         return p!=q && target.has_edge(p,q) &&
             growth_edge_supported(edge.weight,target.wbo(p,q),edge.tolerance,
                                   target.bond_cut,source.tolerance_inclusive);
+    }
+
+    bool distinct_destinations(const Domains& allowed) const {
+        std::vector<int> owner(target.n, -1), seen(target.n, -1), order;
+        for (int r : atoms) {
+            if (allowed[r].size() == 1) owner[allowed[r][0]] = r;
+            else order.push_back(r);
+        }
+        std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
+            return allowed[a].size() < allowed[b].size();
+        });
+        int visit = 0;
+        std::function<bool(int)> augment = [&](int r) {
+            for (int p : allowed[r]) {
+                if (seen[p] == visit) continue;
+                seen[p] = visit;
+                if (owner[p] < 0 || augment(owner[p])) { owner[p] = r; return true; }
+            }
+            return false;
+        };
+        for (int r : order) {
+            ++visit;
+            if (!augment(r)) return false;
+        }
+        return true;
     }
 
     bool reduce(Domains& allowed) const {
@@ -46,7 +72,8 @@ class FragmentQuery {
         }
         std::vector<uint8_t> reachable(target.n,0);
         for (int r:atoms) for (int p:allowed[r]) reachable[p]=1;
-        return (size_t)std::count(reachable.begin(),reachable.end(),1)>=atoms.size();
+        return (size_t)std::count(reachable.begin(),reachable.end(),1)>=atoms.size()
+            && distinct_destinations(allowed);
     }
 
     int variable(const Domains& allowed) const {
@@ -102,22 +129,17 @@ public:
             edges.push_back({a,b,R.wbo(a,b),R.tolerance(a,b,tolerance)});
             incident[a].push_back(index);incident[b].push_back(index);
         }
+        for (int r : atoms) {
+            auto& values = domains[r];
+            values.erase(std::remove_if(values.begin(), values.end(), [&](int p) {
+                return target.adj[p].size() < incident[r].size();
+            }), values.end());
+        }
     }
 
-    std::vector<int> find(const Cand* candidate=nullptr,const std::vector<int>* preferred=nullptr) {
+    std::vector<int> find(const std::vector<int>* preferred=nullptr) {
         ++calls;
         auto allowed=domains;
-        if (candidate) {
-            const auto index=block_indexes(*candidate,source.n,target.n);
-            for (int r:candidate->mapped) {
-                int block=index.r_to_block[r];
-                auto& values=allowed[r];
-                values.erase(std::remove_if(values.begin(),values.end(),[&](int p) {
-                    return block<0 ? p!=candidate->img[r] : !contains(candidate->blocks[block].p,p);
-                }),values.end());
-            }
-            if (!preferred) preferred=&candidate->img;
-        }
         if (preferred) {
             auto witness=preferred_extension(*preferred,allowed);
             if (!witness.empty()) {++nodes;return witness;}
@@ -174,7 +196,7 @@ public:
         std::vector<int> fixed;
         for (int r=0;r<source.n;++r) if (image[r]>=0 && locked[r]>=0) fixed.push_back(r);
         Cand candidate;
-        make_cand(image,{},fixed,1,{},target.n,candidate);
+        make_cand(image,{},fixed,target.n,candidate);
         return candidate;
     }
 

@@ -270,8 +270,7 @@ def test_partial_fragment_api_and_sparse_original_atom_indices():
     source = network(['C', 'O', 'H'], [(0, 1), (0, 2)]).subgraph([0, 2]).copy()
     target = network(['C', 'O', 'H', 'C', 'H'], [(0, 2), (3, 4)]).subgraph([0, 2, 3, 4]).copy()
     config = FragmentMatchConfig()
-    context = FragmentMatchContext(source_orbits=_nauty_orbits(source, wbo_tol=.5),
-                                   target_orbits=_nauty_orbits(target, wbo_tol=.5))
+    context = FragmentMatchContext(target_orbits=_nauty_orbits(target, wbo_tol=.5))
     result = match_fragment(source, target, seed=0, context=context, config=config)
     assert result.matches and not result.capped
     assert all(set(m) == {0, 2} for m in result.matches)

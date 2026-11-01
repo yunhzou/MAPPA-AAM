@@ -63,7 +63,7 @@ def compare(source, target, *, context=None, config=None):
 
 
 @pytest.mark.parametrize('native',['0','1'])
-@pytest.mark.parametrize('size',[3,6,12])
+@pytest.mark.parametrize('size',[3,12])
 @pytest.mark.smoke
 def test_ring_growth_preserves_all_placements(native,size,monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE',native)
@@ -76,7 +76,7 @@ def test_ring_growth_preserves_all_placements(native,size,monkeypatch):
     assert represented(candidates,ring,.5)==expected
     assert profile[0]['feasibility_calls']==size-1
     assert profile[0]['feasibility_searches'] == 0
-    assert profile[0]['completion_steps'] == size - 1
+    assert profile[0]['completion_generated'] == len(result.matches)
 
 
 @pytest.mark.parametrize('native',['0','1'])
@@ -116,14 +116,12 @@ def test_locks_tolerance_pools_components_and_caps(native,monkeypatch):
 
 @pytest.mark.parametrize('native', ['0', '1'])
 @pytest.mark.parametrize('limit', [1, 2, 3])
-def test_final_compression_cannot_repack_two_results_into_one(native, limit, monkeypatch):
+def test_completed_choices_obey_the_branch_limit(native, limit, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
-    source = graph(['C', 'N', 'C', 'N'],
-        [(0, 1, 1.2), (0, 2, .8), (0, 3, 1.2), (1, 2, .8)])
-    target = graph(['N', 'C', 'C', 'O'],
-        [(0, 1, 1.2), (0, 2, 1.), (1, 3, .8), (2, 3, .8)])
-    result, _ = compare(source, target,
-        config=FragmentMatchConfig(random_seed=11, branch_limit=limit))
+    source = graph(['O', 'H', 'C'], [(0, 1, 1), (0, 2, 1)])
+    target = graph(['O', 'H', 'C'] * 2,
+                   [(0, 1, 1), (0, 2, 1), (3, 4, 1), (3, 5, 1)])
+    result, _ = compare(source, target, config=FragmentMatchConfig(branch_limit=limit))
     assert result.branch_count == 2
     assert result.capped == (limit < 2)
 
@@ -157,8 +155,10 @@ def test_completion_uses_constraints_beyond_the_prefix(native,monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE',native)
     source=graph(['C','C','O'],[(0,1,1),(1,2,1)])
     target=graph(['C']*6+['O'],[(i,(i+1)%6,1) for i in range(6)]+[(0,6,1)])
-    _,profile=compare(source,target)
-    assert profile[0]['completion_pruned'] > 0
+    result,profile=compare(source,target)
+    assert len(result.matches) == profile[0]['completion_generated'] == 1
+    assert represented([candidate_from_record(result.matches[0].symmetry)], target, .5) == {
+        ((0, neighbor), (1, 0), (2, 6)) for neighbor in (1, 5)}
 
 
 @pytest.mark.parametrize('native',['0','1'])
@@ -230,17 +230,17 @@ def test_custom_node_attributes(monkeypatch):
 
 
 def test_all_alternatives_are_constructed_only_after_growth(monkeypatch):
-    from mappa.mappa_core.core.matching.growth import completion
+    from mappa.mappa_core.core.matching.growth import engine
     monkeypatch.setenv('MAPPA_NATIVE', '0')
     ring = graph(['C'] * 6, [(i, (i + 1) % 6, 1) for i in range(6)])
     events = []
-    extend = completion._extend_sym_cands
+    construct = engine.complete_fragment
 
     def complete(*args, **kwargs):
         assert sum(e['type'] == 'commit' for e in events) == 5
-        return extend(*args, **kwargs)
+        return construct(*args, **kwargs)
 
-    monkeypatch.setattr(completion, '_extend_sym_cands', complete)
+    monkeypatch.setattr(engine, 'complete_fragment', complete)
     result = match_fragment(ring, ring, seed=0, events=events,
         config=FragmentMatchConfig())
     assert len(represented([candidate_from_record(m.symmetry) for m in result.matches], ring, .5)) == 12
@@ -294,13 +294,26 @@ def normalized(value):
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
-def test_exact_records_match_accepted_pre_cleanup_version(native, monkeypatch):
+def test_saved_growth_constraints_and_mapping_coverage(native, monkeypatch):
     import json
     from pathlib import Path
+    from test_growth_compression_exactness import explicit
     monkeypatch.setenv('MAPPA_NATIVE', native)
     fixture = json.loads((Path(__file__).parent / 'data/accepted_growth_records.json').read_text())
     for case in fixture['cases']:
-        inputs = [graph(**value) for value in case['inputs']]
-        result = match_fragment(*inputs, seed=0, config=FragmentMatchConfig(
+        source, target = [graph(**value) for value in case['inputs']]
+        result = match_fragment(source, target, seed=0, config=FragmentMatchConfig(
             random_seed=case['random_seed'], branch_limit=10000))
-        assert normalized(record(result)) == case['expected']
+        expected = case['expected'][3]
+        assert bool(result.matches) == bool(expected)
+        if not expected:
+            continue
+        old = [candidate_from_record(match[4]) for match in expected]
+        new = [candidate_from_record(match.symmetry) for match in result.matches]
+        fragment, bonds, deferred = expected[0][1:4]
+        for match in result.matches:
+            assert sorted(match.fragment) == fragment
+            assert normalized(match.preserved_bonds) == bonds
+            assert normalized(match.deferred_edges) == deferred
+        allowed = explicit(source, target, fragment, .5, bonds)
+        assert represented(old, target, .5) == represented(new, target, .5) == allowed

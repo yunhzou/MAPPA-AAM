@@ -110,8 +110,6 @@ def test_reused_target_rejects_source_elements_introduced_later():
         0.2,
         [(0, 1)],
         [0, 1],
-        [(0, 1, 5)],
-        0,
     )
     for index in range(8):
         source = _engine.SourceGraph(
@@ -186,7 +184,7 @@ def test_invalid_backend_is_not_an_implicit_selection(monkeypatch):
         native.available()
 
 
-@pytest.mark.parametrize('request_kind', ['trace', 'custom_policy', 'no_orbits'])
+@pytest.mark.parametrize('request_kind', ['trace', 'custom_policy'])
 def test_unsupported_native_request_never_dispatches_to_python(request_kind, monkeypatch):
     from mappa import FragmentMatchConfig, match_fragment
     from mappa.mappa_core.core.matching.graphs import build_graph
@@ -194,8 +192,7 @@ def test_unsupported_native_request_never_dispatches_to_python(request_kind, mon
     import numpy as np
     graph = build_graph(('C', 'C'), np.array([[0., 1.], [1., 0.]]))
     config = FragmentMatchConfig(
-        node_policy=('element',) if request_kind == 'custom_policy' else None,
-        orbit_dedup=request_kind != 'no_orbits')
+        node_policy=('element',) if request_kind == 'custom_policy' else None)
     events = [] if request_kind == 'trace' else None
     original = engine.grow_island_python
     monkeypatch.setattr(engine, 'grow_island_python',
@@ -213,3 +210,25 @@ def test_retired_symmetry_repair_kernel_is_not_exported():
     assert not hasattr(_engine, 'repair_group')
     assert not hasattr(_engine, 'repair_scores')
     assert not hasattr(_engine, 'round12')
+
+
+def test_native_execution_error_is_propagated_without_retry(monkeypatch):
+    from growth_cases import graph
+    from mappa import match_fragment
+    from mappa.mappa_core.core.matching.growth import engine, native
+
+    failure = RuntimeError('native matching failure')
+
+    def fail_native(*args, **kwargs):
+        raise failure
+
+    def forbid_python(*args, **kwargs):
+        pytest.fail('native execution failure was retried through Python')
+
+    monkeypatch.setenv('MAPPA_NATIVE', '1')
+    monkeypatch.setattr(native._engine, 'grow_island', fail_native)
+    monkeypatch.setattr(engine, 'grow_island_python', forbid_python)
+    ring = graph(6, [(i, (i + 1) % 6) for i in range(6)])
+    with pytest.raises(RuntimeError) as caught:
+        match_fragment(ring, ring, seed=0)
+    assert caught.value is failure

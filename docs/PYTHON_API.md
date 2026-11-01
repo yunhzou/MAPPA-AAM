@@ -95,10 +95,12 @@ Fragment growth finds one valid placement per extension, allowing assignments
 inside the growing fragment to change while earlier fragment locks stay fixed.
 It first tries extending the witness, then searches the accepted fragment if
 reassignment is needed. At saturation it constructs the exact compressed results.
-Ordered witnesses, pools, symmetry data, result counts and hierarchy caps are
-preserved. Python and native execution use this same algorithm. There is no growth
-mode to select. Completed-fragment results have bounded reuse; intermediate
-growth candidates are not cached.
+Each distinct placement is constructed once from the accepted constraints and
+exact global target symmetry. Pools retain all allowed assignments; the branch
+cap applies to distinct placements at every hierarchy level. Python and native
+execution use this same algorithm. There is no growth mode to select.
+Completed-fragment results have bounded reuse; intermediate growth candidates
+are not cached.
 
 ```python
 from mappa import AAMSearchConfig, search_aam
@@ -110,12 +112,12 @@ aam = search_aam(problem, config)  # reused_native execution
 Pass the same config to `pool.search(cases, config)` in a work pool. Each prepared
 session uses a 64 MiB fragment-result retention budget, evicts old entries, and
 returns oversized results without caching them. This is a cache budget, not a
-bound on total search memory. The `reference` execution backend also supports
-the growth policy, without fragment-result caching. Native fragment requests
+bound on total search memory. The `reference` execution backend runs the same
+growth algorithm without fragment-result caching. Native fragment requests
 reject unsupported trace events, custom node policies and absent exact target
 orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are needed.
 
-`match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
+`match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 
 ## Adjustable parameters
 
@@ -125,8 +127,8 @@ orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are ne
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance` |
-| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `fragment_cache` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
+| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `target_orbits`, `fragment_cache` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 
 The library and this notebook use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
@@ -212,6 +214,11 @@ mapping and subgraph APIs retain their signatures. Implementations now live unde
 `branching/` and partial/subgraph objectives under `queries/`.
 Old internal search module paths are removed. Local workers use
 `mappa.mappa_core.core.scheduler.search`; the shared task queue retains its current API.
+
+`search_core_assignments` projects the requested atoms through the saved ordered
+fragment pools and exact symmetry actions. It uses the optional symbolic-query
+dependency from `.[postprocessing]`, enumerates only distinct requested tuples,
+and enforces `assignment_limit` without expanding complete atom mappings.
 
 Trusted checkpoint and bundle readers explicitly relocate saved search class
 names. Rebuild the native engine after updating: the unused experimental

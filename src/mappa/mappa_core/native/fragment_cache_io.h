@@ -63,7 +63,7 @@ template<class IO, class T> void block(IO& io, T& v) { io(v.r,v.p,v.extendable);
 template<class IO> void fields(IO& io, Block& v) { block(io,v); }
 template<class IO> void fields(IO& io, const Block& v) { block(io,v); }
 template<class IO, class T> void candidate(IO& io, T& v) {
-    io(v.img,v.mapped,v.blocks,v.exact_fixed,v.mult,v.automorph);
+    io(v.img,v.mapped,v.blocks,v.exact_fixed);
 }
 template<class IO> void fields(IO& io, Cand& v) { candidate(io,v); }
 template<class IO> void fields(IO& io, const Cand& v) { candidate(io,v); }
@@ -72,11 +72,12 @@ template<class IO> void fields(IO& io, IsoOut& v) { iso(io,v); }
 template<class IO> void fields(IO& io, const IsoOut& v) { iso(io,v); }
 template<class IO, class T> void profile(IO& io, T& v) {
     io(v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
-       v.completion_steps,v.completion_queries,v.completion_pruned,v.completion_seconds,
-       v.seed_targets,v.seed_groups,v.init_cands,v.initial_heap,v.heap_pops,v.stale_pops,
+       v.completion_queries,v.completion_pruned,v.completion_seconds,
+       v.completion_generated,v.completion_peak_candidates,
+       v.seed_targets,v.init_cands,v.initial_heap,v.heap_pops,v.stale_pops,
        v.fragment_skip_pops,v.extend_calls,v.max_cands_before,v.max_cands_after,
        v.max_fragment_size,v.max_heap_len,v.commits,v.deferred,v.merge_calls,
-       v.free_extend_calls,v.certificate_calls,v.final_cands,v.final_fragment_size,v.branches,v.result);
+       v.free_extend_calls,v.final_cands,v.final_fragment_size,v.branches,v.result);
 }
 template<class IO> void fields(IO& io, GrowProfile& v) { profile(io,v); }
 template<class IO> void fields(IO& io, const GrowProfile& v) { profile(io,v); }

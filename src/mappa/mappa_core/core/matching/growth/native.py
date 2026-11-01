@@ -90,10 +90,6 @@ def target_graph(g_P, p_orbits):
     if rows is None or set(p_orbits) != set(nodes):
         return None
     elements = [str(g_P.nodes[v].get("element")) for v in nodes]
-    pair_buckets = [
-        (index[int(a)], index[int(b)], int(bucket))
-        for (a, b), bucket in p_orbits.wbo_buckets.items()
-    ]
     # the bucket table must describe exactly this graph's edges
     zero = p_orbits.zero_bucket
     for (a, b), bucket in p_orbits.wbo_buckets.items():
@@ -102,7 +98,7 @@ def target_graph(g_P, p_orbits):
     native = _engine.TargetGraph(
         elements, rows, float(g_P.graph.get("bond_cut", 0.2)),
         _graph_edges(g_P, index),
-        [int(p_orbits[v]) for v in nodes], pair_buckets, int(zero))
+        [int(p_orbits[v]) for v in nodes])
     view = _NativeGraphView(native, nodes, index)
     cache[key] = (g_P, view)
     return view
@@ -133,10 +129,6 @@ def _translate_symmetry(symmetry, source_nodes, target_nodes):
             source_nodes[int(atom)]
             for atom in symmetry.get("exact_fixed", ())
         ],
-        "automorph_blocks": [
-            _translate_block(block, source_nodes, target_nodes)
-            for block in symmetry.get("automorph_blocks", ())
-        ],
     }
 
 
@@ -144,7 +136,7 @@ def validate_inputs(p_orbits, node_policy, events):
     """Reject unsupported native requests; never select another implementation."""
     if events is not None:
         raise ValueError('Native growth does not support trace events; explicitly select MAPPA_NATIVE=0')
-    if not isinstance(node_policy, ElementNodeMatchPolicy):
+    if type(node_policy) is not ElementNodeMatchPolicy:
         raise ValueError('Native growth requires the element node policy; explicitly select MAPPA_NATIVE=0 for custom policies')
     if not isinstance(p_orbits, _OrbitMap) or p_orbits.zero_bucket is None or p_orbits.wbo_tol is None:
         raise ValueError('Native growth requires exact WBO target orbits; explicitly select MAPPA_NATIVE=0 without them')

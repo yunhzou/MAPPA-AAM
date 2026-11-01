@@ -81,7 +81,6 @@ _CHECKPOINT_MODULES = {
     ('mappa.mappa_core.core.matching.orbits', '_OrbitMap'): 'mappa.mappa_core.core.matching.symmetry.orbits',
     ('mappa.mappa_core.core.matching.symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
     ('mappa.mappa_core.core.matching.symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
-    ('mappa.mappa_core.core.matching.extend', '_ExtensionContext'): 'mappa.mappa_core.core.matching.growth.extend',
     ('mappa.mappa_core.core.matching.frontier', 'GrowthRandom'): 'mappa.mappa_core.core.matching.growth.frontier',
     ('mappa.mappa_core.core.matching.native', '_NativeGraphView'): 'mappa.mappa_core.core.matching.growth.native',
 
@@ -108,7 +107,6 @@ _CHECKPOINT_MODULES = {
     ('mappa.matcher.bond_policy', 'ResolvedBondTolerance'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.canonical', '_CandidateAutomorphismCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
     ('mappa.matcher.canonical', '_PartialMappingCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
-    ('mappa.matcher.extend', '_ExtensionContext'): 'mappa.mappa_core.core.matching.growth.extend',
     ('mappa.matcher.orbits', '_OrbitMap'): 'mappa.mappa_core.core.matching.symmetry.orbits',
     ('mappa.matcher.policy', 'AttributeNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.policy', 'CallableNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',

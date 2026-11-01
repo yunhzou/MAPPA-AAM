@@ -9,7 +9,7 @@ from mappa.mappa_core.core.search.graph import SearchContext
 
 
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
-                        max_branches=100, p_orbits=None, r_orbits=None, cuts=(),
+                        max_branches=100, p_orbits=None, cuts=(),
                         anchor_map=None, core_R=None, stop_when_core_mapped=False,
                         fragment_cache=None, profile=None, random_seed=42):
     order=list(dict.fromkeys(seed_order))

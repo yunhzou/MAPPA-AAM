@@ -27,9 +27,9 @@ class _PartialMappingCanonicalizer:
         source_atom_tags = dict(source_atom_tags or {})
         target_atom_tags = dict(target_atom_tags or {})
         policy_key = None
-        if isinstance(self.node_policy, ElementNodeMatchPolicy):
+        if type(self.node_policy) is ElementNodeMatchPolicy:
             policy_key = ('element',)
-        elif isinstance(self.node_policy, AttributeNodeMatchPolicy):
+        elif type(self.node_policy) is AttributeNodeMatchPolicy:
             policy_key = ('attributes', self.node_policy.fields)
         cache = base_cache
         if (cache is None and policy_key is not None
@@ -278,15 +278,12 @@ class _PartialMappingCanonicalizer:
 
 
 class _CandidateAutomorphismCanonicalizer:
-    """Canonicalize candidate roles under exact product automorphisms.
+    """Compute exact product actions conditioned on completed placement roles.
 
     The full WBO-colored product graph supplies the group.  Locked mappings
     individualize their product images.  Candidate mappings and symmetry pools
-    are additional vertex roles.  Equal pynauty certificates therefore mean
-    that one automorphism transports the candidate state to the other.
-    Live candidates represent orbits under the exact target group fixing locked
-    images and component identity. Extension commutes with this whole action,
-    including its action on atoms outside the current fragment.
+    supply additional vertex roles. The action includes atoms outside the
+    completed fragment so later placements retain the correct correlations.
     """
 
     def __init__(self, g_P, p_orbits=None, locked_mapping=None,
@@ -304,9 +301,9 @@ class _CandidateAutomorphismCanonicalizer:
         # graph-specific orbit object.  Only built-in immutable key policies
         # are cached; arbitrary user policies may carry mutable state.
         policy_key = None
-        if isinstance(self.node_policy, ElementNodeMatchPolicy):
+        if type(self.node_policy) is ElementNodeMatchPolicy:
             policy_key = ('element',)
-        elif isinstance(self.node_policy, AttributeNodeMatchPolicy):
+        elif type(self.node_policy) is AttributeNodeMatchPolicy:
             policy_key = ('attributes', self.node_policy.fields)
         cache = base_cache
         cache_key = None
@@ -477,28 +474,6 @@ class _CandidateAutomorphismCanonicalizer:
         self.nauty_graph.set_vertex_coloring([
             set(vertices) for _, vertices in colored_vertices])
         return self.nauty_graph
-
-    def certificate(self, cand):
-        colored_vertices, color_profile = self.coloring_profile(cand)
-        return self.certificate_from_coloring(
-            colored_vertices, color_profile)
-
-    def coloring_profile(self, cand):
-        """Return a continuation-preserving coloring and its cheap profile."""
-        colored_vertices = self._colored_vertices(
-            cand, candidate_roles=self._growth_roles(cand))
-        color_profile = tuple(
-            (color, len(vertices)) for color, vertices in colored_vertices)
-        return colored_vertices, color_profile
-
-    def certificate_from_coloring(self, colored_vertices, color_profile):
-        """Canonicalize one already prepared candidate coloring."""
-        import pynauty
-        return (
-            pynauty.certificate(self.graph(
-                None, colored_vertices=colored_vertices)),
-            color_profile,
-        )
 
     def atom_generators(self, cand, *, colored_vertices=None):
         """Exact generators for a bounded completed candidate state."""

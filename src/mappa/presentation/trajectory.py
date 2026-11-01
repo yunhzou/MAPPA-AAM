@@ -19,14 +19,14 @@ from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 growth = importlib.import_module('mappa.mappa_core.core.matching.growth.engine')
 
 
-def replay(source, target, state, edge, po, ro, context):
+def replay(source, target, state, edge, po, context):
     if context.growth_policy != 'growth_edge_splitmix64_v2':
         raise ValueError('Growth policy differs from archive; use its producing engine')
     events = []
     isos = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
         graph_floor=context.graph_floor, iso_tol=context.iso_tolerance,
         max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
-        islands_R=dict(state.islands), p_orbits=po, r_orbits=ro,
+        islands_R=dict(state.islands), p_orbits=po,
         prior_deferred_edges=state.deferred_edges)
     expected = dict(edge.match['symmetry']['witness'])
     matching = [i for i in isos if dict(i)==expected and sorted(i.fragment)==sorted(edge.match['fragment'])]
@@ -159,13 +159,13 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         source,target=[build_graph(raw[k]['elements'],np.array(raw[k]['wbo']),bond_cut=c.graph_floor)
                        for k in ('reactant','product')]
         source.remove_edges_from(c.cuts)
-        po=_nauty_orbits(target,wbo_tol=c.iso_tolerance);ro=_nauty_orbits(source,wbo_tol=c.iso_tolerance)
+        po=_nauty_orbits(target,wbo_tol=c.iso_tolerance)
         terminals=selection.get('terminals',[t for t in g.terminals if g.states[t].context==context_id])
         if not terminals:raise ValueError(f'Context {context_id} has no selected terminal paths')
         if any(g.states[t].context!=context_id or t not in g.terminals for t in terminals):
             raise ValueError('Selected terminal does not belong to the selected context')
         ids={eid for t in terminals for eid in next(g.paths(t)).transitions}
-        traces={eid:replay(source,target,g.states[g.transitions[eid].source],g.transitions[eid],po,ro,c)
+        traces={eid:replay(source,target,g.states[g.transitions[eid].source],g.transitions[eid],po,c)
                 for eid in sorted(ids) if g.transitions[eid].match is not None}
         paths=[]
         for t in terminals:

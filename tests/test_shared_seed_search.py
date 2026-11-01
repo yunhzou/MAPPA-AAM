@@ -76,7 +76,7 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
         for order in child.orders:
             graph = find_islands_native(child.source, child.target, order,
                 graph_floor=config.graph_floor, iso_tol=tol, max_branches=cap,
-                p_orbits=child.condition.orbits, r_orbits=child.source_orbits,
+                p_orbits=child.condition.orbits,
                 cuts=child.condition.cuts)
             for target, values in zip(reference, contents(graph)):
                 target.update(values)

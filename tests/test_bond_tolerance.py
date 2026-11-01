@@ -7,11 +7,9 @@ import pytest
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.matching.representation.state import _SymCand
-from mappa.mappa_core.core.matching.growth.extend import _extend_sym_cands
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.matching.representation.state import candidate_from_record
-from test_growth_compression_exactness import graph, represented
+from test_growth_compression_exactness import graph, represented, complete
 
 
 def event_threshold(source, a, b):
@@ -97,17 +95,18 @@ def test_source_bond_attributes_keep_distinct_assignment_constraints(backend):
     assert len(expected) == 2 and actual == expected
 
 
-def test_each_extension_matches_explicit_conditional_relation():
+def test_completed_constraints_match_explicit_conditional_relation():
     source = graph(['O', 'C', 'C', 'C'], [(0, i, 1.) for i in range(1, 4)])
     target = graph(['O', 'C', 'C', 'C'], [(0, 1, .875), (0, 2, 1.125), (0, 3, 1.375)])
     limits = {1: .2, 2: .4, 3: .2}
     policy = BondTolerance(lambda g, a, b: limits[max(a, b)], inclusive=False).resolve(source)
-    ro, po = _nauty_orbits(source), _nauty_orbits(target)
-    candidates, fragment = [_SymCand({0: 0}, exact_fixed=(0,))], {0}
+    fragment = {0}
+    bonds = []
     for atom in (2, 1, 3):
-        candidates = _extend_sym_cands(candidates, fragment, atom, source, target,
-            {0: 0}, .5, {0: 0}, r_orbits=ro, p_orbits=po, bond_tolerance=policy, anchor_u=min(set(source.neighbors(atom)) & set(fragment)))
         fragment.add(atom)
+        bonds.append((0, atom))
+        candidates = complete(source, target, fragment, bonds, .5,
+                              locked={0: 0}, bond_tolerance=policy)
         atoms = sorted(fragment - {0})
         expected = {((0, 0), *zip(atoms, images)) for images in permutations(range(1, 4), len(atoms))
                     if all(abs(1. - target.graph['wbo_matrix'][0, p]) < limits[r]

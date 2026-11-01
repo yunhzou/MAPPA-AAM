@@ -73,7 +73,6 @@ unchanged. Identical growth output is never expanded into bijections.
         self.target_elements = {atom:data['element'] for atom,data in self.target.nodes(data=True)}
         self.target_counts = Counter(self.target_elements.values())
         self.available_elements = {}
-        self.source_orbits = _nauty_orbits(self.source, wbo_tol=config.iso_tolerance)
         self.orders = _generate_seed_orders(self.source, config.seed_count,
             rng_seed=cut_seed(condition.cuts, config.random_seed), seed_selection=config.seed_selection)
         # Multiple policies use this context; edge.step records policy/pass/position.
@@ -102,7 +101,7 @@ unchanged. Identical growth output is never expanded into bijections.
         self.growth_calls += 1
         result = match_fragment(self.source, self.target, seed=seed,
             context=FragmentMatchContext(branch.mapping, branch.islands_R,
-                tuple(branch.deferred_edges), self.source_orbits, self.condition.orbits,
+                tuple(branch.deferred_edges), self.condition.orbits,
                 fragment_cache=self.condition.fragment_cache),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,

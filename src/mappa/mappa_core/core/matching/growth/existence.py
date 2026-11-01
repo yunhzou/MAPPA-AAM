@@ -73,6 +73,25 @@ class FragmentQuery:
                                                limit, floor, inclusive=inclusive))
                     for p in target}
             self.supports[a, b] = self.supports[b, a] = relations[key]
+        self.domains = {r: tuple(p for p in values if target.degree[p] >= len(self.neighbors[r]))
+                        for r, values in self.domains.items()}
+
+    def _distinct_destinations(self, domains):
+        """A bipartite matching rejects competing pools without enumerating maps."""
+        owner = {values[0]: r for r, values in domains.items() if len(values) == 1}
+
+        def augment(r, seen):
+            for p in domains[r]:
+                if p in seen:
+                    continue
+                seen.add(p)
+                if p not in owner or augment(owner[p], seen):
+                    owner[p] = r
+                    return True
+            return False
+
+        return all(augment(r, set()) for r in sorted(self.atoms, key=lambda r: len(domains[r]))
+                   if len(domains[r]) > 1)
 
     def _preferred_extension(self, preferred, domains):
         mapping = {r: preferred[r] for r in self.atoms if r in preferred}
@@ -117,25 +136,17 @@ class FragmentQuery:
                 domains[a] = values
                 if not values:
                     return False
-        return len(set().union(*domains.values())) >= len(self.atoms)
+        return (len(set().union(*domains.values())) >= len(self.atoms)
+                and self._distinct_destinations(domains))
 
     def _variable(self, domains):
         return min((r for r in self.atoms if len(domains[r]) > 1),
                    key=lambda r: (len(domains[r]), -len(self.neighbors[r]), r), default=None)
 
-    def find(self, *, candidate=None, preferred=None):
+    def find(self, *, preferred=None):
         """Return one witness; only an exhaustive failure means no match."""
         self.calls += 1
         domains = dict(self.domains)
-        if candidate is not None:
-            restrictions = {r: (p,) for r, p in candidate.mapping.items()}
-            for block in candidate.blocks:
-                for r in block.r_atoms:
-                    restrictions[r] = block.p_atoms
-            for r, values in restrictions.items():
-                domains[r] = tuple(p for p in domains[r] if p in values)
-            if preferred is None:
-                preferred = candidate.mapping
         if preferred is not None:
             result = self._preferred_extension(preferred, domains)
             if result is not None:

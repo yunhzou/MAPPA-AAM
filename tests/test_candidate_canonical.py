@@ -1,9 +1,8 @@
 import networkx as nx
+from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa.mappa_core.core.matching.symmetry.canonical import _CandidateAutomorphismCanonicalizer
-from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.representation.state import _SymCand
 
 
 def _carbon_path():
@@ -15,39 +14,27 @@ def _carbon_path():
     return graph
 
 
-def test_candidate_certificate_preserves_semantic_roles():
+def _mapping_orbit(canonicalizer, mapping):
+    generators = canonicalizer.atom_generators({})
+    group = PermutationGroup([Permutation(list(g)) for g in generators]
+                             or [Permutation(list(range(len(canonicalizer.nodes))))])
+    return {tuple((r, action(p)) for r, p in sorted(mapping.items()))
+            for action in group.generate_schreier_sims()}
+
+
+def test_global_action_preserves_semantic_roles():
     canonicalizer = _CandidateAutomorphismCanonicalizer(_carbon_path())
-    source = {10: 0, 11: 1}
-    target = {10: 3, 11: 2}
-
-    assert canonicalizer.certificate(source) == canonicalizer.certificate(target)
+    assert _mapping_orbit(canonicalizer, {10: 0, 11: 1}) == {
+        ((10, 0), (11, 1)), ((10, 3), (11, 2))}
 
 
-def test_candidate_certificate_distinguishes_wrong_role_assignment():
+def test_global_action_does_not_swap_distinct_source_roles():
     canonicalizer = _CandidateAutomorphismCanonicalizer(_carbon_path())
-    source = {10: 0, 11: 1}
-    role_swapped_target = {10: 2, 11: 3}
-
-    assert (canonicalizer.certificate(source)
-            != canonicalizer.certificate(role_swapped_target))
-
-
-def test_live_candidate_dedupe_never_computes_full_automorphism_group(
-        monkeypatch):
-    import pynauty
-
-    def forbidden(*_args, **_kwargs):
-        raise AssertionError("autgrp is forbidden in live candidate dedupe")
-
-    monkeypatch.setattr(pynauty, "autgrp", forbidden)
-    graph = _carbon_path()
-    candidates = [
-        _SymCand({10: 0, 11: 1}),
-        _SymCand({10: 3, 11: 2}),
-    ]
-
-    deduped = _dedup_sym_cands(candidates, graph, graph)
-    assert len(deduped) == 1
+    assert ((10, 2), (11, 3)) not in _mapping_orbit(canonicalizer, {10: 0, 11: 1})
+    coloring = canonicalizer._colored_vertices(
+        None, candidate_roles={0: (('mapped', 10),), 1: (('mapped', 11),)})
+    actions = canonicalizer.atom_generators(None, colored_vertices=coloring)
+    assert all(action[0] == 0 and action[1] == 1 for action in actions)
 
 
 def test_candidate_canonicalizer_reuses_product_base(monkeypatch):

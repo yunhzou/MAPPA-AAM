@@ -198,6 +198,38 @@ class CompiledFamily:
         return _realize(self,model)
 
 
+def project_path_assignments(path, problem, source_atoms, *, assignment_limit):
+    """Enumerate only distinct requested tuples from the exact path relation."""
+    import z3
+    from mappa.mappa_core.core.search.branching.construction import BranchLimitExceeded
+
+    source_atoms = tuple(sorted(set(map(int, source_atoms))))
+    if any(atom not in path.mapping for atom in source_atoms):
+        return []
+    compiled = compile_path(path, problem, {}, source_atoms=source_atoms,
+                            complete_reference=False)
+    values = tuple(compiled.values[atom][0] for atom in source_atoms)
+    assignments = []
+    while True:
+        status = compiled.solver.check()
+        if status == z3.unsat:
+            break
+        if status == z3.unknown:
+            raise RuntimeError(
+                f"Core assignment query was inconclusive: {compiled.solver.reason_unknown()}")
+        model = compiled.solver.model()
+        images = tuple(value if isinstance(value, int)
+                       else model.eval(value, model_completion=True).as_long()
+                       for value in values)
+        assignments.append(dict(zip(source_atoms, images)))
+        if len(assignments) > int(assignment_limit):
+            raise BranchLimitExceeded(assignment_limit, branch_count=len(assignments),
+                                      stage='core_symmetry_expansion')
+        compiled.solver.add(z3.Or(*(value != image
+            for value, image in zip(values, images))))
+    return sorted(assignments, key=lambda mapping: tuple(mapping.values()))
+
+
 def query_path(path, problem, reference, *, source_atoms, source_generators=(),
                target_generators=(), complete_reference=True, timeout_ms=10000):
     """Return a certified full explicit-atom realization, UNSAT, or unknown."""

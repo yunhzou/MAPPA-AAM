@@ -79,7 +79,6 @@ class SearchSession:
             finally:
                 if gc_enabled:
                     gc.enable()
-        source_orbits = _nauty_orbits(source, wbo_tol=config.iso_tolerance)
         graphs, profile = [], _GrowthCounts()
         orders = tuple(_generate_seed_orders(source, n_trials=config.seed_count,
             rng_seed=cut_seed(cut, config.random_seed), seed_selection=config.seed_selection))
@@ -91,7 +90,7 @@ class SearchSession:
             graphs.append(matcher(source, target, order,
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
                 max_branches=config.branch_limit, p_orbits=target_orbits,
-                r_orbits=source_orbits, anchor_map=dict(config.anchors),
+                anchor_map=dict(config.anchors),
                 profile=profile, cuts=cut, fragment_cache=view, random_seed=config.random_seed))
         graph = AAMSearchGraph.combine(graphs)
         return graph, {

@@ -22,21 +22,17 @@ def match_fragment(source, target, *, seed, context=None, config=None,
     from mappa.mappa_core.core.matching.graphs import _coerce_graph
     source = _coerce_graph(source, config.graph_floor)
     target = _coerce_graph(target, config.graph_floor)
-    source_orbits, target_orbits = context.source_orbits, context.target_orbits
-    if config.orbit_dedup:
-        if source_orbits is None:
-            source_orbits = _nauty_orbits(source, wbo_tol=config.iso_tolerance,
-                                          node_policy=config.node_policy)
-        if target_orbits is None:
-            target_orbits = _nauty_orbits(target, wbo_tol=config.iso_tolerance,
-                                          node_policy=config.node_policy)
+    target_orbits = context.target_orbits
+    if target_orbits is None:
+        target_orbits = _nauty_orbits(target, wbo_tol=config.iso_tolerance,
+                                    node_policy=config.node_policy)
     try:
         matches = grow_island(
             source, target, seed, context.locked_mapping,
             graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
             min_lock_size=config.minimum_size, max_branches=config.branch_limit,
             node_policy=config.node_policy, islands_R=context.islands,
-            p_orbits=target_orbits, r_orbits=source_orbits,
+            p_orbits=target_orbits,
             prior_deferred_edges=context.deferred_edges,
             allow_mapped_seed=config.allow_mapped_seed,
             fragment_cache=context.fragment_cache, random_seed=config.random_seed,

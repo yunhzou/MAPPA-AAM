@@ -204,32 +204,3 @@ def _atom_tuple_orbit(seed, generators):
             seen.add(nxt)
             q.append(nxt)
     return tuple(sorted(seen))
-
-
-def _cand_canon_signature(cand, p_orbits):
-    """Canonical signature for a cand under unlabeled-g_P orbits.
-
-    Two cands with the same signature differ only by permuting P-atoms
-    within their unlabeled orbits — they're spectator-equivalent and
-    produce identical chemistry signatures.
-    """
-    return tuple(sorted((r, p_orbits[p]) for r, p in cand.items()))
-
-
-def _dedup_cands_by_orbit(cands, p_orbits):
-    """Collapse cands that differ only by g_P orbit permutations."""
-    if not cands or p_orbits is None or len(cands) == 1:
-        return cands
-    seen = {}
-    for c in cands:
-        sig = _cand_canon_signature(c, p_orbits)
-        if sig not in seen:
-            seen[sig] = c
-    return list(seen.values())
-
-
-def _group_nodes_by_signature(nodes, sig_fn):
-    groups = defaultdict(list)
-    for node in sorted(nodes):
-        groups[sig_fn(node)].append(node)
-    return [tuple(vs) for _, vs in sorted(groups.items(), key=lambda kv: str(kv[0]))]

@@ -377,13 +377,14 @@ class AAMHierarchy:
                     for domain in fragment.symmetry_domains
                 ],
                 "exact_fixed": list(fragment.exact_fixed),
-                "multiplicity": int(fragment.multiplicity),
                 "compression_version": fragment.compression_version,
-                "automorph_blocks": [
+            }
+            if fragment.compression_version < 3:
+                symmetry["multiplicity"] = int(fragment.multiplicity)
+                symmetry["automorph_blocks"] = [
                     domain_record(domain)
                     for domain in fragment.automorph_domains
-                ],
-            }
+                ]
             if fragment.target_generators is not None:
                 symmetry["automorph_generators"] = [
                     list(generator.images)

@@ -2,25 +2,14 @@
 from __future__ import annotations
 
 import time
-from mappa.mappa_core.core.matching.representation.state import _SymBlock, _SymCand, _cand_map, _cand_possible_p_atoms, _symmetry_state
-from mappa.mappa_core.core.matching.growth.compression import _dedup_sym_cands
-from mappa.mappa_core.core.matching.symmetry.orbits import _group_nodes_by_signature
-from mappa.mappa_core.core.matching.policy import _orbit_id
+from mappa.mappa_core.core.matching.representation.state import _cand_map, _cand_possible_p_atoms, _symmetry_state
 from mappa.mappa_core.core.matching.policy import as_node_match_policy
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.growth.frontier import _push_edges_from, _set_unique, _pop_random_atom, GrowthRandom
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, _IsoResult
 from mappa.mappa_core.core.matching.growth.trace import cand_possible_values, cands_pattern_sample, cands_sample, heap_snapshot, pool_by_frag_atom, represented_assignment_expr
 from mappa.mappa_core.core.matching.growth.existence import extend_witness
-from mappa.mappa_core.core.matching.growth.completion import AcceptedGrowthStep, complete_fragment
-
-
-def _seed_candidates(seed, groups, locked):
-    if seed in locked:
-        return [_SymCand({seed: locked[seed]}, exact_fixed=(seed,))]
-    return [_SymCand({seed: group[0]},
-                     (_SymBlock((seed,), group, extendable=False),)
-                     if len(group) > 1 else ()) for group in groups]
+from mappa.mappa_core.core.matching.growth.completion import complete_fragment
 
 
 def grow_island(g_R, g_P, seed, mapping,
@@ -31,7 +20,6 @@ def grow_island(g_R, g_P, seed, mapping,
                 events=None,
                 islands_R=None,
                 p_orbits=None,
-                r_orbits=None,
                 prior_deferred_edges=None,
                 node_policy=None,
                 allow_mapped_seed=False,
@@ -43,9 +31,8 @@ def grow_island(g_R, g_P, seed, mapping,
     Bond order is used in compatibility checks, never in selection priority.
     ``random_seed`` makes each conditional fragment call reproducible.
 
-    ``max_branches`` bounds completed, symmetry-deduplicated fragment
-    placements. Intermediate embedding candidates may exceed it: later
-    growth constraints can resolve their ambiguity before branching.
+    ``max_branches`` bounds distinct completed fragment placements.
+    Growth carries one witness; completion constructs the compressed choices.
 
     Returns a list of isos:
       []            -- failed (no initial cands, or fragment too small)
@@ -70,14 +57,14 @@ def grow_island(g_R, g_P, seed, mapping,
     if fragment_cache is not None:
         raise ValueError('Fragment cache requires explicit native execution')
     return grow_island_python(g_R, g_P, seed, mapping, graph_floor, iso_tol,
-        min_lock_size, max_branches, events, islands_R, p_orbits, r_orbits,
+        min_lock_size, max_branches, events, islands_R, p_orbits,
         prior_deferred_edges, node_policy, allow_mapped_seed, profile,
         profile_context, random_seed, bond_tolerance)
 
 
 def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
                       min_lock_size=1, max_branches=1_000_000, events=None,
-                      islands_R=None, p_orbits=None, r_orbits=None,
+                      islands_R=None, p_orbits=None,
                       prior_deferred_edges=None, node_policy=None,
                       allow_mapped_seed=False, profile=None, profile_context=None,
                       random_seed=42, bond_tolerance=None):
@@ -92,7 +79,6 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
         prof = {
             'seed': int(seed),
             'seed_targets': 0,
-            'seed_groups': 0,
             'init_cands': 0,
             'initial_heap': 0,
             'heap_pops': 0,
@@ -114,7 +100,6 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
             'feasibility_nodes': 0,
             'feasibility_searches': 0,
             'completion_seconds': 0.,
-            'completion_steps': 0,
             'completion_queries': 0,
             'completion_pruned': 0,
         }
@@ -137,22 +122,13 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
             _finish_profile('already_mapped')
             return []
         seed_targets = [mapping[seed]]
-        seed_groups = [(mapping[seed],)]
     else:
         seed_targets = [v for v in g_P.nodes()
                         if v not in locked_p_atoms
                         and node_policy.compatible(g_R, seed, g_P, v)]
-        if p_orbits is not None:
-            seed_groups = _group_nodes_by_signature(
-                seed_targets, lambda v: (node_policy.key(g_P, v),
-                                         _orbit_id(p_orbits, v)))
-        else:
-            seed_groups = [(v,) for v in sorted(seed_targets)]
     if prof is not None:
         prof['seed_targets'] = int(len(seed_targets))
-        prof['seed_groups'] = int(len(seed_groups))
     cands = [{seed: seed_targets[0]}] if seed_targets else []
-    accepted_steps = []
     if not cands:
         _finish_profile('no_initial_cands')
         if record:
@@ -255,15 +231,15 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
                 int(prof['max_cands_before']), int(old_count))
         old_fragment = set(fragment)
         candidate_fragment = fragment | {n}
-        dedupe_fragment = set(candidate_fragment)
+        enlarged_fragment = set(candidate_fragment)
         if n_in_mapping and islands_R is not None and n in islands_R:
             target_iid = islands_R[n]
-            dedupe_fragment |= {
+            enlarged_fragment |= {
                 r for r, k in islands_R.items() if k == target_iid
             }
         extend_t0 = time.perf_counter() if prof is not None else None
         witness, nodes, searched = extend_witness(g_R, g_P, cands[0],
-            u, n, dedupe_fragment, preserved_bonds, mapping, node_policy, iso_tol, bond_tolerance)
+            u, n, enlarged_fragment, preserved_bonds, mapping, node_policy, iso_tol, bond_tolerance)
         new_cands = [] if witness is None else [witness]
         if prof is not None:
             prof['feasibility_calls'] += 1
@@ -288,7 +264,6 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
                     'candidate_fragment_size': int(len(candidate_fragment)),
                 }
         if new_cands:
-            accepted_steps.append(AcceptedGrowthStep(u, n, wbo, tuple(sorted(deferred_edges))))
             preserved_bonds.add(tuple(sorted((u, n))))
             if prof is not None:
                 prof['commits'] += 1
@@ -363,17 +338,8 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
                     'pool_by_frag_atom': pool_by_frag_atom(heap, used_edges, fragment, mapping, g_R),
                 })
 
-    cands = complete_fragment(_seed_candidates(seed, seed_groups, mapping),
-            seed, accepted_steps, fragment, preserved_bonds, g_R, g_P, mapping,
-            islands_R, r_orbits, p_orbits, graph_floor, iso_tol, node_policy, bond_tolerance, prof)
-
-    # Apply the same exact product-automorphism quotient at saturation.  This
-    # is normally a no-op after completion canonicalization, but also covers
-    # single-atom/no-extension fragments.
-    cands = _dedup_sym_cands(
-        cands, g_R, g_P, r_orbits=r_orbits, p_orbits=p_orbits,
-        fragment=fragment, deferred_edges=deferred_edges,
-        locked_mapping=mapping, node_policy=node_policy)
+    cands = complete_fragment(fragment, preserved_bonds, g_R, g_P, mapping,
+                              p_orbits, iso_tol, node_policy, bond_tolerance, prof)
 
     # heap empty
     if not cands or len(fragment) < min_lock_size:
@@ -405,11 +371,8 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
         return [_IsoResult(_cand_map(cands[0]),
                            deferred_edges=deferred_edges,
                            fragment=fragment, preserved_bonds=preserved_bonds,
-                           symmetry=_symmetry_state(
-                               cands[0],
-                               r_orbits=r_orbits, p_orbits=p_orbits))]
-    # Only saturated placements are branches. The scheduler additionally
-    # bounds the combined live leaves across parent branches.
+                           symmetry=_symmetry_state(cands[0]))]
+    # Reaction search also bounds the combined live leaves across parents.
     if len(cands) > max_branches:
         _finish_profile('subtree_branch_cap', len(cands), fragment, len(cands))
         if record:
@@ -423,14 +386,10 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
             })
         raise IslandBranchLimitExceeded(
             len(cands), max_branches, seed=int(seed))
-    # ``cands`` was just quotient-deduped by this same structural/boundary
-    # relation.  Materialize each surviving saturation directly instead of
-    # recomputing every large boundary signature a second time.
     branches = [
         _IsoResult(
             _cand_map(c), deferred_edges=deferred_edges,
-            fragment=fragment, preserved_bonds=preserved_bonds, symmetry=_symmetry_state(
-                c, r_orbits=r_orbits, p_orbits=p_orbits))
+            fragment=fragment, preserved_bonds=preserved_bonds, symmetry=_symmetry_state(c))
         for c in cands
     ]
     _finish_profile('branched', len(cands), fragment, len(branches))

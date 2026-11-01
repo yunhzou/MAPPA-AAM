@@ -4,12 +4,15 @@ from __future__ import annotations
 import time
 from collections import Counter
 from mappa.mappa_core.core.search.branching.construction import BranchLimitExceeded, find_islands
+from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
-from mappa.mappa_core.domain import AAMHierarchy
+from mappa.mappa_core.domain import AAMHierarchy, AAMProblem
 from mappa.mappa_core.domain import AAMSearchConfig, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint
 from mappa.mappa_core.core.matching.graphs import build_graph
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits, _atom_tuple_orbit, _nauty_atom_generators
+from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
+from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
 from mappa.mappa_core.core.matching.representation.state import _SymBlock, _sym_block_assignment_expr
+from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
 
 
 def search_core_assignments(
@@ -19,9 +22,9 @@ def search_core_assignments(
     """Map a source core into a target without losing tuple correlations.
 
     Search stops once the requested source core has been assigned.  Every
-    final branch is expanded only by its candidate-carried exact target
-    automorphism action.  Deduplication is then performed on complete core
-    tuples, never on independent vertex orbits.
+    final branch is projected through its ordered fragment pools and exact
+    conditioned target actions. Only requested core tuples are enumerated;
+    internal full mappings are never expanded.
     """
     config = config or AAMSearchConfig()
     core = tuple(sorted(set(map(int, core_atoms))))
@@ -36,10 +39,10 @@ def search_core_assignments(
         source.elements, source.wbo, bond_cut=config.graph_floor)
     graph_target = build_graph(
         target.elements, target.wbo, bond_cut=config.graph_floor)
-    source_orbits = _nauty_orbits(
-        graph_source, wbo_tol=config.iso_tolerance)
     target_orbits = _nauty_orbits(
         graph_target, wbo_tol=config.iso_tolerance)
+    symmetry_workspace = SymmetryWorkspace(graph_target, config.iso_tolerance)
+    problem = AAMProblem(source, target)
 
     typed_branches = []
     unique = {}
@@ -50,21 +53,19 @@ def search_core_assignments(
             graph_source, graph_target, list(order),
             iso_tol=config.iso_tolerance,
             max_branches=config.branch_limit,
-            dwbo_threshold=config.event_threshold,
-            metal_dwbo_threshold=config.metal_event_threshold,
-            symmetry_wbo_tol=config.iso_tolerance,
             core_R=core,
             stop_when_core_mapped=True,
             p_orbits=target_orbits,
-            r_orbits=source_orbits,
         )
         capped += int(graph.capped)
+        graph, _ = finalize_graph_symmetry(
+            graph, graph_target, iso_tolerance=config.iso_tolerance,
+            workspace=symmetry_workspace)
         for raw in graph.paths():
             if not all(atom in raw.mapping for atom in core):
                 continue
-            variants = _core_mapping_variants(
-                raw, core, assignment_limit,
-                g_P=graph_target, p_orbits=target_orbits)
+            variants = project_path_assignments(
+                raw, problem, core, assignment_limit=assignment_limit)
             exact = tuple(AtomAssignment.from_mapping(mapping)
                           for mapping in variants)
             representative = AtomAssignment.from_mapping({
@@ -98,79 +99,6 @@ def search_core_assignments(
         elapsed_seconds=time.perf_counter() - started,
         capped_seed_count=capped,
     )
-
-
-def _core_mapping_variants(branch, core_R, max_variants, *,
-                           g_P, p_orbits=None):
-    """Expand final candidate-carried core ambiguity with strict pynauty."""
-    core_R = tuple(sorted(set(int(r) for r in core_R)))
-    base = {
-        int(r): int(branch.mapping[r])
-        for r in core_R
-        if r in branch.mapping
-    }
-    if len(base) != len(core_R):
-        return []
-
-    blocks = []
-    covered = set()
-    final_symmetry = _branch_symmetry_record(branch)
-    for block in final_symmetry.get('blocks', ()):
-        source = block.get('source') or 'sym_block'
-        if source not in {
-                'sym_block', 'exact_automorph_group'}:
-            continue
-        r_atoms = tuple(sorted(
-            int(r) for r in block.get('r_atoms', ())
-            if int(r) in set(core_R) and int(r) not in covered
-        ))
-        if not r_atoms:
-            continue
-        p_atoms = tuple(sorted(int(p) for p in block.get('p_atoms', ())))
-        if len(p_atoms) < len(r_atoms):
-            continue
-        blocks.append((r_atoms, frozenset(p_atoms)))
-        covered.update(r_atoms)
-    if not blocks:
-        return [base]
-
-    fixed = {r: base[r] for r in core_R if r not in covered}
-    tag_parts = {}
-
-    def add_tag(atom, tag):
-        tag_parts.setdefault(int(atom), []).append(tag)
-
-    for r, p in fixed.items():
-        add_tag(p, ('fixed', int(r), int(p)))
-    for block_index, (_r_atoms, p_atoms) in enumerate(blocks):
-        for p in p_atoms:
-            add_tag(p, ('block', int(block_index)))
-
-    generators = _nauty_atom_generators(
-        g_P,
-        wbo_tol=float(getattr(p_orbits, 'wbo_tol', 0.2)),
-        atom_color_tags={
-            atom: tuple(tags) for atom, tags in tag_parts.items()
-        },
-    )
-    seed = tuple(base[r] for r in core_R)
-    states = _atom_tuple_orbit(seed, generators)
-    out = []
-    for state in states:
-        mapping = {int(r): int(p) for r, p in zip(core_R, state)}
-        if any(mapping[r] != p for r, p in fixed.items()):
-            continue
-        if any(mapping[r] not in p_atoms
-               for r_atoms, p_atoms in blocks for r in r_atoms):
-            continue
-        out.append(mapping)
-    if len(out) > int(max_variants):
-        raise BranchLimitExceeded(
-            max_variants,
-            branch_count=len(out),
-            stage='core_symmetry_expansion',
-        )
-    return out
 
 
 def _branch_symmetry_record(branch, symmetry_fragments=None):

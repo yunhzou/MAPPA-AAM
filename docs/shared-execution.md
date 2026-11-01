@@ -116,8 +116,8 @@ two independent coordinators from writing the same cache directory. Result
 bundles remain independent of cache snapshots.
 
 The native cache keeps its 64 MiB accounted retention budget per prepared
-direction. Snapshots retain compressed results and dependency checks, not the
-separate symmetry-certificate memo. Task metrics report cache hits, bytes, load
+direction. Snapshots retain completed compressed results and dependency checks.
+Task metrics report cache hits, bytes, load
 and save time, successful publication and baseline recovery. For comparisons,
 `pool.search(problems, config, shared_cache=False)` disables disk exchange while
 keeping native RAM reuse. `WorkPool.local(..., shared_cache=False)` disables it

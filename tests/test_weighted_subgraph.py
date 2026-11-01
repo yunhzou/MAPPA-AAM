@@ -54,7 +54,6 @@ def test_weighted_subgraph_can_match_by_custom_node_feature(monkeypatch):
         node_policy="outer_shell",
         graph_floor=0.2,
         iso_tol=0.3,
-        orbit_dedup=False,
     )
 
     assert [m.mapping for m in matches] == [{0: 0, 1: 1}, {0: 1, 1: 0}]
@@ -109,7 +108,6 @@ def test_weighted_subgraph_can_match_by_multiple_node_features(monkeypatch):
         node_policy=("outer_shell", "nuclear_charge"),
         graph_floor=0.2,
         iso_tol=0.1,
-        orbit_dedup=False,
     )
 
     assert [m.mapping for m in matches] == [{0: 1, 1: 0}]
@@ -142,7 +140,6 @@ def test_weighted_subgraph_anchor_seed_can_grow_from_locked_pair(monkeypatch):
         seed_order=[0],
         graph_floor=0.2,
         iso_tol=0.1,
-        orbit_dedup=False,
     )
 
     assert [m.mapping for m in matches] == [{0: 2, 1: 3}]
@@ -173,7 +170,6 @@ def test_weighted_subgraph_anchor_map_filters_to_exact_target():
         anchor_map={0: 2, 1: 3},
         graph_floor=0.2,
         iso_tol=0.1,
-        orbit_dedup=False,
     )
 
     assert [m.mapping for m in matches] == [{0: 2, 1: 3}]
