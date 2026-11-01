@@ -103,7 +103,7 @@ alone do not satisfy this contract. Branch formation and branch caps at every
 hierarchy level remain unchanged, including combined live leaves across parents.
 For each current parent branch, each retained completed-fragment match produces
 one child continuation. One match continues one branch; multiple matches offer
-multiple child branches, subject to the existing deduplication and caps. Symmetric
+multiple child branches, subject to reaction-level grouping and the existing caps. Symmetric
 bijections represented inside one compressed match are not separate branches.
 
 ### One witness during growth
@@ -133,49 +133,76 @@ flowchart TD
     Return --> Branch[Unchanged hierarchy branching and caps]
 ```
 
-### Completion preserves the existing representation
+### Direct completion: required design, replacement pending
 
-The implementation has three responsibilities:
+On 2026-11-01 the user explicitly rejected candidate generation followed by
+deduplication, including partial optimizations around that pipeline. Identify and
+remove the obsolete mechanism before adding its replacement. The existing
+implementation is not the specification for the replacement's internal steps.
+
+The required responsibilities are:
 
 | Module | Responsibility |
 |---|---|
 | `growth/engine.py` and the native growth loop | Select frontier proposals and record accepted/deferred edges. |
 | `growth/existence.py` and native `fragment_query.h` | Maintain one concrete witness; find a replacement when the proposed edge cannot extend it. |
-| `growth/completion.py` and native `fragment_completion.h` | Construct the original compressed return using the shared extension/deduplication primitives. |
+| `growth/completion.py` and native `fragment_completion.h` | Construct each distinct compressed fragment match directly from the completed constraints. |
 
-A witness is a concrete assignment, not a compressed candidate. A successful local
-extension checks the new edge and occupancy only: its existing assignments already
-prove the accepted old edges. Locked-island joins also carry the newly joined
-locked atoms. The whole-fragment query is constructed only when assignments must
-be reconsidered. Failure of the local witness never proves the proposal impossible.
-No canonical certificates or compressed alternatives are built during this stage.
+A witness is a concrete assignment, not a compressed candidate. Successful local
+extension checks the new edge and occupancy; earlier assignments already prove
+the accepted old edges. A whole-fragment existence query may change growing
+assignments while respecting earlier locks. Exact degree and injectivity checks
+can reject impossible domains early. Passing these necessary checks does not
+prove a match, and a time limit never proves absence.
 
-The growth loop saves accepted extension order and boundary evidence. At saturation,
-completion uses the existing compressed seed, extension and deduplication operations
-in that order. It does not choose a new pool factorization or enumerate a family's
-bijections. Matching primitives have no knowledge of scheduling or worker pools.
+At saturation, completion must use the full accepted fragment constraints and
+the exact global target automorphism action conditioned on locks and matching
+context. Symmetry must prevent equivalent candidate construction. It must not
+enumerate equivalent candidates or bijections and then merge them, whether in a
+separate pass or a renamed helper. Global action can move atoms outside the
+fragment together; atom-orbit labels or equal target atom sets alone do not prove
+that two allowed mapping relations are identical. Tolerance pools and correlated
+actions retain their existing meaning.
 
-The whole finished fragment can reject intermediate candidates that cannot
-complete. Those checks happen after exact deduplication: equivalent children have
-the same feasibility. A sole candidate contains the already-proven match, and
-completed candidates already satisfy the accepted constraints, so neither needs
-another feasibility query. The completion query is created lazily, only if an
-ambiguous unfinished prefix needs it. Filtering does not repack surviving
-candidates. Native completion prepares its matching context once and reuses its
-storage across accepted steps; only the proposal and fragment boundary change.
-The ordinary final deduplication, cap and return construction are shared unchanged.
+```mermaid
+flowchart LR
+    Grow[One-witness growth] --> Constraints[Completed fragment constraints and locks]
+    Constraints --> Construct[Construct distinct compressed matches using global symmetry]
+    Construct --> Branch[Existing branch formation and caps]
+```
 
-This implementation still reconstructs compressed prefixes during completion.
-Consequently, one-witness growth alone does not establish a total speed or memory
-improvement. Performance must include completion. A faster replacement must retain
-the exact fragment return; changing its representation or cap behavior is not an
-acceptable shortcut.
+Deletion scope, before implementing replacement logic:
 
-The direct completed-query experiment was rejected: it produced different
-witnesses and pools, and changed record counts in 31 of 160 diagnostic cases.
-Its approximately 2× ring speedup therefore was not a valid drop-in comparison.
-That alternate completion implementation and its relaxed equality checks have
-been removed.
+1. Remove the unfinished `symmetry/extensions.py` and native
+   `extension_symmetry.h` overlay and its wiring into the old extension pipeline.
+2. Replace completion's accepted-step replay. Retire `_extend_sym_cands` /
+   `extend_sym_cands` and their candidate-enumerating support paths, along with
+   data retained solely to reconstruct candidate prefixes.
+3. Remove `_dedup_sym_cands` / `dedup_sym_cands` at every completion step and at
+   final fragment return, `with_automorph_equivalent`, and certificate retention
+   and boundary-signature machinery used only by candidate deduplication.
+4. Remove obsolete options, counters and tests tied solely to those internals.
+   Retain independent scientific oracles and move applicable checks to the public
+   fragment interface. Remove old code in the replacement change; do not leave
+   a selectable or error-triggered fallback.
+
+Keep one-witness growth, the exact existence solver, global automorphism support,
+compressed result records, completed-fragment reuse and branch-cap rules. Shared
+symmetry utilities also serve finalization and decoding; remove only obsolete
+candidate-deduplication responsibilities. Cross-seed/cross-cut family reduction
+is a separate approved stage and remains in place.
+
+**Current status:** local work still contains the old replay/deduplication path
+and an incomplete symmetry-pruning overlay. It does not satisfy this design.
+Removing retained native certificate graphs and accelerating the diagnosed
+existence query are separate changes, not evidence that direct completion is done.
+
+The exact public return contract above remains binding. A previous direct-query
+experiment changed witnesses, pools and record counts in 31 of 160 cases and was
+rejected. Replacement validation must cover those representation distinctions,
+locks, boundary evidence, tolerances and hierarchical caps, as well as independent
+mapping-relation checks. Performance must include completion and final output;
+passing ring examples alone does not establish general correctness or speed.
 
 ### Scope and validation
 
@@ -212,7 +239,8 @@ The cache validates target occupancy, relevant source topology, locked mappings,
 joined islands and deferred boundaries. Unrelated earlier histories or cuts can
 reuse the same local answer. Source-read tracking is separate from candidate
 checkpoints, so growth and completion record their dependencies without retaining
-intermediate growth states. Completion and finalization remain unchanged.
+intermediate growth states. Reuse must preserve the complete fragment return
+and finalization semantics.
 
 The default entry budget is **64 MiB per prepared search session**. Retention uses
 least-recently-used eviction. Lookup checks the most recently successful entry
@@ -223,8 +251,8 @@ pools, dependency arrays, vector capacity and estimated
 index overhead. An oversized result is returned normally without making a cache
 copy. Eviction or disabling retention never truncates matching or changes a branch
 cap. Statistics expose resident/peak accounted bytes, hits, evictions and oversized
-results. This budget covers retained fragment entries, not all process RAM or the
-separate symmetry-certificate cache.
+results. This budget covers retained fragment entries; it does not bound total
+process RAM, temporary solver storage or finalization data.
 
 ### Shared reaction cache snapshots
 
