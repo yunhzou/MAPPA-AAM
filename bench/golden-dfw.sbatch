@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --account=nemotron_omni_vision
 #SBATCH --partition=cpu_short
-#SBATCH --nodes=2
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=52
-#SBATCH --mem=112G
+#SBATCH --cpus-per-task=28
+#SBATCH --mem=54G
 #SBATCH --array=0-4
-#SBATCH --time=03:45:00
+#SBATCH --time=01:00:00
 #SBATCH --signal=B:USR1@180
 #SBATCH --job-name=mappa-golden
 set -euo pipefail
@@ -19,4 +19,4 @@ export TMPDIR="${SLURM_TMPDIR:-/tmp}"
 export MAPPA_BUNDLE_ROOTS="{\"${MAPPA_GOLDEN_INPUT_ROOT:-$MAPPA_GOLDEN_ROOT}\":\"$MAPPA_GOLDEN_ROOT\"}"
 BATCH="$MAPPA_GOLDEN_ROOT/$SLURM_ARRAY_TASK_ID"
 exec "$MAPPA_ROOT/venv/bin/python" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" \
-  --workers 50 --memory-gib 2 --window 128 --run-seconds 12600 "$@"
+  --workers 25 --memory-gib 2 --window 128 --run-seconds 3000 "$@"

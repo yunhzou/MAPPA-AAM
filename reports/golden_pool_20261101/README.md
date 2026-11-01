@@ -28,13 +28,15 @@ Eight affected tests passed in 10.41 seconds, including independent exhaustive
 small colored-graph permutations and complete pipeline checks of unmatched-atom
 semantics. The Slurm script passed shell syntax checking.
 
-DFW `cpu_short` permits ten nodes per user, with 96 CPUs per node. The launch
-requests five disjoint two-node batches: 52 CPUs and 112 GiB per node, with 50
-compute workers per node. This totals **500 requested workers / 520 allocated
-CPUs** when all batches are running. Each worker is guarded at 2 GiB; each node
-has 12 GiB above the sum of worker limits for coordination and other overhead.
-Available capacity determines actual concurrent starts. Requests are not proof
-of running parallelism.
+DFW `cpu_short` permits ten nodes per user, with 96 CPUs per node. The initial
+two-node / 100-worker batch requests could not start: most spare CPUs belonged to
+nodes whose memory was already reserved. A revised batch spreads 100 workers over
+four nodes, requesting 28 CPUs and 54 GiB per node, with 25 compute workers per
+node. Each worker remains guarded at 2 GiB; each node has 4 GiB above the sum of
+worker limits. Five disjoint batches request 500 workers in total, but the
+ten-node quota permits at most two revised batches (200 workers) simultaneously,
+subject to other jobs. The allocation limit is one hour; admission stops after
+50 minutes and drains active work. Requests are not proof of running parallelism.
 
 Case IDs modulo five establish disjoint ownership. Each allocation starts one
 persistent pool with one `srun`; tasks never invoke Slurm. Shared reaction caches

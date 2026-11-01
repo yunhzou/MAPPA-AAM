@@ -1,0 +1,14 @@
+{
+  "created_utc": "2026-11-01T04:54:56.975927+00:00",
+  "source_commit": "ebfa3efcf48e6bce05326653afdd7d65aabb0cf6",
+  "matching_job": "21135108",
+  "finishing_job": "21135109",
+  "requested_workers": 500,
+  "workers_per_batch": 100,
+  "batches": 5,
+  "allocated_cpus_when_all_running": 520,
+  "memory_bytes_per_worker": 2147483648,
+  "cases": 1851,
+  "directions": 3702,
+  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101"
+}
