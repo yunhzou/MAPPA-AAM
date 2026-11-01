@@ -209,3 +209,21 @@ stats=search.repair.stats()
 assert stats['full_hits']==stats['calls'] and stats['calls']>0
 '''
     subprocess.run([sys.executable,'-c',script,str(snapshot)],check=True)
+
+
+def test_snapshot_import_retains_local_answers_without_duplicate_entries(growth_policy):
+    source=graph(8,[(i,i+1) for i in range(7)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    remote=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    local=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    raw(source,source,orbits,0,[-1]*8,(),replay=remote)
+    raw(source,source,orbits,7,[-1]*8,(),replay=local)
+    assert local.loads(remote.dumps())  # This worker has an unpublished answer.
+    entries=local.stats()['entries']
+    assert local.loads(remote.dumps())
+    assert local.stats()['entries']==entries
+    before=local.stats()['full_hits']
+    for seed in (0,7):
+        assert raw(source,source,orbits,seed,[-1]*8,(),replay=local)==raw(source,source,orbits,seed,[-1]*8,())
+    assert local.stats()['full_hits']==before+2
+    assert not remote.loads(local.dumps())  # The union covers all its local answers.

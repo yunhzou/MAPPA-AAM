@@ -95,8 +95,11 @@ also require the same `MemoryStore` instance.
 
 BundleStore pools also share completed-fragment caches between workers by
 default. At task start a worker loads a newer reaction snapshot if needed;
-otherwise it keeps using its prepared RAM cache. Existing lock, occupancy,
-topology and boundary checks still decide every cache hit. Only a worker granted
+otherwise it keeps using its prepared RAM cache.
+Snapshot import retains useful local entries within the existing memory budget;
+identical requests are not inserted twice. An update to the other direction
+does not force a reload of an unchanged directional snapshot.
+Existing lock, occupancy, topology and boundary checks still decide every cache hit. Only a worker granted
 publication by the coordinator writes an update. Its own next task acknowledges
 that update without reading the same snapshot back from disk.
 

@@ -245,7 +245,11 @@ flowchart LR
 
 Versions ride existing task claims. Only the accepted publisher serializes and
 writes; competitors skip their stale update. No merging or per-fragment network
-traffic occurs. Publication is acknowledged through the next claim, so a worker
+traffic occurs at the coordinator. Snapshot import retains useful local entries
+within the same memory budget and skips identical request entries; compressed
+answers and scientific branches are never merged. Directional payload hashes
+avoid reloading when only the other direction changed. Publication is acknowledged
+through the next claim, so a worker
 does not reread its own saved snapshot. Only changed retained entries cause a
 save. Switching reactions releases the complete prepared session and cache.
 All cache I/O time, bytes, hits, fallbacks and errors are recorded per task.

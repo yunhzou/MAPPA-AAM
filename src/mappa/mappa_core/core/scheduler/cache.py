@@ -114,7 +114,7 @@ class ReactionCaches:
     def describe(self, identity):
         key, direction = identity
         if key not in self.records:
-            record = dict(key=key, version=0, sections=[], baseline_sections=[], errors=[], baseline_error=False,
+            record = dict(key=key, version=0, sections=[], digests={}, baseline_sections=[], errors=[], baseline_error=False,
                 baseline=str(self.directory/f'{key}.baseline.cache'),
                 latest=str(self.directory/f'{key}.latest.cache'))
             for field in ('baseline', 'latest'):
@@ -131,6 +131,7 @@ class ReactionCaches:
                         continue
                     record['version'] = header['version']
                     record['sections'] = list(header['sections'])
+                    record['digests'] = {name:entry['sha256'] for name,entry in header['sections'].items()}
                     if field == 'baseline':
                         record['baseline_sections'] = list(header['sections'])
             if record['errors'] and not record['version']:
@@ -167,6 +168,7 @@ class ReactionCaches:
             self.records[plan['key']] = {key: value for key, value in plan.items()
                 if key in ('key', 'version', 'baseline', 'latest', 'baseline_sections')}
             self.records[plan['key']]['sections'] = publication['sections']
+            self.records[plan['key']]['digests'] = publication['digests']
             if publication['baseline_added']:
                 self.records[plan['key']]['baseline_sections'] = publication['sections']
             self.records[plan['key']]['publisher'] = token
@@ -186,6 +188,7 @@ class WorkerCache:
         self.identity, self.version, self.repair = None, 0, None
         self.saved_revision = 0
         self.pending = None
+        self.digest, self.unpublished = None, False
 
     def begin(self, descriptor):
         self.descriptor = descriptor
@@ -207,9 +210,14 @@ class WorkerCache:
             self.identity, self.version, self.repair = identity, 0, repair
             self.saved_revision = repair.stats()['revision']
             self.pending = None
-        if self.pending is not None and current.get('publisher') == self.pending[0]:
-            self.version, self.saved_revision = self.pending[1:]
+            self.digest, self.unpublished = None, False
+        if self.pending is not None and current['digests'].get(current['direction']) == self.pending[3]:
+            self.version, self.saved_revision, self.digest = self.pending[1:]
+            self.unpublished = False
             self.pending = None
+        if self.digest is not None and current['digests'].get(current['direction']) == self.digest:
+            # A newer whole-file version may only have changed the other direction.
+            self.version = current['version']
         if current['version'] != self.version:
             started = time.perf_counter()
             for field in ('latest', 'baseline'):
@@ -218,7 +226,8 @@ class WorkerCache:
                     if data is None and field == 'latest' and current['direction'] in current['baseline_sections']:
                         continue
                     if data is not None:
-                        repair.loads(zlib.decompress(data))
+                        self.unpublished = repair.loads(zlib.decompress(data))
+                        self.digest = hashlib.sha256(data).hexdigest()
                         self.metrics['loaded_bytes'] += len(data)
                         self.metrics['baseline_loads'] += int(field == 'baseline')
                     self.version = current['version'] if field == 'baseline' else version
@@ -240,7 +249,7 @@ class WorkerCache:
             retained_bytes=stats['resident_bytes'], entries=stats['entries'])
         if self.descriptor is not None:
             missing = self.descriptor['direction'] not in self.descriptor['sections'] and stats['entries'] > 0
-            if missing or stats['revision'] != self.saved_revision or self.metrics['baseline_loads']:
+            if missing or self.unpublished or stats['revision'] != self.saved_revision or self.metrics['baseline_loads']:
                 return dict(version=self.version)
         return None
 
@@ -262,10 +271,11 @@ class WorkerCache:
             baseline[direction] = data
             _write(plan['first_staging'], plan['key'], plan['version'], baseline)
         sections[direction] = data
-        _write(plan['staging'], plan['key'], plan['version'], sections)
+        header = _write(plan['staging'], plan['key'], plan['version'], sections)
         self.metrics['saved_bytes'] = sum(map(len, sections.values())) + (sum(map(len, baseline.values())) if added else 0)
         self.metrics['save_seconds'] = time.perf_counter()-started
         # The next task's publisher token acknowledges our snapshot without
         # reading back the same bytes this process just wrote.
-        self.pending = plan['token'], plan['version'], self.repair.stats()['revision']
-        return dict(version=plan['version'], baseline_added=added, sections=list(sections))
+        digests = {name:entry['sha256'] for name,entry in header['sections'].items()}
+        self.pending = plan['token'], plan['version'], self.repair.stats()['revision'], digests[direction]
+        return dict(version=plan['version'], baseline_added=added, sections=list(sections),digests=digests)

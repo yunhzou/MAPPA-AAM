@@ -90,6 +90,18 @@ def test_directions_share_two_files_but_never_matching_entries(tmp_path):
     assert len(list(tmp_path.glob('*.cache'))) == 2
 
 
+def test_other_direction_update_does_not_reload_unchanged_cache(tmp_path, monkeypatch):
+    store=ReactionCaches(tmp_path)
+    forward,reverse=('reaction','0'),('reaction','1')
+    search,worker=session(),WorkerCache()
+    expected=execute(store,forward,search,worker)
+    execute(store,reverse,session(),WorkerCache())
+    import mappa.mappa_core.core.scheduler.cache as module
+    monkeypatch.setattr(module,'read_section',lambda *args: (_ for _ in ()).throw(AssertionError('unchanged payload reloaded')))
+    assert execute(store,forward,search,worker)==expected
+    assert worker.metrics['loaded_bytes']==worker.metrics['saved_bytes']==0
+
+
 def test_input_config_and_direction_identity():
     from mappa import AAMProblem
     p = problem()

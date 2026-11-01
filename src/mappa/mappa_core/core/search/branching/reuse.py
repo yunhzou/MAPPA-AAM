@@ -68,4 +68,4 @@ class FragmentRepair(_CutSession):
         return self.engine.dump(self.snapshot_identity)
 
     def loads(self, data):
-        self.engine.load(data, self.snapshot_identity)
+        return self.engine.load(data, self.snapshot_identity)

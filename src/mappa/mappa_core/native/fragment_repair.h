@@ -18,6 +18,7 @@ class FragmentRepair {
         std::vector<Pair> islands, cuts, deferred, pair_reads;
         std::vector<uint8_t> row_reads;
         size_t bytes=0;
+        bool in_snapshot=false;
         Entry(int n) : dependencies(n) {}
     };
     using Entries=std::list<Entry>;
@@ -124,7 +125,7 @@ public:
             out(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
         return py::bytes(out.data);
     }
-    void load(const std::string& data,const std::string& identity) {
+    bool load(const std::string& data,const std::string& identity) {
         fragment_cache_io::Reader in(data);
         std::string observed; in(observed);
         if (observed!=identity) throw std::invalid_argument("Fragment cache context differs");
@@ -140,8 +141,20 @@ public:
             parsed.push_back(std::move(e));
         }
         in.finish(); // Failed reads must leave the existing cache usable.
-        cache.clear();lru.clear();resident=0;
-        for (auto& e:parsed) if (e.bytes<=budget) insert(std::move(e));
+        // Import knowledge without discarding this worker's unpublished results.
+        // Identical requests share an entry; compressed answers are never merged.
+        for (auto& e:lru) e.in_snapshot=false;
+        for (auto& e:parsed) {
+            auto bucket=cache.find(e.key);
+            bool present=false;
+            if (bucket!=cache.end()) for (auto previous:bucket->second)
+                if (previous->mapping==e.mapping && previous->islands==e.islands
+                    && previous->cuts==e.cuts && previous->deferred==e.deferred) {
+                    previous->in_snapshot=true;present=true;break;
+                }
+            if (!present && e.bytes<=budget) {e.in_snapshot=true;insert(std::move(e));}
+        }
+        return std::any_of(lru.begin(),lru.end(),[](const Entry& e){return !e.in_snapshot;});
     }
     FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,
                    const std::string& growth_policy="incremental")

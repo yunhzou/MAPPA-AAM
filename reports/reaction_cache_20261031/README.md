@@ -56,4 +56,24 @@ The full code/engine identity, settings, source bundle checksums, per-stage time
 cache traffic/errors, memory, workers and task overlap are saved in results.json.
 First the batch builds the native Linux engine and runs the cache contract tests.
 
-Pilot measurements will be added after the actual Slurm allocation completes.
+The first pilot, job **21132532**, completed successfully with 16 workers on
+`cpu1-00102` and `cpu1-00105`. All 1,842 complete finalized cut graphs were exactly
+equal. Deduplication and decoding completed for all 20 directions; all 20 exact
+heavy-atom reference queries recovered the annotation. There were no cache
+errors. The ten input records contain five unique endpoint-graph pairs, so the
+cache directory held ten snapshots plus one ownership file (332,113 bytes total).
+
+However, replacing each worker's RAM cache on import cost more than the additional
+reuse saved in this small pilot: shared exchange took 5.810 s / 51.607 CPU s,
+versus 5.342 s / 48.989 CPU s for RAM reuse alone. Cache load/save summed to
+3.272 worker-seconds; hits increased from 53,036 to 54,040 out of 92,132 requests.
+The initial result is retained in [dfw-pilot-initial.json](dfw-pilot-initial.json).
+This motivated retaining useful local cache entries during import, with exact
+request deduplication and the same memory budget. Updates to the other direction
+also no longer force loading an unchanged directional payload. Coordinator
+publication still selects one snapshot; it does not merge caches or branches.
+
+A follow-up pilot will measure that correction on the same ten records and scope.
+The local full suite after retaining imported/local entries passed **726 tests
+in 54.19 seconds**. A further targeted check covers acknowledgement when another
+direction has published before the original worker's next task.
