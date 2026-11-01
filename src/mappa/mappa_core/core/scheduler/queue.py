@@ -1,5 +1,6 @@
 """One coordinator owns task metadata; workers never open its SQLite file."""
 from dataclasses import dataclass
+from collections import Counter
 from graphlib import TopologicalSorter
 import pickle
 import os
@@ -31,12 +32,13 @@ class TaskQueue:
     Place the database on the coordinator's local disk, with explicit backups
     to shared storage. Lost leases require an explicit retry; no silent reruns.
     """
-    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False, cache_directory=None):
+    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False, cache_directory=None, cache_publish_seconds=1.):
         self.lock = threading.RLock()
         self.changed = threading.Condition(self.lock)
         self.generation = 0
         self.keep_open = keep_open
-        self.caches = ReactionCaches(cache_directory) if cache_directory is not None else None
+        self.caches = ReactionCaches(cache_directory, publish_seconds=cache_publish_seconds) if cache_directory is not None else None
+        self.worker_cases, self.case_workers = {}, Counter()
         self.lease_seconds = lease_seconds
         self.path = Path(path)
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
@@ -136,9 +138,10 @@ class TaskQueue:
             self._notify()
 
     def _refresh(self, now):
-        for token, expires in self.db.execute(
-                "SELECT token,expires FROM tasks WHERE state='running' AND expires<? ORDER BY expires", (now,)).fetchall():
+        for token, expires, worker in self.db.execute(
+                "SELECT token,expires,worker FROM tasks WHERE state='running' AND expires<? ORDER BY expires", (now,)).fetchall():
             self._end_work(token, expires)
+            self._assign(worker)
             if self.caches is not None:
                 self.caches.finish(token)
         self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
@@ -168,24 +171,59 @@ class TaskQueue:
         with self.lock:
             return dict(self.db.execute('SELECT name,process FROM workers'))
 
+    def _assign(self, worker, case=None):
+        previous = self.worker_cases.pop(worker, None)
+        if previous is not None:
+            self.case_workers[previous] -= 1
+            if not self.case_workers[previous]:
+                del self.case_workers[previous]
+        if case is not None:
+            self.worker_cases[worker] = case
+            self.case_workers[case] += 1
+
+    def _next_task(self, worker, memory_bytes):
+        ready = """SELECT key,specification,case_name FROM tasks t
+            WHERE state='pending' AND memory<=? AND NOT EXISTS (
+              SELECT 1 FROM dependencies d JOIN tasks p ON p.key=d.dependency
+              WHERE d.task=t.key AND p.state!='complete')"""
+        def in_case(case):
+            return self.db.execute(ready+' AND case_name=? ORDER BY t.rowid LIMIT 1',
+                                   (memory_bytes,case)).fetchone()
+        previous = self.worker_cases.get(worker)
+        if previous is not None:
+            row = in_case(previous)
+            if row is not None:
+                return row
+        # Prefer an unassigned reaction before splitting one across workers.
+        # Cases are bounded by the campaign's admission window; tasks are not.
+        for case, in self.db.execute("""SELECT name FROM cases c WHERE EXISTS (
+            SELECT 1 FROM tasks t WHERE t.case_name=c.name AND t.state='pending') ORDER BY rowid"""):
+            if case not in self.case_workers:
+                row = in_case(case)
+                if row is not None:
+                    return row
+        # A small batch or a long tail still uses every available worker.
+        return self.db.execute(ready+' ORDER BY t.rowid LIMIT 1',(memory_bytes,)).fetchone()
+
     def claim(self, worker, memory_bytes, identity):
         if identity != self.identity:
             raise ValueError('Worker code/input identity differs')
         with self.lock, self.db:
             now = time.time()
             self._refresh(now)
-            row = self.db.execute("""SELECT key,specification,case_name FROM tasks t
-                WHERE state='pending' AND memory<=? AND NOT EXISTS (
-                  SELECT 1 FROM dependencies d JOIN tasks p ON p.key=d.dependency
-                  WHERE d.task=t.key AND p.state!='complete') ORDER BY t.rowid LIMIT 1""",
-                (memory_bytes,)).fetchone()
+            row = self._next_task(worker, memory_bytes)
             if row is None:
                 active = self.db.execute("SELECT count(*) FROM tasks WHERE state IN ('pending','running')").fetchone()[0]
                 if not active:
+                    if not self.keep_open:
+                        self._assign(worker)
                     return {'state': 'waiting' if self.keep_open else 'finished', 'generation': self.generation}
                 running = self.db.execute("SELECT count(*) FROM tasks WHERE state='running'").fetchone()[0]
+                if not running:
+                    self._assign(worker)
                 return {'state': 'waiting' if running else 'insufficient_memory', 'generation': self.generation}
             key, specification, case = row
+            self._assign(worker, case)
             self.db.execute('UPDATE cases SET active_since=?,deadline=?+seconds-spent WHERE name=? AND active_since IS NULL',
                             (now, now, case))
             deadline = self.db.execute('SELECT deadline FROM cases WHERE name=?', (case,)).fetchone()[0]
@@ -257,6 +295,9 @@ class TaskQueue:
                 self.db.execute('UPDATE attempts SET state=?,result=?,finished=? WHERE token=?',
                                 (state, data, time.time(), token))
                 self._notify()
+                if state != 'complete':
+                    row = self.db.execute('SELECT worker FROM tasks WHERE key=?',(key,)).fetchone()
+                    self._assign(row[0])
             return accepted
 
 

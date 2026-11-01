@@ -102,12 +102,16 @@ class StageResults:
 class WorkPool:
     """One worker lifetime, explicit stages, RAM or aggregated bundle transport."""
     def __init__(self, *, workers=1, store=None, memory_bytes=2**30,
-                 case_seconds=3600., scratch=None, slurm=False, startup_seconds=120., shared_cache=True):
+                 case_seconds=3600., scratch=None, slurm=False, startup_seconds=120., shared_cache=True,
+                 cache_publish_seconds=1.):
         if workers < 1 or memory_bytes < 1 or case_seconds <= 0 or startup_seconds <= 0:
             raise ValueError('Positive workers, memory and stage time are required')
         self.workers = workers
         self.store = store if store is not None else MemoryStore()
         self.cache_directory = self.store.directory/'cache' if shared_cache and isinstance(self.store, BundleStore) else None
+        if cache_publish_seconds < 0:
+            raise ValueError('Cache publication interval must be nonnegative')
+        self.cache_publish_seconds = cache_publish_seconds
         self.memory_bytes, self.case_seconds = memory_bytes, case_seconds
         self.startup_seconds = startup_seconds
         self.scratch_parent, self.use_slurm = scratch, slurm
@@ -137,7 +141,8 @@ class WorkPool:
             self.scratch = Path(self._stack.enter_context(
                 tempfile.TemporaryDirectory(prefix='mappa-pool-', dir=self.scratch_parent)))
             database = self.scratch/'queue.sqlite' if isinstance(self.store, BundleStore) else ':memory:'
-            self.queue = TaskQueue(database, self.identity, keep_open=True, cache_directory=self.cache_directory)
+            self.queue = TaskQueue(database, self.identity, keep_open=True, cache_directory=self.cache_directory,
+                                   cache_publish_seconds=self.cache_publish_seconds)
             self._stack.callback(self.queue.close)
             worker_store = self.store
             if self.use_slurm or isinstance(self.store, MemoryStore):

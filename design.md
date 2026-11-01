@@ -253,6 +253,13 @@ through the next claim, so a worker
 does not reread its own saved snapshot. Only changed retained entries cause a
 save. Switching reactions releases the complete prepared session and cache.
 All cache I/O time, bytes, hits, fallbacks and errors are recorded per task.
+First directional snapshots are always eligible immediately. Later writes are
+coalesced to at most one per second per reaction by default (`cache_publish_seconds`).
+This prevents millisecond cuts from causing continuous shared-file updates.
+Workers still check the latest published version at every task boundary and
+accumulate new entries in RAM. Setting the interval to zero allows every eligible
+publication. A snapshot is an optional reuse aid, not a complete matching checkpoint;
+scientific outputs are published independently without this delay.
 Snapshots use fast level-1 compression to reduce shared-file traffic. The archived
 large-cut cache serialized to 20.83 MB and compressed to 2.07 MB; local median
 export/compression/decompression took 7.7/37.8/7.0 ms, with native import at 6.2 ms.
@@ -617,8 +624,12 @@ it does not recompute successful cuts or retry failures at the same memory limit
 
 Local multicore and localhost remote tests do not establish multi-node scaling.
 Coordinator traffic, shared-storage costs and recovery must be measured on the
-intended deployment. Current worker assignment has no reaction-affinity policy,
-and coordinator disconnection requires explicit recovery rather than automatic
+intended deployment. Workers first take ready work from their current reaction
+and direction, then an unassigned reaction/direction, then any remaining runnable
+task. This keeps prepared state local when independent reactions are available
+and still saturates a pool for a single reaction or a long tail. The preference
+uses task metadata only; it cannot change seed/cut identity or matching logic.
+Coordinator disconnection requires explicit recovery rather than automatic
 failover. Report scientific, publication and scheduling costs separately.
 
 ## Verification and acceptance

@@ -93,7 +93,10 @@ def _write(path, key, version, sections):
 
 class ReactionCaches:
     """Coordinator-owned metadata; only one publisher per reaction at a time."""
-    def __init__(self, directory):
+    def __init__(self, directory, *, publish_seconds=0.):
+        if publish_seconds < 0:
+            raise ValueError('Cache publication interval must be nonnegative')
+        self.publish_seconds = publish_seconds
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.owner = (self.directory/'.owner.lock').open('a+b')
@@ -143,6 +146,9 @@ class ReactionCaches:
         record = self.describe(identity)
         if record['version'] != version or record['key'] in self.writers or record['baseline_error']:
             return None
+        if (record['direction'] in record['baseline_sections']
+                and time.monotonic()-record.get('last_publish', float('-inf')) < self.publish_seconds):
+            return None
         plan = dict(record, version=version+1, token=token,
                     staging=str(self.directory/f'{record["key"]}.{token}.pending'),
                     first_staging=str(self.directory/f'{record["key"]}.{token}.first.pending'))
@@ -172,6 +178,7 @@ class ReactionCaches:
             if publication['baseline_added']:
                 self.records[plan['key']]['baseline_sections'] = publication['sections']
             self.records[plan['key']]['publisher'] = token
+            self.records[plan['key']]['last_publish'] = time.monotonic()
             self.records[plan['key']].update(errors=[], baseline_error=False)
             return True
         finally:

@@ -77,3 +77,20 @@ A follow-up pilot will measure that correction on the same ten records and scope
 The local full suite after retaining imported/local entries passed **726 tests
 in 54.19 seconds**. A further targeted check covers acknowledgement when another
 direction has published before the original worker's next task.
+
+The second pilot, **21132861**, again completed all 1,842 exact graph comparisons
+and all downstream stages. Retaining local entries raised cache hits to 55,273,
+but shared exchange still took 5.841 s / 52.267 CPU s versus 5.299 s / 48.480 CPU s
+for worker-only reuse. Loading/saving cost 4.061 summed worker-seconds. The
+measurements are retained in [dfw-pilot-retained.json](dfw-pilot-retained.json).
+
+The remaining correction is outside the matcher: prefer a worker's current
+reaction/direction, then an unassigned case, then any runnable task to keep the
+pool saturated. Coalesce rapid latest-snapshot writes to at most once per second
+while allowing each first directional snapshot immediately. This preserves
+latest-version checks and baseline recovery without writing after every tiny cut.
+The final pilot will compare snapshot exchange on/off under this same placement.
+The final local implementation passed **729 tests in 52.46 seconds**. Its
+execution tests explicitly check that distinct reactions are assigned first,
+workers retain their current reaction, surplus workers still receive cuts,
+and first snapshots are exempt from the publication interval.

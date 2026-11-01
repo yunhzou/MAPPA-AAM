@@ -162,3 +162,34 @@ def test_failed_publication_keeps_baseline_and_releases_writer(tmp_path):
     assert not list(tmp_path.glob('*.pending'))
     with pytest.raises(RuntimeError,match='active coordinator'):
         ReactionCaches(tmp_path)
+
+
+def test_reaction_preference_spreads_cases_and_still_saturates_workers():
+    from mappa.mappa_core.core.scheduler import Task, TaskQueue
+    queue=TaskQueue(':memory:','code')
+    queue.add([Task('a1','unused',{},case='a'),Task('a2','unused',{},case='a'),
+               Task('a3','unused',{},case='a'),Task('b1','unused',{},case='b')])
+    first=queue.claim('worker1',2**30,'code')
+    second=queue.claim('worker2',2**30,'code')
+    third=queue.claim('worker3',2**30,'code')
+    assert [claim['task'].key for claim in (first,second,third)]==['a1','b1','a2']
+    queue.finish('a1',first['token'],'complete',{})
+    assert queue.claim('worker1',2**30,'code')['task'].key=='a3'
+    queue.close()
+
+
+def test_publication_coalesces_tiny_tasks_but_saves_first_direction_immediately(tmp_path, monkeypatch):
+    import mappa.mappa_core.core.scheduler.cache as module
+    clock=[100.]
+    monkeypatch.setattr(module.time,'monotonic',lambda:clock[0])
+    store=ReactionCaches(tmp_path,publish_seconds=1.)
+    first=('reaction','0')
+    execute(store,first,session(),WorkerCache())
+    version=store.describe(first)['version']
+    assert store.reserve(first,version,'too-soon') is None
+    other=store.reserve(('reaction','1'),version,'first-reverse')
+    assert other is not None
+    store.finish('first-reverse')
+    clock[0]+=1.
+    assert store.reserve(first,version,'later') is not None
+    store.finish('later')

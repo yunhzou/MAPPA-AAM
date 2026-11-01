@@ -45,6 +45,10 @@ the indivisible `shared_policies` backend.
 policy. A cut with several batches has an explicit finalization dependency. If
 all its seeds fit in one batch, the worker finalizes it directly and publishes
 once. There is no intermediate scheduling or storage round trip for that cut.
+Workers prefer their current reaction/direction, then an unassigned one. If only
+already assigned reactions have ready tasks, workers take those tasks too, so a
+single reaction or a long tail can still use the full pool. This is a scheduling
+preference; scientific seed/cut plans and cache-validity rules do not change.
 
 The typed handoffs are exported from `mappa.execution`:
 
@@ -119,6 +123,11 @@ and save time, successful publication and baseline recovery. For comparisons,
 keeping native RAM reuse. `WorkPool.local(..., shared_cache=False)` disables it
 for the whole pool. RAM-only pools create no cache files. Snapshot compatibility
 includes the actual code/native-engine fingerprint as well as inputs/settings.
+First snapshots are published immediately. Later writes are coalesced to at most
+one per second per reaction by default; workers continue accumulating entries in
+RAM and always check the latest published version at task start. Set
+`cache_publish_seconds=0` on the pool to allow every eligible update. This changes
+cache I/O frequency only; complete scientific outputs are always saved normally.
 
 The ordinary `search_aam(..., intermediate_dir=...)` checkpoint API also uses
 worker bundles and one reaction index. Resume requires that index and the same
