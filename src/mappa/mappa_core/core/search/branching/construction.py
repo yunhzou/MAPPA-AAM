@@ -175,8 +175,8 @@ def find_islands(g_R, g_P, seed_order,
                  p_orbits=None, r_orbits=None,
                  node_policy=None,
                  anchor_map=None,
-                 profile=None, cuts=(), growth_replay=None, random_seed=42,
-                 bond_tolerance=None, growth_policy='existence'):
+                 profile=None, cuts=(), fragment_cache=None, random_seed=42,
+                 bond_tolerance=None):
     """Run growth over a single seed ordering, branching on
     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
 
@@ -347,13 +347,13 @@ def find_islands(g_R, g_P, seed_order,
                         g_R, g_P, seed=seed,
                         context=FragmentMatchContext(
                             b.mapping, b.islands_R, tuple(b.deferred_edges), r_orbits, p_orbits,
-                            growth_replay),
+                            fragment_cache),
                         config=FragmentMatchConfig(
                             graph_floor=graph_floor, iso_tolerance=iso_tol,
                             branch_limit=max_branches, node_policy=node_policy,
                             orbit_dedup=orbit_dedup, random_seed=random_seed,
                             allow_mapped_seed=seed_is_mapped_anchor,
-                            bond_tolerance=bond_tolerance, growth_policy=growth_policy),
+                            bond_tolerance=bond_tolerance),
                         events=ev_arg,
                         profile=profile,
                         profile_context={

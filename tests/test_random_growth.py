@@ -51,17 +51,17 @@ def test_actual_growth_can_choose_hydrogen_before_triple_bond():
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
 def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
-    from mappa.mappa_core.core.search.branching.reuse import CutReplay, FragmentRepair
+    from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
     source,_=molecule();orbits=_nauty_orbits(source,wbo_tol=.1)
     r=native.source_graph(source);p=native.target_graph(source,orbits)
-    sessions=[CutReplay(source,source,orbits),
-              FragmentRepair(source,source,orbits,growth_policy='incremental')]
+    sessions=[FragmentRepair(source,source,orbits)]
     for seed in [1,2,7,42,2**64-1,1]:
-        expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed,
-                                          growth_policy='incremental')
+        expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed)
         for session in sessions:
             actual=session.engine.grow((),0,[-1]*5,.2,.1,1,100,None,(),False,seed)
             actual.pop('reused_extensions')
+            actual['profile'].pop('completion_seconds')
+            expected['profile'].pop('completion_seconds', None)
             assert actual==expected
         def result(mode):
             monkeypatch.setenv('MAPPA_NATIVE',mode)

@@ -88,29 +88,22 @@ Keep compressed results in their search direction. Invert only concrete witnesse
 from mappa import FragmentMatchConfig, match_fragment
 
 result = match_fragment(source_graph, target_graph, seed=0,
-    config=FragmentMatchConfig(growth_policy="existence"))
+    config=FragmentMatchConfig())
 ```
 
-`growth_policy="existence"` is the default and finds one valid placement
-per extension, allowing earlier assignments inside the growing fragment to change.
-It checks the new edge against the existing witness first and constructs a whole
-fragment search only when reassignment is needed. At saturation it constructs the
-original compressed results using the existing compression rules. Earlier completed-fragment locks remain fixed. The final
-ordered return, witnesses, pools, symmetry data, result counts and cap outcomes
-must match the explicit `"incremental"` comparison policy exactly. Branch formation and caps at every
-hierarchy level are unchanged. Both policies support Python and native fragment
-matching. Existence growth still reconstructs compressed prefixes at
-completion, so speed and memory improvements are not assumed. Both policies
-support bounded complete-fragment result reuse. Existence rejects candidate-prefix
-replay, which is a separate optimization.
-See `reports/fragment_growth_20261031/results.json` for the Mac ring comparison.
-
-For reaction search with completed-fragment caching:
+Fragment growth finds one valid placement per extension, allowing assignments
+inside the growing fragment to change while earlier fragment locks stay fixed.
+It first tries extending the witness, then searches the accepted fragment if
+reassignment is needed. At saturation it constructs the exact compressed results.
+Ordered witnesses, pools, symmetry data, result counts and hierarchy caps are
+preserved. Python and native execution use this same algorithm. There is no growth
+mode to select. Completed-fragment results have bounded reuse; intermediate
+growth candidates are not cached.
 
 ```python
 from mappa import AAMSearchConfig, search_aam
 
-config = AAMSearchConfig()  # existence growth
+config = AAMSearchConfig()
 aam = search_aam(problem, config)  # reused_native execution
 ```
 
@@ -128,15 +121,15 @@ orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are ne
 
 | API/configuration | Controls |
 |---|---|
-| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1`; `growth_policy="existence"` (default) or `"incremental"` |
+| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance`; `growth_policy="existence"` (default) or `"incremental"` |
-| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance` |
+| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `fragment_cache` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 
-The library and this notebook use the branch-limit default of 100. A cap bounds a growth call's live alternatives, not the number of saved histories or all permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
+The library and this notebook use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
 Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Saved raw/finalized graph-only checkpoints remain readable.
 

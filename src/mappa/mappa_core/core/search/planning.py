@@ -61,15 +61,14 @@ def checkpoint_manifest(problem, config):
         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),
                     coordinates=value.coordinates.tolist())
     settings = asdict(config)
-    if config.growth_policy == 'incremental':
-        settings.pop('growth_policy')
     if config.random_seed == 42:
         settings.pop('random_seed')
     if config.sweep_cuts:
         settings.pop('sweep_cuts')
     if config.seed_selection == 'random':
         settings.pop('seed_selection')  # unchanged policy can resume older cuts
-    return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v5',
+    return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v6',
+        fragment_growth='witness_then_exact_completion_v1',
         matching_policy='exact_fragment_target_action_v3',
         growth_policy='growth_edge_splitmix64_v2',
         branch_cap_policy='completed_fragment_frontier_v1',

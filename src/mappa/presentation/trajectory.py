@@ -1,7 +1,7 @@
 """Reusable, verified replay of fragment calls along saved AAM search paths.
 
-Run capture in an isolated process: diagnostic observers temporarily wrap the
-matcher while preserving its decisions. No sweep or seed-order search is run.
+Replay only saved fragment calls using the matcher's witness trace. No sweep
+or seed-order search is run.
 """
 import hashlib
 import importlib
@@ -16,106 +16,24 @@ from mappa.mappa_core.utils.io.records import aam_from_record
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.representation.state import _cand_possible_p_atoms, _sym_block_indexes
-from mappa.mappa_core.core.matching.growth.support import _support_witness_for_value
-from mappa.mappa_core.core.matching.growth.support import _refine_sym_assignments
-from mappa.mappa_core.core.matching.growth.trace import cands_pattern_sample
-
 growth = importlib.import_module('mappa.mappa_core.core.matching.growth.engine')
-extension = importlib.import_module('mappa.mappa_core.core.matching.growth.extend')
-
-
-def snapshot(cands):
-    result = cands_pattern_sample(cands, len(cands))
-    for row,cand in zip(result,cands):
-        row['compression_version'] = cand.compression_version
-        row['exact_fixed'] = sorted(cand.exact_fixed)
-        row['automorph_blocks'] = [dict(r_atoms=list(b.r_atoms),p_atoms=list(b.p_atoms))
-                                  for b in cand.automorph_blocks]
-    return result
 
 
 def replay(source, target, state, edge, po, ro, context):
-    import inspect
-    supports_random = 'random_seed' in inspect.signature(growth.grow_island).parameters
-    policy = getattr(context, 'growth_policy', 'legacy_wbo_priority')
-    if supports_random != (policy == 'growth_edge_splitmix64_v2'):
+    if context.growth_policy != 'growth_edge_splitmix64_v2':
         raise ValueError('Growth policy differs from archive; use its producing engine')
-    growth_options = dict(random_seed=context.random_seed) if supports_random else {}
-    calls, events, quotient = [], [], []
-    original_extend, original_dedupe = growth._extend_sym_cands, extension._dedupe_children
-
-    def dedupe(children, ctx):
-        result = original_dedupe(children, ctx)
-        quotient.append(dict(before=len(children), after=len(result),
-                             children=snapshot(children)))
-        return result
-
-    def extend(cands, fragment, n, r, p, mapping, tol, islands, **kwargs):
-        before = snapshot(cands)
-        trial_groups = []
-        if n not in mapping:
-            for ci, cand in enumerate(cands):
-                bonded=sorted(a for a in fragment if r.has_edge(a,n))
-                weights=[(a,float(r.graph['wbo_matrix'][a,n])) for a in bonded]
-                anchor=kwargs.get('anchor_u')
-                strict={anchor:kwargs['anchor_wbo']} if anchor in fragment else {}
-                _,p_to_block=_sym_block_indexes(cand)
-                occupied = {v:k for k,v in mapping.items()}
-                local = {v:k for k,v in cand.items()}
-                possible = _cand_possible_p_atoms(cand)
-                rows = []
-                for v in p:
-                    if p.nodes[v]['element'] != r.nodes[n]['element']:
-                        continue
-                    row = dict(target=v)
-                    if v in occupied:
-                        row.update(status='occupied', reason=f'Already committed to R{occupied[v]}')
-                    elif v in local:
-                        row.update(status='occupied', reason=f'Already used by R{local[v]} in this candidate')
-                    elif v in possible:
-                        row.update(status='symmetry', reason='Reserved within this candidate symmetry block')
-                    else:
-                        support=_support_witness_for_value(cand,n,v,bonded,weights,p,tol,
-                            join_block_idx=p_to_block.get(v),strict_r_wbos=strict)
-                        refined=_refine_sym_assignments(cand,support) if support is not None else None
-                        if refined is None:support=None
-                        row.update(status='rejected' if support is None else 'compatible',
-                            reason='No supported assignment satisfies the active bond checks.' if support is None else 'Active bond checks pass.')
-                        if support is not None:row['witness']={**dict(refined.items()),n:v}
-                    witness=row.get('witness',cand)
-                    row['bonds'] = [dict(r=[a,n], p=[witness[a],v],
-                        wbo=[float(r.graph['wbo_matrix'][a,n]),float(p.graph['wbo_matrix'][witness[a],v])],
-                        delta=abs(float(r.graph['wbo_matrix'][a,n])-float(p.graph['wbo_matrix'][witness[a],v])))
-                        for a in sorted(fragment) if r.has_edge(a,n)]
-                    if row['status']=='compatible':
-                        merged={**mapping,**row['witness']}
-                        if len(set(merged.values()))!=len(merged) or any(
-                            bond['wbo'][1]<context.graph_floor or bond['delta']>tol for bond in row['bonds']):
-                            raise ValueError('Invalid compatible-trial witness')
-                    rows.append(row)
-                trial_groups.append(rows)
-        quotient.clear()
-        result = original_extend(cands, fragment, n, r, p, mapping, tol, islands, **kwargs)
-        calls.append(dict(fragment=sorted(fragment), added=n,
-            edge=[kwargs['anchor_u'],n], before=before, after=snapshot(result),
-            trials=trial_groups, dedupe=list(quotient)))
-        return result
-
-    growth._extend_sym_cands, extension._dedupe_children = extend, dedupe
-    try:
-        isos = growth.grow_island_python(source,target,edge.seed,dict(state.mapping),
-            graph_floor=context.graph_floor,iso_tol=context.iso_tolerance,max_branches=context.branch_limit,events=events,
-            islands_R=dict(state.islands),p_orbits=po,r_orbits=ro,
-            prior_deferred_edges=state.deferred_edges, growth_policy='incremental', **growth_options)
-    finally:
-        growth._extend_sym_cands, extension._dedupe_children = original_extend, original_dedupe
+    events = []
+    isos = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
+        graph_floor=context.graph_floor, iso_tol=context.iso_tolerance,
+        max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
+        islands_R=dict(state.islands), p_orbits=po, r_orbits=ro,
+        prior_deferred_edges=state.deferred_edges)
     expected = dict(edge.match['symmetry']['witness'])
     matching = [i for i in isos if dict(i)==expected and sorted(i.fragment)==sorted(edge.match['fragment'])]
     if not matching or sorted(matching[0].deferred_edges)!=sorted(map(tuple,edge.match['deferred_edges'])):
         raise ValueError(f'Replay differs from archived transition {edge.id}; use its producing engine')
-    return dict(events=events,calls=calls,isos=[dict(i) for i in isos],
-                iso_candidates=[{**i.symmetry, 'symmetry_complete': True} for i in isos],verified=True)
+    return dict(events=events, isos=[dict(i) for i in isos],
+                iso_candidates=[{**i.symmetry, 'symmetry_complete': True} for i in isos], verified=True)
 
 
 def bond_events(raw, mapping, floor=.2, tolerance=.5, metal_tolerance=.3):
@@ -147,7 +65,7 @@ def frames_for(graph, terminal, traces):
             frames.append(dict(kind='locked',stage=stage,title='Reuse recorded state',locked=dict(after.mapping),
                 active=[],deferred=list(map(list,after.deferred_edges)),candidates=[],preferred=0))
             continue
-        trace=traces[eid];calls=iter(trace['calls']);call=None
+        trace=traces[eid]
         locked=dict(state.mapping);deferred=list(map(list,state.deferred_edges))
         expected=dict(edge.match['symmetry']['witness'])
         patterns=[]
@@ -157,28 +75,28 @@ def frames_for(graph, terminal, traces):
             data=dict(stage=stage,seed=edge.seed,transition=eid,locked=locked,
                       deferred=[*deferred],kind=kind,expected=expected)
             if kind=='seed_start':
-                patterns=trace['calls'][0]['before'] if trace['calls'] else event.get('cand_patterns',[])
+                patterns=event.get('cand_patterns',[])
                 data.update(title=f'Start fragment {stage} at R{edge.seed}',active=event['fragment'],candidates=patterns)
             elif kind=='pop':
-                call=next(calls);assert call['added']==event['edge']['ext_atom']
-                patterns=call['before']
-                data.update(title=f'Test R{call["edge"][0]}–R{call["edge"][1]}',
-                    active=call['fragment'],candidates=patterns,trial=call,edge=call['edge'])
+                trial_edge=[event['edge']['frag_atom'],event['edge']['ext_atom']]
+                patterns=event['pre_state']['cands_pattern_sample']
+                data.update(title=f'Test R{trial_edge[0]}–R{trial_edge[1]}',
+                    active=event['pre_state']['fragment'],candidates=patterns,edge=trial_edge)
             elif kind in ('commit','consumed'):
-                assert call is not None
-                patterns=call['after'] if kind=='commit' else call['before']
-                if kind=='consumed':deferred.append(call['edge'])
-                data.update(title=(f'Grow to R{call["added"]}' if kind=='commit' else
-                    f'Defer R{call["edge"][0]}–R{call["edge"][1]}'),
-                    active=event['fragment'],candidates=patterns,edge=call['edge'],
-                    refinement=dict(before=len(call['before']),after=len(call['after']),dedupe=call['dedupe']),
+                trial_edge=[event['edge']['frag_atom'],event['edge']['ext_atom']]
+                patterns=event['cands_pattern_after'] if kind=='commit' else event['cands_pattern_sample']
+                if kind=='consumed':deferred.append(trial_edge)
+                data.update(title=(f'Grow to R{trial_edge[1]}' if kind=='commit' else
+                    f'Defer R{trial_edge[0]}–R{trial_edge[1]}'),
+                    active=event['fragment'],candidates=patterns,edge=trial_edge,
                     deferred=[*deferred])
             elif kind=='seed_end':
-                patterns=trace.get('iso_candidates', [dict(witness=i,blocks=[]) for i in trace['isos']])
+                patterns=trace['iso_candidates']
                 data.update(title=f'Fragment {stage} saturated · {len(patterns)} retained placement(s)',
                     active=event['fragment'],candidates=patterns)
             else:continue
-            # All previews are actual live representatives, never a made-up completion.
+            data['candidate_kind']='compressed_match' if kind=='seed_end' else 'witness'
+            # Growth frames show one witness; saturation shows every retained placement.
             data['preferred']=max(range(len(patterns)),key=lambda i:sum(expected.get(a)==b for a,b in patterns[i]['witness'].items())) if patterns else 0
             frames.append(data)
         after=graph.states[edge.target]
@@ -284,8 +202,8 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         capture_source={str(p.relative_to(Path(__file__).parents[2])):hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(Path(__file__).parents[1].rglob('*.py'))},
         scope='Diagnostic replay of selected saved fragment calls; one recorded history per terminal. '
-              'All live compressed candidates are included, each with an actual representative and symmetry blocks. '
-              'Trial rows inspect support before deduplication. Every fragment placement is checked against its archive. '
+              'Growth frames show one feasible witness; saturation shows all completed compressed placements. '
+              'Every fragment placement is checked against its archive. '
               'The endpoint coordinates stay fixed throughout playback.',checks=checks)
 
 

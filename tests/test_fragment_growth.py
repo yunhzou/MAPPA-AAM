@@ -1,5 +1,4 @@
 """Existence-only growth must recover the same compressed result at completion."""
-from dataclasses import replace
 from itertools import permutations, product
 from unittest.mock import patch
 import os
@@ -49,23 +48,15 @@ def relation(result, target, config, context):
 def compare(source, target, *, context=None, config=None):
     config = config or FragmentMatchConfig(iso_tolerance=.5)
     context = context or FragmentMatchContext()
-    before = match_fragment(source, target, seed=0, context=context,
-                            config=replace(config, growth_policy='incremental'))
     profile = []
-    selected = replace(config, growth_policy='existence')
     after = match_fragment(source, target, seed=0, context=context,
-                           config=selected, profile=profile)
-    # This switch replaces growth internals, not the return consumed by branch
-    # formation. Equivalent mapping sets with different records are a regression.
-    assert record(after) == record(before)
-    if not before.capped:
-        assert relation(after, target, config, context) == relation(before, target, config, context)
-    if os.environ.get('MAPPA_NATIVE') == '1':
-        with patch.dict(os.environ, MAPPA_NATIVE='0'):
-            python = match_fragment(source, target, seed=0, context=context, config=selected)
-        assert record(after) == record(python)
+                           config=config, profile=profile)
+    other = '0' if os.environ.get('MAPPA_NATIVE') == '1' else '1'
+    if config.node_policy is None:
+        with patch.dict(os.environ, MAPPA_NATIVE=other):
+            reference = match_fragment(source, target, seed=0, context=context, config=config)
+        assert record(after) == record(reference)
     if profile and after.matches:
-        assert profile[0]['growth_policy'] == 'existence'
         assert profile[0]['max_cands_before'] == 1
         assert profile[0]['max_cands_after'] == 1
     return after, profile
@@ -74,7 +65,7 @@ def compare(source, target, *, context=None, config=None):
 @pytest.mark.parametrize('native',['0','1'])
 @pytest.mark.parametrize('size',[3,6,12])
 @pytest.mark.smoke
-def test_ring_policies_preserve_all_placements(native,size,monkeypatch):
+def test_ring_growth_preserves_all_placements(native,size,monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE',native)
     ring=graph(['C']*size,[(i,(i+1)%size,1) for i in range(size)])
     result,profile=compare(ring,ring)
@@ -193,24 +184,27 @@ def test_trace_identifies_witnesses_and_completion(monkeypatch):
     ring=graph(['C']*3,[(0,1,1),(1,2,1),(0,2,1)])
     events=[]
     result=match_fragment(ring,ring,seed=0,
-        config=FragmentMatchConfig(growth_policy='existence'),events=events)
+        config=FragmentMatchConfig(),events=events)
     start=next(e for e in events if e['type']=='seed_start')
     assert start['candidate_kind']=='witness'
     assert all(e['cands_after']==1 for e in events if e['type']=='commit')
     assert len(result.matches)==1
 
 
-def test_invalid_policy_is_not_silently_ignored():
-    with pytest.raises(ValueError,match='growth_policy'):
-        FragmentMatchConfig(growth_policy='typo')
+def test_removed_growth_options_are_rejected():
+    from mappa import AAMSearchConfig
+    from mappa.mappa_core.core.matching.growth import native
+    assert not hasattr(native._engine, 'GrowthReplay')
+    for config in (FragmentMatchConfig, AAMSearchConfig):
+        with pytest.raises(TypeError, match='growth_policy'):
+            config(growth_policy='incremental')
 
 
-def test_existence_rejects_candidate_replay():
+def test_fragment_cache_requires_a_completed_result_view():
     ring = graph(['C'] * 3, [(0, 1, 1), (1, 2, 1), (0, 2, 1)])
-    with pytest.raises(ValueError, match='replay'):
+    with pytest.raises(TypeError, match='fragment cache'):
         match_fragment(ring, ring, seed=0,
-            context=FragmentMatchContext(growth_replay=object()),
-            config=FragmentMatchConfig(growth_policy='existence'))
+            context=FragmentMatchContext(fragment_cache=object()))
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
@@ -248,22 +242,8 @@ def test_all_alternatives_are_constructed_only_after_growth(monkeypatch):
 
     monkeypatch.setattr(completion, '_extend_sym_cands', complete)
     result = match_fragment(ring, ring, seed=0, events=events,
-        config=FragmentMatchConfig(growth_policy='existence'))
+        config=FragmentMatchConfig())
     assert len(represented([candidate_from_record(m.symmetry) for m in result.matches], ring, .5)) == 12
-
-
-@pytest.mark.parametrize('native', ['0', '1'])
-def test_large_interchangeable_family_preserves_complete_records(native, monkeypatch):
-    monkeypatch.setenv('MAPPA_NATIVE', native)
-    size = 12
-    complete = graph(['C'] * size,
-        [(a, b, 1.) for a in range(size) for b in range(a + 1, size)])
-    before = match_fragment(complete, complete, seed=0)
-    after = match_fragment(complete, complete, seed=0,
-        config=FragmentMatchConfig(growth_policy='existence'))
-    # Compare compressed records without expanding this family's 12! mappings.
-    assert len(after.matches) == 1
-    assert record(after) == record(before)
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
@@ -289,21 +269,6 @@ def test_random_locked_queries_preserve_the_complete_relation(native, monkeypatc
             assert relation(result, target, config, context) == expected
 
 
-@pytest.mark.parametrize('native', ['0', '1'])
-def test_switching_policies_preserves_shared_target_state(native, monkeypatch):
-    from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-    monkeypatch.setenv('MAPPA_NATIVE', native)
-    ring = graph(['C'] * 6, [(i, (i + 1) % 6, 1.) for i in range(6)])
-    orbits = _nauty_orbits(ring, wbo_tol=.5)
-    context = FragmentMatchContext(source_orbits=orbits, target_orbits=orbits)
-    before = match_fragment(ring, ring, seed=0, context=context)
-    direct = match_fragment(ring, ring, seed=0, context=context,
-        config=FragmentMatchConfig(growth_policy='existence'))
-    after = match_fragment(ring, ring, seed=0, context=context)
-    assert record(before) == record(after)
-    assert record(direct) == record(before)
-
-
 def test_native_witness_observation_preserves_a_locked_seed():
     from mappa.mappa_core.core.matching.growth import native
     from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
@@ -312,7 +277,30 @@ def test_native_witness_observation_preserves_a_locked_seed():
     target_view = native.target_graph(source, _nauty_orbits(source, wbo_tol=.5))
     result = native._engine.grow_island(source_view.graph, target_view.graph,
         0, [0, -1], .2, .5, 1, 100, [(0, 1)], [], True,
-        observe=True, growth_policy='existence')
+        observe=True)
     assert result['observation']['candidate_count'] == 1
     assert result['observation']['symmetry']['witness'] == {0: 0}
     assert result['observation']['symmetry']['exact_fixed'] == [0]
+
+
+def normalized(value):
+    if isinstance(value, dict):
+        return {str(k): normalized(v) for k, v in value.items()}
+    if isinstance(value, (set, frozenset)):
+        return [normalized(v) for v in sorted(value)]
+    if isinstance(value, (tuple, list)):
+        return [normalized(v) for v in value]
+    return value
+
+
+@pytest.mark.parametrize('native', ['0', '1'])
+def test_exact_records_match_accepted_pre_cleanup_version(native, monkeypatch):
+    import json
+    from pathlib import Path
+    monkeypatch.setenv('MAPPA_NATIVE', native)
+    fixture = json.loads((Path(__file__).parent / 'data/accepted_growth_records.json').read_text())
+    for case in fixture['cases']:
+        inputs = [graph(**value) for value in case['inputs']]
+        result = match_fragment(*inputs, seed=0, config=FragmentMatchConfig(
+            random_seed=case['random_seed'], branch_limit=10000))
+        assert normalized(record(result)) == case['expected']

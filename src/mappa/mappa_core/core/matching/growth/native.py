@@ -152,26 +152,20 @@ def validate_inputs(p_orbits, node_policy, events):
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, p_orbits, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None,
-                growth_policy='existence'):
+                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None):
     """Run the selected native engine or report unsupported inputs explicitly."""
-    if replay is not None:
-        cache = getattr(replay, 'engine', None)
-        if isinstance(cache, _engine.FragmentRepair):
-            if cache.growth_policy != growth_policy:
-                raise ValueError('fragment cache growth_policy differs from the requested policy')
-        elif growth_policy == 'existence':
-            raise ValueError('existence growth requires complete-fragment replay, not candidate checkpoints')
-    if replay is not None and (replay.source is not g_R or replay.target is not g_P):
-        raise ValueError("cut replay view belongs to different source/target graphs")
-    source_view = replay.source_view if replay is not None else source_graph(g_R, bond_tolerance)
-    target_view = replay.target_view if replay is not None else target_graph(g_P, p_orbits)
-    if replay is not None:
+    if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentRepair):
+        raise TypeError('fragment cache must be a completed-fragment cache view')
+    if fragment_cache is not None and (fragment_cache.source is not g_R or fragment_cache.target is not g_P):
+        raise ValueError("fragment cache view belongs to different source/target graphs")
+    source_view = fragment_cache.source_view if fragment_cache is not None else source_graph(g_R, bond_tolerance)
+    target_view = fragment_cache.target_view if fragment_cache is not None else target_graph(g_P, p_orbits)
+    if fragment_cache is not None:
         recorded = source_view.bond_tolerance
         if (recorded is None) != (bond_tolerance is None) or (
                 recorded is not None and (recorded.inclusive != bond_tolerance.inclusive or
                 any(recorded.limit(a, b) != value for (a, b), value in bond_tolerance.values.items()))):
-            raise ValueError("cut replay bond tolerances differ from its source policy")
+            raise ValueError("fragment cache bond tolerances differ from its source policy")
     if source_view is None or target_view is None:
         raise ValueError('Native growth requires WBO graphs and exact target orbits')
     source_index = source_view.index
@@ -198,11 +192,10 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
     started = time.perf_counter()
     arguments = (source_index[int(seed)], image, float(graph_floor), float(iso_tol),
                  int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed), int(random_seed) & ((1<<64)-1))
-    if replay is None:
-        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments,
-                                  growth_policy=growth_policy)
+    if fragment_cache is None:
+        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments)
     else:
-        out = replay.engine.grow(replay.cuts, *arguments)
+        out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments)
     elapsed = time.perf_counter() - started
     if profile is not None:
         prof = {'seed': int(seed)}

@@ -11,22 +11,22 @@ from mappa.mappa_core.core.search.graph import SearchContext
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
                         max_branches=100, p_orbits=None, r_orbits=None, cuts=(),
                         anchor_map=None, core_R=None, stop_when_core_mapped=False,
-                        growth_replay=None, profile=None, random_seed=42, growth_policy='existence'):
+                        fragment_cache=None, profile=None, random_seed=42):
     order=list(dict.fromkeys(seed_order))
     anchors=_normalize_anchor_map(anchor_map,source,target)
     p_orbits=p_orbits if p_orbits is not None else _nauty_orbits(target,wbo_tol=iso_tol)
     if not native.available():
         raise ValueError('native scheduling requires the built native engine')
     repair=None;repair_cuts=()
-    if growth_replay is not None:
-        if growth_replay.source is not source or growth_replay.target is not target:
+    if fragment_cache is not None:
+        if fragment_cache.source is not source or fragment_cache.target is not target:
             raise ValueError('fragment repair view belongs to another graph pair')
-        repair=growth_replay.engine
+        repair=fragment_cache.engine
         if not isinstance(repair,native._engine.FragmentRepair):
-            raise ValueError('native scheduling accepts a FragmentRepair session, not prefix replay')
-        repair_cuts=growth_replay.cuts
+            raise ValueError('native scheduling requires a completed-fragment cache view')
+        repair_cuts=fragment_cache.cuts
     r=native.source_graph(source)
-    p=growth_replay.target_view if growth_replay is not None else native.target_graph(target,p_orbits)
+    p=fragment_cache.target_view if fragment_cache is not None else native.target_graph(target,p_orbits)
     if r is None or p is None:
         raise ValueError('native scheduling requires WBO graphs and exact target orbits')
     core=tuple(sorted(set(core_R or ())))
@@ -45,7 +45,7 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
             float(graph_floor),float(iso_tol),int(max_branches),
             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
             [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,
-            int(random_seed) & ((1<<64)-1),growth_policy)
+            int(random_seed) & ((1<<64)-1))
         native_cpu=time.process_time()-cpu if profile is not None else 0.
         native_wall=time.perf_counter()-wall if profile is not None else 0.
     finally:

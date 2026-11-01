@@ -10,7 +10,7 @@ from test_reused_aam_api import problem
 
 
 def session():
-    return SearchSession(problem(), AAMSearchConfig(seed_count=2, branch_limit=4, growth_policy='existence'))
+    return SearchSession(problem(), AAMSearchConfig(seed_count=2, branch_limit=4))
 
 
 def execute(store, identity, search, worker, cut=()):
@@ -105,17 +105,17 @@ def test_other_direction_update_does_not_reload_unchanged_cache(tmp_path, monkey
 def test_input_config_and_direction_identity():
     from mappa import AAMProblem
     p = problem()
-    config = AAMSearchConfig(growth_policy='existence')
+    config = AAMSearchConfig()
     a = cache_identity(p, config, 'code1')
     b = cache_identity(AAMProblem(p.product,p.reactant), config, 'code1')
     assert a[0] == b[0] and a[1] != b[1]
     assert cache_identity(p, config, 'code2')[0] != a[0]
-    assert cache_identity(p, AAMSearchConfig(growth_policy='incremental'), 'code1')[0] != a[0]
+    assert cache_identity(p, AAMSearchConfig(iso_tolerance=.5), 'code1')[0] != a[0]
 
 
 def test_fresh_pool_loads_previous_reaction_snapshot(tmp_path):
     store = BundleStore(tmp_path/'bundles')
-    config = AAMSearchConfig(seed_count=2, branch_limit=4, growth_policy='existence')
+    config = AAMSearchConfig(seed_count=2, branch_limit=4)
     saved = []
     for _ in range(2):
         with WorkPool.local(2, store=store) as pool:

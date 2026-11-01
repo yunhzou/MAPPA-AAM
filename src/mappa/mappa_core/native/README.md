@@ -36,8 +36,9 @@ and are removed after the extension is published.
 `MAPPA_NATIVE=1` is the default. Missing or broken selected native execution is
 an error. `MAPPA_NATIVE=0` explicitly selects Python growth. Custom node policies
 and tracing require explicit Python selection; native requests reject them.
-The trajectory viewer calls Python tracing explicitly. Growth defaults to
-`existence`; `incremental` is an explicit comparison policy.
+The trajectory viewer calls Python tracing explicitly. Growth uses
+one-witness feasibility followed by exact compressed completion. There is no
+growth-mode selector or candidate-prefix cache.
 
 ## Verify
 

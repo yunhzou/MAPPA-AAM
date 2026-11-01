@@ -21,7 +21,7 @@ def prepare_fresh(index_paths, output, workers):
     if not settings or any(item != settings[0] for item in settings):
         raise ValueError('Input manifests must use identical scientific settings')
     metadata = settings[0]
-    config = AAMSearchConfig(**dict(metadata['config'], growth_policy='existence'))
+    config = AAMSearchConfig(**metadata['config'])
     metadata = dict(metadata, config=asdict(config))
     reactions = defaultdict(list)
     identities = set()

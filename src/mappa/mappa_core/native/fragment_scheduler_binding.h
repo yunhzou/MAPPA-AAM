@@ -122,20 +122,15 @@ void register_fragment_scheduler(py::module_& mod) {
                                   double floor,double tol,long cap,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
                                   const std::vector<int>& r_ids,const std::vector<int>& p_ids,const py::object& context,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,
-                                  const std::string& growth_policy) {
-        const bool existence=existence_policy(growth_policy);
-        if (repair && repair->uses_existence()!=existence)
-            throw std::invalid_argument("fragment cache growth_policy differs from the requested policy");
+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
         ScheduledGraph graph;
         {
             py::gil_scoped_release release;
-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed,existence);
+            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);
         }
         return scheduled_graph_result(graph,r_ids,p_ids,context);
     },py::arg("source"),py::arg("target"),py::arg("seed_order"),py::arg("graph_floor"),
        py::arg("iso_tolerance"),py::arg("branch_cap"),py::arg("anchors"),py::arg("core_atoms"),
        py::arg("stop_at_core"),py::arg("source_ids"),py::arg("target_ids"),py::arg("context"),
-       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42,
-       py::arg("growth_policy")="existence");
+       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42);
 }

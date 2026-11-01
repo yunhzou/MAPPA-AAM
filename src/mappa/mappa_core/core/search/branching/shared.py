@@ -103,10 +103,10 @@ unchanged. Identical growth output is never expanded into bijections.
         result = match_fragment(self.source, self.target, seed=seed,
             context=FragmentMatchContext(branch.mapping, branch.islands_R,
                 tuple(branch.deferred_edges), self.source_orbits, self.condition.orbits,
-                growth_replay=self.condition.growth_replay),
+                fragment_cache=self.condition.fragment_cache),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
-                random_seed=self.config.random_seed, growth_policy=self.config.growth_policy),
+                random_seed=self.config.random_seed),
             profile=self.profile)
         if result.capped:
             self.builder.stop(branch, 'capped', stage='fragment_growth',
@@ -227,7 +227,7 @@ class AdaptiveSearchCondition:
     orbits: object
     workspace: object
     cuts: tuple = ()
-    growth_replay: object = None
+    fragment_cache: object = None
 
     @classmethod
     def uncut(cls, problem, config):

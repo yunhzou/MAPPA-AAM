@@ -11,14 +11,14 @@ endpoint/reference records are read from the existing immutable input bundles.
 Saved legacy task lists are used to locate endpoint records; their operations
 are never executed. Old scientific outputs are not reused.
 
-The current run uses existence growth, one seed, branch cap 100, tolerance 1.0,
+The current run uses one-witness growth, one seed, branch cap 100, tolerance 1.0,
 random seed 42 and the full cut sweep. Verification asks for exact annotated heavy-atom indices, with
 hydrogens unconstrained and no endpoint-symmetry relaxation. It does not claim
 stereochemical validation. The manifest records this policy explicitly.
 
 `prepare_batches.py fresh OUTPUT INDEX... --workers COUNT...` makes a completely
-new campaign. It preserves immutable endpoint/reference inputs, explicitly sets
-existence growth, and imports no matching results, ledgers or cache snapshots.
+new campaign. It preserves immutable endpoint/reference inputs, explicitly uses
+the current algorithm, and imports no matching results, ledgers or cache snapshots.
 It keeps both directions together and balances prepared-input byte sizes per
 planned worker. This is a workload estimate, not a measured CPU cost. Larger
 inputs run first. The preparation rejects duplicate or missing directions.

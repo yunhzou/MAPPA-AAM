@@ -70,11 +70,14 @@ unsupported capabilities or execution failure must not silently change policy.
 
 ## Fragment growth and explicit execution
 
-On 2026-10-31 the user authorized comparing `incremental` and `existence` through
-`FragmentMatchConfig.growth_policy`. The accepted Golden settings are now the
-defaults: `existence` growth and `reused_native` reaction search, both directly and
-in work pools. Incremental growth and reference execution remain explicit
-comparison modes; execution errors never select them automatically.
+Fragment growth has one algorithm: keep one witness while extending, then
+construct the exact compressed placements at saturation. There is no growth-mode
+selector in configuration, Python APIs, native bindings or benchmark entry points.
+The superseded compressed-growth loop, candidate-prefix checkpoints and extension
+cache are removed. Historical implementations and comparison scripts belong in Git.
+Direct reaction search and work pools use `reused_native` execution by default.
+Python execution supports custom node policies and diagnostics using the same
+one-witness algorithm; it is never selected after a native error.
 
 Native requests reject unsupported tracing, node policies and orbit metadata.
 `MAPPA_NATIVE=0` explicitly selects Python fragment growth; Python reaction search
@@ -105,8 +108,7 @@ bijections represented inside one compressed match are not separate branches.
 
 ### One witness during growth
 
-Incremental growth carries compressed alternatives. Existence growth carries one
-witness and the accepted constraints. Each proposal asks whether the enlarged
+Growth carries one witness and the accepted constraints. Each proposal asks whether the enlarged
 fragment has an injective, policy-compatible placement. The previous witness is
 a hint: try extending it first; if that fails, search again with earlier growing
 assignments free to change. Earlier completed-fragment locks remain fixed.
@@ -177,31 +179,30 @@ been removed.
 
 ### Scope and validation
 
-Both Python and native fragment APIs support the switch. Custom node policies
-require explicit Python selection. Trace records label growth witnesses explicitly; profiles
-separate growth feasibility from final compressed reconstruction. The
-`feasibility_searches` count distinguishes a whole-fragment search from a cheap
-extension of the existing witness.
+Python and native fragment APIs implement the same algorithm. Custom node policies
+require explicit Python selection. Trace records and viewer frames show one growth
+witness followed by the final compressed placements. Profiles separate feasibility
+checks from completion; `feasibility_searches` counts whole-fragment searches.
 
-`AAMSearchConfig.growth_policy` selects the same policy for reaction search,
-shared-seed search and work pools. The default is `existence`. Both policies
-use the existing complete-fragment result cache in `reused_native` execution.
-Existence still rejects candidate-prefix checkpoints and per-extension candidate
-caches; those are different from reusing a completed fragment result. Scheduling
-logic does not belong in the matcher.
+`AAMSearchConfig` and `FragmentMatchConfig` contain scientific settings without a
+growth-mode field. The saved search context's `growth_policy` is historical
+frontier-rule provenance (`growth_edge_splitmix64_v2`), not a selectable growth
+implementation. Old frontier records remain identifiable and cannot silently
+select an old engine. Checkpoint and cache identities reject reuse across the
+removed algorithm boundary. Scheduling logic does not belong in the matcher.
 
 ### Bounded completed-fragment reuse
 
 The user approved connecting existence growth to `FragmentRepair` on 2026-10-31.
 The cache surrounds the growth operation; the growth algorithm does not schedule
-work or manage cache entries. Each cache instance has a fixed growth policy and
-source/target pair. Adapters reject a mismatched policy instead of silently changing it.
+work or manage cache entries. Each cache instance has a fixed
+source/target pair and matching context.
 
 ```mermaid
 flowchart LR
     Request[Seed and matching conditions] --> Check{Reusable completed result?}
     Check -->|Yes| Return[Same compressed result and cap evidence]
-    Check -->|No| Grow[Selected fragment growth policy]
+    Check -->|No| Grow[One-witness fragment growth]
     Grow --> Complete[Completed compressed result]
     Complete --> Retain[Retain if it fits the cache budget]
     Retain --> Return
@@ -210,8 +211,8 @@ flowchart LR
 The cache validates target occupancy, relevant source topology, locked mappings,
 joined islands and deferred boundaries. Unrelated earlier histories or cuts can
 reuse the same local answer. Source-read tracking is separate from candidate
-checkpoints, so either growth policy records its dependencies without retaining
-intermediate growth states. Existence completion and finalization remain unchanged.
+checkpoints, so growth and completion record their dependencies without retaining
+intermediate growth states. Completion and finalization remain unchanged.
 
 The default entry budget is **64 MiB per prepared search session**. Retention uses
 least-recently-used eviction. Lookup checks the most recently successful entry
@@ -293,68 +294,23 @@ file count is two per reaction/configuration plus temporary publication and one
 ownership file, never one per seed or cut. Reading an old baseline cannot bypass
 the existing occupancy, lock, boundary and topology checks.
 
-`tests/test_existence_growth.py` compares complete ordered fragment returns
-between policies and across Python/native execution. It also independently expands
-small families to check their allowed mappings. Coverage includes rings, hydrogen
-choices, tolerance pools, locks, accepted/deferred edges, witness reassignment,
-custom node attributes, weighted random graphs and caps immediately below and at
-the original result count. A regression case requires two old compressed results
-to remain two even though an alternate factorization could combine them.
+`tests/test_fragment_growth.py` checks complete ordered returns against saved
+pre-cleanup records and across Python/native execution. Independent small-family
+expansion checks allowed mappings. Coverage includes rings, hydrogen choices,
+tolerance pools, locks, accepted/deferred edges, witness reassignment, custom node
+attributes, weighted random graphs and caps immediately below and at the result
+count. Cache tests cover invalidation, bounded retention and snapshot transport;
+viewer tests check witness frames and final placements against saved transitions.
 
-`reports/fragment_growth_20261031/compare.py` measures the full native fragment
-operation on prepared graphs in separate single-thread processes. It requires
-identical compressed-result digests and independently checks small mapping
-relations after timing and memory sampling. `results.json` records the measured
-implementation; a relation-only speed comparison is insufficient.
-
-The cleaned implementation passed the full local suite: **693 tests**. Three
-fresh processes per case/policy measured total native fragment matching,
-including completion. All returned compressed records were identical.
-
-| Case | Incremental CPU ms | Existence CPU ms |
-|---|---:|---:|
-| ring3 | 0.031 | 0.031 |
-| ring6 | 0.075 | 0.074 |
-| ring12 | 0.165 | 0.165 |
-| ring24 | 0.399 | 0.408 |
-| ring6_hydrogens | 0.152 | 0.150 |
-| late_oxygen | 0.216 | 0.048 |
-
-Ring medians ranged from 1.4% faster to 2.2% slower across separate processes.
-To check the C24 difference, an additional 21 alternating pairs of 200 calls
-used the same prepared target and warm cache. Existence was 1.2% faster there.
-These measurements show no consistent ring slowdown after removing the earlier
-10–28% overhead. The late-oxygen case was 4.5× faster: a final constraint
-eliminates most of the shorter fragment placements before compression.
-
-Total peak process RSS stayed approximately 54–55 MiB on these small cases.
-Ring certificate-cache payload was unchanged. In the late-oxygen case it fell
-from 24,800 to 1,240 bytes (95% less). These are local fragment measurements;
-they do not establish large-reaction RAM usage or distributed throughput.
-
-The paired check is reproducible with `compare.py --paired-worker ring24`;
-`results.json` retains both the separate-process samples and the paired check.
-
-A subsequent complete-cut diagnostic used the archived EnzymeMap 10383 forward,
-cut 334 failure (374 atoms per endpoint). First matching plus symmetry finalization
-fell from 438.60 to 35.54 CPU seconds and peak RSS from 4.193 to 0.586 GiB.
-All complete finalized search graphs were exactly equal. However, repeating the
-same cut took 12.046 seconds with existence versus 0.442 seconds with incremental:
-incremental reused all 2,476 fragment results, while existence recomputed them.
-That initial diagnostic exposed missing fragment-result reuse. It changed only
-the growth call in a separate test build. The bounded integration above now
-removes that bypass; both policies use the installed engine and the same cache.
-The original measurements remain in [the large-case report](reports/fragment_growth_20261031/large-case.md).
-
-With complete-result reuse enabled, the same large case took 32.09 CPU seconds
-on its first existence run, versus 306.08 seconds for incremental in that test.
-The existence cache stayed at 1,457 entries / 23.03 MiB through ten runs; total
-process peak RAM settled at 0.601 GiB. All 26 raw/finalized graph comparisons
-passed. A same-process alternating timing check, balanced by execution order,
-measured cached calls at 0.361 seconds for incremental and 0.362 seconds for
-existence (0.42% difference). The full suite passed **714 tests**, including
-eviction, invalidation and RAM/bundle work-pool validation. See the
+Historical timing and memory comparisons are retained in the
+[large-case report](reports/fragment_growth_20261031/large-case.md) and
 [cache integration report](reports/fragment_growth_20261031/cache-integration.md).
+Their producing Git revisions retain the retired comparison implementations.
+
+The 2026-11-01 cleanup passed all **719 local tests** after rebuilding the native
+engine. The final viewer update passed its nine affected tests and a headless
+Chrome check through every frame of a saved path. No scientific benchmark was
+rerun for this structural cleanup.
 
 ## Search records, grouping and deduplication
 
@@ -795,8 +751,8 @@ ledger and persistent worker pool. An array-wide successful matching dependency
 precedes later passes; an allocation that drains early is not successful stage
 completion. Original aggregated artifacts remain shared read-only inputs.
 
-A fresh benchmark imports only immutable endpoint/reference inputs, sets the
-current growth policy explicitly, and creates empty result and cache stores.
+A fresh benchmark imports only immutable endpoint/reference inputs, uses the
+current algorithm, and creates empty result and cache stores.
 The benchmark preparation layer may balance batches using input sizes per
 planned worker and process larger inputs first. This scheduling estimate never
 changes seeds, cut order within a search, hierarchy caps or scientific results.

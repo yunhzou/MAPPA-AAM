@@ -126,8 +126,6 @@ struct Graph {
     double wbo(int a, int b) const { return a == b ? 0.0 : w[(size_t)a * n + b]; }
 };
 
-// primitives._wbo_bucket: int(round(w * 5)) with Python's half-to-even round
-inline long wbo_bucket(double w) { return (long)std::nearbyint(w * 5.0); }
 
 // primitives._growth_edge_supported
 inline bool growth_edge_supported(double w_R, double w_P, double iso_tol, double floor, bool inclusive = true) {
@@ -182,26 +180,25 @@ struct Target : Graph {
     int pair_bucket(int a, int b) const { return bucket[(size_t)a * n + b]; }
 };
 
-// Source topology dependencies, used only by the opt-in cut replay engine.
+// Source topology dependencies for completed-fragment cache validation.
 // WBO values/elements never change between its cuts. Target canonicalization
 // depends on P, not on reactant topology or reactant automorphism orbits.
 struct SourceReads {
-    int step = -1;
-    std::vector<int> rows, pairs;
-    explicit SourceReads(int n) : rows(n, -2), pairs((size_t)n*n, -2) {}
+    std::vector<uint8_t> rows, pairs;
+    explicit SourceReads(int n) : rows(n, 0), pairs((size_t)n*n, 0) {}
 };
 
 struct Source : Graph {
     mutable SourceReads* reads = nullptr;
     bool has_edge(int a, int b) const {
         if (reads) {
-            int& first = reads->pairs[(size_t)std::min(a,b)*n+std::max(a,b)];
-            if (first == -2) first = reads->step;
+            uint8_t& first = reads->pairs[(size_t)std::min(a,b)*n+std::max(a,b)];
+            first = 1;
         }
         return Graph::has_edge(a,b);
     }
     const std::vector<int>& neighbors(int a) const {
-        if (reads && reads->rows[a] == -2) reads->rows[a] = reads->step;
+        if (reads) reads->rows[a] = 1;
         return adj[a];
     }
 };
@@ -242,7 +239,6 @@ inline bool contains(const std::vector<int>& sorted, int x) {
     return std::binary_search(sorted.begin(), sorted.end(), x);
 }
 
-struct CandidateCacheKey { std::string value; size_t hash; };
 
 struct Cand {
     std::vector<int> img;     // NR entries, -1 = unmapped
@@ -251,7 +247,6 @@ struct Cand {
     std::vector<int> exact_fixed;  // sorted unique
     long long mult = 1;
     std::vector<Block> automorph;
-    mutable std::shared_ptr<const CandidateCacheKey> extension_key;
 
     bool has(int r) const { return img[r] >= 0; }
     bool has_open_choice() const {
@@ -323,7 +318,6 @@ bool make_cand(const std::vector<int>& raw, const std::vector<Block>& blocks,
     sort_unique(exact_fixed);
     out.exact_fixed = std::move(exact_fixed);
     out.mult = mult;
-    out.extension_key.reset();
     out.automorph.clear();
     for (const auto& block : automorph) {
         std::vector<int> r_atoms = block.r;
@@ -392,13 +386,6 @@ bool with_witness(const Cand& c, const std::vector<Pair>& assignments, int NR, i
     }
     for (const auto& a : assignments) raw[a.first] = a.second;
     return rebuild(c, raw, c.blocks, NP, out);
-}
-
-Cand with_multiplicity(const Cand& c, long long mult) {
-    Cand out = c;
-    out.mult = mult;
-    out.extension_key.reset();
-    return out;
 }
 
 // state._SymCand.with_automorph_equivalent
@@ -662,8 +649,7 @@ bool r_compatible_with_block(const Cand& c, int bidx, const Context& ctx) {
 // relation signatures (matcher.dedupe._p_relation_signature_from_parts)
 // ---------------------------------------------------------------------------
 
-// Python repr of the dense signature tuple, used to order target groups.
-std::string python_repr_int(long v) { return std::to_string(v); }
+// Dense signatures order target groups consistently with Python.
 
 struct DenseSignature {
     std::string elem;
@@ -1300,21 +1286,17 @@ void extend_free_atom(const Cand& c, const Context& ctx, std::vector<Cand>& chil
     }
 }
 
-#include "extension_cache.h"
 #include "fragment_query.h"
 
 std::vector<Cand> extend_sym_cands(const std::vector<Cand>& cands, const Context& ctx,
-                                   const Canonicalizer& canon, long& certificate_calls,
-                                   ExtensionCache* extension_cache=nullptr) {
+                                   const Canonicalizer& canon, long& certificate_calls) {
     std::vector<Cand> children;
     for (const auto& c : cands) {
         bool covers = true;
         for (int u : ctx.bonded_in_frag)
             if (!c.has(u)) { covers = false; break; }
         if (!covers) continue;
-        if (extension_cache) {
-            extension_cache->extend(c,ctx,children);
-        } else if (ctx.is_merge()) {
+        if (ctx.is_merge()) {
             extend_locked_merge(c, ctx, children);
         } else {
             extend_free_atom(c, ctx, children);
@@ -1360,7 +1342,6 @@ struct GrowthRandom {
 };
 
 struct GrowProfile {
-    std::string growth_policy="incremental";
     long feasibility_calls=0,feasibility_nodes=0,feasibility_searches=0,completion_steps=0,completion_queries=0,completion_pruned=0;
     double completion_seconds=0;
     long seed_targets = 0, seed_groups = 0, init_cands = 0, initial_heap = 0, heap_pops = 0,
@@ -1504,26 +1485,16 @@ void finish_fragment(const Source& R, const Target& P, const std::vector<int>& m
     }
 }
 
-#include "growth_checkpoint.h"
 #include "growth_dependencies.h"
-
-bool existence_policy(const std::string& policy) {
-    if (policy!="incremental" && policy!="existence")
-        throw std::invalid_argument("growth_policy must be incremental or existence");
-    return policy=="existence";
-}
 
 GrowResult grow_island(const Source& R, const Target& P, int seed, const std::vector<int>& mapping,
                        double graph_floor, double iso_tol, int min_lock_size, long max_branches,
                        const std::vector<Pair>* islands, const std::vector<Pair>& prior_deferred,
-                       bool allow_mapped_seed, GrowthTrace* trace = nullptr,
-                       const GrowthTrace* previous = nullptr, int resume_step = -1,
+                       bool allow_mapped_seed, uint64_t random_seed = 42,
+                       GrowthObservation* observation = nullptr,
                        GrowthDependencies* dependencies = nullptr,
-                       ExtensionCache* extension_cache = nullptr,
-                       uint64_t random_seed = 42,
-                       GrowthObservation* observation = nullptr, bool existence = false,
                        SourceReads* source_reads = nullptr) {
-    SourceReadScope dependency_scope(R, trace ? &trace->reads : source_reads);
+    SourceReadScope dependency_scope(R, source_reads);
     GrowResult result;
     GrowProfile& prof = result.profile;
     const int NR = R.n, NP = P.n;
@@ -1534,25 +1505,18 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     if (islands)
         for (const auto& item : *islands) island_of[item.first] = item.second;
 
-    prof.growth_policy=existence ? "existence" : "incremental";
-    if (existence && (previous || trace || extension_cache))
-        throw std::invalid_argument("existence growth does not support candidate-based replay caches");
     if (dependencies) dependencies->mapping_at(seed);
     if (mapping[seed]>=0 && !allow_mapped_seed) {prof.result="already_mapped";return result;}
-    std::vector<Cand> cands;
-    std::optional<WitnessGrowth> witness;
-    if (existence) {
-        witness.emplace(R,P,mapping,locked_p,iso_tol,seed);
-        prof.seed_targets=witness->seed_targets;
-        prof.seed_groups=witness->seed_targets ? 1 : 0;
-    } else cands=seed_candidates(R,P,seed,mapping,&prof);
-    const long initial_count=witness ? (witness->seed_targets ? 1 : 0) : (long)cands.size();
+    WitnessGrowth witness(R,P,mapping,locked_p,iso_tol,seed);
+    prof.seed_targets=witness.seed_targets;
+    prof.seed_groups=witness.seed_targets ? 1 : 0;
+    const long initial_count=witness.seed_targets ? 1 : 0;
     if (!initial_count) {
         prof.result = "no_initial_cands";
         return result;
     }
     std::vector<AcceptedGrowthStep> accepted_steps;
-    if (witness) accepted_steps.reserve(NR);
+    accepted_steps.reserve(NR);
     std::vector<uint8_t> fragment(NR, 0);
     fragment[seed] = 1;
     int fragment_size = 1;
@@ -1586,41 +1550,9 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     Canonicalizer canon(&P, mapping);
     long certificate_calls = 0;
 
-    if (previous && resume_step >= 0) {
-        const auto& saved = *previous->checkpoints.at(resume_step);
-        cands = saved.cands;
-        fragment = saved.fragment;
-        fragment_size = saved.fragment_size;
-        used_edge = saved.used_edge;
-        deferred = saved.deferred;
-        preserved_bonds = saved.preserved_bonds;
-        heap = saved.heap;
-        rng.state = saved.random_state;
-        prof = saved.profile;
-        certificate_calls = saved.certificate_calls;
-        if (trace) trace->inherit_prefix(*previous, resume_step);
-    }
-
-    auto checkpoint = [&]() {
-        if (observation) {
-            if (!witness) observation->record(cands,fragment,deferred);
-            else if (!observation->count)
-                observation->record({witness->observation_candidate()},fragment,deferred);
-        }
-        if (!trace) return;
-        if (!trace->store_checkpoints) return;
-        trace->reads.step = (int)trace->checkpoints.size();
-        if (previous && trace->reads.step == resume_step) {
-            trace->checkpoints.push_back(previous->checkpoints.at(resume_step));
-        } else {
-            trace->checkpoints.push_back(std::make_shared<GrowthCheckpoint>(
-                GrowthCheckpoint{cands, fragment, used_edge, fragment_size,
-                                 deferred, preserved_bonds, heap, prof, certificate_calls, rng.state}));
-        }
-    };
+    if (observation) observation->record({witness.observation_candidate()},fragment,deferred);
 
     while (!heap.empty()) {
-        checkpoint();
         // Sample distinct boundary atoms uniformly, then one incident edge.
         // Neither bond order nor the number of incident edges biases the atom.
         heap.erase(std::remove_if(heap.begin(), heap.end(), [&](const auto& e) {
@@ -1651,26 +1583,15 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         }
         prof.extend_calls++;
         if (n_in_mapping) prof.merge_calls++; else prof.free_extend_calls++;
-        long old_count = witness ? 1 : (long)cands.size();
+        long old_count = 1;
         prof.max_cands_before = std::max(prof.max_cands_before, old_count);
 
-        std::vector<Cand> new_cands;
-        bool matched;
-        if (witness) {
-            matched=witness->extend(u,n,wbo,fragment,preserved_bonds,islands,island_of);
-        } else {
-            auto ctx=fragment_context(R,P,mapping,locked_p,islands,island_of,iso_tol);
-            prepare_growth_step(ctx,fragment,u,n,wbo,deferred,graph_floor);
-            if (dependencies) dependencies->boundary(ctx.sig_fragment);
-            new_cands=extend_sym_cands(cands,ctx,canon,certificate_calls,extension_cache);
-            matched=!new_cands.empty();
-        }
+        bool matched=witness.extend(u,n,wbo,fragment,preserved_bonds,islands,island_of);
         if (matched) {
-            if (witness) accepted_steps.push_back({u,n,wbo,deferred});
+            accepted_steps.push_back({u,n,wbo,deferred});
             preserved_bonds.push_back({std::min(u,n), std::max(u,n)});
             prof.commits++;
-            prof.max_cands_after = std::max(prof.max_cands_after, witness ? 1L : (long)new_cands.size());
-            if (!witness) cands = std::move(new_cands);
+            prof.max_cands_after = std::max(prof.max_cands_after, 1L);
             std::vector<int> added{n};
             if (n_in_mapping && islands && island_of[n] >= 0) {
                 int iid = island_of[n];
@@ -1694,15 +1615,11 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
             if (pos == deferred.end() || *pos != e) deferred.insert(pos, e);
         }
     }
-    if (witness) {
-        prof.feasibility_calls=witness->calls;prof.feasibility_nodes=witness->nodes;
-        prof.feasibility_searches=witness->searches;
-        cands=complete_fragment(R,P,seed,mapping,locked_p,islands,island_of,
-            accepted_steps,fragment,preserved_bonds,graph_floor,iso_tol,canon,certificate_calls,prof);
-        witness.reset();
-    }
-    // saturation quotient
-    checkpoint();
+    prof.feasibility_calls=witness.calls;prof.feasibility_nodes=witness.nodes;
+    prof.feasibility_searches=witness.searches;
+    auto cands=complete_fragment(R,P,seed,mapping,locked_p,islands,island_of,
+        accepted_steps,fragment,preserved_bonds,graph_floor,iso_tol,canon,certificate_calls,prof);
+    if (observation) observation->record(cands,fragment,deferred);
     if (dependencies) dependencies->boundary(fragment);
     finish_fragment(R,P,mapping,std::move(cands),fragment,deferred,preserved_bonds,iso_tol,min_lock_size,
                     max_branches,canon,certificate_calls,result);
@@ -1893,7 +1810,6 @@ py::object grow_result_dict(const GrowResult& res) {
     out["cap_limit"] = res.cap.limit;
     py::dict prof;
     const GrowProfile& p = res.profile;
-    prof["growth_policy"]=p.growth_policy;
     prof["feasibility_calls"]=p.feasibility_calls;prof["feasibility_nodes"]=p.feasibility_nodes;
     prof["feasibility_searches"]=p.feasibility_searches;
     prof["completion_seconds"]=p.completion_seconds;prof["completion_steps"]=p.completion_steps;
@@ -1926,9 +1842,7 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,
-                          const std::string& growth_policy) {
-    const bool existence=existence_policy(growth_policy);
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe) {
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -1941,8 +1855,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr,
-                          existence);
+                          random_seed,observe ? &observation : nullptr);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -1961,7 +1874,6 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
     return out;
 }
 
-#include "growth_replay.h"
 #include "fragment_repair.h"
 #include "fragment_scheduler.h"
 #include "fragment_scheduler_binding.h"
@@ -2004,8 +1916,7 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("growth_policy")="existence");
-    register_growth_replay(mod);
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);
 }

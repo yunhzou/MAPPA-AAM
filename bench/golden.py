@@ -88,7 +88,7 @@ def prepare(inputs, manifest, output, *, batches=5):
         evidence.append(dict(case=row['case'], input_sha256=digest,
             reference_sha256=hashlib.sha256(raw_reference).hexdigest()))
     config = asdict(AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=1.,
-                                   random_seed=42, growth_policy='existence'))
+                                   random_seed=42))
     for batch in range(batches):
         folder = output/str(batch); folder.mkdir()
         subset = [row for row in rows if row['case'] % batches == batch]

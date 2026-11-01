@@ -8,8 +8,6 @@ class FragmentRepair {
     const Target& target;
     std::vector<Pair> active_cuts;
     size_t budget, resident=0, peak_resident=0;
-    bool existence;
-    std::unique_ptr<ExtensionCache> extensions;
     struct Entry {
         std::string key;
         GrowResult result;
@@ -49,7 +47,7 @@ class FragmentRepair {
         size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)
             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();
         out+=e.result.isos.capacity()*sizeof(IsoOut)
-            +e.result.profile.result.capacity()+1+e.result.profile.growth_policy.capacity()+1
+            +e.result.profile.result.capacity()+1
             +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);
         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})
             out+=v->capacity()*sizeof(Pair);
@@ -111,7 +109,7 @@ class FragmentRepair {
 public:
     py::bytes snapshot_context() const {
         fragment_cache_io::Writer out;
-        out(std::string("mappa.fragment-cache/1"),uint64_t(sizeof(long)),existence);
+        out(std::string("mappa.fragment-cache/2"),uint64_t(sizeof(long)));
         for (const Graph* g:{static_cast<const Graph*>(&base),static_cast<const Graph*>(&target)})
             // Element codes are process-local interned IDs; names are portable.
             out(g->n,g->elem,g->adj,g->edge,g->w,g->bond_cut,g->bond_tolerances,g->tolerance_inclusive);
@@ -156,16 +154,10 @@ public:
         }
         return std::any_of(lru.begin(),lru.end(),[](const Entry& e){return !e.in_snapshot;});
     }
-    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,
-                   const std::string& growth_policy="existence")
-        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),
-         existence(existence_policy(growth_policy)) {
+    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes)
+        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes) {
         base.reads=nullptr;active_source.reads=nullptr;
-        if (existence && extension_bytes)
-            throw std::invalid_argument("existence growth does not support a candidate extension cache");
-        if (extension_bytes) extensions=std::make_unique<ExtensionCache>(extension_bytes);
     }
-    bool uses_existence() const { return existence; }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
                     const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
@@ -225,17 +217,17 @@ public:
             } else {
                 Entry entry(base.n);
                 // Complete-result reuse needs dependency reads, not candidate
-                // checkpoints. Both growth policies record these same inputs.
+                // checkpoints. Dependency reads cover growth and exact completion.
                 SourceReads reads(base.n);
                 entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,nullptr,nullptr,-1,
-                    &entry.dependencies,extensions.get(),random_seed,nullptr,existence,&reads);
+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,random_seed,
+                    nullptr,&entry.dependencies,&reads);
                 entry.key=std::move(key);entry.mapping=mapping;
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);
-                for (int r=0;r<base.n;++r) entry.row_reads[r]=(reads.rows[r]!=-2);
+                for (int r=0;r<base.n;++r) entry.row_reads[r]=reads.rows[r];
                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)
-                    if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b]!=-2)
+                    if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b])
                         entry.pair_reads.push_back({a,b});
                 entry.bytes=entry_bytes(entry);
                 if (entry.bytes>budget) {
@@ -269,7 +261,7 @@ public:
     }
     py::dict stats() const {
         py::dict out;
-        out["calls"]=calls;out["full_hits"]=hits;out["prefix_hits"]=0;
+        out["calls"]=calls;out["full_hits"]=hits;
         out["history_hits"]=history_hits;out["topology_hits"]=topology_hits;out["boundary_rebases"]=boundary_rebases;
         out["dependency_checks"]=checks;out["mapping_misses"]=mapping_misses;out["island_misses"]=island_misses;
         out["topology_misses"]=topology_misses;out["boundary_misses"]=boundary_misses;
@@ -278,19 +270,14 @@ public:
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
         out["revision"]=revision;
-        if (extensions) out.attr("update")(extensions->stats());
         return out;
     }
 };
 
 void register_fragment_repair(py::module_& mod) {
     py::class_<FragmentRepair>(mod,"FragmentRepair")
-        .def(py::init<const PySource&,const PyTarget&,size_t,size_t,const std::string&>(),
-            py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::arg("extension_cache_bytes")=0,
-            py::arg("growth_policy")="existence",py::keep_alive<1,3>())
-        .def_property_readonly("growth_policy",[](const FragmentRepair& cache) {
-            return cache.uses_existence() ? "existence" : "incremental";
-        })
+        .def(py::init<const PySource&,const PyTarget&,size_t>(),
+            py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::keep_alive<1,3>())
         .def("snapshot_context",&FragmentRepair::snapshot_context)
         .def("dump",&FragmentRepair::dump)
         .def("load",&FragmentRepair::load)

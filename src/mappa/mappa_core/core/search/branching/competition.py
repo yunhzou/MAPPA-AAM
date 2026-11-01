@@ -266,7 +266,6 @@ def compete_fragments(a, config=None):
                         iso_tolerance=cfg.iso_tolerance,
                         branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,
                         allow_mapped_seed=False,
-                        growth_policy=cfg.growth_policy,
                     ),
                 )
                 offers_cache[key] = result
@@ -364,7 +363,6 @@ def compete_fragments(a, config=None):
                     p_orbits=po,
                     cuts=effective_cuts,
                     anchor_map=anchors,
-                    growth_policy=cfg.growth_policy,
                 )
                 graph, _ = finalize_graph_symmetry(
                     graph,

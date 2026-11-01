@@ -1,6 +1,8 @@
 # Bounded result reuse for existence growth
 
-Both growth policies now use the existing complete-fragment result cache in
+Historical experiment. The comparison modes and scripts were removed from the current checkout on 2026-11-01; reproduce these commands at their recorded Git revision.
+
+At this revision, both growth policies used the existing complete-fragment result cache in
 native reused execution. This removes the experimental bypass measured in
 [the earlier large-case report](large-case.md). The growth, compression, branch
 admission and hierarchy-cap rules are unchanged.
@@ -83,7 +85,7 @@ universal memory bound for all reactions.
 
 Build the current native engine with the project Python environment. Set
 `PYTHONPATH=src`, `MAPPA_NATIVE=1`, `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`
-and `MKL_NUM_THREADS=1`. Use [replay_cut.py](replay_cut.py):
+and `MKL_NUM_THREADS=1`. Use [archived replay script](https://github.com/yunhzou/MAPPA-AAM/blob/e9e97f255e8d0f5b1695a2ace858ecc6948e84a6/reports/fragment_growth_20261031/replay_cut.py):
 
 ```sh
 python reports/fragment_growth_20261031/replay_cut.py \

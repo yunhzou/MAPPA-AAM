@@ -16,12 +16,11 @@ from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
 
 def cut_sessions(problem, config):
     condition = AdaptiveSearchCondition.uncut(problem, config)
-    repair = FragmentRepair(condition.source, condition.target, condition.orbits,
-                            growth_policy=config.growth_policy)
+    repair = FragmentRepair(condition.source, condition.target, condition.orbits)
     for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
         view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
         yield SharedSeedSearch(problem, config, condition=replace(condition,
-            source=view.source, cuts=tuple(cut), growth_replay=view))
+            source=view.source, cuts=tuple(cut), fragment_cache=view))
 
 
 def state_key(state):
@@ -39,15 +38,14 @@ def contents(graph):
 
 
 @pytest.mark.parametrize('execution', ['reference', 'reused_native', 'shared_policies'])
-def test_growth_policy_preserves_full_session_results(execution):
+def test_cached_session_preserves_fresh_results(execution):
     from native_cases import chain_problem
     from mappa.mappa_core.core.search.session import SearchSession
     problem=chain_problem(6)
     config=AAMSearchConfig(seed_count=3,branch_limit=4)
-    baseline=SearchSession(problem,config,execution)
-    selected=SearchSession(problem,replace(config,growth_policy='existence'),execution)
+    selected=SearchSession(problem,config,execution)
     for cut in ((),((1,2),),((3,4),),()):
-        expected,_=baseline.search_cut(cut)
+        expected,_=SearchSession(problem,config,execution).search_cut(cut)
         actual,_=selected.search_cut(cut)
         assert actual==expected
     if selected.repair is not None:
@@ -101,7 +99,7 @@ def test_shared_growth_cache_and_saved_snapshot_preserve_groups():
             pass
         assert prefix.aam.graph.to_record() == record
         plain = SharedSeedSearch(child.problem, child.config,
-            condition=replace(child.condition, growth_replay=None))
+            condition=replace(child.condition, fragment_cache=None))
         while plain.advance():
             pass
         assert plain.snapshot().aam.graph == child.snapshot().aam.graph

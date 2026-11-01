@@ -67,7 +67,7 @@ class FragmentMatchContext:
     deferred_edges: tuple = ()
     source_orbits: object = None
     target_orbits: object = None
-    growth_replay: object = None
+    fragment_cache: object = None
 
     @classmethod
     def from_saved_fragment(cls, fragment):
@@ -92,11 +92,6 @@ class FragmentMatchConfig:
     orbit_dedup: bool = True
     random_seed: int = 42
     bond_tolerance: BondTolerance | None = None
-    growth_policy: str = 'existence'
-
-    def __post_init__(self):
-        if self.growth_policy not in ('incremental', 'existence'):
-            raise ValueError("growth_policy must be 'incremental' or 'existence'")
 
 
 @dataclass(frozen=True)

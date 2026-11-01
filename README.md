@@ -355,8 +355,8 @@ source revisions are recorded with their benchmark reports; old implementations
 are not shipped as fallback copies. The [manuscript](manuscript) contains the paper
 and its reproducibility index.
 
-Direct search and work pools default to `existence` growth with `reused_native`
-execution. Native errors and unsupported inputs are reported without switching
+Fragment growth uses one witness followed by exact compressed completion, without
+a mode selector. Direct search and work pools default to `reused_native` execution. Native errors and unsupported inputs are reported without switching
 implementations. Python comparison runs explicitly select `MAPPA_NATIVE=0` and
 `execution='reference'`. The shared reaction cache retains its permanent first
 snapshot for recovery, as specified in its storage design.

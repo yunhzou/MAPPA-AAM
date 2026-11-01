@@ -9,7 +9,7 @@ from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
 from mappa.mappa_core.core.search.branching.native import find_islands_native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
-from test_cut_replay import graph
+from growth_cases import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
 
@@ -130,20 +130,18 @@ def test_nonidentity_atom_labels_and_final_groups():
     assert actual==expected
 
 
-@pytest.mark.parametrize('growth_policy', ['incremental', 'existence'])
-def test_native_scheduling_with_dependency_repair(growth_policy):
+def test_native_scheduling_with_dependency_repair():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
     orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits,growth_policy=growth_policy)
+    repair=FragmentRepair(source,target,orbits)
     for order in (list(source),list(reversed(list(source)))):
         for cut in ((),((0,1),),((2,7),)):
             view=repair.for_cut(cut)
             for cap in (1,3,100):
                 options=dict(p_orbits=orbits,cuts=cut,max_branches=cap)
                 expected=find_islands(view.source,target,order,**options)
-                actual=find_islands_native(view.source,target,order,growth_replay=view,
-                                           growth_policy=growth_policy,**options)
+                actual=find_islands_native(view.source,target,order,fragment_cache=view,**options)
                 assert actual==expected
 
 

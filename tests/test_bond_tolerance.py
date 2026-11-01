@@ -123,25 +123,24 @@ def test_noncontiguous_atom_indices(backend):
     assert {tuple(sorted(m.fragment)) for m in result.matches} == {(4, 6)}
 
 
-def test_cut_replay_keeps_its_conditional_policy(monkeypatch):
-    from mappa.mappa_core.core.search.branching.reuse import CutReplay
+def test_fragment_cache_keeps_its_conditional_policy(monkeypatch):
+    from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
     monkeypatch.setenv('MAPPA_NATIVE', '1')
     assert native.built()
     source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])
     target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
     policy = BondTolerance(event_threshold, inclusive=False)
     po = _nauty_orbits(target, wbo_tol=.5)
-    session = CutReplay(source, target, po, bond_tolerance=policy)
+    session = FragmentRepair(source, target, po, bond_tolerance=policy)
     view = session.for_cut(())
-    config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy,
-                                growth_policy='incremental')
+    config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy)
     context = FragmentMatchContext(locked_mapping={1: 1}, islands={1: 0},
-                                   target_orbits=po, growth_replay=view)
+                                   target_orbits=po, fragment_cache=view)
     replayed = match_fragment(view.source, target, seed=1, context=context, config=config)
     assert replayed.matches == match(source, target, policy, anchor=1).matches
     with pytest.raises(ValueError, match='bond tolerances differ'):
         match_fragment(view.source, target, seed=1, context=context,
-                       config=FragmentMatchConfig(allow_mapped_seed=True, growth_policy='incremental'))
+                       config=FragmentMatchConfig(allow_mapped_seed=True))
 
 
 def test_trace_uses_conditional_thresholds(monkeypatch):

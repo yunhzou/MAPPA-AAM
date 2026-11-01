@@ -10,7 +10,7 @@ import pytest
 from mappa import AAMProblem,AAMSearchConfig,MolecularEndpoint,search_aam
 from mappa.mappa_core.utils.io.checkpoints import write_aam_checkpoint, read_aam_checkpoint
 from mappa.mappa_core.utils.io.records import aam_json
-from mappa.presentation.trajectory import build_trajectory, growth, extension
+from mappa.presentation.trajectory import build_trajectory, growth
 from mappa.presentation.viewers import growth_trace_html
 
 
@@ -28,16 +28,19 @@ def toy_archive(folder, suffix='', translation=0):
 
 def test_replay_uses_archive_config_and_preserves_inputs(tmp_path):
     archive=toy_archive(tmp_path);before=archive.read_bytes()
-    original=growth._extend_sym_cands,extension._dedupe_children
+    original=growth.extend_witness
     doc=build_trajectory([dict(archive=str(archive),context=0)])
     assert archive.read_bytes()==before
-    assert (growth._extend_sym_cands,extension._dedupe_children)==original
+    assert growth.extend_witness==original
     assert doc['runs'][0]['config']['iso_tolerance']==.1
     assert doc['runs'][0]['config']['graph_floor']==.4
     for path in doc['runs'][0]['paths']:
         assert path['complete'] and len(path['mapping'])==4
         assert path['events']==[]
         assert any(f['kind']=='commit' for f in path['frames'])
+        growth_frames=[f for f in path['frames'] if f.get('candidate_kind')=='witness']
+        assert growth_frames and all(len(f['candidates'])==1 for f in growth_frames)
+        assert all(f['candidate_kind']=='compressed_match' for f in path['frames'] if f['kind']=='seed_end')
         assert all(check['archived_fragment_matches']=='exact' for check in doc['checks'])
     html=growth_trace_html(doc)
     assert 'PR7' not in html and 'data-viewer-layout="growth_trace"' in html

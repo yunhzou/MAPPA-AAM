@@ -1,9 +1,11 @@
 # Previous large EnzymeMap case
 
+Historical experiment. The comparison modes and scripts were removed from the current checkout on 2026-11-01; reproduce these commands at their recorded Git revision.
+
 This is the **pre-cache integration** experiment at revision `30f0bc9`.
-Its diagnostic build commands require that revision. The current `replay_cut.py`
+Its diagnostic build commands require that revision. The later archived `replay_cut.py`
 uses the installed engine and bounded fragment-result caching for both policies.
-See [the cache integration report](cache-integration.md) for the current results.
+See [the cache integration report](cache-integration.md) for the subsequent results.
 
 EnzymeMap **10383 forward, cut 334**, the archived 4 GiB failure: 374 atoms
 per endpoint, cut `(131, 132)`, one original seed order, random seed 42,
@@ -63,7 +65,7 @@ No branch cap, certificate-cache limit or scientific constraint was changed.
 
 ## Test boundary and reproduction
 
-Source revision: `e9481be`. [replay_cut.py](replay_cut.py) builds a separate
+Source revision: `e9481be`. [archived replay script](https://github.com/yunhzou/MAPPA-AAM/blob/e9e97f255e8d0f5b1695a2ace858ecc6948e84a6/reports/fragment_growth_20261031/replay_cut.py) builds a separate
 diagnostic engine. It selects the existing growth policy at the native hierarchy's
 fragment call and adds counters. Branch admission, deduplication, hierarchy caps
 and native transport are unchanged. Incremental keeps its production replay

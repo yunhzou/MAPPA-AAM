@@ -9,39 +9,7 @@ from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.matching.representation.state import candidate_from_record
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
-from test_cut_replay import graph, raw
-
-
-@pytest.mark.parametrize('tol', [.5, 1.])
-@pytest.mark.parametrize('budget', [1, 2**20])
-def test_extension_cache_preserves_changes_in_cuts_locks_and_boundaries(tol, budget):
-    rng = np.random.default_rng(625018)
-    for trial in range(4):
-        elements = ['C'] * 6 + ['H'] * 4
-        edges = [(i, i+1, float(rng.choice([.8, 1.2, 1.8]))) for i in range(5)]
-        edges += [(0, 6, 1.), (2, 7, 1.), (4, 8, 1.), (4, 9, 1.)]
-        if trial % 2:
-            edges += [(0, 4, 1.)]
-        source = graph(10, edges, elements)
-        target = graph(10, edges[:-1] + [(1, 5, .8)], elements)
-        orbits = _nauty_orbits(target, wbo_tol=tol)
-        repair = FragmentRepair(source, target, orbits, cache_bytes=1,
-                                extension_cache_bytes=budget, growth_policy='incremental')
-        for _ in range(70):
-            mapping = [-1] * 10
-            locked = list(map(int, rng.choice(6, 3, replace=False)))
-            for a, b in zip(locked, rng.permutation([1, 3, 5])):
-                mapping[a] = int(b)
-            islands = [(r, 1+int(rng.integers(2))) for r in locked]
-            cut = () if rng.integers(3) == 0 else (edges[int(rng.integers(len(edges)))][:2],)
-            deferred = () if rng.integers(2) == 0 else (edges[int(rng.integers(len(edges)))][:2],)
-            seed = int(rng.integers(10))
-            options = dict(cap=int(rng.choice([1, 3, 100])), tol=tol, islands=islands, deferred=deferred)
-            expected = raw(source, target, orbits, seed, mapping, cut, **options)
-            assert raw(source, target, orbits, seed, mapping, cut, replay=repair, **options) == expected
-            assert raw(source, target, orbits, seed, mapping, cut, replay=repair, **options) == expected
-        if budget > 1:
-            assert repair.stats()['extension_hits'] > 0
+from growth_cases import graph, raw
 
 
 @pytest.mark.parametrize('tol', [.5, 1.])
@@ -49,16 +17,14 @@ def test_every_transition_and_ordered_generator_matches_reference(tol):
     source = graph(10, [(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8),(4,9)], ['C']*6+['H']*4)
     target = graph(10, [(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8),(5,9)], ['C']*6+['H']*4)
     orbits = _nauty_orbits(target, wbo_tol=tol)
-    repair = FragmentRepair(source, target, orbits, extension_cache_bytes=2**20,
-                            growth_policy='incremental')
+    repair = FragmentRepair(source, target, orbits)
     workspace = ConditionedSymmetryWorkspace(target, tol, cache_bytes=2**20)
     for order in (list(range(10)), list(reversed(range(10))), [4,2,6,0,1,3,5,7,8,9]):
         for cut in ((), ((2,3),), ((0,6),), ((0,1),)):
             view = repair.for_cut(cut)
-            opts = dict(cuts=cut, max_branches=100, p_orbits=orbits, iso_tol=tol,
-                        growth_policy='incremental')
+            opts = dict(cuts=cut, max_branches=100, p_orbits=orbits, iso_tol=tol)
             expected = find_islands(view.source, target, order, **opts)
-            actual = find_islands(view.source, target, order, growth_replay=view, **opts)
+            actual = find_islands(view.source, target, order, fragment_cache=view, **opts)
             expected, _ = finalize_graph_symmetry(expected, target, iso_tolerance=tol)
             actual, _ = finalize_graph_symmetry(actual, target, iso_tolerance=tol, workspace=workspace)
             assert actual == expected

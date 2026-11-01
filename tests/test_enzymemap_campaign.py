@@ -136,14 +136,13 @@ def test_fresh_batches_preserve_inputs_and_import_no_old_results(tmp_path):
     from prepare_batches import prepare_fresh
     index = prepared_index(tmp_path)
     data = json.loads(index.read_text())
-    data['config']['growth_policy'] = 'incremental'
     data['directions'] = [dict(row, case=case) for case in range(8)
                           for row in data['directions']]
     index.write_text(json.dumps(data))
     output = tmp_path/'fresh'
     manifest = prepare_fresh([index], output, workers=[3, 1])
     assert manifest['directions'] == 16
-    assert manifest['config']['growth_policy'] == 'existence'
+    assert 'growth_policy' not in manifest['config']
     assert manifest['reused_scientific_results'] == 0
     assert not list(output.rglob('*.sqlite'))
     assert not list(output.rglob('*.bundle'))

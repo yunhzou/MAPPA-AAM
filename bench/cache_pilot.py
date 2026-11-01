@@ -66,7 +66,7 @@ def run(indices, output, *, count=10, workers=8, local=False):
         raise ValueError('Pilot requires both directions for each distinct reaction')
     named = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}": row for row in rows}
     problems = {name: prepared_problem(row) for name,row in named.items()}
-    config = AAMSearchConfig(**{**manifests[0]['config'], 'growth_policy':'existence'})
+    config = AAMSearchConfig(**manifests[0]['config'])
     report = dict(job=os.environ.get('SLURM_JOB_ID'), code=code_identity(), config=asdict(config),
         reaction_ids=cases, directions=len(rows), inputs=rows,
         atoms={name:[len(p.reactant.elements),len(p.product.elements)] for name,p in problems.items()},

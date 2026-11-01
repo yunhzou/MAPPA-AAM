@@ -51,7 +51,7 @@ def _extend_sym_cands(
     node_policy=None,
     bond_tolerance=None,
 ) -> list[_SymCand]:
-    """Symmetry-compressed incremental extension.
+    """Exact compressed extension used to complete a proven fragment.
 
     This is the elementary one-atom fragment-matching step:
 

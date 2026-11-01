@@ -63,7 +63,6 @@ template<class IO, class T> void block(IO& io, T& v) { io(v.r,v.p,v.extendable);
 template<class IO> void fields(IO& io, Block& v) { block(io,v); }
 template<class IO> void fields(IO& io, const Block& v) { block(io,v); }
 template<class IO, class T> void candidate(IO& io, T& v) {
-    // extension_key is a lazily reconstructed optimization, not matching data.
     io(v.img,v.mapped,v.blocks,v.exact_fixed,v.mult,v.automorph);
 }
 template<class IO> void fields(IO& io, Cand& v) { candidate(io,v); }
@@ -72,7 +71,7 @@ template<class IO, class T> void iso(IO& io, T& v) { io(v.mapping,v.deferred_edg
 template<class IO> void fields(IO& io, IsoOut& v) { iso(io,v); }
 template<class IO> void fields(IO& io, const IsoOut& v) { iso(io,v); }
 template<class IO, class T> void profile(IO& io, T& v) {
-    io(v.growth_policy,v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
+    io(v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
        v.completion_steps,v.completion_queries,v.completion_pruned,v.completion_seconds,
        v.seed_targets,v.seed_groups,v.init_cands,v.initial_heap,v.heap_pops,v.stale_pops,
        v.fragment_skip_pops,v.extend_calls,v.max_cands_before,v.max_cands_after,
