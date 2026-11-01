@@ -58,3 +58,16 @@ bundles intact and sets `MAPPA_BUNDLE_ROOTS` for original NRT references. Inputs
 and results are verified by their original checksums when read. Matching runs
 with `--stop-after matching`; downstream submissions depend on the entire array
 completing successfully.
+
+## Golden with the same work pool
+
+`golden.py` verifies and aggregates all 1,851 archived Golden inputs, prepares
+endpoint-symmetry generators for verification, and partitions both directions
+by reaction ID. It uses the same campaign runner and public MAPPA stages.
+Golden's complete heavy-atom relation, including unmatched atoms and chemical
+endpoint symmetries, is an explicit verification policy in its input manifest.
+`golden-dfw.sbatch` requests five disjoint 100-worker pools at 2 GiB per worker.
+Submit matching with `--stop-after matching`, then resume the ledgers with
+`--resume` under an `afterok` dependency on the entire matching array.
+Set `MAPPA_GOLDEN_ROOT` to the prepared DFW directory and, when relocating inputs,
+`MAPPA_GOLDEN_INPUT_ROOT` to the original prepared directory.

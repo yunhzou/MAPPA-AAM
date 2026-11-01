@@ -21,6 +21,8 @@ from mappa.mappa_core.utils.io.records import problem_from_record
 
 
 def prepared_problem(row):
+    if 'input' in row:
+        return problem_from_record(read_blob(Blob(**row['input']), None))
     # The preparation index points to a saved task list. Only its endpoint-input
     # reference is read; none of those retired task operations is executed.
     preparation = read_blob(Blob(**row['blob']), None)
@@ -101,13 +103,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
     raw = Path(index_path).read_bytes()
     index = json.loads(raw)
     config = AAMSearchConfig(**index['config'])
+    verification = index.get('verification', 'enzymemap:verify')
+    reference_policy = index.get('reference_policy',
+        'exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
     rows = [row for row in index['directions'] if limit is None or row['case'] < limit]
     identities = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}" for row in rows}
     if len(identities) != len(rows):
         raise ValueError('Duplicate reaction/direction inputs')
     requested = dict(input_index=str(Path(index_path).resolve()), input_index_sha256=hashlib.sha256(raw).hexdigest(),
         config=asdict(config), cases=len({r['case'] for r in rows}), directions=len(rows),
-        reference_policy='exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
+        reference_policy=reference_policy)
     requested = json.loads(json.dumps(requested))
     plan = output/'plan.json'
     if resume:
@@ -194,7 +199,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                     key = f'{uuid.uuid4().hex}/{name}/verification'
                                     payload = dict(catalogue=Blob(**json.loads(catalogue[1])),
                                         reference=Blob(**row['reference']), reversed=row['reversed'])
-                                    pool.queue.add([Task(key,'enzymemap:verify',payload,case=key,
+                                    pool.queue.add([Task(key,verification,payload,case=key,
                                                         case_seconds=case_seconds,memory_bytes=memory_bytes)])
                                     result = StageResults(stage,store,pool=pool,tasks={name:(key,)})
                             active[name] = result
