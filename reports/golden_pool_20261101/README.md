@@ -21,6 +21,9 @@ job 21135465, reproduced the failure: 1,752,473,600 bytes during computation and
 2,169,737,216 bytes during publication. Both guards remained 2,147,483,648 bytes.
 This isolates the failure to publication even without earlier tasks in the worker;
 it does not identify which serialization allocation caused the increase.
+The subsequent [Mac memory diagnostic](decoder-memory.md) traces the retained
+family tables, million bond-term records and serializer bookkeeping responsible
+for the large footprint.
 
 The normal runner stopped batch 1 before verification because of that failure.
 Job 21135583 completed its reference queries independently from the saved complete
