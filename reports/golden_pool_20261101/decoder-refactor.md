@@ -188,3 +188,23 @@ Evidence: [normalized complete-record comparison](decoder-composition-digest.jso
 and [publication measurement](decoder-composition-publication.jsonl). Reproduce
 the comparison with `profile_decoder.py --timings --compare-record` and the trusted
 single-blob v3 baseline; the default command measures binary serialization.
+
+### DFW v4 publication check
+
+Job **21137870** ran the committed change `f9a8d8bfd92ab13c856decb8f18ca2cda6917b57`
+on DFW `cpu_short`, reusing the complete saved catalogue. The allocation held two
+CPUs and 4 GiB for one compute worker plus its coordinator; the worker retained
+its **2 GiB guard**. No Golden ledger or completed stage artifact was replaced.
+
+The task completed in **22.67 s**: 21.48 s computation and 1.19 s publication.
+Process-reported peak RSS was **0.948 GiB**; the 0.2-second sampler observed
+0.747 GiB during computation and 0.885 GiB during publication. The previous v3
+task took 96.08 s, but ran on a different node. This checks actual pool execution
+and publication, not multi-node scaling. Allocation elapsed time was 30 seconds.
+
+The published 3,001,921-byte blob passed its checksum and was loaded on Mac.
+Its entire expanded v4 record has the same SHA256 above, confirming the
+cross-machine binary round trip and equality of every retained v3 field.
+[Launch](composition-decoder-launch.json) and
+[completion, resource metrics and persisted-record comparison](decoder-composition-completion.json)
+retain the source revision and exact artifact references.
