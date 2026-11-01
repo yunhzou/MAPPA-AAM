@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from .records import EventDecodeConfig, EventInterpretation, SymmetryEventResponse
 from .events import SignedEventIndex
+from .fragments import FragmentInventory, FragmentDecoder
 from ..final_branches import FinalBranchCatalogue
 
 
@@ -32,6 +33,7 @@ class EventDecodeSession:
     def decode(self, catalogue):
         if catalogue.problem_sha256 != self.problem_sha256:
             raise ValueError('Catalogue belongs to different endpoints')
+        inventory = FragmentInventory(catalogue)
         families = []
         for family in catalogue.families:
             responses = []
@@ -55,4 +57,5 @@ class EventDecodeSession:
                 self.actions.move_to_end(action)
                 responses.append(self.actions[action])
             families.append(tuple(responses))
-        return EventInterpretation(catalogue, self.index, tuple(families))
+        return EventInterpretation(catalogue, self.index, tuple(families),
+                                   inventory, FragmentDecoder(self.index, inventory))

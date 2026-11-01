@@ -179,15 +179,16 @@ The video illustrates an O–H → N–H transfer in a 57-atom guess. The select
 The main Python workflow keeps search and event decoding separate:
 
 ```text
-search_aam -> AAMResult -> decode_events -> EventInterpretation
-                                          |- unique event candidates
-                                          |- witness mappings
-                                          `- symmetry and shuffle queries
+search_aam -> deduplicate -> decode_events -> EventInterpretation
+                            |               |- shared fragment/boundary responses
+                            |               |- original mapping choices
+                            |               `- requested event counts and queries
+                            `- collect all unique fragments first
 ```
 
 TS analysis consumes an explicit `ReactionContext`. It is not run automatically by AAM or event decoding.
 
-The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding groups distinct fragment pairs with their direct anchors, rematches them at the event thresholds, and recombines the resulting compressed branches. It counts the bond differences of these branches and groups equal event classes. You can inspect a candidate's witness, ask which shuffles are allowed, or replay the search that produced it.
+The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding first collects all unique saved fragments, shares their internal event responses, and adds boundary relationships to compose each branch's results. It preserves the original mapping choices and constraints. You can inspect a witness, evaluate a valid joint choice, or replay the search that produced it. Hierarchical rematching is a separate experimental operation.
 
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 

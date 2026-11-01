@@ -7,6 +7,7 @@ from functools import cached_property
 import numpy as np
 if TYPE_CHECKING:
     from .events import SignedEventIndex
+    from .fragments import FragmentInventory, FragmentDecoder
     from ..final_branches import FinalBranchCatalogue
 
 @dataclass(frozen=True)
@@ -50,7 +51,7 @@ class BondEventResponse:
         return self.categories[np.searchsorted(self.target_weights, weights)]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class BondEventTerm:
     atoms: tuple[int, int]
     action_ids: tuple[int, ...]
@@ -61,7 +62,7 @@ class BondEventTerm:
     endpoint_case: str
     manual_cut: bool
 
-    @cached_property
+    @property
     def target_pairs(self):
         """Materialize only this endpoint relation when explicitly inspected."""
         return self.index.endpoint_pairs(self.initial_pair, self.projected_actions)
@@ -78,18 +79,13 @@ class EventInterpretation:
     catalogue: FinalBranchCatalogue
     index: SignedEventIndex
     family_actions: tuple[tuple[SymmetryEventResponse, ...], ...]
+    inventory: FragmentInventory
+    local: FragmentDecoder
     _tables: dict = field(default_factory=dict, repr=False)
 
-    @cached_property
+    @property
     def fragment_partitions(self):
-        partitions = [set() for _ in self.catalogue.families]
-        for (_, pairs), ids in self.catalogue.branches.items():
-            for fid in ids:
-                partitions[fid].add(tuple(sorted(tuple(sorted(rs)) for rs, _ in pairs)))
-        for fid, alternatives in self.catalogue.coupled_branches.items():
-            for pairs in alternatives:
-                partitions[fid].add(tuple(sorted(tuple(sorted(rs)) for rs, _ in pairs)))
-        return tuple(tuple(sorted(parts)) for parts in partitions)
+        return self.inventory.partitions
 
     def tables(self, family_id, partition=0):
         """Prepare one saved partition lazily; share bond responses across branches."""
@@ -100,8 +96,8 @@ class EventInterpretation:
                                   for pair in origin.get('cuts', ())}))
         key = family.mapping, family.actions, family.required_edges, fragments, cut_bonds
         if key not in self._tables:
-            self._tables[key] = FragmentEventTables(self.index,
-                family, fragments, cut_bonds)
+            self._tables[key] = FragmentEventTables(self.local,
+                family, self.inventory.uses[family_id][partition], cut_bonds)
         return self._tables[key]
 
     def contributions(self, family_id, choices=None, *, partition=0, include_events=False):

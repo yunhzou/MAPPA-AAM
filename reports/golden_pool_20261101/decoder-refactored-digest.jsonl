@@ -1,0 +1,23 @@
+{"stage": "catalogue_loaded", "seconds": 0.3049819159787148, "rss_bytes": 215498752, "families": 14132, "branches": 11899, "cuts": 192}
+{"stage": "session_ready", "seconds": 0.3056414579041302, "rss_bytes": 215678976}
+{"stage": "actions_ready", "seconds": 0.7041884160134941, "rss_bytes": 236797952}
+{"stage": "building_record", "seconds": 1.4101229158695787, "rss_bytes": 263569408, "family": 1000, "tables": 1000}
+{"stage": "building_record", "seconds": 2.0708326250314713, "rss_bytes": 303448064, "family": 2000, "tables": 2000}
+{"stage": "building_record", "seconds": 2.6704015829600394, "rss_bytes": 342032384, "family": 3000, "tables": 3000}
+{"stage": "building_record", "seconds": 3.4059316660277545, "rss_bytes": 385155072, "family": 4000, "tables": 4000}
+{"stage": "building_record", "seconds": 3.976791915949434, "rss_bytes": 426442752, "family": 5000, "tables": 5000}
+{"stage": "building_record", "seconds": 4.717072415864095, "rss_bytes": 473874432, "family": 6000, "tables": 6000}
+{"stage": "building_record", "seconds": 5.413088541012257, "rss_bytes": 515981312, "family": 7000, "tables": 7000}
+{"stage": "building_record", "seconds": 6.037002332974225, "rss_bytes": 560021504, "family": 8000, "tables": 8000}
+{"stage": "building_record", "seconds": 6.763802124885842, "rss_bytes": 600686592, "family": 9000, "tables": 9000}
+{"stage": "building_record", "seconds": 7.367637916002423, "rss_bytes": 641761280, "family": 10000, "tables": 10000}
+{"stage": "building_record", "seconds": 8.073610165854916, "rss_bytes": 683556864, "family": 11000, "tables": 11000}
+{"stage": "building_record", "seconds": 8.676062957849354, "rss_bytes": 728006656, "family": 12000, "tables": 12000}
+{"stage": "building_record", "seconds": 9.424628749955446, "rss_bytes": 768163840, "family": 13000, "tables": 13000}
+{"stage": "building_record", "seconds": 9.992057582829148, "rss_bytes": 809811968, "family": 14000, "tables": 14000}
+{"stage": "record_built_with_live_tables", "seconds": 43.112984125036746, "rss_bytes": 1016954880, "tables": 14132, "responses": 13}
+{"stage": "operation_returned", "seconds": 43.16928504104726, "rss_bytes": 1008615424}
+{"stage": "record_shape", "seconds": 43.26309858285822, "rss_bytes": 1008615424, "terms": 1006967, "term_dictionary_bytes_excluding_values": 273895024, "domain_entries": 1512124, "projected_pair_states": 344944}
+{"stage": "shared_record_shape", "seconds": 43.386963832890615, "rss_bytes": 1008615424, "unique_term_records": 13342, "unique_term_dictionary_bytes_excluding_values": 3629024}
+{"stage": "record_digest", "seconds": 61.271921374835074, "rss_bytes": 1008615424, "sha256": "f415b641434ac0bf5e1a5211c43260731f0f75273bffd66de1e71b7bb1e9dfa3"}
+{"stage": "guard", "memory_bytes": 2147483648, "peak_rss_bytes": 1016954880, "exit_code": 0}

@@ -3,8 +3,7 @@
 This document defines the scientific stages and their execution boundaries.
 It replaces the previous mixed descriptions of event interpretation and
 hierarchical rematching. Historical designs remain in Git. The scientific
-contracts below define the required behavior. The decoder and benchmark sections
-distinguish the approved workflow from remaining implementation work.
+contracts below define the required behavior and the implemented stage boundaries.
 
 ## Scientific pipeline
 
@@ -445,13 +444,27 @@ flowchart LR
     Uses --> Compose
 ```
 
-**Implementation status:** this explicit inventory-first stage is not yet
-implemented in the benchmark decoder. Its current `EventInterpretation.tables()`
-builds and retains tables keyed by complete family contexts, and the exporter
-requests every family table. Local bond-response sharing inside that code does
-not satisfy the required acquisition and reuse of unique fragments first. The
-current APIs and mathematical constraints are described below; that storage/work
-organization must not be presented as the completed design.
+`EventDecodeSession.decode()` completes `FragmentInventory` before calculating
+any action/event responses. The inventory interns reactant/product atom-set pairs
+and records every family's alternative partitions as references. It includes
+coupled-branch partitions. The original catalogue retains all matching policies,
+constraints, correlated choices and provenance.
+
+`FragmentDecoder` owns shared local results. A `FragmentResponse` is reused only
+when the structural fragment, local witness, ordered relevant actions and internal
+cut annotations agree. Local action positions are bound back to each family's
+original action positions. An action shared by two fragments remains one choice;
+sharing a fragment cannot introduce independent symmetry choices. Boundary terms
+are shared by their exact endpoint/action context. These results belong to one
+interpretation and are released with it; they are not persistent worker caches.
+
+`EventInterpretation.tables()` assembles a family/partition view from these shared
+internal terms and its boundary relationships. Required-edge checks, dependencies
+and target occupancy remain attached to the original family. The exporter also
+shares repeated term records and lists, so binary publication preserves the
+sharing instead of materializing a separate dictionary per occurrence. The v3
+record's complete values and ordering remain unchanged; explicit JSON export
+expands references into the same values.
 
 ### Current interpretation API and scientific constraints
 
@@ -462,12 +475,13 @@ claim an exhaustive list of event patterns.
 
 `EventDecodeSession` prepares the original endpoint event index for a fixed
 reaction and event policy. It reuses bounded action-response and endpoint caches.
-`EventInterpretation` retains the catalogue, action annotations and lazily built
-tables for each family's saved fragment partition.
+`EventInterpretation` retains the catalogue, complete fragment inventory, action
+annotations, shared local results and lazily assembled family/partition views.
 
 The event computation is local:
 
-1. Build response terms for bonds **within each saved fragment**.
+1. Collect every unique saved fragment, then build its internal response terms
+   once per exact local context when needed.
 2. Build response terms **between fragments** and across mapped/unmapped boundaries.
 3. Share equivalent bond-response tables and accumulate constant contributions.
 4. For a requested valid joint choice, look up variable responses and sum each
@@ -563,8 +577,8 @@ collection of graphs in RAM. Each decoding job identifies:
 | Event configuration | Ordinary and metal thresholds, independent of the search tolerance. |
 | Integrity and version metadata | Input/artifact hashes, source revision and scientific settings. |
 
-A decoder loads the assigned reaction/direction catalogue, computes its local
-tables and saves the decoded record. It releases catalogue-specific graphs,
+A decoder loads the assigned reaction/direction catalogue, collects its unique
+fragments, computes shared local tables and saves the decoded record. It releases catalogue-specific graphs,
 tables and output after publication. Prepared endpoint state and bounded caches
 may be reused while processing the same reaction and policy. Switching reactions
 clears derived state; changing event policy replaces the decoder.

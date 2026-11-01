@@ -1,5 +1,8 @@
 # Golden 1561 forward: decoder memory
 
+This is the pre-refactor diagnosis. The implemented correction and comparison
+are recorded in [decoder-refactor.md](decoder-refactor.md).
+
 The Mac replay reproduced the publication failure under a 2 GiB process guard.
 The dominant growth occurs while materializing all family event tables and their
 plain output records. Serialization then adds enough memory to cross the guard.

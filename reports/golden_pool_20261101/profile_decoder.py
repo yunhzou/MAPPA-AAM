@@ -1,6 +1,7 @@
 """Measure saved-catalogue decoding and pickle memory without changing either."""
 import argparse
 import gzip
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,7 @@ import time
 import psutil
 
 
-def profile(bundle, source):
+def profile(bundle, source, digest_only=False):
     from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
     from mappa.mappa_core.core.scheduler.results import DecodingResult
     from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
@@ -66,6 +67,19 @@ def profile(bundle, source):
     sample('record_shape', terms=terms, term_dictionary_bytes_excluding_values=term_dict_bytes,
            domain_entries=domain_entries,
            projected_pair_states=sum(t['statistics']['projected_pair_states'] for t in output.record['tables']))
+    unique_terms = {id(term): sys.getsizeof(term) for t in output.record['tables']
+                    for kind in ('internal', 'boundary')
+                    for region in t[kind] for term in region['terms']}
+    sample('shared_record_shape', unique_term_records=len(unique_terms),
+           unique_term_dictionary_bytes_excluding_values=sum(unique_terms.values()))
+    del unique_terms
+
+    if digest_only:
+        digest = hashlib.sha256()
+        for block in json.JSONEncoder(sort_keys=True, separators=(',', ':'), default=float).iterencode(output.record):
+            digest.update(block.encode())
+        sample('record_digest', sha256=digest.hexdigest())
+        return
 
     class ObservedStream:
         def __init__(self, stream):
@@ -94,11 +108,14 @@ def main():
     parser.add_argument('source', type=Path)
     parser.add_argument('--child', action='store_true')
     parser.add_argument('--memory-gib', type=float, default=2.)
+    parser.add_argument('--digest-only', action='store_true')
     args = parser.parse_args()
     if args.child:
-        profile(args.bundle, args.source)
+        profile(args.bundle, args.source, args.digest_only)
         return
     command = [sys.executable, __file__, str(args.bundle), str(args.source), '--child']
+    if args.digest_only:
+        command.append('--digest-only')
     child = subprocess.Popen(command, env={**os.environ, 'OMP_NUM_THREADS': '1',
                               'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1'})
     process = psutil.Process(child.pid)

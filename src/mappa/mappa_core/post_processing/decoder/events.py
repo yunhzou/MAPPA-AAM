@@ -548,13 +548,14 @@ class FragmentEventTables:
     are accumulated once; variable internal and cut-boundary terms retain their
     original action IDs. Evaluation checks complete choices before lookup.
     """
-    def __init__(self, index, family, fragments, cut_bonds=()):
-        from .records import BondEventTerm
-        self.index, self.fragments = index, fragments
+    def __init__(self, local, family, fragments, cut_bonds=()):
+        index = local.index
+        self.index = index
+        self.fragments = tuple(fragment.reactant for fragment in fragments)
         self.cut_bonds = frozenset(cut_bonds)
-        owners = {a: i for i, atoms in enumerate(fragments) for a in atoms}
+        owners = {a: i for i, atoms in enumerate(self.fragments) for a in atoms}
         mapping = dict(family.mapping)
-        if len(owners) != sum(map(len, fragments)) or set(owners) != set(mapping):
+        if len(owners) != sum(map(len, self.fragments)) or set(owners) != set(mapping):
             raise ValueError('saved fragments must partition the mapped source atoms')
         self.owners = np.array([owners.get(a, -1) for a in range(index.n)], dtype=int)
         domains = {a: frozenset((p,)) for a, p in family.mapping}
@@ -568,9 +569,18 @@ class FragmentEventTables:
         self.atom_domains = {a: tuple(sorted(ds)) for a, ds in domains.items()}
         self.atom_actions = {a: tuple(sorted(ids)) for a, ids in dependencies.items()}
         self.internal, self.boundary = {}, {}
+        self.fragment_responses = tuple(local.fragment(fragment, mapping, family.actions,
+            self.atom_domains, self.atom_actions, self.cut_bonds) for fragment in fragments)
+        # A branch binds shared local action positions to its original program.
+        # Only these bindings and boundary relationships belong to the branch.
+        for owner, (response, binding) in enumerate(self.fragment_responses):
+            self.atom_domains.update(response.atom_domains)
+            if response.terms:
+                self.internal[owner] = tuple(local.bind(term, binding) for term in response.terms)
         groups = defaultdict(list)
         self._constant = Counter()
-        self.projected_pair_states = 0
+        self.projected_pair_states = sum(response.projected_pair_states
+                                         for response, _ in self.fragment_responses)
         # Internal and boundary work follows original bond neighborhoods.
         # A manual cut adds only its own endpoints, even for a zero-event cut.
         pairs = index.neighboring_pairs(self.atom_domains)
@@ -578,38 +588,31 @@ class FragmentEventTables:
         self.neighboring_pair_count = len(pairs)
         action_sequences = {}
         for a, b in sorted(pairs):
-            tau = bond_event_threshold(index.elements, a, b,
-                default_threshold=index.threshold, metal_threshold=index.metal_threshold)
-            manual_cut = (a, b) in self.cut_bonds
-            response = index._domain_response(index.r[a, b], tau,
-                self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,)))
-            if response.constant == 0 and not manual_cut:
+            left, right = int(self.owners[a]), int(self.owners[b])
+            if left == right:
                 continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
             action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
             if action_ids not in action_sequences:
                 action_sequences[action_ids] = _ActionSequence(family.actions[i] for i in action_ids)
             actions = action_sequences[action_ids]
-            response, projected = index._refine_event_response(index.r[a, b], tau, pair, actions, response)
+            term, projected = local.bond((int(a), int(b)), pair, actions,
+                (self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,))),
+                action_ids, (a, b) in self.cut_bonds)
             self.projected_pair_states += projected
-            if response.constant == 0 and not manual_cut:
-                continue
-            left, right = int(self.owners[a]), int(self.owners[b])
-            region = tuple(sorted((left, right)))
-            moving = sum(len(self.atom_domains.get(atom, (-1,))) > 1 for atom in (a,b))
-            term = BondEventTerm((int(a), int(b)),
-                action_ids, response,
-                pair, actions, index,
-                ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
-            collection = self.internal if left == right else self.boundary
-            key = left if left == right else region
-            collection.setdefault(key, []).append(term)
-            if response.constant is None:
-                groups[response].append((int(a), int(b), region))
-            else:
-                self._constant[region, response.constant] += 1
-        self.internal = {key: tuple(terms) for key, terms in self.internal.items()}
+            if term is not None:
+                self.boundary.setdefault(tuple(sorted((left, right))), []).append(term)
+        # Preserve the public record order of the original sorted bond walk.
+        self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1][0].atoms))
         self.boundary = {key: tuple(terms) for key, terms in self.boundary.items()}
+        for terms in (*self.internal.values(), *self.boundary.values()):
+            for term in terms:
+                a, b = term.atoms
+                region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
+                if term.response.constant is None:
+                    groups[term.response].append((a, b, region))
+                else:
+                    self._constant[region, term.response.constant] += 1
         regions = sorted({region for terms in groups.values() for _,_,region in terms}
                          | {region for region, _ in self._constant})
         self._regions = tuple(regions)

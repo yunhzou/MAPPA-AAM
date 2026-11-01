@@ -281,6 +281,18 @@ rematching behavior. They do not replace this lossless interpretation.
 
 ## Local event contributions and sweep cuts
 
+`events = decode_events(catalogue)` first collects every unique saved fragment
+across the complete reaction/direction catalogue. `events.inventory.fragments`
+contains the reactant/product atom-set pairs; `events.inventory.uses[family_id]`
+contains their references for each saved partition. This collection happens before
+event-response work.
+
+Local internal responses are built lazily and reused when the fragment's mapping,
+ordered actions and cut annotations agree. Each branch binds those local actions
+back to its original choices and adds its boundary relationships. Sharing does
+not merge constraints or make choices independent. Binary exports retain shared
+term records; the complete v3 record values remain unchanged.
+
 `decode_events(aam).tables(family_id)` exposes internal and boundary bond
 terms. Each term retains `target_pairs`, original `action_ids`, `endpoint_case`
 (`fixed_fixed`, `fixed_shuffle`, or `shuffle_shuffle`) and `manual_cut` provenance.

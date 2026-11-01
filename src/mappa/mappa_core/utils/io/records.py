@@ -101,6 +101,7 @@ def decoded_events_record(result):
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, table_ids, responses, response_ids, families = [], {}, [], {}, []
+    term_records, term_lists = {}, {}
     def term_record(term):
         response = term.response
         if response not in response_ids:
@@ -108,9 +109,15 @@ def decoded_events_record(result):
             responses.append(dict(source_weight=response.source_weight,
                 threshold=response.threshold, target_weights=response.target_weights.tolist(),
                 categories=response.categories.tolist()))
-        return dict(atoms=term.atoms, action_ids=term.action_ids,
-            response=response_ids[response], initial_pair=term.initial_pair,
-            endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
+        if term not in term_records:
+            term_records[term] = dict(atoms=term.atoms, action_ids=term.action_ids,
+                response=response_ids[response], initial_pair=term.initial_pair,
+                endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
+        return term_records[term]
+    def terms_record(terms):
+        if terms not in term_lists:
+            term_lists[terms] = [term_record(term) for term in terms]
+        return term_lists[terms]
     for fid, partitions in enumerate(result.fragment_partitions):
         saved = []
         for partition in range(len(partitions)):
@@ -119,9 +126,9 @@ def decoded_events_record(result):
             if identity not in table_ids:
                 table_ids[identity] = len(tables)
                 tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
-                    internal=[dict(fragment=k, terms=[term_record(t) for t in v])
+                    internal=[dict(fragment=k, terms=terms_record(v))
                               for k,v in table.internal.items()],
-                    boundary=[dict(fragments=k, terms=[term_record(t) for t in v])
+                    boundary=[dict(fragments=k, terms=terms_record(v))
                               for k,v in table.boundary.items()],
                     product_boundary_pairs=table.product_boundary_pairs.tolist(),
                     atom_domains=table.atom_domains, atom_actions=table.atom_actions,
