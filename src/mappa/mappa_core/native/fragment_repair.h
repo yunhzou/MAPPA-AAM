@@ -200,8 +200,8 @@ public:
             // relation between candidates. Touched mapping values are checked.
             auto bucket=cache.find(key);
             auto chosen=lru.end();
-            if (bucket!=cache.end()) for (auto item:bucket->second)
-                if (valid(*item,mapping,islands,cuts,deferred)) {chosen=item;break;}
+            if (bucket!=cache.end()) for (auto item=bucket->second.rbegin();item!=bucket->second.rend();++item)
+                if (valid(**item,mapping,islands,cuts,deferred)) {chosen=*item;break;}
             if (chosen!=lru.end()) {
                 ++hits;
                 history_hits+=(chosen->mapping!=mapping || chosen->islands!=islands);

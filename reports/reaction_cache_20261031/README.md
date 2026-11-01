@@ -94,3 +94,17 @@ The final local implementation passed **729 tests in 52.46 seconds**. Its
 execution tests explicitly check that distinct reactions are assigned first,
 workers retain their current reaction, surplus workers still receive cuts,
 and first snapshots are exempt from the publication interval.
+
+The reaction-local pilot, **21133470**, completed all 1,842 graph comparisons and
+recovered all 20 references. Snapshot writes fell to 20, with 0.949 s loading and
+0.894 s saving summed across workers. RAM-only/shared matching measured
+8.443/5.318 wall seconds and 41.331/46.581 CPU seconds. The RAM-only pass had
+substantially higher output-publication delay (18.268 versus 9.478 summed worker
+seconds), so its wall-time difference cannot establish a cache speedup.
+See [dfw-pilot-locality.json](dfw-pilot-locality.json).
+
+One final lookup optimization checks recently inserted fragment entries before
+old cut conditions. The exact-result suite passed **731 tests in 55.30 seconds**;
+a targeted test verifies one dependency check per recent-cut hit after 18 distinct
+cuts. Cache metrics now expose dependency-check counts in addition to hits and
+I/O. The next pilot measures this final implementation on the unchanged scope.

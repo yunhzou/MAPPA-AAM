@@ -227,3 +227,18 @@ def test_snapshot_import_retains_local_answers_without_duplicate_entries(growth_
         assert raw(source,source,orbits,seed,[-1]*8,(),replay=local)==raw(source,source,orbits,seed,[-1]*8,())
     assert local.stats()['full_hits']==before+2
     assert not remote.loads(local.dumps())  # The union covers all its local answers.
+
+
+def test_recent_cut_hit_does_not_scan_older_cut_results(growth_policy):
+    source=graph(20,[(i,i+1) for i in range(19)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    cache=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    for edge in range(18):
+        raw(source,source,orbits,0,[-1]*20,((edge,edge+1),),replay=cache)
+    before=cache.stats()
+    for _ in range(10):
+        assert raw(source,source,orbits,0,[-1]*20,((17,18),),replay=cache)==raw(
+            source,source,orbits,0,[-1]*20,((17,18),))
+    after=cache.stats()
+    assert after['full_hits']-before['full_hits']==10
+    assert after['dependency_checks']-before['dependency_checks']==10

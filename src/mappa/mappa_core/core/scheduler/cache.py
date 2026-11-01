@@ -253,6 +253,7 @@ class WorkerCache:
         stats = self.repair.stats()
         self.metrics.update(fragment_calls=stats['calls']-self.before['calls'],
             fragment_hits=stats['full_hits']-self.before['full_hits'],
+            dependency_checks=stats['dependency_checks']-self.before['dependency_checks'],
             retained_bytes=stats['resident_bytes'], entries=stats['entries'])
         if self.descriptor is not None:
             missing = self.descriptor['direction'] not in self.descriptor['sections'] and stats['entries'] > 0

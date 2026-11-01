@@ -198,6 +198,9 @@ intermediate growth states. Existence completion and finalization remain unchang
 
 The default entry budget is **64 MiB per prepared search session**. Retention uses
 least-recently-used eviction. Accounting includes completed matches, preserved and
+Lookup checks recently inserted entries first within each conditional request key,
+avoiding a scan of older cut conditions before a recent-cut hit. Every candidate
+entry still passes the same dependency checks.
 deferred bonds, candidate pools, dependency arrays, vector capacity and estimated
 index overhead. An oversized result is returned normally without making a cache
 copy. Eviction or disabling retention never truncates matching or changes a branch
