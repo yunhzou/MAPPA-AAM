@@ -33,10 +33,11 @@ def normalize_provenance(record, cuts):
 
 @pytest.mark.parametrize('storage', ['ram', 'bundles'])
 @pytest.mark.parametrize('workers', [1, 2])
-def test_separate_stages_preserve_full_graph_catalogue_and_decoding(tmp_path, storage, workers):
+@pytest.mark.parametrize('growth_policy', ['incremental', 'existence'])
+def test_separate_stages_preserve_full_graph_catalogue_and_decoding(tmp_path, storage, workers, growth_policy):
     store = MemoryStore() if storage == 'ram' else BundleStore(tmp_path/'results')
     cases = {'forward': problem(), 'unbalanced': problem(5, 7)}
-    config = AAMSearchConfig(seed_count=3, branch_limit=4)
+    config = AAMSearchConfig(seed_count=3, branch_limit=4, growth_policy=growth_policy)
     with WorkPool.local(workers, store=store) as pool:
         assert len(pool.queue.ready_workers()) == workers
         assert pool.queue.snapshot() == {}

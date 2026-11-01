@@ -1507,6 +1507,12 @@ void finish_fragment(const Source& R, const Target& P, const std::vector<int>& m
 #include "growth_checkpoint.h"
 #include "growth_dependencies.h"
 
+bool existence_policy(const std::string& policy) {
+    if (policy!="incremental" && policy!="existence")
+        throw std::invalid_argument("growth_policy must be incremental or existence");
+    return policy=="existence";
+}
+
 GrowResult grow_island(const Source& R, const Target& P, int seed, const std::vector<int>& mapping,
                        double graph_floor, double iso_tol, int min_lock_size, long max_branches,
                        const std::vector<Pair>* islands, const std::vector<Pair>& prior_deferred,
@@ -1515,8 +1521,9 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        GrowthDependencies* dependencies = nullptr,
                        ExtensionCache* extension_cache = nullptr,
                        uint64_t random_seed = 42,
-                       GrowthObservation* observation = nullptr, bool existence = false) {
-    SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);
+                       GrowthObservation* observation = nullptr, bool existence = false,
+                       SourceReads* source_reads = nullptr) {
+    SourceReadScope dependency_scope(R, trace ? &trace->reads : source_reads);
     GrowResult result;
     GrowProfile& prof = result.profile;
     const int NR = R.n, NP = P.n;
@@ -1921,8 +1928,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
                           int min_lock_size, long max_branches, py::object islands_obj,
                           const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,
                           const std::string& growth_policy) {
-    if (growth_policy!="incremental" && growth_policy!="existence")
-        throw std::invalid_argument("growth_policy must be incremental or existence");
+    const bool existence=existence_policy(growth_policy);
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -1936,7 +1942,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
                           nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr,
-                          growth_policy=="existence");
+                          existence);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {

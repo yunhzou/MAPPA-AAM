@@ -106,7 +106,7 @@ unchanged. Identical growth output is never expanded into bijections.
                 growth_replay=self.condition.growth_replay),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
-                random_seed=self.config.random_seed),
+                random_seed=self.config.random_seed, growth_policy=self.config.growth_policy),
             profile=self.profile)
         if result.capped:
             self.builder.stop(branch, 'capped', stage='fragment_growth',

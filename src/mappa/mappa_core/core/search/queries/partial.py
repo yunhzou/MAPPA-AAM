@@ -57,6 +57,7 @@ def search_core_assignments(
             stop_when_core_mapped=True,
             p_orbits=target_orbits,
             r_orbits=source_orbits,
+            growth_policy=config.growth_policy,
         )
         capped += int(graph.capped)
         for raw in graph.paths():

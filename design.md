@@ -166,10 +166,44 @@ separate growth feasibility from final compressed reconstruction. The
 `feasibility_searches` count distinguishes a whole-fragment search from a cheap
 extension of the existing witness.
 
-Reaction search, work pools and candidate-based cut replay remain incremental.
-Existence growth rejects a supplied replay cache. Enabling it at reaction level
-requires compatible replay and whole-search validation, with the same exact-return
-contract. Scheduling logic does not belong in the matcher.
+`AAMSearchConfig.growth_policy` selects the same policy for reaction search,
+shared-seed search and work pools. The default remains `incremental`. Both policies
+use the existing complete-fragment result cache in `reused_native` execution.
+Existence still rejects candidate-prefix checkpoints and per-extension candidate
+caches; those are different from reusing a completed fragment result. Scheduling
+logic does not belong in the matcher.
+
+### Bounded completed-fragment reuse
+
+The user approved connecting existence growth to `FragmentRepair` on 2026-10-31.
+The cache surrounds the growth operation; the growth algorithm does not schedule
+work or manage cache entries. Each cache instance has a fixed growth policy and
+source/target pair. Adapters reject a mismatched policy instead of silently changing it.
+
+```mermaid
+flowchart LR
+    Request[Seed and matching conditions] --> Check{Reusable completed result?}
+    Check -->|Yes| Return[Same compressed result and cap evidence]
+    Check -->|No| Grow[Selected fragment growth policy]
+    Grow --> Complete[Completed compressed result]
+    Complete --> Retain[Retain if it fits the cache budget]
+    Retain --> Return
+```
+
+The cache validates target occupancy, relevant source topology, locked mappings,
+joined islands and deferred boundaries. Unrelated earlier histories or cuts can
+reuse the same local answer. Source-read tracking is separate from candidate
+checkpoints, so either growth policy records its dependencies without retaining
+intermediate growth states. Existence completion and finalization remain unchanged.
+
+The default entry budget is **64 MiB per prepared search session**. Retention uses
+least-recently-used eviction. Accounting includes completed matches, preserved and
+deferred bonds, candidate pools, dependency arrays, vector capacity and estimated
+index overhead. An oversized result is returned normally without making a cache
+copy. Eviction or disabling retention never truncates matching or changes a branch
+cap. Statistics expose resident/peak accounted bytes, hits, evictions and oversized
+results. This budget covers retained fragment entries, not all process RAM or the
+separate symmetry-certificate cache.
 
 `tests/test_existence_growth.py` compares complete ordered fragment returns
 between policies and across Python/native execution. It also independently expands
@@ -219,12 +253,20 @@ fell from 438.60 to 35.54 CPU seconds and peak RSS from 4.193 to 0.586 GiB.
 All complete finalized search graphs were exactly equal. However, repeating the
 same cut took 12.046 seconds with existence versus 0.442 seconds with incremental:
 incremental reused all 2,476 fragment results, while existence recomputed them.
-The new policy is therefore not yet a performance-safe replacement for reused
-workers. Compatible fragment-result reuse remains necessary before enabling it
-in the production reaction/work-pool API. This diagnostic changed only the growth
-call in a separate native test build; the installed implementation was untouched.
-See [the large-case report](reports/fragment_growth_20261031/large-case.md) for
-the exact test boundary, measurements and reproduction.
+That initial diagnostic exposed missing fragment-result reuse. It changed only
+the growth call in a separate test build. The bounded integration above now
+removes that bypass; both policies use the installed engine and the same cache.
+The original measurements remain in [the large-case report](reports/fragment_growth_20261031/large-case.md).
+
+With complete-result reuse enabled, the same large case took 32.09 CPU seconds
+on its first existence run, versus 306.08 seconds for incremental in that test.
+The existence cache stayed at 1,457 entries / 23.03 MiB through ten runs; total
+process peak RAM settled at 0.601 GiB. All 26 raw/finalized graph comparisons
+passed. A same-process alternating timing check, balanced by execution order,
+measured cached calls at 0.361 seconds for incremental and 0.362 seconds for
+existence (0.42% difference). The full suite passed **714 tests**, including
+eviction, invalidation and RAM/bundle work-pool validation. See the
+[cache integration report](reports/fragment_growth_20261031/cache-integration.md).
 
 ## Search records, grouping and deduplication
 

@@ -6,6 +6,7 @@ class FragmentRepair {
     const Target& target;
     std::vector<Pair> active_cuts;
     size_t budget, resident=0, peak_resident=0;
+    bool existence;
     std::unique_ptr<ExtensionCache> extensions;
     struct Entry {
         std::string key;
@@ -21,7 +22,7 @@ class FragmentRepair {
     Entries lru;
     std::unordered_map<std::string,std::vector<Entries::iterator>> cache;
     long calls=0, hits=0, history_hits=0, topology_hits=0, boundary_rebases=0;
-    long checks=0, evictions=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;
+    long checks=0, evictions=0, oversized=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;
     long logical_extensions=0, reused_extensions=0, logical_certificates=0, reused_certificates=0;
 
     static std::vector<Pair> normalized(std::vector<Pair> pairs) {
@@ -39,14 +40,19 @@ class FragmentRepair {
         key.append(reinterpret_cast<const char*>(&value),sizeof(value));
     }
     static size_t entry_bytes(const Entry& e) {
-        size_t out=sizeof(e)+e.key.capacity()+256+e.mapping.capacity()*sizeof(int)
+        // Charge owned vector capacity, both key copies, and conservative
+        // list/hash-index overhead. The budget does not include caller outputs.
+        size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)
             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();
+        out+=e.result.isos.capacity()*sizeof(IsoOut)
+            +e.result.profile.result.capacity()+1+e.result.profile.growth_policy.capacity()+1
+            +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);
         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})
             out+=v->capacity()*sizeof(Pair);
         for (const auto& [r,members]:e.dependencies.island_reads)
-            out+=sizeof(r)+sizeof(members)+members.capacity()*sizeof(int);
+            out+=members.capacity()*sizeof(int);
         for (const auto& iso:e.result.isos) {
-            out+=sizeof(iso)+(iso.mapping.capacity()+iso.deferred_edges.capacity())*sizeof(Pair)
+            out+=(iso.mapping.capacity()+iso.deferred_edges.capacity()+iso.preserved_bonds.capacity())*sizeof(Pair)
                 +iso.fragment.capacity()*sizeof(int);
             const auto& c=iso.cand;
             out+=(c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);
@@ -58,8 +64,6 @@ class FragmentRepair {
         return out;
     }
     void insert(Entry entry) {
-        entry.bytes=entry_bytes(entry);
-        if (entry.bytes>budget) return;
         while (!lru.empty() && resident+entry.bytes>budget) {
             auto old=lru.begin();
             auto bucket=cache.find(old->key);
@@ -100,11 +104,16 @@ class FragmentRepair {
         return true;
     }
 public:
-    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0)
-        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes) {
+    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,
+                   const std::string& growth_policy="incremental")
+        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),
+         existence(existence_policy(growth_policy)) {
         base.reads=nullptr;active_source.reads=nullptr;
+        if (existence && extension_bytes)
+            throw std::invalid_argument("existence growth does not support a candidate extension cache");
         if (extension_bytes) extensions=std::make_unique<ExtensionCache>(extension_bytes);
     }
+    bool uses_existence() const { return existence; }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
                     const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
@@ -159,17 +168,27 @@ public:
                 lru.splice(lru.end(),lru,chosen);
             } else {
                 Entry entry(base.n);
-                GrowthTrace trace(active_source);trace.store_checkpoints=false;
-                result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),random_seed);
-                entry.key=std::move(key);entry.result=result;entry.mapping=mapping;
+                // Complete-result reuse needs dependency reads, not candidate
+                // checkpoints. Both growth policies record these same inputs.
+                SourceReads reads(base.n);
+                entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,nullptr,nullptr,-1,
+                    &entry.dependencies,extensions.get(),random_seed,nullptr,existence,&reads);
+                entry.key=std::move(key);entry.mapping=mapping;
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);
-                for (int r=0;r<base.n;++r) entry.row_reads[r]=(trace.reads.rows[r]!=-2);
+                for (int r=0;r<base.n;++r) entry.row_reads[r]=(reads.rows[r]!=-2);
                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)
-                    if (!entry.row_reads[a] && !entry.row_reads[b] && trace.reads.pairs[(size_t)a*base.n+b]!=-2)
+                    if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b]!=-2)
                         entry.pair_reads.push_back({a,b});
-                insert(std::move(entry));
+                entry.bytes=entry_bytes(entry);
+                if (entry.bytes>budget) {
+                    ++oversized;
+                    result=std::move(entry.result);
+                } else {
+                    result=entry.result;
+                    insert(std::move(entry));
+                }
             }
             logical_extensions+=result.profile.extend_calls;
             logical_certificates+=result.profile.certificate_calls;
@@ -201,7 +220,7 @@ public:
         out["logical_extensions"]=logical_extensions;out["reused_extensions"]=reused_extensions;
         out["logical_certificates"]=logical_certificates;out["reused_certificates"]=reused_certificates;
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
-        out["cache_budget_bytes"]=budget;out["evictions"]=evictions;
+        out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
         if (extensions) out.attr("update")(extensions->stats());
         return out;
     }
@@ -209,8 +228,12 @@ public:
 
 void register_fragment_repair(py::module_& mod) {
     py::class_<FragmentRepair>(mod,"FragmentRepair")
-        .def(py::init<const PySource&,const PyTarget&,size_t,size_t>(),
-            py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::arg("extension_cache_bytes")=0,py::keep_alive<1,3>())
+        .def(py::init<const PySource&,const PyTarget&,size_t,size_t,const std::string&>(),
+            py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::arg("extension_cache_bytes")=0,
+            py::arg("growth_policy")="incremental",py::keep_alive<1,3>())
+        .def_property_readonly("growth_policy",[](const FragmentRepair& cache) {
+            return cache.uses_existence() ? "existence" : "incremental";
+        })
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
              py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42)

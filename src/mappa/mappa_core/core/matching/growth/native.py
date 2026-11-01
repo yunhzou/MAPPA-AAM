@@ -157,8 +157,13 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None,
                 growth_policy='incremental'):
     """Run the native engine; returns None when the inputs are not covered."""
-    if growth_policy == 'existence' and replay is not None:
-        raise ValueError('existence growth does not support candidate-based replay caches')
+    if replay is not None:
+        cache = getattr(replay, 'engine', None)
+        if isinstance(cache, _engine.FragmentRepair):
+            if cache.growth_policy != growth_policy:
+                raise ValueError('fragment cache growth_policy differs from the requested policy')
+        elif growth_policy == 'existence':
+            raise ValueError('existence growth requires complete-fragment replay, not candidate checkpoints')
     if replay is not None and (replay.source is not g_R or replay.target is not g_P):
         raise ValueError("cut replay view belongs to different source/target graphs")
     source_view = replay.source_view if replay is not None else source_graph(g_R, bond_tolerance)

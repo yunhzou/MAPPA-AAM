@@ -102,9 +102,25 @@ ordered return, witnesses, pools, symmetry data, result counts and cap outcomes
 must match the default policy exactly. Branch formation and caps at every
 hierarchy level are unchanged. Both policies support Python and native fragment
 matching. The experimental policy still reconstructs compressed prefixes at
-completion, so speed and memory improvements are not assumed. It rejects
-`growth_replay` and is not exposed as a reaction-search/work-pool setting.
+completion, so speed and memory improvements are not assumed. Both policies
+support bounded complete-fragment result reuse. Existence rejects candidate-prefix
+replay, which is a separate optimization.
 See `reports/fragment_growth_20261031/results.json` for the Mac ring comparison.
+
+For reaction search with completed-fragment caching:
+
+```python
+from mappa import AAMSearchConfig, search_aam
+
+config = AAMSearchConfig(growth_policy="existence")
+aam = search_aam(problem, config, execution="reused_native")
+```
+
+Pass the same config to `pool.search(cases, config)` in a work pool. Each prepared
+session uses a 64 MiB fragment-result retention budget, evicts old entries, and
+returns oversized results without caching them. This is a cache budget, not a
+bound on total search memory. The `reference` execution backend also supports
+the growth policy, without fragment-result caching.
 
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 
@@ -112,7 +128,7 @@ See `reports/fragment_growth_20261031/results.json` for the Mac ring comparison.
 
 | API/configuration | Controls |
 |---|---|
-| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
+| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1`; `growth_policy="incremental"` or `"existence"` |
 | `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |

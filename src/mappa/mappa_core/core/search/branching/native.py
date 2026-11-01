@@ -11,7 +11,7 @@ from mappa.mappa_core.core.search.graph import SearchContext
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
                         max_branches=100, p_orbits=None, r_orbits=None, cuts=(),
                         anchor_map=None, core_R=None, stop_when_core_mapped=False,
-                        growth_replay=None, profile=None, random_seed=42):
+                        growth_replay=None, profile=None, random_seed=42, growth_policy='incremental'):
     order=list(dict.fromkeys(seed_order))
     anchors=_normalize_anchor_map(anchor_map,source,target)
     p_orbits=p_orbits if p_orbits is not None else _nauty_orbits(target,wbo_tol=iso_tol)
@@ -44,7 +44,8 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
         graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],
             float(graph_floor),float(iso_tol),int(max_branches),
             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
-            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,int(random_seed) & ((1<<64)-1))
+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,
+            int(random_seed) & ((1<<64)-1),growth_policy)
         native_cpu=time.process_time()-cpu if profile is not None else 0.
         native_wall=time.perf_counter()-wall if profile is not None else 0.
     finally:

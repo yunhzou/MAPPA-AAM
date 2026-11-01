@@ -7,15 +7,26 @@ from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
-from test_cut_replay import graph, raw
+from test_cut_replay import graph, raw as native_raw
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
 
 
-def test_reuse_later_fragment_after_independent_locked_mapping_changes():
+@pytest.fixture(params=['incremental', 'existence'])
+def growth_policy(request):
+    return request.param
+
+
+def raw(*args, **kwargs):
+    result = native_raw(*args, **kwargs)
+    result.pop('profile')  # Timing and operation counts are not fragment results.
+    return result
+
+
+def test_reuse_later_fragment_after_independent_locked_mapping_changes(growth_policy):
     source=graph(10,[(0,1),(1,2),(2,3),(4,5),(6,7),(7,8),(8,9)])
     orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
+    repair=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
     for mapping,islands in (([-1]*4+[4,5]+[-1]*4,[(4,1),(5,1)]),
                             ([-1]*4+[5,4]+[-1]*4,[(4,1),(5,2)])):
         assert raw(source,source,orbits,0,mapping,(),islands=islands,replay=repair)==raw(
@@ -23,20 +34,20 @@ def test_reuse_later_fragment_after_independent_locked_mapping_changes():
     assert repair.stats()['history_hits']==1
 
 
-def test_rebase_unrelated_previous_boundaries():
+def test_rebase_unrelated_previous_boundaries(growth_policy):
     source=graph(10,[(0,1),(1,2),(2,3),(4,5),(6,7),(7,8),(8,9)])
     orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
+    repair=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
     for deferred in (((4,5),),((6,7),),()):
         assert raw(source,source,orbits,0,[-1]*10,(),deferred=deferred,replay=repair)==raw(
             source,source,orbits,0,[-1]*10,(),deferred=deferred)
     assert repair.stats()['boundary_rebases']==2
 
 
-def test_changed_occupancy_cannot_hide_new_seed_alternatives():
+def test_changed_occupancy_cannot_hide_new_seed_alternatives(growth_policy):
     source=graph(6,[(0,1),(1,2),(3,4),(4,5)])
     orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
+    repair=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
     expected=[]
     for mapping in ([-1]*3+[3,4,5],[-1]*6):
         fresh=raw(source,source,orbits,0,mapping,())
@@ -48,7 +59,7 @@ def test_changed_occupancy_cannot_hide_new_seed_alternatives():
 
 @pytest.mark.parametrize('tol',[.5,1.])
 @pytest.mark.parametrize('budget',[1,64*1024*1024])
-def test_changed_contexts_and_cuts_match_fresh_results(tol,budget):
+def test_changed_contexts_and_cuts_match_fresh_results(tol,budget,growth_policy):
     rng=np.random.default_rng(93852)
     for trial in range(5):
         elements=['C']*6+['H']*3
@@ -58,7 +69,7 @@ def test_changed_contexts_and_cuts_match_fresh_results(tol,budget):
         source=graph(9,edges,elements)
         target=graph(9,edges[:-1]+[(1,5,.8)],elements)
         orbits=_nauty_orbits(target,wbo_tol=tol)
-        repair=FragmentRepair(source,target,orbits,cache_bytes=budget)
+        repair=FragmentRepair(source,target,orbits,cache_bytes=budget,growth_policy=growth_policy)
         for _ in range(40):
             mapping=[-1]*9
             locked=list(map(int,rng.choice(6,3,replace=False)))
@@ -72,17 +83,69 @@ def test_changed_contexts_and_cuts_match_fresh_results(tol,budget):
                 source,target,orbits,seed,mapping,cut,**kw),(trial,mapping,islands,cut)
 
 
-def test_complete_compressed_search_graphs_and_generators():
+def test_complete_compressed_search_graphs_and_generators(growth_policy):
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
     orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits)
+    repair=FragmentRepair(source,target,orbits,growth_policy=growth_policy)
     for order in (list(range(9)),list(reversed(range(9))),[4,2,6,0,1,3,5,7,8]):
         for cut in ((),((2,3),),((0,6),),((0,1),)):
             view=repair.for_cut(cut)
             options=dict(cuts=cut,max_branches=100,p_orbits=orbits,iso_tol=1.)
             expected=find_islands(view.source,target,order,**options)
-            actual=find_islands(view.source,target,order,growth_replay=view,**options)
+            actual=find_islands(view.source,target,order,growth_replay=view,growth_policy=growth_policy,**options)
+            assert actual==expected
             expected,_=finalize_graph_symmetry(expected,target,iso_tolerance=1.)
             actual,_=finalize_graph_symmetry(actual,target,iso_tolerance=1.)
             assert actual==expected
+
+
+def test_eviction_bounds_retention_without_changing_results(growth_policy):
+    source=graph(8,[(i,(i+1)%8) for i in range(8)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    probe=FragmentRepair(source,source,orbits,growth_policy=growth_policy)
+    raw(source,source,orbits,0,[-1]*8,(),replay=probe)
+    budget=2*probe.stats()['resident_bytes']
+    repair=FragmentRepair(source,source,orbits,cache_bytes=budget,growth_policy=growth_policy)
+    for _ in range(3):
+        for seed in range(8):
+            assert raw(source,source,orbits,seed,[-1]*8,(),replay=repair)==raw(
+                source,source,orbits,seed,[-1]*8,())
+            stats=repair.stats()
+            assert 0 < stats['resident_bytes'] <= stats['peak_resident_bytes'] <= budget
+    assert repair.stats()['evictions'] > 0
+    assert repair.stats()['entries'] <= 2
+    before=repair.stats()
+    raw(source,source,orbits,7,[-1]*8,(),replay=repair)
+    after=repair.stats()
+    assert after['full_hits']==before['full_hits']+1
+    assert after['resident_bytes']==before['resident_bytes']
+
+
+def test_oversized_results_are_returned_without_retention(growth_policy):
+    source=graph(8,[(i,i+1) for i in range(7)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    repair=FragmentRepair(source,source,orbits,cache_bytes=1,growth_policy=growth_policy)
+    for _ in range(3):
+        assert raw(source,source,orbits,0,[-1]*8,(),replay=repair)==raw(
+            source,source,orbits,0,[-1]*8,())
+    stats=repair.stats()
+    assert stats['entries']==stats['resident_bytes']==stats['peak_resident_bytes']==0
+    assert stats['oversized_results']==3
+
+
+def test_public_fragment_cache_reuses_results_and_rejects_policy_mismatch():
+    from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
+    from test_existence_growth import record
+    source=graph(6,[(i,(i+1)%6) for i in range(6)])
+    orbits=_nauty_orbits(source,wbo_tol=1.)
+    cache=FragmentRepair(source,source,orbits,growth_policy='existence')
+    view=cache.for_cut(())
+    context=FragmentMatchContext(growth_replay=view)
+    config=FragmentMatchConfig(iso_tolerance=1.,growth_policy='existence')
+    expected=record(match_fragment(view.source,source,seed=0,config=config))
+    for _ in range(3):
+        assert record(match_fragment(view.source,source,seed=0,context=context,config=config))==expected
+    assert cache.stats()['full_hits']==2
+    with pytest.raises(ValueError,match='growth_policy'):
+        match_fragment(view.source,source,seed=0,context=context)

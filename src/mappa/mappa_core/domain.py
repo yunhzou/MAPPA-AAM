@@ -582,8 +582,11 @@ class AAMSearchConfig:
     seed_selection: str = 'random'
     random_seed: int = 42
     sweep_cuts: bool = True
+    growth_policy: str = 'incremental'
 
     def __post_init__(self):
+        if self.growth_policy not in ('incremental', 'existence'):
+            raise ValueError("growth_policy must be 'incremental' or 'existence'")
         for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):
             if not math.isfinite(getattr(self, name)):
                 raise ValueError(f'{name} must be finite')

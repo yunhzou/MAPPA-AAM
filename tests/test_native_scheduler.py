@@ -130,18 +130,20 @@ def test_nonidentity_atom_labels_and_final_groups():
     assert actual==expected
 
 
-def test_native_scheduling_with_dependency_repair():
+@pytest.mark.parametrize('growth_policy', ['incremental', 'existence'])
+def test_native_scheduling_with_dependency_repair(growth_policy):
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
     orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits)
+    repair=FragmentRepair(source,target,orbits,growth_policy=growth_policy)
     for order in (list(source),list(reversed(list(source)))):
         for cut in ((),((0,1),),((2,7),)):
             view=repair.for_cut(cut)
             for cap in (1,3,100):
                 options=dict(p_orbits=orbits,cuts=cut,max_branches=cap)
                 expected=find_islands(view.source,target,order,**options)
-                actual=find_islands_native(view.source,target,order,growth_replay=view,**options)
+                actual=find_islands_native(view.source,target,order,growth_replay=view,
+                                           growth_policy=growth_policy,**options)
                 assert actual==expected
 
 

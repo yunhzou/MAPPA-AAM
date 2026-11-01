@@ -62,8 +62,6 @@ def grow_island(g_R, g_P, seed, mapping,
     if growth_policy not in ('incremental', 'existence'):
         raise ValueError("growth_policy must be 'incremental' or 'existence'")
     existence = growth_policy == 'existence'
-    if existence and replay is not None:
-        raise ValueError('existence growth does not support candidate-based cut replay')
     bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
     if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):
         raise ValueError("cut replay requires the native element-policy matcher without trace events")

@@ -1,5 +1,10 @@
 # Previous large EnzymeMap case
 
+This is the **pre-cache integration** experiment at revision `30f0bc9`.
+Its diagnostic build commands require that revision. The current `replay_cut.py`
+uses the installed engine and bounded fragment-result caching for both policies.
+See [the cache integration report](cache-integration.md) for the current results.
+
 EnzymeMap **10383 forward, cut 334**, the archived 4 GiB failure: 374 atoms
 per endpoint, cut `(131, 132)`, one original seed order, random seed 42,
 matching tolerance 1.0, branch limit 100. The original trusted input is

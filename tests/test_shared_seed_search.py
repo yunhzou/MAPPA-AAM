@@ -16,7 +16,8 @@ from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
 
 def cut_sessions(problem, config):
     condition = AdaptiveSearchCondition.uncut(problem, config)
-    repair = FragmentRepair(condition.source, condition.target, condition.orbits)
+    repair = FragmentRepair(condition.source, condition.target, condition.orbits,
+                            growth_policy=config.growth_policy)
     for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
         view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
         yield SharedSeedSearch(problem, config, condition=replace(condition,
@@ -35,6 +36,24 @@ def contents(graph):
               frozen_value(e.match), e.preserved_bonds) for e in graph.transitions if e.match is not None}
     stops = {(state_key(graph.states[s.state]), s.reason, s.stage) for s in graph.stops}
     return states, edges, stops
+
+
+@pytest.mark.parametrize('execution', ['reference', 'reused_native', 'shared_policies'])
+def test_growth_policy_preserves_full_session_results(execution):
+    from native_cases import chain_problem
+    from mappa.mappa_core.core.search.session import SearchSession
+    problem=chain_problem(6)
+    config=AAMSearchConfig(seed_count=3,branch_limit=4)
+    baseline=SearchSession(problem,config,execution)
+    selected=SearchSession(problem,replace(config,growth_policy='existence'),execution)
+    for cut in ((),((1,2),),((3,4),),()):
+        expected,_=baseline.search_cut(cut)
+        actual,_=selected.search_cut(cut)
+        assert actual==expected
+    if selected.repair is not None:
+        stats=selected.repair.stats()
+        assert stats['full_hits']>0
+        assert stats['peak_resident_bytes']<=stats['cache_budget_bytes']
 
 
 @pytest.mark.parametrize('tol', [.5, 1.])

@@ -61,6 +61,8 @@ def checkpoint_manifest(problem, config):
         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),
                     coordinates=value.coordinates.tolist())
     settings = asdict(config)
+    if config.growth_policy == 'incremental':
+        settings.pop('growth_policy')
     if config.random_seed == 42:
         settings.pop('random_seed')
     if config.sweep_cuts:

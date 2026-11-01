@@ -41,7 +41,7 @@ class SearchSession:
             from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
             source = build_graph(problem.reactant.elements, problem.reactant.wbo,
                                  bond_cut=config.graph_floor)
-            self.repair = FragmentRepair(source, target, self.context[3])
+            self.repair = FragmentRepair(source, target, self.context[3], growth_policy=config.growth_policy)
 
     def search_cut(self, cut, *, seed_indices=None):
         started = time.perf_counter()
@@ -92,7 +92,8 @@ class SearchSession:
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
                 max_branches=config.branch_limit, p_orbits=target_orbits,
                 r_orbits=source_orbits, anchor_map=dict(config.anchors),
-                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))
+                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed,
+                growth_policy=config.growth_policy))
         graph = AAMSearchGraph.combine(graphs)
         return graph, {
             'search_seconds': time.perf_counter() - started,
