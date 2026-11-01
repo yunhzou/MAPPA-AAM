@@ -64,7 +64,32 @@ required local socket and process-inspection access outside the filesystem sandb
 
 ## DFW publication check
 
-The failed direction will be retried from its saved complete catalogue with one
-worker guarded at 2 GiB. Its matching and reference-verification results remain
-reused. Completion and measured cluster resources will be recorded here after
-the point run.
+Job **21136551** completed decoding and durable publication from the saved
+catalogue using source **5fd12602addfb597bcad422fc5abc132594dd7d4**. One compute
+worker retained its **2 GiB guard**; the two-CPU, 4 GiB allocation also housed the
+coordinator. Peak worker RSS was **0.931 GiB during computation** and **1.141 GiB
+during publication**, versus the previous fresh-process retry's 1.632 and
+2.021 GiB (terminated). The published compressed result is 4,592,181 bytes.
+
+The successful task used 94.23 CPU seconds for computation and 1.76 CPU seconds
+for publication; elapsed task time was 96.08 s and allocation time 1 min 45 s.
+The old fresh-process computation used 89.85 CPU seconds on a different node.
+Different-node measurements cannot isolate a code runtime change. The same-input
+Mac measurements above showed essentially unchanged runtime.
+
+The output and audit byte ranges were checksum-verified before recording the
+recovery through the existing ledger API. The actual published DFW result was
+also loaded on Mac and its complete expanded record hashed: it matches the
+pre-refactor SHA256 above exactly. This checks the persisted result across the
+Python 3.10 cluster / Python 3.12 Mac binary round trip; see
+[published-record comparison](decoder-published-digest.json).
+
+The failed ledger row was retained in
+the retry history, and every other stage row was checked unchanged. All five
+ledgers now report **3,702 completed directions in each of matching,
+deduplication, decoding and verification**, with no remaining operational
+failures. Matching and reference verification were not repeated. Coverage is
+unchanged: 1,830 of 1,851 reactions recovered.
+
+[Launch and source revision](refactor-decoder-launch.json) ·
+[Published artifact, resource audit and completed counts](decoder-refactor-completion.json)

@@ -1,0 +1,77 @@
+{
+  "observed_utc": "2026-11-01T06:10:47.608739+00:00",
+  "case": "01561/forward",
+  "job": "21136551",
+  "source_commit": "5fd12602addfb597bcad422fc5abc132594dd7d4",
+  "memory_bytes": 2147483648,
+  "manifest": {
+    "schema": "mappa.stage/v1",
+    "stage": "decoding",
+    "source": "d94b00946cf79fa39e9208c9af6b187527052cdd5ed705e553be5ada906b905d",
+    "results": {
+      "01561/forward": {
+        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/refactor-decoder-1561-forward/bundles/b5cf74dd114d41e4a0662c1f72705dc1-00000.bundle",
+        "offset": 0,
+        "size": 4592181,
+        "sha256": "b63de1fe927fa0fcea9ee0b0414da47525ab157c73c7a3e0d4280de12bf1b8a9"
+      }
+    }
+  },
+  "audit": {
+    "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/refactor-decoder-1561-forward/bundles/b5a202d97144419fb64a824f6b0c538d-00000.bundle",
+    "offset": 0,
+    "size": 1176,
+    "sha256": "17fa8bb933ad8ed45f4e0ad96ef017b0bc5d2104bb3f325d838adec013a0abaa"
+  },
+  "metrics": {
+    "cpu_seconds": 94.225303212,
+    "compute_seconds": 94.30908186687157,
+    "compute_pid": 3827144,
+    "publish_seconds": 1.7699576809536666,
+    "publish_cpu_seconds": 1.760439264999988,
+    "total_cpu_seconds": 95.986624926,
+    "process_lifetime_peak_rss_bytes": 1224773632,
+    "peak_tree_rss_bytes": 1224773632,
+    "phase_peak_tree_rss_bytes": {
+      "compute": 1000181760,
+      "publication": 1224773632
+    },
+    "memory_guard_bytes": 2147483648,
+    "memory_sample_interval_seconds": 0.2,
+    "sampled_cpu_seconds": 95.83,
+    "memory_samples": 479,
+    "phase_at_exit": "publication",
+    "worker": "cpu1-00007:3827104:5d4018188b134decb3c0964eed297cf0",
+    "monitoring_seconds": 0.18473962717689574,
+    "elapsed_seconds": 96.0812770370394
+  },
+  "reason": "Unique-fragment decoder refactor 5fd12602addfb597bcad422fc5abc132594dd7d4; complete expanded-record equality verified locally; retry completed at the unchanged 2 GiB worker guard in Slurm job 21136551",
+  "counts": [
+    {
+      "stage": "decoding",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "deduplication",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "matching",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "verification",
+      "state": "complete",
+      "count": 3702
+    }
+  ],
+  "failures": [],
+  "slurm_accounting": [
+    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS",
+    "21136551|COMPLETED|0:0|2026-10-31T23:07:40|2026-10-31T23:09:25|00:01:45|2"
+  ],
+  "prior_failure_preserved": "Batch 1 ledger retries table; original audit references retained"
+}

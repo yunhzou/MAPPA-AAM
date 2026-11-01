@@ -1,0 +1,25 @@
+{
+  "job": "21136551",
+  "case": "01561/forward",
+  "stage": "decoding",
+  "workers": 1,
+  "memory_bytes": 2147483648,
+  "source_commit": "5fd12602addfb597bcad422fc5abc132594dd7d4",
+  "submitted_utc": "2026-11-01T06:07:36.507246+00:00",
+  "purpose": "Validate unique-fragment decoder publication at the original 2 GiB worker limit using the complete saved catalogue",
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--account=nemotron_omni_vision",
+    "--partition=cpu_short",
+    "--nodes=1",
+    "--ntasks=1",
+    "--cpus-per-task=2",
+    "--mem=4G",
+    "--time=00:10:00",
+    "--job-name=mappa-decoder-refactor",
+    "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/refactor-decoder-%j.log",
+    "--wrap",
+    "env PYTHONPATH=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/MAPPA-AAM/src:/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/MAPPA-AAM/bench OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 /lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/venv/bin/python -c '\nfrom pathlib import Path\nfrom dataclasses import asdict\nimport json,sqlite3\nfrom mappa.execution import WorkPool,BundleStore,StageResults\nfrom mappa.mappa_core.core.scheduler.bundles import Blob\nroot=Path('\"'\"'/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101'\"'\"')\noutput=root/'\"'\"'refactor-decoder-1561-forward'\"'\"';output.mkdir(exist_ok=False)\nwith sqlite3.connect(f'\"'\"'file:{root}/1/result/ledger.sqlite?mode=ro'\"'\"',uri=True) as db:\n    raw,=db.execute(\"SELECT reference FROM results WHERE case_name=? AND stage='\"'\"'deduplication'\"'\"' AND state='\"'\"'complete'\"'\"'\",('\"'\"'01561/forward'\"'\"',)).fetchone()\nstore=BundleStore(output/'\"'\"'bundles'\"'\"')\nwith WorkPool.local(workers=1,store=store,memory_bytes=2*2**30,case_seconds=300.) as pool:\n    catalogue=StageResults('\"'\"'deduplication'\"'\"',store,references={'\"'\"'01561/forward'\"'\"':Blob(**json.loads(raw))})\n    stage=pool.decode(catalogue)\n    try:\n        stage.wait_and_validate()\n        stage.save_manifest(output/'\"'\"'decoded.json'\"'\"')\n    finally:\n        rows=stage._rows()\n        (output/'\"'\"'status.json'\"'\"').write_text(json.dumps(rows,indent=2,default=str)+'\"'\"'\\n'\"'\"')\n        key=stage.tasks['\"'\"'01561/forward'\"'\"'][0]\n        audit=pool.queue.archive_case(key,store)\n        (output/'\"'\"'audit.json'\"'\"').write_text(json.dumps(asdict(audit),indent=2)+'\"'\"'\\n'\"'\"')\n        print(json.dumps(rows,default=str),flush=True)\n'"
+  ]
+}

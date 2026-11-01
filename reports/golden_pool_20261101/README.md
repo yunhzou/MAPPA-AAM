@@ -1,5 +1,12 @@
 # Golden persistent-pool run, 2026-11-01
 
+**Complete:** all 3,702 directions now have matching, deduplication, decoding and
+reference-verification outputs. The unique-fragment decoder refactor recovered
+the last failed decoded output at the unchanged 2 GiB worker guard, with
+**1.14 GiB peak worker RSS**. Completed scientific results were preserved.
+[Refactor and equivalence evidence](decoder-refactor.md) ·
+[Final ledger counts and recovery audit](decoder-refactor-completion.json)
+
 All **3,702 directions completed matching** at 2 GiB per worker, with no matching
 failures. The five allocations ran from 05:00:27 to 05:06:40 UTC: **6 minutes
 13 seconds**, including their staggered starts. They processed **177,552 cut
@@ -13,8 +20,8 @@ Two pools ran concurrently. Average worker CPU consumption per pool was only
 Worker concurrency therefore does not establish full CPU saturation. These
 measurements alone do not separate dispatch, shared-storage and task-size costs.
 
-All **3,702 deduplicated catalogues** were saved. **3,701 decoded outputs** were
-saved; Golden **1561 forward** exceeded its guard while publishing its decoded
+The initial pass saved all **3,702 deduplicated catalogues** and **3,701 decoded outputs**.
+Golden **1561 forward** exceeded its guard while publishing its decoded
 record. In job 21135190, its compute peak was 1,752,666,112 bytes (1.63 GiB),
 and publication reached 2,186,715,136 bytes (2.04 GiB). A fresh-process retry,
 job 21135465, reproduced the failure: 1,752,473,600 bytes during computation and
@@ -23,7 +30,9 @@ This isolates the failure to publication even without earlier tasks in the worke
 it does not identify which serialization allocation caused the increase.
 The subsequent [Mac memory diagnostic](decoder-memory.md) traces the retained
 family tables, million bond-term records and serializer bookkeeping responsible
-for the large footprint.
+for the large footprint. Job **21136551** subsequently completed this direction
+with the refactored decoder and saved its output. The original failure and fresh
+retry audits remain available; no worker memory limit was increased.
 
 The normal runner stopped batch 1 before verification because of that failure.
 Job 21135583 completed its reference queries independently from the saved complete
@@ -43,8 +52,10 @@ this is not a claim that no valid matching exists. See
 The last ordinary downstream allocation ended at 05:16:31 UTC, **16 minutes
 4 seconds** after matching started. Independent verification of the blocked
 batch ended at 05:21:38 UTC, **21 minutes 11 seconds** after that start, including
-investigation and the fresh-process retry. The end-to-end benchmark remains
-incomplete because one decoded output is missing. All allocations have exited.
+investigation and the fresh-process retry. At that point one decoded output was
+still missing. The final refactor retry completed it in a 1 minute 45 second
+allocation; the intervening investigation and development time must not be
+reported as fresh benchmark execution time. All allocations have exited.
 The stage audit records sampled RSS separately from process-lifetime peak RSS;
 the latter can include earlier stages in a persistent worker.
 
