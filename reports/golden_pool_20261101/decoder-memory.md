@@ -55,6 +55,14 @@ The observed footprint is consistent with retained per-family table structures,
 their object-heavy export and serialization bookkeeping. It is not evidence that
 the decoder expands all fragment bijections.
 
+An inventory-only scan of the same saved catalogue found **252,442 fragment
+occurrences across family partitions**, but **2,441 distinct structural fragment
+pairs**, keyed by matching policy and the reactant/product atom sets. The most
+reused pair appears 9,314 times. There are no coupled-branch entries in this
+catalogue. These are acquisition-stage counts, not a proof that every occurrence
+has identical conditional symmetry choices. The required collect-first decoder
+ordering is now explicit in [design.md](../../design.md).
+
 The next storage design should preserve every family, action correlation and
 event response while avoiding simultaneous materialization of the complete live
 tables and dictionary export, and bounding serialization bookkeeping. This report

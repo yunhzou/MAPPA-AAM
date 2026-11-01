@@ -3,8 +3,8 @@
 This document defines the scientific stages and their execution boundaries.
 It replaces the previous mixed descriptions of event interpretation and
 hierarchical rematching. Historical designs remain in Git. The scientific
-contracts below describe the current core; the benchmark orchestration section
-separately identifies the approved workflow and remaining implementation work.
+contracts below define the required behavior. The decoder and benchmark sections
+distinguish the approved workflow from remaining implementation work.
 
 ## Scientific pipeline
 
@@ -14,15 +14,16 @@ flowchart LR
     Matching --> Finalize[Finalize saved symmetry]
     Finalize --> Dedup[Group branches and deduplicate families across seeds and cuts]
     Dedup --> Catalogue[Saved catalogue for one reaction and direction]
-    Catalogue --> Local[Local fragment and boundary event tables]
+    Catalogue --> Inventory[Collect all unique fragments and their branch references]
+    Inventory --> Local[Local fragment and boundary event tables]
     Local --> Decode[Compressed event interpretation]
     Catalogue --> Verify[Explicit reference-membership query]
     Decode --> Inspect[Requested choices, counts and views]
 ```
 
 The required benchmark order is **matching → cross-seed/cross-cut grouping and
-family deduplication → local fragment/boundary decoding**. Reference verification
-is a separate operation. Scheduling must preserve these stages and their meaning.
+family deduplication → unique-fragment collection → local fragment/boundary decoding**.
+Reference verification is a separate operation. Scheduling must preserve these stages and their meaning.
 A cut is a search condition and provenance field; it is not the fundamental unit
 of the decoder. A representative mapping is one witness of a compressed family.
 
@@ -413,6 +414,47 @@ catalogue and its provenance still consume memory.
 
 ## Decoder: local responses with shared constraints
 
+### Required ordering: collect unique fragments first
+
+On 2026-11-01 the user explicitly required acquiring **all unique fragments
+before decoding**. For one reaction and direction, first scan the completed
+cross-seed/cross-cut catalogue and collect its distinct saved reactant/product
+fragment pairs. Retain references from every branch occurrence to that inventory,
+together with its compressed choices, constraints and cut/boundary relationships.
+Collection itself does not build event tables or enumerate atom bijections.
+Sharing a structural fragment does not discard occurrence-specific restrictions
+or make correlated symmetry choices independent.
+
+The required sequence is:
+
+1. Collect all unique fragments and their branch references.
+2. Decode internal symmetry/event relationships using those shared fragments.
+3. Decode the relevant boundary relationships, including cut-sweep bonds.
+4. Compose branch event results through references to the shared local results,
+   retaining the original allowed joint choices.
+
+```mermaid
+flowchart LR
+    Catalogue[Completed matching catalogue] --> Inventory[All unique fragments]
+    Catalogue --> Uses[Branch references, constraints and boundary relationships]
+    Inventory --> Internal[Internal fragment event relationships]
+    Inventory --> Boundary[Boundary event relationships]
+    Uses --> Boundary
+    Internal --> Compose[Compose branch events]
+    Boundary --> Compose
+    Uses --> Compose
+```
+
+**Implementation status:** this explicit inventory-first stage is not yet
+implemented in the benchmark decoder. Its current `EventInterpretation.tables()`
+builds and retains tables keyed by complete family contexts, and the exporter
+requests every family table. Local bond-response sharing inside that code does
+not satisfy the required acquisition and reuse of unique fragments first. The
+current APIs and mathematical constraints are described below; that storage/work
+organization must not be presented as the completed design.
+
+### Current interpretation API and scientific constraints
+
 The core entry point is `decode_events(aam_or_catalogue, config)`. It interprets
 original compressed mappings. It does not rematch fragments, replace their
 choices, enumerate all complete bijections, select a minimum-event mapping or
@@ -675,7 +717,7 @@ Paths below are relative to `src/mappa/`.
 | Fragment matcher | Conditional matching, selected-edge growth and compression | `mappa_core/core/matching/` |
 | Reaction search | Seed/cut planning, locking, branching and saved graphs | `mappa_core/core/search/` |
 | Grouping/reduction | Final fragment pairs, family keys, partitions and provenance | `mappa_core/post_processing/final_branches.py` |
-| Event decoder | Original-space local event responses and composition | `mappa_core/post_processing/decoder/` |
+| Event decoder | Unique fragment collection, original-space local responses and composition | `mappa_core/post_processing/decoder/` |
 | Execution API | Persistent local/Slurm pool and explicit stage manifests | `execution/` |
 | Execution internals | Workers, dependencies, budgets, typed handoffs and bundles | `mappa_core/core/scheduler/` |
 | Explicit queries | Mapping and event-membership questions on saved choices | `mappa_workflow/mapping_analytics/` |
