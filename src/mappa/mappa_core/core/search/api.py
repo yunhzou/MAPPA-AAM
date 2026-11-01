@@ -16,7 +16,7 @@ from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symme
 
 def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
                *, workers: int = 1, intermediate_dir=None, resume=False,
-               archive_format='json', execution='reference') -> AAMResult:
+               archive_format='json', execution='reused_native') -> AAMResult:
     """Return raw matching histories; repair/grouping/ranking are separate calls.
 
     When supplied, intermediate_dir receives each completed cut graph before
@@ -32,7 +32,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     manifest. Invocation timings exclude the earlier checkpointed work;
     resulting graph and cut counts still describe the whole search.
 
-    execution='reused_native' explicitly selects the native sequential scheduler,
+    The default execution='reused_native' uses the native sequential scheduler,
     dependency-validated fragment reuse and conditioned symmetry workspace. It
     preserves the seed/cut policy and output graph; it requires the native engine
     and never switches to a different search implementation on failure.

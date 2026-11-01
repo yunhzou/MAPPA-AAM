@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from mappa.mappa_core.core.matching.growth.frontier import GrowthRandom, _pop_random_atom
-from mappa.mappa_core.core.matching.growth.engine import grow_island
+from mappa.mappa_core.core.matching.growth.engine import grow_island, grow_island_python
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
@@ -38,7 +38,7 @@ def molecule():
 
 def trace(seed):
     source,_=molecule();events=[]
-    grow_island(source,source,0,{},events=events,iso_tol=.1,random_seed=seed)
+    grow_island_python(source,source,0,{},events=events,iso_tol=.1,random_seed=seed)
     return [e['edge']['ext_atom'] for e in events if e['type']=='pop']
 
 
@@ -54,9 +54,11 @@ def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
     from mappa.mappa_core.core.search.branching.reuse import CutReplay, FragmentRepair
     source,_=molecule();orbits=_nauty_orbits(source,wbo_tol=.1)
     r=native.source_graph(source);p=native.target_graph(source,orbits)
-    sessions=[CutReplay(source,source,orbits),FragmentRepair(source,source,orbits)]
+    sessions=[CutReplay(source,source,orbits),
+              FragmentRepair(source,source,orbits,growth_policy='incremental')]
     for seed in [1,2,7,42,2**64-1,1]:
-        expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed)
+        expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed,
+                                          growth_policy='incremental')
         for session in sessions:
             actual=session.engine.grow((),0,[-1]*5,.2,.1,1,100,None,(),False,seed)
             actual.pop('reused_extensions')
@@ -130,8 +132,14 @@ def test_randomized_partial_matching_parity_across_streams(monkeypatch):
 
 
 def test_selected_native_backend_failure_does_not_fall_through(monkeypatch):
+    import mappa.mappa_core.core.matching.growth.engine as growth
     source,_=molecule()
-    monkeypatch.setattr(native,'applicable',lambda *a,**k:True)
-    monkeypatch.setattr(native,'grow_island',lambda *a,**k:None)
-    with pytest.raises(ValueError,match='Selected native growth cannot represent'):
-        grow_island(source,source,0,{})
+    def failed(*args, **kwargs):
+        raise RuntimeError('native computation failed')
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Python must not replace failed native execution')
+    monkeypatch.setenv('MAPPA_NATIVE','1')
+    monkeypatch.setattr(native,'grow_island',failed)
+    monkeypatch.setattr(growth,'grow_island_python',forbidden)
+    with pytest.raises(RuntimeError,match='native computation failed'):
+        grow_island(source,source,0,{},p_orbits=_nauty_orbits(source,wbo_tol=.5))

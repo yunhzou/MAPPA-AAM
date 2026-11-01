@@ -110,7 +110,7 @@ def test_input_config_and_direction_identity():
     b = cache_identity(AAMProblem(p.product,p.reactant), config, 'code1')
     assert a[0] == b[0] and a[1] != b[1]
     assert cache_identity(p, config, 'code2')[0] != a[0]
-    assert cache_identity(p, AAMSearchConfig(), 'code1')[0] != a[0]
+    assert cache_identity(p, AAMSearchConfig(growth_policy='incremental'), 'code1')[0] != a[0]
 
 
 def test_fresh_pool_loads_previous_reaction_snapshot(tmp_path):

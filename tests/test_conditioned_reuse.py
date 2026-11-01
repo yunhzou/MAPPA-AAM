@@ -25,7 +25,8 @@ def test_extension_cache_preserves_changes_in_cuts_locks_and_boundaries(tol, bud
         source = graph(10, edges, elements)
         target = graph(10, edges[:-1] + [(1, 5, .8)], elements)
         orbits = _nauty_orbits(target, wbo_tol=tol)
-        repair = FragmentRepair(source, target, orbits, cache_bytes=1, extension_cache_bytes=budget)
+        repair = FragmentRepair(source, target, orbits, cache_bytes=1,
+                                extension_cache_bytes=budget, growth_policy='incremental')
         for _ in range(70):
             mapping = [-1] * 10
             locked = list(map(int, rng.choice(6, 3, replace=False)))
@@ -48,12 +49,14 @@ def test_every_transition_and_ordered_generator_matches_reference(tol):
     source = graph(10, [(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8),(4,9)], ['C']*6+['H']*4)
     target = graph(10, [(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8),(5,9)], ['C']*6+['H']*4)
     orbits = _nauty_orbits(target, wbo_tol=tol)
-    repair = FragmentRepair(source, target, orbits, extension_cache_bytes=2**20)
+    repair = FragmentRepair(source, target, orbits, extension_cache_bytes=2**20,
+                            growth_policy='incremental')
     workspace = ConditionedSymmetryWorkspace(target, tol, cache_bytes=2**20)
     for order in (list(range(10)), list(reversed(range(10))), [4,2,6,0,1,3,5,7,8,9]):
         for cut in ((), ((2,3),), ((0,6),), ((0,1),)):
             view = repair.for_cut(cut)
-            opts = dict(cuts=cut, max_branches=100, p_orbits=orbits, iso_tol=tol)
+            opts = dict(cuts=cut, max_branches=100, p_orbits=orbits, iso_tol=tol,
+                        growth_policy='incremental')
             expected = find_islands(view.source, target, order, **opts)
             actual = find_islands(view.source, target, order, growth_replay=view, **opts)
             expected, _ = finalize_graph_symmetry(expected, target, iso_tolerance=tol)

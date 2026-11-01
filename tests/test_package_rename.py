@@ -1,6 +1,7 @@
 """Archived graph namespaces remain readable; retired execution options are rejected."""
 import json
 import io
+import pickle
 from importlib.resources import files
 from pathlib import Path
 
@@ -18,6 +19,27 @@ def test_previous_package_checkpoint_global_resolves_to_mappa():
     # A protocol-0 GLOBAL from the previous public package namespace.
     stream = io.BytesIO(b"cgraft.domain\nAAMResult\n.")
     assert _CheckpointUnpickler(stream).load() is mappa.AAMResult
+
+
+def test_current_decoder_configuration_keeps_its_type_through_bundle_storage(tmp_path):
+    from mappa.execution import BundleStore
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.core.scheduler.results import DecodingResult
+    original = DecodingResult('case', EventDecodeConfig(.6, .4), (), (), {},
+                              mappa.AAMSearchConfig(), 'reused_native')
+    store = BundleStore(tmp_path)
+    loaded = store.load(store.put(original))
+    assert type(loaded.config) is EventDecodeConfig
+    assert loaded == original
+
+
+def test_current_decoder_configuration_rejects_obsolete_rematching_fields():
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    obsolete = EventDecodeConfig()
+    object.__setattr__(obsolete, 'event_slack', 3)
+    with pytest.raises(TypeError, match='event_slack'):
+        _loads_checkpoint(pickle.dumps(obsolete))
 
 
 def test_archived_execution_options_are_not_silently_accepted():

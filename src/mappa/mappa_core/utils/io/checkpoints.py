@@ -162,7 +162,9 @@ class _CheckpointUnpickler(pickle.Unpickler):
             if module == legacy or module.startswith(legacy + "."):
                 module = "mappa" + module[len(legacy):]
                 break
-        if module in ('mappa.postprocessing', 'mappa.mappa_core.post_processing.decoder.records') and name in ('EventDecodeConfig', 'EventCandidate', 'DecodedEvents'):
+        # The current decoder's EventDecodeConfig is not a historical rematching config.
+        if (module == 'mappa.postprocessing' and name in ('EventDecodeConfig', 'EventCandidate', 'DecodedEvents')) or (
+                module == 'mappa.mappa_core.post_processing.decoder.records' and name in ('EventCandidate', 'DecodedEvents')):
             name = dict(EventDecodeConfig='RefinementConfig', EventCandidate='RefinementCandidate', DecodedEvents='RefinedMapping')[name]
             module = 'mappa.mappa_core.post_processing.hierarchical_mapping'
         if module == 'mappa.mappa_core.post_processing.decoder.conversion':

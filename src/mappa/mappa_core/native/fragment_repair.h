@@ -157,7 +157,7 @@ public:
         return std::any_of(lru.begin(),lru.end(),[](const Entry& e){return !e.in_snapshot;});
     }
     FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,
-                   const std::string& growth_policy="incremental")
+                   const std::string& growth_policy="existence")
         :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),
          existence(existence_policy(growth_policy)) {
         base.reads=nullptr;active_source.reads=nullptr;
@@ -287,7 +287,7 @@ void register_fragment_repair(py::module_& mod) {
     py::class_<FragmentRepair>(mod,"FragmentRepair")
         .def(py::init<const PySource&,const PyTarget&,size_t,size_t,const std::string&>(),
             py::arg("source"),py::arg("target"),py::arg("cache_bytes"),py::arg("extension_cache_bytes")=0,
-            py::arg("growth_policy")="incremental",py::keep_alive<1,3>())
+            py::arg("growth_policy")="existence",py::keep_alive<1,3>())
         .def_property_readonly("growth_policy",[](const FragmentRepair& cache) {
             return cache.uses_existence() ? "existence" : "incremental";
         })

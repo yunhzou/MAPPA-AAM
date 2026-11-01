@@ -282,8 +282,9 @@ Build the engine with `python src/mappa/mappa_core/native/build_engine.py`; see 
 
 `MAPPA_NATIVE=1` is the default native selection. A missing or broken native
 extension raises an error. Set `MAPPA_NATIVE=0` to explicitly select Python.
-Custom node policies and growth tracing use the Python implementation because
-those capabilities are not implemented by the native growth engine.
+Custom node policies and growth tracing require explicit Python selection;
+native requests reject these unsupported capabilities. The trajectory viewer
+calls Python tracing explicitly.
 
 ## Result hierarchy
 
@@ -353,6 +354,12 @@ The architecture and ownership rules are in [design.md](design.md). Historical
 source revisions are recorded with their benchmark reports; old implementations
 are not shipped as fallback copies. The [manuscript](manuscript) contains the paper
 and its reproducibility index.
+
+Direct search and work pools default to `existence` growth with `reused_native`
+execution. Native errors and unsupported inputs are reported without switching
+implementations. Python comparison runs explicitly select `MAPPA_NATIVE=0` and
+`execution='reference'`. The shared reaction cache retains its permanent first
+snapshot for recovery, as specified in its storage design.
 
 ## Compatibility
 

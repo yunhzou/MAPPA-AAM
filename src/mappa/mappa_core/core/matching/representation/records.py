@@ -92,7 +92,7 @@ class FragmentMatchConfig:
     orbit_dedup: bool = True
     random_seed: int = 42
     bond_tolerance: BondTolerance | None = None
-    growth_policy: str = 'incremental'
+    growth_policy: str = 'existence'
 
     def __post_init__(self):
         if self.growth_policy not in ('incremental', 'existence'):

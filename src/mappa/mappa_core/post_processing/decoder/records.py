@@ -23,6 +23,11 @@ class EventDecodeConfig:
         ):
             raise ValueError('event thresholds must be finite and positive')
 
+    def __setstate__(self, state):
+        validated = type(self)(**state)
+        for name, value in vars(validated).items():
+            object.__setattr__(self, name, value)
+
 
 @dataclass(frozen=True)
 class SymmetryEventResponse:

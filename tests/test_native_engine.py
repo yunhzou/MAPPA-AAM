@@ -40,7 +40,7 @@ def _search(case, workers=1):
 
     R, P = CASES[case]()
     return search_aam(AAMProblem(R, P, name=case), AAMSearchConfig(),
-                      workers=workers)
+                      workers=workers, execution='reference')
 
 
 def test_every_growth_call_agrees_with_python(monkeypatch):
@@ -63,7 +63,8 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
         finally:
             monkeypatch.setenv("MAPPA_NATIVE", "1")
         policy = as_node_match_policy(kw.get("node_policy"))
-        if native.applicable(g_R, g_P, kw.get("p_orbits"), policy, kw.get("events")):
+        if native.available():
+            native.validate_inputs(kw.get("p_orbits"), policy, kw.get("events"))
             stats["native"] += 1
             try:
                 out = native.grow_island(
@@ -183,6 +184,28 @@ def test_invalid_backend_is_not_an_implicit_selection(monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', 'auto')
     with pytest.raises(ValueError, match='must be 0'):
         native.available()
+
+
+@pytest.mark.parametrize('request_kind', ['trace', 'custom_policy', 'no_orbits'])
+def test_unsupported_native_request_never_dispatches_to_python(request_kind, monkeypatch):
+    from mappa import FragmentMatchConfig, match_fragment
+    from mappa.mappa_core.core.matching.graphs import build_graph
+    from mappa.mappa_core.core.matching.growth import engine
+    import numpy as np
+    graph = build_graph(('C', 'C'), np.array([[0., 1.], [1., 0.]]))
+    config = FragmentMatchConfig(
+        node_policy=('element',) if request_kind == 'custom_policy' else None,
+        orbit_dedup=request_kind != 'no_orbits')
+    events = [] if request_kind == 'trace' else None
+    original = engine.grow_island_python
+    monkeypatch.setattr(engine, 'grow_island_python',
+        lambda *args, **kwargs: pytest.fail('native request silently selected Python'))
+    monkeypatch.setenv('MAPPA_NATIVE', '1')
+    with pytest.raises(ValueError, match='explicitly select MAPPA_NATIVE=0'):
+        match_fragment(graph, graph, seed=0, config=config, events=events)
+    monkeypatch.setattr(engine, 'grow_island_python', original)
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
+    assert match_fragment(graph, graph, seed=0, config=config, events=events).matches
 
 
 def test_retired_symmetry_repair_kernel_is_not_exported():

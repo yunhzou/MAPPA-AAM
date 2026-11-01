@@ -133,14 +133,15 @@ def test_cut_replay_keeps_its_conditional_policy(monkeypatch):
     po = _nauty_orbits(target, wbo_tol=.5)
     session = CutReplay(source, target, po, bond_tolerance=policy)
     view = session.for_cut(())
-    config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy)
+    config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy,
+                                growth_policy='incremental')
     context = FragmentMatchContext(locked_mapping={1: 1}, islands={1: 0},
                                    target_orbits=po, growth_replay=view)
     replayed = match_fragment(view.source, target, seed=1, context=context, config=config)
     assert replayed.matches == match(source, target, policy, anchor=1).matches
     with pytest.raises(ValueError, match='bond tolerances differ'):
         match_fragment(view.source, target, seed=1, context=context,
-                       config=FragmentMatchConfig(allow_mapped_seed=True))
+                       config=FragmentMatchConfig(allow_mapped_seed=True, growth_policy='incremental'))
 
 
 def test_trace_uses_conditional_thresholds(monkeypatch):

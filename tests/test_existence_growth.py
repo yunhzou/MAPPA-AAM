@@ -49,7 +49,8 @@ def relation(result, target, config, context):
 def compare(source, target, *, context=None, config=None):
     config = config or FragmentMatchConfig(iso_tolerance=.5)
     context = context or FragmentMatchContext()
-    before = match_fragment(source, target, seed=0, context=context, config=config)
+    before = match_fragment(source, target, seed=0, context=context,
+                            config=replace(config, growth_policy='incremental'))
     profile = []
     selected = replace(config, growth_policy='existence')
     after = match_fragment(source, target, seed=0, context=context,

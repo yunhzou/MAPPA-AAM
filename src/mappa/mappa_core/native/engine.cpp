@@ -2004,7 +2004,7 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("growth_policy")="incremental");
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("growth_policy")="existence");
     register_growth_replay(mod);
     register_fragment_repair(mod);
     register_fragment_scheduler(mod);

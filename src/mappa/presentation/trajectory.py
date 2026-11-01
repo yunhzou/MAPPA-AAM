@@ -104,10 +104,10 @@ def replay(source, target, state, edge, po, ro, context):
 
     growth._extend_sym_cands, extension._dedupe_children = extend, dedupe
     try:
-        isos = growth.grow_island(source,target,edge.seed,dict(state.mapping),
+        isos = growth.grow_island_python(source,target,edge.seed,dict(state.mapping),
             graph_floor=context.graph_floor,iso_tol=context.iso_tolerance,max_branches=context.branch_limit,events=events,
             islands_R=dict(state.islands),p_orbits=po,r_orbits=ro,
-            prior_deferred_edges=state.deferred_edges, **growth_options)
+            prior_deferred_edges=state.deferred_edges, growth_policy='incremental', **growth_options)
     finally:
         growth._extend_sym_cands, extension._dedupe_children = original_extend, original_dedupe
     expected = dict(edge.match['symmetry']['witness'])

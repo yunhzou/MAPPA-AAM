@@ -140,23 +140,21 @@ def _translate_symmetry(symmetry, source_nodes, target_nodes):
     }
 
 
-def applicable(g_R, g_P, p_orbits, node_policy, events, defer=False):
-    if not available() or events is not None or defer:
-        return False
+def validate_inputs(p_orbits, node_policy, events):
+    """Reject unsupported native requests; never select another implementation."""
+    if events is not None:
+        raise ValueError('Native growth does not support trace events; explicitly select MAPPA_NATIVE=0')
     if not isinstance(node_policy, ElementNodeMatchPolicy):
-        return False
-    if not isinstance(p_orbits, _OrbitMap) or p_orbits.zero_bucket is None:
-        return False
-    if p_orbits.wbo_tol is None:
-        return False
-    return True
+        raise ValueError('Native growth requires the element node policy; explicitly select MAPPA_NATIVE=0 for custom policies')
+    if not isinstance(p_orbits, _OrbitMap) or p_orbits.zero_bucket is None or p_orbits.wbo_tol is None:
+        raise ValueError('Native growth requires exact WBO target orbits; explicitly select MAPPA_NATIVE=0 without them')
 
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, p_orbits, prior_deferred_edges,
                 allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None,
-                growth_policy='incremental'):
-    """Run the native engine; returns None when the inputs are not covered."""
+                growth_policy='existence'):
+    """Run the selected native engine or report unsupported inputs explicitly."""
     if replay is not None:
         cache = getattr(replay, 'engine', None)
         if isinstance(cache, _engine.FragmentRepair):
@@ -175,27 +173,27 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 any(recorded.limit(a, b) != value for (a, b), value in bond_tolerance.values.items()))):
             raise ValueError("cut replay bond tolerances differ from its source policy")
     if source_view is None or target_view is None:
-        return None
+        raise ValueError('Native growth requires WBO graphs and exact target orbits')
     source_index = source_view.index
     target_index = target_view.index
     if seed not in source_index:
-        return None
+        raise ValueError('Growth seed is not in the source graph')
     n_r = len(source_view.nodes)
     image = [-1] * n_r
     for r, p in mapping.items():
         if r not in source_index or p not in target_index:
-            return None
+            raise ValueError('Locked mapping contains atoms outside the endpoint graphs')
         image[source_index[int(r)]] = target_index[int(p)]
     islands = None
     if islands_R is not None:
         if any(r not in source_index for r in islands_R):
-            return None
+            raise ValueError('Locked islands contain atoms outside the source graph')
         islands = [(source_index[int(r)], int(k))
                    for r, k in islands_R.items()]
     deferred = []
     for a, b in prior_deferred_edges or ():
         if a not in source_index or b not in source_index:
-            return None
+            raise ValueError('Deferred edges contain atoms outside the source graph')
         deferred.append((source_index[int(a)], source_index[int(b)]))
     started = time.perf_counter()
     arguments = (source_index[int(seed)], image, float(graph_floor), float(iso_tol),

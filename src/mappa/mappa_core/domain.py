@@ -582,7 +582,7 @@ class AAMSearchConfig:
     seed_selection: str = 'random'
     random_seed: int = 42
     sweep_cuts: bool = True
-    growth_policy: str = 'incremental'
+    growth_policy: str = 'existence'
 
     def __post_init__(self):
         if self.growth_policy not in ('incremental', 'existence'):

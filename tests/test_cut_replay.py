@@ -25,7 +25,7 @@ def raw(source,target,orbits,seed,mapping,cut,*,replay=None,cap=100,tol=1.,islan
         cut_graph.remove_edges_from(cut)
         view = native.source_graph(cut_graph)
         return native._engine.grow_island(view.graph,native.target_graph(target,orbits).graph,
-            seed,mapping,.2,tol,1,cap,islands,deferred,False)
+            seed,mapping,.2,tol,1,cap,islands,deferred,False,growth_policy='incremental')
     result = replay.engine.grow(cut,seed,mapping,.2,tol,1,cap,islands,deferred,False)
     result.pop('reused_extensions')
     return result
@@ -115,7 +115,7 @@ def test_full_search_graph_is_identical():
     replay=CutReplay(source,target,orbits)
     for cut in ((),((3,4),),((0,1),),((0,3),)):
         view=replay.for_cut(cut)
-        options=dict(cuts=cut,max_branches=100,p_orbits=orbits)
+        options=dict(cuts=cut,max_branches=100,p_orbits=orbits,growth_policy='incremental')
         expected=find_islands(view.source,target,list(range(8)),**options)
         actual=find_islands(view.source,target,list(range(8)),growth_replay=view,**options)
         assert actual==expected

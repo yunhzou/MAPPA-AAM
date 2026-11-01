@@ -138,7 +138,7 @@ def iter_cuts(queue, keys, scratch):
         yield read_blob(row['result']['blob'], scratch)
 
 
-def _initialize_search(problem, config, execution='reference'):
+def _initialize_search(problem, config, execution='reused_native'):
     global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_REPAIR, _FINALIZATION_WORKSPACE, _CHECKPOINT_STORE
     _SEARCH_SESSION = SearchSession(problem, config, execution)
     # Profiling tools inspect these views; computation is owned by the session.
@@ -166,7 +166,7 @@ def _search_cut_task(payload, *, in_process=False):
     return index, graph, counts
 
 
-def _initialize_finalization(problem,config,execution='reference'):
+def _initialize_finalization(problem,config,execution='reused_native'):
     global _FINALIZATION_WORKSPACE
     # Workers own acyclic archive data. Do not scan/copy a fork-inherited heap.
     gc.disable()

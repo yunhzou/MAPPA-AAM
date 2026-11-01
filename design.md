@@ -68,11 +68,28 @@ Intrinsic fragment symmetry annotations cannot enlarge the allowed saved mapping
 relation. Python and native execution must obey the same scientific contracts;
 unsupported capabilities or execution failure must not silently change policy.
 
-## Selectable fragment growth
+## Fragment growth and explicit execution
 
-On 2026-10-31 the user authorized comparing `incremental` (the existing default)
-and `existence` through `FragmentMatchConfig.growth_policy`. This is an explicit
-experiment switch, not an automatic fallback.
+On 2026-10-31 the user authorized comparing `incremental` and `existence` through
+`FragmentMatchConfig.growth_policy`. The accepted Golden settings are now the
+defaults: `existence` growth and `reused_native` reaction search, both directly and
+in work pools. Incremental growth and reference execution remain explicit
+comparison modes; execution errors never select them automatically.
+
+Native requests reject unsupported tracing, node policies and orbit metadata.
+`MAPPA_NATIVE=0` explicitly selects Python fragment growth; Python reaction search
+also requires `execution='reference'`. Diagnostic trajectory replay calls the
+Python trace implementation explicitly. Missing native engines and unsupported
+inputs are errors. Current decoder configurations retain their own type when
+loaded; historical namespace migration cannot reinterpret them as rematching.
+
+```mermaid
+flowchart LR
+    Request[Explicit engine selection] --> Native[Native capability validation]
+    Native --> Run[Native growth]
+    Native --> Error[Unsupported input: error]
+    Request --> Python[Explicit Python growth]
+```
 
 **The replacement boundary is fragment growth, before branch formation. For the
 same inputs, its final `FragmentMatchResult` must be exactly the same as before
@@ -160,14 +177,14 @@ been removed.
 
 ### Scope and validation
 
-Both Python and native fragment APIs support the switch. Custom node policies use
-the existing Python path. Trace records label growth witnesses explicitly; profiles
+Both Python and native fragment APIs support the switch. Custom node policies
+require explicit Python selection. Trace records label growth witnesses explicitly; profiles
 separate growth feasibility from final compressed reconstruction. The
 `feasibility_searches` count distinguishes a whole-fragment search from a cheap
 extension of the existing witness.
 
 `AAMSearchConfig.growth_policy` selects the same policy for reaction search,
-shared-seed search and work pools. The default remains `incremental`. Both policies
+shared-seed search and work pools. The default is `existence`. Both policies
 use the existing complete-fragment result cache in `reused_native` execution.
 Existence still rejects candidate-prefix checkpoints and per-extension candidate
 caches; those are different from reusing a completed fragment result. Scheduling

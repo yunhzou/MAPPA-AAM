@@ -137,5 +137,5 @@ void register_fragment_scheduler(py::module_& mod) {
        py::arg("iso_tolerance"),py::arg("branch_cap"),py::arg("anchors"),py::arg("core_atoms"),
        py::arg("stop_at_core"),py::arg("source_ids"),py::arg("target_ids"),py::arg("context"),
        py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42,
-       py::arg("growth_policy")="incremental");
+       py::arg("growth_policy")="existence");
 }

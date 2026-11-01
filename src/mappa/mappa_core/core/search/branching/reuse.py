@@ -54,7 +54,7 @@ class FragmentRepair(_CutSession):
     independent fragment. Search ordering and admission remain the caller's.
     """
     def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,
-                 extension_cache_bytes=0, bond_tolerance=None, growth_policy='incremental'):
+                 extension_cache_bytes=0, bond_tolerance=None, growth_policy='existence'):
         super().__init__(source, target, target_orbits, bond_tolerance)
         self.engine = native._engine.FragmentRepair(
             self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes,

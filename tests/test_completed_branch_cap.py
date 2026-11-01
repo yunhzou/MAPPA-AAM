@@ -32,18 +32,24 @@ def target():
 
 
 @pytest.mark.parametrize('initial_ambiguity', [True, False])
-def test_temporary_ambiguity_can_resolve_below_cap(engine, initial_ambiguity):
+@pytest.mark.parametrize('growth_policy', ['incremental', 'existence'])
+def test_temporary_ambiguity_can_resolve_below_cap(engine, initial_ambiguity, growth_policy):
     source = (graph(['N', 'O'], [(0, 1)]) if initial_ambiguity else
               graph(['Si', 'N', 'O'], [(0, 1), (1, 2)]))
     dest = target()
-    kwargs = dict(iso_tol=.1, p_orbits=_nauty_orbits(dest, wbo_tol=.1))
+    kwargs = dict(iso_tol=.1, p_orbits=_nauty_orbits(dest, wbo_tol=.1),
+                  growth_policy=growth_policy)
     profile = []
     result = grow_island(source, dest, 0, {}, max_branches=1, profile=profile, **kwargs)
     unrestricted = grow_island(source, dest, 0, {}, max_branches=100, **kwargs)
     assert [dict(r) for r in result] == [dict(r) for r in unrestricted]
     assert len(result) == 1
     assert result[0].fragment == frozenset(source)
-    assert max(p['max_cands_before'] for p in profile) > 1
+    candidates = max(p['max_cands_before'] for p in profile)
+    if growth_policy == 'incremental':
+        assert candidates > 1
+    else:
+        assert candidates == 1
     assert dict(result[0]) == ({0: 1, 1: 5} if initial_ambiguity else {0: 0, 1: 1, 2: 5})
 
 

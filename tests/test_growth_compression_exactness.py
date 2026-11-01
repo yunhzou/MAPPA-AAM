@@ -194,7 +194,8 @@ def test_support_limit_reports_incomplete_instead_of_no_match():
                                        target, .2, max_states=1)
 
 
-def test_standalone_fragment_matcher_returns_both_component_placements():
+def test_standalone_fragment_matcher_returns_both_component_placements(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     from mappa import match_fragment, FragmentMatchConfig
     source = graph(['O', 'H', 'C'], [(0, 1, 1), (0, 2, 1)])
     target = graph(['O', 'H', 'C'] * 2,

@@ -148,7 +148,8 @@ def test_public_fragment_cache_reuses_results_and_rejects_policy_mismatch():
         assert record(match_fragment(view.source,source,seed=0,context=context,config=config))==expected
     assert cache.stats()['full_hits']==2
     with pytest.raises(ValueError,match='growth_policy'):
-        match_fragment(view.source,source,seed=0,context=context)
+        match_fragment(view.source,source,seed=0,context=context,
+                       config=FragmentMatchConfig(growth_policy='incremental'))
 
 
 def test_snapshot_preserves_results_dependencies_and_caps(growth_policy):

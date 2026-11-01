@@ -30,7 +30,8 @@ def test_weighted_subgraph_default_policy_is_same_element():
         query, target, graph_floor=0.2, iso_tol=0.3)
 
 
-def test_weighted_subgraph_can_match_by_custom_node_feature():
+def test_weighted_subgraph_can_match_by_custom_node_feature(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     query = WeightedGraph(
         [
             WeightedNode(element="O", features={"outer_shell": 6}),
@@ -59,7 +60,8 @@ def test_weighted_subgraph_can_match_by_custom_node_feature():
     assert [m.mapping for m in matches] == [{0: 0, 1: 1}, {0: 1, 1: 0}]
 
 
-def test_weighted_subgraph_respects_wbo_iso_after_custom_node_match():
+def test_weighted_subgraph_respects_wbo_iso_after_custom_node_match(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     query = WeightedGraph(
         [
             {"element": "O", "features": {"outer_shell": 6}},
@@ -84,7 +86,8 @@ def test_weighted_subgraph_respects_wbo_iso_after_custom_node_match():
     )
 
 
-def test_weighted_subgraph_can_match_by_multiple_node_features():
+def test_weighted_subgraph_can_match_by_multiple_node_features(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     query = WeightedGraph(
         [
             {"features": {"outer_shell": 6, "nuclear_charge": 8}},
@@ -112,7 +115,8 @@ def test_weighted_subgraph_can_match_by_multiple_node_features():
     assert [m.mapping for m in matches] == [{0: 1, 1: 0}]
 
 
-def test_weighted_subgraph_anchor_seed_can_grow_from_locked_pair():
+def test_weighted_subgraph_anchor_seed_can_grow_from_locked_pair(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     query = WeightedGraph(
         [
             {"features": {"outer_shell": 6}},

@@ -48,7 +48,8 @@ def _tetramethyl_metal_graph():
     return elements, wbo
 
 
-def test_fragment_branch_cap_is_loud_and_allows_exact_limit():
+def test_fragment_branch_cap_is_loud_and_allows_exact_limit(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     g_r = build_graph(["C"], np.zeros((1, 1)), bond_cut=0.2)
     wbo_two = np.zeros((4, 4))
     wbo_two[0, 2] = wbo_two[2, 0] = 1.0
@@ -805,6 +806,7 @@ def test_core_atoms_do_not_reorder_seed_sequence(monkeypatch):
 
 
 def test_find_islands_reuses_precomputed_orbits(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     wbo = np.zeros((2, 2))
     wbo[0, 1] = wbo[1, 0] = 1.0
     g_r = build_graph(["C", "H"], wbo, bond_cut=0.2)
@@ -832,7 +834,8 @@ def test_removed_overlap_scorers_are_not_public():
     assert not hasattr(mappa, 'rxn_overlap_per_mode')
 
 
-def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
+def test_anchored_noop_seed_does_not_keep_pass_loop_alive(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     elements = ["C", "C", "C"]
     wbo_r = np.zeros((3, 3))
     wbo_r[0, 1] = wbo_r[1, 0] = 1.0

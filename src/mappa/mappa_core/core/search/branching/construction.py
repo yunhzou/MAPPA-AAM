@@ -176,7 +176,7 @@ def find_islands(g_R, g_P, seed_order,
                  node_policy=None,
                  anchor_map=None,
                  profile=None, cuts=(), growth_replay=None, random_seed=42,
-                 bond_tolerance=None, growth_policy='incremental'):
+                 bond_tolerance=None, growth_policy='existence'):
     """Run growth over a single seed ordering, branching on
     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
 

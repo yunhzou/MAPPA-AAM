@@ -2,7 +2,7 @@
 
 Start with [AAM_SIMPLE.ipynb](AAM_SIMPLE.ipynb): a self-contained six-atom reaction with embedded coordinates, bond orders, and display helpers. It inspects the raw AAM, unique event candidates, certified shuffles, anchors, both search directions, conditional matching, serialization, and one growth animation per sweep. It uses one worker and can run outside the checkout after installation. Saved tables and static molecule drawings render on GitHub; interactive views require a trusted Jupyter notebook. The longer [TUTORIAL.ipynb](TUTORIAL.ipynb) covers R/P geometry and TS analysis.
 
-Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for optional symbolic mapping queries without notebook packages. Event conversion itself needs no solver. A C++17 compiler builds the bookkeeping extensions. The optional fast growth engine requires `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Ordinary `search_aam` can use the Python reference growth implementation. `compete_fragments` and `execution="reused_native"` / `"shared_policies"` require that optional engine and fail explicitly if unavailable. No xTB is needed when coordinates and bond-order matrices are supplied.
+Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for optional symbolic mapping queries without notebook packages. Event conversion itself needs no solver. A C++17 compiler builds the bookkeeping extensions. Normal search requires the fast growth engine: run `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Missing native execution is an error. Python comparison runs explicitly select `MAPPA_NATIVE=0` and `search_aam(..., execution="reference")`. No xTB is needed when coordinates and bond-order matrices are supplied.
 
 ## Default pipeline
 
@@ -91,16 +91,15 @@ result = match_fragment(source_graph, target_graph, seed=0,
     config=FragmentMatchConfig(growth_policy="existence"))
 ```
 
-`growth_policy="incremental"` is the default and carries compressed alternatives
-through growth. The experimental `"existence"` policy finds one valid placement
+`growth_policy="existence"` is the default and finds one valid placement
 per extension, allowing earlier assignments inside the growing fragment to change.
 It checks the new edge against the existing witness first and constructs a whole
 fragment search only when reassignment is needed. At saturation it constructs the
 original compressed results using the existing compression rules. Earlier completed-fragment locks remain fixed. The final
 ordered return, witnesses, pools, symmetry data, result counts and cap outcomes
-must match the default policy exactly. Branch formation and caps at every
+must match the explicit `"incremental"` comparison policy exactly. Branch formation and caps at every
 hierarchy level are unchanged. Both policies support Python and native fragment
-matching. The experimental policy still reconstructs compressed prefixes at
+matching. Existence growth still reconstructs compressed prefixes at
 completion, so speed and memory improvements are not assumed. Both policies
 support bounded complete-fragment result reuse. Existence rejects candidate-prefix
 replay, which is a separate optimization.
@@ -111,15 +110,17 @@ For reaction search with completed-fragment caching:
 ```python
 from mappa import AAMSearchConfig, search_aam
 
-config = AAMSearchConfig(growth_policy="existence")
-aam = search_aam(problem, config, execution="reused_native")
+config = AAMSearchConfig()  # existence growth
+aam = search_aam(problem, config)  # reused_native execution
 ```
 
 Pass the same config to `pool.search(cases, config)` in a work pool. Each prepared
 session uses a 64 MiB fragment-result retention budget, evicts old entries, and
 returns oversized results without caching them. This is a cache budget, not a
 bound on total search memory. The `reference` execution backend also supports
-the growth policy, without fragment-result caching.
+the growth policy, without fragment-result caching. Native fragment requests
+reject unsupported trace events, custom node policies and absent exact target
+orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are needed.
 
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., symmetry_wbo_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 
@@ -127,11 +128,11 @@ the growth policy, without fragment-result caching.
 
 | API/configuration | Controls |
 |---|---|
-| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1`; `growth_policy="incremental"` or `"existence"` |
-| `search_aam` / directional helper | `workers`; `execution="reference"`, `"reused_native"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
+| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1`; `growth_policy="existence"` (default) or `"incremental"` |
+| `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance`; `growth_policy="incremental"` or `"existence"` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `orbit_dedup`; `random_seed`; `bond_tolerance`; `growth_policy="existence"` (default) or `"incremental"` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `source_orbits`, `target_orbits`, `growth_replay` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 

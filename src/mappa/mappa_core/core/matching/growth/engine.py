@@ -38,7 +38,7 @@ def grow_island(g_R, g_P, seed, mapping,
                 allow_mapped_seed=False,
                 profile=None,
                 profile_context=None, replay=None, random_seed=42, bond_tolerance=None,
-                growth_policy='incremental'):
+                growth_policy='existence'):
     """
     Grow a fragment from `seed` by uniformly sampling the live boundary atoms.
 
@@ -58,15 +58,10 @@ def grow_island(g_R, g_P, seed, mapping,
     commit / deferred / merge / seed_end) compatible with the
     existing trace_run.HTML viewer.
     """
-    node_policy = as_node_match_policy(node_policy)
-    if growth_policy not in ('incremental', 'existence'):
-        raise ValueError("growth_policy must be 'incremental' or 'existence'")
-    existence = growth_policy == 'existence'
-    bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
-    if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):
-        raise ValueError("cut replay requires the native element-policy matcher without trace events")
-    if native.applicable(g_R, g_P, p_orbits, node_policy, events):
-        out = native.grow_island(
+    if native.available():
+        native.validate_inputs(p_orbits, as_node_match_policy(node_policy), events)
+        bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
+        return native.grow_island(
             g_R, g_P, seed, mapping, graph_floor=graph_floor, iso_tol=iso_tol,
             min_lock_size=min_lock_size, max_branches=max_branches,
             islands_R=islands_R, p_orbits=p_orbits,
@@ -74,9 +69,26 @@ def grow_island(g_R, g_P, seed, mapping,
             allow_mapped_seed=allow_mapped_seed, profile=profile,
             profile_context=profile_context, replay=replay, random_seed=random_seed,
             bond_tolerance=bond_tolerance, growth_policy=growth_policy)
-        if out is None:
-            raise ValueError("Selected native growth cannot represent these inputs")
-        return out
+    if replay is not None:
+        raise ValueError('Cut replay requires explicit native execution')
+    return grow_island_python(g_R, g_P, seed, mapping, graph_floor, iso_tol,
+        min_lock_size, max_branches, events, islands_R, p_orbits, r_orbits,
+        prior_deferred_edges, node_policy, allow_mapped_seed, profile,
+        profile_context, random_seed, bond_tolerance, growth_policy)
+
+
+def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
+                      min_lock_size=1, max_branches=1_000_000, events=None,
+                      islands_R=None, p_orbits=None, r_orbits=None,
+                      prior_deferred_edges=None, node_policy=None,
+                      allow_mapped_seed=False, profile=None, profile_context=None,
+                      random_seed=42, bond_tolerance=None, growth_policy='existence'):
+    """Explicit Python growth, also used by diagnostic trajectory replay."""
+    node_policy = as_node_match_policy(node_policy)
+    if growth_policy not in ('incremental', 'existence'):
+        raise ValueError("growth_policy must be 'incremental' or 'existence'")
+    existence = growth_policy == 'existence'
+    bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)
     record = events is not None
     prof = None
     profile_t0 = None
