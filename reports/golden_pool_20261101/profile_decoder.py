@@ -14,11 +14,13 @@ import time
 import psutil
 
 
-def profile(bundle, source, digest_only=False):
+def profile(bundle, source, digest_only=False, timings=False):
     from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
     from mappa.mappa_core.core.scheduler.results import DecodingResult
     from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig, EventInterpretation
+    from mappa.mappa_core.post_processing.decoder import events
+    from mappa.mappa_core.post_processing.decoder.fragments import FragmentInventory, FragmentDecoder
     from mappa.mappa_core.utils.io.records import decoded_events_record
 
     process = psutil.Process()
@@ -28,11 +30,50 @@ def profile(bundle, source, digest_only=False):
         print(json.dumps(dict(stage=stage, seconds=time.monotonic()-started,
                               rss_bytes=process.memory_info().rss, **values)), flush=True)
 
+    measured = {}
+
+    def observe(owner, name, label):
+        original = getattr(owner, name)
+        measured[label] = dict(calls=0, seconds=0.)
+
+        def timed(*args, **kwargs):
+            start = time.perf_counter()
+            try:
+                return original(*args, **kwargs)
+            finally:
+                measured[label]['seconds'] += time.perf_counter()-start
+                measured[label]['calls'] += 1
+
+        setattr(owner, name, timed)
+
+    if timings:
+        for owner, name, label in (
+            (FragmentInventory, '__init__', 'inventory'),
+            (EventDecodeSession, 'decode', 'inventory_and_action_annotations'),
+            (EventInterpretation, 'tables', 'family_table_assembly'),
+            (FragmentDecoder, 'fragment', 'fragment_lookup_and_decode'),
+            (EventInterpretation, 'evaluate', 'representative_descriptions'),
+            (EventInterpretation, 'realize', 'representative_validation'),
+            (events.SignedEventIndex, 'describe', 'whole_reaction_description'),
+            (events, 'classify_bonds', 'whole_reaction_bond_classification'),
+            (events.SignedEventIndex, '_describe_events', 'event_identity_and_description'),
+            (events.SignedEventIndex, 'counts', 'whole_reaction_count_check'),
+        ):
+            observe(owner, name, label)
+
     original = json.loads(source.read_text())['original']
     saved = read_blob(Blob(str(bundle.resolve()), 0, bundle.stat().st_size,
                            original['sha256']), None)
     sample('catalogue_loaded', families=len(saved.catalogue.families),
            branches=saved.catalogue.branch_count, cuts=len(saved.scope))
+    if timings:
+        families = saved.catalogue.families
+        keys = {(f.policy, f.mapping, f.required_edges, f.actions) for f in families}
+        sample('catalogue_deduplication', saved_type=type(saved).__name__,
+               input_paths=saved.catalogue.path_count, unique_family_keys=len(keys),
+               duplicate_family_keys=len(families)-len(keys),
+               unique_representative_mappings=len({f.mapping for f in families}))
+        del families, keys
     config = EventDecodeConfig()
     session = EventDecodeSession(saved.catalogue.problem, config)
     sample('session_ready')
@@ -52,6 +93,13 @@ def profile(bundle, source, digest_only=False):
         record = decoded_events_record(interpreted)
         sample('record_built_with_live_tables', tables=len(record['tables']),
                responses=len(record['responses']))
+        if timings:
+            sample('timing_breakdown', inclusive=True, functions=measured,
+                   unique_fragments=len(interpreted.inventory.fragments),
+                   fragment_occurrences=sum(len(partition) for partitions in interpreted.inventory.uses
+                                            for partition in partitions),
+                   decoded_fragment_contexts=len(interpreted.local.fragments),
+                   local_bond_contexts=len(interpreted.local.bonds))
         return DecodingResult(saved.case, config, saved.scope, saved.stops,
                               record, saved.search_config, saved.execution)
 
@@ -109,13 +157,16 @@ def main():
     parser.add_argument('--child', action='store_true')
     parser.add_argument('--memory-gib', type=float, default=2.)
     parser.add_argument('--digest-only', action='store_true')
+    parser.add_argument('--timings', action='store_true', help='Measure nested decoder stages; includes instrumentation overhead')
     args = parser.parse_args()
     if args.child:
-        profile(args.bundle, args.source, args.digest_only)
+        profile(args.bundle, args.source, args.digest_only, args.timings)
         return
     command = [sys.executable, __file__, str(args.bundle), str(args.source), '--child']
     if args.digest_only:
         command.append('--digest-only')
+    if args.timings:
+        command.append('--timings')
     child = subprocess.Popen(command, env={**os.environ, 'OMP_NUM_THREADS': '1',
                               'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1'})
     process = psutil.Process(child.pid)

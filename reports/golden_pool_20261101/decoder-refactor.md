@@ -93,3 +93,52 @@ unchanged: 1,830 of 1,851 reactions recovered.
 
 [Launch and source revision](refactor-decoder-launch.json) ·
 [Published artifact, resource audit and completed counts](decoder-refactor-completion.json)
+
+## Why the total decoding time barely changed
+
+A stage-timed replay of the same saved catalogue confirms that cross-cut/seed
+deduplication has already finished. The input is a `CatalogueResult` with 14,132
+families and 14,132 distinct complete family keys: there are no exact duplicate
+family records. Its 14,132 input paths group into 11,899 fragment-set branches.
+The family key includes policy, witness, required edges and ordered actions;
+different keys are retained even when branches share structural fragments.
+
+The complete record took 43.30 s to build in this instrumented replay:
+
+| Work | Elapsed time |
+|---|---:|
+| Unique-fragment collection | 0.21 s |
+| Collection plus action annotations | 0.35 s |
+| All family/partition table assembly | 8.87 s |
+| Representative descriptions for every family | 33.15 s |
+
+Rows are inclusive: collection is inside collection/annotations. Table assembly
+includes fragment lookups, boundaries and dependency assembly. Other time covers
+input loading and record wrapping. These timers add measurement overhead and are
+for attribution, not a new paired performance claim.
+
+The shared layer has 2,441 structural fragments, 4,472 distinct local decoding
+contexts and 252,442 occurrences. All fragment lookups and internal decoding
+together cost 1.24 s, included in the 8.87 s table-assembly time. Conditional
+contexts remain separate when witnesses, ordered actions or cut annotations differ.
+
+`decoded_events_record()` still calls `EventInterpretation.evaluate()` once for
+every family after exporting the local tables. That call uses a separate
+whole-reaction description path instead of composing the already prepared local
+tables. Its 33.15 s includes 2.63 s of bond classification, 25.60 s of event-ID
+construction/description, 3.39 s of dense count cross-checks and 0.84 s of
+representative validation. Event-ID construction canonicalizes the whole
+event-marked graph when its existing cache misses. This is a representative report
+for each saved family; it does not enumerate that family's symmetry choices.
+
+Thus about 77% of the recorded time remains in a reporting pass untouched by
+fragment sharing. The previous decoder also already cached local bond responses;
+sharing their surrounding records primarily removed storage duplication. Faster
+end-to-end decoding must address the representative-reporting path while preserving
+the required output contract. The completed refactor does not establish that all
+branch-level reporting now composes shared fragments.
+
+[Timing evidence](decoder-timing-breakdown.jsonl) was collected with
+`profile_decoder.py --timings --digest-only`. The complete record still has the
+same SHA256 as the pre-refactor baseline. No production algorithm was changed for
+this diagnosis.

@@ -538,6 +538,13 @@ representative counts. `exhaustive_event_patterns` and `global_minimum_proven`
 remain false. Representative agreement alone cannot establish equivalence of
 complete decoded records.
 
+Representative export currently calls `EventInterpretation.evaluate()` once per
+family, using the whole-reaction description and canonical event-ID path. This
+reporting pass does not compose the prepared local tables. It dominated the
+Golden 1561 timing (33.15 of 43.30 seconds) after fragment sharing; unique-fragment
+collection alone therefore does not establish an end-to-end decoding speedup.
+See the [measured breakdown](reports/golden_pool_20261101/decoder-refactor.md).
+
 ## Benchmark pools and their connection
 
 The approved massive-benchmark workflow has separate matching and decoding

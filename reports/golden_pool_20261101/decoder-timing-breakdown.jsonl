@@ -1,0 +1,25 @@
+{"stage": "catalogue_loaded", "seconds": 0.30204833415336907, "rss_bytes": 215531520, "families": 14132, "branches": 11899, "cuts": 192}
+{"stage": "catalogue_deduplication", "seconds": 0.3501981250010431, "rss_bytes": 215891968, "saved_type": "CatalogueResult", "input_paths": 14132, "unique_family_keys": 14132, "duplicate_family_keys": 0, "unique_representative_mappings": 14130}
+{"stage": "session_ready", "seconds": 0.3516083341091871, "rss_bytes": 216072192}
+{"stage": "actions_ready", "seconds": 0.7056127500254661, "rss_bytes": 235732992}
+{"stage": "building_record", "seconds": 1.4329975000582635, "rss_bytes": 263847936, "family": 1000, "tables": 1000}
+{"stage": "building_record", "seconds": 2.0992432499770075, "rss_bytes": 303693824, "family": 2000, "tables": 2000}
+{"stage": "building_record", "seconds": 2.703492166940123, "rss_bytes": 342310912, "family": 3000, "tables": 3000}
+{"stage": "building_record", "seconds": 3.3660798750352114, "rss_bytes": 385417216, "family": 4000, "tables": 4000}
+{"stage": "building_record", "seconds": 4.015166542027146, "rss_bytes": 426475520, "family": 5000, "tables": 5000}
+{"stage": "building_record", "seconds": 4.765863667009398, "rss_bytes": 473726976, "family": 6000, "tables": 6000}
+{"stage": "building_record", "seconds": 5.463038542075083, "rss_bytes": 515883008, "family": 7000, "tables": 7000}
+{"stage": "building_record", "seconds": 6.08430525008589, "rss_bytes": 559955968, "family": 8000, "tables": 8000}
+{"stage": "building_record", "seconds": 6.818040583981201, "rss_bytes": 600621056, "family": 9000, "tables": 9000}
+{"stage": "building_record", "seconds": 7.428289500065148, "rss_bytes": 641679360, "family": 10000, "tables": 10000}
+{"stage": "building_record", "seconds": 8.136917500058189, "rss_bytes": 683507712, "family": 11000, "tables": 11000}
+{"stage": "building_record", "seconds": 8.744362541940063, "rss_bytes": 727957504, "family": 12000, "tables": 12000}
+{"stage": "building_record", "seconds": 9.498123334022239, "rss_bytes": 768163840, "family": 13000, "tables": 13000}
+{"stage": "building_record", "seconds": 10.068676042137668, "rss_bytes": 809811968, "family": 14000, "tables": 14000}
+{"stage": "record_built_with_live_tables", "seconds": 43.30279729212634, "rss_bytes": 1017348096, "tables": 14132, "responses": 13}
+{"stage": "timing_breakdown", "seconds": 43.303396499948576, "rss_bytes": 1017348096, "inclusive": true, "functions": {"inventory": {"calls": 1, "seconds": 0.2141579168383032}, "inventory_and_action_annotations": {"calls": 1, "seconds": 0.35397479217499495}, "family_table_assembly": {"calls": 14132, "seconds": 8.866901825647801}, "fragment_lookup_and_decode": {"calls": 252442, "seconds": 1.2377503546886146}, "representative_descriptions": {"calls": 14132, "seconds": 33.154539566952735}, "representative_validation": {"calls": 14132, "seconds": 0.8416033266112208}, "whole_reaction_description": {"calls": 14132, "seconds": 32.2602103757672}, "whole_reaction_bond_classification": {"calls": 14132, "seconds": 2.6316550185438246}, "event_identity_and_description": {"calls": 14132, "seconds": 25.601605233969167}, "whole_reaction_count_check": {"calls": 14132, "seconds": 3.386803030502051}}, "unique_fragments": 2441, "fragment_occurrences": 252442, "decoded_fragment_contexts": 4472, "local_bond_contexts": 18460}
+{"stage": "operation_returned", "seconds": 43.36179416696541, "rss_bytes": 1009008640}
+{"stage": "record_shape", "seconds": 43.45454241707921, "rss_bytes": 1009008640, "terms": 1006967, "term_dictionary_bytes_excluding_values": 273895024, "domain_entries": 1512124, "projected_pair_states": 344944}
+{"stage": "shared_record_shape", "seconds": 43.57393691712059, "rss_bytes": 1009008640, "unique_term_records": 13342, "unique_term_dictionary_bytes_excluding_values": 3629024}
+{"stage": "record_digest", "seconds": 61.382622375153005, "rss_bytes": 1009008640, "sha256": "f415b641434ac0bf5e1a5211c43260731f0f75273bffd66de1e71b7bb1e9dfa3"}
+{"stage": "guard", "memory_bytes": 2147483648, "peak_rss_bytes": 1017348096, "exit_code": 0}
