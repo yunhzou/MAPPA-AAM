@@ -1,0 +1,490 @@
+{
+  "states": {
+    "complete": 10025,
+    "memory_limit": 24,
+    "pending": 32380,
+    "running": 98
+  },
+  "running_tasks": 98,
+  "running_workers": 98,
+  "distinct_running_tasks": 98,
+  "duplicate_active_attempts": [],
+  "memory_limit_tasks": [
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00144/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2149724160,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2149724160,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 46.02,
+        "memory_samples": 213,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00109:319901:df292c3338c74321928488e395332cea",
+        "monitoring_seconds": 0.03406218544114381,
+        "elapsed_seconds": 46.17756601492874
+      }
+    },
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00161/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2152923136,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2152923136,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 224.54999999999998,
+        "memory_samples": 1080,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00140:106585:5741ff9038f649dca68d6cb7e27ef28c",
+        "monitoring_seconds": 0.19118825811892748,
+        "elapsed_seconds": 224.69300156086683
+      }
+    },
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00174/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2148593664,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2148593664,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 77.77000000000001,
+        "memory_samples": 374,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00139:1414808:6f2287941e0d4091b0e7b5ddc900fcad",
+        "monitoring_seconds": 0.08912768214941025,
+        "elapsed_seconds": 77.92407505796291
+      }
+    },
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00412/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2182500352,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2182500352,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 72.71000000000001,
+        "memory_samples": 349,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00109:319901:75d2bdc200d04a2383fbfd5f66ac3ed6",
+        "monitoring_seconds": 0.055512753897346556,
+        "elapsed_seconds": 72.71210542402696
+      }
+    },
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00455/finalize",
+      "metrics": {
+        "cpu_seconds": 39.530220451000005,
+        "compute_seconds": 39.5282307555899,
+        "compute_pid": 611041,
+        "peak_tree_rss_bytes": 2162765824,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2094235648,
+          "publication": 2162765824
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 39.959999999999994,
+        "memory_samples": 197,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00144:611025:c336faa1f94a46f28c504324e34b6161",
+        "monitoring_seconds": 0.03112941700965166,
+        "elapsed_seconds": 40.40213976521045
+      }
+    },
+    {
+      "task": "8d1cfab4fcc041c299acffd259829f37/37270/forward/cut/00494/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2154029056,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2154029056,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 61.94999999999999,
+        "memory_samples": 294,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00130:3978571:7de34e8a27424a0bad812f39ce48582d",
+        "monitoring_seconds": 0.04898238030727953,
+        "elapsed_seconds": 62.119114839006215
+      }
+    },
+    {
+      "task": "87859a9926254034b940d4a63d89cc88/27966/forward/cut/00037/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2182778880,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2182778880,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 26.30000000000001,
+        "memory_samples": 131,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00130:3978571:995da3722790488eae4d44805fadb01e",
+        "monitoring_seconds": 0.03256036282982677,
+        "elapsed_seconds": 26.33370788593311
+      }
+    },
+    {
+      "task": "39655877164a4259aedfa676f9ef970e/36709/forward/cut/00035/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2153656320,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2153656320,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 29.75999999999999,
+        "memory_samples": 149,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00016:2292690:c97813f0c52640b5a7bc2e816d6c105d",
+        "monitoring_seconds": 0.03640983998775482,
+        "elapsed_seconds": 29.866450315807015
+      }
+    },
+    {
+      "task": "39655877164a4259aedfa676f9ef970e/36709/forward/cut/00051/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2157719552,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2157719552,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 28.33,
+        "memory_samples": 140,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00016:2292690:cd89eaf3df534587a2fbd1b8cfdb2a76",
+        "monitoring_seconds": 0.032536000944674015,
+        "elapsed_seconds": 28.370449305977672
+      }
+    },
+    {
+      "task": "e6ef715db21f4d57a3618e8d94d897dc/32166/forward/cut/00002/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2161369088,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2161369088,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 32.97000000000001,
+        "memory_samples": 162,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00139:1414808:be73f7734a424ea7898c686e57dc8e93",
+        "monitoring_seconds": 0.035671464167535305,
+        "elapsed_seconds": 33.03566697286442
+      }
+    },
+    {
+      "task": "e6ef715db21f4d57a3618e8d94d897dc/32166/forward/cut/00044/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2167234560,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2167234560,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 49.33,
+        "memory_samples": 245,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00139:1414808:da422aa0cf7d4662896842918e5736fe",
+        "monitoring_seconds": 0.05491891549900174,
+        "elapsed_seconds": 49.33294660318643
+      }
+    },
+    {
+      "task": "d436b71f3a034f26af1c2c35b2ffa701/32166/reverse/cut/00002/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2151120896,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2151120896,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 156.23000000000002,
+        "memory_samples": 766,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00109:319901:1bcf70add0e44c50aa0a1cb480c52a70",
+        "monitoring_seconds": 0.17190281045623124,
+        "elapsed_seconds": 156.4039034730522
+      }
+    },
+    {
+      "task": "065d477f288348ad98b051ee6d1fb3c9/15404/reverse/cut/00065/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2369933312,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2369933312,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 44.59,
+        "memory_samples": 221,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00139:1414808:7d882dbe6f224e458768200d2faef7f4",
+        "monitoring_seconds": 0.05816836771555245,
+        "elapsed_seconds": 44.781180772930384
+      }
+    },
+    {
+      "task": "b9877607108943bdbb4528e84b5230ef/10379/forward/cut/00009/finalize",
+      "metrics": {
+        "cpu_seconds": 10.450882750999995,
+        "compute_seconds": 10.452193634584546,
+        "compute_pid": 611050,
+        "peak_tree_rss_bytes": 2154061824,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2067214336,
+          "publication": 2154061824
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 10.670000000000016,
+        "memory_samples": 54,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00144:611025:d12d98987c4d4badaed6388978030fca",
+        "monitoring_seconds": 0.01034655049443245,
+        "elapsed_seconds": 10.952431824989617
+      }
+    },
+    {
+      "task": "b9877607108943bdbb4528e84b5230ef/10379/forward/cut/00021/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2150776832,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2150776832,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 10.819999999999993,
+        "memory_samples": 55,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00144:611025:529996ecfc71408bb13318aa92591da1",
+        "monitoring_seconds": 0.009532611817121506,
+        "elapsed_seconds": 10.823220589198172
+      }
+    },
+    {
+      "task": "cd9c2ec061ce4e29bc4e8848bb22ee00/37287/forward/cut/00044/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2147495936,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2147495936,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 27.30000000000001,
+        "memory_samples": 137,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00105:3342836:6c90f9fc841a4eafa3766879841ea2bb",
+        "monitoring_seconds": 0.02807454636786133,
+        "elapsed_seconds": 27.295173057937063
+      }
+    },
+    {
+      "task": "3f6add8503794cad8f463d65cc5d50d5/36523/forward/cut/00017/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2154414080,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2154414080,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 9.43999999999997,
+        "memory_samples": 48,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00105:3342836:819f228ed1404eaea71f8d93f5780196",
+        "monitoring_seconds": 0.00783963908907026,
+        "elapsed_seconds": 9.592465806053951
+      }
+    },
+    {
+      "task": "3f6add8503794cad8f463d65cc5d50d5/36523/forward/cut/00037/finalize",
+      "metrics": {
+        "cpu_seconds": 11.587762137999995,
+        "compute_seconds": 11.588537285919301,
+        "compute_pid": 3344507,
+        "peak_tree_rss_bytes": 2247655424,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1828286464,
+          "publication": 2247655424
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 13.199999999999989,
+        "memory_samples": 67,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00105:3342836:852ed9f9448945c6a21a722639835d8d",
+        "monitoring_seconds": 0.01077838719356805,
+        "elapsed_seconds": 13.33312259602826
+      }
+    },
+    {
+      "task": "3f6add8503794cad8f463d65cc5d50d5/36523/forward/cut/00058/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2206044160,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2206044160,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 28.190000000000005,
+        "memory_samples": 140,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00105:3342836:caba1aec55bd4d3196b0a1aa0d6faab4",
+        "monitoring_seconds": 0.02612735191360116,
+        "elapsed_seconds": 28.29731409694068
+      }
+    },
+    {
+      "task": "f3809d3e1c5442cf94110e330876ec8c/06722/forward/cut/00083/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2246160384,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2246160384,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 36.46000000000001,
+        "memory_samples": 181,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00109:319901:1de0ba7f43b54f9c84df86b81c2d436f",
+        "monitoring_seconds": 0.03920385439414531,
+        "elapsed_seconds": 36.461388322059065
+      }
+    },
+    {
+      "task": "022f30027a084771b54868d896e72d5d/34530/forward/cut/00075/finalize",
+      "metrics": {
+        "peak_tree_rss_bytes": 2169262080,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2169262080,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 13.539999999999992,
+        "memory_samples": 68,
+        "phase_at_exit": "compute",
+        "worker": "cpu1-00130:3978571:f24fe8ff0c274b4f9718ce7f3b8fb21f",
+        "monitoring_seconds": 0.014358562766574323,
+        "elapsed_seconds": 13.545183261972852
+      }
+    },
+    {
+      "task": "99f6b04af8d84086b49d8f27355ab9ea/17885/forward/cut/00117/finalize",
+      "metrics": {
+        "cpu_seconds": 5.781367082999992,
+        "compute_seconds": 5.781615087995306,
+        "compute_pid": 3342864,
+        "peak_tree_rss_bytes": 2173382656,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2120577024,
+          "publication": 2173382656
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 5.900000000000006,
+        "memory_samples": 31,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00105:3342836:604dd08ffd544027b0febe986d72c7c5",
+        "monitoring_seconds": 0.005069012753665447,
+        "elapsed_seconds": 6.181801188969985
+      }
+    },
+    {
+      "task": "934c874e309b43f3b6b15e2a99215bde/17885/reverse/cut/00125/finalize",
+      "metrics": {
+        "cpu_seconds": 0.15342847499999834,
+        "compute_seconds": 0.15341674094088376,
+        "compute_pid": 3978631,
+        "peak_tree_rss_bytes": 2153664512,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2092568576,
+          "publication": 2153664512
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 0.30999999999997385,
+        "memory_samples": 3,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00130:3978571:c301a2220cb24df0b940b8a77803ab37",
+        "monitoring_seconds": 0.0004668160108849406,
+        "elapsed_seconds": 0.4671666449867189
+      }
+    },
+    {
+      "task": "6e85fb4e94b1487ea4f0892264f9f5c8/34567/forward/cut/00085/finalize",
+      "metrics": {
+        "cpu_seconds": 0.2788144030000126,
+        "compute_seconds": 0.27894667629152536,
+        "compute_pid": 106613,
+        "peak_tree_rss_bytes": 2149715968,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2062831616,
+          "publication": 2149715968
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 0.4000000000000341,
+        "memory_samples": 3,
+        "phase_at_exit": "publication",
+        "worker": "cpu1-00140:106585:0b7512968d7d4d3984721215e183766b",
+        "monitoring_seconds": 0.0004885643720626831,
+        "elapsed_seconds": 0.4010469187051058
+      }
+    }
+  ],
+  "completed_task_metrics": {
+    "tasks": 10025,
+    "first_started": 1793521963.4012396,
+    "last_finished": 1793522294.6960618,
+    "span_seconds": 331.29482221603394,
+    "totals": {
+      "cpu_seconds": 18608.22839999494,
+      "compute_seconds": 18624.090380034177,
+      "publish_seconds": 1119.5495216711424,
+      "publish_cpu_seconds": 896.4732121739967,
+      "fragment_calls": 1712419,
+      "fragment_hits": 961035,
+      "loaded_bytes": 437376645,
+      "saved_bytes": 20982001001,
+      "load_seconds": 12.746653261361644,
+      "save_seconds": 854.5930435979972,
+      "baseline_loads": 0
+    },
+    "cache_errors": []
+  },
+  "utc": "2026-11-01T08:38:15.270433+00:00",
+  "job": "21140383",
+  "scope": "Current live batch-0 queue; completed reaction audits retired later are not included",
+  "slurm": "             JOBID      STATE     TIME  NODES   CPUS                              NODELIST(REASON)\n      21140390_[0]    PENDING     0:00      7    112                                  (Dependency)\n      21140389_[4]    PENDING     0:00      2    184                                    (Priority)\n      21140388_[3]    PENDING     0:00      2    184                                    (Priority)\n      21140386_[1]    PENDING     0:00      2    184                                    (Priority)\n      21140387_[2]    PENDING     0:00      2    184                                    (Priority)\n      21140394_[4]    PENDING     0:00      2    184                                  (Dependency)\n      21140393_[3]    PENDING     0:00      2    184                                  (Dependency)\n      21140392_[2]    PENDING     0:00      2    184                                  (Dependency)\n      21140391_[1]    PENDING     0:00      2    184                                  (Dependency)\n        21140383_0    RUNNING     5:44      7    112 cpu1-[00016,00105,00109,00130,00139-00140,00144]\n",
+  "registered_worker_incarnations": 122,
+  "worker_registration_note": "Includes replacement processes after memory-limit exits; current concurrency is running_workers."
+}

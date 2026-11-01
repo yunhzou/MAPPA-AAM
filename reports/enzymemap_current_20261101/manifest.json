@@ -1,0 +1,85 @@
+{
+  "cases": 47974,
+  "directions": 95948,
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 1,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "batches": [
+    {
+      "batch": 0,
+      "workers": 98,
+      "cases": 5746,
+      "directions": 11492,
+      "input_bytes": 225167447,
+      "index_sha256": "ccce8a8a6cf20769f32ffe7691b9307703b14bacb2ab68f5678930341789520f"
+    },
+    {
+      "batch": 1,
+      "workers": 180,
+      "cases": 10557,
+      "directions": 21114,
+      "input_bytes": 413572514,
+      "index_sha256": "a0b0e628448a1ba52cef487a787d960a8e221020d9b2a21094c5cceea97f0160"
+    },
+    {
+      "batch": 2,
+      "workers": 180,
+      "cases": 10557,
+      "directions": 21114,
+      "input_bytes": 413572685,
+      "index_sha256": "d0e31428949a9409124405eb8bfed25970a31761ce1db043724dd932c35af07e"
+    },
+    {
+      "batch": 3,
+      "workers": 180,
+      "cases": 10557,
+      "directions": 21114,
+      "input_bytes": 413572704,
+      "index_sha256": "950f8cb49f305978837d245def4e943b2af25fa7ace328018925c95a3b947201"
+    },
+    {
+      "batch": 4,
+      "workers": 180,
+      "cases": 10557,
+      "directions": 21114,
+      "input_bytes": 413572718,
+      "index_sha256": "68a48e39a731d61acf2a6b0c65bbbbd06e71e1c0eaf05e59555963c7cc1ba70a"
+    }
+  ],
+  "fresh": true,
+  "reused_scientific_results": 0,
+  "ordering": "descending prepared-input bytes; greedy load per planned worker",
+  "sources": [
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_pool_20261030/dfw160/0/index.json",
+      "sha256": "cc9ba5f1d7f46e726c8644caadd97b2cc808dbe27aedf075e6fd9e80f087afa2"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_pool_20261030/dfw160/1/index.json",
+      "sha256": "90fb1248f97c0cc45ce09ebcefd4bb3d70f6173a19cba7c2728337506543306e"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_pool_20261030/dfw160/2/index.json",
+      "sha256": "c3902b5dfcfeca01ca84ddd0774980c36ce6e82a410af757feca17961e8a7608"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_pool_20261030/dfw160/3/index.json",
+      "sha256": "493b262f31ff66f814ae5ad71274e539b919dc61b237cdf9ec6df22abdb7e5e3"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_pool_20261030/dfw160/4/index.json",
+      "sha256": "89ddc4b97f37742dd5249970fdc5673da351ae3e707d9c9453dda8a2f3d15902"
+    }
+  ]
+}
