@@ -94,8 +94,8 @@ def refined_mapping_record(result):
 def decoded_events_record(result):
     """Persist unchanged mappings and local event functions, not an enumeration.
 
-    Tables and responses shared across branches are stored once. Representative
-    counts are labelled explicitly; they do not prove a minimum over choices.
+    Tables and responses shared across branches are stored once. Whole-reaction
+    reports and canonical event IDs are explicit queries, not part of export.
     """
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
@@ -136,16 +136,14 @@ def decoded_events_record(result):
             saved.append(table_ids[identity])
         families.append(dict(family_id=fid, tables=saved,
             action_responses=[r.generators for r in result.family_actions[fid]]))
-    representatives = [dict(family_id=i, **result.evaluate(i))
-                       for i in range(len(result.catalogue.families))]
-    return dict(schema='mappa.decoded_events/v3', method='compressed_event_interpretation',
+    return dict(schema='mappa.decoded_events/v4', method='compressed_event_interpretation',
         scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
             reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
             product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
         families=families, tables=tables, responses=responses,
-        representatives=representatives, mapping_space_preserved=True,
+        mapping_space_preserved=True,
         incomplete_paths=result.catalogue.incomplete_paths,
         exhaustive_event_patterns=False, global_minimum_proven=False)
 

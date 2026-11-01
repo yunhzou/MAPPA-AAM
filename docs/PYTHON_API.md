@@ -16,8 +16,7 @@ aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
 catalogue = deduplicate(aam)
 decoded = decode_events(catalogue, threshold=0.5, metal_threshold=0.3)
 witness = decoded.realize(0)
-events = decoded.evaluate(0)
-contributions = decoded.contributions(0)
+events = decoded.contributions(0, include_events=True)
 record = decoded_events_record(decoded)
 ```
 
@@ -27,9 +26,9 @@ Sparse local tables retain internal and boundary responses, including manual cut
 Requested choices are applied in saved order. No rematching, solver search,
 Cartesian branch combination or full symmetry enumeration is performed.
 
-Records preserve the original catalogue, shared tables and representative events.
-Representatives are not all symmetry alternatives; their minimum is not a global
-minimum. Partial mappings count bonds touching mapped atoms and ignore wholly
+Records preserve the original catalogue and shared local event tables.
+They do not enumerate all event patterns or prove a global minimum.
+Partial mappings count bonds touching mapped atoms and ignore wholly
 unmatched bonds. Both ordinary and metal thresholds treat equality as unchanged.
 
 For explicit matching/deduplication/decoding passes over many reactions, see the
@@ -231,7 +230,7 @@ fragment competition remain supported.
 from mappa import decode_events
 
 events = decode_events(aam, threshold=0.5, metal_threshold=0.3)
-pattern = events.evaluate(0)  # Original representative of saved family 0.
+counts = events.contributions(0)['counts']  # Compose the saved witness's local responses.
 actions = events.family_actions[0]
 ```
 
@@ -241,7 +240,7 @@ changed-pair counts. An uncertified action remains compressed; it is not rejecte
 or enumerated. This API does not list all patterns or assert a minimum.
 
 To request a realization, provide one choice per original action to
-`events.evaluate(family_id, choices)`. `None` selects the identity. For a pool,
+`events.realize(family_id, choices)`. `None` selects the identity. For a pool,
 list the images of its saved atoms; for a group, provide a word of signed 1-based
 generator numbers (negative numbers apply the inverse). The original matching
 constraints still apply. `events.counts(family_id, choices_iterable)` streams
@@ -291,7 +290,11 @@ Local internal responses are built lazily and reused when the fragment's mapping
 ordered actions and cut annotations agree. Each branch binds those local actions
 back to its original choices and adds its boundary relationships. Sharing does
 not merge constraints or make choices independent. Binary exports retain shared
-term records; the complete v3 record values remain unchanged.
+term records. The v4 export removes v3's automatic `representatives` reports;
+the catalogue and all local event data remain unchanged. Normal decoding and
+export perform no whole-reaction canonicalization or event-pattern deduplication.
+For optional pattern comparison, explicitly call `events.evaluate(family_id,
+choices)` to request a whole-reaction report with its canonical event ID.
 
 `decode_events(aam).tables(family_id)` exposes internal and boundary bond
 terms. Each term retains `target_pairs`, original `action_ids`, `endpoint_case`

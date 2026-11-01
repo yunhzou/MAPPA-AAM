@@ -73,7 +73,7 @@ catalogue = deduplicate(aam)    # Families across all retained seeds and cuts
 decoded = decode_events(catalogue)  # Original-space event functions
 
 for fid in range(len(decoded.catalogue.families)):
-    print(decoded.evaluate(fid), decoded.realize(fid))
+    print(decoded.contributions(fid)['counts'], decoded.realize(fid))
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
@@ -409,11 +409,13 @@ and metal thresholds apply in both directions. No missing atoms are invented.
 
 `decode_events(aam)` attaches sparse internal and boundary event functions to the
 original compressed AAM families. It preserves ordered correlated choices and
-required growth edges. `result.evaluate(family_id, choices)` gives one requested
+required growth edges. `result.realize(family_id, choices)` gives one requested
 realization; `result.contributions(...)` gives breaking, forming, strengthening
 and weakening counts. It does not enumerate all bijections or claim a global
 minimum. `decoded_events_record(result)` saves shared event tables and the original
-catalogue; representative counts are explicitly separate from compressed choices.
+catalogue without automatic representative reports or global event-pattern
+deduplication. `result.evaluate(...)` explicitly requests a whole-reaction report
+with a canonical event ID for optional pattern comparison.
 
 Experimental hierarchical refinement is explicitly available from
 `mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`

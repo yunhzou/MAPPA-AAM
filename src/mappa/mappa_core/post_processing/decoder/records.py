@@ -153,7 +153,10 @@ class EventInterpretation:
         return mapping
 
     def evaluate(self, family_id, choices=None):
-        """Return events for one requested realization, without rematching."""
+        """Explicit whole-reaction report with a canonical ID for one realization.
+
+        Use contributions() to compose local events without canonicalization.
+        """
         mapping = self.realize(family_id, choices)
         return self.index.describe(self.index.vector(mapping))
 

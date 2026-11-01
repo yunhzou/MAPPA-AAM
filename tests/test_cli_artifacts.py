@@ -3,6 +3,9 @@ import json
 import numpy as np
 
 from mappa.cli import main
+from mappa import decode_events
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+from mappa.mappa_core.utils.io.records import problem_from_record
 
 
 def _write_endpoint(path, elements, coordinates, edges, *, modes=False):
@@ -50,12 +53,16 @@ def test_typed_cli_decodes_then_uses_explicit_reaction_for_ts(tmp_path):
     assert decoded["mapping_space_preserved"]
     assert not decoded["exhaustive_event_patterns"]
     assert not decoded["global_minimum_proven"]
-    assert decoded["representatives"]
-    for candidate in decoded["representatives"]:
+    assert 'representatives' not in decoded
+    catalogue = FinalBranchCatalogue.from_record(
+        problem_from_record(decoded['problem']), decoded['catalogue'])
+    interpretation = decode_events(catalogue)
+    for family_id in range(len(catalogue.families)):
+        candidate = interpretation.evaluate(family_id)
         assert candidate["mapping"] == [0, 1, 2, 3]
         assert candidate["events"] == {
-            "broken": [[0, 1], [2, 3]], "formed": [[0, 2], [1, 3]]}
-    candidate = decoded["representatives"][0]
+            "broken": ((0, 1), (2, 3)), "formed": ((0, 2), (1, 3))}
+    candidate = interpretation.evaluate(0)
     view = (output / "search.html").read_text()
     assert "$3Dmol.createViewer" in view
     assert "<script src=" not in view

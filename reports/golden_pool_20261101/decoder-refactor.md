@@ -1,5 +1,8 @@
 # Unique-fragment decoder refactor
 
+The initial v3 refactor and its measurements are recorded below. The subsequent
+v4 change removes automatic whole-reaction reporting; see the final section.
+
 The decoder now collects all unique saved reactant/product fragments before
 event-response work. Local results are shared across branch occurrences only
 when their mapping, ordered actions and cut context agree. Branches retain their
@@ -142,3 +145,46 @@ branch-level reporting now composes shared fragments.
 `profile_decoder.py --timings --digest-only`. The complete record still has the
 same SHA256 as the pre-refactor baseline. No production algorithm was changed for
 this diagnosis.
+
+## Compose local results without automatic representative reports
+
+On 2026-11-01 the user confirmed that normal decoding should derive event results
+from the saved fragments and boundary relationships, without another global
+event-pattern deduplication pass. Export now returns `mappa.decoded_events/v4`:
+the automatic `representatives` section is removed. The catalogue, partitions,
+local responses, dependencies, constraints and provenance are unchanged.
+`contributions()` composes requested valid choices; `evaluate()` remains an
+explicit optional whole-reaction report with a canonical ID. No new scheduling,
+cache, matching or event-counting algorithm was introduced.
+
+The complete new Golden 1561 record was compared with the actual published DFW
+v3 result, changing only its schema version and removing `representatives`.
+Every remaining value and ordering is identical. Both expanded JSON records,
+after this normalization, have SHA256:
+
+`6f67159f8a07143ba94a67f5534159e52d543a36b99f7be492cad3980802bad6`
+
+The instrumented replay built the record in 10.60 s, versus 43.30 s previously,
+and made zero calls to representative descriptions, canonical event IDs,
+whole-reaction classification or dense whole-reaction count checks. It retained
+all 14,132 families, 2,441 structural fragments, 4,472 local decoding contexts,
+and 13,342 shared term dictionaries. This replay overlapped the test suite;
+the stage timing is attribution evidence rather than a controlled paired trial.
+
+A subsequent replay with no tests running completed decoding and binary
+serialization in **11.34 s**, at **1.004 GiB peak RSS**, under the unchanged
+2 GiB guard. The output compressed to **3,001,904 bytes**. The previous v3
+publication replay took 46.67 s at 1.187 GiB; it overlapped tests, so that
+approximately fourfold timing difference is a point observation, not a general
+throughput guarantee. Existing completed Golden artifacts were not replaced.
+
+The full suite ran 743 tests: 742 passed, and one updated CLI test initially
+compared Python tuples with JSON lists. Its expected representation was corrected
+and that test passed on rerun. Existing independent dense event oracles and
+explicit canonical-ID tests remain. A new regression test forbids whole-reaction
+reporting during normal decoding/export and verifies local choice counts.
+
+Evidence: [normalized complete-record comparison](decoder-composition-digest.jsonl)
+and [publication measurement](decoder-composition-publication.jsonl). Reproduce
+the comparison with `profile_decoder.py --timings --compare-record` and the trusted
+single-blob v3 baseline; the default command measures binary serialization.

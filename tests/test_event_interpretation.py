@@ -586,6 +586,31 @@ def test_event_record_keeps_original_choices_and_shared_tables():
     assert result.evaluate(0,[(2,1)])['total'] == 2
 
 
+def test_normal_decoding_and_export_do_not_build_whole_reaction_reports(monkeypatch):
+    from mappa.mappa_core.post_processing.decoder import events
+    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    ep = endpoint('CCC', [(0,1,1.), (0,2,1.8)])
+    catalogue = saved(ep, ep, {0:0,1:1,2:2}, actions=(('pool',(1,2)),))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('normal decoding invoked whole-reaction reporting')
+
+    monkeypatch.setattr(EventInterpretation, 'evaluate', forbidden)
+    monkeypatch.setattr(events, 'classify_bonds', forbidden)
+    for name in ('describe', '_describe_events', 'counts'):
+        monkeypatch.setattr(SignedEventIndex, name, forbidden)
+    result = decode_events(catalogue)
+    record = decoded_events_record(result)
+    assert record['schema'] == 'mappa.decoded_events/v4'
+    assert 'representatives' not in record
+    assert record['catalogue'] == catalogue.to_record()
+    assert result.contributions(0)['counts'] == dict(
+        breaking=0, forming=0, strengthening=0, weakening=0)
+    assert result.contributions(0, [(2,1)])['counts'] == dict(
+        breaking=0, forming=0, strengthening=1, weakening=1)
+
+
 def test_decoder_rejects_rematching_configuration():
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     with pytest.raises(TypeError):

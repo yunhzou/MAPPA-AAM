@@ -462,9 +462,8 @@ interpretation and are released with it; they are not persistent worker caches.
 internal terms and its boundary relationships. Required-edge checks, dependencies
 and target occupancy remain attached to the original family. The exporter also
 shares repeated term records and lists, so binary publication preserves the
-sharing instead of materializing a separate dictionary per occurrence. The v3
-record's complete values and ordering remain unchanged; explicit JSON export
-expands references into the same values.
+sharing instead of materializing a separate dictionary per occurrence. Explicit
+JSON export expands references into the same values.
 
 ### Current interpretation API and scientific constraints
 
@@ -533,17 +532,24 @@ before evaluating a requested realization. Response invariance is not permission
 to remove an action or treat its atom destinations independently.
 
 `decoded_events_record()` saves the unchanged catalogue, partitions, shared
-response tables, action dependencies, cut annotations and separately labelled
-representative counts. `exhaustive_event_patterns` and `global_minimum_proven`
-remain false. Representative agreement alone cannot establish equivalence of
-complete decoded records.
+response tables, action dependencies and cut annotations. Normal decoding and
+export do not select representatives, compute whole-reaction canonical event IDs
+or run another global event-pattern deduplication pass. On 2026-11-01 the user
+confirmed that event results should come from the saved fragment composition.
 
-Representative export currently calls `EventInterpretation.evaluate()` once per
-family, using the whole-reaction description and canonical event-ID path. This
-reporting pass does not compose the prepared local tables. It dominated the
-Golden 1561 timing (33.15 of 43.30 seconds) after fragment sharing; unique-fragment
-collection alone therefore does not establish an end-to-end decoding speedup.
-See the [measured breakdown](reports/golden_pool_20261101/decoder-refactor.md).
+`EventInterpretation.contributions()` composes local responses for requested
+valid joint choices. The separate `evaluate()` query explicitly requests a
+whole-reaction report, including a canonical event ID for optional pattern
+comparison. It is not called by normal decoding or export. Different fragment
+compositions can yield the same bond changes; composition identity does not
+prove globally unique event patterns. `exhaustive_event_patterns` and
+`global_minimum_proven` remain false.
+
+The v4 export removes the automatic `representatives` report from v3. Every other
+record field, value and ordering is preserved apart from the schema version.
+Existing saved benchmark artifacts remain intact. The removed reporting pass
+cost 33.15 of 43.30 seconds on Golden 1561; see the
+[measurements and validation](reports/golden_pool_20261101/decoder-refactor.md).
 
 ## Benchmark pools and their connection
 

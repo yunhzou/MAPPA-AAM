@@ -1,5 +1,6 @@
 """Measure saved-catalogue decoding and pickle memory without changing either."""
 import argparse
+import gc
 import gzip
 import hashlib
 import json
@@ -14,7 +15,7 @@ import time
 import psutil
 
 
-def profile(bundle, source, digest_only=False, timings=False):
+def profile(bundle, source, digest_only=False, timings=False, compare_record=None):
     from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
     from mappa.mappa_core.core.scheduler.results import DecodingResult
     from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
@@ -122,11 +123,31 @@ def profile(bundle, source, digest_only=False, timings=False):
            unique_term_dictionary_bytes_excluding_values=sum(unique_terms.values()))
     del unique_terms
 
-    if digest_only:
+    def record_digest(record):
         digest = hashlib.sha256()
-        for block in json.JSONEncoder(sort_keys=True, separators=(',', ':'), default=float).iterencode(output.record):
+        for block in json.JSONEncoder(sort_keys=True, separators=(',', ':'), default=float).iterencode(record):
             digest.update(block.encode())
-        sample('record_digest', sha256=digest.hexdigest())
+        return digest.hexdigest()
+
+    if digest_only or compare_record:
+        actual = record_digest(output.record)
+        sample('record_digest', sha256=actual, schema=output.record['schema'])
+        if compare_record:
+            assert output.record['schema'] == 'mappa.decoded_events/v4'
+            assert 'representatives' not in output.record
+            del output
+            gc.collect()
+            # Trusted, single-blob published baseline. Load sequentially to bound RAM.
+            with gzip.open(compare_record, 'rb') as stream:
+                previous = pickle.load(stream).record
+            assert previous['schema'] == 'mappa.decoded_events/v3'
+            removed = len(previous.pop('representatives'))
+            previous['schema'] = 'mappa.decoded_events/v4'
+            expected = record_digest(previous)
+            sample('baseline_comparison', baseline=str(compare_record),
+                   removed_reports=removed, normalized_sha256=expected,
+                   all_other_fields_identical=actual == expected)
+            assert actual == expected
         return
 
     class ObservedStream:
@@ -158,15 +179,19 @@ def main():
     parser.add_argument('--memory-gib', type=float, default=2.)
     parser.add_argument('--digest-only', action='store_true')
     parser.add_argument('--timings', action='store_true', help='Measure nested decoder stages; includes instrumentation overhead')
+    parser.add_argument('--compare-record', type=Path,
+                        help='Compare all retained fields with a trusted single-blob v3 baseline; implies digest-only')
     args = parser.parse_args()
     if args.child:
-        profile(args.bundle, args.source, args.digest_only, args.timings)
+        profile(args.bundle, args.source, args.digest_only, args.timings, args.compare_record)
         return
     command = [sys.executable, __file__, str(args.bundle), str(args.source), '--child']
     if args.digest_only:
         command.append('--digest-only')
     if args.timings:
         command.append('--timings')
+    if args.compare_record:
+        command.extend(['--compare-record', str(args.compare_record)])
     child = subprocess.Popen(command, env={**os.environ, 'OMP_NUM_THREADS': '1',
                               'OPENBLAS_NUM_THREADS': '1', 'MKL_NUM_THREADS': '1'})
     process = psutil.Process(child.pid)
