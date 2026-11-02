@@ -33,8 +33,8 @@ under the unchanged 2 GiB guard. These measurements cover this reaction, not
 future decoding or the whole dataset. The directions recorded 109,875 fragment
 cache hits and 931 task-boundary snapshot loads.
 
-The benchmark remains in progress. This report does not claim final reference
-recovery, decoding completion or completion time.
+The full declared attempt scope is now terminal. Final outcomes and resource
+measurements are recorded below; decoding failures remain explicit.
 
 Public scientific projections: [inputs](manifest.json), [run provenance](launch.json),
 [progress](startup-observation.json), [parallel execution and cache measurements](parallel-observation.json),
@@ -43,83 +43,105 @@ Private site configuration, original operational records and continuation
 instructions are retained outside the published repository. See the
 [portable runner](../../bench/README.md) for execution interfaces.
 
-## Latest monitored progress
+## Final results
 
-At **2026-11-02 03:06 Toronto time (2026-11-02 08:06 UTC)**, published ledgers
-across all 40 batches recorded:
+The last allocation ended at **2026-11-02 03:18:25 Toronto time (08:18:25 UTC)**.
+The independent final audit finished at 08:25:21 UTC. All 47,974 reactions and
+95,948 directions have terminal records for every stage. Matching, reduction and
+reference verification completed throughout the declared scope. **84 directions
+still lack successful decoding outputs**, so this is not an all-success pipeline
+run.
 
-| Stage | Complete directions / 95,948 | Percent |
+| Stage | Complete directions / 95,948 | Errors | Successful completion |
+|---|---:|---:|---:|
+| Matching | 95,948 | 0 | 100.00% |
+| Family reduction | 95,948 | 0 | 100.00% |
+| Decoding | 95,864 | 84 | 99.91% |
+| Reference verification | 95,948 | 0 | 100.00% |
+
+A reaction is recovered when its exact annotated heavy-atom reference is
+recovered in **at least one search direction**. By that rule, **47,500 / 47,974
+reactions were recovered (99.01%)**. Both directions recovered the reference for
+45,792 reactions (95.45%). Neither direction recovered it for 472 reactions;
+two additional reactions remain unresolved because a direction returned unknown.
+These outcomes describe the retained catalogues under the stated seed, cap and
+query settings.
+
+Across directions, verification returned **93,292 recovered (97.23%)**, **2,652
+not recovered**, and **four unknown**. Unknown is unresolved, never counted as
+recovered or as proven absence. The unknown directions are 23473 forward,
+23478 reverse, 23479 forward and 27963 forward. A completed verification task
+therefore does not necessarily mean its reference was recovered. Verification
+queries the completed catalogues independently of decoding.
+
+All 84 decoding errors were **memory-limit failures**, affecting 67 reactions:
+**42 during computation and 42 during publication**. The computation-phase
+metrics do not distinguish catalogue loading from later decoding operations.
+Publication-phase failures occurred after the decoding operation returned.
+The full case list, phase and sampled memory measurements are in
+[completion.json](completion.json). No decoding retries, budget resets or
+campaign memory-guard changes were made. The separate five-case local diagnosis
+below explains the measured memory growth without changing this campaign.
+
+## Time and resource use
+
+The campaign took **6 h 14 min 13 s**, measured from the first allocation start
+at 02:04:12 UTC through the final allocation end at 08:18:25 UTC. This includes
+startup, idle periods and orchestration changes, but excludes input preparation
+and the initial queue wait. Matching and reduction finished at 06:38:01 UTC;
+the first decoding allocation started at 06:38:37 UTC, confirming the global
+barrier.
+
+| Allocation purpose | Reserved CPU hours | Accounted CPU hours used |
 |---|---:|---:|
-| Matching | 95,948 | 100.00% |
-| Family reduction | 95,948 | 100.00% |
-| Decoding | 85,365 | 88.97% |
-| Reference verification | 81,927 | 85.39% |
+| Matching and reduction | 1,141.64 | 221.67 |
+| Decoding and verification | 400.56 | 214.05 |
+| Verification-only continuations | 15.64 | 8.10 |
+| **Total** | **1,557.85** | **443.81** |
 
-Matching and reduction are complete for the full declared scope. The audit
-checked all direction identities, disjoint batch membership, input hashes and
-exact completed-stage membership. No matching or reduction failures occurred.
-All started batches retain the required source/engine identity, scientific
-settings and 2 GiB guard. The final matching allocation ended at **06:38:01 UTC**;
-the first decoding allocation started at **06:38:37 UTC**, confirming the global
-barrier was respected.
+Reserved CPU time is allocated logical CPUs multiplied by elapsed time.
+Accounted CPU usage is the scheduler's cumulative CPU total, counted once per
+allocation. It includes workers, coordinators and supervisors; it is not an
+algorithm-only measurement or a separate computation/publication breakdown.
+No complete campaign-wide task-phase CPU aggregation was performed. Accounted
+CPU usage was **28.49% of reserved CPU time**, so these results do not demonstrate
+high overall utilization. Parent totals were cross-checked against their steps
+within reporting precision; step totals were not added again.
 
-The 81,927 completed reference checks contain **79,688 recovered**, **2,236 not
-recovered** and **three unknown** results. These are partial direction-level
-results, not final reaction-level benchmark accuracy. A completed verification
-task is not necessarily a recovered reference.
+The resource audit includes 98 used allocations, including the startup recovery
+and verification continuations. Twenty cancelled pending allocations had zero
+elapsed time and contributed no reserved CPU time. Unrelated jobs are excluded.
+The observed execution snapshots demonstrated overlapping work and no duplicate
+running ownership; snapshots are not continuous CPU-utilization measurements.
 
-Decoding recorded **70 memory-limit failures**. Among the first five failures
-inspected in detail, four completed computation and crossed the guard while
-publishing their outputs: 13967 reverse, 03861 reverse, 03856 forward and
-09159 reverse. Their sampled publication peaks were 2.0115, 2.0905, 2.0906 and
-2.1046 GiB respectively. Reaction 37270 forward crossed the guard during
-computation after approximately 407 seconds. Its saved metrics do not distinguish
-catalogue loading from later decoder operations. The other failures have not yet
-received this detailed phase audit. These failures are not evidence of an absent
-mapping. No decoding retries, budget resets or memory-guard changes have been made.
+## Completion audit and continuations
 
-Runner revision `9f7d850` keeps external reference verification in the same pool
-after terminal decoding failures. Verification reads completed catalogues;
-decoding errors remain recorded and still make the overall run unsuccessful.
-The scientific source/engine identity is unchanged. This orchestration change
-passed all 19 affected campaign tests. The earlier explicit verification-only
-continuation (`a6224c5`, 13 affected tests followed by five queue-guard checks)
-completed its six inactive batches. A second continuation completed verification
-for 11 more inactive batches, covering 26,390 directions without retrying decoding.
-Both continuations preserve the original catalogues, decoding failures and
-consumed budgets.
+Every stage's direction identities exactly match its immutable input index, and
+all 40 batches are disjoint. Every verification artifact passed its saved
+checksum. The scientific source/engine identity, configuration and **2 GiB guard**
+remained unchanged. All saved queues are drained, all coordinator ownership locks
+are released, and no campaign allocations remain active or pending.
 
-Task timing showed prolonged low occupancy near the end of the original large
-pools. The 20 remaining unstarted batches, covering 47,974 directions, were
-therefore moved to smaller persistent pools. Only their pending allocations were
-held and replaced; active scientific work continued. Before replacement, every
-batch had complete matching and reduction, no decoding or verification records,
-an empty saved queue and released ownership. The replacement retains the exact
-input plans, original windows and budgets, and 2 GiB guard.
+Runner revision `9f7d850`, validated by 19 affected campaign tests, allowed
+external verification to continue in the same pool after terminal decoding
+failures. The failures remain recorded and still cause an unsuccessful overall
+run status. Earlier explicit verification-only continuations covered 17 inactive
+batches without retrying decoding. Twenty unstarted batches were moved to smaller
+persistent pools after confirming empty queues and released ownership. Their
+input plans, windows and consumed budgets were preserved.
 
-All 40 batches have now started decoding. The latest snapshots show
-**155 running decoding tasks and 34 running verification tasks across eight
-pools**, with no duplicate task ownership. The first eight replacement pools
-registered their workers in 2.27–3.27 seconds.
-All pre-existing scientific ledger rows remain exactly identical across the
-20 migrated batches and 17 verification-only batches; all migrated input and plan
-hashes are unchanged. No retired retries were recorded. Verification completion
-does not mark failed decoding or the full benchmark complete.
+All pre-existing scientific ledger rows remain identical across the 20 migrated
+batches and 17 verification-only batches. There are **zero recorded retry
+entries**. The earlier matching-startup failure was recovered by resubmitting
+only its untouched batch; no completed scientific work was rerun. Its original
+evidence remains private.
 
-With the user's explicit approval, the first five failed cases' saved catalogues
-and necessary endpoint inputs were copied into one ignored local diagnostic
-bundle. All ten saved byte-range checksums were verified. These private artifacts
-are not committed and support the separate local diagnosis.
-
-The earlier matching-startup failure was recovered by resubmitting only its
-untouched batch. The replacement registered 155 workers in 3.85 seconds and
-completed all 2,398 directions with an identical input plan; no completed
-scientific work was rerun. Its original startup evidence remains private.
-
-The latest full worker snapshot found no duplicate running task ownership.
-Saved snapshots describe task activity, not continuous CPU utilization. Raw
-operational records, saved failure metrics and exact continuation commands
-remain private.
+[The completion record](completion.json) contains the final counts, input hashes,
+reference outcomes, unknown directions, failure list, resource boundaries and
+audit checks. Private site configuration and raw operational records are not
+included. The first five failed cases' catalogues and necessary endpoint inputs
+were copied to one ignored local diagnostic bundle with the user's explicit
+approval; all ten byte-range checksums were verified.
 
 ## Local decoder memory diagnosis
 
