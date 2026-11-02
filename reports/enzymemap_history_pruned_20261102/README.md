@@ -45,38 +45,63 @@ instructions are retained outside the published repository. See the
 
 ## Latest monitored progress
 
-At **2026-11-02 00:52 Toronto time (2026-11-02 05:52 UTC)**, published ledgers
+At **2026-11-02 02:18 Toronto time (2026-11-02 07:18 UTC)**, published ledgers
 across all 40 batches recorded:
 
 | Stage | Complete directions / 95,948 | Percent |
 |---|---:|---:|
-| Matching | 83,956 | 87.50% |
-| Family reduction | 83,956 | 87.50% |
-| Decoding | 0 | 0% |
-| Reference verification | 0 | 0% |
+| Matching | 95,948 | 100.00% |
+| Family reduction | 95,948 | 100.00% |
+| Decoding | 33,553 | 34.97% |
+| Reference verification | 9,588 | 9.99% |
 
-Thirty-five batches have complete matching and reduction records. The audit
-checked all 95,948 direction identities across the 40 disjoint inputs, each
-completed stage's exact membership, input hashes, scientific settings and the
-required source/engine identity. No scientific direction failures or retired
-retries were recorded; the 2 GiB guard remains unchanged. Five batches remain.
-This is matching/reduction progress, not final benchmark completion.
+Matching and reduction are complete for the full declared scope. The audit
+checked all direction identities, disjoint batch membership, input hashes and
+exact completed-stage membership. No matching or reduction failures occurred.
+All started batches retain the required source/engine identity, scientific
+settings and 2 GiB guard. The final matching allocation ended at **06:38:01 UTC**;
+the first decoding allocation started at **06:38:37 UTC**, confirming the global
+barrier was respected.
 
-One allocation failed during worker startup: no workers became ready and no
-scientific tasks started. Its only saved artifacts were the input plan and an
-empty cache ownership file. All recorded steps had terminated. Direct inspection
-found no remaining job processes on the accessible former nodes; access to one
-former node was unavailable after allocation release. Subsequent allocations
-started successfully, so the evidence identifies an isolated startup failure,
-not a demonstrated algorithm or memory failure. Its underlying scheduler cause
-has not been established.
+The 9,588 completed reference checks contain **9,329 recovered**, **259 not
+recovered** and **zero unknown** results. These are partial direction-level
+results, not final reaction-level benchmark accuracy. A completed verification
+task is not necessarily a recovered reference.
 
-The startup evidence was preserved privately. Only that untouched batch was
-resubmitted with the same validated code, inputs, resource guard and budgets;
-completed work was preserved. Both decoding prerequisites were repaired to
-require the replacement batch and every still-unfinished original matching
-batch. All other prerequisites were independently verified complete. At this
-observation the replacement was queued; successful worker startup has not yet
-been confirmed. The global matching/reduction barrier remains intact.
+Decoding recorded **23 memory-limit failures**. Among the first five failures
+inspected in detail, four completed computation and crossed the guard while
+publishing their outputs: 13967 reverse, 03861 reverse, 03856 forward and
+09159 reverse. Their sampled publication peaks were 2.0115, 2.0905, 2.0906 and
+2.1046 GiB respectively. Reaction 37270 forward crossed the guard during
+computation after approximately 407 seconds. Its saved metrics do not distinguish
+catalogue loading from later decoder operations. The other failures have not yet
+received this detailed phase audit. These failures are not evidence of an absent
+mapping. No decoding retries, budget resets or memory-guard changes have been made.
 
-Raw operational snapshots and exact continuation commands remain private.
+The explicit verification-only continuation uses runner revision `a6224c5`;
+the scientific source/engine identity is unchanged. Validation comprised
+13 affected tests, followed by five focused checks after adding the guard against
+unarchived queued work. Before submission, six inactive batches were checked for
+complete catalogues, terminal decoding attempts, released ownership and empty
+saved queues. The continuation reads their original catalogues without retrying
+decoding and preserves their original windows and time budgets. It registered
+all **31 workers in 2.115 seconds**, and its first batch completed verification.
+All pre-existing matching, reduction and decoding ledger rows—including failure
+records and audit references—remain exactly identical across those six batches.
+No retired retries were recorded. Verification completion does not mark failed
+decoding or the full benchmark complete.
+
+With the user's explicit approval, the first five failed cases' saved catalogues
+and necessary endpoint inputs were copied into one ignored local diagnostic
+bundle. All ten saved byte-range checksums were verified. These private artifacts
+are not committed; local profiling remains pending.
+
+The earlier matching-startup failure was recovered by resubmitting only its
+untouched batch. The replacement registered 155 workers in 3.85 seconds and
+completed all 2,398 directions with an identical input plan; no completed
+scientific work was rerun. Its original startup evidence remains private.
+
+The latest full worker snapshot found no duplicate running task ownership.
+Saved snapshots describe task activity, not continuous CPU utilization. Raw
+operational records, saved failure metrics and exact continuation commands
+remain private.
