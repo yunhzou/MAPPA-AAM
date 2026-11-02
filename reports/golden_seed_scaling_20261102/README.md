@@ -1,6 +1,6 @@
-# Golden seed scaling — provisional local results
+# Golden seed scaling and recovery — local results
 
-Snapshot: 2026-11-02T08:10:24+00:00. **112/128 requested direction tasks are complete.** The seven completed reactions have a balanced grid; case 1799’s 16 trials remain pending. All 56 cache-on/off pairs have identical catalogue and scope hashes, per-cut records, graph counts, cap evidence and verification outcomes. Missing cells are not imputed.
+Final snapshot: 2026-11-02T09:19:02+00:00. **Seven reactions have complete balanced grids: 112 trials.** Five additional case 1799 trials also finished, giving **117 executed trials out of 128 planned cells**. All 117 recovered their references. The 11 optional cells were not started after the active trial drained: seven cases satisfy the requested five-to-ten-case scope, and memory repair took priority. All 58 cache-on/off pairs have identical catalogue and scope hashes, per-cut records, graph counts, cap evidence and verification outcomes. Missing cells are not imputed.
 
 ![Matching CPU across seed counts](scaling.png)
 
@@ -17,7 +17,7 @@ Cases **1001, 1850, 1022, 785, 912, 1518 and 709** have all 16 requested setting
 | 5 | 198.384 | 443.270 | 2.23× | 782.807 | 1024.824 | 1.31× |
 | 10 | 396.839 | 880.683 | 2.22× | 1531.983 | 2026.124 | 1.32× |
 
-The cache reduces matching CPU by **2.22–2.32×**, and matching plus saved-symmetry finalization and family reduction by **1.31–1.32×** in this completed cohort. These ratios compare the same algorithm and requested work, with completed-fragment retention on or off. They exclude preparation, external reference verification and audit. **No event decoding was run.** Millisecond-scale points remain sensitive to one-run timing noise.
+Cache-off/on CPU ratios are **2.22–2.32×** for matching and **1.31–1.32×** through saved-symmetry finalization and family reduction in this completed cohort. These ratios compare the same algorithm and requested work, with completed-fragment retention on or off. They exclude preparation, external reference verification and audit. **No event decoding was run.** Millisecond-scale points remain sensitive to one-run timing noise.
 
 All seven reactions and all 14 directions recover their references at every completed seed/cache setting. Cap evidence remains present: completed work does not establish exhaustive mapping coverage.
 
@@ -49,11 +49,59 @@ The cache-on stage totals below use the same seven cases. CPU values sum worker 
 
 - Hardware: Apple M4 Pro. Every case/direction/seed/cache setting starts in a fresh worker. The fragment cache stays resident across that direction’s cuts and seeds. There is no cross-task cache import.
 - Seeds: 1, 2, 5 and 10; random seed 42; branch cap 2,000; full single-edge cut sweep; graph and cut floors 0.2; isomorphism tolerance 1. Cache-off disables completed-fragment retention, not every internal prepared structure.
-- Reference verification checks the exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry. This selected cohort does not replace the separate 21-miss follow-up study.
-- Only the five named scaling result groups below are included. Preflight, startup-only and recovery runs are excluded. The first two groups drained normally before their remaining work continued in separate groups. No completed grid task was repeated or overwritten.
-- Local resource protocol: 105 completed tasks used 4 GiB and 600 s per direction; the remaining seven used 16 GiB and 1,800 s. No task reached its guard. Case 709, five seeds, forward is the one cache pair with unequal guards: on used 4 GiB/600 s, off used 16 GiB/1,800 s. Their catalogue and work-scope evidence still match. The other 55 pairs have equal guards. These local limits do not alter cluster reservations or scientific settings; the enabled fragment-cache budget remains 64 MiB.
+- Reference verification checks the exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry. The 21-miss follow-up is reported separately below; neither study is a full 1,851-case rerun.
+- The six named scaling result groups below supply the grid. Preflight and startup-only results are excluded. Recovery is a separate cohort. The first two groups drained normally before their remaining work continued in separate groups. No completed grid task was repeated or overwritten.
+- Local resource protocol: 105 completed tasks used 4 GiB and 600 s per direction; 12 further tasks used 16 GiB and 1,800 s. No scaling task reached its guard. Case 709, five seeds, forward is the one cache pair with unequal guards: on used 4 GiB/600 s, off used 16 GiB/1,800 s. Their catalogue and work-scope evidence still match. The other 57 completed pairs have equal guards. These local limits do not alter cluster reservations or scientific settings; the enabled fragment-cache budget remains 64 MiB.
 - All groups have the same scientific source identity, configuration and overlapping input hashes, with two fingerprint formats and three runner hashes. V2 hashes compact catalogue records; the later runner adds task-selection controls. Equality is checked within each cache pair’s fingerprint format; cross-format hash equality is not asserted.
 - Audit CPU is excluded from matching and the other scientific stages. Whole-worker time and RSS include verification and audit, and the older audit can increase them. Whole-worker peaks are not matching-only memory measurements or clean cross-runner comparisons. RSS is sampled every 0.2 s alongside process-lifetime peaks; an unsampled short phase is not zero memory.
+
+## Extra case 1799
+
+All four one-seed trials and the two-seed cache-on forward trial finished and recovered the reference. Both one-seed cache pairs have identical catalogue and search-scope evidence. These five trials are excluded from the fixed seven-case aggregates; the remaining 11 optional trials were not started.
+
+| Seeds | Cache | Direction | Matching CPU s | Through reduction CPU s | Reference |
+|---:|---|---|---:|---:|---|
+| 1 | on | forward | 63.259 | 224.173 | Recovered |
+| 1 | on | reverse | 10.981 | 24.115 | Recovered |
+| 1 | off | forward | 333.100 | 497.235 | Recovered |
+| 1 | off | reverse | 25.423 | 38.792 | Recovered |
+| 2 | on | forward | 131.841 | 442.723 | Recovered |
+
+The two-seed forward trial overlapped a separate local decoder memory diagnostic from 09:02:18 to 09:04:34 UTC. Its timing is not an isolated-host comparison. The balanced seven-case study and case 1799’s one-seed trials preceded that overlap.
+
+## Recovery of 21 previous misses
+
+**Eight of 21 cases now recover a reference.** Twelve completed both directions without recovery; case 590 remains unresolved because its forward direction reached the memory guard. Across all 42 directions, 40 finished: 13 recovered and 27 did not. Two reached the memory guard; there were no unknown verdicts or timeouts. All retained outcomes use 10 seeds, cap 2,000 and the completed-fragment cache.
+
+| Case | Forward | Reverse | Case outcome |
+|---:|---|---|---|
+| 7 | Not recovered | Not recovered | Not recovered |
+| 19 | Not recovered | Not recovered | Not recovered |
+| 20 | Recovered | Recovered | Recovered |
+| 44 | Recovered | Recovered | Recovered |
+| 590 | Memory limit | Not recovered | Unresolved |
+| 867 | Recovered | Recovered | Recovered |
+| 964 | Recovered | Recovered | Recovered |
+| 986 | Not recovered | Not recovered | Not recovered |
+| 1034 | Recovered | Recovered | Recovered |
+| 1227 | Recovered | Not recovered | Recovered |
+| 1228 | Not recovered | Not recovered | Not recovered |
+| 1285 | Not recovered | Not recovered | Not recovered |
+| 1314 | Not recovered | Not recovered | Not recovered |
+| 1358 | Not recovered | Not recovered | Not recovered |
+| 1377 | Not recovered | Not recovered | Not recovered |
+| 1475 | Not recovered | Not recovered | Not recovered |
+| 1553 | Not recovered | Not recovered | Not recovered |
+| 1568 | Not recovered | Recovered | Recovered |
+| 1606 | Memory limit | Recovered | Recovered |
+| 1739 | Not recovered | Not recovered | Not recovered |
+| 1740 | Not recovered | Not recovered | Not recovered |
+
+Case 590 forward stopped during matching after 56/58 cuts, with sampled peak 8.040 GiB. Case 1606 forward stopped during reduction after 131/153 cuts, with sampled peak 8.003 GiB; its reverse direction recovered the reference. Partial scope and consumed stage measurements are retained in the summary; full raw outputs remain archived separately. Memory limits are not negative reference verdicts.
+
+This follow-up used disjoint case groups, at most three simultaneous local one-worker jobs, 8 GiB and 1,800 s per direction. It initially overlapped decoder profiling; recovery timings are not part of the controlled scaling comparison. No event decoding or automatic retries were performed. Catalogue fingerprinting was skipped because this cohort has no cache-off control.
+
+The earlier miss list comes from the frozen one-seed, cap 100 validation. This follow-up changes both seed count and cap, so the eight recoveries cannot be attributed to seeds alone and do not establish a new full-benchmark score. A completed capped search without recovery also does not prove that no valid mapping exists.
 
 ## Provenance
 
@@ -64,5 +112,6 @@ The cache-on stage totals below use the same seven cases. CPU values sum worker 
 - scaling_709_seed5_on_reverse: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot 688e13812c991cb0dc9400d93e0e09fb70bbd7f030284ce739dcd1ebb357c9e8.
 - scaling_709_seed5_off: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot 586476ea23df3e3abb121e13d09e2c0763b36809c4757d3833ffd8b91000d077.
 - scaling_709_seed10: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot af63ad14e50a2be3d67c3427ca250b517b6b7c83ad8ba2bdd7073cf9777bab66.
+- scaling_1799: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot 0b53a4b5778acaeb0b3c8d949593671a91ccb8ce69900a30b0017ecd77fd4276.
 
-[summary.json](summary.json) preserves all 128 requested cells, per-direction stage measurements, cache counters, completed scope, caps, catalogue signatures, reference outcomes, actual guards and source-input hashes. [scaling.svg](scaling.svg) is the vector plot. The report remains provisional until case 1799’s trials finish.
+[summary.json](summary.json) preserves all 128 requested cells, per-direction stage measurements, cache counters, completed scope, caps, catalogue signatures, reference outcomes, actual guards and source-input hashes, plus all 42 recovery directions and their partial failure records. [scaling.svg](scaling.svg) is the vector plot. This planned local study is closed; unrun optional cells remain explicit.

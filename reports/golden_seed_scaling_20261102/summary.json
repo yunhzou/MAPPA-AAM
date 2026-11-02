@@ -1,16 +1,18 @@
 {
   "schema": "mappa.golden_seed_scaling_report/v1",
   "scope": {
-    "status": "ongoing",
-    "snapshot_utc": "2026-11-02T08:10:24+00:00",
+    "status": "finished_with_optional_cells_unrun",
+    "requested_five_to_ten_case_scope_complete": true,
+    "unrun_reason": "Seven balanced cases satisfy the requested five-to-ten-case study. Optional case 1799 admission stopped after the active trial finished to prioritize memory repair; no completed result was discarded.",
+    "snapshot_utc": "2026-11-02T09:19:02+00:00",
     "expected_tasks": 128,
-    "recorded_terminal_tasks": 112,
+    "recorded_terminal_tasks": 117,
     "task_states": {
-      "complete": 112,
-      "not_recorded": 16
+      "complete": 117,
+      "not_run": 11
     },
-    "complete_cache_pairs": 56,
-    "equal_complete_cache_pairs": 56,
+    "complete_cache_pairs": 58,
+    "equal_complete_cache_pairs": 58,
     "selection_cases": [
       1001,
       1850,
@@ -51,8 +53,18 @@
     "decoding_performed": false,
     "timing_scope": "Matching CPU is separate from preparation, symmetry finalization, family reduction, verification and audit. Summed direction wall times are not parallel reaction latency.",
     "memory_scope": "Whole-worker sampled and process-lifetime peaks include fingerprint auditing and verification, not matching alone. Actual memory guards are recorded per task.",
-    "memory_protocol_update": "105 completed tasks used 4 GiB/600 s guards; seven remaining settings used 16 GiB/1800 s after normal draining. No completed task was repeated and no guard was reached. One cache pair (709, five seeds, forward) has different inactive guards. Scientific settings and the 64 MiB fragment-cache budget are unchanged.",
-    "fingerprint_scope": "V1 and V2 audit implementations share scientific source/configuration. Signatures are compared only within matching versions. Audit CPU is separate; its allocations can affect whole-worker time and RSS."
+    "memory_protocol_update": "105 completed tasks used 4 GiB/600 s guards; 12 further settings used 16 GiB/1800 s after normal draining. No completed task was repeated and no guard was reached. One cache pair (709, five seeds, forward) has different inactive guards. Scientific settings and the 64 MiB fragment-cache budget are unchanged.",
+    "fingerprint_scope": "V1 and V2 audit implementations share scientific source/configuration. Signatures are compared only within matching versions. Audit CPU is separate; its allocations can affect whole-worker time and RSS.",
+    "timing_overlap": {
+      "case": 1799,
+      "seeds": 2,
+      "cache": "on",
+      "direction": "forward",
+      "start_utc": "2026-11-02T09:02:18Z",
+      "end_utc": "2026-11-02T09:04:34Z",
+      "activity": "Separate local decoder memory diagnostic",
+      "interpretation": "Only this unpaired extra cell overlapped. Its timing is not an isolated-host comparison. All fixed-cohort trials and the case 1799 one-seed pairs preceded this interval."
+    }
   },
   "selection_sha256": "23efb3e68c513b4e345a1aaf65902fb2adba295f30336fc8f8e977bcef83ae68",
   "scientific_config": {
@@ -77,7 +89,7 @@
       "catalogue_signature": "catalogue-signature/v1",
       "reported_complete": false,
       "saved_tasks": 80,
-      "stopped": "cancelled",
+      "cancellation_requested": true,
       "memory_guard_bytes": 4294967296,
       "direction_seconds": 600.0,
       "input_indexes_sha256": [
@@ -190,7 +202,7 @@
       "catalogue_signature": "catalogue-signature/v2",
       "reported_complete": false,
       "saved_tasks": 25,
-      "stopped": "cancelled",
+      "cancellation_requested": true,
       "memory_guard_bytes": 4294967296,
       "direction_seconds": 600.0,
       "input_indexes_sha256": [
@@ -243,7 +255,7 @@
       "catalogue_signature": "catalogue-signature/v2",
       "reported_complete": true,
       "saved_tasks": 1,
-      "stopped": null,
+      "cancellation_requested": false,
       "memory_guard_bytes": 17179869184,
       "direction_seconds": 1800.0,
       "input_indexes_sha256": [
@@ -266,7 +278,7 @@
       "catalogue_signature": "catalogue-signature/v2",
       "reported_complete": true,
       "saved_tasks": 2,
-      "stopped": null,
+      "cancellation_requested": false,
       "memory_guard_bytes": 17179869184,
       "direction_seconds": 1800.0,
       "input_indexes_sha256": [
@@ -295,7 +307,7 @@
       "catalogue_signature": "catalogue-signature/v2",
       "reported_complete": true,
       "saved_tasks": 4,
-      "stopped": null,
+      "cancellation_requested": false,
       "memory_guard_bytes": 17179869184,
       "direction_seconds": 1800.0,
       "input_indexes_sha256": [
@@ -313,6 +325,35 @@
           "reversed": true,
           "input": "dd6e480ded69991ff6864c8c5190146b808c5f8d57c9a99b02df603c07aa6839",
           "reference": "ce6795b4887df56db8b187d9fe9f5d8a6397bb898fc28514bd16714473366d55"
+        }
+      ]
+    },
+    {
+      "batch": "scaling_1799",
+      "results_sha256": "0b53a4b5778acaeb0b3c8d949593671a91ccb8ce69900a30b0017ecd77fd4276",
+      "scientific_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+      "runner_sha256": "af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19",
+      "catalogue_signature": "catalogue-signature/v2",
+      "reported_complete": false,
+      "saved_tasks": 5,
+      "cancellation_requested": true,
+      "memory_guard_bytes": 17179869184,
+      "direction_seconds": 1800.0,
+      "input_indexes_sha256": [
+        "9c46c77448b598aa49d1e9c097e8a28e7826bcd222b1699ea0bfbd77681ede91"
+      ],
+      "input_sha256": [
+        {
+          "case": 1799,
+          "reversed": false,
+          "input": "9267cb82a25e3df89b4dd969cce23af3ff01cb7907662995f09a2a7d4e812daf",
+          "reference": "668376e33ea7076eff69b47bf925f02b78a202e12398d6c323013ce9c5c9541a"
+        },
+        {
+          "case": 1799,
+          "reversed": true,
+          "input": "25f2947376921095c00ab37ce8434367098a382b5f7ca4c0569935bbb4e3b0dd",
+          "reference": "668376e33ea7076eff69b47bf925f02b78a202e12398d6c323013ce9c5c9541a"
         }
       ]
     }
@@ -1496,29 +1537,29 @@
       "case": 1799,
       "seeds": 1,
       "cache": "on",
-      "complete": false,
+      "complete": true,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "complete",
+        "reverse": "complete"
       },
-      "matching_cpu_seconds": null,
-      "matching_wall_seconds": null,
-      "science_stage_cpu_seconds": null,
-      "recovered": null
+      "matching_cpu_seconds": 74.2400690000001,
+      "matching_wall_seconds": 74.25298942648806,
+      "science_stage_cpu_seconds": 305.72077400000006,
+      "recovered": true
     },
     {
       "case": 1799,
       "seeds": 1,
       "cache": "off",
-      "complete": false,
+      "complete": true,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "complete",
+        "reverse": "complete"
       },
-      "matching_cpu_seconds": null,
-      "matching_wall_seconds": null,
-      "science_stage_cpu_seconds": null,
-      "recovered": null
+      "matching_cpu_seconds": 358.52249099999983,
+      "matching_wall_seconds": 358.7436599561479,
+      "science_stage_cpu_seconds": 594.3213509999999,
+      "recovered": true
     },
     {
       "case": 1799,
@@ -1526,8 +1567,8 @@
       "cache": "on",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "complete",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -1540,8 +1581,8 @@
       "cache": "off",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "not_run",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -1554,8 +1595,8 @@
       "cache": "on",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "not_run",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -1568,8 +1609,8 @@
       "cache": "off",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "not_run",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -1582,8 +1623,8 @@
       "cache": "on",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "not_run",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -1596,8 +1637,8 @@
       "cache": "off",
       "complete": false,
       "direction_states": {
-        "forward": "not_recorded",
-        "reverse": "not_recorded"
+        "forward": "not_run",
+        "reverse": "not_run"
       },
       "matching_cpu_seconds": null,
       "matching_wall_seconds": null,
@@ -2114,15 +2155,19 @@
       "case": 1799,
       "seeds": 1,
       "direction": "forward",
-      "complete": false,
-      "catalogue_and_scope_equal": null
+      "complete": true,
+      "catalogue_and_scope_equal": true,
+      "verification_status_equal": true,
+      "memory_guards_equal": true
     },
     {
       "case": 1799,
       "seeds": 1,
       "direction": "reverse",
-      "complete": false,
-      "catalogue_and_scope_equal": null
+      "complete": true,
+      "catalogue_and_scope_equal": true,
+      "verification_status_equal": true,
+      "memory_guards_equal": true
     },
     {
       "case": 1799,
@@ -13093,129 +13138,5511 @@
       "seeds": 1,
       "cache": "on",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "complete",
+      "batch": "scaling_1799",
+      "catalogue_signature": "catalogue-signature/v2",
+      "phase": "complete",
+      "metrics": {
+        "preparation": {
+          "cpu_seconds": 0.010838999999999988,
+          "wall_seconds": 0.011636541923508048
+        },
+        "matching": {
+          "cpu_seconds": 63.259394000000114,
+          "wall_seconds": 63.26527737895958
+        },
+        "finalization": {
+          "cpu_seconds": 60.70979300000001,
+          "wall_seconds": 60.71477917325683
+        },
+        "reduction": {
+          "cpu_seconds": 100.20359299999996,
+          "wall_seconds": 100.21182463201694
+        },
+        "audit": {
+          "cpu_seconds": 72.4504859999999,
+          "wall_seconds": 72.45645132730715
+        },
+        "verification": {
+          "cpu_seconds": 55.26576899999998,
+          "wall_seconds": 56.72059175022878
+        }
+      },
+      "direction_seconds": 1800.0,
+      "startup_seconds": 0.2449338750448078,
+      "worker_metrics": {
+        "cpu_seconds": 353.69971899999996,
+        "compute_seconds": 355.6533853330184,
+        "publish_seconds": 0.005187375005334616,
+        "publish_cpu_seconds": 0.003099000000020169,
+        "total_cpu_seconds": 353.702886,
+        "peak_tree_rss_bytes": 2880733184,
+        "process_lifetime_peak_rss_bytes": 2896248832,
+        "memory_guard_bytes": 17179869184,
+        "memory_samples": 1680,
+        "sampled_cpu_seconds": 353.691725704
+      },
+      "expected_cuts": 174,
+      "completed_cuts": 174,
+      "expected_seed_searches": 174,
+      "completed_seed_searches": 174,
+      "cap_stages": {
+        "combined_live_leaves": 2751822
+      },
+      "stops": {
+        "stalled": 208653,
+        "capped": 2751822
+      },
+      "graph_counts": {
+        "states": 752780,
+        "transitions": 752606,
+        "terminals": 208653
+      },
+      "families": 208648,
+      "atom_set_branches": 204927,
+      "retained_paths": 208653,
+      "max_growth_candidates": 1,
+      "scope_sha256": "6c72924a5aded7a6027906088afa463899968de8b389c6530883aad7c0bae685",
+      "catalogue_sha256": "64a7bb7a425e6bac517cb9c56d73c0b21375bd7c2bfc09f04952ee01c2e8af72",
+      "verification": {
+        "status": "recovered",
+        "family": 40098,
+        "heavy_atoms": 48,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+      },
+      "cache_metrics": {
+        "calls": 25955474,
+        "full_hits": 25779700,
+        "history_hits": 25778996,
+        "topology_hits": 19920860,
+        "boundary_rebases": 20196268,
+        "dependency_checks": 25787189,
+        "mapping_misses": 7479,
+        "island_misses": 0,
+        "topology_misses": 10,
+        "boundary_misses": 0,
+        "logical_extensions": 2541886,
+        "reused_extensions": 2201245,
+        "entries": 12681,
+        "resident_bytes": 67107232,
+        "peak_resident_bytes": 67108864,
+        "cache_budget_bytes": 67108864,
+        "evictions": 163093,
+        "oversized_results": 0,
+        "revision": 175774
+      }
     },
     {
       "case": 1799,
       "seeds": 1,
       "cache": "on",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "complete",
+      "batch": "scaling_1799",
+      "catalogue_signature": "catalogue-signature/v2",
+      "phase": "complete",
+      "metrics": {
+        "preparation": {
+          "cpu_seconds": 0.02685700000000002,
+          "wall_seconds": 0.03415716718882322
+        },
+        "matching": {
+          "cpu_seconds": 10.980674999999996,
+          "wall_seconds": 10.987712047528476
+        },
+        "finalization": {
+          "cpu_seconds": 1.171930999999994,
+          "wall_seconds": 1.1721148313954473
+        },
+        "reduction": {
+          "cpu_seconds": 11.962142000000002,
+          "wall_seconds": 12.001932877115905
+        },
+        "audit": {
+          "cpu_seconds": 13.183943000000001,
+          "wall_seconds": 13.184782460099086
+        },
+        "verification": {
+          "cpu_seconds": 2.1297810000000013,
+          "wall_seconds": 2.2851650828961283
+        }
+      },
+      "direction_seconds": 1800.0,
+      "startup_seconds": 2.6105420829262584,
+      "worker_metrics": {
+        "cpu_seconds": 39.702063,
+        "compute_seconds": 40.172926833154634,
+        "publish_seconds": 0.003028125036507845,
+        "publish_cpu_seconds": 0.0009599999999991837,
+        "total_cpu_seconds": 39.703094,
+        "peak_tree_rss_bytes": 493387776,
+        "process_lifetime_peak_rss_bytes": 496844800,
+        "memory_guard_bytes": 17179869184,
+        "memory_samples": 190,
+        "sampled_cpu_seconds": 39.572355120000005
+      },
+      "expected_cuts": 115,
+      "completed_cuts": 115,
+      "expected_seed_searches": 115,
+      "completed_seed_searches": 115,
+      "cap_stages": {
+        "combined_live_leaves": 593855
+      },
+      "stops": {
+        "objective_met": 10578,
+        "capped": 593855
+      },
+      "graph_counts": {
+        "states": 12086,
+        "transitions": 11971,
+        "terminals": 10578
+      },
+      "families": 10578,
+      "atom_set_branches": 10560,
+      "retained_paths": 10578,
+      "max_growth_candidates": 1,
+      "scope_sha256": "6a86901025dc95fe0761f9224f3286f0479208161c973bd370e3236df699d138",
+      "catalogue_sha256": "1f386a2c1f235dfa91efa329208fab0aac13fee897ce26edc1445f93008f2a2e",
+      "verification": {
+        "status": "recovered",
+        "family": 0,
+        "heavy_atoms": 48,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+      },
+      "cache_metrics": {
+        "calls": 79154,
+        "full_hits": 52537,
+        "history_hits": 52530,
+        "topology_hits": 7,
+        "boundary_rebases": 442,
+        "dependency_checks": 53278,
+        "mapping_misses": 712,
+        "island_misses": 0,
+        "topology_misses": 29,
+        "boundary_misses": 0,
+        "logical_extensions": 161194,
+        "reused_extensions": 96651,
+        "entries": 5651,
+        "resident_bytes": 67108413,
+        "peak_resident_bytes": 67108864,
+        "cache_budget_bytes": 67108864,
+        "evictions": 20966,
+        "oversized_results": 0,
+        "revision": 26617
+      }
     },
     {
       "case": 1799,
       "seeds": 1,
       "cache": "off",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "complete",
+      "batch": "scaling_1799",
+      "catalogue_signature": "catalogue-signature/v2",
+      "phase": "complete",
+      "metrics": {
+        "preparation": {
+          "cpu_seconds": 0.011556999999999984,
+          "wall_seconds": 0.01173075009137392
+        },
+        "matching": {
+          "cpu_seconds": 333.09982899999983,
+          "wall_seconds": 333.31009817076847
+        },
+        "finalization": {
+          "cpu_seconds": 61.76470100000014,
+          "wall_seconds": 61.84341308870353
+        },
+        "reduction": {
+          "cpu_seconds": 102.370549,
+          "wall_seconds": 102.41643588035367
+        },
+        "audit": {
+          "cpu_seconds": 73.18586499999955,
+          "wall_seconds": 73.26586712175049
+        },
+        "verification": {
+          "cpu_seconds": 56.06349499999999,
+          "wall_seconds": 56.159003915963694
+        }
+      },
+      "direction_seconds": 1800.0,
+      "startup_seconds": 0.33619191590696573,
+      "worker_metrics": {
+        "cpu_seconds": 628.3518280000001,
+        "compute_seconds": 629.242027750006,
+        "publish_seconds": 0.005406749900430441,
+        "publish_cpu_seconds": 0.003233000000022912,
+        "total_cpu_seconds": 628.355132,
+        "peak_tree_rss_bytes": 2779086848,
+        "process_lifetime_peak_rss_bytes": 2791915520,
+        "memory_guard_bytes": 17179869184,
+        "memory_samples": 2975,
+        "sampled_cpu_seconds": 628.27885832
+      },
+      "expected_cuts": 174,
+      "completed_cuts": 174,
+      "expected_seed_searches": 174,
+      "completed_seed_searches": 174,
+      "cap_stages": {
+        "combined_live_leaves": 2751822
+      },
+      "stops": {
+        "stalled": 208653,
+        "capped": 2751822
+      },
+      "graph_counts": {
+        "states": 752780,
+        "transitions": 752606,
+        "terminals": 208653
+      },
+      "families": 208648,
+      "atom_set_branches": 204927,
+      "retained_paths": 208653,
+      "max_growth_candidates": 1,
+      "scope_sha256": "6c72924a5aded7a6027906088afa463899968de8b389c6530883aad7c0bae685",
+      "catalogue_sha256": "64a7bb7a425e6bac517cb9c56d73c0b21375bd7c2bfc09f04952ee01c2e8af72",
+      "verification": {
+        "status": "recovered",
+        "family": 40098,
+        "heavy_atoms": 48,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+      },
+      "cache_metrics": {
+        "calls": 25955474,
+        "full_hits": 0,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 0,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 2541886,
+        "reused_extensions": 0,
+        "entries": 0,
+        "resident_bytes": 0,
+        "peak_resident_bytes": 0,
+        "cache_budget_bytes": 0,
+        "evictions": 0,
+        "oversized_results": 25955474,
+        "revision": 0
+      }
     },
     {
       "case": 1799,
       "seeds": 1,
       "cache": "off",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "complete",
+      "batch": "scaling_1799",
+      "catalogue_signature": "catalogue-signature/v2",
+      "phase": "complete",
+      "metrics": {
+        "preparation": {
+          "cpu_seconds": 0.021224999999999994,
+          "wall_seconds": 0.021471041021868587
+        },
+        "matching": {
+          "cpu_seconds": 25.422661999999978,
+          "wall_seconds": 25.433561785379425
+        },
+        "finalization": {
+          "cpu_seconds": 1.2166209999999904,
+          "wall_seconds": 1.2171890770550817
+        },
+        "reduction": {
+          "cpu_seconds": 12.152313999999997,
+          "wall_seconds": 12.157618537312374
+        },
+        "audit": {
+          "cpu_seconds": 13.424999999999995,
+          "wall_seconds": 13.429571038112044
+        },
+        "verification": {
+          "cpu_seconds": 2.1983980000000045,
+          "wall_seconds": 2.2826674170792103
+        }
+      },
+      "direction_seconds": 1800.0,
+      "startup_seconds": 0.3649155830498785,
+      "worker_metrics": {
+        "cpu_seconds": 54.705968000000006,
+        "compute_seconds": 54.992395624984056,
+        "publish_seconds": 0.002413458889350295,
+        "publish_cpu_seconds": 0.0009990000000001942,
+        "total_cpu_seconds": 54.707032000000005,
+        "peak_tree_rss_bytes": 400654336,
+        "process_lifetime_peak_rss_bytes": 401424384,
+        "memory_guard_bytes": 17179869184,
+        "memory_samples": 260,
+        "sampled_cpu_seconds": 54.599888788
+      },
+      "expected_cuts": 115,
+      "completed_cuts": 115,
+      "expected_seed_searches": 115,
+      "completed_seed_searches": 115,
+      "cap_stages": {
+        "combined_live_leaves": 593855
+      },
+      "stops": {
+        "objective_met": 10578,
+        "capped": 593855
+      },
+      "graph_counts": {
+        "states": 12086,
+        "transitions": 11971,
+        "terminals": 10578
+      },
+      "families": 10578,
+      "atom_set_branches": 10560,
+      "retained_paths": 10578,
+      "max_growth_candidates": 1,
+      "scope_sha256": "6a86901025dc95fe0761f9224f3286f0479208161c973bd370e3236df699d138",
+      "catalogue_sha256": "1f386a2c1f235dfa91efa329208fab0aac13fee897ce26edc1445f93008f2a2e",
+      "verification": {
+        "status": "recovered",
+        "family": 0,
+        "heavy_atoms": 48,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+      },
+      "cache_metrics": {
+        "calls": 79154,
+        "full_hits": 0,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 0,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 161194,
+        "reused_extensions": 0,
+        "entries": 0,
+        "resident_bytes": 0,
+        "peak_resident_bytes": 0,
+        "cache_budget_bytes": 0,
+        "evictions": 0,
+        "oversized_results": 79154,
+        "revision": 0
+      }
     },
     {
       "case": 1799,
       "seeds": 2,
       "cache": "on",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "complete",
+      "batch": "scaling_1799",
+      "catalogue_signature": "catalogue-signature/v2",
+      "phase": "complete",
+      "metrics": {
+        "preparation": {
+          "cpu_seconds": 0.011327000000000004,
+          "wall_seconds": 0.011531416792422533
+        },
+        "matching": {
+          "cpu_seconds": 131.84061200000008,
+          "wall_seconds": 131.9126625857316
+        },
+        "finalization": {
+          "cpu_seconds": 107.14687900000004,
+          "wall_seconds": 107.20158883882686
+        },
+        "reduction": {
+          "cpu_seconds": 203.73552699999985,
+          "wall_seconds": 203.82670766185038
+        },
+        "audit": {
+          "cpu_seconds": 144.2187900000001,
+          "wall_seconds": 144.39448667573743
+        },
+        "verification": {
+          "cpu_seconds": 114.16948100000002,
+          "wall_seconds": 114.26467233290896
+        }
+      },
+      "direction_seconds": 1800.0,
+      "startup_seconds": 0.3625533329322934,
+      "worker_metrics": {
+        "cpu_seconds": 704.258548,
+        "compute_seconds": 705.0626355409622,
+        "publish_seconds": 0.0076554580591619015,
+        "publish_cpu_seconds": 0.005444000000011329,
+        "total_cpu_seconds": 704.264073,
+        "peak_tree_rss_bytes": 4695998464,
+        "process_lifetime_peak_rss_bytes": 4697178112,
+        "memory_guard_bytes": 17179869184,
+        "memory_samples": 3326,
+        "sampled_cpu_seconds": 704.149110652
+      },
+      "expected_cuts": 174,
+      "completed_cuts": 174,
+      "expected_seed_searches": 348,
+      "completed_seed_searches": 348,
+      "cap_stages": {
+        "combined_live_leaves": 5173466
+      },
+      "stops": {
+        "stalled": 413987,
+        "capped": 5173466
+      },
+      "graph_counts": {
+        "states": 1501713,
+        "transitions": 1501365,
+        "terminals": 413987
+      },
+      "families": 399409,
+      "atom_set_branches": 339780,
+      "retained_paths": 413987,
+      "max_growth_candidates": 1,
+      "scope_sha256": "fd0571cf16c3f871c3b2f22509e00f864d22915d7d74588c600fe24c32f4ec40",
+      "catalogue_sha256": "84281167745e15d0cb4895ee355daa6758b001423484a9817f2fbdc3e82c4760",
+      "verification": {
+        "status": "recovered",
+        "family": 81594,
+        "heavy_atoms": 48,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+      },
+      "cache_metrics": {
+        "calls": 51381595,
+        "full_hits": 51101966,
+        "history_hits": 51060305,
+        "topology_hits": 38988962,
+        "boundary_rebases": 41042180,
+        "dependency_checks": 51121534,
+        "mapping_misses": 19550,
+        "island_misses": 0,
+        "topology_misses": 18,
+        "boundary_misses": 0,
+        "logical_extensions": 4846196,
+        "reused_extensions": 4301604,
+        "entries": 11982,
+        "resident_bytes": 67101816,
+        "peak_resident_bytes": 67108864,
+        "cache_budget_bytes": 67108864,
+        "evictions": 267647,
+        "oversized_results": 0,
+        "revision": 279629
+      },
+      "timing_context": "Overlapped a separate decoder memory diagnostic; excluded from controlled scaling aggregates."
     },
     {
       "case": 1799,
       "seeds": 2,
       "cache": "on",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 2,
       "cache": "off",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 2,
       "cache": "off",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 5,
       "cache": "on",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 5,
       "cache": "on",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 5,
       "cache": "off",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 5,
       "cache": "off",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 10,
       "cache": "on",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 10,
       "cache": "on",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 10,
       "cache": "off",
       "direction": "forward",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     },
     {
       "case": 1799,
       "seeds": 10,
       "cache": "off",
       "direction": "reverse",
-      "state": "not_recorded",
-      "metrics": null
+      "state": "not_run",
+      "metrics": null,
+      "reason": "Optional admission stopped after the active trial finished to prioritize memory repair."
     }
   ],
-  "failures": []
+  "failures": [],
+  "recovery": {
+    "status": "all_planned_directions_terminal_with_two_resource_limits",
+    "scope": "All 21 previously unrecovered cases from the frozen 1851-case validation; not a full Golden rerun.",
+    "expected_cases": 21,
+    "expected_directions": 42,
+    "terminal_directions": 42,
+    "direction_states": {
+      "memory_limit": 2,
+      "complete": 40
+    },
+    "verification_counts": {
+      "recovered": 13,
+      "not_recovered": 27
+    },
+    "case_counts": {
+      "not_recovered": 12,
+      "recovered": 8,
+      "unresolved": 1
+    },
+    "seeds": 10,
+    "branch_limit": 2000,
+    "cache": "on",
+    "cache_budget_bytes": 67108864,
+    "direction_seconds": 1800,
+    "memory_guard_bytes": 8589934592,
+    "catalogue_fingerprint_audit": false,
+    "decoding_performed": false,
+    "automatic_retries": false,
+    "execution_scope": "At most three concurrent local one-worker jobs; disjoint case groups. Initially overlapped local decoder profiling. These are recovery outcomes, not controlled timing comparisons.",
+    "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+    "sources": [
+      {
+        "batch": "recovery_A",
+        "results_sha256": "1e01005d04cbbaa5de40cc141958bca9b5d753a8dbaf4db0c86ead7387707719",
+        "scientific_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+        "runner_sha256": "af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19",
+        "input_indexes_sha256": [
+          "1ea6f96ffefea3736f47e7e2c1bad4ee671484ddd6fcebcf9181f37d71b7c698"
+        ],
+        "input_sha256": [
+          {
+            "case": 1606,
+            "reversed": false,
+            "input": "cc4d8893a53cc7baf1f53f583b8f4786e97ea7772c1ea6503d7604c05e318152",
+            "reference": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8"
+          },
+          {
+            "case": 1606,
+            "reversed": true,
+            "input": "09206b1c1f43fd8b78fce09a3623c0889fedbc053eb662e13f136cf3282ba79d",
+            "reference": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8"
+          }
+        ],
+        "saved_tasks": 2,
+        "expected_tasks": 2,
+        "all_tasks_completed_normally": false
+      },
+      {
+        "batch": "recovery_B",
+        "results_sha256": "528f6ccba4ac4edd66330843cd9d1e016b802e9dec10e69d4d015b7426701f2f",
+        "scientific_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+        "runner_sha256": "af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19",
+        "input_indexes_sha256": [
+          "1ea6f96ffefea3736f47e7e2c1bad4ee671484ddd6fcebcf9181f37d71b7c698"
+        ],
+        "input_sha256": [
+          {
+            "case": 590,
+            "reversed": false,
+            "input": "e111705bd21281e91415af2b779982f7cc850be69078de37e9a208d091f2a3b6",
+            "reference": "456497631f800570e0145e8eb2d3fb51bedb585c8b50aaa9cf704cda78646aac"
+          },
+          {
+            "case": 590,
+            "reversed": true,
+            "input": "8e363c9cef3c857bb2b4c5b43a9648c5782d2645d5b001e5ed27f73ca5b62012",
+            "reference": "456497631f800570e0145e8eb2d3fb51bedb585c8b50aaa9cf704cda78646aac"
+          },
+          {
+            "case": 20,
+            "reversed": false,
+            "input": "1eab6aec14e4b0ade2c4c1fd3685af2347c6b0d15055f9d008f9e5fd0db07166",
+            "reference": "6faf76509cd4494721677c6553b422b8d937d48e77eba1daedfcc164d62d4035"
+          },
+          {
+            "case": 20,
+            "reversed": true,
+            "input": "810bb180866db8949f488ef8ee29b83856dd380aba5779ca6595da3cd15c4f0e",
+            "reference": "6faf76509cd4494721677c6553b422b8d937d48e77eba1daedfcc164d62d4035"
+          },
+          {
+            "case": 44,
+            "reversed": false,
+            "input": "d1b60e991d87dd188a883b6e60e6ddc801bc7dc1118a4639c32347aee923bba2",
+            "reference": "5ebc801725ab2acccf8a6093a76982d2e31ca0c71b27e48ba2f62f940eb09437"
+          },
+          {
+            "case": 44,
+            "reversed": true,
+            "input": "7de3872ffdbb79157d09faa22a582e51823821a85038743dd302ef712162ed45",
+            "reference": "5ebc801725ab2acccf8a6093a76982d2e31ca0c71b27e48ba2f62f940eb09437"
+          },
+          {
+            "case": 1739,
+            "reversed": false,
+            "input": "306dc4b75094c30a3211edeaa42ec9e9845614bb0ce4de3f76a6ed97583c2468",
+            "reference": "f0c0667d1e1c826e5cbc411dc7e0a414fe1f3bc8b53148ef89672ccdfa5f5db6"
+          },
+          {
+            "case": 1739,
+            "reversed": true,
+            "input": "c39777ac30959458f4dfc851aa4ca87abb9f73c0d0af0786a47f706f3f82a739",
+            "reference": "f0c0667d1e1c826e5cbc411dc7e0a414fe1f3bc8b53148ef89672ccdfa5f5db6"
+          },
+          {
+            "case": 1285,
+            "reversed": false,
+            "input": "87c8730aa81e3b8442b43ad71fa19bf336725631d7510ab545775f82fc70d46b",
+            "reference": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35"
+          },
+          {
+            "case": 1285,
+            "reversed": true,
+            "input": "1e7e98a417932f71cd6081d7c11bdfe82266609c66d41c581df08035b35e47b6",
+            "reference": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35"
+          }
+        ],
+        "saved_tasks": 10,
+        "expected_tasks": 10,
+        "all_tasks_completed_normally": false
+      },
+      {
+        "batch": "recovery_C",
+        "results_sha256": "87768cfeb2bbb1950e24f58ff8024eb44b4e3530b6c4c384f392fd476a2505c7",
+        "scientific_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+        "runner_sha256": "af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19",
+        "input_indexes_sha256": [
+          "1ea6f96ffefea3736f47e7e2c1bad4ee671484ddd6fcebcf9181f37d71b7c698"
+        ],
+        "input_sha256": [
+          {
+            "case": 1568,
+            "reversed": false,
+            "input": "c581115a3716af4b0467c84abfc514c9a1934ef051d76095a2cb538c8a598223",
+            "reference": "c0c05df5489e4838786d90278be977a2b97e83821c08b7935f71cfbbe4e7002e"
+          },
+          {
+            "case": 1568,
+            "reversed": true,
+            "input": "ebfa3ad59d3f095ce413ad8c8cac8e1c0f3964bad37cb34ed76b90442e77a2c6",
+            "reference": "c0c05df5489e4838786d90278be977a2b97e83821c08b7935f71cfbbe4e7002e"
+          },
+          {
+            "case": 1377,
+            "reversed": false,
+            "input": "851ded7a5e7ed81f4fc0efd40a331cae9ca8f9c761032391b12d9ceaeb50246b",
+            "reference": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f"
+          },
+          {
+            "case": 1377,
+            "reversed": true,
+            "input": "00f80ecf64242ef8754bbcd85dcc5db30a19fead9120f186f2dbad7df5a9e5d3",
+            "reference": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f"
+          },
+          {
+            "case": 1227,
+            "reversed": false,
+            "input": "df2a82392259be113d6a0a23615d835b4a6b3fab372ee3c707a14748543532e7",
+            "reference": "62342130cf976703e3c05d9c53610cf297d53e87b8eb30c6f7ffeda61171624f"
+          },
+          {
+            "case": 1227,
+            "reversed": true,
+            "input": "ad658800bb85e4e38d72fc599ee4120c39bd839e3ae6e30bf1b24c3cff5bb593",
+            "reference": "62342130cf976703e3c05d9c53610cf297d53e87b8eb30c6f7ffeda61171624f"
+          },
+          {
+            "case": 1034,
+            "reversed": false,
+            "input": "9c5bd8e3fa7592cf6364ae59ba7a265a9267557303295277ff0a6b5d85f93690",
+            "reference": "34fa7eec9494a6bd699ee15f7e04caeb21a3f46b0e9e8542cc9dfc84b5de7f8f"
+          },
+          {
+            "case": 1034,
+            "reversed": true,
+            "input": "1777417693d9e50aa2d01ab82492de041a59d3d42cd245073c02f49fed3b6f5e",
+            "reference": "34fa7eec9494a6bd699ee15f7e04caeb21a3f46b0e9e8542cc9dfc84b5de7f8f"
+          },
+          {
+            "case": 964,
+            "reversed": false,
+            "input": "36c8435ea20750b89dd66d289a7c02e6c5982d696fee71c9d97fba3cb03c4de8",
+            "reference": "381e3d1e90c71e8e93ff35783754e342b190b589064e6368f44ef1038a547fae"
+          },
+          {
+            "case": 964,
+            "reversed": true,
+            "input": "a15b8f57c96a9f84f45f3359c5d66dbe33634156e78a9d081562ac2d358c41ce",
+            "reference": "381e3d1e90c71e8e93ff35783754e342b190b589064e6368f44ef1038a547fae"
+          },
+          {
+            "case": 1228,
+            "reversed": false,
+            "input": "81904fd760028cd5288672052b9637f6bb54860cbd33d1a88172dcec6c0362d0",
+            "reference": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567"
+          },
+          {
+            "case": 1228,
+            "reversed": true,
+            "input": "92e0f499c60bd9bfa8db90464c1cf6598b532eeaba4e05c1b524b74cf7d34778",
+            "reference": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567"
+          },
+          {
+            "case": 1475,
+            "reversed": false,
+            "input": "638dc276bb3cd121e0bee4dc3b5135573b6b18cfc8c5b4f19afd7a224b87d39a",
+            "reference": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf"
+          },
+          {
+            "case": 1475,
+            "reversed": true,
+            "input": "54a458202dab228bc6a698038d3709803ffd8571e7f55243583217c74861f00f",
+            "reference": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf"
+          }
+        ],
+        "saved_tasks": 14,
+        "expected_tasks": 14,
+        "all_tasks_completed_normally": true
+      },
+      {
+        "batch": "recovery_D",
+        "results_sha256": "7d7b693e7dee244bf2f01b10566cc7aea7143cf911d3c811d22af97701b988e8",
+        "scientific_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+        "runner_sha256": "af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19",
+        "input_indexes_sha256": [
+          "1ea6f96ffefea3736f47e7e2c1bad4ee671484ddd6fcebcf9181f37d71b7c698"
+        ],
+        "input_sha256": [
+          {
+            "case": 1358,
+            "reversed": false,
+            "input": "835b893c9bd4cd3e4b3ec7a6bdecfba350d1a53b7e9fc2c26079ca7d8dcaef31",
+            "reference": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e"
+          },
+          {
+            "case": 1358,
+            "reversed": true,
+            "input": "144d0e4980760f31bad57687eea2d96195a4e663d3838da966ab29103835920c",
+            "reference": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e"
+          },
+          {
+            "case": 7,
+            "reversed": false,
+            "input": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+            "reference": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3"
+          },
+          {
+            "case": 7,
+            "reversed": true,
+            "input": "44cc45da69df1e9f5932df608224afda8cf7fab452a179d966e9156f2aedfabe",
+            "reference": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3"
+          },
+          {
+            "case": 867,
+            "reversed": false,
+            "input": "b7753d1bba5e2f60e768e259cff1877341bbf8c7339232e7d737cfecd3b3dbe3",
+            "reference": "f018f1bb63e5c8517517dfa1ec5b68587344cea35afc91915872c986a1d45e17"
+          },
+          {
+            "case": 867,
+            "reversed": true,
+            "input": "ab9abf68215b01b75b1f48af0f4646dd582215cfa497ad09d9b7d3a4f4d8997c",
+            "reference": "f018f1bb63e5c8517517dfa1ec5b68587344cea35afc91915872c986a1d45e17"
+          },
+          {
+            "case": 19,
+            "reversed": false,
+            "input": "ed0f5ee417f25b215aa69a391595c53ef4a37f67ad1bf53de3dc3624d1deffed",
+            "reference": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc"
+          },
+          {
+            "case": 19,
+            "reversed": true,
+            "input": "3b6c0e8bddae83874ef7bd12472b773c153f22771441da680c8a4d0fb478095a",
+            "reference": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc"
+          },
+          {
+            "case": 1314,
+            "reversed": false,
+            "input": "2ea37be6012ee98e7f126a1fd7ab4793fb5a345123e83194e69e456c0eb2a36f",
+            "reference": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e"
+          },
+          {
+            "case": 1314,
+            "reversed": true,
+            "input": "5f45bc88fdd19f04c65d7a3f255b2c0ba12e5a41056e2baf312bdbf9b7996cd3",
+            "reference": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e"
+          },
+          {
+            "case": 1553,
+            "reversed": false,
+            "input": "84fda3ed873f9614558cd9d48f58874711e4a7bd502359fffd77d05572e93983",
+            "reference": "90c10c59e0352546f951803b1966cbf1ddbbef8eaf1c4d75af1e0d3a0b8b53d3"
+          },
+          {
+            "case": 1553,
+            "reversed": true,
+            "input": "49e2d571b9ad1d0a8f07296f9f2db978b8a5c54e0f1900aff9d5619e23edbf68",
+            "reference": "90c10c59e0352546f951803b1966cbf1ddbbef8eaf1c4d75af1e0d3a0b8b53d3"
+          },
+          {
+            "case": 1740,
+            "reversed": false,
+            "input": "c81f0e04fd1373a30a36b6aafbc017c79630240c30468908c55c3b1b1d63074c",
+            "reference": "fe6917eebb54952fb11b4c7db7ec06de1c735292dda36f4f868dfd4d8096282a"
+          },
+          {
+            "case": 1740,
+            "reversed": true,
+            "input": "7c3d33bed0916a60137e0574f84f20e709e53e26bde8b26b6c150c99ab45ef29",
+            "reference": "fe6917eebb54952fb11b4c7db7ec06de1c735292dda36f4f868dfd4d8096282a"
+          },
+          {
+            "case": 986,
+            "reversed": false,
+            "input": "206e5ea768b110e4193828602b79c5e44a4c928195aaf0b3d32d0f0a54aa7305",
+            "reference": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a"
+          },
+          {
+            "case": 986,
+            "reversed": true,
+            "input": "2b537b1bdbc934bd565940c712401e98dd9d487ad0be12438c6af18b2d398451",
+            "reference": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a"
+          }
+        ],
+        "saved_tasks": 16,
+        "expected_tasks": 16,
+        "all_tasks_completed_normally": true
+      }
+    ],
+    "cases": [
+      {
+        "case": 7,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 19,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 20,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 44,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 590,
+        "outcome": "unresolved",
+        "directions": {
+          "forward": {
+            "state": "memory_limit",
+            "verification": null
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 867,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 964,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 986,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1034,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 1227,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1228,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1285,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1314,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1358,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1377,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1475,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1553,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1568,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 1606,
+        "outcome": "recovered",
+        "directions": {
+          "forward": {
+            "state": "memory_limit",
+            "verification": null
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "recovered"
+          }
+        }
+      },
+      {
+        "case": 1739,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      },
+      {
+        "case": 1740,
+        "outcome": "not_recovered",
+        "directions": {
+          "forward": {
+            "state": "complete",
+            "verification": "not_recovered"
+          },
+          "reverse": {
+            "state": "complete",
+            "verification": "not_recovered"
+          }
+        }
+      }
+    ],
+    "tasks": [
+      {
+        "case": 1606,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "memory_limit",
+        "batch": "recovery_A",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.5436312910169363,
+        "worker_metrics": {
+          "peak_tree_rss_bytes": 8592637952,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 905.193859748,
+          "memory_samples": 4053,
+          "elapsed_seconds": 906.2997441659681
+        },
+        "phase": "reduction",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.008116000000000012,
+            "wall_seconds": 0.009897750103846192
+          },
+          "matching": {
+            "cpu_seconds": 360.40963199999965,
+            "wall_seconds": 360.8461368398275
+          },
+          "finalization": {
+            "cpu_seconds": 200.84114100000016,
+            "wall_seconds": 200.94621145841666
+          },
+          "reduction": {
+            "cpu_seconds": 337.824308,
+            "wall_seconds": 338.0827696251217
+          },
+          "audit": {
+            "cpu_seconds": 0.24487600000063048,
+            "wall_seconds": 0.245065167080611
+          }
+        },
+        "expected_cuts": 153,
+        "completed_cuts": 131,
+        "expected_seed_searches": 1530,
+        "completed_seed_searches": 1310,
+        "cap_stages": {
+          "combined_live_leaves": 17473269
+        },
+        "stops": {
+          "stalled": 991293,
+          "capped": 17473269
+        },
+        "graph_counts": {
+          "states": 3477624,
+          "transitions": 3476314,
+          "terminals": 991293
+        },
+        "families": null,
+        "atom_set_branches": null,
+        "retained_paths": null,
+        "max_growth_candidates": 1,
+        "scope_sha256": null,
+        "catalogue_sha256": null,
+        "catalogue_audited": null,
+        "verification": {
+          "status": null,
+          "family": null,
+          "heavy_atoms": null,
+          "policy": null
+        },
+        "cache_metrics": {
+          "calls": 141553687,
+          "full_hits": 140678969,
+          "history_hits": 140648232,
+          "topology_hits": 101479143,
+          "boundary_rebases": 118286700,
+          "dependency_checks": 140874903,
+          "mapping_misses": 194667,
+          "island_misses": 1229,
+          "topology_misses": 38,
+          "boundary_misses": 0,
+          "logical_extensions": 13336473,
+          "reused_extensions": 11416475,
+          "entries": 11540,
+          "resident_bytes": 67108064,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 863178,
+          "oversized_results": 0,
+          "revision": 874718
+        },
+        "failure_category": "memory_limit"
+      },
+      {
+        "case": 1606,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_A",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.38361324998550117,
+        "worker_metrics": {
+          "cpu_seconds": 1325.711956,
+          "compute_seconds": 1326.2965412079357,
+          "publish_seconds": 0.005238417070358992,
+          "publish_cpu_seconds": 0.003277999999909298,
+          "total_cpu_seconds": 1325.7153,
+          "process_lifetime_peak_rss_bytes": 5345787904,
+          "peak_tree_rss_bytes": 5345722368,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 1325.564322416,
+          "memory_samples": 6097,
+          "elapsed_seconds": 1326.3021316248924
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.015324000000000004,
+            "wall_seconds": 0.016276624985039234
+          },
+          "matching": {
+            "cpu_seconds": 353.00421299999925,
+            "wall_seconds": 353.08285737922415
+          },
+          "finalization": {
+            "cpu_seconds": 89.7068799999999,
+            "wall_seconds": 89.71948112617247
+          },
+          "reduction": {
+            "cpu_seconds": 716.5091540000001,
+            "wall_seconds": 716.6213439244311
+          },
+          "audit": {
+            "cpu_seconds": 0.29529300000044323,
+            "wall_seconds": 0.295450123725459
+          },
+          "verification": {
+            "cpu_seconds": 163.00960499999997,
+            "wall_seconds": 163.18962162500247
+          }
+        },
+        "expected_cuts": 86,
+        "completed_cuts": 86,
+        "expected_seed_searches": 860,
+        "completed_seed_searches": 860,
+        "cap_stages": {
+          "combined_live_leaves": 20705646
+        },
+        "stops": {
+          "capped": 20705646,
+          "objective_met": 1260913
+        },
+        "graph_counts": {
+          "states": 1374762,
+          "transitions": 1373902,
+          "terminals": 1260913
+        },
+        "families": 1075386,
+        "atom_set_branches": 497905,
+        "retained_paths": 1260913,
+        "max_growth_candidates": 1,
+        "scope_sha256": "36e674e3fec946e67eb7e8e1849e8fdddd1229502108bc9517927bc294b76b0a",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 107928,
+          "heavy_atoms": 39,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1717457,
+          "full_hits": 899438,
+          "history_hits": 826724,
+          "topology_hits": 2796,
+          "boundary_rebases": 8681,
+          "dependency_checks": 968390,
+          "mapping_misses": 68741,
+          "island_misses": 108,
+          "topology_misses": 103,
+          "boundary_misses": 0,
+          "logical_extensions": 2811795,
+          "reused_extensions": 1254515,
+          "entries": 4032,
+          "resident_bytes": 67105348,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 813987,
+          "oversized_results": 0,
+          "revision": 818019
+        }
+      },
+      {
+        "case": 590,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "memory_limit",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.553705665981397,
+        "worker_metrics": {
+          "peak_tree_rss_bytes": 8632844288,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 616.971946864,
+          "memory_samples": 2751,
+          "elapsed_seconds": 617.8659407088999
+        },
+        "phase": "matching",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.003121999999999986,
+            "wall_seconds": 0.0032987080048769712
+          },
+          "matching": {
+            "cpu_seconds": 199.45848100000012,
+            "wall_seconds": 199.7872555416543
+          },
+          "finalization": {
+            "cpu_seconds": 139.79200999999995,
+            "wall_seconds": 139.94168204208836
+          },
+          "reduction": {
+            "cpu_seconds": 270.671426,
+            "wall_seconds": 270.94078954774886
+          },
+          "audit": {
+            "cpu_seconds": 0.26154400000005396,
+            "wall_seconds": 0.26354000135324895
+          }
+        },
+        "expected_cuts": 58,
+        "completed_cuts": 56,
+        "expected_seed_searches": 580,
+        "completed_seed_searches": 560,
+        "cap_stages": {
+          "combined_live_leaves": 7146072
+        },
+        "stops": {
+          "capped": 7146072,
+          "objective_met": 1047144
+        },
+        "graph_counts": {
+          "states": 4310502,
+          "transitions": 4309942,
+          "terminals": 1047144
+        },
+        "families": null,
+        "atom_set_branches": null,
+        "retained_paths": null,
+        "max_growth_candidates": 1,
+        "scope_sha256": null,
+        "catalogue_sha256": null,
+        "catalogue_audited": null,
+        "verification": {
+          "status": null,
+          "family": null,
+          "heavy_atoms": null,
+          "policy": null
+        },
+        "cache_metrics": {
+          "calls": 8330894,
+          "full_hits": 7763532,
+          "history_hits": 7707599,
+          "topology_hits": 48485,
+          "boundary_rebases": 1541957,
+          "dependency_checks": 10232047,
+          "mapping_misses": 2463862,
+          "island_misses": 4485,
+          "topology_misses": 168,
+          "boundary_misses": 0,
+          "logical_extensions": 11502662,
+          "reused_extensions": 10186303,
+          "entries": 19788,
+          "resident_bytes": 67107500,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 547574,
+          "oversized_results": 0,
+          "revision": 567362
+        },
+        "failure_category": "memory_limit"
+      },
+      {
+        "case": 590,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.37540929205715656,
+        "worker_metrics": {
+          "cpu_seconds": 705.092116,
+          "compute_seconds": 705.5011332079303,
+          "publish_seconds": 0.005462999921292067,
+          "publish_cpu_seconds": 0.003625999999940177,
+          "total_cpu_seconds": 705.095821,
+          "process_lifetime_peak_rss_bytes": 8325693440,
+          "peak_tree_rss_bytes": 8323678208,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 704.976690284,
+          "memory_samples": 3202,
+          "elapsed_seconds": 705.5071384171024
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.003171000000000007,
+            "wall_seconds": 0.004054750083014369
+          },
+          "matching": {
+            "cpu_seconds": 166.77983199999989,
+            "wall_seconds": 166.80465033114888
+          },
+          "finalization": {
+            "cpu_seconds": 122.94596600000011,
+            "wall_seconds": 123.03386137913913
+          },
+          "reduction": {
+            "cpu_seconds": 222.27305799999988,
+            "wall_seconds": 222.29570120829158
+          },
+          "audit": {
+            "cpu_seconds": 0.2479429999997036,
+            "wall_seconds": 0.2480801218189299
+          },
+          "verification": {
+            "cpu_seconds": 186.68635799999993,
+            "wall_seconds": 186.83896220801398
+          }
+        },
+        "expected_cuts": 56,
+        "completed_cuts": 56,
+        "expected_seed_searches": 560,
+        "completed_seed_searches": 560,
+        "cap_stages": {
+          "combined_live_leaves": 6805181
+        },
+        "stops": {
+          "capped": 6805181,
+          "objective_met": 1017178
+        },
+        "graph_counts": {
+          "states": 4033586,
+          "transitions": 4033026,
+          "terminals": 1017178
+        },
+        "families": 927910,
+        "atom_set_branches": 611120,
+        "retained_paths": 1017178,
+        "max_growth_candidates": 1,
+        "scope_sha256": "8f0d30f56a9e5ee2425a3d173093bcb077839c22bb213884e0c110c195d344d2",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 31,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 7054128,
+          "full_hits": 6497821,
+          "history_hits": 6401089,
+          "topology_hits": 86350,
+          "boundary_rebases": 1339897,
+          "dependency_checks": 9876613,
+          "mapping_misses": 3376419,
+          "island_misses": 2242,
+          "topology_misses": 131,
+          "boundary_misses": 0,
+          "logical_extensions": 9076746,
+          "reused_extensions": 7959611,
+          "entries": 17277,
+          "resident_bytes": 67105944,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 539030,
+          "oversized_results": 0,
+          "revision": 556307
+        }
+      },
+      {
+        "case": 20,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.33876462490297854,
+        "worker_metrics": {
+          "cpu_seconds": 24.623825,
+          "compute_seconds": 24.81815725006163,
+          "publish_seconds": 0.002313958015292883,
+          "publish_cpu_seconds": 0.0005229999999976087,
+          "total_cpu_seconds": 24.624413,
+          "process_lifetime_peak_rss_bytes": 783728640,
+          "peak_tree_rss_bytes": 782680064,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 24.497914731999998,
+          "memory_samples": 112,
+          "elapsed_seconds": 24.820803999900818
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0020749999999999935,
+            "wall_seconds": 0.002486292039975524
+          },
+          "matching": {
+            "cpu_seconds": 5.362636,
+            "wall_seconds": 5.363287039101124
+          },
+          "finalization": {
+            "cpu_seconds": 5.880781999999997,
+            "wall_seconds": 5.881244041258469
+          },
+          "reduction": {
+            "cpu_seconds": 10.625776000000007,
+            "wall_seconds": 10.626308458624408
+          },
+          "audit": {
+            "cpu_seconds": 0.017794999999995675,
+            "wall_seconds": 0.017828044015914202
+          },
+          "verification": {
+            "cpu_seconds": 2.279902,
+            "wall_seconds": 2.383474834030494
+          }
+        },
+        "expected_cuts": 37,
+        "completed_cuts": 37,
+        "expected_seed_searches": 370,
+        "completed_seed_searches": 370,
+        "cap_stages": {
+          "combined_live_leaves": 83472
+        },
+        "stops": {
+          "objective_met": 68668,
+          "capped": 83472
+        },
+        "graph_counts": {
+          "states": 266091,
+          "transitions": 265721,
+          "terminals": 68668
+        },
+        "families": 64262,
+        "atom_set_branches": 50153,
+        "retained_paths": 68668,
+        "max_growth_candidates": 1,
+        "scope_sha256": "2c988c17bc8a31d8413f252a72149b8488dd7d46ba06c8812df2461564b8242d",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 17569,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 260266,
+          "full_hits": 241264,
+          "history_hits": 238338,
+          "topology_hits": 7344,
+          "boundary_rebases": 87800,
+          "dependency_checks": 385534,
+          "mapping_misses": 141680,
+          "island_misses": 748,
+          "topology_misses": 1842,
+          "boundary_misses": 0,
+          "logical_extensions": 375310,
+          "reused_extensions": 330448,
+          "entries": 19002,
+          "resident_bytes": 51470404,
+          "peak_resident_bytes": 51470404,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 19002
+        }
+      },
+      {
+        "case": 20,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3201788340229541,
+        "worker_metrics": {
+          "cpu_seconds": 75.649838,
+          "compute_seconds": 75.89723020792007,
+          "publish_seconds": 0.0028470000252127647,
+          "publish_cpu_seconds": 0.0011319999999983565,
+          "total_cpu_seconds": 75.651046,
+          "process_lifetime_peak_rss_bytes": 1825357824,
+          "peak_tree_rss_bytes": 1825357824,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 75.52944643999999,
+          "memory_samples": 338,
+          "elapsed_seconds": 75.90042266598903
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.001908999999999994,
+            "wall_seconds": 0.0020777920726686716
+          },
+          "matching": {
+            "cpu_seconds": 20.112865999999997,
+            "wall_seconds": 20.114422081736848
+          },
+          "finalization": {
+            "cpu_seconds": 16.82037200000001,
+            "wall_seconds": 16.82158350152895
+          },
+          "reduction": {
+            "cpu_seconds": 35.720328999999985,
+            "wall_seconds": 35.72249779268168
+          },
+          "audit": {
+            "cpu_seconds": 0.05456699999999848,
+            "wall_seconds": 0.05462241522036493
+          },
+          "verification": {
+            "cpu_seconds": 1.6975139999999982,
+            "wall_seconds": 1.8431004590820521
+          }
+        },
+        "expected_cuts": 37,
+        "completed_cuts": 37,
+        "expected_seed_searches": 370,
+        "completed_seed_searches": 370,
+        "cap_stages": {
+          "combined_live_leaves": 414685
+        },
+        "stops": {
+          "objective_met": 234879,
+          "capped": 414685
+        },
+        "graph_counts": {
+          "states": 816151,
+          "transitions": 815781,
+          "terminals": 234879
+        },
+        "families": 188643,
+        "atom_set_branches": 139046,
+        "retained_paths": 234879,
+        "max_growth_candidates": 1,
+        "scope_sha256": "cec3b623b08e3deea46421ebc59d69e235a946045c9af7beca44b1c34e3b68cd",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 14861,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 916376,
+          "full_hits": 880470,
+          "history_hits": 870629,
+          "topology_hits": 74436,
+          "boundary_rebases": 341415,
+          "dependency_checks": 1540912,
+          "mapping_misses": 655616,
+          "island_misses": 764,
+          "topology_misses": 4062,
+          "boundary_misses": 0,
+          "logical_extensions": 1070750,
+          "reused_extensions": 990073,
+          "entries": 24722,
+          "resident_bytes": 67106424,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 11184,
+          "oversized_results": 0,
+          "revision": 35906
+        }
+      },
+      {
+        "case": 44,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3218597089871764,
+        "worker_metrics": {
+          "cpu_seconds": 48.099908,
+          "compute_seconds": 48.359678958076984,
+          "publish_seconds": 0.0027469999622553587,
+          "publish_cpu_seconds": 0.0008750000000006253,
+          "total_cpu_seconds": 48.10085,
+          "process_lifetime_peak_rss_bytes": 1121419264,
+          "peak_tree_rss_bytes": 1121419264,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 48.005955336,
+          "memory_samples": 228,
+          "elapsed_seconds": 48.362747667124495
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002622000000000013,
+            "wall_seconds": 0.003024666104465723
+          },
+          "matching": {
+            "cpu_seconds": 9.209774999999999,
+            "wall_seconds": 9.210550251649693
+          },
+          "finalization": {
+            "cpu_seconds": 11.229157000000015,
+            "wall_seconds": 11.23067495552823
+          },
+          "reduction": {
+            "cpu_seconds": 23.916433000000016,
+            "wall_seconds": 23.92281270911917
+          },
+          "audit": {
+            "cpu_seconds": 0.024810999999992145,
+            "wall_seconds": 0.024844371946528554
+          },
+          "verification": {
+            "cpu_seconds": 3.030262999999998,
+            "wall_seconds": 3.1683427079115063
+          }
+        },
+        "expected_cuts": 49,
+        "completed_cuts": 49,
+        "expected_seed_searches": 490,
+        "completed_seed_searches": 490,
+        "cap_stages": {
+          "combined_live_leaves": 275473
+        },
+        "stops": {
+          "capped": 275473,
+          "objective_met": 99608
+        },
+        "graph_counts": {
+          "states": 366721,
+          "transitions": 366231,
+          "terminals": 99608
+        },
+        "families": 90199,
+        "atom_set_branches": 83922,
+        "retained_paths": 99608,
+        "max_growth_candidates": 1,
+        "scope_sha256": "3ab6435d07bf1dad847686ac1329773b7af8a2d0f52cc6d5e656ed1975d7ed81",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 10033,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 488353,
+          "full_hits": 463124,
+          "history_hits": 460338,
+          "topology_hits": 22133,
+          "boundary_rebases": 128559,
+          "dependency_checks": 484957,
+          "mapping_misses": 19704,
+          "island_misses": 322,
+          "topology_misses": 1807,
+          "boundary_misses": 0,
+          "logical_extensions": 651171,
+          "reused_extensions": 584451,
+          "entries": 21153,
+          "resident_bytes": 67106927,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 4076,
+          "oversized_results": 0,
+          "revision": 25229
+        }
+      },
+      {
+        "case": 44,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.32939512515440583,
+        "worker_metrics": {
+          "cpu_seconds": 43.708447,
+          "compute_seconds": 43.932960083009675,
+          "publish_seconds": 0.002584167057648301,
+          "publish_cpu_seconds": 0.0006859999999946353,
+          "total_cpu_seconds": 43.709195,
+          "process_lifetime_peak_rss_bytes": 1102725120,
+          "peak_tree_rss_bytes": 1102725120,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 43.590288752,
+          "memory_samples": 198,
+          "elapsed_seconds": 43.93586720805615
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002612000000000003,
+            "wall_seconds": 0.0027693340089172125
+          },
+          "matching": {
+            "cpu_seconds": 9.001538999999976,
+            "wall_seconds": 9.002200915711
+          },
+          "finalization": {
+            "cpu_seconds": 11.556366000000008,
+            "wall_seconds": 11.55685066524893
+          },
+          "reduction": {
+            "cpu_seconds": 21.504285999999993,
+            "wall_seconds": 21.506567913107574
+          },
+          "audit": {
+            "cpu_seconds": 0.025165000000011734,
+            "wall_seconds": 0.025187205523252487
+          },
+          "verification": {
+            "cpu_seconds": 0.9399599999999992,
+            "wall_seconds": 1.0611559168901294
+          }
+        },
+        "expected_cuts": 49,
+        "completed_cuts": 49,
+        "expected_seed_searches": 490,
+        "completed_seed_searches": 490,
+        "cap_stages": {
+          "combined_live_leaves": 237179
+        },
+        "stops": {
+          "objective_met": 97751,
+          "capped": 237179
+        },
+        "graph_counts": {
+          "states": 376243,
+          "transitions": 375753,
+          "terminals": 97751
+        },
+        "families": 90599,
+        "atom_set_branches": 74448,
+        "retained_paths": 97751,
+        "max_growth_candidates": 1,
+        "scope_sha256": "8cedf3d842c6ec2b9311db6b35799fe267eb94b062f9cad3893066eab9d9ede8",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 2814,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 469440,
+          "full_hits": 445023,
+          "history_hits": 442067,
+          "topology_hits": 19744,
+          "boundary_rebases": 168914,
+          "dependency_checks": 561469,
+          "mapping_misses": 112987,
+          "island_misses": 866,
+          "topology_misses": 2593,
+          "boundary_misses": 0,
+          "logical_extensions": 673641,
+          "reused_extensions": 600938,
+          "entries": 20844,
+          "resident_bytes": 67104972,
+          "peak_resident_bytes": 67108862,
+          "cache_budget_bytes": 67108864,
+          "evictions": 3573,
+          "oversized_results": 0,
+          "revision": 24417
+        }
+      },
+      {
+        "case": 1739,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.32982550002634525,
+        "worker_metrics": {
+          "cpu_seconds": 1.027943,
+          "compute_seconds": 1.1293051671236753,
+          "publish_seconds": 0.0013935831375420094,
+          "publish_cpu_seconds": 0.0003830000000000222,
+          "total_cpu_seconds": 1.028378,
+          "process_lifetime_peak_rss_bytes": 91127808,
+          "peak_tree_rss_bytes": 91045888,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.9658551559999999,
+          "memory_samples": 6,
+          "elapsed_seconds": 1.1309967921115458
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0017250000000000043,
+            "wall_seconds": 0.0027975421398878098
+          },
+          "matching": {
+            "cpu_seconds": 0.24499699999999985,
+            "wall_seconds": 0.24515404575504363
+          },
+          "finalization": {
+            "cpu_seconds": 0.19300799999999993,
+            "wall_seconds": 0.19301066710613668
+          },
+          "reduction": {
+            "cpu_seconds": 0.2509200000000001,
+            "wall_seconds": 0.25093495822511613
+          },
+          "audit": {
+            "cpu_seconds": 0.0020499999999997187,
+            "wall_seconds": 0.002072499133646488
+          },
+          "verification": {
+            "cpu_seconds": 0.2551970000000001,
+            "wall_seconds": 0.2630121249239892
+          }
+        },
+        "expected_cuts": 52,
+        "completed_cuts": 52,
+        "expected_seed_searches": 520,
+        "completed_seed_searches": 520,
+        "cap_stages": {},
+        "stops": {
+          "stalled": 2361
+        },
+        "graph_counts": {
+          "states": 12060,
+          "transitions": 11540,
+          "terminals": 2361
+        },
+        "families": 1951,
+        "atom_set_branches": 938,
+        "retained_paths": 2361,
+        "max_growth_candidates": 1,
+        "scope_sha256": "54b00101bb1a9ad36b8850dc143b8fdec6b0b5ba3002f4ab2db835df247c83c6",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 14,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 139341,
+          "full_hits": 136245,
+          "history_hits": 135018,
+          "topology_hits": 126687,
+          "boundary_rebases": 131066,
+          "dependency_checks": 137433,
+          "mapping_misses": 721,
+          "island_misses": 8,
+          "topology_misses": 459,
+          "boundary_misses": 0,
+          "logical_extensions": 27644,
+          "reused_extensions": 18190,
+          "entries": 3096,
+          "resident_bytes": 6557268,
+          "peak_resident_bytes": 6557268,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 3096
+        }
+      },
+      {
+        "case": 1739,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3213747919071466,
+        "worker_metrics": {
+          "cpu_seconds": 0.522904,
+          "compute_seconds": 0.7019198329653591,
+          "publish_seconds": 0.0021545840427279472,
+          "publish_cpu_seconds": 0.00036800000000003497,
+          "total_cpu_seconds": 0.523319,
+          "process_lifetime_peak_rss_bytes": 104005632,
+          "peak_tree_rss_bytes": 103841792,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.461945216,
+          "memory_samples": 4,
+          "elapsed_seconds": 0.7043723750393838
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002242999999999995,
+            "wall_seconds": 0.002385416068136692
+          },
+          "matching": {
+            "cpu_seconds": 0.050913999999999765,
+            "wall_seconds": 0.05113212508149445
+          },
+          "finalization": {
+            "cpu_seconds": 0.045821999999999946,
+            "wall_seconds": 0.045825500739738345
+          },
+          "reduction": {
+            "cpu_seconds": 0.14132800000000006,
+            "wall_seconds": 0.14133479190059006
+          },
+          "audit": {
+            "cpu_seconds": 0.0009360000000000757,
+            "wall_seconds": 0.0009408760815858841
+          },
+          "verification": {
+            "cpu_seconds": 0.253317,
+            "wall_seconds": 0.38852737518027425
+          }
+        },
+        "expected_cuts": 24,
+        "completed_cuts": 24,
+        "expected_seed_searches": 240,
+        "completed_seed_searches": 240,
+        "cap_stages": {},
+        "stops": {
+          "objective_met": 2184
+        },
+        "graph_counts": {
+          "states": 3475,
+          "transitions": 3235,
+          "terminals": 2184
+        },
+        "families": 1038,
+        "atom_set_branches": 423,
+        "retained_paths": 2184,
+        "max_growth_candidates": 1,
+        "scope_sha256": "8351310e2114c3315bec7fdb7d7bb30169d920e71473a8abaa9cf3316a025eed",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 14,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1291,
+          "full_hits": 721,
+          "history_hits": 63,
+          "topology_hits": 156,
+          "boundary_rebases": 16,
+          "dependency_checks": 1841,
+          "mapping_misses": 13,
+          "island_misses": 20,
+          "topology_misses": 1087,
+          "boundary_misses": 0,
+          "logical_extensions": 6642,
+          "reused_extensions": 1507,
+          "entries": 570,
+          "resident_bytes": 1635076,
+          "peak_resident_bytes": 1635076,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 570
+        }
+      },
+      {
+        "case": 1285,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.31890516681596637,
+        "worker_metrics": {
+          "cpu_seconds": 0.404536,
+          "compute_seconds": 0.5852550419513136,
+          "publish_seconds": 0.0019990000873804092,
+          "publish_cpu_seconds": 0.0003690000000000637,
+          "total_cpu_seconds": 0.40496,
+          "process_lifetime_peak_rss_bytes": 125206528,
+          "peak_tree_rss_bytes": 89030656,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.29679272000000007,
+          "memory_samples": 3,
+          "elapsed_seconds": 0.587542749941349
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.001342999999999983,
+            "wall_seconds": 0.002213041065260768
+          },
+          "matching": {
+            "cpu_seconds": 0.055296000000000095,
+            "wall_seconds": 0.0554855833761394
+          },
+          "finalization": {
+            "cpu_seconds": 0.04713200000000001,
+            "wall_seconds": 0.04713312815874815
+          },
+          "reduction": {
+            "cpu_seconds": 0.07222099999999998,
+            "wall_seconds": 0.07222495973110199
+          },
+          "audit": {
+            "cpu_seconds": 0.0007699999999999096,
+            "wall_seconds": 0.0007802094332873821
+          },
+          "verification": {
+            "cpu_seconds": 0.194052,
+            "wall_seconds": 0.32677583303302526
+          }
+        },
+        "expected_cuts": 28,
+        "completed_cuts": 28,
+        "expected_seed_searches": 280,
+        "completed_seed_searches": 280,
+        "cap_stages": {},
+        "stops": {
+          "stalled": 903
+        },
+        "graph_counts": {
+          "states": 3303,
+          "transitions": 3023,
+          "terminals": 903
+        },
+        "families": 766,
+        "atom_set_branches": 585,
+        "retained_paths": 903,
+        "max_growth_candidates": 1,
+        "scope_sha256": "97bc3be5bd40d635de711fadbd5d8f735de1f89759c1d8135dbd9c635c9d070f",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 14,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 13201,
+          "full_hits": 12144,
+          "history_hits": 11733,
+          "topology_hits": 10587,
+          "boundary_rebases": 10925,
+          "dependency_checks": 13561,
+          "mapping_misses": 577,
+          "island_misses": 15,
+          "topology_misses": 825,
+          "boundary_misses": 0,
+          "logical_extensions": 12033,
+          "reused_extensions": 5501,
+          "entries": 1057,
+          "resident_bytes": 2186915,
+          "peak_resident_bytes": 2186915,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 1057
+        }
+      },
+      {
+        "case": 1285,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_B",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3034997498616576,
+        "worker_metrics": {
+          "cpu_seconds": 0.6223460000000001,
+          "compute_seconds": 0.8161987501662225,
+          "publish_seconds": 0.0020767918322235346,
+          "publish_cpu_seconds": 0.0003710000000000102,
+          "total_cpu_seconds": 0.622762,
+          "process_lifetime_peak_rss_bytes": 133332992,
+          "peak_tree_rss_bytes": 107888640,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.448077284,
+          "memory_samples": 4,
+          "elapsed_seconds": 0.8185619169380516
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0013090000000000046,
+            "wall_seconds": 0.0022189170122146606
+          },
+          "matching": {
+            "cpu_seconds": 0.05561099999999988,
+            "wall_seconds": 0.055771125247702
+          },
+          "finalization": {
+            "cpu_seconds": 0.06336200000000006,
+            "wall_seconds": 0.06336958636529744
+          },
+          "reduction": {
+            "cpu_seconds": 0.1268530000000001,
+            "wall_seconds": 0.12686591991223395
+          },
+          "audit": {
+            "cpu_seconds": 0.0009769999999999224,
+            "wall_seconds": 0.0009844615124166012
+          },
+          "verification": {
+            "cpu_seconds": 0.34326100000000004,
+            "wall_seconds": 0.4874226248357445
+          }
+        },
+        "expected_cuts": 24,
+        "completed_cuts": 24,
+        "expected_seed_searches": 240,
+        "completed_seed_searches": 240,
+        "cap_stages": {},
+        "stops": {
+          "objective_met": 2165
+        },
+        "graph_counts": {
+          "states": 3922,
+          "transitions": 3682,
+          "terminals": 2165
+        },
+        "families": 1677,
+        "atom_set_branches": 964,
+        "retained_paths": 2165,
+        "max_growth_candidates": 1,
+        "scope_sha256": "a48fedb489be8af7a75e0b499824dc9aec32a2a6a441d989fbadd9b559aade36",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 14,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1757,
+          "full_hits": 740,
+          "history_hits": 321,
+          "topology_hits": 104,
+          "boundary_rebases": 79,
+          "dependency_checks": 1927,
+          "mapping_misses": 205,
+          "island_misses": 10,
+          "topology_misses": 972,
+          "boundary_misses": 0,
+          "logical_extensions": 8539,
+          "reused_extensions": 2367,
+          "entries": 1017,
+          "resident_bytes": 2381749,
+          "peak_resident_bytes": 2381749,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 1017
+        }
+      },
+      {
+        "case": 1568,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.543468999909237,
+        "worker_metrics": {
+          "cpu_seconds": 244.807636,
+          "compute_seconds": 245.37205666606314,
+          "publish_seconds": 0.004448374966159463,
+          "publish_cpu_seconds": 0.0024169999999799074,
+          "total_cpu_seconds": 244.810178,
+          "process_lifetime_peak_rss_bytes": 2787344384,
+          "peak_tree_rss_bytes": 2787344384,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 244.668431292,
+          "memory_samples": 1096,
+          "elapsed_seconds": 245.37710100016557
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0031330000000000247,
+            "wall_seconds": 0.0048876660875976086
+          },
+          "matching": {
+            "cpu_seconds": 47.71560599999998,
+            "wall_seconds": 47.7218392950017
+          },
+          "finalization": {
+            "cpu_seconds": 32.776281000000054,
+            "wall_seconds": 32.77971208328381
+          },
+          "reduction": {
+            "cpu_seconds": 83.94325999999997,
+            "wall_seconds": 84.08106475160457
+          },
+          "audit": {
+            "cpu_seconds": 0.08153699999998731,
+            "wall_seconds": 0.08162479335442185
+          },
+          "verification": {
+            "cpu_seconds": 78.071113,
+            "wall_seconds": 78.33002683403902
+          }
+        },
+        "expected_cuts": 63,
+        "completed_cuts": 63,
+        "expected_seed_searches": 630,
+        "completed_seed_searches": 630,
+        "cap_stages": {
+          "combined_live_leaves": 1276701
+        },
+        "stops": {
+          "stalled": 332291,
+          "capped": 1276701
+        },
+        "graph_counts": {
+          "states": 1121941,
+          "transitions": 1121311,
+          "terminals": 332291
+        },
+        "families": 294483,
+        "atom_set_branches": 209205,
+        "retained_paths": 332291,
+        "max_growth_candidates": 1,
+        "scope_sha256": "0bf71c6bf8ebb0ea0132522b0e31b734d167457b0abf58b843ccfdff097b4748",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 14676451,
+          "full_hits": 14566339,
+          "history_hits": 14547576,
+          "topology_hits": 12032679,
+          "boundary_rebases": 12796598,
+          "dependency_checks": 14690963,
+          "mapping_misses": 122793,
+          "island_misses": 1429,
+          "topology_misses": 402,
+          "boundary_misses": 0,
+          "logical_extensions": 2921251,
+          "reused_extensions": 2702837,
+          "entries": 21629,
+          "resident_bytes": 67104309,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 88483,
+          "oversized_results": 0,
+          "revision": 110112
+        }
+      },
+      {
+        "case": 1568,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.45168233290314674,
+        "worker_metrics": {
+          "cpu_seconds": 132.959058,
+          "compute_seconds": 133.42587862513028,
+          "publish_seconds": 0.0026067078579217196,
+          "publish_cpu_seconds": 0.0007449999999948886,
+          "total_cpu_seconds": 132.959873,
+          "process_lifetime_peak_rss_bytes": 1572798464,
+          "peak_tree_rss_bytes": 1572798464,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 132.816996132,
+          "memory_samples": 589,
+          "elapsed_seconds": 133.42883104202338
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0033360000000000056,
+            "wall_seconds": 0.0037594169843941927
+          },
+          "matching": {
+            "cpu_seconds": 24.626581000000034,
+            "wall_seconds": 24.628825126215816
+          },
+          "finalization": {
+            "cpu_seconds": 11.373625000000011,
+            "wall_seconds": 11.374724871246144
+          },
+          "reduction": {
+            "cpu_seconds": 82.350368,
+            "wall_seconds": 82.4051751694642
+          },
+          "audit": {
+            "cpu_seconds": 0.14040099999996003,
+            "wall_seconds": 0.1405017504002899
+          },
+          "verification": {
+            "cpu_seconds": 13.171613000000008,
+            "wall_seconds": 13.448304499965161
+          }
+        },
+        "expected_cuts": 46,
+        "completed_cuts": 46,
+        "expected_seed_searches": 460,
+        "completed_seed_searches": 460,
+        "cap_stages": {
+          "combined_live_leaves": 1127765
+        },
+        "stops": {
+          "objective_met": 529100,
+          "capped": 1127765
+        },
+        "graph_counts": {
+          "states": 673474,
+          "transitions": 673014,
+          "terminals": 529100
+        },
+        "families": 391391,
+        "atom_set_branches": 154530,
+        "retained_paths": 529100,
+        "max_growth_candidates": 1,
+        "scope_sha256": "b513ffdc96770c4d5047d4860ee44dad5972ee62570c25e90976b43b512ebeed",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 43353,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 431263,
+          "full_hits": 386509,
+          "history_hits": 307030,
+          "topology_hits": 40883,
+          "boundary_rebases": 35487,
+          "dependency_checks": 398416,
+          "mapping_misses": 9321,
+          "island_misses": 1079,
+          "topology_misses": 1507,
+          "boundary_misses": 0,
+          "logical_extensions": 270916,
+          "reused_extensions": 216069,
+          "entries": 16029,
+          "resident_bytes": 67108282,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 28725,
+          "oversized_results": 0,
+          "revision": 44754
+        }
+      },
+      {
+        "case": 1377,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.4281125839333981,
+        "worker_metrics": {
+          "cpu_seconds": 224.776908,
+          "compute_seconds": 225.66391283390112,
+          "publish_seconds": 0.004496291046962142,
+          "publish_cpu_seconds": 0.0026149999999915963,
+          "total_cpu_seconds": 224.779805,
+          "process_lifetime_peak_rss_bytes": 3093266432,
+          "peak_tree_rss_bytes": 3060645888,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 224.73682119199998,
+          "memory_samples": 1003,
+          "elapsed_seconds": 225.66915216716006
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0023480000000000167,
+            "wall_seconds": 0.002929041860625148
+          },
+          "matching": {
+            "cpu_seconds": 54.61597400000002,
+            "wall_seconds": 54.646228458033875
+          },
+          "finalization": {
+            "cpu_seconds": 39.92890199999992,
+            "wall_seconds": 39.941830206429586
+          },
+          "reduction": {
+            "cpu_seconds": 78.921808,
+            "wall_seconds": 78.95190304238349
+          },
+          "audit": {
+            "cpu_seconds": 0.10836099999993998,
+            "wall_seconds": 0.1084587462246418
+          },
+          "verification": {
+            "cpu_seconds": 47.72175300000001,
+            "wall_seconds": 48.38753558299504
+          }
+        },
+        "expected_cuts": 44,
+        "completed_cuts": 44,
+        "expected_seed_searches": 440,
+        "completed_seed_searches": 440,
+        "cap_stages": {
+          "combined_live_leaves": 1172945
+        },
+        "stops": {
+          "capped": 1172945,
+          "stalled": 437065
+        },
+        "graph_counts": {
+          "states": 1670251,
+          "transitions": 1669811,
+          "terminals": 437065
+        },
+        "families": 392968,
+        "atom_set_branches": 299308,
+        "retained_paths": 437065,
+        "max_growth_candidates": 1,
+        "scope_sha256": "d5b02d8167b3aac52d42fbe91ca4621aaf2dbe348f2551a4db3164f74790ae31",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 22,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 6282764,
+          "full_hits": 6127679,
+          "history_hits": 6104925,
+          "topology_hits": 3658752,
+          "boundary_rebases": 4668116,
+          "dependency_checks": 6785701,
+          "mapping_misses": 651711,
+          "island_misses": 5541,
+          "topology_misses": 770,
+          "boundary_misses": 0,
+          "logical_extensions": 3538832,
+          "reused_extensions": 3151670,
+          "entries": 21499,
+          "resident_bytes": 67105957,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 133586,
+          "oversized_results": 0,
+          "revision": 155085
+        }
+      },
+      {
+        "case": 1377,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.4598117920104414,
+        "worker_metrics": {
+          "cpu_seconds": 165.574853,
+          "compute_seconds": 165.96499112504534,
+          "publish_seconds": 0.003211708040907979,
+          "publish_cpu_seconds": 0.0014280000000042037,
+          "total_cpu_seconds": 165.576373,
+          "process_lifetime_peak_rss_bytes": 2481045504,
+          "peak_tree_rss_bytes": 2481045504,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 165.407852544,
+          "memory_samples": 751,
+          "elapsed_seconds": 165.9685884169303
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002612000000000003,
+            "wall_seconds": 0.0035300408490002155
+          },
+          "matching": {
+            "cpu_seconds": 40.48546200000002,
+            "wall_seconds": 40.49130604835227
+          },
+          "finalization": {
+            "cpu_seconds": 18.991262999999996,
+            "wall_seconds": 18.993463539984077
+          },
+          "reduction": {
+            "cpu_seconds": 55.33843000000003,
+            "wall_seconds": 55.347715875832364
+          },
+          "audit": {
+            "cpu_seconds": 0.12084900000002108,
+            "wall_seconds": 0.12093045748770237
+          },
+          "verification": {
+            "cpu_seconds": 48.876644999999996,
+            "wall_seconds": 49.14790212502703
+          }
+        },
+        "expected_cuts": 42,
+        "completed_cuts": 42,
+        "expected_seed_searches": 420,
+        "completed_seed_searches": 420,
+        "cap_stages": {
+          "combined_live_leaves": 2492225
+        },
+        "stops": {
+          "objective_met": 507336,
+          "capped": 2492225
+        },
+        "graph_counts": {
+          "states": 844391,
+          "transitions": 843971,
+          "terminals": 507336
+        },
+        "families": 413391,
+        "atom_set_branches": 313884,
+        "retained_paths": 507336,
+        "max_growth_candidates": 1,
+        "scope_sha256": "13b9a5bc3ba2a56494aa82bc7abe808a495bda832cf50328b55656a64b60779b",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 22,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1465027,
+          "full_hits": 1297616,
+          "history_hits": 1253918,
+          "topology_hits": 23192,
+          "boundary_rebases": 361826,
+          "dependency_checks": 1472864,
+          "mapping_misses": 169697,
+          "island_misses": 3948,
+          "topology_misses": 1603,
+          "boundary_misses": 0,
+          "logical_extensions": 2155619,
+          "reused_extensions": 1799560,
+          "entries": 17924,
+          "resident_bytes": 67105760,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 149487,
+          "oversized_results": 0,
+          "revision": 167411
+        }
+      },
+      {
+        "case": 1227,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.2974489589687437,
+        "worker_metrics": {
+          "cpu_seconds": 109.19986800000001,
+          "compute_seconds": 109.52799995802343,
+          "publish_seconds": 0.0033225000370293856,
+          "publish_cpu_seconds": 0.0011119999999920083,
+          "total_cpu_seconds": 109.201069,
+          "process_lifetime_peak_rss_bytes": 1864613888,
+          "peak_tree_rss_bytes": 1864417280,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 109.003181572,
+          "memory_samples": 488,
+          "elapsed_seconds": 109.53190783294849
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002238999999999991,
+            "wall_seconds": 0.003105166833847761
+          },
+          "matching": {
+            "cpu_seconds": 26.103891000000015,
+            "wall_seconds": 26.106669829925522
+          },
+          "finalization": {
+            "cpu_seconds": 19.211222000000014,
+            "wall_seconds": 19.213754454860464
+          },
+          "reduction": {
+            "cpu_seconds": 36.170433999999986,
+            "wall_seconds": 36.17578061972745
+          },
+          "audit": {
+            "cpu_seconds": 0.05684899999999482,
+            "wall_seconds": 0.05691000120714307
+          },
+          "verification": {
+            "cpu_seconds": 26.277312999999992,
+            "wall_seconds": 26.478205875027925
+          }
+        },
+        "expected_cuts": 42,
+        "completed_cuts": 42,
+        "expected_seed_searches": 420,
+        "completed_seed_searches": 420,
+        "cap_stages": {
+          "combined_live_leaves": 685048
+        },
+        "stops": {
+          "stalled": 231848,
+          "capped": 685048
+        },
+        "graph_counts": {
+          "states": 808128,
+          "transitions": 807708,
+          "terminals": 231848
+        },
+        "families": 214966,
+        "atom_set_branches": 130686,
+        "retained_paths": 231848,
+        "max_growth_candidates": 1,
+        "scope_sha256": "d02ed652efe380cf94a500a09b3ac01dee12f7c4c823276ee3d08f3cf6d8e986",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 214010,
+          "heavy_atoms": 17,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 5039547,
+          "full_hits": 4976359,
+          "history_hits": 4969288,
+          "topology_hits": 3842202,
+          "boundary_rebases": 4167770,
+          "dependency_checks": 5525518,
+          "mapping_misses": 547098,
+          "island_misses": 1344,
+          "topology_misses": 717,
+          "boundary_misses": 0,
+          "logical_extensions": 1571197,
+          "reused_extensions": 1427741,
+          "entries": 22358,
+          "resident_bytes": 67106654,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 40830,
+          "oversized_results": 0,
+          "revision": 63188
+        }
+      },
+      {
+        "case": 1227,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.43790083401836455,
+        "worker_metrics": {
+          "cpu_seconds": 171.08224,
+          "compute_seconds": 171.4849277921021,
+          "publish_seconds": 0.002586208051070571,
+          "publish_cpu_seconds": 0.0008180000000095333,
+          "total_cpu_seconds": 171.083154,
+          "process_lifetime_peak_rss_bytes": 2189017088,
+          "peak_tree_rss_bytes": 2189017088,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 171.075692944,
+          "memory_samples": 767,
+          "elapsed_seconds": 171.50531250005588
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0022790000000000032,
+            "wall_seconds": 0.002757792128250003
+          },
+          "matching": {
+            "cpu_seconds": 31.19771400000002,
+            "wall_seconds": 31.2010782121215
+          },
+          "finalization": {
+            "cpu_seconds": 15.020074999999974,
+            "wall_seconds": 15.025377918267623
+          },
+          "reduction": {
+            "cpu_seconds": 64.28154499999997,
+            "wall_seconds": 64.34665517183021
+          },
+          "audit": {
+            "cpu_seconds": 0.12081499999998258,
+            "wall_seconds": 0.12089725118130445
+          },
+          "verification": {
+            "cpu_seconds": 58.97286099999998,
+            "wall_seconds": 59.22235387493856
+          }
+        },
+        "expected_cuts": 36,
+        "completed_cuts": 36,
+        "expected_seed_searches": 360,
+        "completed_seed_searches": 360,
+        "cap_stages": {
+          "combined_live_leaves": 2710968
+        },
+        "stops": {
+          "capped": 2710968,
+          "objective_met": 505445
+        },
+        "graph_counts": {
+          "states": 689095,
+          "transitions": 688735,
+          "terminals": 505445
+        },
+        "families": 457091,
+        "atom_set_branches": 284433,
+        "retained_paths": 505445,
+        "max_growth_candidates": 1,
+        "scope_sha256": "50b3f0af67ca632a570c7826a33dd7ebe4963c5cbe25878b66e38a03392df7e1",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 17,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 932606,
+          "full_hits": 784059,
+          "history_hits": 745498,
+          "topology_hits": 17957,
+          "boundary_rebases": 100281,
+          "dependency_checks": 819633,
+          "mapping_misses": 34086,
+          "island_misses": 450,
+          "topology_misses": 1038,
+          "boundary_misses": 0,
+          "logical_extensions": 1062972,
+          "reused_extensions": 843057,
+          "entries": 15897,
+          "resident_bytes": 67107090,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 132650,
+          "oversized_results": 0,
+          "revision": 148547
+        }
+      },
+      {
+        "case": 1034,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.32765762507915497,
+        "worker_metrics": {
+          "cpu_seconds": 53.299581,
+          "compute_seconds": 53.55043754214421,
+          "publish_seconds": 0.002377874916419387,
+          "publish_cpu_seconds": 0.0006540000000043733,
+          "total_cpu_seconds": 53.300311,
+          "process_lifetime_peak_rss_bytes": 1269891072,
+          "peak_tree_rss_bytes": 1269891072,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 53.109964992,
+          "memory_samples": 252,
+          "elapsed_seconds": 53.55319154099561
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002564999999999984,
+            "wall_seconds": 0.003418334061279893
+          },
+          "matching": {
+            "cpu_seconds": 11.473800999999995,
+            "wall_seconds": 11.475712456740439
+          },
+          "finalization": {
+            "cpu_seconds": 12.822879999999998,
+            "wall_seconds": 12.827361246803775
+          },
+          "reduction": {
+            "cpu_seconds": 24.584834000000015,
+            "wall_seconds": 24.58687449619174
+          },
+          "audit": {
+            "cpu_seconds": 0.034933999999994914,
+            "wall_seconds": 0.034977622563019395
+          },
+          "verification": {
+            "cpu_seconds": 3.5257799999999975,
+            "wall_seconds": 3.6736730001866817
+          }
+        },
+        "expected_cuts": 43,
+        "completed_cuts": 43,
+        "expected_seed_searches": 430,
+        "completed_seed_searches": 430,
+        "cap_stages": {
+          "combined_live_leaves": 116551
+        },
+        "stops": {
+          "objective_met": 142088,
+          "capped": 116551
+        },
+        "graph_counts": {
+          "states": 506352,
+          "transitions": 505922,
+          "terminals": 142088
+        },
+        "families": 134720,
+        "atom_set_branches": 99499,
+        "retained_paths": 142088,
+        "max_growth_candidates": 1,
+        "scope_sha256": "aa943607c649552c32615ab7e6920d1f1965106b5b1cea99087dc6a3723d3c6a",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 24112,
+          "heavy_atoms": 19,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 454594,
+          "full_hits": 419735,
+          "history_hits": 413572,
+          "topology_hits": 31028,
+          "boundary_rebases": 217107,
+          "dependency_checks": 641714,
+          "mapping_misses": 216656,
+          "island_misses": 2893,
+          "topology_misses": 2430,
+          "boundary_misses": 0,
+          "logical_extensions": 545288,
+          "reused_extensions": 459876,
+          "entries": 23928,
+          "resident_bytes": 67108180,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 10931,
+          "oversized_results": 0,
+          "revision": 34859
+        }
+      },
+      {
+        "case": 1034,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.32933741714805365,
+        "worker_metrics": {
+          "cpu_seconds": 99.425462,
+          "compute_seconds": 99.65705916681327,
+          "publish_seconds": 0.0030008750036358833,
+          "publish_cpu_seconds": 0.0012779999999992242,
+          "total_cpu_seconds": 99.426816,
+          "process_lifetime_peak_rss_bytes": 2140438528,
+          "peak_tree_rss_bytes": 2140438528,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 99.30682485999999,
+          "memory_samples": 469,
+          "elapsed_seconds": 99.66039974987507
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002241999999999994,
+            "wall_seconds": 0.0024013330694288015
+          },
+          "matching": {
+            "cpu_seconds": 32.180863,
+            "wall_seconds": 32.18324079178274
+          },
+          "finalization": {
+            "cpu_seconds": 23.342838000000018,
+            "wall_seconds": 23.34433554089628
+          },
+          "reduction": {
+            "cpu_seconds": 39.546442,
+            "wall_seconds": 39.549256544793025
+          },
+          "audit": {
+            "cpu_seconds": 0.06294800000000711,
+            "wall_seconds": 0.0629871659912169
+          },
+          "verification": {
+            "cpu_seconds": 2.8469869999999986,
+            "wall_seconds": 2.965457791928202
+          }
+        },
+        "expected_cuts": 44,
+        "completed_cuts": 44,
+        "expected_seed_searches": 440,
+        "completed_seed_searches": 440,
+        "cap_stages": {
+          "combined_live_leaves": 1309014
+        },
+        "stops": {
+          "objective_met": 270529,
+          "capped": 1309014
+        },
+        "graph_counts": {
+          "states": 908565,
+          "transitions": 908125,
+          "terminals": 270529
+        },
+        "families": 239864,
+        "atom_set_branches": 180331,
+        "retained_paths": 270529,
+        "max_growth_candidates": 1,
+        "scope_sha256": "3754683e77cad968d06f378a3394864992a426df87b1015076991df7e31fff68",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 20124,
+          "heavy_atoms": 19,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1388858,
+          "full_hits": 1311873,
+          "history_hits": 1301911,
+          "topology_hits": 67491,
+          "boundary_rebases": 397139,
+          "dependency_checks": 1794030,
+          "mapping_misses": 477974,
+          "island_misses": 1772,
+          "topology_misses": 2411,
+          "boundary_misses": 0,
+          "logical_extensions": 1800468,
+          "reused_extensions": 1624023,
+          "entries": 21342,
+          "resident_bytes": 67107218,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 55643,
+          "oversized_results": 0,
+          "revision": 76985
+        }
+      },
+      {
+        "case": 964,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3320886669680476,
+        "worker_metrics": {
+          "cpu_seconds": 22.403692,
+          "compute_seconds": 22.670046041952446,
+          "publish_seconds": 0.002303292043507099,
+          "publish_cpu_seconds": 0.0004929999999987444,
+          "total_cpu_seconds": 22.404252,
+          "process_lifetime_peak_rss_bytes": 689422336,
+          "peak_tree_rss_bytes": 689422336,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 22.294407011999997,
+          "memory_samples": 107,
+          "elapsed_seconds": 22.672712415922433
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002260000000000012,
+            "wall_seconds": 0.0025986251421272755
+          },
+          "matching": {
+            "cpu_seconds": 4.045002999999998,
+            "wall_seconds": 4.045331999892369
+          },
+          "finalization": {
+            "cpu_seconds": 5.035652,
+            "wall_seconds": 5.036223914241418
+          },
+          "reduction": {
+            "cpu_seconds": 9.137154999999991,
+            "wall_seconds": 9.137815126916394
+          },
+          "audit": {
+            "cpu_seconds": 0.015498000000003731,
+            "wall_seconds": 0.015553121455013752
+          },
+          "verification": {
+            "cpu_seconds": 3.796710000000001,
+            "wall_seconds": 3.9645729169715196
+          }
+        },
+        "expected_cuts": 38,
+        "completed_cuts": 38,
+        "expected_seed_searches": 380,
+        "completed_seed_searches": 380,
+        "cap_stages": {
+          "combined_live_leaves": 28061
+        },
+        "stops": {
+          "objective_met": 60236,
+          "capped": 28061
+        },
+        "graph_counts": {
+          "states": 207797,
+          "transitions": 207417,
+          "terminals": 60236
+        },
+        "families": 53939,
+        "atom_set_branches": 45882,
+        "retained_paths": 60236,
+        "max_growth_candidates": 1,
+        "scope_sha256": "e5e911b6cc8310f397ad7ffb30401366420d79a5ffed53946cf9c2769b76d97a",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 22329,
+          "heavy_atoms": 16,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 172585,
+          "full_hits": 158385,
+          "history_hits": 155295,
+          "topology_hits": 10798,
+          "boundary_rebases": 76971,
+          "dependency_checks": 207342,
+          "mapping_misses": 46712,
+          "island_misses": 647,
+          "topology_misses": 1598,
+          "boundary_misses": 0,
+          "logical_extensions": 223141,
+          "reused_extensions": 184514,
+          "entries": 14200,
+          "resident_bytes": 38080768,
+          "peak_resident_bytes": 38080768,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 14200
+        }
+      },
+      {
+        "case": 964,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3501306250691414,
+        "worker_metrics": {
+          "cpu_seconds": 38.574005,
+          "compute_seconds": 38.80207516718656,
+          "publish_seconds": 0.002090417081490159,
+          "publish_cpu_seconds": 0.0005859999999984211,
+          "total_cpu_seconds": 38.574659999999994,
+          "process_lifetime_peak_rss_bytes": 967245824,
+          "peak_tree_rss_bytes": 967245824,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 38.418027828,
+          "memory_samples": 175,
+          "elapsed_seconds": 38.80449574999511
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002035000000000009,
+            "wall_seconds": 0.0022839170414954424
+          },
+          "matching": {
+            "cpu_seconds": 8.179093999999978,
+            "wall_seconds": 8.180136875482276
+          },
+          "finalization": {
+            "cpu_seconds": 8.176721999999996,
+            "wall_seconds": 8.17719792574644
+          },
+          "reduction": {
+            "cpu_seconds": 16.396582000000006,
+            "wall_seconds": 16.397640457144007
+          },
+          "audit": {
+            "cpu_seconds": 0.026174999999985182,
+            "wall_seconds": 0.026190247852355242
+          },
+          "verification": {
+            "cpu_seconds": 5.186332999999998,
+            "wall_seconds": 5.318386583123356
+          }
+        },
+        "expected_cuts": 38,
+        "completed_cuts": 38,
+        "expected_seed_searches": 380,
+        "completed_seed_searches": 380,
+        "cap_stages": {
+          "combined_live_leaves": 97395
+        },
+        "stops": {
+          "objective_met": 105297,
+          "capped": 97395
+        },
+        "graph_counts": {
+          "states": 372303,
+          "transitions": 371923,
+          "terminals": 105297
+        },
+        "families": 90079,
+        "atom_set_branches": 69115,
+        "retained_paths": 105297,
+        "max_growth_candidates": 1,
+        "scope_sha256": "a9cc30516debbcc2fd5cad15a3461990b884a94aa6375fe780335f53f6193672",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 39646,
+          "heavy_atoms": 16,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 339462,
+          "full_hits": 314191,
+          "history_hits": 306645,
+          "topology_hits": 25197,
+          "boundary_rebases": 138057,
+          "dependency_checks": 1295106,
+          "mapping_misses": 978647,
+          "island_misses": 678,
+          "topology_misses": 1590,
+          "boundary_misses": 0,
+          "logical_extensions": 452045,
+          "reused_extensions": 382246,
+          "entries": 24376,
+          "resident_bytes": 67108124,
+          "peak_resident_bytes": 67108862,
+          "cache_budget_bytes": 67108864,
+          "evictions": 895,
+          "oversized_results": 0,
+          "revision": 25271
+        }
+      },
+      {
+        "case": 1228,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3302045420277864,
+        "worker_metrics": {
+          "cpu_seconds": 7.726309,
+          "compute_seconds": 7.935347083024681,
+          "publish_seconds": 0.002208709018304944,
+          "publish_cpu_seconds": 0.0004359999999996589,
+          "total_cpu_seconds": 7.726813,
+          "process_lifetime_peak_rss_bytes": 311541760,
+          "peak_tree_rss_bytes": 311492608,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 7.548713167999999,
+          "memory_samples": 36,
+          "elapsed_seconds": 7.937891749897972
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0014510000000000078,
+            "wall_seconds": 0.001846458064392209
+          },
+          "matching": {
+            "cpu_seconds": 1.2793219999999996,
+            "wall_seconds": 1.2795774987898767
+          },
+          "finalization": {
+            "cpu_seconds": 1.4960859999999994,
+            "wall_seconds": 1.4962022942490876
+          },
+          "reduction": {
+            "cpu_seconds": 2.7520880000000005,
+            "wall_seconds": 2.752348748734221
+          },
+          "audit": {
+            "cpu_seconds": 0.006495000000001444,
+            "wall_seconds": 0.00650758552365005
+          },
+          "verification": {
+            "cpu_seconds": 2.021694,
+            "wall_seconds": 2.1470286659896374
+          }
+        },
+        "expected_cuts": 34,
+        "completed_cuts": 34,
+        "expected_seed_searches": 340,
+        "completed_seed_searches": 340,
+        "cap_stages": {},
+        "stops": {
+          "stalled": 21772
+        },
+        "graph_counts": {
+          "states": 81623,
+          "transitions": 81283,
+          "terminals": 21772
+        },
+        "families": 19300,
+        "atom_set_branches": 14103,
+        "retained_paths": 21772,
+        "max_growth_candidates": 1,
+        "scope_sha256": "69e1e9d9c8e0d667dead5bb5fcabfe4f3a07f8a2d2609d45caed059acb86fe01",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 12,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 441984,
+          "full_hits": 431125,
+          "history_hits": 428602,
+          "topology_hits": 366031,
+          "boundary_rebases": 391603,
+          "dependency_checks": 486762,
+          "mapping_misses": 54555,
+          "island_misses": 188,
+          "topology_misses": 894,
+          "boundary_misses": 0,
+          "logical_extensions": 105901,
+          "reused_extensions": 76429,
+          "entries": 10859,
+          "resident_bytes": 25126244,
+          "peak_resident_bytes": 25126244,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 10859
+        }
+      },
+      {
+        "case": 1228,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.2916283749509603,
+        "worker_metrics": {
+          "cpu_seconds": 89.519328,
+          "compute_seconds": 89.73720391700044,
+          "publish_seconds": 0.002232208149507642,
+          "publish_cpu_seconds": 0.0005810000000110449,
+          "total_cpu_seconds": 89.519994,
+          "process_lifetime_peak_rss_bytes": 1468923904,
+          "peak_tree_rss_bytes": 1468923904,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 89.427718208,
+          "memory_samples": 401,
+          "elapsed_seconds": 89.73977179196663
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0018630000000000035,
+            "wall_seconds": 0.002061292063444853
+          },
+          "matching": {
+            "cpu_seconds": 15.860013000000011,
+            "wall_seconds": 15.86118391668424
+          },
+          "finalization": {
+            "cpu_seconds": 8.877653999999994,
+            "wall_seconds": 8.87820495525375
+          },
+          "reduction": {
+            "cpu_seconds": 35.33333899999999,
+            "wall_seconds": 35.336572750937194
+          },
+          "audit": {
+            "cpu_seconds": 0.07531200000000515,
+            "wall_seconds": 0.07535132998600602
+          },
+          "verification": {
+            "cpu_seconds": 28.454780000000007,
+            "wall_seconds": 28.601171666989103
+          }
+        },
+        "expected_cuts": 28,
+        "completed_cuts": 28,
+        "expected_seed_searches": 280,
+        "completed_seed_searches": 280,
+        "cap_stages": {
+          "combined_live_leaves": 774559
+        },
+        "stops": {
+          "objective_met": 312293,
+          "capped": 774559
+        },
+        "graph_counts": {
+          "states": 427445,
+          "transitions": 427165,
+          "terminals": 312293
+        },
+        "families": 263055,
+        "atom_set_branches": 201450,
+        "retained_paths": 312293,
+        "max_growth_candidates": 1,
+        "scope_sha256": "24415b58e4ce6c9147ce7750138fcf6b96a6dc4024d29d77ef572bf14fad5f92",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 12,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 357736,
+          "full_hits": 299491,
+          "history_hits": 286145,
+          "topology_hits": 17088,
+          "boundary_rebases": 67007,
+          "dependency_checks": 317483,
+          "mapping_misses": 15727,
+          "island_misses": 110,
+          "topology_misses": 2155,
+          "boundary_misses": 0,
+          "logical_extensions": 348206,
+          "reused_extensions": 262717,
+          "entries": 18879,
+          "resident_bytes": 67108599,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 39366,
+          "oversized_results": 0,
+          "revision": 58245
+        }
+      },
+      {
+        "case": 1475,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3618062501773238,
+        "worker_metrics": {
+          "cpu_seconds": 9.506283,
+          "compute_seconds": 9.737325957976282,
+          "publish_seconds": 0.0021961249876767397,
+          "publish_cpu_seconds": 0.00047999999999959186,
+          "total_cpu_seconds": 9.506845,
+          "process_lifetime_peak_rss_bytes": 328761344,
+          "peak_tree_rss_bytes": 328548352,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 9.34596318,
+          "memory_samples": 44,
+          "elapsed_seconds": 9.739890083903447
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002249000000000001,
+            "wall_seconds": 0.003148999996483326
+          },
+          "matching": {
+            "cpu_seconds": 1.4467839999999983,
+            "wall_seconds": 1.4472153303213418
+          },
+          "finalization": {
+            "cpu_seconds": 1.4100289999999989,
+            "wall_seconds": 1.4101592511869967
+          },
+          "reduction": {
+            "cpu_seconds": 3.23075,
+            "wall_seconds": 3.2309622075408697
+          },
+          "audit": {
+            "cpu_seconds": 0.007624999999999327,
+            "wall_seconds": 0.007628206396475434
+          },
+          "verification": {
+            "cpu_seconds": 3.228898,
+            "wall_seconds": 3.3902682499028742
+          }
+        },
+        "expected_cuts": 33,
+        "completed_cuts": 33,
+        "expected_seed_searches": 330,
+        "completed_seed_searches": 330,
+        "cap_stages": {
+          "combined_live_leaves": 23170
+        },
+        "stops": {
+          "stalled": 26033,
+          "capped": 23170
+        },
+        "graph_counts": {
+          "states": 74024,
+          "transitions": 73694,
+          "terminals": 26033
+        },
+        "families": 21949,
+        "atom_set_branches": 16493,
+        "retained_paths": 26033,
+        "max_growth_candidates": 1,
+        "scope_sha256": "af90108b45d1a4bbc55097d98a4954ed9789cea8263e7dfdeed0f314c9792d8e",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 139471,
+          "full_hits": 126088,
+          "history_hits": 117527,
+          "topology_hits": 47232,
+          "boundary_rebases": 66316,
+          "dependency_checks": 137936,
+          "mapping_misses": 10582,
+          "island_misses": 530,
+          "topology_misses": 736,
+          "boundary_misses": 0,
+          "logical_extensions": 89674,
+          "reused_extensions": 63362,
+          "entries": 13383,
+          "resident_bytes": 30573663,
+          "peak_resident_bytes": 30573663,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 13383
+        }
+      },
+      {
+        "case": 1475,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_C",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.34544145804829895,
+        "worker_metrics": {
+          "cpu_seconds": 10.425068,
+          "compute_seconds": 10.661684457911178,
+          "publish_seconds": 0.0022443749476224184,
+          "publish_cpu_seconds": 0.0004380000000008266,
+          "total_cpu_seconds": 10.425572,
+          "process_lifetime_peak_rss_bytes": 375095296,
+          "peak_tree_rss_bytes": 375062528,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 10.296615404,
+          "memory_samples": 48,
+          "elapsed_seconds": 10.66428754106164
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0022260000000000058,
+            "wall_seconds": 0.0023846251424402
+          },
+          "matching": {
+            "cpu_seconds": 1.4611910000000035,
+            "wall_seconds": 1.4615179975517094
+          },
+          "finalization": {
+            "cpu_seconds": 1.8949050000000027,
+            "wall_seconds": 1.8950717439875007
+          },
+          "reduction": {
+            "cpu_seconds": 3.392952000000001,
+            "wall_seconds": 3.393385871546343
+          },
+          "audit": {
+            "cpu_seconds": 0.006882999999999001,
+            "wall_seconds": 0.00690824817866087
+          },
+          "verification": {
+            "cpu_seconds": 3.470547,
+            "wall_seconds": 3.6249600418377668
+          }
+        },
+        "expected_cuts": 37,
+        "completed_cuts": 37,
+        "expected_seed_searches": 370,
+        "completed_seed_searches": 370,
+        "cap_stages": {
+          "combined_live_leaves": 9907
+        },
+        "stops": {
+          "stalled": 23570,
+          "capped": 9907
+        },
+        "graph_counts": {
+          "states": 90054,
+          "transitions": 89684,
+          "terminals": 23570
+        },
+        "families": 22402,
+        "atom_set_branches": 17428,
+        "retained_paths": 23570,
+        "max_growth_candidates": 1,
+        "scope_sha256": "d1671c126b9465c8aff686654c520a6ccaf5e6a5d3dde452f6d911f543e4b893",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 197208,
+          "full_hits": 187993,
+          "history_hits": 185122,
+          "topology_hits": 111642,
+          "boundary_rebases": 133468,
+          "dependency_checks": 197749,
+          "mapping_misses": 8792,
+          "island_misses": 106,
+          "topology_misses": 858,
+          "boundary_misses": 0,
+          "logical_extensions": 115239,
+          "reused_extensions": 96368,
+          "entries": 9215,
+          "resident_bytes": 21341424,
+          "peak_resident_bytes": 21341424,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 9215
+        }
+      },
+      {
+        "case": 1358,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.30820458312518895,
+        "worker_metrics": {
+          "cpu_seconds": 131.55456900000001,
+          "compute_seconds": 131.88839483307675,
+          "publish_seconds": 0.0028530419804155827,
+          "publish_cpu_seconds": 0.0011650000000145155,
+          "total_cpu_seconds": 131.555811,
+          "process_lifetime_peak_rss_bytes": 1498824704,
+          "peak_tree_rss_bytes": 1498824704,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 131.470173716,
+          "memory_samples": 604,
+          "elapsed_seconds": 131.89158708392642
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.004920000000000008,
+            "wall_seconds": 0.005747500108554959
+          },
+          "matching": {
+            "cpu_seconds": 17.929896000000017,
+            "wall_seconds": 17.931696246610954
+          },
+          "finalization": {
+            "cpu_seconds": 22.50452499999996,
+            "wall_seconds": 22.50626233499497
+          },
+          "reduction": {
+            "cpu_seconds": 34.74346299999999,
+            "wall_seconds": 34.749509039800614
+          },
+          "audit": {
+            "cpu_seconds": 0.03345700000001131,
+            "wall_seconds": 0.03352295816875994
+          },
+          "verification": {
+            "cpu_seconds": 55.407793999999996,
+            "wall_seconds": 55.52713962481357
+          }
+        },
+        "expected_cuts": 85,
+        "completed_cuts": 85,
+        "expected_seed_searches": 850,
+        "completed_seed_searches": 850,
+        "cap_stages": {
+          "combined_live_leaves": 777996
+        },
+        "stops": {
+          "objective_met": 125672,
+          "capped": 777996
+        },
+        "graph_counts": {
+          "states": 422711,
+          "transitions": 421861,
+          "terminals": 125672
+        },
+        "families": 121171,
+        "atom_set_branches": 110134,
+        "retained_paths": 125672,
+        "max_growth_candidates": 1,
+        "scope_sha256": "88a6fc6ad3becfbe5129d6696c853b38eedfc0fa11fd3584fbcc8adf098b0ca4",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 36,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 730427,
+          "full_hits": 685183,
+          "history_hits": 681294,
+          "topology_hits": 18781,
+          "boundary_rebases": 125908,
+          "dependency_checks": 725308,
+          "mapping_misses": 37162,
+          "island_misses": 481,
+          "topology_misses": 2482,
+          "boundary_misses": 0,
+          "logical_extensions": 1139421,
+          "reused_extensions": 961534,
+          "entries": 13709,
+          "resident_bytes": 67105802,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 31535,
+          "oversized_results": 0,
+          "revision": 45244
+        }
+      },
+      {
+        "case": 1358,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.2755356249399483,
+        "worker_metrics": {
+          "cpu_seconds": 93.829606,
+          "compute_seconds": 94.17995070805773,
+          "publish_seconds": 0.0025784168392419815,
+          "publish_cpu_seconds": 0.0009360000000100399,
+          "total_cpu_seconds": 93.830616,
+          "process_lifetime_peak_rss_bytes": 1164083200,
+          "peak_tree_rss_bytes": 1164083200,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 93.73208368,
+          "memory_samples": 443,
+          "elapsed_seconds": 94.18285466707312
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.004792999999999992,
+            "wall_seconds": 0.004936042008921504
+          },
+          "matching": {
+            "cpu_seconds": 13.149861000000001,
+            "wall_seconds": 13.150943046668544
+          },
+          "finalization": {
+            "cpu_seconds": 17.439944999999966,
+            "wall_seconds": 17.479659834410995
+          },
+          "reduction": {
+            "cpu_seconds": 27.422991999999986,
+            "wall_seconds": 27.426091792527586
+          },
+          "audit": {
+            "cpu_seconds": 0.026533999999975133,
+            "wall_seconds": 0.02657520375214517
+          },
+          "verification": {
+            "cpu_seconds": 35.059886,
+            "wall_seconds": 35.18375770794228
+          }
+        },
+        "expected_cuts": 85,
+        "completed_cuts": 85,
+        "expected_seed_searches": 850,
+        "completed_seed_searches": 850,
+        "cap_stages": {
+          "combined_live_leaves": 865083
+        },
+        "stops": {
+          "objective_met": 100773,
+          "capped": 865083
+        },
+        "graph_counts": {
+          "states": 361856,
+          "transitions": 361006,
+          "terminals": 100773
+        },
+        "families": 87854,
+        "atom_set_branches": 66415,
+        "retained_paths": 100773,
+        "max_growth_candidates": 1,
+        "scope_sha256": "bef241161aeb623192f63138123d3f95f1eeff01d1fc5a08d4965c30dfe14948",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 36,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 650363,
+          "full_hits": 604231,
+          "history_hits": 596901,
+          "topology_hits": 6308,
+          "boundary_rebases": 125777,
+          "dependency_checks": 683322,
+          "mapping_misses": 76599,
+          "island_misses": 529,
+          "topology_misses": 1963,
+          "boundary_misses": 0,
+          "logical_extensions": 1116348,
+          "reused_extensions": 927486,
+          "entries": 13272,
+          "resident_bytes": 67106404,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 32860,
+          "oversized_results": 0,
+          "revision": 46132
+        }
+      },
+      {
+        "case": 7,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3198107909411192,
+        "worker_metrics": {
+          "cpu_seconds": 24.669695,
+          "compute_seconds": 24.94362820801325,
+          "publish_seconds": 0.00210470799356699,
+          "publish_cpu_seconds": 0.0004689999999989425,
+          "total_cpu_seconds": 24.670226,
+          "process_lifetime_peak_rss_bytes": 468566016,
+          "peak_tree_rss_bytes": 468516864,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 24.570337996000003,
+          "memory_samples": 118,
+          "elapsed_seconds": 24.94603225006722
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.004579,
+            "wall_seconds": 0.004956958116963506
+          },
+          "matching": {
+            "cpu_seconds": 3.4983500000000047,
+            "wall_seconds": 3.498708250466734
+          },
+          "finalization": {
+            "cpu_seconds": 4.367286999999996,
+            "wall_seconds": 4.367661913856864
+          },
+          "reduction": {
+            "cpu_seconds": 6.664420000000005,
+            "wall_seconds": 6.664921418763697
+          },
+          "audit": {
+            "cpu_seconds": 0.010213999999998224,
+            "wall_seconds": 0.010246208403259516
+          },
+          "verification": {
+            "cpu_seconds": 9.824314,
+            "wall_seconds": 9.94342187489383
+          }
+        },
+        "expected_cuts": 82,
+        "completed_cuts": 82,
+        "expected_seed_searches": 820,
+        "completed_seed_searches": 820,
+        "cap_stages": {
+          "combined_live_leaves": 119610
+        },
+        "stops": {
+          "stalled": 27954,
+          "capped": 119610
+        },
+        "graph_counts": {
+          "states": 92356,
+          "transitions": 91536,
+          "terminals": 27954
+        },
+        "families": 24332,
+        "atom_set_branches": 9318,
+        "retained_paths": 27954,
+        "max_growth_candidates": 1,
+        "scope_sha256": "b4b01f3dc0027aad108adee284e0de3299e6af0141e075b1d71b150a854e2dec",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 29,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 454663,
+          "full_hits": 443159,
+          "history_hits": 440920,
+          "topology_hits": 291919,
+          "boundary_rebases": 327628,
+          "dependency_checks": 467155,
+          "mapping_misses": 18710,
+          "island_misses": 66,
+          "topology_misses": 5220,
+          "boundary_misses": 0,
+          "logical_extensions": 350780,
+          "reused_extensions": 225111,
+          "entries": 11504,
+          "resident_bytes": 51766796,
+          "peak_resident_bytes": 51766796,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 11504
+        }
+      },
+      {
+        "case": 7,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.5356090001296252,
+        "worker_metrics": {
+          "cpu_seconds": 8.598743,
+          "compute_seconds": 9.054558916948736,
+          "publish_seconds": 0.002217042027041316,
+          "publish_cpu_seconds": 0.0004559999999997899,
+          "total_cpu_seconds": 8.599265,
+          "process_lifetime_peak_rss_bytes": 212418560,
+          "peak_tree_rss_bytes": 212238336,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 8.492276100000002,
+          "memory_samples": 43,
+          "elapsed_seconds": 9.057092624949291
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.004722000000000004,
+            "wall_seconds": 0.004939707927405834
+          },
+          "matching": {
+            "cpu_seconds": 1.2559069999999979,
+            "wall_seconds": 1.2565517104230821
+          },
+          "finalization": {
+            "cpu_seconds": 0.7247790000000003,
+            "wall_seconds": 0.725252295145765
+          },
+          "reduction": {
+            "cpu_seconds": 2.400759,
+            "wall_seconds": 2.4014499981421977
+          },
+          "audit": {
+            "cpu_seconds": 0.006229999999999097,
+            "wall_seconds": 0.006256959401071072
+          },
+          "verification": {
+            "cpu_seconds": 4.034606000000001,
+            "wall_seconds": 4.237424749881029
+          }
+        },
+        "expected_cuts": 76,
+        "completed_cuts": 76,
+        "expected_seed_searches": 760,
+        "completed_seed_searches": 760,
+        "cap_stages": {
+          "combined_live_leaves": 4124
+        },
+        "stops": {
+          "objective_met": 13741,
+          "capped": 4124
+        },
+        "graph_counts": {
+          "states": 22387,
+          "transitions": 21627,
+          "terminals": 13741
+        },
+        "families": 8748,
+        "atom_set_branches": 2949,
+        "retained_paths": 13741,
+        "max_growth_candidates": 1,
+        "scope_sha256": "914a76c91fef632c66b105d81b19976fa25a48ecb425437284f66642ba856a74",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 29,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 10121,
+          "full_hits": 7776,
+          "history_hits": 5108,
+          "topology_hits": 140,
+          "boundary_rebases": 2842,
+          "dependency_checks": 21912,
+          "mapping_misses": 8315,
+          "island_misses": 1775,
+          "topology_misses": 4046,
+          "boundary_misses": 0,
+          "logical_extensions": 88402,
+          "reused_extensions": 15497,
+          "entries": 2345,
+          "resident_bytes": 14895532,
+          "peak_resident_bytes": 14895532,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 2345
+        }
+      },
+      {
+        "case": 867,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.33344020787626505,
+        "worker_metrics": {
+          "cpu_seconds": 99.406566,
+          "compute_seconds": 99.64091270812787,
+          "publish_seconds": 0.0028154999017715454,
+          "publish_cpu_seconds": 0.0010060000000038372,
+          "total_cpu_seconds": 99.407645,
+          "process_lifetime_peak_rss_bytes": 1575976960,
+          "peak_tree_rss_bytes": 1575976960,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 99.303414944,
+          "memory_samples": 452,
+          "elapsed_seconds": 99.64405912486836
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0022810000000000052,
+            "wall_seconds": 0.0031362080480903387
+          },
+          "matching": {
+            "cpu_seconds": 14.867799999999995,
+            "wall_seconds": 14.871052127564326
+          },
+          "finalization": {
+            "cpu_seconds": 10.364807000000031,
+            "wall_seconds": 10.365547876106575
+          },
+          "reduction": {
+            "cpu_seconds": 34.49986300000002,
+            "wall_seconds": 34.50230458076112
+          },
+          "audit": {
+            "cpu_seconds": 0.04815700000003176,
+            "wall_seconds": 0.048209000611677766
+          },
+          "verification": {
+            "cpu_seconds": 38.752486,
+            "wall_seconds": 38.8844940001145
+          }
+        },
+        "expected_cuts": 41,
+        "completed_cuts": 41,
+        "expected_seed_searches": 410,
+        "completed_seed_searches": 410,
+        "cap_stages": {
+          "combined_live_leaves": 767060
+        },
+        "stops": {
+          "capped": 767060,
+          "objective_met": 208083
+        },
+        "graph_counts": {
+          "states": 393845,
+          "transitions": 393435,
+          "terminals": 208083
+        },
+        "families": 201389,
+        "atom_set_branches": 172544,
+        "retained_paths": 208083,
+        "max_growth_candidates": 1,
+        "scope_sha256": "aabb0d2f420c991e676155317576ce36d845db4eba7b79986f8c87eb46e19177",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 199349,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 673404,
+          "full_hits": 581990,
+          "history_hits": 569250,
+          "topology_hits": 10887,
+          "boundary_rebases": 121309,
+          "dependency_checks": 684734,
+          "mapping_misses": 97514,
+          "island_misses": 799,
+          "topology_misses": 4431,
+          "boundary_misses": 0,
+          "logical_extensions": 980133,
+          "reused_extensions": 784460,
+          "entries": 22327,
+          "resident_bytes": 67107413,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 69087,
+          "oversized_results": 0,
+          "revision": 91414
+        }
+      },
+      {
+        "case": 867,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3171094579156488,
+        "worker_metrics": {
+          "cpu_seconds": 72.597725,
+          "compute_seconds": 72.85848991712555,
+          "publish_seconds": 0.0032876250334084034,
+          "publish_cpu_seconds": 0.0011599999999987176,
+          "total_cpu_seconds": 72.598957,
+          "process_lifetime_peak_rss_bytes": 1805893632,
+          "peak_tree_rss_bytes": 1805893632,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 72.507768328,
+          "memory_samples": 335,
+          "elapsed_seconds": 72.86210791696794
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0021589999999999943,
+            "wall_seconds": 0.002317665843293071
+          },
+          "matching": {
+            "cpu_seconds": 19.491695999999973,
+            "wall_seconds": 19.493233286309987
+          },
+          "finalization": {
+            "cpu_seconds": 18.68247700000002,
+            "wall_seconds": 18.684064124710858
+          },
+          "reduction": {
+            "cpu_seconds": 32.712348000000006,
+            "wall_seconds": 32.71578641911037
+          },
+          "audit": {
+            "cpu_seconds": 0.036987000000005654,
+            "wall_seconds": 0.03704675519838929
+          },
+          "verification": {
+            "cpu_seconds": 0.539991999999998,
+            "wall_seconds": 0.6826477909926325
+          }
+        },
+        "expected_cuts": 43,
+        "completed_cuts": 43,
+        "expected_seed_searches": 430,
+        "completed_seed_searches": 430,
+        "cap_stages": {
+          "combined_live_leaves": 206059
+        },
+        "stops": {
+          "stalled": 155743,
+          "capped": 206059
+        },
+        "graph_counts": {
+          "states": 715239,
+          "transitions": 714809,
+          "terminals": 155743
+        },
+        "families": 154543,
+        "atom_set_branches": 132625,
+        "retained_paths": 155743,
+        "max_growth_candidates": 1,
+        "scope_sha256": "1529605b303a8031d541a8f46b379b3a574e24edaafb096688dfa29c13697764",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "recovered",
+          "family": 2464,
+          "heavy_atoms": 18,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1975778,
+          "full_hits": 1915709,
+          "history_hits": 1907964,
+          "topology_hits": 1122475,
+          "boundary_rebases": 1558779,
+          "dependency_checks": 3436649,
+          "mapping_misses": 1509805,
+          "island_misses": 4102,
+          "topology_misses": 7033,
+          "boundary_misses": 0,
+          "logical_extensions": 1293339,
+          "reused_extensions": 1157880,
+          "entries": 23593,
+          "resident_bytes": 67108527,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 36476,
+          "oversized_results": 0,
+          "revision": 60069
+        }
+      },
+      {
+        "case": 19,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.32790683303028345,
+        "worker_metrics": {
+          "cpu_seconds": 61.875893,
+          "compute_seconds": 62.09027249994688,
+          "publish_seconds": 0.0025181658565998077,
+          "publish_cpu_seconds": 0.0007820000000009486,
+          "total_cpu_seconds": 61.876754999999996,
+          "process_lifetime_peak_rss_bytes": 1168850944,
+          "peak_tree_rss_bytes": 1168850944,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 61.78598456,
+          "memory_samples": 290,
+          "elapsed_seconds": 62.093121957965195
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0025280000000000025,
+            "wall_seconds": 0.0027001251000910997
+          },
+          "matching": {
+            "cpu_seconds": 11.65588599999999,
+            "wall_seconds": 11.657072789268568
+          },
+          "finalization": {
+            "cpu_seconds": 11.871789999999994,
+            "wall_seconds": 11.872706080786884
+          },
+          "reduction": {
+            "cpu_seconds": 19.871918999999984,
+            "wall_seconds": 19.873145999852568
+          },
+          "audit": {
+            "cpu_seconds": 0.027024000000003934,
+            "wall_seconds": 0.027065170696005225
+          },
+          "verification": {
+            "cpu_seconds": 17.746018999999997,
+            "wall_seconds": 17.85103016695939
+          }
+        },
+        "expected_cuts": 50,
+        "completed_cuts": 50,
+        "expected_seed_searches": 500,
+        "completed_seed_searches": 500,
+        "cap_stages": {
+          "combined_live_leaves": 730236
+        },
+        "stops": {
+          "capped": 730236,
+          "objective_met": 109586
+        },
+        "graph_counts": {
+          "states": 381201,
+          "transitions": 380701,
+          "terminals": 109586
+        },
+        "families": 108262,
+        "atom_set_branches": 89105,
+        "retained_paths": 109586,
+        "max_growth_candidates": 1,
+        "scope_sha256": "680d3c7a32f8ed40a1c4928f5aa10e91c30cb5eaff52911179d19b415af626a5",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 629089,
+          "full_hits": 586497,
+          "history_hits": 582722,
+          "topology_hits": 5417,
+          "boundary_rebases": 84850,
+          "dependency_checks": 719874,
+          "mapping_misses": 115113,
+          "island_misses": 616,
+          "topology_misses": 17648,
+          "boundary_misses": 0,
+          "logical_extensions": 847415,
+          "reused_extensions": 739300,
+          "entries": 18540,
+          "resident_bytes": 67105156,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 24052,
+          "oversized_results": 0,
+          "revision": 42592
+        }
+      },
+      {
+        "case": 19,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.31228454201482236,
+        "worker_metrics": {
+          "cpu_seconds": 162.86889299999999,
+          "compute_seconds": 163.10948783392087,
+          "publish_seconds": 0.003443583846092224,
+          "publish_cpu_seconds": 0.0016179999999792471,
+          "total_cpu_seconds": 162.87058199999998,
+          "process_lifetime_peak_rss_bytes": 2553249792,
+          "peak_tree_rss_bytes": 2553249792,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 162.700196116,
+          "memory_samples": 745,
+          "elapsed_seconds": 163.11326587502845
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0025239999999999985,
+            "wall_seconds": 0.0026939997915178537
+          },
+          "matching": {
+            "cpu_seconds": 31.765674999999955,
+            "wall_seconds": 31.76776553853415
+          },
+          "finalization": {
+            "cpu_seconds": 30.28398099999997,
+            "wall_seconds": 30.285911125363782
+          },
+          "reduction": {
+            "cpu_seconds": 54.923637000000014,
+            "wall_seconds": 54.92723333276808
+          },
+          "audit": {
+            "cpu_seconds": 0.06644099999999187,
+            "wall_seconds": 0.06650487752631307
+          },
+          "verification": {
+            "cpu_seconds": 44.15159,
+            "wall_seconds": 44.26247591711581
+          }
+        },
+        "expected_cuts": 52,
+        "completed_cuts": 52,
+        "expected_seed_searches": 520,
+        "completed_seed_searches": 520,
+        "cap_stages": {
+          "combined_live_leaves": 1735056
+        },
+        "stops": {
+          "objective_met": 282535,
+          "capped": 1735056
+        },
+        "graph_counts": {
+          "states": 966747,
+          "transitions": 966227,
+          "terminals": 282535
+        },
+        "families": 267786,
+        "atom_set_branches": 240048,
+        "retained_paths": 282535,
+        "max_growth_candidates": 1,
+        "scope_sha256": "2683693b212c5588d4beb99c93f3b278accd74b802ebd3ea88efed149bb6c36b",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 23,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 1518049,
+          "full_hits": 1414503,
+          "history_hits": 1410965,
+          "topology_hits": 24663,
+          "boundary_rebases": 276364,
+          "dependency_checks": 2191091,
+          "mapping_misses": 774102,
+          "island_misses": 553,
+          "topology_misses": 1933,
+          "boundary_misses": 0,
+          "logical_extensions": 2041452,
+          "reused_extensions": 1782735,
+          "entries": 19543,
+          "resident_bytes": 67105421,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 84003,
+          "oversized_results": 0,
+          "revision": 103546
+        }
+      },
+      {
+        "case": 1314,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.33405712503008544,
+        "worker_metrics": {
+          "cpu_seconds": 31.945351,
+          "compute_seconds": 32.18719229195267,
+          "publish_seconds": 0.0022333331871777773,
+          "publish_cpu_seconds": 0.0005439999999978795,
+          "total_cpu_seconds": 31.945963000000003,
+          "process_lifetime_peak_rss_bytes": 728907776,
+          "peak_tree_rss_bytes": 728907776,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 31.832097296000004,
+          "memory_samples": 152,
+          "elapsed_seconds": 32.18973483284935
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0025310000000000055,
+            "wall_seconds": 0.0033689169213175774
+          },
+          "matching": {
+            "cpu_seconds": 5.149170999999999,
+            "wall_seconds": 5.1497597922571
+          },
+          "finalization": {
+            "cpu_seconds": 6.398838,
+            "wall_seconds": 6.399294753558934
+          },
+          "reduction": {
+            "cpu_seconds": 11.488869999999997,
+            "wall_seconds": 11.489779126131907
+          },
+          "audit": {
+            "cpu_seconds": 0.014302999999989546,
+            "wall_seconds": 0.014316298998892307
+          },
+          "verification": {
+            "cpu_seconds": 8.463593999999997,
+            "wall_seconds": 8.587137875147164
+          }
+        },
+        "expected_cuts": 49,
+        "completed_cuts": 49,
+        "expected_seed_searches": 490,
+        "completed_seed_searches": 490,
+        "cap_stages": {
+          "combined_live_leaves": 78166
+        },
+        "stops": {
+          "stalled": 55942,
+          "capped": 78166
+        },
+        "graph_counts": {
+          "states": 228924,
+          "transitions": 228434,
+          "terminals": 55942
+        },
+        "families": 51001,
+        "atom_set_branches": 40079,
+        "retained_paths": 55942,
+        "max_growth_candidates": 1,
+        "scope_sha256": "1aef5913c054006db511a8ca69cee41c8af811616f90e5bd14fb827cb98b9a13",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 28,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 344580,
+          "full_hits": 323395,
+          "history_hits": 318467,
+          "topology_hits": 83066,
+          "boundary_rebases": 142307,
+          "dependency_checks": 444151,
+          "mapping_misses": 117786,
+          "island_misses": 1349,
+          "topology_misses": 1621,
+          "boundary_misses": 0,
+          "logical_extensions": 389008,
+          "reused_extensions": 331075,
+          "entries": 21185,
+          "resident_bytes": 60076843,
+          "peak_resident_bytes": 60076843,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 21185
+        }
+      },
+      {
+        "case": 1314,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.33592162490822375,
+        "worker_metrics": {
+          "cpu_seconds": 82.253407,
+          "compute_seconds": 82.55426104203798,
+          "publish_seconds": 0.0022428331431001425,
+          "publish_cpu_seconds": 0.0006009999999889715,
+          "total_cpu_seconds": 82.254079,
+          "process_lifetime_peak_rss_bytes": 1203732480,
+          "peak_tree_rss_bytes": 1203732480,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 82.16116822400001,
+          "memory_samples": 389,
+          "elapsed_seconds": 82.55689208395779
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002563999999999983,
+            "wall_seconds": 0.0027805829886347055
+          },
+          "matching": {
+            "cpu_seconds": 16.12172900000001,
+            "wall_seconds": 16.12741429475136
+          },
+          "finalization": {
+            "cpu_seconds": 15.023663000000019,
+            "wall_seconds": 15.024403580231592
+          },
+          "reduction": {
+            "cpu_seconds": 25.489989,
+            "wall_seconds": 25.539067999459803
+          },
+          "audit": {
+            "cpu_seconds": 0.04494100000002349,
+            "wall_seconds": 0.044979461934417486
+          },
+          "verification": {
+            "cpu_seconds": 24.68205799999999,
+            "wall_seconds": 24.826613957993686
+          }
+        },
+        "expected_cuts": 48,
+        "completed_cuts": 48,
+        "expected_seed_searches": 480,
+        "completed_seed_searches": 480,
+        "cap_stages": {
+          "combined_live_leaves": 338255
+        },
+        "stops": {
+          "objective_met": 179320,
+          "capped": 338255
+        },
+        "graph_counts": {
+          "states": 582691,
+          "transitions": 582211,
+          "terminals": 179320
+        },
+        "families": 152492,
+        "atom_set_branches": 37849,
+        "retained_paths": 179320,
+        "max_growth_candidates": 1,
+        "scope_sha256": "e75dba74554ee47586e63a810c9ef6379f0cd5728581c3cffb7d18a4efa06984",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 28,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 646787,
+          "full_hits": 618082,
+          "history_hits": 612457,
+          "topology_hits": 36283,
+          "boundary_rebases": 218386,
+          "dependency_checks": 712668,
+          "mapping_misses": 91868,
+          "island_misses": 1009,
+          "topology_misses": 1709,
+          "boundary_misses": 0,
+          "logical_extensions": 938758,
+          "reused_extensions": 860820,
+          "entries": 22356,
+          "resident_bytes": 67106812,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 6349,
+          "oversized_results": 0,
+          "revision": 28705
+        }
+      },
+      {
+        "case": 1553,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3220563749782741,
+        "worker_metrics": {
+          "cpu_seconds": 50.927532,
+          "compute_seconds": 51.16732133412734,
+          "publish_seconds": 0.0019961248617619276,
+          "publish_cpu_seconds": 0.0007200000000011642,
+          "total_cpu_seconds": 50.928323999999996,
+          "process_lifetime_peak_rss_bytes": 1086980096,
+          "peak_tree_rss_bytes": 1086980096,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 50.73442518,
+          "memory_samples": 241,
+          "elapsed_seconds": 51.16963925003074
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0025590000000000057,
+            "wall_seconds": 0.003459000028669834
+          },
+          "matching": {
+            "cpu_seconds": 11.39499799999999,
+            "wall_seconds": 11.39587783254683
+          },
+          "finalization": {
+            "cpu_seconds": 8.547144,
+            "wall_seconds": 8.54767467500642
+          },
+          "reduction": {
+            "cpu_seconds": 14.022685000000001,
+            "wall_seconds": 14.023587747011334
+          },
+          "audit": {
+            "cpu_seconds": 0.02473600000000603,
+            "wall_seconds": 0.0247867030557245
+          },
+          "verification": {
+            "cpu_seconds": 16.288021,
+            "wall_seconds": 16.397189332870767
+          }
+        },
+        "expected_cuts": 61,
+        "completed_cuts": 61,
+        "expected_seed_searches": 610,
+        "completed_seed_searches": 610,
+        "cap_stages": {
+          "combined_live_leaves": 119595
+        },
+        "stops": {
+          "stalled": 92477,
+          "capped": 119595
+        },
+        "graph_counts": {
+          "states": 351886,
+          "transitions": 351276,
+          "terminals": 92477
+        },
+        "families": 91379,
+        "atom_set_branches": 56276,
+        "retained_paths": 92477,
+        "max_growth_candidates": 1,
+        "scope_sha256": "7b78ef8f3e38a01c76b62c043b9be2e10b24298ee7237594c04fbcd0dbbb5c17",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 20,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 5456631,
+          "full_hits": 5420029,
+          "history_hits": 5417775,
+          "topology_hits": 4980399,
+          "boundary_rebases": 5220270,
+          "dependency_checks": 5686046,
+          "mapping_misses": 258116,
+          "island_misses": 2359,
+          "topology_misses": 5542,
+          "boundary_misses": 0,
+          "logical_extensions": 933018,
+          "reused_extensions": 830923,
+          "entries": 22458,
+          "resident_bytes": 67108806,
+          "peak_resident_bytes": 67108864,
+          "cache_budget_bytes": 67108864,
+          "evictions": 14144,
+          "oversized_results": 0,
+          "revision": 36602
+        }
+      },
+      {
+        "case": 1553,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.34004183392971754,
+        "worker_metrics": {
+          "cpu_seconds": 5.926266999999999,
+          "compute_seconds": 6.152628124924377,
+          "publish_seconds": 0.0021196668967604637,
+          "publish_cpu_seconds": 0.00038900000000019475,
+          "total_cpu_seconds": 5.926721,
+          "process_lifetime_peak_rss_bytes": 228737024,
+          "peak_tree_rss_bytes": 228671488,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 5.743204064,
+          "memory_samples": 29,
+          "elapsed_seconds": 6.155069833854213
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.002960000000000018,
+            "wall_seconds": 0.0031338329426944256
+          },
+          "matching": {
+            "cpu_seconds": 0.49377799999999966,
+            "wall_seconds": 0.49402462784200907
+          },
+          "finalization": {
+            "cpu_seconds": 0.6112220000000002,
+            "wall_seconds": 0.6112655450124294
+          },
+          "reduction": {
+            "cpu_seconds": 2.1037469999999994,
+            "wall_seconds": 2.1038489581551403
+          },
+          "audit": {
+            "cpu_seconds": 0.0040149999999999075,
+            "wall_seconds": 0.004031204152852297
+          },
+          "verification": {
+            "cpu_seconds": 2.610524,
+            "wall_seconds": 2.757264625048265
+          }
+        },
+        "expected_cuts": 38,
+        "completed_cuts": 38,
+        "expected_seed_searches": 380,
+        "completed_seed_searches": 380,
+        "cap_stages": {
+          "combined_live_leaves": 38549
+        },
+        "stops": {
+          "objective_met": 13316,
+          "capped": 38549
+        },
+        "graph_counts": {
+          "states": 20617,
+          "transitions": 20237,
+          "terminals": 13316
+        },
+        "families": 11403,
+        "atom_set_branches": 8668,
+        "retained_paths": 13316,
+        "max_growth_candidates": 1,
+        "scope_sha256": "34ec6980fa36d022aa3d714a1306ac04b783985a2cd9c2a353f501092b46b8df",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 20,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 15256,
+          "full_hits": 10333,
+          "history_hits": 8605,
+          "topology_hits": 755,
+          "boundary_rebases": 2541,
+          "dependency_checks": 12851,
+          "mapping_misses": 802,
+          "island_misses": 120,
+          "topology_misses": 1596,
+          "boundary_misses": 0,
+          "logical_extensions": 33502,
+          "reused_extensions": 15030,
+          "entries": 4923,
+          "resident_bytes": 19553760,
+          "peak_resident_bytes": 19553760,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 4923
+        }
+      },
+      {
+        "case": 1740,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.30619762488640845,
+        "worker_metrics": {
+          "cpu_seconds": 1.50446,
+          "compute_seconds": 1.6233739170711488,
+          "publish_seconds": 0.0023182090371847153,
+          "publish_cpu_seconds": 0.0004150000000000542,
+          "total_cpu_seconds": 1.504937,
+          "process_lifetime_peak_rss_bytes": 97009664,
+          "peak_tree_rss_bytes": 96960512,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 1.3706106359999999,
+          "memory_samples": 8,
+          "elapsed_seconds": 1.6260096249170601
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0016390000000000016,
+            "wall_seconds": 0.0018184580840170383
+          },
+          "matching": {
+            "cpu_seconds": 0.426726,
+            "wall_seconds": 0.4269244996830821
+          },
+          "finalization": {
+            "cpu_seconds": 0.16662099999999944,
+            "wall_seconds": 0.16667920863255858
+          },
+          "reduction": {
+            "cpu_seconds": 0.4421309999999995,
+            "wall_seconds": 0.44218095880933106
+          },
+          "audit": {
+            "cpu_seconds": 0.002906999999999993,
+            "wall_seconds": 0.0029197479598224163
+          },
+          "verification": {
+            "cpu_seconds": 0.368028,
+            "wall_seconds": 0.37286137510091066
+          }
+        },
+        "expected_cuts": 61,
+        "completed_cuts": 61,
+        "expected_seed_searches": 610,
+        "completed_seed_searches": 610,
+        "cap_stages": {},
+        "stops": {
+          "stalled": 5095
+        },
+        "graph_counts": {
+          "states": 22255,
+          "transitions": 21645,
+          "terminals": 5095
+        },
+        "families": 2705,
+        "atom_set_branches": 1337,
+        "retained_paths": 5095,
+        "max_growth_candidates": 1,
+        "scope_sha256": "4e222f63108eed0f4044dbb5719c80bdbda89f3792e71ff0ee84cc6bb5932cf1",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 12,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 419868,
+          "full_hits": 413927,
+          "history_hits": 406282,
+          "topology_hits": 367608,
+          "boundary_rebases": 390532,
+          "dependency_checks": 416023,
+          "mapping_misses": 1848,
+          "island_misses": 62,
+          "topology_misses": 186,
+          "boundary_misses": 0,
+          "logical_extensions": 33300,
+          "reused_extensions": 30328,
+          "entries": 5941,
+          "resident_bytes": 10546099,
+          "peak_resident_bytes": 10546099,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 5941
+        }
+      },
+      {
+        "case": 1740,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.36891679116524756,
+        "worker_metrics": {
+          "cpu_seconds": 0.339947,
+          "compute_seconds": 0.48057491704821587,
+          "publish_seconds": 0.0019645411521196365,
+          "publish_cpu_seconds": 0.00034999999999996145,
+          "total_cpu_seconds": 0.340337,
+          "process_lifetime_peak_rss_bytes": 99385344,
+          "peak_tree_rss_bytes": 94060544,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.29506005599999996,
+          "memory_samples": 3,
+          "elapsed_seconds": 0.4828240000642836
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0024490000000000067,
+            "wall_seconds": 0.002556874882429838
+          },
+          "matching": {
+            "cpu_seconds": 0.021589000000000025,
+            "wall_seconds": 0.021857042098417878
+          },
+          "finalization": {
+            "cpu_seconds": 0.031227999999999895,
+            "wall_seconds": 0.03123862762004137
+          },
+          "reduction": {
+            "cpu_seconds": 0.11654500000000007,
+            "wall_seconds": 0.11655658553354442
+          },
+          "audit": {
+            "cpu_seconds": 0.00036800000000003497,
+            "wall_seconds": 0.0003729176241904497
+          },
+          "verification": {
+            "cpu_seconds": 0.15404600000000002,
+            "wall_seconds": 0.2737896249163896
+          }
+        },
+        "expected_cuts": 13,
+        "completed_cuts": 13,
+        "expected_seed_searches": 130,
+        "completed_seed_searches": 130,
+        "cap_stages": {},
+        "stops": {
+          "objective_met": 794
+        },
+        "graph_counts": {
+          "states": 1720,
+          "transitions": 1590,
+          "terminals": 794
+        },
+        "families": 262,
+        "atom_set_branches": 139,
+        "retained_paths": 794,
+        "max_growth_candidates": 1,
+        "scope_sha256": "6e0e33646f34e557b1ac9d968e2f84373fa0e0eeefbb7c39f3378017bb2d00e0",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 12,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 926,
+          "full_hits": 542,
+          "history_hits": 194,
+          "topology_hits": 115,
+          "boundary_rebases": 42,
+          "dependency_checks": 1094,
+          "mapping_misses": 35,
+          "island_misses": 14,
+          "topology_misses": 503,
+          "boundary_misses": 0,
+          "logical_extensions": 2336,
+          "reused_extensions": 906,
+          "entries": 384,
+          "resident_bytes": 739472,
+          "peak_resident_bytes": 739472,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 384
+        }
+      },
+      {
+        "case": 986,
+        "direction": "forward",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.3906824169680476,
+        "worker_metrics": {
+          "cpu_seconds": 1.921677,
+          "compute_seconds": 2.097123624989763,
+          "publish_seconds": 0.002121333032846451,
+          "publish_cpu_seconds": 0.000380000000000269,
+          "total_cpu_seconds": 1.9221129999999997,
+          "process_lifetime_peak_rss_bytes": 195444736,
+          "peak_tree_rss_bytes": 195100672,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 1.74403812,
+          "memory_samples": 10,
+          "elapsed_seconds": 2.0995391248725355
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.0016390000000000016,
+            "wall_seconds": 0.0031052918639034033
+          },
+          "matching": {
+            "cpu_seconds": 0.2857049999999999,
+            "wall_seconds": 0.2884387942031026
+          },
+          "finalization": {
+            "cpu_seconds": 0.38760799999999995,
+            "wall_seconds": 0.38765404047444463
+          },
+          "reduction": {
+            "cpu_seconds": 0.6506000000000003,
+            "wall_seconds": 0.650654416764155
+          },
+          "audit": {
+            "cpu_seconds": 0.0019830000000002623,
+            "wall_seconds": 0.001994876191020012
+          },
+          "verification": {
+            "cpu_seconds": 0.538438,
+            "wall_seconds": 0.651670582825318
+          }
+        },
+        "expected_cuts": 28,
+        "completed_cuts": 28,
+        "expected_seed_searches": 280,
+        "completed_seed_searches": 280,
+        "cap_stages": {
+          "combined_live_leaves": 15829
+        },
+        "stops": {
+          "objective_met": 6523,
+          "capped": 15829
+        },
+        "graph_counts": {
+          "states": 22330,
+          "transitions": 22050,
+          "terminals": 6523
+        },
+        "families": 4339,
+        "atom_set_branches": 3873,
+        "retained_paths": 6523,
+        "max_growth_candidates": 1,
+        "scope_sha256": "daf119a35e3fa56ac2cfbc694b6c2bf682173661eff862b24f0cfbe09df694a2",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 16,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 29989,
+          "full_hits": 28134,
+          "history_hits": 27364,
+          "topology_hits": 409,
+          "boundary_rebases": 4720,
+          "dependency_checks": 30940,
+          "mapping_misses": 2261,
+          "island_misses": 2,
+          "topology_misses": 543,
+          "boundary_misses": 0,
+          "logical_extensions": 36874,
+          "reused_extensions": 30724,
+          "entries": 1855,
+          "resident_bytes": 4447240,
+          "peak_resident_bytes": 4447240,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 1855
+        }
+      },
+      {
+        "case": 986,
+        "direction": "reverse",
+        "seeds": 10,
+        "cache": "on",
+        "branch_limit": 2000,
+        "state": "complete",
+        "batch": "recovery_D",
+        "direction_seconds": 1800,
+        "startup_seconds": 0.42156483395956457,
+        "worker_metrics": {
+          "cpu_seconds": 0.668983,
+          "compute_seconds": 0.8025661250576377,
+          "publish_seconds": 0.002091249916702509,
+          "publish_cpu_seconds": 0.0003549999999999942,
+          "total_cpu_seconds": 0.6693859999999999,
+          "process_lifetime_peak_rss_bytes": 125730816,
+          "peak_tree_rss_bytes": 119996416,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 0.512799048,
+          "memory_samples": 4,
+          "elapsed_seconds": 0.804971459088847
+        },
+        "phase": "complete",
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.001684999999999992,
+            "wall_seconds": 0.0019172080792486668
+          },
+          "matching": {
+            "cpu_seconds": 0.08579199999999987,
+            "wall_seconds": 0.08659683261066675
+          },
+          "finalization": {
+            "cpu_seconds": 0.11172199999999985,
+            "wall_seconds": 0.11174107994884253
+          },
+          "reduction": {
+            "cpu_seconds": 0.18198800000000007,
+            "wall_seconds": 0.18202295317314565
+          },
+          "audit": {
+            "cpu_seconds": 0.0009550000000003722,
+            "wall_seconds": 0.0009619977790862322
+          },
+          "verification": {
+            "cpu_seconds": 0.24829999999999997,
+            "wall_seconds": 0.32842650008387864
+          }
+        },
+        "expected_cuts": 28,
+        "completed_cuts": 28,
+        "expected_seed_searches": 280,
+        "completed_seed_searches": 280,
+        "cap_stages": {},
+        "stops": {
+          "stalled": 1570
+        },
+        "graph_counts": {
+          "states": 7208,
+          "transitions": 6928,
+          "terminals": 1570
+        },
+        "families": 1422,
+        "atom_set_branches": 847,
+        "retained_paths": 1570,
+        "max_growth_candidates": 1,
+        "scope_sha256": "dbcd2d73f97bffa8b4614d8ed1ab66db8da8d058f543c6c40f2a838a2fda282d",
+        "catalogue_sha256": null,
+        "catalogue_audited": false,
+        "verification": {
+          "status": "not_recovered",
+          "family": null,
+          "heavy_atoms": 16,
+          "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+        },
+        "cache_metrics": {
+          "calls": 8773,
+          "full_hits": 7724,
+          "history_hits": 6439,
+          "topology_hits": 1370,
+          "boundary_rebases": 4263,
+          "dependency_checks": 9882,
+          "mapping_misses": 1426,
+          "island_misses": 125,
+          "topology_misses": 607,
+          "boundary_misses": 0,
+          "logical_extensions": 17620,
+          "reused_extensions": 10894,
+          "entries": 1049,
+          "resident_bytes": 2177255,
+          "peak_resident_bytes": 2177255,
+          "cache_budget_bytes": 67108864,
+          "evictions": 0,
+          "oversized_results": 0,
+          "revision": 1049
+        }
+      }
+    ],
+    "failures": [
+      {
+        "case": 1606,
+        "direction": "forward",
+        "state": "memory_limit",
+        "phase": "reduction",
+        "completed_cuts": 131,
+        "expected_cuts": 153,
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.008116000000000012,
+            "wall_seconds": 0.009897750103846192
+          },
+          "matching": {
+            "cpu_seconds": 360.40963199999965,
+            "wall_seconds": 360.8461368398275
+          },
+          "finalization": {
+            "cpu_seconds": 200.84114100000016,
+            "wall_seconds": 200.94621145841666
+          },
+          "reduction": {
+            "cpu_seconds": 337.824308,
+            "wall_seconds": 338.0827696251217
+          },
+          "audit": {
+            "cpu_seconds": 0.24487600000063048,
+            "wall_seconds": 0.245065167080611
+          }
+        },
+        "worker_metrics": {
+          "peak_tree_rss_bytes": 8592637952,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 905.193859748,
+          "memory_samples": 4053,
+          "elapsed_seconds": 906.2997441659681
+        }
+      },
+      {
+        "case": 590,
+        "direction": "forward",
+        "state": "memory_limit",
+        "phase": "matching",
+        "completed_cuts": 56,
+        "expected_cuts": 58,
+        "metrics": {
+          "preparation": {
+            "cpu_seconds": 0.003121999999999986,
+            "wall_seconds": 0.0032987080048769712
+          },
+          "matching": {
+            "cpu_seconds": 199.45848100000012,
+            "wall_seconds": 199.7872555416543
+          },
+          "finalization": {
+            "cpu_seconds": 139.79200999999995,
+            "wall_seconds": 139.94168204208836
+          },
+          "reduction": {
+            "cpu_seconds": 270.671426,
+            "wall_seconds": 270.94078954774886
+          },
+          "audit": {
+            "cpu_seconds": 0.26154400000005396,
+            "wall_seconds": 0.26354000135324895
+          }
+        },
+        "worker_metrics": {
+          "peak_tree_rss_bytes": 8632844288,
+          "memory_guard_bytes": 8589934592,
+          "sampled_cpu_seconds": 616.971946864,
+          "memory_samples": 2751,
+          "elapsed_seconds": 617.8659407088999
+        }
+      }
+    ]
+  }
 }
