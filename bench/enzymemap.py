@@ -148,7 +148,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         status['verification_only'] = True
     stages = ([('verification', 'deduplication')] if verify_only else
               [('matching', None), ('deduplication', 'matching'),
-               ('decoding', 'deduplication'), ('verification', 'decoding')])
+               ('decoding', 'deduplication'), ('verification', 'deduplication')])
     with tempfile.TemporaryDirectory(prefix='mappa-campaign-', dir=os.environ.get('SLURM_TMPDIR')) as scratch:
         ledger = Ledger(output, scratch, resume=resume)
         if verify_only:
@@ -249,9 +249,14 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                     if active:
                         pool.check_workers()
                         time.sleep(.1)
+                failed = ledger.db.execute("SELECT count(*) FROM results WHERE stage=? AND state!='complete'",(stage,)).fetchone()[0]
+                if failed:
+                    status.setdefault('failed_stages', []).append(stage)
                 checkpoint(stage,active)
-                if ledger.db.execute("SELECT count(*) FROM results WHERE stage=? AND state!='complete'",(stage,)).fetchone()[0]:
+                if failed and (stage != 'decoding' or stop_after == 'decoding'):
                     raise RuntimeError(f'{stage} contains failed directions; next pass was not started')
+                if stage == 'verification' and not verify_only and status.get('failed_stages'):
+                    raise RuntimeError('decoding contains failed directions; external verification completed')
                 if stage == stop_after:
                     status['pass_finished'] = stage
                     checkpoint(stage,{})

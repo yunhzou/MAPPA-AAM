@@ -58,8 +58,17 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
 
 
-@pytest.mark.parametrize('verification_failed', [False, True])
-def test_verify_only_preserves_decode_failures_and_existing_verification(tmp_path, verification_failed):
+@pytest.mark.parametrize('verify_only, stop_after, verification_failed', [
+    (True, None, False),
+    (True, None, True),
+    (False, None, False),
+    (False, 'decoding', False),
+    (False, 'verification', False),
+    (False, None, True),
+])
+def test_verification_preserves_decode_failures_and_existing_results(
+        tmp_path, monkeypatch, verify_only, stop_after, verification_failed):
+    from mappa.execution import WorkPool
     from mappa.mappa_core.core.scheduler.bundles import Blob
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
@@ -92,13 +101,23 @@ def test_verify_only_preserves_decode_failures_and_existing_verification(tmp_pat
         before = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
         assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
 
-    if verification_failed:
-        with pytest.raises(RuntimeError, match='verification contains failed'):
-            run(index, output, local=True, workers=1, memory_bytes=memory, resume=True, verify_only=True)
+    entered_pools = []
+    original_enter = WorkPool.__enter__
+    def enter_pool(pool):
+        entered_pools.append(pool.identity)
+        return original_enter(pool)
+    monkeypatch.setattr(WorkPool, '__enter__', enter_pool)
+    options = dict(local=True, workers=1, memory_bytes=memory, resume=True,
+                   verify_only=verify_only, stop_after=stop_after)
+    if verification_failed or not verify_only:
+        failed_stage = 'verification' if verification_failed else 'decoding'
+        with pytest.raises(RuntimeError, match=f'{failed_stage} contains failed'):
+            run(index, output, **options)
     else:
-        status = run(index, output, local=True, workers=1, memory_bytes=memory, resume=True, verify_only=True)
+        status = run(index, output, **options)
         assert status['pass_finished'] == 'verification'
         assert not status.get('finished', False)
+    assert len(entered_pools) == 1
 
     with sqlite3.connect(output/'ledger.sqlite') as db:
         after = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
@@ -112,6 +131,8 @@ def test_verify_only_preserves_decode_failures_and_existing_verification(tmp_pat
         assert after == before
         failed_audit = store.load(Blob(**json.loads(after[name, 'verification'][4])))
         assert failed_audit['case'][3] == failed_audit['case'][1] == 3600.
+    elif stop_after == 'decoding':
+        assert after == before
     else:
         assert set(after)-set(before) == {(name, 'verification')}
         result = store.load(Blob(**json.loads(after[name, 'verification'][3])))
@@ -124,8 +145,11 @@ def test_verify_only_preserves_decode_failures_and_existing_verification(tmp_pat
         assert specification.memory_bytes == memory
         assert specification.case_seconds == 3600.
     progress = json.loads((output/'progress.json').read_text())
-    assert progress['verification_only']
+    assert progress.get('verification_only', False) == verify_only
     assert not progress.get('finished', False)
+    if not verify_only:
+        assert progress['failed_stages'] == (['decoding', 'verification']
+            if verification_failed else ['decoding'])
 
 
 def test_verify_only_requires_original_campaign_and_completed_reduction(tmp_path):

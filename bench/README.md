@@ -2,9 +2,11 @@
 
 `enzymemap.py` runs matching, per-reaction/direction deduplication, original-space
 decoding and reference verification as separate passes through the public MAPPA
-work pool. It contains no matching or decoding algorithm. Failed directions block
-the next pass in the normal pipeline; explicit catalogue-only verification is
-available separately. Caps and solver unknowns remain scientific result metadata.
+work pool. It contains no matching or decoding algorithm. Matching or reduction
+failures block later passes. Once decoding is terminal, reference verification
+continues from the catalogues in the same pool, even if decoding failed; those
+failures remain recorded and prevent overall success. An explicit stop after
+decoding still stops there. Caps and solver unknowns remain scientific metadata.
 
 The full EnzymeMap input contains 47,974 reactions in both directions. Its
 manifest fixes the scientific settings: one-witness growth, one seed, branch cap
