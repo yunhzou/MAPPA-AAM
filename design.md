@@ -257,6 +257,12 @@ Matching tolerance is separate. Count changes touching mapped atoms, including
 mapped/unmapped boundaries, and omit bonds wholly inside unmatched material.
 No correspondence is invented for unmatched atoms.
 
+When matching uses transformed bond weights, `event_problem` supplies the
+original scoring endpoints to decoding. Both problems must retain the same
+indexed atoms and coordinates. Required edges remain constraints on the matching
+problem; event responses use the scoring problem. Saved results identify and
+retain both endpoint problems when their weights differ.
+
 `EventDecodeSession` owns reusable endpoint preparation and bounded caches.
 `EventInterpretation` owns the inventory, shared local responses, dependencies
 and family/partition views. These reaction-specific results are released after

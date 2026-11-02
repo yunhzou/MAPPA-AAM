@@ -279,6 +279,58 @@ symmetries. Point `MAPPA_BATCH_ROOT` at that output and use the same launcher an
 two-pass barrier above, with the matching array range. No separate Golden wrapper
 or runtime policy override is needed.
 
+### Paired Golden matching study
+
+`golden.py compare` runs exactly two arms: binary matching weights at tolerance 1,
+and original matching weights at tolerance 10. Binary weights are one where the
+original WBO is at least 0.2 and zero otherwise, with a zero diagonal. Both arms
+use one seed, cap 2,000, random seed 42, both directions and every single-edge cut.
+Both decode events from the **original WBOs** at thresholds 0.5 and 0.3. Binary
+matching endpoints and their constraints remain stored separately from the event
+endpoints; replacing the catalogue's problem would change its scientific meaning.
+
+```bash
+PYTHONPATH=src:bench python bench/golden.py compare \
+  --index /path/to/full-golden/index.json --output /path/to/new-paired-study \
+  --workers 4 --memory-gib 8 --stage-seconds 1800 --run-seconds 86400
+```
+
+Omitting `--cases` requires all 1,851 cases exactly once in each direction: 3,702
+directions per arm. For a separate pilot, add `--cases 0 1228 1739 1553`. The
+memory guard applies to each worker; leave room for the coordinator and other
+applications. The default admission window is twice the worker count.
+
+One persistent local pool processes reaction/directions. Each matching task owns
+its cache, finalizes each cut and immediately adds its compressed families to the
+direction catalogue. Individual cut graphs are released rather than published.
+All matching/reduction tasks in both arms become terminal before decoding starts.
+The next pass decodes completed catalogues; the final pass independently verifies
+the original heavy-atom references against matching catalogues. Failed matching
+blocks only that direction's later stages. A decoding failure does not suppress
+reference verification. Memory limits, timeouts, unknown reference queries and
+completed nonrecoveries remain distinct.
+
+Typed catalogues and decoded results go into aggregated bundles. Workers return
+small descriptors with their blob references and measurements, so the coordinator
+never loads molecular catalogues. Large-artifact publication is timed explicitly
+inside the supervised stage budget. Matching, finalization, reduction, decoding,
+verification and publication CPU/wall are separate; process-tree memory samples
+and archived attempts retain resource failures. No whole-reaction mapping
+enumeration or per-cut/per-seed files are introduced.
+
+`plan.json` freezes both arms, input hashes, source and runner identities, guards
+and per-stage budgets. `progress.json` and the ledger checkpoint every 30 seconds.
+`summary.json` contains paired outcomes and the archived 1,830/1,851 baseline,
+explicitly labelled as a different cap-100 study. `terminal_complete` means every
+stage row is terminal, including blocked/error rows; `complete` additionally
+requires every stage to succeed. Neither means every reference was recovered.
+
+The run budget or a termination signal stops admission and drains accepted work.
+Resume that unchanged output with `--resume`; completed and failed stage rows are
+both retained, with no automatic retries or fresh failed-task budgets. Resume
+requires a durably recorded drain and an empty archived queue. An unexpected
+coordinator loss requires an explicit audit instead of silently repeating work.
+
 ### Minimum-event analysis of saved results
 
 `analytics.py` queries completed decoder outputs without rerunning matching or

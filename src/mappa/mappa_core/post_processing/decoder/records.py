@@ -86,7 +86,16 @@ class EventInterpretation:
     family_actions: tuple[tuple[SymmetryEventResponse, ...], ...]
     inventory: FragmentInventory
     local: FragmentDecoder
+    event_problem_sha256: str
     _tables: dict = field(default_factory=dict, repr=False)
+
+    @property
+    def matching_problem_sha256(self):
+        return self.catalogue.problem_sha256
+
+    @property
+    def event_problem(self):
+        return self.index.problem
 
     @property
     def fragment_partitions(self):
@@ -178,9 +187,10 @@ class EventInterpretation:
         if family.required_edges:
             a, b = np.asarray(family.required_edges, dtype=int).T
             vector = np.asarray(vector)
-            weights = self.index.p[vector[a], vector[b]]
+            problem = self.catalogue.problem
+            weights = problem.product.wbo[vector[a], vector[b]]
             floor, iso = family.policy
-            if np.any(weights < floor) or np.any(np.abs(self.index.r[a, b] - weights) > iso + 1e-9):
+            if np.any(weights < floor) or np.any(np.abs(problem.reactant.wbo[a, b] - weights) > iso + 1e-9):
                 raise ValueError('choices violate original fragment constraints')
         return mapping
 

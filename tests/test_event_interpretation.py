@@ -261,7 +261,7 @@ def check_contributions(interpreted, choices):
     expected_counts = []
     for choice in choices:
         mapping = interpreted.realize(0,choice)
-        expected = dense_categories(interpreted.catalogue.problem,mapping,
+        expected = dense_categories(interpreted.index.problem,mapping,
             interpreted.index.threshold,interpreted.index.metal_threshold)
         result = interpreted.contributions(0,choice,include_events=True)
         actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
@@ -274,7 +274,7 @@ def check_contributions(interpreted, choices):
                 for term in region['terms']:
                     images = tuple(mapping.get(a) for a in term['atoms'])
                     weight = (0. if None in images else
-                              float(interpreted.catalogue.problem.product.wbo[images]))
+                              float(interpreted.index.problem.product.wbo[images]))
                     response = record['responses'][term['response']]
                     code = response['categories'][response['target_weights'].index(weight)]
                     if code:
@@ -356,6 +356,130 @@ def test_fixed_internal_and_boundary_responses_share_across_families():
     assert result.tables(0) is result.tables(1)
     assert result.tables(0).statistics['variable_terms'] == 0
     assert result.contributions(0)['counts'] == dict(breaking=0,forming=1,strengthening=2,weakening=0)
+
+
+def test_binary_matching_keeps_a_triple_to_single_event_in_original_weights():
+    from mappa import query_path
+
+    raw = AAMProblem(endpoint('CO', [(0, 1, 3.)]), endpoint('CO', [(0, 1, 1.)]))
+    binary = endpoint('CO', [(0, 1, 1.)])
+    catalogue = saved(binary, binary, {0: 0, 1: 1})
+    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1),))
+    before = catalogue.to_record()
+    family = catalogue.families[0]
+    status, _ = query_path(family.as_path(catalogue.problem), catalogue.problem,
+                           {0: 0, 1: 1}, source_atoms=(0, 1))
+    assert status == 'recovered'
+    # Reinterpreting the saved tolerance against raw weights would wrongly reject
+    # this allowed binary match; counting the binary weights would hide its event.
+    status, _ = query_path(family.as_path(raw), raw, {0: 0, 1: 1}, source_atoms=(0, 1))
+    assert status == 'not_recovered'
+    interpreted = decode_events(catalogue, event_problem=raw)
+    assert interpreted.catalogue is catalogue and catalogue.to_record() == before
+    assert interpreted.realize(0) == {0: 0, 1: 1}
+    assert interpreted.contributions(0)['counts'] == dict(
+        breaking=0, forming=0, strengthening=0, weakening=1)
+    check_contributions(interpreted, [None])
+
+
+def test_binary_symmetric_pool_has_distinct_original_metal_event_counts():
+    raw = AAMProblem(endpoint(('V', 'O', 'O'), [(0, 1, 2.2), (0, 2, .7)]),
+                     endpoint(('V', 'O', 'O'), [(0, 1, .8), (0, 2, 2.1)]))
+    binary = endpoint(('V', 'O', 'O'), [(0, 1, 1.), (0, 2, 1.)])
+    catalogue = saved(binary, binary, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
+    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1), (0, 2)))
+    before = catalogue.to_record()
+    interpreted = decode_events(catalogue, event_problem=raw)
+    choices = [[None], [(2, 1)]]
+    assert [interpreted.contributions(0, choice)['total'] for choice in choices] == [2, 0]
+    assert not interpreted.family_actions[0][0].response_invariant
+    check_contributions(interpreted, choices)
+    assert catalogue.to_record() == before
+
+
+def test_original_event_weights_do_not_split_a_joint_binary_symmetry_choice():
+    from mappa import query_path
+
+    edges = [(0, 2, 3.), (1, 3, 1.), (0, 3, 1.), (1, 2, 1.)]
+    raw_endpoint = endpoint('CCCC', edges)
+    raw = AAMProblem(raw_endpoint, raw_endpoint)
+    binary = endpoint('CCCC', [(a, b, 1.) for a, b, _ in edges])
+    catalogue = saved(binary, binary, dict(enumerate(range(4))),
+        actions=(('group', ((1, 0, 3, 2),)),), pairs=(((0, 1), (0, 1)), ((2, 3), (2, 3))))
+    catalogue.families[0] = replace(catalogue.families[0],
+                                    required_edges=tuple((a, b) for a, b, _ in edges))
+    interpreted = decode_events(catalogue, event_problem=raw)
+    choices = [[None], [(1,)]]
+    assert [interpreted.contributions(0, choice)['total'] for choice in choices] == [0, 2]
+    check_contributions(interpreted, choices)
+    family = catalogue.families[0]
+    for mapping, expected in (({0: 1, 1: 0, 2: 3, 3: 2}, 'recovered'),
+                              ({0: 1, 1: 0, 2: 2, 3: 3}, 'not_recovered')):
+        status, _ = query_path(family.as_path(catalogue.problem), catalogue.problem,
+                               mapping, source_atoms=(0, 1, 2, 3))
+        assert status == expected
+
+
+@pytest.mark.parametrize('tolerance', [1., 10.])
+def test_missing_required_connectivity_is_rejected_even_with_large_tolerance(tolerance):
+    from mappa import query_path
+
+    raw = AAMProblem(endpoint('CO', [(0, 1, 3.)]), endpoint('COO', [(0, 1, 1.)]))
+    catalogue = saved(endpoint('CO', [(0, 1, 1.)]), endpoint('COO', [(0, 1, 1.)]),
+                      {0: 0, 1: 1}, actions=(('pool', (1, 2)),))
+    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1),),
+                                    policy=(.2, tolerance))
+    interpreted = decode_events(catalogue, event_problem=raw)
+    assert interpreted.contributions(0)['total'] == 1
+    with pytest.raises(ValueError, match='original fragment constraints'):
+        interpreted.contributions(0, [(2, 1)])
+    family = catalogue.families[0]
+    status, _ = query_path(family.as_path(catalogue.problem), catalogue.problem,
+                           {0: 0, 1: 2}, source_atoms=(0, 1))
+    assert status == 'not_recovered'
+
+
+@pytest.mark.parametrize('mismatch', ['elements', 'coordinates'])
+def test_event_problem_cannot_change_the_saved_atom_indexing(mismatch):
+    ep = endpoint('CO', [(0, 1, 1.)])
+    catalogue = saved(ep, ep, {0: 0, 1: 1})
+    changed = replace(ep, elements=('O', 'C')) if mismatch == 'elements' else replace(
+        ep, coordinates=np.asarray([[1., 0., 0.], [0., 0., 0.]]))
+    with pytest.raises(ValueError):
+        decode_events(catalogue, event_problem=AAMProblem(ep, changed))
+
+
+def test_separate_matching_and_event_weights_roundtrip_without_reinterpreting_constraints():
+    from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_record, problem_from_record
+
+    binary = endpoint('CO', [(0, 1, 1.)])
+    catalogue = saved(binary, binary, {0: 0, 1: 1})
+    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1),))
+    raw = AAMProblem(endpoint('CO', [(0, 1, 3.)]), endpoint('CO', [(0, 1, 1.)]))
+    session = EventDecodeSession(catalogue.problem, event_problem=raw)
+    interpreted = session.decode(catalogue)
+    record = decoded_events_record(interpreted)
+    assert record['schema'] == 'mappa.decoded_events/v6'
+    assert record['matching_problem_sha256'] == catalogue.problem_sha256
+    assert record['event_problem_sha256'] == FinalBranchCatalogue(raw).problem_sha256
+    assert record['matching_problem_sha256'] != record['event_problem_sha256']
+    assert record['problem']['reactant']['wbo'][0][1] == 1.
+    assert record['event_problem']['reactant']['wbo'][0][1] == 3.
+    stored = json.loads(json.dumps(record))
+    restored_catalogue = FinalBranchCatalogue.from_record(
+        problem_from_record(stored['problem']), stored['catalogue'])
+    restored = decode_events(restored_catalogue, event_problem=problem_from_record(stored['event_problem']))
+    assert decoded_events_record(restored) == record
+    assert restored.realize(0) == {0: 0, 1: 1}
+    assert restored.contributions(0)['counts']['weakening'] == 1
+    assert restored_catalogue.to_record() == catalogue.to_record()
+
+    default = decoded_events_record(decode_events(catalogue))
+    explicit_same = decoded_events_record(decode_events(catalogue, event_problem=catalogue.problem))
+    assert default == explicit_same and default['schema'] == 'mappa.decoded_events/v5'
+    assert 'event_problem' not in default
 
 
 def test_fragment_partitions_are_alternative_views_not_double_counts():

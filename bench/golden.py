@@ -142,8 +142,9 @@ def _catalogue_signature(catalogue):
                     sorted(branches), sorted(coupled)))
 
 
-def diagnose_direction(payload, workspace):
-    """One cold process, one complete direction; retain its cache across cuts."""
+def _match_direction(problem, config, *, key, cache=True, progress=None,
+                     audit_catalogue=False, metrics=None):
+    """One direction owns its cache and reduces finalized cuts as they finish."""
     from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
     from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
     from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
@@ -151,41 +152,37 @@ def diagnose_direction(payload, workspace):
     from mappa.mappa_core.core.search.session import SearchSession
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 
-    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != payload['runner_sha256']:
-        raise ValueError('Diagnostic runner changed after the run was planned')
-    row, metrics = payload['row'], {}
+    metrics = {} if metrics is None else metrics
     with _measure(metrics, 'preparation'):
-        problem = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
-        reference = read_blob(Blob(**row['reference']), workspace.scratch)
-        config = AAMSearchConfig(**payload['config'])
         session = SearchSession(problem, config)
-        if not payload['cache']:
+        if not cache:
             repair = session.repair
             session.repair = FragmentRepair(repair.source, repair.target, session.context[3], cache_bytes=0)
             del repair
         symmetry = ConditionedSymmetryWorkspace(session.context[2], config.iso_tolerance)
         cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
         catalogue = FinalBranchCatalogue(problem)
-    result = dict(key=payload['key'], atoms=[problem.source_atom_count, problem.target_atom_count],
+    result = dict(key=key, atoms=[problem.source_atom_count, problem.target_atom_count],
         expected_cuts=len(cuts), completed_cuts=0, expected_seed_searches=len(cuts)*config.seed_count,
         completed_seed_searches=0, metrics=metrics, cuts=[], stops={}, cap_stages={},
         graph_counts=dict(states=0, transitions=0, terminals=0), max_growth_candidates=0)
     scope, stops, cap_stages = hashlib.sha256(), Counter(), Counter()
 
-    def progress(phase):
+    def checkpoint(phase):
         result.update(phase=phase, cache=session.repair.stats(), stops=dict(stops),
                       cap_stages=dict(cap_stages))
-        _publish(payload['progress'], result)
+        if progress is not None:
+            progress(result)
 
     for number, cut in enumerate(cuts):
-        progress('matching')
+        checkpoint('matching')
         with _measure(metrics, 'matching'):
             graph, counts = session.search_cut(cut)
-        progress('finalization')
+        checkpoint('finalization')
         with _measure(metrics, 'finalization'):
             graph, _ = finalize_graph_symmetry(graph, session.context[2],
                 iso_tolerance=config.iso_tolerance, workspace=symmetry)
-        progress('reduction')
+        checkpoint('reduction')
         with _measure(metrics, 'reduction'):
             catalogue.add_graph(graph, archive=f'cut/{number}')
         with _measure(metrics, 'audit'):
@@ -206,17 +203,35 @@ def diagnose_direction(payload, workspace):
             result['max_growth_candidates'] = max(result['max_growth_candidates'], counts['max_growth_candidates'])
         result['completed_cuts'] = number+1
         del graph
-    result['catalogue_audited'] = payload['audit_catalogue']
-    if payload['audit_catalogue']:
-        progress('audit')
+    result['catalogue_audited'] = audit_catalogue
+    if audit_catalogue:
+        checkpoint('audit')
         with _measure(metrics, 'audit'):
             result['catalogue_sha256'] = _catalogue_signature(catalogue)
     result.update(scope_sha256=scope.hexdigest(), families=len(catalogue.families),
                   atom_set_branches=len(catalogue.branches), retained_paths=catalogue.path_count)
-    progress('verification')
+    checkpoint('matching_complete')
+    return catalogue, result
+
+
+def diagnose_direction(payload, workspace):
+    """One cold process, one complete direction; retain its cache across cuts."""
+    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != payload['runner_sha256']:
+        raise ValueError('Diagnostic runner changed after the run was planned')
+    row, metrics = payload['row'], {}
+    with _measure(metrics, 'preparation'):
+        problem = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
+        reference = read_blob(Blob(**row['reference']), workspace.scratch)
+        config = AAMSearchConfig(**payload['config'])
+    catalogue, result = _match_direction(problem, config, key=payload['key'],
+        cache=payload['cache'], audit_catalogue=payload['audit_catalogue'], metrics=metrics,
+        progress=lambda value: _publish(payload['progress'], value))
+    result['phase'] = 'verification'
+    _publish(payload['progress'], result)
     with _measure(metrics, 'verification'):
         result['verification'] = verify_catalogue(catalogue, reference, reverse=row['reversed'])
-    progress('complete')
+    result['phase'] = 'complete'
+    _publish(payload['progress'], result)
     return result
 
 
@@ -348,8 +363,366 @@ def diagnose(indices, output, *, cases, seeds, cache, branch_limit, direction_se
     return report
 
 
+COMPARISON_ARMS = ('binary_iso1', 'weighted_iso10')
+
+
+def comparison_config(arm):
+    if arm not in COMPARISON_ARMS:
+        raise ValueError('Unknown Golden comparison arm')
+    return AAMSearchConfig(seed_count=1, branch_limit=2000, random_seed=42,
+                          iso_tolerance=1. if arm == 'binary_iso1' else 10.)
+
+
+def comparison_problem(original, arm):
+    """Change matching weights only; indexed original endpoints remain separate."""
+    comparison_config(arm)
+    if arm == 'weighted_iso10':
+        return original
+    def binary(endpoint):
+        import numpy as np
+        weights = (endpoint.wbo >= .2).astype(float)
+        np.fill_diagonal(weights, 0.)
+        return replace(endpoint, wbo=weights)
+    return replace(original, reactant=binary(original.reactant), product=binary(original.product))
+
+
+def _comparison_runner(payload):
+    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != payload['runner_sha256']:
+        raise ValueError('Golden comparison runner changed after planning')
+
+
+def compare_match(payload, workspace):
+    """Publish one reduced catalogue, without transporting individual cut graphs."""
+    from mappa.mappa_core.core.scheduler.results import CatalogueResult, CutScope
+    _comparison_runner(payload)
+    metrics = {}
+    with _measure(metrics, 'preparation'):
+        original = problem_from_record(read_blob(Blob(**payload['row']['input']), workspace.scratch))
+        problem = comparison_problem(original, payload['arm'])
+        config = comparison_config(payload['arm'])
+    catalogue, measured = _match_direction(problem, config, key=payload['name'], metrics=metrics)
+    if (measured['completed_cuts'] != measured['expected_cuts'] or
+            measured['completed_seed_searches'] != measured['expected_seed_searches']):
+        raise ValueError('Cannot publish an incomplete comparison catalogue')
+    scope = tuple(CutScope(cut['number'], tuple(map(tuple, cut['bonds'])), (0,))
+                  for cut in measured.pop('cuts'))
+    saved = CatalogueResult(payload['name'], catalogue, scope,
+                            tuple(sorted(measured['stops'].items())), config, 'reused_native')
+    with _measure(metrics, 'catalogue_publication'):
+        reference = workspace.writer.put(saved)
+    measured.pop('metrics')
+    return dict(catalogue=asdict(reference), original_input=payload['row']['input'],
+                matching_problem_sha256=catalogue.problem_sha256, metrics=metrics,
+                search=measured)
+
+
+def compare_decode(payload, workspace):
+    from mappa import decode_events
+    from mappa.mappa_core.core.scheduler.results import DecodingResult
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    _comparison_runner(payload)
+    metrics = {}
+    with _measure(metrics, 'loading'):
+        matched = workspace.load(payload['matching'])
+        saved = workspace.load(Blob(**matched['catalogue']))
+        original = problem_from_record(read_blob(Blob(**matched['original_input']), workspace.scratch))
+    config = EventDecodeConfig()
+    with _measure(metrics, 'decoding'):
+        interpreted = decode_events(saved.catalogue, config, event_problem=original)
+        record = decoded_events_record(interpreted)
+        identities = dict(matching_problem_sha256=interpreted.matching_problem_sha256,
+                          event_problem_sha256=interpreted.event_problem_sha256)
+        del interpreted
+    result = DecodingResult(saved.case, config, saved.scope, saved.stops,
+                            record, saved.search_config, saved.execution)
+    del saved, original, matched
+    with _measure(metrics, 'decoded_publication'):
+        reference = workspace.writer.put(result)
+    return dict(decoded=asdict(reference), metrics=metrics, schema=record['schema'],
+                families=len(record['families']), tables=len(record['tables']),
+                responses=len(record['responses']), **identities)
+
+
+def compare_verify(payload, workspace):
+    _comparison_runner(payload)
+    metrics = {}
+    with _measure(metrics, 'loading'):
+        matched = workspace.load(payload['matching'])
+        saved = workspace.load(Blob(**matched['catalogue']))
+        reference = read_blob(Blob(**payload['row']['reference']), workspace.scratch)
+    with _measure(metrics, 'verification'):
+        verdict = verify_catalogue(saved.catalogue, reference, reverse=payload['row']['reversed'])
+    return dict(verification=verdict, metrics=metrics)
+
+
+def _case_verdict(directions):
+    if 'recovered' in directions:
+        return 'recovered'
+    if all(value == 'not_recovered' for value in directions):
+        return 'not_recovered'
+    return 'unknown' if all(value in ('not_recovered', 'unknown') for value in directions) else 'incomplete'
+
+
+def _comparison_report(plan, ledger, store, baseline):
+    """Read small stage descriptors and attempt audits, never molecular catalogues."""
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    records, totals, intervals = {}, {}, []
+    for name, stage, state, raw_reference, raw_audit, error in ledger.db.execute('SELECT * FROM results'):
+        row = dict(state=state)
+        if raw_reference:
+            value = store.load(Blob(**json.loads(raw_reference)))
+            row.update(value)
+            if stage == 'verification' and 'evidence' in row['verification']:
+                evidence = row['verification'].pop('evidence')
+                row['verification']['evidence_sha256'] = _digest(evidence)
+        if error:
+            row['error'] = json.loads(error)
+        arm = name.split('/')[0]
+        aggregate = totals.setdefault(arm, {}).setdefault(stage, dict(states=Counter(),
+            measured_phases={}, total_worker_cpu_seconds=0., failed_sampled_cpu_seconds=0.,
+            maximum_sampled_rss_bytes=0, attempts=0))
+        aggregate['states'][state] += 1
+        for phase, values in row.get('metrics', {}).items():
+            combined = aggregate['measured_phases'].setdefault(phase, dict(cpu_seconds=0., wall_seconds=0.))
+            for key in combined:
+                combined[key] += values[key]
+        if raw_audit:
+            audit = store.load(Blob(**json.loads(raw_audit)))
+            row['spent_seconds'] = audit['case'][3]
+            row['attempts'] = len(audit['attempts'])
+            row['worker_metrics'] = []
+            for token, task, worker, start, end, outcome, raw_metrics in audit['attempts']:
+                measured = _loads_checkpoint(raw_metrics) if raw_metrics is not None else {}
+                values = {key: value for key, value in measured.items()
+                          if key.endswith(('_seconds', '_bytes', '_samples'))}
+                row['worker_metrics'].append(dict(state=outcome, **values))
+                aggregate['attempts'] += 1
+                aggregate['total_worker_cpu_seconds'] += measured.get('total_cpu_seconds', measured.get('cpu_seconds', 0.))
+                if 'total_cpu_seconds' not in measured and 'cpu_seconds' not in measured:
+                    aggregate['failed_sampled_cpu_seconds'] += measured.get('sampled_cpu_seconds', 0.)
+                aggregate['maximum_sampled_rss_bytes'] = max(aggregate['maximum_sampled_rss_bytes'], measured.get('peak_tree_rss_bytes', 0))
+                if start is not None and end is not None:
+                    intervals.extend(((start, 1), (end, -1)))
+        records.setdefault(name, {})[stage] = row
+    cases = []
+    for case in plan['cases']:
+        value = dict(case=case, baseline=baseline[case]['status'], arms={})
+        for arm in COMPARISON_ARMS:
+            directions = {}
+            for direction in ('forward', 'reverse'):
+                stages = records.get(f'{arm}/{case:05d}/{direction}', {})
+                verdict = stages.get('verification', {}).get('verification', {}).get('status', 'incomplete')
+                directions[direction] = dict(verdict=verdict, stages=stages)
+            value['arms'][arm] = dict(status=_case_verdict([d['verdict'] for d in directions.values()]),
+                                      directions=directions)
+        cases.append(value)
+    active = overlap = 0
+    for _, change in sorted(intervals):
+        active += change
+        overlap = max(overlap, active)
+    comparisons = dict(shared_recovered=[], binary_recovered_weighted_not_recovered=[],
+                       weighted_recovered_binary_not_recovered=[], both_not_recovered=[], inconclusive=[])
+    for row in cases:
+        binary, weighted = (row['arms'][arm]['status'] for arm in COMPARISON_ARMS)
+        category = ({('recovered', 'recovered'): 'shared_recovered',
+                     ('recovered', 'not_recovered'): 'binary_recovered_weighted_not_recovered',
+                     ('not_recovered', 'recovered'): 'weighted_recovered_binary_not_recovered',
+                     ('not_recovered', 'not_recovered'): 'both_not_recovered'}.get((binary, weighted), 'inconclusive'))
+        comparisons[category].append(row['case'])
+    baseline_comparison = {arm: dict(
+        gained=[r['case'] for r in cases if r['baseline'] == 'not_recovered' and r['arms'][arm]['status'] == 'recovered'],
+        lost=[r['case'] for r in cases if r['baseline'] == 'recovered' and r['arms'][arm]['status'] == 'not_recovered'],
+        unresolved=[r['case'] for r in cases if r['arms'][arm]['status'] in ('unknown', 'incomplete')])
+        for arm in COMPARISON_ARMS}
+    expected = len(plan['cases'])*2*len(COMPARISON_ARMS)*3
+    terminal = ledger.db.execute('SELECT count(*) FROM results').fetchone()[0]
+    return dict(schema='mappa.golden_comparison_results/v1', plan=plan,
+        terminal_stage_rows=terminal, terminal_complete=terminal == expected,
+        expected_stage_rows=expected,
+        complete=len(records) == len(plan['cases'])*4 and all(
+            len(stages) == 3 and all(row['state'] == 'complete' for row in stages.values())
+            for stages in records.values()),
+        case_outcomes={arm: dict(Counter(row['arms'][arm]['status'] for row in cases)) for arm in COMPARISON_ARMS},
+        stage_metrics=totals, peak_overlapping_attempts=overlap,
+        attempt_span_seconds=(max(point[0] for point in intervals)-min(point[0] for point in intervals)
+                              if intervals else 0.),
+        paired_comparison=comparisons, baseline_comparison=baseline_comparison, cases=cases,
+        measurement_scope='Stage measurements include explicit large-artifact publication; supervised worker CPU also includes this publication. Failed sampled CPU is separate from measured worker CPU. Summed wall times are not parallel elapsed time. Process-lifetime RSS can include earlier tasks.',
+        baseline_scope='Archived 1830/1851 Golden result: one seed, cap100, original WBO tolerance1. The two new arms use cap2000; differences are not attributed to tolerance alone.')
+
+
+def compare(index_path, output, *, workers=4, window=None, memory_bytes=8*2**30,
+            stage_seconds=1800., run_seconds=86400., cases=None, resume=False):
+    """Two declared matching arms, one persistent pool and a global pass barrier."""
+    import fcntl
+    import gzip
+    import tempfile
+    import uuid
+    from enzymemap import Ledger, require_drained
+    from mappa.execution import BundleStore, WorkPool
+    from mappa.execution.identity import code_identity
+    from mappa.mappa_core.core.scheduler import Task
+
+    window = workers*2 if window is None else window
+    if min(workers, window, memory_bytes, stage_seconds, run_seconds) <= 0:
+        raise ValueError('Workers, admission window, memory and time budgets must be positive')
+    index_path, output = Path(index_path), Path(output)
+    raw = index_path.read_bytes(); index = json.loads(raw)
+    if index.get('verification') != 'golden:verify' or index.get('reference_policy') != REFERENCE_POLICY:
+        raise ValueError('Use the immutable Golden input index and its exact reference policy')
+    selected = list(range(1851)) if cases is None else list(cases)
+    if not selected or len(set(selected)) != len(selected) or any(case not in range(1851) for case in selected):
+        raise ValueError('Select distinct Golden cases in 0..1850')
+    rows = [row for row in index['directions'] if row['case'] in selected]
+    wanted = {(case, reverse) for case in selected for reverse in (False, True)}
+    if len(rows) != len(wanted) or {(r['case'], r['reversed']) for r in rows} != wanted:
+        raise ValueError('Each selected Golden case requires exactly one input for each direction')
+    if cases is None and len(index['directions']) != 3702:
+        raise ValueError('The full Golden index must contain exactly 3702 directions')
+    rows.sort(key=lambda row: (row['case'], row['reversed']))
+    baseline_path = Path(__file__).resolve().parents[1]/'reports/golden_retest_20261101/reference-results.json.gz'
+    baseline = {row['case']: row for row in json.loads(gzip.decompress(baseline_path.read_bytes()))}
+    plan = dict(schema='mappa.golden_comparison/v1', cases=sorted(selected),
+        full_dataset=cases is None, directions_per_arm=len(rows),
+        arms={arm: asdict(comparison_config(arm)) for arm in COMPARISON_ARMS},
+        binary_rule='One iff original WBO >= 0.2, otherwise zero; diagonal zero; elements, coordinates and atom order unchanged',
+        event_weights='Original endpoint WBOs in both arms', reference_policy=REFERENCE_POLICY,
+        input_index_sha256=hashlib.sha256(raw).hexdigest(), inputs=rows,
+        code_identity=code_identity(), runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        baseline_sha256=hashlib.sha256(baseline_path.read_bytes()).hexdigest(),
+        memory_guard_bytes=memory_bytes, stage_seconds=stage_seconds,
+        cache_budget_bytes=64*2**20, automatic_retries=False)
+    plan = json.loads(json.dumps(plan))
+    output.mkdir(parents=True, exist_ok=True)
+    with (output/'.owner.lock').open('a+b') as owner:
+        try:
+            fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError('Golden comparison output already has an active owner') from None
+        plan_path = output/'plan.json'
+        if resume:
+            if json.loads(plan_path.read_text()) != plan:
+                raise ValueError('Resume input, scientific source, runner or stage budget differs')
+            if not json.loads((output/'progress.json').read_text()).get('drained'):
+                raise ValueError('Resume requires a completed drain; interrupted ownership needs an explicit audit')
+            require_drained(output)
+        elif plan_path.exists():
+            raise ValueError('Existing comparison requires --resume')
+        else:
+            _publish(plan_path, plan)
+        _publish(output/'progress.json', dict(drained=False, stage='starting',
+                                             code_identity=plan['code_identity']))
+        started, stop = time.monotonic(), False
+        def drain(signum, frame):
+            nonlocal stop
+            stop = True
+        handlers = {sig: signal.signal(sig, drain) for sig in (signal.SIGINT, signal.SIGTERM)}
+        try:
+            with tempfile.TemporaryDirectory(prefix='mappa-golden-comparison-') as scratch:
+                ledger = Ledger(output, scratch, resume=resume)
+                store = BundleStore(output/'bundles', scratch=scratch)
+                try:
+                    with WorkPool.local(workers=workers, store=store, memory_bytes=memory_bytes,
+                                        case_seconds=stage_seconds, shared_cache=False) as pool:
+                        status = dict(schema='mappa.golden_comparison_progress/v1',
+                            code_identity=plan['code_identity'], cases=len(selected),
+                            directions_per_arm=len(rows), expected_directions=len(rows)*2,
+                            ready_workers=len(pool.queue.ready_workers()),
+                            startup_seconds=pool.startup_elapsed_seconds, window=window)
+                        def checkpoint(stage, active):
+                            ledger.checkpoint(); pool.checkpoint()
+                            status.update(stage=stage, active_directions=len(active), completed=ledger.counts(),
+                                queue=pool.queue.snapshot(), elapsed_seconds=time.monotonic()-started)
+                            _publish(output/'progress.json', status)
+                            print(json.dumps(status), flush=True)
+                        for stage in ('matching', 'decoding', 'verification'):
+                            pending = iter((arm, row) for row in rows for arm in COMPARISON_ARMS)
+                            exhausted, active = False, {}
+                            checkpoint(stage, active)
+                            next_checkpoint = time.monotonic()+30
+                            while active or not exhausted:
+                                stop |= time.monotonic()-started >= run_seconds
+                                while not stop and not exhausted and len(active) < window:
+                                    try:
+                                        arm, row = next(pending)
+                                    except StopIteration:
+                                        exhausted = True
+                                        break
+                                    name = f"{arm}/{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+                                    if ledger.get(name, stage) is not None:
+                                        continue
+                                    payload = dict(name=name, arm=arm, row=row, runner_sha256=plan['runner_sha256'])
+                                    if stage != 'matching':
+                                        prior = ledger.get(name, 'matching')
+                                        if prior is None:
+                                            raise RuntimeError('Matching pass is incomplete')
+                                        if prior[0] != 'complete':
+                                            ledger.put(name, stage, 'blocked', error='Matching did not complete')
+                                            continue
+                                        payload['matching'] = Blob(**json.loads(prior[1]))
+                                    key = f'{uuid.uuid4().hex}/{name}/{stage}'
+                                    operation = dict(matching='compare_match', decoding='compare_decode', verification='compare_verify')[stage]
+                                    pool.queue.add([Task(key, f'golden:{operation}', payload, case=key,
+                                                         case_seconds=stage_seconds, memory_bytes=memory_bytes)])
+                                    active[name] = key
+                                finished = pool.queue.results(list(active.values()))
+                                for name, key in list(active.items()):
+                                    result = finished[key]
+                                    if result['state'] in ('pending', 'running'):
+                                        continue
+                                    succeeded = result['state'] == 'complete'
+                                    measured = result['result'] or {}
+                                    audit = pool.queue.archive_case(key, store)
+                                    ledger.put(name, stage, 'complete' if succeeded else 'error',
+                                        measured['blob'] if succeeded else None, audit,
+                                        None if succeeded else dict(state=result['state'], error=measured.get('error')))
+                                    del active[name]
+                                if time.monotonic() >= next_checkpoint:
+                                    checkpoint(stage, active); next_checkpoint = time.monotonic()+30
+                                if stop and not active:
+                                    status['drained'] = True
+                                    checkpoint(stage, active)
+                                    break
+                                if active:
+                                    pool.check_workers(); time.sleep(.1)
+                            checkpoint(stage, active)
+                            if stop:
+                                break
+                        status['drained'] = True
+                        checkpoint(stage, {})
+                    report = _comparison_report(plan, ledger, store, baseline)
+                    report.update(invocation_elapsed_seconds=time.monotonic()-started, stopped=stop,
+                                  workers=workers, window=window)
+                    _publish(output/'summary.json', report)
+                    status.update(terminal_complete=report['terminal_complete'], complete=report['complete'])
+                    _publish(output/'progress.json', status)
+                    return report
+                finally:
+                    ledger.db.close()
+        finally:
+            for sig, handler in handlers.items():
+                signal.signal(sig, handler)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ['compare']:
+        parser = argparse.ArgumentParser(description='Paired full Golden study with original-WBO decoding')
+        parser.add_argument('--index', required=True)
+        parser.add_argument('--output', required=True)
+        parser.add_argument('--cases', type=int, nargs='+', help='Bounded pilot; omit for all 1851 cases')
+        parser.add_argument('--workers', type=int, default=4)
+        parser.add_argument('--window', type=int)
+        parser.add_argument('--memory-gib', type=float, default=8)
+        parser.add_argument('--stage-seconds', type=float, default=1800.)
+        parser.add_argument('--run-seconds', type=float, required=True)
+        parser.add_argument('--resume', action='store_true')
+        args = parser.parse_args(argv[1:])
+        report = compare(args.index, args.output, workers=args.workers, window=args.window,
+            memory_bytes=int(args.memory_gib*2**30), stage_seconds=args.stage_seconds,
+            run_seconds=args.run_seconds, cases=args.cases, resume=args.resume)
+        return 0 if report['complete'] else 75
     if argv[:1] == ['diagnose']:
         parser = argparse.ArgumentParser(description='Bounded, sequential Golden diagnostics on selected cases')
         parser.add_argument('--index', action='append', required=True)

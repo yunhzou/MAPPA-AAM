@@ -17,6 +17,7 @@ from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
 from mappa.mappa_core.core.scheduler.results import DecodingResult
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_core.post_processing.decoder.api import _validate_atom_identity
 from mappa.mappa_core.utils.io.records import problem_from_record
 from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint
 from mappa.mappa_workflow.mapping_analytics.family import compile_path
@@ -81,7 +82,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
     if decoded['schema'] not in ('mappa.decoded_events/v3', 'mappa.decoded_events/v4',
-                                  'mappa.decoded_events/v5'):
+                                  'mappa.decoded_events/v5', 'mappa.decoded_events/v6'):
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds
@@ -91,9 +92,16 @@ def minimum_events(decoded, reference, *, seconds=30.):
     if (FinalBranchCatalogue(problem).problem_sha256 != catalogue['problem_sha256'] or
             len(decoded['families']) != len(families)):
         raise ValueError('Decoded responses and catalogue must belong to the same problem')
+    event_problem = problem
+    if decoded['schema'] == 'mappa.decoded_events/v6':
+        event_problem = problem_from_record(decoded['event_problem'])
+        _validate_atom_identity(problem, event_problem)
+        if (decoded['matching_problem_sha256'] != catalogue['problem_sha256'] or
+                decoded['event_problem_sha256'] != FinalBranchCatalogue(event_problem).problem_sha256):
+            raise ValueError('Saved matching and event identities differ from their matrices')
     threshold = decoded['event_policy']['threshold']
     metal_threshold = decoded['event_policy']['metal_threshold']
-    index = heavy_event_index(problem, threshold=threshold, metal_threshold=metal_threshold)
+    index = heavy_event_index(event_problem, threshold=threshold, metal_threshold=metal_threshold)
     reference = {int(a): int(b) for a, b in reference.items()}
     def count(mapping):
         return int(index.counts([index.vector(mapping)])[0].sum())
@@ -130,6 +138,8 @@ def minimum_events(decoded, reference, *, seconds=30.):
                 if upper is None or lower[row['family']] < upper],
             incomplete_paths=catalogue['incomplete_paths'],
             problem_sha256=catalogue['problem_sha256'], catalogue_schema=catalogue['schema'],
+            event_problem_sha256=(decoded['event_problem_sha256']
+                if decoded['schema'] == 'mappa.decoded_events/v6' else catalogue['problem_sha256']),
             decoded_schema=decoded['schema'],
             cpu_seconds=time.process_time()-cpu, wall_seconds=time.perf_counter()-started,
             event_policy=dict(threshold=threshold, metal_threshold=metal_threshold,

@@ -10,7 +10,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'bench'))
 import analytics
 from analytics import heavy_event_index, minimum_events, saved_response_bounds
-from mappa import decode_events
+from mappa import AAMProblem, decode_events
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_fragment_conversion import endpoint, saved
 
@@ -172,3 +172,19 @@ def test_minimum_rejects_rematched_outputs():
     record['schema'] = 'mappa.decoded_events/v2'
     with pytest.raises(ValueError, match='original-space'):
         minimum_events(record, {0: 0, 1: 1, 2: 2})
+
+
+def test_saved_binary_constraints_keep_original_weighted_minimum():
+    binary = endpoint('CO', [(0, 1, 1.)])
+    catalogue = saved(binary, binary, {0: 0, 1: 1})
+    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1),))
+    original = AAMProblem(endpoint('CO', [(0, 1, 3.)]), binary)
+    record = decoded_events_record(decode_events(catalogue, event_problem=original))
+    result = minimum_events(record, {0: 0, 1: 1})
+    assert result['status'] == 'exact'
+    assert result['minimum_events'] == result['reference_events'] == 1
+    assert result['event_problem_sha256'] != result['problem_sha256']
+    record['event_problem']['reactant']['wbo'][0][1] = 1.
+    record['event_problem']['reactant']['wbo'][1][0] = 1.
+    with pytest.raises(ValueError, match='identities'):
+        minimum_events(record, {0: 0, 1: 1})

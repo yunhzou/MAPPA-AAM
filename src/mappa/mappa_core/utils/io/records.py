@@ -148,7 +148,7 @@ def decoded_events_record(result):
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    return dict(schema='mappa.decoded_events/v5', method='compressed_event_interpretation',
+    record = dict(schema='mappa.decoded_events/v5', method='compressed_event_interpretation',
         scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
@@ -158,6 +158,14 @@ def decoded_events_record(result):
         mapping_space_preserved=True,
         incomplete_paths=result.catalogue.incomplete_paths,
         exhaustive_event_patterns=False, global_minimum_proven=False)
+    if result.event_problem_sha256 != result.matching_problem_sha256:
+        record.update(schema='mappa.decoded_events/v6',
+            matching_problem_sha256=result.matching_problem_sha256,
+            event_problem_sha256=result.event_problem_sha256,
+            event_problem=dict(name=result.event_problem.name,
+                reactant=endpoint_record(result.event_problem.reactant, array_lists=True),
+                product=endpoint_record(result.event_problem.product, array_lists=True)))
+    return record
 
 
 def reaction_record(reaction: ReactionContext):

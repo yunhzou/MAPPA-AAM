@@ -279,6 +279,14 @@ ordered actions, local responses and branch references. The derived
 `atom_domains` and `atom_actions` maps remain available on runtime tables;
 they are omitted from saved records because the catalogue determines them.
 
+If matching used transformed weights, pass the original endpoint problem as
+`decode_events(catalogue, event_problem=original_problem)`. Elements, atom order
+and coordinates must agree. Matching constraints still use `catalogue.problem`;
+event responses use `events.event_problem`. `EventDecodeSession` accepts the same
+keyword. When the weights differ, records use `mappa.decoded_events/v6`, retaining
+`problem` as the matching endpoints and adding `event_problem`,
+`matching_problem_sha256` and `event_problem_sha256`. Ordinary decoding keeps v5.
+
 Terms retain the IDs of original actions affecting their endpoints; these are
 not new independent choices. Atom domains and table entries can overapproximate
 jointly reachable pairs. Only requested choices validated against the saved
