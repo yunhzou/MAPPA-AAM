@@ -321,13 +321,19 @@ class FinalBranchCatalogue:
             family.actions = result._intern(result._programs, tuple(
                 result._intern(result._factors, action) for action in family.actions))
             result.families.append(family)
+        atom_sets, fragment_pairs = {}, {}
+        def restore_pairs(pairs):
+            restored = []
+            for rs, ps in pairs:
+                pair = (result._intern(atom_sets, tuple(rs)), result._intern(atom_sets, tuple(ps)))
+                restored.append(result._intern(fragment_pairs, pair))
+            return tuple(restored)
         for branch in record['branches']:
-            pairs = tuple((tuple(rs), tuple(ps)) for rs, ps in branch['fragment_pairs'])
+            pairs = restore_pairs(branch['fragment_pairs'])
             result.branches[tuple(branch['policy']), pairs] = set(branch['families'])
         for branch in record.get('coupled_branches', ()):
             result.coupled_branches[branch['family']] = {
-                tuple((tuple(rs), tuple(ps)) for rs, ps in pairs)
-                for pairs in branch['source_fragment_pairs']}
+                restore_pairs(pairs) for pairs in branch['source_fragment_pairs']}
         for ids in (*result.branches.values(), result.coupled_branches):
             if any(i < 0 or i >= len(result.families) for i in ids):
                 raise ValueError('Invalid family reference')

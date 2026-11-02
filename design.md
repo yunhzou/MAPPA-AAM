@@ -261,6 +261,9 @@ saved metadata without merging families or their choices. Arrays used to evaluat
 joint choices are prepared only when evaluation is requested. The retained
 catalogue and exported records still consume memory; transient-table release is
 not a fixed bound on total decoding memory.
+Derived per-atom domain and action lookup maps belong to working tables; saved
+output retains the original catalogue and local responses without repeating these
+maps for every family or partition.
 
 Normal decoding/export retains the catalogue and local composition without a
 whole-reaction event-pattern deduplication pass or automatic representative

@@ -274,6 +274,11 @@ An event additionally needs absolute change > threshold. Equality produces no
 event. The four categories are exclusive; their sum equals the historical total.
 Without `categories=True`, `counts` retains decrease/increase counts.
 
+Saved event records use `mappa.decoded_events/v5`. They retain the catalogue,
+ordered actions, local responses and branch references. The derived
+`atom_domains` and `atom_actions` maps remain available on runtime tables;
+they are omitted from saved records because the catalogue determines them.
+
 Terms retain the IDs of original actions affecting their endpoints; these are
 not new independent choices. Atom domains and table entries can overapproximate
 jointly reachable pairs. Only requested choices validated against the saved

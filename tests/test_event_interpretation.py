@@ -256,6 +256,8 @@ def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
 def check_contributions(interpreted, choices):
     from collections import Counter
     from mappa.mappa_core.post_processing.decoder.events import EVENT_CATEGORIES
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    record = json.loads(json.dumps(decoded_events_record(interpreted)))
     expected_counts = []
     for choice in choices:
         mapping = interpreted.realize(0,choice)
@@ -264,6 +266,25 @@ def check_contributions(interpreted, choices):
         result = interpreted.contributions(0,choice,include_events=True)
         actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
         assert actual == expected
+        # The saved local responses suffice without the derived per-atom maps.
+        # Check every saved partition against the independent scalar oracle.
+        for number in record['families'][0]['tables']:
+            table, exported = record['tables'][number], []
+            for region in (*table['internal'], *table['boundary']):
+                for term in region['terms']:
+                    images = tuple(mapping.get(a) for a in term['atoms'])
+                    weight = (0. if None in images else
+                              float(interpreted.catalogue.problem.product.wbo[images]))
+                    response = record['responses'][term['response']]
+                    code = response['categories'][response['target_weights'].index(weight)]
+                    if code:
+                        exported.append((EVENT_CATEGORIES[code - 1], tuple(term['atoms']),
+                                         None if None in images else tuple(sorted(images))))
+            occupied = set(mapping.values())
+            exported.extend(('forming', None, tuple(pair))
+                            for pair in table['product_boundary_pairs']
+                            if (pair[0] in occupied) != (pair[1] in occupied))
+            assert sorted(exported, key=repr) == expected
         counts = Counter(e[0] for e in expected)
         assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
         assert result['total'] == len(expected)
@@ -602,7 +623,7 @@ def test_normal_decoding_and_export_do_not_build_whole_reaction_reports(monkeypa
         monkeypatch.setattr(SignedEventIndex, name, forbidden)
     result = decode_events(catalogue)
     record = decoded_events_record(result)
-    assert record['schema'] == 'mappa.decoded_events/v4'
+    assert record['schema'] == 'mappa.decoded_events/v5'
     assert 'representatives' not in record
     assert record['catalogue'] == catalogue.to_record()
     assert result.contributions(0)['counts'] == dict(

@@ -100,7 +100,7 @@ barrier.
 | Verification-only continuations | 15.64 | 8.10 |
 | **Total** | **1,557.85** | **443.81** |
 
-Reserved CPU time is allocated logical CPUs multiplied by elapsed time.
+Reserved CPU time is allocated CPU count multiplied by elapsed time.
 Accounted CPU usage is the scheduler's cumulative CPU total, counted once per
 allocation. It includes workers, coordinators and supervisors; it is not an
 algorithm-only measurement or a separate computation/publication breakdown.
@@ -208,8 +208,8 @@ costs; follow-up repair and validation are recorded below.
 
 ## Decoder storage repair and recovery
 
-The repair keeps the saved mapping relation and the decoded-event schema. It
-changes object ownership and storage sharing:
+The first repair (`b8c923e`) keeps the saved mapping relation and the decoded-event
+schema. It changes object ownership and storage sharing:
 
 - Export releases each temporary family/partition table after recording it.
   Explicit table queries still retain the tables they request.
@@ -278,8 +278,9 @@ reference verification is repeated.
 
 The first recovery round completed **75 of 84 directions** under the unchanged
 2 GiB guard. Nine still exceeded the guard: seven during computation and two
-during publication. The combined successful decoding count is **95,939 / 95,948**;
-matching, reduction and external verification outcomes are unchanged.
+during publication. After this round, the combined successful decoding count was
+**95,939 / 95,948**; matching, reduction and external verification outcomes were
+unchanged.
 
 The round took **16 min 46 s**, with 84 simultaneously claimed tasks on 84
 workers. It used 9.62 accounted CPU hours from 25.15 reserved CPU hours (38.25%).
@@ -291,11 +292,11 @@ The terminal audit verified all 84 input catalogue ranges and all 75 published
 outputs. All 121 hashed original campaign files remained unchanged. Every task
 retained its original identity, history, settings, guard and consumed budget,
 with exactly one new attempt and no additional time grant. All dispatch queues
-were drained at the end of this round. The nine remaining directions have
-2,221–3,008 seconds left from their original budgets.
+were drained at the end of this round. At that point, the nine remaining
+directions had 2,221–3,008 seconds left from their original budgets.
 
-A further inspection found repeated exported fragment-group records. In the
-saved 37270 forward result, exact sharing of group dictionaries and component
+A further repair (`6974f54`) shares repeated exported fragment-group records. In
+the saved 37270 forward result, exact sharing of group dictionaries and component
 tuples removed **118.69 MiB** of duplicate containers. The follow-up production
 replay completed under 2 GiB with a **1.674 GiB** process peak, compared with
 1.878 GiB after the first repair. Pickler storage fell from 64 to 32 MiB. The
@@ -308,7 +309,77 @@ The additional export change passed 52 decoder tests and 27 smoke checks. The
 chained-recovery runner passed 32 EnzymeMap/Golden campaign tests. It accepts the
 latest terminal recovery as input, preserves all prior attempts and latest spent
 time, and selects only remaining memory failures. Successful outputs stay in
-their existing ledgers. This second recovery has not yet been submitted.
+their existing ledgers.
+
+The second round finished at **11:51:45 UTC on 2 November 2026**. It recovered
+both remaining publication failures, **06726 forward and 37269 forward**, under
+the same 2 GiB guard. Seven directions still exceeded the guard during
+computation: 10376, 10379, 10380, 10381, 10382, 10383 and 27963, all forward.
+Across both rounds, **77 of 84 original failures are recovered**, bringing
+successful decoding to **95,941 / 95,948 directions**. Matching, reduction and
+external reference verification outcomes are unchanged.
+
+| Recovered direction | Peak sampled RSS (GiB) | Compute CPU (s) | Publication CPU (s) |
+|---|---:|---:|---:|
+| 06726 forward | 1.797 | 699.563 | 2.646 |
+| 37269 forward | 1.723 | 1,291.782 | 1.910 |
+
+This round took **21 min 53 s**, with all nine workers claiming overlapping
+tasks. It used **2.3025 accounted CPU hours from 4.3767 reserved CPU hours
+(52.61%)**, including failed work, smoke tests and orchestration. Parent
+allocation CPU is counted once; task ownership overlap does not establish
+sustained CPU saturation. These runs used different allocations and are not a
+controlled speed comparison.
+
+The terminal audit verified the nine input catalogue ranges, both new outputs
+and all 75 successful outputs from the first round. The predecessor ledger and
+all 121 hashed original campaign files were unchanged. Each direction retained
+its two earlier attempts and added exactly one attempt, with no extra time,
+memory increase or automatic retry. All recovery queues were drained. The
+seven unresolved directions retain **1,665–2,580 seconds** of their original
+budgets. Output checksums establish saved-byte integrity; they are separate
+from the scientific value comparisons described above.
 
 Detailed repair measurements, comparison scope and recovery status are recorded
 in [decoding-recovery.json](decoding-recovery.json).
+
+Further bounded diagnosis found a larger export cost in the remaining cases.
+At 12,672 of 32,624 tables for 10383 forward, the saved per-atom domain/action
+dictionaries alone occupied **399.73 MiB**. Runtime fragment maps occupied
+4.30 MiB. These stopped diagnostic probes produced no scientific outputs and
+did not change recovery budgets. Memory after catalogue loading also includes
+allocator-retained space; it is not a measurement of live scientific data alone.
+
+The next storage repair removes these derived maps from the saved event record,
+using schema **`mappa.decoded_events/v5`**. Runtime table queries retain them.
+The original catalogue, ordered actions, constraints, local responses, bindings,
+partitions and occupancy boundaries remain saved. No production reader used the
+removed export fields; external consumers must recognize the version change.
+This deletes redundant export work without changing matching or event rules.
+
+Catalogue restoration also shares equal immutable fragment atom tuples and
+fragment-pair tuples across branches, preserving order, provenance and separate
+mutable owners. The approved 37270 input contained **112.60 MiB** of duplicate
+branch tuple containers; this is a container measurement, not an RSS reduction.
+Bounded inspection of 27963 confirmed the same storage issue. Provenance cut
+tuples were already shared and were left unchanged.
+
+The changes passed 64 decoder/CLI checks, 14 catalogue checks and 27 smoke checks
+(these scopes overlap). The saved local responses were compared with the
+independent scalar event oracle across correlated choices, cut boundaries,
+partial occupancy and metal thresholds.
+
+The cold production replay of 37270 forward completed under 2 GiB at a
+**1.203 GiB** lifetime peak, compared with 1.674 GiB for `6974f54` (**482.56 MiB
+lower**). It retained 8,309 tables and 16 responses. Compute CPU was 363.62 s
+versus 367.54 s, and publication CPU was 0.24 s versus 0.64 s; these are single
+instrumented runs, not a controlled throughput comparison. The saved output
+fell from 9,511,318 to 4,093,248 bytes.
+
+The full typed result matched the preceding saved result after changing only
+the schema identifier and deleting the two declared fields: **1,174,466 nested
+container pairs** had identical values, types and order. The comparison held
+both saved outputs under a separate 6 GiB diagnostic guard; production decoding
+and recovery retain 2 GiB. This comparison establishes that result's preservation,
+not universal equivalence. The seven remaining directions are prepared for a
+separate recovery using their latest remaining original budgets.

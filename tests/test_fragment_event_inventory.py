@@ -122,17 +122,11 @@ def test_export_and_bundle_share_records_without_mutating_runtime_tables(tmp_pat
     restored = store.load(store.put(record))
     assert restored == record
     first, second = [restored['tables'][row['tables'][0]] for row in restored['families']]
-    assert first['atom_domains'] is second['atom_domains']
-    assert first['atom_actions'] is second['atom_actions']
-    assert first['atom_domains'][1] is first['atom_domains'][2]
-    assert first['atom_actions'][1] is first['atom_actions'][2]
     assert first['internal'][0] is second['internal'][0]
     assert first['components'] is second['components']
     exported = record['tables'][0]
-    assert exported['atom_domains'] is not runtime.atom_domains
-    assert exported['atom_actions'] is not runtime.atom_actions
-    exported['atom_domains'][0] = (-1,)
-    exported['atom_actions'][0] = (-1,)
+    assert all('atom_domains' not in table and 'atom_actions' not in table
+               for table in record['tables'])
     exported['internal'][0]['fragment'] = -1
     assert runtime.atom_domains == domains and runtime.atom_actions == actions
     assert -1 not in runtime.internal

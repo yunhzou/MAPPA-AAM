@@ -96,6 +96,7 @@ def decoded_events_record(result):
 
     Tables and responses shared across branches are stored once. Whole-reaction
     reports and canonical event IDs are explicit queries, not part of export.
+    Per-atom lookup maps are derived from the saved catalogue, not persisted.
     """
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
@@ -105,18 +106,7 @@ def decoded_events_record(result):
         action_responses=[r.generators for r in actions])
         for fid, actions in enumerate(result.family_actions)]
     term_records, term_lists, group_records = {}, {}, {}
-    tuple_records, map_records = {}, {}
-
-    def atom_record(mapping):
-        # Export owns these maps. Runtime tables remain independent, while
-        # equal saved maps and immutable values can share their storage.
-        record = {a: tuple_records.setdefault(value, value) for a, value in mapping.items()}
-        bucket = map_records.setdefault(hash(tuple(record.items())), [])
-        for previous in bucket:
-            if record == previous and tuple(record) == tuple(previous):
-                return previous
-        bucket.append(record)
-        return record
+    component_records = {}
 
     def term_record(term):
         response = term.response
@@ -154,12 +144,11 @@ def decoded_events_record(result):
                 internal=groups_record(table.internal, 'fragment'),
                 boundary=groups_record(table.boundary, 'fragments'),
                 product_boundary_pairs=table.product_boundary_pairs.tolist(),
-                atom_domains=atom_record(table.atom_domains), atom_actions=atom_record(table.atom_actions),
-                components=tuple_records.setdefault(table.components, table.components),
+                components=component_records.setdefault(table.components, table.components),
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    return dict(schema='mappa.decoded_events/v4', method='compressed_event_interpretation',
+    return dict(schema='mappa.decoded_events/v5', method='compressed_event_interpretation',
         scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,

@@ -210,6 +210,8 @@ def test_catalogue_restore_shares_storage_without_changing_ordered_choices(tmp_p
         family.provenance.append(dict(archive=f'cut/{number}', transitions=[number], cuts=[[2, 3]]))
     atoms = tuple(range(4))
     catalogue.branches[policy, ((atoms, atoms),)] = set(range(4))
+    split = tuple((tuple(range(start, start+2)), tuple(range(start, start+2))) for start in (0, 2))
+    catalogue.branches[policy, split] = {0, 2}
     catalogue.coupled_branches[0] = {(((0, 1), (0, 1)), ((2, 3), (2, 3)))}
     catalogue.path_count = 4
     expected_record = json.loads(json.dumps(catalogue.to_record()))
@@ -229,6 +231,11 @@ def test_catalogue_restore_shares_storage_without_changing_ordered_choices(tmp_p
     assert first.actions[0] is reversed_order.actions[1]
     assert first.actions[1] is reversed_order.actions[0]
     assert first.provenance is not constrained.provenance
+    regular = next(pairs for _, pairs in restored.branches if len(pairs) == 2)
+    coupled, = restored.coupled_branches[0]
+    assert all(left is right for left, right in zip(regular, coupled))
+    assert all(rs is ps for rs, ps in regular)
+    assert len({id(members) for members in restored.branches.values()}) == 2
 
     decoded = decode_events(restored)
     expected = [
