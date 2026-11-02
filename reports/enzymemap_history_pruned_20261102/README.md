@@ -418,3 +418,61 @@ retain their generating revision; the seven third-round outputs use the
 documented v5 schema. The saved-value comparison above verifies that schema's
 declared projection for its tested input, while the terminal audit verifies
 artifact integrity, provenance and execution limits.
+
+## Shared decoder preparation: local validation
+
+After campaign recovery, a local profile found repeated symmetry preparation
+before shared fragment-response lookup. The decoder now reuses exact ordered
+action programs, their hashes and final reachable-atom/dependency results.
+Families retain their own constraints, action bindings, fragment partitions and
+boundary relationships. Sparse moved-atom orbits avoid retaining fixed-atom
+singleton tables, and the interpretation owns subsequence references. Final atom
+rows have a 4,096-entry and approximately 16 MiB accounted-tuple allowance; this
+does not bound total process memory. No prefix histories, alternate algorithm,
+matching changes or output-schema changes were introduced.
+
+The same saved **37270 forward** catalogue was decoded on the Mac in a fresh
+process with the same **2 GiB guard**:
+
+| Measurement | Before | Shared preparation |
+|---|---:|---:|
+| Complete decode CPU, including catalogue loading | 363.61 s | 56.49 s |
+| Local-table preparation and record construction | 341.87 s | 34.74 s |
+| Publication CPU | 0.24 s | 0.36 s |
+| Process lifetime peak RSS | 1.203 GiB | 1.194 GiB |
+
+This is **6.44 times faster for complete decoding** and **9.84 times faster for
+table/record preparation** on this case. Both saved byte ranges were read,
+checksummed and compared: all **4,093,248 compressed bytes were identical**,
+including the original 8,309 tables and their order. These are single observed
+runs per version, not a statistical or campaign-wide speed estimate. Publication
+alone was slightly slower; the improvement comes from preparation.
+
+One persistent local worker then completed all five approved failure catalogues
+sequentially in **224.02 s**, using **221.08 s compute CPU**, **1.54 s publication
+CPU**, and **1.593 GiB** peak RSS under the same guard:
+
+| Direction | Decode CPU (s) |
+|---|---:|
+| 13967 reverse | 52.08 |
+| 03861 reverse | 36.39 |
+| 03856 forward | 39.08 |
+| 09159 reverse | 37.38 |
+| 37270 forward | 56.15 |
+
+The other four complete typed results matched their earlier v4 saved outputs in
+values, types and container order after only the previously documented v4-to-v5
+projection. Those comparison processes held both versions under the existing
+6 GiB diagnostic allowance; production decoding retained 2 GiB. The repair
+itself requires no projection or schema change. The repeated 37270 output also
+has the same checksum as the cold run and its v5 predecessor.
+
+Validation passed **102 affected tests and 27 smoke tests** (overlapping scopes).
+New critical checks cover reuse across distinct families, independent event
+counts with ordered/correlated choices, required constraints and cuts, released
+preparation between session uses, and bounded retention with exact recomputation
+after eviction. Independent review checked the symmetry and ownership changes.
+
+This local study does not rerun or replace the completed campaign. Its scientific
+identity, exact timings and comparison scope are recorded under
+`shared_preparation_repair` in [decoding-recovery.json](decoding-recovery.json).

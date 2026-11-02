@@ -97,7 +97,8 @@ class EventInterpretation:
         fragments = self.fragment_partitions[family_id][partition]
         cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
                                   for pair in origin.get('cuts', ())}))
-        return family.mapping, family.actions, family.required_edges, fragments, cut_bonds
+        actions = self.local.programs.program(family.actions)
+        return family.mapping, actions, family.required_edges, fragments, cut_bonds
 
     def _prepare_table(self, family_id, partition, key):
         from .events import FragmentEventTables

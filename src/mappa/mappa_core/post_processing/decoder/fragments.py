@@ -2,7 +2,7 @@
 from dataclasses import dataclass, replace
 
 from mappa.mappa_core.utils.bonds import bond_event_threshold
-from .events import _ActionSequence
+from .events import PreparedActionPrograms
 from .records import BondEventTerm
 
 
@@ -68,6 +68,7 @@ class FragmentDecoder:
     """Owned decoded results shared by fragment uses and boundary references."""
     def __init__(self, index, inventory):
         self.index, self.inventory = index, inventory
+        self.programs = PreparedActionPrograms(index)
         self.fragments = {}
         self.bonds = {}
         self.terms = {}
@@ -103,7 +104,7 @@ class FragmentDecoder:
         """
         atoms = fragment.reactant
         binding = tuple(sorted({i for a in atoms for i in dependencies[a]}))
-        local_actions = _ActionSequence(actions[i] for i in binding)
+        local_actions = self.programs.select(self.programs.program(actions), binding)
         pairs = tuple((a, mapping[a]) for a in atoms)
         cuts = tuple(sorted((a, b) for a, b in cut_bonds if a in atoms and b in atoms))
         key = fragment, pairs, local_actions, cuts
@@ -119,7 +120,7 @@ class FragmentDecoder:
             for a, b in sorted(neighbors):
                 ids = tuple(sorted(set(local_dependencies[a]) | set(local_dependencies[b])))
                 if ids not in sequences:
-                    sequences[ids] = _ActionSequence(local_actions[i] for i in ids)
+                    sequences[ids] = self.programs.select(local_actions, ids)
                 term, count = self.bond((a, b), (mapping[a], mapping[b]), sequences[ids],
                     (local_domains[a], local_domains[b]), ids, (a, b) in cuts)
                 projected += count

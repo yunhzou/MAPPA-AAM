@@ -8235,5 +8235,182 @@
     },
     "source_revision": "940edab06e55a93f42e8426db872aa74d945b273",
     "linux_scientific_identity": "33c7e777dc3ba38e7469e8c13179cf692149b8eedd05836c0e200f840991b6c9"
+  },
+  "shared_preparation_repair": {
+    "status": "validated_locally",
+    "scientific_identity": "8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1",
+    "baseline_scientific_revision": "940edab06e55a93f42e8426db872aa74d945b273",
+    "scope": "Decoder preparation only. Existing matching, reduction, campaign outputs and reference verification were not repeated or changed.",
+    "changes": [
+      "Reuse exact saved action programs and their hashes.",
+      "Reuse final reachable target sets and ordered dependencies across family witnesses.",
+      "Retain sparse moved-atom orbits and interpretation-owned subsequences; no prefix histories or complete working-table retention.",
+      "Preserve the v5 schema, family constraints, cut annotations, correlated choices and saved order."
+    ],
+    "preparation_retention": {
+      "final_atom_rows_maximum": 4096,
+      "accounted_tuple_bytes_maximum": 16777216,
+      "note": "The byte allowance accounts tuple storage, not total Python/process memory; independent production guard remains2GiB."
+    },
+    "cold_case": {
+      "case": "37270/forward",
+      "memory_guard_bytes": 2147483648,
+      "before_compute_cpu_seconds": 363.61337399999996,
+      "after_compute_cpu_seconds": 56.490476,
+      "compute_speedup": 6.436719952581033,
+      "before_record_cpu_seconds": 341.870634,
+      "after_record_cpu_seconds": 34.737756000000005,
+      "before_publication_cpu_seconds": 0.24159599999995862,
+      "after_publication_cpu_seconds": 0.3630940000000038,
+      "before_peak_rss_bytes": 1291403264,
+      "after_peak_rss_bytes": 1281818624,
+      "families": 8309,
+      "tables": 8309,
+      "responses": 16,
+      "saved_bytes_identical": true,
+      "compressed_bytes": 4093248,
+      "output_sha256": "1a6565d9ea1dbdab19b7c7124a1cbee563f0d19b49c1f449cc8dde230a95f855"
+    },
+    "persistent_worker": {
+      "memory_guard_bytes": 2147483648,
+      "completed": 5,
+      "failed": 0,
+      "sequential": true,
+      "compute_cpu_seconds": 221.08026600000002,
+      "publication_cpu_seconds": 1.5397959999999884,
+      "elapsed_seconds": 224.0215073749423,
+      "peak_rss_bytes": 1710292992,
+      "cases": [
+        {
+          "case": "13967/reverse",
+          "compute_cpu_seconds": 52.080115000000006,
+          "compute_wall_seconds": 52.09072662494145,
+          "publication_cpu_seconds": 0.31891499999999695,
+          "publication_wall_seconds": 0.3274373330641538,
+          "families": 25448,
+          "tables": 25448,
+          "responses": 16,
+          "catalogue_sha256": "d0eb1286a2c70dbfec4b1838fcc442091855f612226a31c0bc0addaf31ffe5d6"
+        },
+        {
+          "case": "03861/reverse",
+          "compute_cpu_seconds": 36.392078,
+          "compute_wall_seconds": 36.40094633284025,
+          "publication_cpu_seconds": 0.30597099999999955,
+          "publication_wall_seconds": 0.3114490839652717,
+          "families": 25192,
+          "tables": 25192,
+          "responses": 17,
+          "catalogue_sha256": "7b4a0839dfad92a22e32b316116277bc48dd7a9daf02c94efc8c28d331e1c96f"
+        },
+        {
+          "case": "03856/forward",
+          "compute_cpu_seconds": 39.078258000000005,
+          "compute_wall_seconds": 39.12127616698854,
+          "publication_cpu_seconds": 0.2979520000000093,
+          "publication_wall_seconds": 0.3010776659939438,
+          "families": 25192,
+          "tables": 25192,
+          "responses": 17,
+          "catalogue_sha256": "0c7c2896eec7b8ba2fb3ca731b811a3ef79d8d7ea18666303a275803ea9093fb"
+        },
+        {
+          "case": "09159/reverse",
+          "compute_cpu_seconds": 37.381054000000006,
+          "compute_wall_seconds": 37.408108833944425,
+          "publication_cpu_seconds": 0.27019999999998845,
+          "publication_wall_seconds": 0.2740413749124855,
+          "families": 21952,
+          "tables": 21952,
+          "responses": 16,
+          "catalogue_sha256": "acb257364dc68d6631707186c5728f39f6f3271c115f0ef695adfde91f973899"
+        },
+        {
+          "case": "37270/forward",
+          "compute_cpu_seconds": 56.14876100000001,
+          "compute_wall_seconds": 56.16625045798719,
+          "publication_cpu_seconds": 0.3467579999999941,
+          "publication_wall_seconds": 0.3544517501723021,
+          "families": 8309,
+          "tables": 8309,
+          "responses": 16,
+          "catalogue_sha256": "d4ae14a82c41657b5e56a623124066a9c2003f211c1cbb28fe630d4134a672e3"
+        }
+      ]
+    },
+    "saved_comparisons": [
+      {
+        "case": "13967/reverse",
+        "complete_typed_values_and_order_equal": true,
+        "projection": {
+          "schema": "v4 to v5",
+          "removed_table_fields": [
+            "atom_domains",
+            "atom_actions"
+          ]
+        },
+        "checked_container_pairs": 2394697,
+        "comparison_guard_bytes": 6442450944,
+        "peak_rss_bytes": 1396834304
+      },
+      {
+        "case": "03861/reverse",
+        "complete_typed_values_and_order_equal": true,
+        "projection": {
+          "schema": "v4 to v5",
+          "removed_table_fields": [
+            "atom_domains",
+            "atom_actions"
+          ]
+        },
+        "checked_container_pairs": 3377289,
+        "comparison_guard_bytes": 6442450944,
+        "peak_rss_bytes": 1945894912
+      },
+      {
+        "case": "03856/forward",
+        "complete_typed_values_and_order_equal": true,
+        "projection": {
+          "schema": "v4 to v5",
+          "removed_table_fields": [
+            "atom_domains",
+            "atom_actions"
+          ]
+        },
+        "checked_container_pairs": 3377289,
+        "comparison_guard_bytes": 6442450944,
+        "peak_rss_bytes": 1945812992
+      },
+      {
+        "case": "09159/reverse",
+        "complete_typed_values_and_order_equal": true,
+        "projection": {
+          "schema": "v4 to v5",
+          "removed_table_fields": [
+            "atom_domains",
+            "atom_actions"
+          ]
+        },
+        "checked_container_pairs": 2219912,
+        "comparison_guard_bytes": 6442450944,
+        "peak_rss_bytes": 1522286592
+      }
+    ],
+    "tests": {
+      "affected_passed": 102,
+      "smoke_passed": 27,
+      "scopes_overlap": true,
+      "critical_checks": [
+        "Unique program/image preparation across distinct family constraints and partitions.",
+        "Independent scalar events for correlated and ordered actions, cuts and required constraints.",
+        "Preparation release across repeated session use; bounded retention and exact recomputation after eviction."
+      ]
+    },
+    "limitations": [
+      "Single cold measured run per version, not a repeated statistical speed estimate.",
+      "Persistent worker measurements use five approved local catalogues, not a cluster throughput measurement.",
+      "Other four saved comparisons use the previously declared v4-to-v5 projection; this repair itself changes no saved fields.",
+      "The completed full EnzymeMap campaign retains its documented generating revisions."
+    ]
   }
 }

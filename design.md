@@ -234,6 +234,13 @@ actions and cut/boundary context agree. A shared action remains one joint choice
 across all affected fragments. Required edges, target occupancy and action
 dependencies remain attached to their original families.
 
+Preparation is shared with the responses: repeated fragment occurrences reuse
+their prepared symmetry and reachable atom sets, rather than deriving them again
+before each lookup. Branches bind shared local choices to their original action
+positions and retain their own boundary and constraint relationships. Shared
+preparation must preserve action order and remain bounded; it does not retain
+intermediate symmetry histories or complete working tables for every branch.
+
 Local tables cover internal bonds, bonds between fragments and mapped/unmapped
 boundaries. Evaluation validates a requested joint choice, then sums each bond's
 contribution once. Alternative partitions decompose the same family and must not

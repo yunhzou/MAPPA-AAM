@@ -1,13 +1,17 @@
 """Shared local decoding must preserve every original branch's joint choices."""
 from dataclasses import replace
+from collections import Counter
 from itertools import product
+import gc
 import pickle
-from weakref import WeakSet
+from weakref import WeakSet, ref
 
 import pytest
 
 from mappa import decode_events
-from mappa.mappa_core.post_processing.decoder.events import FragmentEventTables, SignedEventIndex
+from mappa.mappa_core.post_processing.decoder.events import (
+    FragmentEventTables, SignedEventIndex, _ActionSequence,
+)
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentInventory
 from mappa.mappa_core.core.scheduler.storage import BundleStore
 from mappa.mappa_core.utils.io.records import decoded_events_record
@@ -24,6 +28,25 @@ def two_branches(*, shift_actions=False):
                      actions=actions[::-1] if shift_actions else actions, provenance=[])
     source.families.append(second)
     next(iter(source.branches.values())).add(1)
+    return source
+
+
+def correlated_branches():
+    ep = endpoint('CCCC', [(0, 1, 1.), (2, 3, 1.), (0, 2, 1.8), (1, 3, .2)])
+    actions = (('group', ((1, 0, 3, 2),)), ('pool', (1, 2)))
+    source = saved(ep, ep, dict(enumerate(range(4))), actions=actions,
+                   pairs=(((0, 1), (0, 1)), ((2, 3), (2, 3))))
+    first = source.families[0]
+    source.families.extend((
+        replace(first, required_edges=((0, 1),), policy=(.2, .1),
+                provenance=[dict(cuts=((0, 1),))]),
+        replace(first, mapping=((0, 1), (1, 0), (2, 2), (3, 3)),
+                provenance=[dict(cuts=((0, 2),))]),
+        replace(first, actions=actions[::-1], provenance=[]),
+        replace(first, actions=(actions[0], ('pool', (0, 1))), provenance=[]),
+    ))
+    next(iter(source.branches.values())).update((1, 2, 3, 4))
+    source.coupled_branches[0] = {tuple(((a,), (a,)) for a in range(4))}
     return source
 
 
@@ -103,6 +126,133 @@ def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
     assert decoded.contributions(0, [(2, 1), None])['total'] > 0
     with pytest.raises(ValueError, match='original fragment constraints'):
         decoded.contributions(1, [(2, 1), None])
+
+
+def test_shared_preparation_keeps_joint_choices_cuts_and_constraints():
+    source = correlated_branches()
+    before = source.to_record()
+    decoded = decode_events(source)
+    decoded_events_record(decoded)
+    allowed = []
+    for fid, family in enumerate(source.families):
+        permitted = 0
+        alternatives = [(None, (1,)) if action[0] == 'group'
+                        else (None, tuple(reversed(action[1])))
+                        for action in family.actions]
+        for choices in product(*alternatives):
+            # Enumerate only this four-atom oracle's two binary operations.
+            # The group swaps both fragments together, never independently.
+            mapping = dict(family.mapping)
+            for action, choice in zip(family.actions, choices):
+                if choice is not None:
+                    if action[0] == 'group':
+                        permutation = (1, 0, 3, 2)
+                    else:
+                        permutation = list(range(4))
+                        a, b = action[1]
+                        permutation[a], permutation[b] = b, a
+                    mapping = {a: permutation[p] for a, p in mapping.items()}
+            valid = all(abs(source.problem.reactant.wbo[a, b] -
+                            source.problem.product.wbo[mapping[a], mapping[b]]) <= .1
+                        for a, b in family.required_edges)
+            if not valid:
+                with pytest.raises(ValueError, match='original fragment constraints'):
+                    decoded.contributions(fid, choices)
+                continue
+            permitted += 1
+            assert decoded.realize(fid, choices) == mapping
+            expected = dense_categories(source.problem, mapping)
+            for partition in range(len(decoded.fragment_partitions[fid])):
+                result = decoded.contributions(fid, choices, partition=partition, include_events=True)
+                events = [(e['category'], e['reactant_pair'], e['product_pair'])
+                          for e in result['events']]
+                assert sorted(events, key=repr) == expected
+                assert result['total'] == len(expected)
+        allowed.append(permitted)
+    assert allowed == [4, 2, 4, 4, 4]
+    internal = decoded.tables(1)
+    boundary = decoded.tables(2)
+    assert internal.cut_bonds == frozenset(((0, 1),))
+    assert any(term.atoms == (0, 1) and term.manual_cut for term in internal.internal[0])
+    assert boundary.cut_bonds == frozenset(((0, 2),))
+    assert any(term.atoms == (0, 2) and term.manual_cut for term in boundary.boundary[0, 1])
+    assert decoded.tables(0).atom_domains[0] == (0, 1, 2)
+    assert decoded.tables(3).atom_domains[0] == (0, 1)
+    # The second action still controls the result when it does not enlarge a domain.
+    assert decoded.tables(4).atom_domains[0] == (0, 1)
+    assert decoded.tables(4).atom_actions[0] == (0, 1)
+    assert decoded.tables(4).atom_actions[2] == (0,)
+    assert source.to_record() == before
+
+
+def test_preparation_scales_with_unique_programs_and_images(monkeypatch):
+    source = correlated_branches()
+    prepared = Counter()
+    prepare = _ActionSequence._prepare_atom
+
+    def observed(self, image):
+        prepared[tuple(self), image] += 1
+        return prepare(self, image)
+
+    monkeypatch.setattr(_ActionSequence, '_prepare_atom', observed)
+    decoded = decode_events(source)
+    record = decoded_events_record(decoded)
+    expected = {(family.actions, image) for family in source.families
+                for _, image in family.mapping}
+    assert len(expected) == 12  # Three ordered programs, four initial images each.
+    assert prepared == Counter({key: 1 for key in expected})
+    assert len(record['tables']) == 6  # Distinct cuts, constraints and partitions remain.
+    assert not decoded._tables
+    for fid, partitions in enumerate(decoded.fragment_partitions):
+        for partition in range(len(partitions)):
+            decoded.tables(fid, partition)
+    assert prepared == Counter({key: 1 for key in expected})
+
+
+def test_preparation_eviction_bounds_retention_without_changing_rows(monkeypatch):
+    ep = endpoint('C' * 128, [])
+    source = saved(ep, ep, dict(enumerate(range(128))), actions=(('pool', (0, 1)),))
+    source.families.extend(replace(source.families[0], actions=(('pool', (0, atom)),))
+                           for atom in range(2, 34))
+    next(iter(source.branches.values())).update(range(33))
+    prepared = Counter()
+    prepare = _ActionSequence._prepare_atom
+
+    def observed(self, image):
+        prepared[tuple(self), image] += 1
+        return prepare(self, image)
+
+    monkeypatch.setattr(_ActionSequence, '_prepare_atom', observed)
+    decoded = decode_events(source)
+    first = decoded.tables(0)
+    expected = first.atom_domains[0], first.atom_actions[0]
+    assert expected == ((0, 1), (0,))
+    decoded_events_record(decoded)
+    # 33 genuine programs over 128 images exceed the retained-row allowance.
+    assert sum(prepared.values()) == 4224
+    rows = decoded.index._prepared_atoms
+    assert len(rows.rows) <= 4096 and 0 < rows.bytes <= 16 * 2**20
+    program = decoded.local.programs.program(source.families[0].actions)
+    assert program.atom(0) == expected
+    assert prepared[source.families[0].actions, 0] == 2
+    assert len(rows.rows) <= 4096 and 0 < rows.bytes <= 16 * 2**20
+
+
+def test_session_does_not_retain_released_preparation():
+    from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
+
+    source = correlated_branches()
+    session = EventDecodeSession(source.problem)
+    prepared = []
+    for _ in range(3):
+        decoded = session.decode(source)
+        decoded_events_record(decoded)
+        prepared.append(ref(decoded.local.programs))
+        del decoded
+    gc.collect()
+    assert all(reference() is None for reference in prepared)
+    # Releasing branch preparation must leave the session usable.
+    assert decoded_events_record(session.decode(source))['catalogue'] == source.to_record()
 
 
 def test_export_and_bundle_share_records_without_mutating_runtime_tables(tmp_path):

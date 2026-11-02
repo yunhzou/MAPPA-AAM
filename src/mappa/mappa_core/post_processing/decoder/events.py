@@ -9,6 +9,7 @@ from functools import cached_property
 import hashlib
 import json
 import math
+import sys
 
 import numpy as np
 import pynauty
@@ -39,15 +40,108 @@ def _response_bounds(values, weight, threshold):
     return tuple(int(bound) if bound.ndim == 0 else bound for bound in bounds)
 
 
-class _ActionSequence(tuple):
-    """Immutable action values with their tuple hash computed once per sequence."""
-    def __new__(cls, actions):
-        value = super().__new__(cls, actions)
+class _PreparedAction(tuple):
+    """An unchanged saved action whose potentially large hash is computed once."""
+    def __new__(cls, action):
+        value = super().__new__(cls, action)
         value._hash = tuple.__hash__(value)
         return value
 
     def __hash__(self):
         return self._hash
+
+
+class _AtomRows:
+    """Bounded final atom rows; numeric keys do not retain their programs."""
+    def __init__(self):
+        self.rows = OrderedDict()
+        self.bytes = 0
+        self.next_program = 0
+
+    def atom(self, program, image):
+        key = program._number, image
+        entry = self.rows.get(key)
+        if entry is not None:
+            self.rows.move_to_end(key)
+            return entry[0]
+        row = program._prepare_atom(image)
+        size = sys.getsizeof(key) + sys.getsizeof(row) + sum(map(sys.getsizeof, row))
+        self.rows[key] = row, size
+        self.bytes += size
+        while len(self.rows) > 4096 or self.bytes > 16 * 2**20:
+            _, (_, removed) = self.rows.popitem(last=False)
+            self.bytes -= removed
+        return row
+
+
+class _ActionSequence(tuple):
+    """Exact ordered action values with bounded final atom preparation."""
+    def __new__(cls, actions, rows):
+        value = super().__new__(cls, actions)
+        value._hash = tuple.__hash__(value)
+        value._rows = rows
+        value._number = rows.next_program
+        rows.next_program += 1
+        return value
+
+    def __hash__(self):
+        return self._hash
+
+    def atom(self, image):
+        return self._rows.atom(self, image)
+
+    def _prepare_atom(self, image):
+        domain, dependencies = frozenset((image,)), []
+        for position, action in enumerate(self):
+            moved = domain.intersection(action.orbits)
+            if moved:
+                dependencies.append(position)
+                reached = {action.orbits[p] for p in moved}
+                domain = domain.union(*reached)
+        return tuple(sorted(domain)), tuple(dependencies)
+
+
+class PreparedActionPrograms:
+    """Reaction-owned exact programs; input references make identity lookup safe."""
+    def __init__(self, index):
+        self.index = index
+        self.actions, self.programs = {}, {}
+        self.action_references, self.program_references = {}, {}
+        self.sequences = {}
+
+    def _action(self, action):
+        reference = self.action_references.get(id(action))
+        if reference is None:
+            prepared = _PreparedAction(action)
+            if prepared not in self.actions:
+                prepared.orbits = {image: orbit for image, orbit in
+                    enumerate(self.index._event_orbits(prepared)) if len(orbit) > 1}
+                self.actions[prepared] = prepared
+            reference = self.action_references[id(action)] = action, self.actions[prepared]
+        return reference[1]
+
+    def program(self, actions):
+        if isinstance(actions, _ActionSequence) and actions._rows is self.index._prepared_atoms:
+            return actions
+        reference = self.program_references.get(id(actions))
+        if reference is None:
+            prepared = tuple(self._action(action) for action in actions)
+            if prepared not in self.programs:
+                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
+            reference = self.program_references[id(actions)] = actions, self.programs[prepared]
+        return reference[1]
+
+    def select(self, program, positions):
+        positions = tuple(positions)
+        if positions == tuple(range(len(program))):
+            return program
+        key = program._number, positions
+        if key not in self.sequences:
+            prepared = tuple(program[i] for i in positions)
+            if prepared not in self.programs:
+                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
+            self.sequences[key] = self.programs[prepared]
+        return self.sequences[key]
 
 
 class SignedEventIndex:
@@ -100,6 +194,7 @@ class SignedEventIndex:
         self._domain_responses = OrderedDict()
         self._response_values = OrderedDict()
         self._orbit_tables = OrderedDict()
+        self._prepared_atoms = _AtomRows()
 
     def pair_table(self, weight, tau, xs, ys):
         """Reuse exact local responses across pairs/families, never mappings.
@@ -558,18 +653,12 @@ class FragmentEventTables:
         if len(owners) != sum(map(len, self.fragments)) or set(owners) != set(mapping):
             raise ValueError('saved fragments must partition the mapped source atoms')
         self.owners = np.array([owners.get(a, -1) for a in range(index.n)], dtype=int)
-        domains = {a: frozenset((p,)) for a, p in family.mapping}
-        dependencies = {a: set() for a in domains}
-        for aid, action in enumerate(family.actions):
-            orbits = index._event_orbits(action)
-            for a, domain in domains.items():
-                if any(len(orbits[p]) > 1 for p in domain):
-                    dependencies[a].add(aid)
-                    domains[a] = frozenset().union(*(orbits[p] for p in domain))
-        self.atom_domains = {a: tuple(sorted(ds)) for a, ds in domains.items()}
-        self.atom_actions = {a: tuple(sorted(ids)) for a, ids in dependencies.items()}
+        program = local.programs.program(family.actions)
+        self.atom_domains, self.atom_actions = {}, {}
+        for atom, image in family.mapping:
+            self.atom_domains[atom], self.atom_actions[atom] = program.atom(image)
         self.internal, self.boundary = {}, {}
-        self.fragment_responses = tuple(local.fragment(fragment, mapping, family.actions,
+        self.fragment_responses = tuple(local.fragment(fragment, mapping, program,
             self.atom_domains, self.atom_actions, self.cut_bonds) for fragment in fragments)
         # A branch binds shared local action positions to its original program.
         # Only these bindings and boundary relationships belong to the branch.
@@ -584,16 +673,13 @@ class FragmentEventTables:
         pairs = index.neighboring_pairs(self.atom_domains)
         pairs.update((a, b) for a, b in self.cut_bonds if a in mapping or b in mapping)
         self.neighboring_pair_count = len(pairs)
-        action_sequences = {}
         for a, b in sorted(pairs):
             left, right = int(self.owners[a]), int(self.owners[b])
             if left == right:
                 continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
-            action_ids = tuple(sorted(dependencies.get(a, set()) | dependencies.get(b, set())))
-            if action_ids not in action_sequences:
-                action_sequences[action_ids] = _ActionSequence(family.actions[i] for i in action_ids)
-            actions = action_sequences[action_ids]
+            action_ids = tuple(sorted(set(self.atom_actions.get(a, ())) | set(self.atom_actions.get(b, ()))))
+            actions = local.programs.select(program, action_ids)
             term, projected = local.bond((int(a), int(b)), pair, actions,
                 (self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,))),
                 action_ids, (a, b) in self.cut_bonds)
@@ -609,7 +695,7 @@ class FragmentEventTables:
         if len(mapping) == index.m:
             self.product_boundary_pairs = bonds[:0]
         else:
-            reachable = set().union(*domains.values()) if domains else set()
+            reachable = set().union(*self.atom_domains.values()) if self.atom_domains else set()
             eligible = np.array([a in reachable or b in reachable for a, b in bonds], dtype=bool)
             self.product_boundary_pairs = bonds[eligible]
         self.product_boundary_actions = tuple(range(len(family.actions)))

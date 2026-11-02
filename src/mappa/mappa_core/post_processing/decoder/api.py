@@ -34,10 +34,11 @@ class EventDecodeSession:
         if catalogue.problem_sha256 != self.problem_sha256:
             raise ValueError('Catalogue belongs to different endpoints')
         inventory = FragmentInventory(catalogue)
+        local = FragmentDecoder(self.index, inventory)
         families = []
         for family in catalogue.families:
             responses = []
-            for action in family.actions:
+            for original, action in zip(family.actions, local.programs.program(family.actions)):
                 if action not in self.actions:
                     kind, data = action
                     if kind == 'group':
@@ -51,11 +52,11 @@ class EventDecodeSession:
                     else:
                         raise ValueError(f'unknown saved action: {kind}')
                     self.actions[action] = SymmetryEventResponse(
-                        action, self.index.target_action_responses(generators))
+                        original, self.index.target_action_responses(generators))
                     if len(self.actions) > 1024:
                         self.actions.popitem(last=False)
                 self.actions.move_to_end(action)
                 responses.append(self.actions[action])
             families.append(tuple(responses))
         return EventInterpretation(catalogue, self.index, tuple(families),
-                                   inventory, FragmentDecoder(self.index, inventory))
+                                   inventory, local)
