@@ -3,7 +3,8 @@
 `enzymemap.py` runs matching, per-reaction/direction deduplication, original-space
 decoding and reference verification as separate passes through the public MAPPA
 work pool. It contains no matching or decoding algorithm. Failed directions block
-the next pass; caps and solver unknowns remain scientific result metadata.
+the next pass in the normal pipeline; explicit catalogue-only verification is
+available separately. Caps and solver unknowns remain scientific result metadata.
 
 The full EnzymeMap input contains 47,974 reactions in both directions. Its
 manifest fixes the scientific settings: one-witness growth, one seed, branch cap
@@ -128,6 +129,35 @@ denominator and input/configuration identity, `progress.json` reports stage coun
 and workers, and `ledger.sqlite` indexes outputs and archived attempts. Aggregated
 bundles preserve histories without per-cut or per-seed files. These outputs form
 the handoff; no dataset-wide graph is collected in RAM.
+
+## Verify completed catalogues separately
+
+Reference verification reads the reduced catalogue, not decoded events. After
+matching and reduction finish, `--resume --verify-only` runs this external
+evaluation even if decoding failed. Use the original index and output, unchanged
+MAPPA source/engine identity and the same resource flags, for example inside an existing
+allocation:
+
+```bash
+"$MAPPA_PYTHON" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" \
+  --resume --verify-only --workers "$MAPPA_WORKERS_PER_NODE" \
+  --memory-gib 2 --window 32 --run-seconds 1800
+```
+
+The portable launcher forwards `--verify-only` in the same way. The selected
+batch must have no active or queued continuation owning its output. Other
+disjoint batches may continue normally. Verification refuses a published queue
+that still contains unarchived tasks or attempts, so their budget evidence cannot
+be overwritten. Every selected direction must already have a completed catalogue;
+input/configuration and saved MAPPA source/engine identity are checked before
+submission. That fingerprint does not cover the benchmark verifier; keep its
+implementation unchanged. The existing verifier and its per-family timeout are unchanged.
+
+Completed verification records are reused. Failed verification records are also
+left untouched: this option grants no retry or fresh budget to them. Decode
+failures, consumed budgets and attempt audits remain recorded. A successful
+verification-only pass reports `pass_finished: verification`; it does not claim
+that decoding or the full benchmark finished. No decoding is retried.
 
 ## Golden and cache pilots
 

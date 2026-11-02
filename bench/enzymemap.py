@@ -1,5 +1,6 @@
 """Fresh EnzymeMap passes over prepared inputs, using one persistent MAPPA pool."""
 import argparse
+from contextlib import closing
 from dataclasses import asdict
 import hashlib
 import json
@@ -98,7 +99,11 @@ class Ledger:
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
-        retry_memory_limits=False):
+        retry_memory_limits=False, verify_only=False):
+    if verify_only and not resume:
+        raise ValueError('Verification-only execution requires --resume')
+    if verify_only and (retry_memory_limits or stop_after not in (None, 'verification')):
+        raise ValueError('Verification-only execution cannot retry or select another pass')
     output = Path(output); output.mkdir(parents=True, exist_ok=True)
     raw = Path(index_path).read_bytes()
     index = json.loads(raw)
@@ -133,8 +138,25 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
     started = time.monotonic()
     status = dict(job=os.environ.get('SLURM_JOB_ID'), source=code_identity(), memory_bytes=memory_bytes,
                   expected_cases=requested['cases'], expected_directions=len(rows))
+    if verify_only:
+        if json.loads((output/'progress.json').read_text())['source'] != status['source']:
+            raise ValueError('MAPPA source or compiled engine differs from the saved campaign')
+        queue_path = (output/'bundles/queue.sqlite').resolve()
+        with closing(sqlite3.connect(f'{queue_path.as_uri()}?mode=ro', uri=True)) as queue:
+            if queue.execute('SELECT EXISTS(SELECT 1 FROM tasks) OR EXISTS(SELECT 1 FROM attempts)').fetchone()[0]:
+                raise ValueError('Verification requires a drained saved queue; unarchived tasks or attempts remain')
+        status['verification_only'] = True
+    stages = ([('verification', 'deduplication')] if verify_only else
+              [('matching', None), ('deduplication', 'matching'),
+               ('decoding', 'deduplication'), ('verification', 'decoding')])
     with tempfile.TemporaryDirectory(prefix='mappa-campaign-', dir=os.environ.get('SLURM_TMPDIR')) as scratch:
         ledger = Ledger(output, scratch, resume=resume)
+        if verify_only:
+            for name in identities:
+                prior = ledger.get(name, 'deduplication')
+                if prior is None or prior[0] != 'complete' or prior[1] is None:
+                    ledger.db.close()
+                    raise ValueError('Verification requires completed reduction for every direction')
         store = BundleStore(output/'bundles', scratch=scratch)
         factory = WorkPool.local if local else WorkPool.slurm
         with factory(workers=workers, store=store, memory_bytes=memory_bytes,
@@ -150,8 +172,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 pending.write_text(json.dumps(status,indent=2)+'\n')
                 pending.replace(output/'progress.json')
                 print(json.dumps(status), flush=True)
-            for stage, previous in [('matching',None),('deduplication','matching'),
-                                    ('decoding','deduplication'),('verification','decoding')]:
+            for stage, previous in stages:
                 active = {}; pending_rows = iter(rows); exhausted = False
                 checkpoint(stage, active)
                 next_checkpoint = time.monotonic()+30
@@ -235,8 +256,12 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                     status['pass_finished'] = stage
                     checkpoint(stage,{})
                     return status
-            status['finished'] = True
-            checkpoint('finished',{})
+            if verify_only:
+                status['pass_finished'] = 'verification'
+                checkpoint('verification',{})
+            else:
+                status['finished'] = True
+                checkpoint('finished',{})
         ledger.db.close()
     return status
 
@@ -250,6 +275,8 @@ def main():
     parser.add_argument('--limit',type=int)
     parser.add_argument('--local',action='store_true')
     parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--verify-only',action='store_true',
+                        help='Verify completed catalogues without requiring decoding; requires --resume')
     parser.add_argument('--retry-memory-limits',action='store_true',
                         help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
@@ -257,7 +284,7 @@ def main():
     args=parser.parse_args()
     status = run(args.index,args.output,workers=args.workers,memory_bytes=int(args.memory_gib*2**30),window=args.window,limit=args.limit,
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
-        retry_memory_limits=args.retry_memory_limits)
+        retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only)
     if status.get("allocation_drained"):
         raise SystemExit(75)
 

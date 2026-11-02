@@ -58,6 +58,124 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
 
 
+@pytest.mark.parametrize('verification_failed', [False, True])
+def test_verify_only_preserves_decode_failures_and_existing_verification(tmp_path, verification_failed):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    index = prepared_index(tmp_path)
+    output = tmp_path/'result'
+    memory = 2*2**30
+    run(index, output, local=True, workers=2, memory_bytes=memory)
+    store = BundleStore(output/'bundles')
+    name = '00000/forward'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        # Seed terminal resource failures without allocating GiBs or waiting an hour.
+        failures = [('decoding', 'memory_limit')]
+        if verification_failed:
+            failures.append(('verification', 'timeout'))
+        for stage, state in failures:
+            raw, = db.execute('SELECT audit FROM results WHERE case_name=? AND stage=?',
+                              (name, stage)).fetchone()
+            audit = store.load(Blob(**json.loads(raw)))
+            audit['tasks'] = [tuple(state if i == 4 else value for i, value in enumerate(task))
+                              for task in audit['tasks']]
+            audit['attempts'] = [tuple(state if i == 5 else value for i, value in enumerate(attempt))
+                                 for attempt in audit['attempts']]
+            budget = list(audit['case'])
+            budget[3] = budget[1] if stage == 'verification' else 37.
+            audit['case'] = tuple(budget)
+            db.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=? AND stage=?",
+                       (json.dumps(asdict(store.put(audit))), json.dumps(state), name, stage))
+        if not verification_failed:
+            db.execute("DELETE FROM results WHERE case_name=? AND stage='verification'", (name,))
+        before = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+
+    if verification_failed:
+        with pytest.raises(RuntimeError, match='verification contains failed'):
+            run(index, output, local=True, workers=1, memory_bytes=memory, resume=True, verify_only=True)
+    else:
+        status = run(index, output, local=True, workers=1, memory_bytes=memory, resume=True, verify_only=True)
+        assert status['pass_finished'] == 'verification'
+        assert not status.get('finished', False)
+
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        after = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+    assert {key: after[key] for key in before} == before
+    # Failed decode attempts and their consumed budget retain their original artifact.
+    decode_audit = store.load(Blob(**json.loads(after[name, 'decoding'][4])))
+    assert decode_audit['case'][3] == 37.
+    assert decode_audit['tasks'][0][4] == 'memory_limit'
+    if verification_failed:
+        assert after == before
+        failed_audit = store.load(Blob(**json.loads(after[name, 'verification'][4])))
+        assert failed_audit['case'][3] == failed_audit['case'][1] == 3600.
+    else:
+        assert set(after)-set(before) == {(name, 'verification')}
+        result = store.load(Blob(**json.loads(after[name, 'verification'][3])))
+        assert result['status'] == 'recovered'
+        assert result['policy'] == 'exact annotated heavy-atom indices; no endpoint-symmetry relaxation'
+        audit = store.load(Blob(**json.loads(after[name, 'verification'][4])))
+        task, = audit['tasks']
+        specification = _loads_checkpoint(task[1])
+        assert specification.operation == 'enzymemap:verify'
+        assert specification.memory_bytes == memory
+        assert specification.case_seconds == 3600.
+    progress = json.loads((output/'progress.json').read_text())
+    assert progress['verification_only']
+    assert not progress.get('finished', False)
+
+
+def test_verify_only_requires_original_campaign_and_completed_reduction(tmp_path):
+    with pytest.raises(ValueError, match='requires --resume'):
+        run(tmp_path/'missing.json', tmp_path/'unused', verify_only=True)
+    assert not (tmp_path/'unused').exists()
+
+    index = prepared_index(tmp_path)
+    output = tmp_path/'result'
+    run(index, output, local=True, workers=1, stop_after='matching')
+    ledger = (output/'ledger.sqlite').read_bytes()
+    progress_path = output/'progress.json'
+    progress = json.loads(progress_path.read_text())
+    progress_path.write_text(json.dumps(dict(progress, source='another-engine')))
+    with pytest.raises(ValueError, match='source or compiled engine differs'):
+        run(index, output, local=True, resume=True, verify_only=True)
+    progress_path.write_text(json.dumps(progress))
+    with pytest.raises(ValueError, match='completed reduction for every direction'):
+        run(index, output, local=True, resume=True, verify_only=True)
+    assert (output/'ledger.sqlite').read_bytes() == ledger
+    assert json.loads(progress_path.read_text()) == progress
+
+
+@pytest.mark.parametrize('unarchived', ['tasks', 'attempts'])
+def test_verify_only_rejects_unarchived_queue_evidence_without_writing(tmp_path, unarchived):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+
+    index = prepared_index(tmp_path)
+    output = tmp_path/'result'
+    run(index, output, local=True, workers=1, stop_after='deduplication')
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        raw, = db.execute("SELECT audit FROM results WHERE case_name='00000/forward' AND stage='deduplication'").fetchone()
+    audit = BundleStore(output/'bundles').load(Blob(**json.loads(raw)))
+    with sqlite3.connect(output/'bundles/queue.sqlite') as db:
+        # Restore persisted work evidence as if its coordinator stopped before retirement.
+        db.execute('INSERT INTO cases VALUES (?,?,?,?,?)', audit['case'])
+        record = audit[unarchived][0]
+        marks = ','.join('?' for _ in record)
+        db.execute(f'INSERT INTO {unarchived} VALUES ({marks})', record)
+    before = {path.relative_to(output): path.read_bytes()
+              for path in output.rglob('*') if path.is_file()}
+
+    with pytest.raises(ValueError, match='unarchived tasks or attempts remain'):
+        run(index, output, local=True, workers=1, resume=True, verify_only=True)
+
+    after = {path.relative_to(output): path.read_bytes()
+             for path in output.rglob('*') if path.is_file()}
+    assert after == before
+
+
 def test_retry_ledger_retains_original_failure_and_audit(tmp_path):
     from enzymemap import Ledger
     output=tmp_path/'result'; output.mkdir()
