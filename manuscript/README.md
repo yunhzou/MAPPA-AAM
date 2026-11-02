@@ -4,21 +4,23 @@ The manuscript describes one-witness fragment growth, direct compressed completi
 
 - `manuscript.pdf`: compiled paper.
 - `preprint.tex`: LaTeX entry point, retaining the supplied author list and preprint style.
-- `includes/paper.tex`: methods, evaluation, and discussion.
-- `includes/supplement.tex`: evaluation scope, completeness argument, and supplementary results.
+- `includes/paper.tex`: the scientific stages, molecular examples, completed current-method validation, and discussion.
+- `includes/supplement.tex`: solver and representation details, evaluation protocols, and historical comparisons.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): full technical settings and links to code, input/source pins, and per-case evidence.
-- `figs/fig1_algorithm.{pdf,svg,png}`: the branching algorithm overview: RDKit vector depictions of alcohol sites and methyl acetate saponification illustrate hydrogen-preserving local matches, three conditional assignment levels, automorphism compression, cut sweep, and event decoding.
+- `figs/fig5_pipeline.{pdf,svg,png}`: the main scientific overview, from one-witness growth and compressed completion through conditional search and final-family reduction. Local decoding and reference verification are separate consumers of the catalogue.
+- `figs/fig1_algorithm.{pdf,svg,png}`: the molecular worked example: RDKit vector depictions of alcohol sites and methyl acetate saponification illustrate hydrogen-preserving local matches, conditional assignments, compressed symmetry, cut sweep, and event decoding.
 - `evidence/current_golden.json` and `current_golden_cases.json`: publication-safe summary and per-case outcomes for the completed Golden validation.
 - `evidence/competitors.json`: archived Golden results for RXNMapper, LocalMapper, Chython, Indigo, RDT, and default SLAP configurations. The historical comparison retains its original seed/sweep settings and timing cohorts.
 - `evidence/molecule_example.json`: checked SMILES, mappings, and heavy-atom event lists for the constructed illustration.
-- `figs/fig2_golden.{pdf,svg,png}`: archived Golden reference-family recovery and direction-specific mean CPU cost.
-- `figs/fig3_coordinate.{pdf,svg,png}`: archived MAPPA and prior-method minimum-event comparisons, minimum-count distributions, and measured stage costs on 140 cases.
-- `figs/fig4_alternatives.{pdf,svg,png}`: Golden case 9, with the recovered reference and two alternatives. Red × marks and green inward arrows identify bond changes; pastel colors identify actual saved fragments. The Methods demonstration motivates multiple event candidates; the Discussion describes potential downstream uses.
+- `figs/fig6_current_golden.{pdf,svg,png}`: completed current-method Golden reference recovery and mean total CPU cost for matching, family reduction, local decoding, and verification. Both directions are included; CPU cost is not elapsed latency. The builder checks the aggregate values against all per-case records.
+- `figs/fig2_golden.{pdf,svg,png}`: supplementary archived Golden reference-family recovery and direction-specific mean CPU cost.
+- `figs/fig3_coordinate.{pdf,svg,png}`: supplementary archived MAPPA and prior-method minimum-event comparisons, minimum-count distributions, and measured stage costs on 140 cases.
+- `figs/fig4_alternatives.{pdf,svg,png}`: Golden case 9, with the recovered reference and two alternatives. Red × marks and green inward arrows identify bond changes; pastel colors identify actual saved fragments. The Results illustration explains why retaining alternative correspondences matters; the Discussion describes potential downstream uses.
 - `evidence/golden_case9.json` and `golden_case9_verification.json`: full witnesses, source fragment groups, source hashes, original-RDF reference verification, and H-event lower bounds for the selected heavy mappings.
 - `evidence/multicandidate_example.json` and `evidence/output_multiplicity.json`: saved API example and archived comparator-output audit for the discussion.
 - `manuscript_bundle.zip`: compact paper, source, figure, and evidence bundle.
 
-The paper distinguishes the current method and its completed validation from the archived evaluations. Debugging history and abandoned variants are excluded; retained historical studies keep their original scientific scope.
+The main paper explains the method through the pipeline and molecular examples, then presents the completed current-method validation. Historical comparator, cap, seed, and coordinate studies remain in the supplement with their original scientific scope. They do not supply a speed comparison for the current implementation.
 
 ## Results and scope
 

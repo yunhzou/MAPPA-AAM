@@ -1,18 +1,9 @@
-\begin{thebibliography}{15}
+\begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
-
-\bibitem[Ali et~al.(2025)Ali, Mizuno, Akiyama, Nagata, and
-  Komatsuzaki]{ali2025}
-Mohammad Ali, Yuta Mizuno, Seiji Akiyama, Yuuya Nagata, and Tamiki Komatsuzaki.
-\newblock Enumeration approach to atom-to-atom mapping accelerated by {Ising}
-  computing.
-\newblock \emph{Journal of Chemical Information and Modeling}, 65\penalty0
-  (4):\penalty0 1901--1910, 2025.
-\newblock \doi{10.1021/acs.jcim.4c01871}.
 
 \bibitem[Chen et~al.(2024)Chen, An, Babazade, and Jung]{chen2024}
 Shuan Chen, Sunggi An, Ramil Babazade, and Yousung Jung.
@@ -71,11 +62,6 @@ Shin-ichi Koda and Shinji Saito.
 \newblock \emph{ChemRxiv}, 2025.
 \newblock \doi{10.26434/chemrxiv-2025-hthwn}.
 \newblock Preprint, version 1, 25 November 2025.
-
-\bibitem[Lambert et~al.(2024)Lambert, Morrison, Pyatkin, et~al.]{lambert2024}
-Nathan Lambert, Jacob Morrison, Valentina Pyatkin, et~al.
-\newblock {Tulu 3}: Pushing frontiers in open language model post-training.
-\newblock arXiv:2411.15124, 2024.
 
 \bibitem[Lin et~al.(2022)Lin, Dyubankova, Madzhidov, Nugmanov, Verhoeven,
   Gimadiev, Afonina, Ibragimova, Rakhimbekova, Sidorov, Gedich, Suleymanov,

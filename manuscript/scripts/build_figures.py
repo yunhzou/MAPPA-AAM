@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 plt.rcParams.update({'font.family':'DejaVu Sans','font.size':9,'axes.titlesize':10,
  'axes.labelsize':9,'axes.spines.top':False,'axes.spines.right':False,
  'pdf.fonttype':42,'ps.fonttype':42,'svg.fonttype':'none','savefig.dpi':240})
@@ -26,6 +27,102 @@ competitors=read('competitors.json')
 local=next(d for d in competitors['methods'] if d['method']=='localmapper')
 seed=read('seed_comparison.json');methods=seed['methods'];slap=read('slap_sweep.json');N=1851
 current=read('current_golden.json')
+
+
+def build_pipeline():
+ fig,ax=plt.subplots(figsize=(11.4,4.6))
+ ax.set(xlim=(0,11.4),ylim=(0,4.6));ax.axis('off')
+ positions=[.15,3.0,5.85,8.7];width=2.55;height=1.05
+ def box(x,y,title,detail,color):
+  ax.add_patch(FancyBboxPatch((x,y),width,height,
+      boxstyle='round,pad=0.02,rounding_size=0.09',
+      facecolor=color+'0D',edgecolor=color,linewidth=1.1))
+  ax.text(x+width/2,y+.72,title,ha='center',va='center',
+      fontsize=10,weight='bold',color=color)
+  ax.text(x+width/2,y+.30,detail,ha='center',va='center',
+      fontsize=9,color=INK,linespacing=1.45)
+ def arrow(start,end,color=MUTED):
+  ax.add_patch(FancyArrowPatch(start,end,arrowstyle='-|>',
+      mutation_scale=12,linewidth=1.1,color=color,shrinkA=2,shrinkB=3))
+ ax.text(.15,4.4,'Matching',fontsize=11,weight='bold',color=INK)
+ ax.text(11.25,4.4,'Endpoint graphs + matching rules',
+     ha='right',fontsize=9,color=MUTED)
+ box(positions[0],3.0,'Grow one fragment','Keep one compatible\nassignment',GREEN)
+ box(positions[1],3.0,'Complete at saturation','Distinct placements;\nsymmetry stays compressed',GREEN)
+ box(positions[2],3.0,'Conditional search','Commit placements;\nvary seeds and cuts',GREEN)
+ box(positions[3],3.0,'Final family catalogue','Group fragment pairs;\nshare repeated families',BLUE)
+ for left,right in zip(positions,positions[1:]):
+  arrow((left+width,3.525),(right,3.525))
+ # A committed placement starts the next fragment in that continuation.
+ ax.plot([7.125,7.125,1.425],[3.0,2.55,2.55],color=MUTED,lw=1.0)
+ arrow((1.425,2.55),(1.425,3.0))
+ ax.text(4.275,2.55,' Next fragment ',ha='center',va='center',
+     fontsize=9,color=MUTED,bbox=dict(facecolor='white',edgecolor='none',pad=3))
+ ax.text(.15,2.25,'Separate post-processing',fontsize=11,weight='bold',color=INK)
+ box(positions[0],.25,'Unique fragments','Collect all family\nand boundary references',PURPLE)
+ box(positions[1],.25,'Local bond responses','Decode internal bonds\nand fragment boundaries',PURPLE)
+ box(positions[2],.25,'Joint event choices','Compose responses under\nthe saved constraints',PURPLE)
+ box(positions[3],.25,'Reference verification','Does the retained output\ninclude the annotation?',ORANGE)
+ for left,right in zip(positions[:2],positions[1:3]):
+  arrow((left+width,.775),(right,.775),PURPLE)
+ # Decoding and reference membership are independent catalogue consumers.
+ ax.plot([9.975,9.975,1.425,1.425],[3.0,2.08,2.08,1.62],color=BLUE,lw=1.1)
+ arrow((1.425,1.62),(1.425,1.3),BLUE)
+ arrow((9.975,2.08),(9.975,1.3),BLUE)
+ fig.subplots_adjust(left=.015,right=.985,bottom=.025,top=.98)
+ save(fig,'fig5_pipeline')
+
+
+def build_current_golden(summary,cases):
+ total=summary['manifest']['cases'];directions=summary['manifest']['directions']
+ assert summary['complete'] and not summary['failures'] and not summary['audit_issues']
+ assert len(cases)==total and len({case['case'] for case in cases})==total
+ for outcome,count in summary['reference_reactions'].items():
+  assert sum(case['status']==outcome for case in cases)==count
+ for outcome,count in summary['reference_directions'].items():
+  assert sum(case[direction]==outcome for case in cases for direction in ('forward','reverse'))==count
+ stages=['matching','deduplication','decoding','verification']
+ totals=[]
+ for stage in stages:
+  records=[case['stages'][direction][stage] for case in cases for direction in ('forward','reverse')]
+  assert len(records)==directions and all(record['state']=='complete' for record in records)
+  measured=sum(record['total_worker_cpu_seconds'] for record in records)
+  aggregate=summary['stage_metrics'][stage]
+  assert np.isclose(measured,aggregate['final_tasks']['total_worker_cpu_seconds'],rtol=1e-10,atol=1e-6)
+  assert np.isclose(measured,aggregate['all_attempts']['total_worker_cpu_seconds'],rtol=1e-10,atol=1e-6)
+  totals.append(measured/total)
+ recovered=summary['reference_reactions']['recovered']
+ missed=summary['reference_reactions']['not_recovered']
+ percent=100*recovered/total
+ fig,(accuracy,cost)=plt.subplots(1,2,figsize=(9.3,4.2),
+     gridspec_kw={'width_ratios':[1.05,1.5]})
+ accuracy.set(xlim=(0,100),ylim=(0,1));accuracy.axis('off')
+ accuracy.set_title('a  Reference membership',loc='left',weight='bold',pad=18)
+ accuracy.text(0,.82,f'{percent:.2f}%',fontsize=32,weight='bold',color=GREEN)
+ accuracy.text(0,.66,f'{recovered:,} of {total:,} reactions',fontsize=12,color=INK)
+ accuracy.barh(.46,percent,color=GREEN,height=.12)
+ accuracy.barh(.46,100-percent,left=percent,color=RED,height=.12)
+ accuracy.text(0,.30,f'{missed:,} not recovered',fontsize=10,color=RED)
+ accuracy.text(0,.13,'Both directions evaluated\nNo unresolved outcomes',
+     fontsize=9,color=MUTED,linespacing=1.7)
+ colors=[GREEN,BLUE,PURPLE,ORANGE]
+ cost.barh(np.arange(4),totals,color=colors,height=.55)
+ for position,value in enumerate(totals):
+  cost.text(value+.08,position,f'{value:.2f}',va='center',fontsize=10,color=INK)
+ cost.set(yticks=np.arange(4),yticklabels=['Matching','Family reduction','Local decoding','Verification'],
+     xlim=(0,max(totals)*1.22),ylim=(3.6,-.8),xlabel='Mean total CPU seconds / reaction')
+ cost.set_title('b  Recorded stage costs',loc='left',weight='bold',pad=18)
+ cost.grid(axis='x',alpha=.15);cost.set_axisbelow(True)
+ cost.text(1.0,1.015,f'Total: {sum(totals):.2f} CPU s / reaction',
+     transform=cost.transAxes,ha='right',fontsize=9,color=MUTED)
+ fig.text(.08,.04,'Completed Golden validation · both directions included · CPU cost, not elapsed time',
+     fontsize=9,color=MUTED)
+ fig.subplots_adjust(left=.08,right=.97,bottom=.21,top=.84,wspace=.65)
+ save(fig,'fig6_current_golden')
+
+
+build_pipeline()
+build_current_golden(current,read('current_golden_cases.json')['cases'])
 keys=['seeds1','seeds2','seeds3','seeds10'];counts=[methods[k]['golden_outcomes']['recovered'] for k in keys];costs=[methods[k]['common_mean_cpu_seconds'] for k in keys]
 assert seed['fresh'] and all(sum(methods[k]['golden_outcomes'].values()) == N for k in keys)
 assert len(seed['common_case_indices']) > 0
@@ -107,7 +204,7 @@ macros=dict(CurrentGoldenRecovered=f"{current['reference_reactions']['recovered'
  SlapAbsent=str(slap['outcomes']['not_recovered']),SlapUnknown=str(slap['outcomes']['unknown']),
  FlatFamilies=f"{dedup['flat_families']:,}",DecodedClasses=str(dedup['event_classes']))
 (MAN/'includes/generated-results.tex').write_text('% Generated from separately scoped current and historical evidence.\n'+''.join('\\newcommand{\\'+k+'}{'+v+'}\n' for k,v in macros.items()))
-print('Built four main figures and complete-campaign tables and numerical macros.')
+print('Built current-method figures, retained historical figures, and evidence tables.')
 
 # One main comparison: primary recovery plus explicitly identified timing cohorts.
 competitors=read('competitors.json')

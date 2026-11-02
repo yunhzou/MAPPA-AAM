@@ -25,6 +25,7 @@ for stage,metrics in current['stage_metrics'].items():
  assert len(records)==3702 and all(row['state']=='complete' for row in records)
  assert sum(row['tasks'] for row in records)==metrics['final_tasks']['records']
  assert abs(sum(row['compute_cpu_seconds'] for row in records)-metrics['final_tasks']['compute_cpu_seconds'])<1e-6
+ assert abs(sum(row['total_worker_cpu_seconds'] for row in records)-metrics['final_tasks']['total_worker_cpu_seconds'])<1e-6
 from build_molecule_figure import check_example
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
 from build_alternatives_figure import check_example as check_alternatives
@@ -85,13 +86,19 @@ tex='\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in
 for obsolete in ['Adaptive no-sweep','Separate experimental versions','Holdout follow-ups','earlier publication engine','N_{\\mathrm{order\\ changed}}']:
  assert obsolete not in tex,obsolete
 paper=(MAN/'includes/paper.tex').read_text()
-assert paper.index(r'\label{fig:alternatives}') < paper.index(r'\section{Evaluation}')
+supplement=(MAN/'includes/supplement.tex').read_text()
+stages=['matching-rules','growth','completion','cut-sweep','reduction','decoding','verification']
+positions=[paper.index(r'\label{sec:'+stage+'}') for stage in stages]
+assert positions==sorted(positions)
+assert paper.index(r'\label{fig:alternatives}') > paper.index(r'\section{Evaluation}')
+assert r'\label{sec:historical-evaluation}' in supplement
+assert 'figs/fig2_golden.pdf' not in paper and 'figs/fig3_coordinate.pdf' not in paper
 assert 'Final representation and complete window decoding' not in paper
 bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig5_pipeline.pdf','figs/fig6_current_golden.pdf'}
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -101,6 +108,10 @@ assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Ov
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
 for value in ['1,830','1,851','98.87','3,618','3,702']:assert value in alltext,value
+mean_worker_cpu=sum(m['final_tasks']['total_worker_cpu_seconds'] for m in current['stage_metrics'].values())/current['manifest']['cases']
+assert f'{mean_worker_cpu:.2f}' in alltext
+cache=current['stage_metrics']['matching']['final_tasks']['cache']
+assert f"{100*cache['fragment_hits']/cache['fragment_calls']:.1f}" in alltext
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
 for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{seed['methods']['seeds3']['golden_recovery_percent']:.2f}",'120,052','300','162','168']:
  assert value in alltext,value
@@ -132,7 +143,15 @@ assert 'AMD EPYC 9J14' in alltext and 'CPU model unrecorded' in alltext.replace(
 assert '--' not in comparison
 
 for fig in figs:
- assert 'MAPPA' in PdfReader(MAN/fig).pages[0].extract_text(), fig
+ figure_text=PdfReader(MAN/fig).pages[0].extract_text()
+ if fig.endswith('fig5_pipeline.pdf'):
+  for label in ['Grow one fragment','Complete at saturation','Final family catalogue','Reference verification']:
+   assert label in figure_text,label
+ elif fig.endswith('fig6_current_golden.pdf'):
+  for label in ['98.87','1,830','1,851','Local decoding','Verification']:
+   assert label in figure_text,label
+ else:
+  assert 'MAPPA' in figure_text,fig
 for value in ['1,489','1,661','80.44','89.74']:assert value in alltext
 for d in competitors['methods']:
  if d['method']!='slap_weighted':assert f"{d['any_correct']:,}" in alltext
@@ -193,7 +212,7 @@ assert min(timing['default_comparators'],key=lambda d:d['mean_cpu_seconds'])['ke
 
 # The coordinate cap paragraph carries forward search completion only.
 assert '123 and 125' in alltext.replace('\n',' ')
-assert not re.search(r'\b(?:competition|takeover|competing)\b',tex,re.I)
+assert not re.search(r'\b(?:competition mode|takeover decoding)\b',tex,re.I)
 assert 'mappa_competition' not in coord['timing']
 assert 'mappa_decoding' not in coord['timing']  # no complete baseline timing pass
 assert coord['competition'] is False

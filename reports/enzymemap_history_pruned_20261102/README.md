@@ -42,3 +42,36 @@ and [all-cut audit for reaction 37270](previous-failure-observation.json).
 Private site configuration, original operational records and continuation
 instructions are retained outside the published repository. See the
 [portable runner](../../bench/README.md) for execution interfaces.
+
+## Latest monitored progress
+
+At **2026-11-01 23:35 Toronto time (2026-11-02 04:35 UTC)**, published ledgers
+across all 40 batches recorded:
+
+| Stage | Complete directions / 95,948 | Percent |
+|---|---:|---:|
+| Matching | 60,060 | 62.60% |
+| Family reduction | 57,568 | 60.00% |
+| Decoding | 0 | 0% |
+| Reference verification | 0 | 0% |
+
+No direction failures or retired retries were recorded. All started batches
+reported the required source/engine identity, the same scientific configuration
+and the unchanged 2 GiB guard. Matching advanced by 3,441 directions since
+04:25:19 UTC, approximately 20,375 directions per hour over that 10-minute,
+8-second interval.
+This is observed matching throughput, not an end-to-end completion estimate.
+
+The scheduler/log check found 24 successfully completed matching
+allocations, two running allocations, no failed or drained allocations and no
+errors in the matching logs. Both finish arrays still depend on both matching
+arrays; the global barrier remains intact. No intervention was needed.
+
+The two running pools registered 255 workers, all with retained execution
+records. Their latest queue snapshots contained 2,949 and 840 completed attempts,
+with peak overlaps of 148 and 83 retained attempts during each snapshot's
+preceding minute. Both listed no running tasks at their captured instants;
+neither contained duplicate running task ownership. Published snapshots can lag,
+and retired attempts leave the active queue. Worker registration and task overlap
+do not establish continuous CPU utilization. Raw operational snapshots remain
+private.
