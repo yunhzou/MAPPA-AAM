@@ -279,6 +279,43 @@ symmetries. Point `MAPPA_BATCH_ROOT` at that output and use the same launcher an
 two-pass barrier above, with the matching array range. No separate Golden wrapper
 or runtime policy override is needed.
 
+### Minimum-event analysis of saved results
+
+`analytics.py` queries completed decoder outputs without rerunning matching or
+decoding. Supply an explicit JSON manifest with a `directions` list. Each row has
+`dataset`, `case`, `reversed`, `decoded` and `reference`; the last two are saved
+blob references (`path`, `offset`, `size`, `sha256`). Optional `source_provenance`
+records the measured implementation and cohort. Select the latest successful
+decoded output after recovery, retaining each direction exactly once.
+
+```bash
+PYTHONPATH=src:bench python bench/analytics.py /path/to/manifest.json \
+  /path/to/new-analysis --workers 1 --seconds 30 --task-seconds 120 --memory-gib 2
+```
+
+The statistic is the annotated heavy-atom reference's bond-event count minus
+the certified minimum over that direction's saved compressed mapping relation.
+Both counts use heavy–heavy original WBO changes and the saved event thresholds;
+all original matching constraints, including hydrogen constraints, remain in
+force. Partial mappings follow the decoder's mapped/unmapped boundary rule.
+Reports retain witness coverage so differing mapped atom sets remain visible.
+This is not a minimum over all chemically possible mappings or both directions.
+
+Saved local responses first provide conservative bounds. Exact feasibility
+queries certify any remaining improvement, preserving joint symmetry choices.
+Alternative fragment partitions are never added together. `--seconds` is a soft
+per-direction analysis budget; input restoration is measured
+separately. `--task-seconds` and the memory guard bound the complete worker task.
+Unknown minima retain their bounds and never enter a numerical histogram.
+
+One aggregate `results.json` records whole-input checksums, problem identities, resource
+measurements and positive, zero or negative differences for certified directions.
+`terminal_complete` means all tasks ended; `successful_analysis` means all tasks
+published an analysis; `minimum_scope_complete` means every requested minimum
+was certified. Unknown analysis and worker resource failures remain distinct.
+Use a new output directory for each explicit run. Begin with a bounded pilot
+before selecting a complete benchmark cohort.
+
 `cache_pilot.py` compares worker-only and shared reaction caches on a small input
 set, checks exact finalized graph equality, then runs reduction, decoding and
 verification. Run it once inside an existing allocation using the same private
