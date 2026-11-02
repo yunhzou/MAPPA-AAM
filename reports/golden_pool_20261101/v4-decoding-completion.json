@@ -2,7 +2,6 @@
   "observed_utc": "2026-11-01T06:58:07.618048+00:00",
   "source_commit": "2f009516016efe3e1dbf97079908ac2f712e0327",
   "code_identity": "508c5850742f4c3ebc7f8c26dda5948d7446ea3a4febed0bc44c49c10a1ab992",
-  "job": "21137977",
   "schema": "mappa.decoded_events/v4",
   "cases": 1851,
   "directions": 3702,
@@ -23,7 +22,7 @@
   "memory_bytes_per_worker": 2147483648,
   "output_bytes": 815213754,
   "result_bundle_files": 501,
-  "manifest": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_decode_v4_20261101/decoded.json",
+  "manifest": "private-reference-46648965002c95312288",
   "manifest_sha256": "746bf4a86074d6e604a4233d931ff4e566cd1052fd06cb3ce1cf3aaed965e391",
   "task_operations": {
     "mappa.mappa_core.core.scheduler.decoding:decode_catalogue": 3702
@@ -103,12 +102,8 @@
       "average_worker_cpu_cores": 25.702531736515144
     }
   ],
-  "slurm_accounting": [
-    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS",
-    "21137977_0|COMPLETED|0:0|2026-10-31T23:53:50|2026-10-31T23:54:38|00:00:48|112",
-    "21137977_1|COMPLETED|0:0|2026-10-31T23:53:50|2026-10-31T23:54:50|00:01:00|112",
-    "21137977_2|COMPLETED|0:0|2026-10-31T23:55:03|2026-10-31T23:56:06|00:01:03|112",
-    "21137977_3|COMPLETED|0:0|2026-10-31T23:55:40|2026-10-31T23:56:24|00:00:44|112",
-    "21137977_4|COMPLETED|0:0|2026-10-31T23:56:16|2026-10-31T23:57:35|00:01:19|112"
-  ]
+  "privacy_projection": {
+    "original_sha256": "ef0d433acff922ae15fb00a92f9e7321e4931fa01e30e372714bea5905843a96",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

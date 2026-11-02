@@ -28,5 +28,9 @@
   "coverage_space": "original input product",
   "direction": "P_to_R",
   "search_incomplete": false,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden590_reverse_20260908/cuts/aam.pkl.gz"
+  "archive": "private-reference-67dcbcb8d18b01d0cae4",
+  "privacy_projection": {
+    "original_sha256": "3f7353fa5187b0bf6037a62a9ac21a13ca4833ba0e9ca95e89507d88118469a6",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

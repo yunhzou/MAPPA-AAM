@@ -32,24 +32,16 @@ Raw events and exact graph comparisons: [cache-regression.json](cache-regression
 Reproduce using `memory_probe.py` with `--cuts 147 147`, first with the
 instrumented accepted cache, then with `--memo-entries 512 --share-deferred`.
 
-The user chose a resource increase instead: 4 GiB per benchmark worker. DFW
-nodes have 251,904 MiB (246 GiB), so the launch requests 240 GiB/node and uses
-56 workers/node (224 GiB of guards, 16 GiB headroom). Each two-node bin has
-112 compute workers and reserves 120 CPUs. Five concurrent bins permit 560
-compute workers, compared with 800 previously. Native algorithms, cache policy,
-branch caps and saved scientific results do not change.
-
-NRT CPU nodes report 207,698 MiB. Its launch template uses 200 GiB/node,
-48 workers/node (192 GiB of guards) and three nodes per bin, keeping more than
-100 compute workers per allocation. The active benchmark remains on DFW;
-no duplicate NRT benchmark is launched.
+The user chose a resource increase instead: **4 GiB per benchmark worker**.
+Native algorithms, cache policy, branch caps and saved scientific results did
+not change. Raw operational records and allocation settings remain private.
 
 Matching resumes from existing ledgers, explicitly retrying archived memory
 failures and retaining completed cuts and attempt history. Old active pools
 receive the existing drain signal before replacement. Downstream passes depend
 on successful completion of every replacement matching bin.
 
-Validation of the resource-only change: NRT CPU job `207351` passed 23 smoke
+Validation of the resource-only change passed 23 smoke
 checks and 5 benchmark/resume/completed-cut preservation checks. Shell syntax,
 CLI help and Git whitespace checks passed. The core source tree has no diff
 from `3b43327`; the installed native engines were not rebuilt or replaced.

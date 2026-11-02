@@ -1,7 +1,7 @@
 # Reaction cache snapshots
 
 Implemented the user-approved shared cache with a permanent first snapshot.
-The final DFW pilot preserved all 1,842 matching graphs and recovered all 20
+The final distributed pilot preserved all 1,842 matching graphs and recovered all 20
 directional references. Shared exchange cost 4.8% more wall time and 7.0% more
 worker CPU than RAM reuse alone on this small workload; it does not demonstrate
 a throughput improvement. Implementation and validation are complete.
@@ -47,11 +47,9 @@ budget-limited imports, cross-process element IDs, immutable baseline sections,
 failed/missing latest loads, simultaneous readers and publication, stale writers,
 pool restart, RAM/bundle transport, global deduplication and decoded records.
 
-DFW job **21133973** completed with exit `0:0` in **1 minute 37 seconds**,
-including the native build and Linux tests. It allocated two `cpu_short` nodes,
-`cpu1-00042` and `cpu1-00052`, with ten CPUs and 48 GiB per node. One persistent
-pool used one `srun` and eight compute workers per node, with a 4 GiB worker
-limit. All 16 workers processed tasks; peak task overlap was 16. This measures
+The distributed pilot completed with exit `0:0` in **1 minute 37 seconds**,
+including the native build and Linux tests. One persistent pool used one `srun`
+and 16 compute workers with a 4 GiB worker limit. All 16 workers processed tasks; peak task overlap was 16. This measures
 task concurrency, not continuous saturation of all CPUs.
 
 The pilot used EnzymeMap record IDs 0–9 in both directions. These **ten records
@@ -79,9 +77,9 @@ bytes** total, and no pending files. No fallback was needed in this pilot;
 fallback recovery was exercised by the contract tests.
 
 Full inputs, configuration, code/engine fingerprint, task metrics, file sizes
-and reference witnesses are retained in [dfw-pilot.json](dfw-pilot.json).
+and reference witnesses are retained in the [public pilot projection](pilot.json).
 The maintained runner is [cache_pilot.py](../../bench/cache_pilot.py) with
-[cache-pilot-dfw.sbatch](../../bench/cache-pilot-dfw.sbatch). One ordered pair of
+[portable allocation guidance](../../bench/README.md). One ordered pair of
 short runs cannot establish a general speedup or slowdown on the full benchmark.
 The measured cost remains visible rather than claiming zero overhead.
 
@@ -112,13 +110,15 @@ All three earlier pilots also preserved all 1,842 graphs and recovered all 20
 references. Their results document why local entries are retained on import and
 why reaction placement and publication coalescing are part of the final design.
 
-| Job / saved evidence | RAM / shared wall time | RAM / shared worker CPU | Publications |
+| Public evidence | RAM / shared wall time | RAM / shared worker CPU | Publications |
 |---|---:|---:|---:|
-| [21132532: initial](dfw-pilot-initial.json) | 5.342 / 5.810 s | 48.989 / 51.607 s | 151 |
-| [21132861: retain local entries](dfw-pilot-retained.json) | 5.299 / 5.841 s | 48.480 / 52.267 s | 150 |
-| [21133470: placement and coalescing](dfw-pilot-locality.json) | 8.443 / 5.318 s | 41.331 / 46.581 s | 20 |
+| [Initial pilot](pilot-initial.json) | 5.342 / 5.810 s | 48.989 / 51.607 s | 151 |
+| [Retain local entries](pilot-retained.json) | 5.299 / 5.841 s | 48.480 / 52.267 s | 150 |
+| [Placement and coalescing](pilot-locality.json) | 8.443 / 5.318 s | 41.331 / 46.581 s | 20 |
 
-Job 21133470 had substantially greater output-publication delay in its RAM-only
+The placement/coalescing pilot had substantially greater output-publication delay in its RAM-only
 pass (18.268 versus 9.478 summed worker seconds); its wall-time difference does
 not establish a cache speedup. The final pilot also records dependency checks
 after changing lookup order while retaining every validity check.
+
+Raw operational records and full artifacts are retained privately.

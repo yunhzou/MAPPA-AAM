@@ -1,32 +1,36 @@
 {
   "seed_1": {
-    "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_1",
+    "run": "private-reference-e97815c31c18ffa43133",
     "seeds": 1,
     "cap": 1000,
     "fresh": true
   },
   "seed_3": {
-    "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_3",
+    "run": "private-reference-bfcb57ae80351b22dd96",
     "seeds": 3,
     "cap": 1000,
     "fresh": true
   },
   "seed_10": {
-    "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_10",
+    "run": "private-reference-48aa3e06eeb647f323c8",
     "seeds": 10,
     "cap": 1000,
     "fresh": true
   },
   "seed_30": {
-    "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_30",
+    "run": "private-reference-b2e4c82d9008c68c4589",
     "seeds": 30,
     "cap": 1000,
     "fresh": true
   },
   "cached_seed10_cap100": {
-    "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910",
+    "run": "private-reference-e121f80a822de0f727ea",
     "seeds": 10,
     "cap": 100,
     "fresh": false
+  },
+  "privacy_projection": {
+    "original_sha256": "dfdbc93b87e72427ccb1073fab5e33306bfc1d4c1b2654975dbfbb45d1cc0790",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

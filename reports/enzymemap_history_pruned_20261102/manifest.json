@@ -342,24 +342,28 @@
   "ordering": "descending prepared-input bytes; greedy load per planned worker",
   "sources": [
     {
-      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/0/index.json",
+      "path": "private-reference-60e02ae05bf592b6dc99",
       "sha256": "ccce8a8a6cf20769f32ffe7691b9307703b14bacb2ab68f5678930341789520f"
     },
     {
-      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/1/index.json",
+      "path": "private-reference-1f7eb31387f9d9031e15",
       "sha256": "a0b0e628448a1ba52cef487a787d960a8e221020d9b2a21094c5cceea97f0160"
     },
     {
-      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/2/index.json",
+      "path": "private-reference-ae7dd62fd5b89720a712",
       "sha256": "d0e31428949a9409124405eb8bfed25970a31761ce1db043724dd932c35af07e"
     },
     {
-      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/3/index.json",
+      "path": "private-reference-083b1317740fc85d9d0b",
       "sha256": "950f8cb49f305978837d245def4e943b2af25fa7ace328018925c95a3b947201"
     },
     {
-      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/4/index.json",
+      "path": "private-reference-4894873b2b0f0d6a673f",
       "sha256": "68a48e39a731d61acf2a6b0c65bbbbd06e71e1c0eaf05e59555963c7cc1ba70a"
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "be5d76b8f380b7ec5dfb4d08aac8c6e4c4bdaade1b9d35039d02e3e419667b56",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

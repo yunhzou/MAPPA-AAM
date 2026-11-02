@@ -25,6 +25,7 @@ timing=read('timing_comparison.json')
 competitors=read('competitors.json')
 local=next(d for d in competitors['methods'] if d['method']=='localmapper')
 seed=read('seed_comparison.json');methods=seed['methods'];slap=read('slap_sweep.json');N=1851
+current=read('current_golden.json')
 keys=['seeds1','seeds2','seeds3','seeds10'];counts=[methods[k]['golden_outcomes']['recovered'] for k in keys];costs=[methods[k]['common_mean_cpu_seconds'] for k in keys]
 assert seed['fresh'] and all(sum(methods[k]['golden_outcomes'].values()) == N for k in keys)
 assert len(seed['common_case_indices']) > 0
@@ -89,7 +90,12 @@ save(fig,'fig3_coordinate')
 windows=sorted((int(k),v) for k,v in dedup['window_distribution'].items())
 (MAN/'includes/generated-decoder-table.tex').write_text('\\begin{tabular}{l'+ 'r'*len(windows)+'}\\toprule\nMaximum events & '+' & '.join(str(k) for k,v in windows)+r'\\'+'\nReactions (all complete) & '+' & '.join(str(v) for k,v in windows)+r'\\'+'\n'+r'\bottomrule\end{tabular}'+'\n')
 paired=slap['paired_recovery']['seeds1']
-macros=dict(GoldenOneRecovered=f"{counts[0]:,}",GoldenOnePercent=f"{100*counts[0]/N:.2f}",
+macros=dict(CurrentGoldenRecovered=f"{current['reference_reactions']['recovered']:,}",
+ CurrentGoldenTotal=f"{current['manifest']['cases']:,}",
+ CurrentGoldenPercent=f"{100*current['reference_reactions']['recovered']/current['manifest']['cases']:.2f}",
+ CurrentGoldenDirections=f"{current['manifest']['directions']:,}",
+ CurrentGoldenDirectionRecovered=f"{current['reference_directions']['recovered']:,}",
+ GoldenOneRecovered=f"{counts[0]:,}",GoldenOnePercent=f"{100*counts[0]/N:.2f}",
  GoldenThreeRecovered=f"{counts[2]:,}",GoldenThreePercent=f"{100*counts[2]/N:.2f}",
  GoldenTenRecovered=f"{counts[3]:,}",GoldenTenPercent=f"{100*counts[3]/N:.2f}",GoldenTenUnknown=str(methods["seeds10"]["golden_outcomes"]["unknown"]),SlapRecovered=f"{slap['sweep_union_recovered']:,}",
  SlapPercent=f"{100*slap['sweep_union_recovered']/N:.2f}",
@@ -100,7 +106,7 @@ macros=dict(GoldenOneRecovered=f"{counts[0]:,}",GoldenOnePercent=f"{100*counts[0
  SweepClasses=str(coord['comparisons']['slap_sweep']['minimum_patterns']),
  SlapAbsent=str(slap['outcomes']['not_recovered']),SlapUnknown=str(slap['outcomes']['unknown']),
  FlatFamilies=f"{dedup['flat_families']:,}",DecodedClasses=str(dedup['event_classes']))
-(MAN/'includes/generated-results.tex').write_text('% Generated from complete fresh benchmark evidence.\n'+''.join('\\newcommand{\\'+k+'}{'+v+'}\n' for k,v in macros.items()))
+(MAN/'includes/generated-results.tex').write_text('% Generated from separately scoped current and historical evidence.\n'+''.join('\\newcommand{\\'+k+'}{'+v+'}\n' for k,v in macros.items()))
 print('Built four main figures and complete-campaign tables and numerical macros.')
 
 # One main comparison: primary recovery plus explicitly identified timing cohorts.
@@ -183,7 +189,7 @@ for key,label in [('search','MAPPA sweep search'),('catalogue','Final-family cat
 (MAN/'includes/generated-end-to-end-table.tex').write_text(r"\begin{tabular}{@{}lrrr@{}}\toprule"+'\n'+r"Stage & Mean CPU s & Median CPU s & 95th pct. CPU s\\\midrule"+'\n'+'\n'.join(rows)+'\n'+r"\bottomrule\end{tabular}"+'\n')
 total=st['end_to_end']['cpu_seconds'];decode=st['decode']['cpu_seconds']
 cohort = "completed subset" if missing else "full set"
-text=(f"A fresh run of the final implementation completed search and event decoding for {n}/140 coordinate reactions. "
+text=(f"The archived September implementation completed search and event-window decoding for {n}/140 coordinate reactions. "
  f"On this {cohort}, the full pipeline takes a mean {total['mean']:.2f} CPU seconds per reaction "
  f"(median {total['median']:.2f}; 95th percentile {total['p95']:.2f}). Decoding accounts for a mean {decode['mean']:.2f} CPU seconds "
  f"(median {decode['median']:.2f}). "
@@ -191,7 +197,7 @@ text=(f"A fresh run of the final implementation completed search and event decod
  + r"These measurements include search, final-family construction, decoding, and candidate output; they are separate from the search-only comparison above (\Cref{tab:end-to-end})."+'\n')
 (MAN/'includes/generated-end-to-end-text.tex').write_text(text)
 wall=st['end_to_end']['wall_seconds'];cpu=e2e['manifest']['cpu']
-scope=(f"We measured one-seed, cap-2,000 cut-sweep search followed by the public event decoder on the {cpu} CPU. "
+scope=(f"The historical study measured one-seed, cap-2,000 cut-sweep search followed by its event-window decoder on the {cpu} CPU. "
  "CPU times are reported per reaction. "
  "The event thresholds and windows match the bond-event comparison, with no class-count cap. "
  f"All {n} completed reactions reproduce the archived event-class sets and family counts. "

@@ -5,52 +5,54 @@
 
 \subsection{Reproducibility and comparison scope}
 
-The repository's \texttt{manuscript/REPRODUCIBILITY.md} links the benchmark scripts, pinned software and input versions, full configurations, and per-case records. \Cref{tab:protocol} gives the settings needed to interpret the comparisons. The notebook \texttt{docs/AAM\_SIMPLE.ipynb} demonstrates matching, unique event candidates, and conditional symmetry queries through the Python API.
+The repository's \texttt{manuscript/REPRODUCIBILITY.md} links the benchmark scripts, pinned software and input versions, full configurations, and per-case records. It distinguishes the completed Golden validation in \Cref{sec:current-validation} from the archived September evaluations below. \Cref{tab:protocol} gives the archived comparison settings. The guide \texttt{docs/PYTHON\_API.md} demonstrates matching, family reduction, separate local decoding and conditional symmetry queries through the Python API.
 
-For the coordinate comparison, MAPPA uses supplied WBO matrices and SLAP uses the original XYZ-derived binary graphs. SLAP's returned heavy-atom assignments receive hydrogen refinement under its original bond-change objective, then are rescored on the WBO matrices. Thus, the comparison uses a common event score but different input representations. It covers the returned SLAP witnesses, not an exhaustive expansion of its hydrogen label families. The WBO-generation method is not recorded in the available metadata, so regeneration of these matrices from molecular structures is not established.
+For the archived coordinate comparison, MAPPA used supplied WBO matrices and SLAP used the original XYZ-derived binary graphs. SLAP's returned heavy-atom assignments received hydrogen refinement under its original bond-change objective, then were rescored on the WBO matrices. Thus, the comparison uses a common event score but different input representations. It covers the returned SLAP witnesses, not an exhaustive expansion of its hydrogen label families. The WBO-generation method is not recorded in the available metadata, so regeneration of these matrices from molecular structures is not established.
 
-The paired search timings use an Apple M4 Pro CPU. Averages use \CommonCases{} common completed reactions. Reference verification and interrupted work are excluded. MAPPA includes checkpoint I/O; SLAP excludes I/O. Higher-seed runs measured on different CPUs are excluded from this paired comparison. For the coordinate stage comparison, MAPPA search includes checkpoint I/O; SLAP mapping excludes input preparation and export, and its hydrogen refinement includes I/O. Shared event rescoring and failed or replaced attempts are excluded. Golden MAPPA timing includes symmetry finalization; SLAP includes graph construction, mapping, and export. In the primary Golden evaluation, uncut and swept SLAP have one and three unresolved cases, respectively; all MAPPA verdicts are resolved.
+The archived paired search timings use an Apple M4 Pro CPU. Averages use \CommonCases{} common completed reactions. Reference verification and interrupted work are excluded. MAPPA includes checkpoint I/O; SLAP excludes I/O. Higher-seed runs measured on different CPUs are excluded from this paired comparison. For the archived coordinate stage comparison, MAPPA search includes checkpoint I/O; SLAP mapping excludes input preparation and export, and its hydrogen refinement includes I/O. Shared event rescoring and failed or replaced attempts are excluded. Archived Golden MAPPA timing includes symmetry finalization; SLAP includes graph construction, mapping, and export. In that primary Golden evaluation, uncut and swept SLAP have one and three unresolved cases, respectively; all MAPPA verdicts are resolved. These timing cohorts are not pooled with the current-design validation.
 
-\subsection{Default comparator protocol}
+\subsection{Archived default comparator protocol}
 \label{sec:default-comparators}
 
 Released comparators receive the same label-free Golden inputs, without prediction repair or reference-guided ranking. Invalid outputs and failures remain in the denominator. SLAP is evaluated over all returned candidates, using binary mode for the default comparison and both modes for bidirectional comparisons. The repository records the released models, versions, and adapter settings.
 
-\subsection{Decoding scope}
+\subsection{Archived event-window query scope}
 
-For each coordinate reaction, the decoding limit is one event above the larger of the native-SLAP and SLAP-sweep minima. All \FlatFamilies{} retained families are exhausted within these limits, without a class-count cap. Higher-event patterns are outside this completeness claim. An event class records the signed atom-pair changes, modulo source permutations preserving every thresholded bond-change test against the opposite endpoint. Each class has a concrete mapping witness.
+For each coordinate reaction, the archived event-window limit was one event above the larger of the native-SLAP and SLAP-sweep minima. All \FlatFamilies{} retained families were exhausted within these limits, without a class-count cap. Higher-event patterns are outside this completeness claim. An event class records the signed atom-pair changes, modulo source permutations preserving every thresholded bond-change test against the opposite endpoint. Each class has a concrete mapping witness. This explicit whole-reaction query is separate from ordinary decoding into shared local fragment responses.
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Complete final decoding on all 140 reactions.} Every retained family is certified within the listed per-case event limit.}
+\caption{\textbf{Archived complete event-window queries on all 140 reactions.} Every retained family is certified within the listed per-case event limit.}
 \input{includes/generated-decoder-table}
 \end{table}
 
-\subsection{Preservation of mapping families under flattening}
+\subsection{Preservation of mapping families under reduction and decoding}
 
-Flattening retains each terminal representative, its required fragment constraints, and its allowed action sequence after applying prefix locks. Disjoint actions commute. Adjacent nested groups satisfy $HG=GH=G$ when $H\leq G$, with containment checked by exact generator membership. Other overlapping actions retain their order. Identical records are shared; branches with the same unordered fragment pairs retain the union of their family records. The admissible mapping union is therefore unchanged. A shared fragment partition or automorphism group alone does not establish family equality.
+Family reduction retains each terminal representative, its required fragment constraints, and its allowed action sequence after applying prefix locks. Disjoint actions commute. Adjacent nested groups satisfy $HG=GH=G$ when $H\leq G$, with containment checked by exact generator membership. Other overlapping actions retain their order. Identical records are shared; branches with the same unordered fragment pairs retain the union of their family records. The admissible mapping union is therefore unchanged. A shared fragment partition or automorphism group alone does not establish family equality.
 
-The decoder certifies a family through event invariance, a valid lower bound excluding the requested window, or unsatisfiability after excluding all discovered event classes. An exhausted budget remains incomplete. This separates lossless representation, complete decoding within a window, and exhaustive structural search.
+Local decoding inventories all fragments before computing their responses. Sharing a response preserves the family constraints and any action that moves several fragments together. Each bond contributes once to a valid joint choice, and alternative partitions are alternative decompositions of the same family. This preserves the retained relation without requiring a whole-reaction event-class enumeration.
 
-\subsection{Golden nonrecoveries}
+The archived event-window query separately certified a family through event invariance, a valid lower bound excluding the window, or unsatisfiability after excluding all discovered event classes. An exhausted budget remained incomplete. Lossless family representation, local event decoding, complete event-window queries and exhaustive structural search are distinct claims.
+
+\subsection{Archived Golden nonrecoveries}
 
 \begin{table}[ht]
 \centering\small
-\caption{\textbf{The eleven Golden nonrecoveries.} Case indices are zero-based. Retained pair counts cover every terminal in both directions and every saved cut at ten seed orderings and cap 100. The four cardinality mismatches concern exact reference relations, including unmatched atoms.}
+\caption{\textbf{The eleven archived ten-seed Golden nonrecoveries.} Case indices are zero-based. Retained pair counts cover every terminal in both directions and every saved cut at ten seed orderings and cap 100. The four cardinality mismatches concern exact reference relations, including unmatched atoms. This is not the nonrecovery set of the current one-seed validation.}
 \label{tab:golden-misses}
 \input{includes/generated-miss-table}
 \end{table}
 
 Independent reconstruction agrees with the supplied references in all eleven cases. Four require a different number of matched pairs; seven require correspondences absent from the retained families. All have at least one capped direction, but this does not identify the cap as the cause. The uncapped traces discussed in the main text demonstrate greedy-growth exclusions in two cases. Reference-directed feasibility checks are diagnostic and do not contribute to benchmark recovery. Per-case certificates and traces are linked in the repository.
 
-\subsection{Branch-cap and CPU-time ablation on Golden}
+\subsection{Archived branch-cap and CPU-time ablation on Golden}
 \label{sec:cap-ablation}
 
-We reran the twelve configurations in \Cref{tab:golden-caps} on all 1,851 Golden reactions using an AMD EPYC 9J14 CPU. Both search directions are unioned. SLAP unions its binary and weighted modes. Search and reference verification have separate fixed resource budgets. The recorded cap-100 recovery counts reproduce the main evaluation. At cap 2,000, unresolved counts increase with seed count. Among reactions resolved at both caps, no swept configuration gains or loses a reference recovery.
+The archived study ran the twelve configurations in \Cref{tab:golden-caps} on all 1,851 Golden reactions using an AMD EPYC 9J14 CPU. Both search directions are unioned. SLAP unions its binary and weighted modes. Search and reference verification have separate fixed resource budgets. The recorded cap-100 recovery counts reproduce the archived main evaluation. At cap 2,000, unresolved counts increase with seed count. Among reactions resolved at both caps, no swept configuration gains or loses a reference recovery.
 
 \begin{table}[htbp]
 \centering\footnotesize
-\caption{\textbf{Golden branch-cap ablation with paired SLAP baselines.} Recovery counts confirmed reference inclusion over all 1,851 records; unknown cases remain in the denominator. CPU values are seconds per reaction. Paired CPU uses the same 1,403 reactions whose searches finish under every configuration. Spent CPU averages recorded search cost over all 1,851 selected attempts, including interrupted calls; it is not completed-search latency. Both timings exclude reference verification and initial imports. Superseded attempts are excluded. Cap 100 with a one-seed sweep is the default.}
+\caption{\textbf{Archived Golden branch-cap ablation with paired SLAP baselines.} Recovery counts confirmed reference inclusion over all 1,851 records; unknown cases remain in the denominator. CPU values are seconds per reaction. Paired CPU uses the same 1,403 reactions whose searches finish under every configuration. Spent CPU averages recorded search cost over all 1,851 selected attempts, including interrupted calls; it is not completed-search latency. Both timings exclude reference verification and initial imports. Superseded attempts are excluded. Cap 100 with a one-seed sweep is the default setting.}
 \label{tab:golden-caps}
 \input{includes/generated-cap-ablation-table}
 \end{table}
@@ -59,13 +61,13 @@ The ten-seed cap-2,000 run leaves five references recovered at cap 100 unresolve
 
 
 \clearpage
-\subsection{Fresh end-to-end timing on coordinate reactions}
+\subsection{Archived end-to-end timing on coordinate reactions}
 
 \input{includes/generated-end-to-end-scope}
 
 \begin{table}[htbp]
 \centering
-\caption{\textbf{MAPPA search plus bond-event decoding.} CPU seconds per completed reaction in the fresh 140-reaction pass. The final row measures the whole pipeline; medians and percentiles of individual stages are not additive. Completion coverage and timing scope are stated above.}
+\caption{\textbf{Archived MAPPA search plus event-window queries.} CPU seconds per completed reaction in the 140-reaction pass. The final row measures the whole pipeline; medians and percentiles of individual stages are not additive. Completion coverage and timing scope are stated above.}
 \label{tab:end-to-end}
 \input{includes/generated-end-to-end-table}
 \end{table}

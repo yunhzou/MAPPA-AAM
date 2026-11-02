@@ -137,13 +137,19 @@ bundle references rather than one path per cut.
 
 ## One Slurm allocation
 
-Submit one batch job, for example:
+Prepared EnzymeMap and Golden campaigns use the
+[portable benchmark launcher](../bench/README.md), including the global
+matching/reduction barrier before decoding. Keep site accounts, partitions,
+hostnames, paths and raw scheduler logs in private configuration or ignored
+storage outside the published evidence.
+
+For a custom Python campaign, submit one batch job, for example:
 
 ```bash
 #!/bin/bash
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=18
 #SBATCH --mem=40G
 #SBATCH --time=02:00:00
 python campaign.py
@@ -195,7 +201,7 @@ repeating after node loss. Plan allocation walltime accordingly.
 Local tests exercise RAM/file transport, full scientific-record equivalence,
 deadlines, worker replacement, dependency barriers, checkpoint resume and the
 actual network worker entry point with an intercepted single `srun` launch.
-A [real two-node NRT test](../reports/slurm_pool_20261031/README.md) also verifies
+A saved [two-node pool test](../reports/slurm_pool_20261031/README.md) also verifies
 BundleStore handoff, persistent workers and complete scientific equivalence. Its
 small-case timing does not establish a throughput improvement or network recovery.
 Scheduling stays in `mappa.execution` and `mappa_core/core/scheduler`; matching,

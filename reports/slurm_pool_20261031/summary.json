@@ -1,8 +1,5 @@
 {
-  "job": "187503",
-  "nodes": "cpu-[0012,0006]",
   "partition": "cpu",
-  "coordinator": "cpu-0012",
   "source_commit": "7548fd2c413756aa7edc0cd8561c309e749d6f67",
   "source_identity": "4ce376546bfdadf290668b0ba7e8f85a4610da7c03c76bd529da5bffe444d472",
   "config": {
@@ -54,18 +51,17 @@
     }
   ],
   "pool_creation_seconds": 0.02817216981202364,
-  "worker_service_pid": 2033910,
   "persistent_workers": {
-    "cpu-0012:2033950:1e34c100b2f94b109b00502e5a87838e": [
+    "private-reference-50f5e496339d66afc445:2033950:1e34c100b2f94b109b00502e5a87838e": [
       2033959
     ],
-    "cpu-0012:2033950:9d60b46896614007a3670d5856a98654": [
+    "private-reference-50f5e496339d66afc445:2033950:9d60b46896614007a3670d5856a98654": [
       2033960
     ],
-    "cpu-0006:2056142:7e6e5fc88af8467b9f63826715ef1c51": [
+    "private-reference-47f5023c20f0c2c791ef:2056142:7e6e5fc88af8467b9f63826715ef1c51": [
       2056190
     ],
-    "cpu-0006:2056142:c39062d7c5214bb89740153f0d8becd4": [
+    "private-reference-47f5023c20f0c2c791ef:2056142:c39062d7c5214bb89740153f0d8becd4": [
       2056189
     ]
   },
@@ -88,5 +84,9 @@
   "full_records_equal": true,
   "multi_batch_seed_equivalence": true,
   "manifest_reopen_equal": true,
-  "success": true
+  "success": true,
+  "privacy_projection": {
+    "original_sha256": "17261ca25a388514b335f644b3a67bb6f46e5178dc4d997985fa80d8d1a59188",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

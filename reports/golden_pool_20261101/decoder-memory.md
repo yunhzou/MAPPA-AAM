@@ -78,4 +78,6 @@ current decoder and export function, wrapping table creation and serializer writ
 only to record RSS and counts. A parent samples RSS every 20 ms and kills the
 child above 2 GiB. It does not retain the serialized result. Measurements are in
 [decoder-memory-mac.jsonl](decoder-memory-mac.jsonl). Python/OS and instrumentation
-differ from DFW; this is a memory diagnostic, not a matched performance comparison.
+differ from the distributed run; this is a memory diagnostic, not a matched performance comparison.
+
+Raw operational records and full artifacts are retained privately.

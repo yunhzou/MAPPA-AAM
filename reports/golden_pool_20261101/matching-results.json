@@ -107,12 +107,8 @@
   "total_worker_cpu_seconds": 9158.681288802014,
   "peak_worker_rss_bytes": 434335744,
   "cache_errors": 0,
-  "slurm_accounting": [
-    "JobID|State|ExitCode|Start|End|Elapsed|AllocCPUS|TotalCPU",
-    "21135189_0|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:01:59|00:01:32|112|00:00:00",
-    "21135189_1|COMPLETED|0:0|2026-10-31T22:00:27|2026-10-31T22:02:15|00:01:48|112|00:00:00",
-    "21135189_2|COMPLETED|0:0|2026-10-31T22:02:13|2026-10-31T22:03:52|00:01:39|112|00:00:00",
-    "21135189_3|COMPLETED|0:0|2026-10-31T22:02:47|2026-10-31T22:04:24|00:01:37|112|00:00:00",
-    "21135189_4|COMPLETED|0:0|2026-10-31T22:03:57|2026-10-31T22:06:40|00:02:43|112|00:00:00"
-  ]
+  "privacy_projection": {
+    "original_sha256": "260ecd1942bee68a0b462886ed6daa2dcab4cc3c8d9b66caa15bd7f8af169ede",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

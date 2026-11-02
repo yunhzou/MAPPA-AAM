@@ -1,5 +1,5 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random",
+  "source": "private-reference-3e9b0a8ff3b71818b0c2",
   "budget": 16,
   "indices": [
     986,
@@ -5169,5 +5169,9 @@
     "src/rxn_core/retrosynthesis/ranking.py": "8462b01e0e900f6c3b4a85cd64603e60282d61951fb7f1ada85e37c8d3592537",
     "src/rxn_core/retrosynthesis/decision_graph.py": "f38061babdf6f436ee8e1d181b9d3510288b2ed05ad0a2320a52ab004f8f0aa9"
   },
-  "note": "Independent single anchors versus independent single cuts; no joint anchors or reference-guided selection. Each policy receives the same maximum number of tasks. Shared proposals are computed once."
+  "note": "Independent single anchors versus independent single cuts; no joint anchors or reference-guided selection. Each policy receives the same maximum number of tasks. Shared proposals are computed once.",
+  "privacy_projection": {
+    "original_sha256": "1ccf7eb52ad98762ff54d325fa16098d6504dd29d0a65bb93f38df09e0d80adf",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

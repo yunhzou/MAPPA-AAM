@@ -51,8 +51,7 @@ all sweep cuts, cap 100, matching tolerance 1.0, event tolerance 0.5, bond floor
 0.2 and explicit hydrogen. Seed generation is fixed and reproducible.
 
 Each fresh/reference/rolling triplet ran sequentially in the same ten-CPU Slurm
-allocation. Method order was counterbalanced. Hosts were bosque7 and bosque11,
-both Intel Xeon Gold 6248R. Eight allocations completed successfully; each had a
+allocation. Method order was counterbalanced. The paired machines both used Intel Xeon Gold 6248R. Eight allocations completed successfully; each had a
 ten-minute limit and each method a 300-second watchdog. No failed attempts are
 included in these timings.
 
@@ -157,12 +156,7 @@ alternative checks do not require rerunning AAM.
 
 Full run folders:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/incremental_cut_replay_20260909_RTPXuu
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/cut_replay_seed10_20260909_urKm12
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/cut_replay_reference_20260909_vr5WWI
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/cut_replay_paired_20260909_aihvmc
-```
+Full artifacts and raw operational records are retained privately.
 
 The first folder holds the pre-change native binary and kernel comparison. The
 second captures the earlier rolling-cache implementation. The third/fourth use
@@ -179,8 +173,8 @@ Each seed directory also contains `summary.json`, `progress.json` and
 Rebuild the analysis from saved data (no search):
 
 ```bash
-PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py report --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/cut_replay_paired_20260909_aihvmc
-PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py mechanisms --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/cut_replay_paired_20260909_aihvmc --index 114 --mechanism-reference /h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/pr7.V.dodh_ts910/rp_stage.json
+PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py report --run /path/to/cut_replay_paired_20260909_aihvmc
+PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py mechanisms --run /path/to/cut_replay_paired_20260909_aihvmc --index 114 --mechanism-reference /path/to/rp_stage.json
 ```
 
 For a fresh experiment, create a **new** run directory, use `prepare` to freeze
@@ -189,4 +183,4 @@ tasks into these saved run folders. `tasks.json` in the paired run contains 48
 prepared specifications, but `pairs.json` schedules only the 24 reported tasks.
 
 Full report path:
-`/h/399/yunhengzou/coordinate_alignment/reports/incremental_cut_replay_20260909/README.md`
+Full artifacts and raw operational records are retained privately.

@@ -1,6 +1,6 @@
 {
   "schema": "golden_tolerance/v1",
-  "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_one_seed_bidirectional_20260910",
+  "baseline": "private-reference-26d96c73ce4a808501da",
   "cases": 1851,
   "tasks": 3702,
   "tolerances": {
@@ -36,8 +36,6 @@
   "search_watchdog": 300,
   "analysis_watchdog": 240,
   "cpu_budget": 512,
-  "node_cpus": 32,
-  "analysis_node_cpus": 8,
   "timing": "Fresh paired runs on the same host and CPU set; order alternates by directional slot. CPU includes parent plus children and excludes measured archive persistence/loading. Each tolerance is measured once per direction; analysis is separate.",
   "evaluation": "Unchanged frozen Golden heavy-reference chemical-symmetry and partial-annotation evaluator; 60-second query budget, 1500 ms per symbolic query. Unknowns stay unknown.",
   "driver_sha256": "f5a5731bfaaf3934c017a94f4b517eb4e58a6a20cc3da58f5a733084d7d2b133",
@@ -168,15 +166,15 @@
     "src/rxn_core/static/retro_score_plot.js": "d9ace2649560842c16c187f4fc58ba236e8151bb5499078cdbdaff0ef6af16cb",
     "src/rxn_core/static/LICENSES/3Dmol.js.txt": "ae3bfc688d0c9687b76e0ecc7fece0b393bcb4acf2aee09e19dda697eaa10b16",
     "src/rxn_core/static/LICENSES/JSZip.txt": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/engine.o": "4e0aa69e786b79b28dba3d36dc1bf3a5c5f9853058af5638d2626d91e74f63f6",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/freeze.o": "55d8203b0d2abe0e0873d2ec48d1b48bbe1acbef6adf998096b0b3a64988d92f",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/autgrp.o": "b4e1d6999264a740e1e751de96a32792c03102ae30cc61d9b75a0750c8c16aaf",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/repair.o": "3d11587e6ac344629c190da3ce0e050610ab03708f626a22854daeaeec8f8b62",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/nauty.o": "3a855a7646d62b3d001317906f3837a711ba713d5448ce87742cc52043d0e559",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/nautil.o": "cac4923b2580b730f3fb4044137e8bdcd8fbacecf9ae0cfb9c669c8939284f0f",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/naugraph.o": "1e4d5c1354c9703a7662fe92f5d3acaf523e4430994be403f3a0203ea21a5965",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/schreier.o": "a20abb9fdc1a34ca187e60e7f3355d7b8f1321d12513eeee17b10e945bc2e2f6",
-    "build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/naurng.o": "c8194ae928c6ac7aecdb4ba7cedbcdc09d5701e765bea3f604efb2d567bc4e80",
+    "build/engine/objprivate-reference-4cb906692ec42c11674a": "4e0aa69e786b79b28dba3d36dc1bf3a5c5f9853058af5638d2626d91e74f63f6",
+    "build/engine/objprivate-reference-72134c1c51487fd32f03": "55d8203b0d2abe0e0873d2ec48d1b48bbe1acbef6adf998096b0b3a64988d92f",
+    "build/engine/objprivate-reference-611736f7872a2c4324c4": "b4e1d6999264a740e1e751de96a32792c03102ae30cc61d9b75a0750c8c16aaf",
+    "build/engine/objprivate-reference-270910d566d8555a861b": "3d11587e6ac344629c190da3ce0e050610ab03708f626a22854daeaeec8f8b62",
+    "build/engine/objprivate-reference-9326464e070a2a51cc84": "3a855a7646d62b3d001317906f3837a711ba713d5448ce87742cc52043d0e559",
+    "build/engine/objprivate-reference-fc60fbdf42ab3e308623": "cac4923b2580b730f3fb4044137e8bdcd8fbacecf9ae0cfb9c669c8939284f0f",
+    "build/engine/objprivate-reference-bc248a05f33a2778dcd0": "1e4d5c1354c9703a7662fe92f5d3acaf523e4430994be403f3a0203ea21a5965",
+    "build/engine/objprivate-reference-8d7d9ffe40f48ead9d7e": "a20abb9fdc1a34ca187e60e7f3355d7b8f1321d12513eeee17b10e945bc2e2f6",
+    "build/engine/objprivate-reference-f3b0f7ecd7ca6f813f34": "c8194ae928c6ac7aecdb4ba7cedbcdc09d5701e765bea3f604efb2d567bc4e80",
     "build/engine/lib/rxn_core/_engine.cpython-312-x86_64-linux-gnu.so": "14b77d0a09c739fd44deaa2f83114f951d4bdd79888cc9c8eaada1a39fb4001d"
   },
   "adapter_sha256": {
@@ -304,5 +302,9 @@
     "trace_missing_adaptive_pattern.py": "15e220171639f44296c7483e7b2b2e697c78fd0f604c265c5b62ad33799ba6ff",
     "report_golden_campaign.py": "8c9e31b3e4efaef9f2c6e620415b12e521ef29b669601fa658c80cb824ccfed5",
     "golden_publication.py": "3fe94e329a8c000880dacf4aa63d50dff6eb25b67d6c8ef2ae887b9d577067cd"
+  },
+  "privacy_projection": {
+    "original_sha256": "08e6aaf8d363f1ba34b1e2741abba8fd9d11b1ca8e4c03671d61d0bc1eaeb662",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

@@ -8,406 +8,406 @@
     "checked": [
       {
         "cut_index": 0,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00000.raw.pkl.gz",
+        "cut": "private-reference-ee869a654be1e4eaaa7c",
         "sha256": "06b7c421db351555f9a5d40ad3b73af9eb3a0537511c42dd7392db5f34e1107b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13355529098771513
       },
       {
         "cut_index": 1,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00001.raw.pkl.gz",
+        "cut": "private-reference-82a3b4de36cb6f993e72",
         "sha256": "4bf1ec9978b8318138346a230773ccd2864ac0ac3df01ff8784da84ec5adec5a",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12913070805370808
       },
       {
         "cut_index": 2,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00002.raw.pkl.gz",
+        "cut": "private-reference-ed5ce3c900b169fdaf64",
         "sha256": "6877ad2d00bdf13273f93a79eb5a01d3ddcd43fcf2e1a4fbc4f495092a6e40a0",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1389990421012044
       },
       {
         "cut_index": 3,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00003.raw.pkl.gz",
+        "cut": "private-reference-98035e79156aceb1f93a",
         "sha256": "43a60ba5c1cfa58cff419987915499d492472c724b643bf5a020a908cd7bb18c",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14135487494058907
       },
       {
         "cut_index": 4,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00004.raw.pkl.gz",
+        "cut": "private-reference-569ef5912d8d685e620b",
         "sha256": "8e5aef6aa3447e087ce65d416695dcd860b7ae0db1fa65b313dfd4b17276a212",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13911316683515906
       },
       {
         "cut_index": 5,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00005.raw.pkl.gz",
+        "cut": "private-reference-101ce467a9b839517ee5",
         "sha256": "cfca506683afc26625d81e81f0e84af0d07262c9c924cadf1153c87d383d2fee",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11685399990528822
       },
       {
         "cut_index": 6,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00006.raw.pkl.gz",
+        "cut": "private-reference-68e703955ac4e23a2b3f",
         "sha256": "10a2f4cd5a645dfd7921ee1e2250a583d9c301acbf5e3b305bda57f844d5f8e7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12819745810702443
       },
       {
         "cut_index": 7,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00007.raw.pkl.gz",
+        "cut": "private-reference-90b3b08ba5bd6fc51890",
         "sha256": "466994e3661d690dc261d2910e64f73376f768a5e515f8986eb7c97ff36f0d96",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13186037493869662
       },
       {
         "cut_index": 8,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00008.raw.pkl.gz",
+        "cut": "private-reference-f752ddb42844e460d4bf",
         "sha256": "e32ae77aa83a9c4326b514a6f5d72f473d4db14733b8f3d6b4502cd99189aceb",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.15415537497028708
       },
       {
         "cut_index": 9,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00009.raw.pkl.gz",
+        "cut": "private-reference-ab704f513077f8f48560",
         "sha256": "342dc8c004fe245b18d9255336790228edd390b5a4c2e683d9b64aa82e3c3ebc",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12985720788128674
       },
       {
         "cut_index": 10,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00010.raw.pkl.gz",
+        "cut": "private-reference-34800e5e86bbb31572ab",
         "sha256": "485e87e63bd12645e3b3ec7020501709fe27bf542af58e93e86968039e6f01c0",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11107095796614885
       },
       {
         "cut_index": 11,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00011.raw.pkl.gz",
+        "cut": "private-reference-a40c8a7ca898aeac8993",
         "sha256": "c3e16d32b6d4f91de718e130d2b11c7a35a4991054789185e51dc66223ee1a71",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14406075002625585
       },
       {
         "cut_index": 12,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00012.raw.pkl.gz",
+        "cut": "private-reference-ca1603451e09f1ee17b5",
         "sha256": "386b32372185e8e0cf627d635a7165e28bbdab80f55ffa0f99d5f3b6f1746572",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11355808284133673
       },
       {
         "cut_index": 13,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00013.raw.pkl.gz",
+        "cut": "private-reference-ce05b208eea3a804f3f2",
         "sha256": "9ae1f32b42406c636c6c8580bbfdea264532a0b5f8e29b00ee45d9e1acb85b69",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12633533286862075
       },
       {
         "cut_index": 14,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00014.raw.pkl.gz",
+        "cut": "private-reference-d25409a5fb67bb225101",
         "sha256": "09d5f330b5286b996eec4700879a02c7ba55d0a77d0c3c77b570d4cc7312ce06",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11760229105129838
       },
       {
         "cut_index": 15,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00015.raw.pkl.gz",
+        "cut": "private-reference-fc96378908fccc4617ee",
         "sha256": "84372a679c1f44fe5f988841a1d3d073c5f1c2668ad337e25a6517b117e9fea9",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11354612489230931
       },
       {
         "cut_index": 16,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00016.raw.pkl.gz",
+        "cut": "private-reference-ec084a457c0b9f3adc85",
         "sha256": "6c56088c8d6e7cf8cdf047e3ba3b582eeb8d362120f68a91dc7ee51eb7b7f2d0",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11761695914901793
       },
       {
         "cut_index": 17,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00017.raw.pkl.gz",
+        "cut": "private-reference-74b2e60d9e5857f7b8ae",
         "sha256": "6e19c7dab4034063ae89d8b95672e642f3ca1845e4eb93bccc97b0cf0735f735",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.15166420792229474
       },
       {
         "cut_index": 18,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00018.raw.pkl.gz",
+        "cut": "private-reference-2acdf69dddb4ea74d51b",
         "sha256": "5f924558c42906c49f12558e5b000d18587d84a7fe9bc49488568905bc4a2f8b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12344779097475111
       },
       {
         "cut_index": 19,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00019.raw.pkl.gz",
+        "cut": "private-reference-3bbf002810280c744f9a",
         "sha256": "37513e5975019d4ea805c6fe33b3395d21926de9199681833d97c4babafc86a7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.17401895904913545
       },
       {
         "cut_index": 20,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00020.raw.pkl.gz",
+        "cut": "private-reference-310f7667ec3b2e2b3caa",
         "sha256": "771f87725ec273b5a40b84e2ffd01fc7aee000b248f3b2db329a3a2c79561eff",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.10778679186478257
       },
       {
         "cut_index": 21,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00021.raw.pkl.gz",
+        "cut": "private-reference-55ace907be97f51159e0",
         "sha256": "f14da3dc65c526195c81faedab3e6c75595f2058eb4be1e8501ab35d237caa13",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.16562604205682874
       },
       {
         "cut_index": 22,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00022.raw.pkl.gz",
+        "cut": "private-reference-b0491253a37f2baa16df",
         "sha256": "bebadaec6d4af75c2aebfcb072fa0d541c0f51c0b5f92ba9b8af98797f733200",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3776305839419365
       },
       {
         "cut_index": 23,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00023.raw.pkl.gz",
+        "cut": "private-reference-61c6c00ae2840f43b99a",
         "sha256": "ed096bd71cd2dd2bf3ec841ef930bf5d5ac2f3325533e791422d744bbb46e9a1",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1412503330502659
       },
       {
         "cut_index": 24,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00024.raw.pkl.gz",
+        "cut": "private-reference-4af2a82d5286fafd8827",
         "sha256": "0b05ae8111c8bbe00dd1ce21d07005d58279b42e08d286b7a5b7cb82ee59017e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13542174990288913
       },
       {
         "cut_index": 25,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00025.raw.pkl.gz",
+        "cut": "private-reference-aa098d156e533eb99085",
         "sha256": "a42e1487d5e5c3ac355df3a486c1f890fe4a680ad0b956f6157187ffe8b83127",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12728529213927686
       },
       {
         "cut_index": 26,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00026.raw.pkl.gz",
+        "cut": "private-reference-1945a1a9f2f66e52de51",
         "sha256": "319f325c3c6f146fec58ec8201e00d27a6c3a3511def89dde487ff52a91e314b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1071289589162916
       },
       {
         "cut_index": 27,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00027.raw.pkl.gz",
+        "cut": "private-reference-5733809c6e2c45f74472",
         "sha256": "e227b32e06252b3003312195a201f4d26e99050ebd13b88287bb1bcac7eaa970",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.17607058305293322
       },
       {
         "cut_index": 28,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00028.raw.pkl.gz",
+        "cut": "private-reference-7d962e9e9d5c65d9d0d2",
         "sha256": "b6f61025da69987c03a23357d89f888611ac713e06d824a088dd695e11fee3e8",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.111574542010203
       },
       {
         "cut_index": 29,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00029.raw.pkl.gz",
+        "cut": "private-reference-7ee892476085dcb36e9f",
         "sha256": "cd1f345e9840ca039f2824a839f7593e80c31e33849269e24d550b2a569030dc",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.0915356248151511
       },
       {
         "cut_index": 30,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00030.raw.pkl.gz",
+        "cut": "private-reference-fab31c1300037bdd06f5",
         "sha256": "00a13a93c5fad5a12fb457756af3f83b9e02b8c31424f9ce5f50e58eb6afe8e6",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.15196354198269546
       },
       {
         "cut_index": 31,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00031.raw.pkl.gz",
+        "cut": "private-reference-dcd234075e8b38d12173",
         "sha256": "f16e564da3a94ecbc9a5550fd63e9c8c01337f4da0174ff95d4ab6cae334bc39",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1578311671037227
       },
       {
         "cut_index": 32,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00032.raw.pkl.gz",
+        "cut": "private-reference-c1444a36f71c5381a3c0",
         "sha256": "00b7749748318bebcfda4f650bcda0725ef05b03f075ce2d1b6a16999ea7d6a8",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13033300009556115
       },
       {
         "cut_index": 33,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00033.raw.pkl.gz",
+        "cut": "private-reference-4a2e373d146ab1238080",
         "sha256": "1a91438874ef8e5e4c2fc1b8cb54d672c1fd0974f45c1a467c0bd5fd31ac8ae6",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12908170791342854
       },
       {
         "cut_index": 34,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00034.raw.pkl.gz",
+        "cut": "private-reference-16fcde05d11ab0f72ed4",
         "sha256": "8439e541a8ad3094832cee8958f08203d79e5084cd993b70ee9c374b08a89f05",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.011675332905724645
       },
       {
         "cut_index": 35,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00035.raw.pkl.gz",
+        "cut": "private-reference-0c4a157943321d884172",
         "sha256": "405e7521c1a6377e7d422dbc2026718b3dab521e3e790721d5bfbf009378b63d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11052604205906391
       },
       {
         "cut_index": 36,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00036.raw.pkl.gz",
+        "cut": "private-reference-f1093b7e1f0f6926cfc4",
         "sha256": "d83324a9b6c545d000d04894f993630b48b414e52543cebf6444c1c9238a3d2c",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.17252395791001618
       },
       {
         "cut_index": 37,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00037.raw.pkl.gz",
+        "cut": "private-reference-2f3e3bc04fab49673aa7",
         "sha256": "a594d93ea97796b69e69cca86cf1c66cf9de394e9408ceccf02570d3af17012f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13733541686087847
       },
       {
         "cut_index": 38,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00038.raw.pkl.gz",
+        "cut": "private-reference-f14d9fa7670354860084",
         "sha256": "78fe489875f76d2cdf550dc7805e65ef313309bdd8d763b9ecabfc57d232b717",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13507066597230732
       },
       {
         "cut_index": 39,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00039.raw.pkl.gz",
+        "cut": "private-reference-8618883fdcafb5809383",
         "sha256": "75d4d47858d5f1e22269ab0232028c294eafb5fb3f2500556022b03135144bf3",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.18664016714319587
       },
       {
         "cut_index": 40,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00040.raw.pkl.gz",
+        "cut": "private-reference-d53b2fc8ee78bda41075",
         "sha256": "67b397a46d6e4e81b4d3c02a02118bec5bc9e48db28e7a0b53b9a27ede3f00ee",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1481108341831714
       },
       {
         "cut_index": 41,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00041.raw.pkl.gz",
+        "cut": "private-reference-99f159f4109d356e5b3b",
         "sha256": "cd82093be6e79dc0d4c2267ea0ec802fc2eeb0fc0299cf77bed8c7e05c03d664",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.004234333988279104
       },
       {
         "cut_index": 42,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00042.raw.pkl.gz",
+        "cut": "private-reference-6cddc4dce4555987a1ac",
         "sha256": "7bfb75ee6849b2535328672f0461e8b35d4c0cbb6accea5b7b4544bedaeb618d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.003963790833950043
       },
       {
         "cut_index": 43,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00043.raw.pkl.gz",
+        "cut": "private-reference-60cb756627d7cc9cd041",
         "sha256": "6cad8960eb4ea8cfc5f5a0189aea4233165447b45dba94b4892de8ed213ab837",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1387692498974502
       },
       {
         "cut_index": 44,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00044.raw.pkl.gz",
+        "cut": "private-reference-5c0feb0b67fecb423077",
         "sha256": "e0dc04d9e6fb26a9088983bd0fc59ef6a10ae2e55cb9e818f8b2bd7f0cac8da6",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13426895788870752
       },
       {
         "cut_index": 45,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00045.raw.pkl.gz",
+        "cut": "private-reference-17695514c8ee31f7f85f",
         "sha256": "3aeb66c467dd0a28f4cfc5c40f4d1d05065ca7c9f5755614eff55a6226643945",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.130418999819085
       },
       {
         "cut_index": 46,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00046.raw.pkl.gz",
+        "cut": "private-reference-b0868fc3504e43e73f3d",
         "sha256": "ced7469402322f2aaab88d426ab0fe31c7bccf1fb81affbc8ea70facf97d9efc",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.128316791029647
       },
       {
         "cut_index": 47,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00047.raw.pkl.gz",
+        "cut": "private-reference-dadf987f60b5376a64df",
         "sha256": "a8e75048001108168fa9e586e0b207959c0b9a629f296bbb860b8234246cadde",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14923333399929106
       },
       {
         "cut_index": 48,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00048.raw.pkl.gz",
+        "cut": "private-reference-370e38433bd6f9e59eb0",
         "sha256": "58810a44e188b5e4918841cc720402ff9e4c6470b7a5a8f202272050071c9f9a",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14462420903146267
       },
       {
         "cut_index": 49,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00049.raw.pkl.gz",
+        "cut": "private-reference-dbe1c46b56c80079c7fa",
         "sha256": "95c3bb37e193cf069a4246b6f6bc8023e9ff9d7af33131ac0efcff6c416dca1f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.11878999997861683
       },
       {
         "cut_index": 50,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00050.raw.pkl.gz",
+        "cut": "private-reference-c3c44c5452b94aff5e5f",
         "sha256": "6b1bf526ea2bc0e3c62e551a3e1f58a50a9c2bd247977b43ae91627b4ff2bd1c",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.10130762495100498
       },
       {
         "cut_index": 51,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00051.raw.pkl.gz",
+        "cut": "private-reference-a1feee53669e5c710ff5",
         "sha256": "4ec7aa4fe48cbb52549a1ab65bea967f94b49723ba2f50e9ed6951cac8fbf792",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1345253330655396
       },
       {
         "cut_index": 52,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00052.raw.pkl.gz",
+        "cut": "private-reference-e90fb720f603c599ac00",
         "sha256": "9a307078b9d6851278fd572a4582b22e7abcd0afa70fc20156f02a24f73228b7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.15247983299195766
       },
       {
         "cut_index": 53,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00053.raw.pkl.gz",
+        "cut": "private-reference-91f41057ba8cd7032ee4",
         "sha256": "c42b964f4625a50481f1fcf130cc14266793611dbe5bfc1dad7a9b6580cd58d6",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14127758401446044
       },
       {
         "cut_index": 54,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00054.raw.pkl.gz",
+        "cut": "private-reference-6d1b0b4d19fe623fcd89",
         "sha256": "9470a4da50a8adb3c800f3a6861176e6a49a34d08653e8e821691aa3cd66d75a",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.12988866586238146
       },
       {
         "cut_index": 55,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00055.raw.pkl.gz",
+        "cut": "private-reference-9a595aeda973c90170e7",
         "sha256": "ba05c7b1dc50b16c2944ff7ca65a13c1528f1ae3b7ef2fd815ac32ccfb11221f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.1422624159604311
       },
       {
         "cut_index": 56,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00056.raw.pkl.gz",
+        "cut": "private-reference-49899642bad91ae385ba",
         "sha256": "dbe7c0305a58511513b4e0c98b5ac6e85ccb2192dbfa06b15f7e1996796273cf",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.13626004103571177
       },
       {
         "cut_index": 57,
-        "cut": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/golden/seed1/case590/R_to_P/cuts/cut_00057.raw.pkl.gz",
+        "cut": "private-reference-50c765801b208931f6a0",
         "sha256": "fe1125c2baa4be023dbbb0cf4b7a8bfc73415213d2d5b49f4da4a463f23ec0eb",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14549133297987282
@@ -437,5 +437,9 @@
     "anchors": [],
     "seed_selection": "random"
   },
-  "peak_mib": 162.671875
+  "peak_mib": 162.671875,
+  "privacy_projection": {
+    "original_sha256": "19da4200112efb6f86081d147f36cf473b4bea1243af587f9221c1c0b9c0f1d4",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

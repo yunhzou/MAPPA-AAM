@@ -1,7 +1,7 @@
 {
   "index": 114,
-  "input": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909/inputs/114/input.json",
-  "reference": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/pr7.V.dodh_ts910/rp_stage.json",
+  "input": "private-reference-b9758fb5f8711def932b",
+  "reference": "private-reference-2021d8aa3d37ce9a3bca",
   "input_sha256": "1b6ac96cc88364643cb438b6f467fe7ed3a74c50c941263495342b53bc5e7f4f",
   "reference_sha256": "3cf529db1da6ec707e91555cd2f57e532bfb9d7ad5344e388b72da6821a6ae2d",
   "bond_floor": 0.2,
@@ -101,7 +101,7 @@
               24,
               26
             ],
-            "artifact": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent/seed_00/witnesses.json"
+            "artifact": "private-reference-330030b023b545f168e2"
           }
         },
         {
@@ -138,7 +138,7 @@
               24,
               27
             ],
-            "artifact": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent/seed_00/witnesses.json"
+            "artifact": "private-reference-330030b023b545f168e2"
           }
         }
       ]
@@ -183,7 +183,7 @@
               24,
               26
             ],
-            "artifact": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency/seed_00/witnesses.json"
+            "artifact": "private-reference-e2c17b21911cdca9f302"
           }
         },
         {
@@ -220,11 +220,15 @@
               24,
               27
             ],
-            "artifact": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency/seed_00/witnesses.json"
+            "artifact": "private-reference-e2c17b21911cdca9f302"
           }
         }
       ]
     }
   ],
-  "scope": "Exact reactant-index event signatures of saved terminal witnesses, not chemical ground truth or an exhaustive expansion of compressed families."
+  "scope": "Exact reactant-index event signatures of saved terminal witnesses, not chemical ground truth or an exhaustive expansion of compressed families.",
+  "privacy_projection": {
+    "original_sha256": "5d3a1b14d397710be8351c946937e403d791cc6fd814bd3696fe0338475d7439",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

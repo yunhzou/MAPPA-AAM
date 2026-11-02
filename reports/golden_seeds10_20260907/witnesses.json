@@ -134,7 +134,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/602/cuts/aam.pkl.gz",
+    "archive": "private-reference-a408548e283338aa4c20",
     "total_seconds": 3.32887580152601
   },
   {
@@ -360,7 +360,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/737/cuts/aam.pkl.gz",
+    "archive": "private-reference-8e7d444c26756def7bbe",
     "total_seconds": 52.51713533140719
   },
   {
@@ -570,7 +570,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/775/cuts/aam.pkl.gz",
+    "archive": "private-reference-3f70750b52ebd3d85c61",
     "total_seconds": 19.981035003438592
   },
   {
@@ -908,7 +908,7 @@
       ]
     ],
     "search_incomplete": true,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/846/cuts/cut_00001.json"
+    "archive": "private-reference-ff17ba720f76e0c7fb8a"
   },
   {
     "index": 850,
@@ -1205,7 +1205,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/850/cuts/aam.pkl.gz",
+    "archive": "private-reference-d0251da12e3cc5d86556",
     "total_seconds": 80.52599052991718
   },
   {
@@ -1391,7 +1391,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/964/cuts/aam.pkl.gz",
+    "archive": "private-reference-653f4f10cc7bceee3760",
     "total_seconds": 18.188481295015663
   },
   {
@@ -1681,7 +1681,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/1230/cuts/aam.pkl.gz",
+    "archive": "private-reference-76dbf7297d24e0418384",
     "total_seconds": 21.301451612263918
   },
   {
@@ -1903,7 +1903,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/1314/cuts/aam.pkl.gz",
+    "archive": "private-reference-265e0c90838df04a81b1",
     "total_seconds": 19.21970735024661
   },
   {
@@ -2117,7 +2117,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907/1400/cuts/aam.pkl.gz",
+    "archive": "private-reference-9be0ae2b55451e0a7819",
     "total_seconds": 12.885817714966834
   }
 ]

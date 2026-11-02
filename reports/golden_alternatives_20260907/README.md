@@ -22,6 +22,6 @@ These are witness-level comparisons, not proofs that each family has been optima
 
 ## Verification and provenance
 
-Original archives: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907`.
+Original archives: private artifact storage.
 
 Generation script: `bench/view_golden_alternatives.py`. `mapping.json` stores full mappings, selected terminals, actual fragment steps and colors; `classes.json` stores counts and scores. Drawing inputs are checked against archived elements and bond matrices. Every displayed AAM fragment partition and its mapped target atom set was checked, along with class terminal totals and JavaScript syntax. HTTP serving returned 200. A browser screenshot check could not run because the installed browser lacks `libnspr4.so`; visual rendering has not been independently confirmed in a browser here.

@@ -33,7 +33,9 @@ already written with the wrong metadata class are preserved unchanged.
   The complete decoded JSON record retains SHA-256
   `6f67159f8a07143ba94a67f5534159e52d543a36b99f7be492cad3980802bad6`.
 - No benchmark rerun was needed for this cleanup.
-- DFW job `21139088` rebuilt the engine from commit `254b862` and completed
+- A distributed validation rebuilt the engine from commit `254b862` and completed
   successfully: 29 smoke checks and 52 affected-module tests passed. The latter
   cover native dispatch/parity, checkpoint types, default execution, branch caps
   and shared cache recovery. Build and tests took 67 seconds in one allocation.
+
+Raw operational records and full artifacts are retained privately.

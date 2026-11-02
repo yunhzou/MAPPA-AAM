@@ -362,279 +362,32 @@
       "443233_2",
       "443233_5"
     ],
-    "excluded_nodes": [
-      "bosque20",
-      "bosque26",
-      "bosque46",
-      "bosque48",
-      "bosque52",
-      "bosque56",
-      "bosque67",
-      "bosque74",
-      "bosque77",
-      "bosque78",
-      "bosque81",
-      "bosque83"
-    ],
-    "replacement_jobs": [
-      {
-        "job": "447646",
-        "replaces_array": 443233,
-        "slots": [
-          0,
-          2,
-          5,
-          10,
-          11,
-          12,
-          13,
-          22,
-          23,
-          38
-        ],
-        "offset": 0
-      },
-      {
-        "job": "447647",
-        "replaces_array": 443235,
-        "slots": [
-          3,
-          11,
-          21,
-          36
-        ],
-        "offset": 1000
-      },
-      {
-        "job": "447648",
-        "replaces_array": 443237,
-        "slots": [
-          9,
-          13
-        ],
-        "offset": 2000
-      },
-      {
-        "job": "447886",
-        "replaces_task": "447646_13",
-        "offset": 0,
-        "slots": [
-          13
-        ],
-        "partition": "cpunodes"
-      },
-      {
-        "job": "447887",
-        "replaces_task": "447647_11",
-        "offset": 1000,
-        "slots": [
-          11
-        ],
-        "partition": "cpunodes"
-      },
-      {
-        "job": "448761",
-        "phase": "analyze",
-        "replaces_array": 443238,
-        "slots": [
-          150,
-          155,
-          160,
-          166,
-          171,
-          137,
-          147
-        ],
-        "offset": 2000,
-        "partition": "cpunodes"
-      },
-      {
-        "job": "451724",
-        "phase": "combine",
-        "replaces_array": 443241,
-        "slots": [
-          429,
-          433,
-          452,
-          469,
-          473,
-          483,
-          490,
-          495,
-          507,
-          509,
-          510,
-          522,
-          383,
-          390,
-          395,
-          382,
-          287,
-          299,
-          313,
-          321,
-          328,
-          330,
-          331,
-          353,
-          354,
-          355,
-          357,
-          364,
-          380,
-          139,
-          143,
-          150,
-          167,
-          174,
-          47,
-          57,
-          8,
-          21,
-          41
-        ],
-        "offset": 0,
-        "partition": "cpunodes"
-      },
-      {
-        "job": "451826",
-        "phase": "combine",
-        "replaces_array": 443242,
-        "slots": [
-          342,
-          344,
-          258,
-          282,
-          285,
-          286,
-          299,
-          302,
-          303,
-          108,
-          114,
-          122,
-          144,
-          145,
-          13,
-          21
-        ],
-        "offset": 1000,
-        "partition": "cpunodes"
-      },
-      {
-        "job": "452121",
-        "phase": "combine_batch",
-        "tasks_file": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/reporting/combine_batch_tasks.json",
-        "count": 557,
-        "workers": 8,
-        "partition": "cpunodes_nia",
-        "node": "bosque79"
-      }
-    ],
     "actions": [
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443234"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443236"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443238"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes_nia",
-          "--cpus-per-task=16",
-          "--mem=32G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_recover",
-          "--exclude=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83",
-          "--array=0,2,5,10,11,12,13,22,23,38%16",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase search --offset 0 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "output": "447646"
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443234",
-          "Dependency=afterany:447646",
-          "ExcNodeList=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes_nia",
-          "--cpus-per-task=16",
-          "--mem=32G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_recover",
-          "--exclude=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83",
-          "--array=3,11,21,36%16",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase search --offset 1000 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "output": "447647"
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443236",
-          "Dependency=afterany:447647",
-          "ExcNodeList=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes_nia",
-          "--cpus-per-task=16",
-          "--mem=32G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_recover",
-          "--exclude=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83",
-          "--array=9,13%16",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase search --offset 2000 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "output": "447648"
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443238",
-          "Dependency=afterany:447648",
-          "ExcNodeList=bosque20,bosque26,bosque46,bosque48,bosque52,bosque56,bosque67,bosque74,bosque77,bosque78,bosque81,bosque83"
-        ],
         "output": ""
       },
       {
@@ -660,36 +413,15 @@
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443234"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443236"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443238"
-        ],
         "output": ""
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443234",
-          "ArrayTaskThrottle=64"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
@@ -697,12 +429,6 @@
         "note": "Finished array elements may report already finished; pending array throttle verified separately."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443236",
-          "ArrayTaskThrottle=64"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
@@ -710,12 +436,6 @@
         "note": "Finished array elements may report already finished; pending array throttle verified separately."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443238",
-          "ArrayTaskThrottle=64"
-        ],
         "stdout": "",
         "stderr": "443238_0-50,52-55,58-65,68,70-83,85...: Job has already finished\n",
         "exit": 1,
@@ -723,12 +443,6 @@
         "note": "Finished array elements may report already finished; pending array throttle verified separately."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443241",
-          "ArrayTaskThrottle=64"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
@@ -736,12 +450,6 @@
         "note": "Finished array elements may report already finished; pending array throttle verified separately."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443242",
-          "ArrayTaskThrottle=64"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
@@ -749,37 +457,14 @@
         "note": "Finished array elements may report already finished; pending array throttle verified separately."
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443234"
-        ],
         "output": "",
         "time": 1788891998.6948712
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes",
-          "--cpus-per-task=16",
-          "--mem=32G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_recover",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%j.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase search --offset 0 --slot 13"
-        ],
         "output": "447886",
         "time": 1788891998.7059648
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443234",
-          "Dependency=afterany:447886"
-        ],
         "output": "",
         "time": 1788891998.797713
       },
@@ -792,46 +477,18 @@
         "time": 1788891998.8095596
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443234"
-        ],
         "output": "",
         "time": 1788891998.8179185
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443236"
-        ],
         "output": "",
         "time": 1788891998.833289
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes",
-          "--cpus-per-task=16",
-          "--mem=32G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_recover",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%j.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase search --offset 1000 --slot 11"
-        ],
         "output": "447887",
         "time": 1788891998.8479958
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443236",
-          "Dependency=afterany:447887"
-        ],
         "output": "",
         "time": 1788891998.8792403
       },
@@ -844,46 +501,18 @@
         "time": 1788891998.8876195
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443236"
-        ],
         "output": "",
         "time": 1788891998.9116583
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443241"
-        ],
         "output": "",
         "time": 1788892160.8211756
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "443242"
-        ],
         "output": "",
         "time": 1788892160.8319976
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes",
-          "--cpus-per-task=1",
-          "--mem=24G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_ana_retry",
-          "--array=150,155,160,166,171,137,147%24",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase analyze --offset 2000 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "output": "448761",
         "time": 1788892160.8430054
       },
@@ -902,126 +531,56 @@
         "time": 1788892160.8597853
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443241",
-          "Dependency=afterany:443234:443236:443238:443240:448761"
-        ],
         "output": "",
         "time": 1788892160.8666549
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443241"
-        ],
         "output": "",
         "time": 1788892160.8809044
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443242",
-          "Dependency=afterany:443234:443236:443238:443240:448761"
-        ],
         "output": "",
         "time": 1788892160.897305
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "443242"
-        ],
         "output": "",
         "time": 1788892160.9220648
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443236",
-          "ArrayTaskThrottle=128"
-        ],
         "stdout": "",
         "stderr": "443236_74,101,114,123,129,151,180-1...: Job has already finished\n",
         "exit": 1,
         "time": 1788892551.2049246
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443241",
-          "Dependency=0"
-        ],
         "output": "",
         "time": 1788892855.9342237,
         "reason": "All 3702 analysis worker completion records verified. Bypass scheduler epilog-only dependencies."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443242",
-          "Dependency=0"
-        ],
         "output": "",
         "time": 1788892855.9410937,
         "reason": "All 3702 analysis worker completion records verified. Bypass scheduler epilog-only dependencies."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443241",
-          "ArrayTaskThrottle=128"
-        ],
         "stdout": "",
         "stderr": "443241_0-7,9-20,22-40,42-46,49-56,5...: Job has already finished\n",
         "exit": 1,
         "time": 1788892952.9961214
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443242",
-          "ArrayTaskThrottle=128"
-        ],
         "stdout": "",
         "stderr": "443242_0-12,14-20,22-32,34-107,109-...: Job has already finished\n",
         "exit": 1,
         "time": 1788892953.037202
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "446266"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
         "time": 1788893086.0660355
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes",
-          "--cpus-per-task=1",
-          "--mem=24G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_comb_retry",
-          "--array=429,433,452,469,473,483,490,495,507,509,510,522,383,390,395,382,287,299,313,321,328,330,331,353,354,355,357,364,380,139,143,150,167,174,47,57,8,21,41%32",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase combine --offset 0 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "stdout": "451724\n",
         "stderr": "",
         "exit": 0,
@@ -1076,19 +635,6 @@
         "time": 1788893087.1686482
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes",
-          "--cpus-per-task=1",
-          "--mem=24G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_comb_retry",
-          "--array=342,344,258,282,285,286,299,302,303,108,114,122,144,145,13,21%32",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/status/slurm_%A_%a.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench/golden_publication.py worker --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --phase combine --offset 1000 --slot \"$SLURM_ARRAY_TASK_ID\""
-        ],
         "stdout": "451826\n",
         "stderr": "",
         "exit": 0,
@@ -1120,58 +666,30 @@
         "time": 1788893088.412644
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443241",
-          "Partition=cpunodes"
-        ],
         "stdout": "",
         "stderr": "443241_0-589,591-597,599-650: Job has already finished\n443241_590,598,651-751: Job is no longer pending execution\n",
         "exit": 1,
         "time": 1788893088.4387443
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=443242",
-          "Partition=cpunodes"
-        ],
         "stdout": "",
         "stderr": "443242_0-313,315-350,352-357,359-36...: Job has already finished\n443242_314,351,358,365: Job is no longer pending execution\n",
         "exit": 1,
         "time": 1788893088.5162926
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=446266",
-          "Dependency=afterany:443241:443242:451724:451826"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
         "time": 1788893088.7069893
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "446266"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
         "time": 1788893088.7805898
       },
       {
-        "command": [
-          "scontrol",
-          "hold",
-          "446266"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
@@ -1744,67 +1262,31 @@
         "time": 1788893242.7382085
       },
       {
-        "command": [
-          "sbatch",
-          "--parsable",
-          "--partition=cpunodes_nia",
-          "--nodelist=bosque79",
-          "--cpus-per-task=8",
-          "--mem=160G",
-          "--time=00:10:00",
-          "--job-name=gold_paper_comb_batch",
-          "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/reporting/combine_batch_%j.log",
-          "--wrap",
-          "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/engine/bench PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/reporting/publication_combine_batch.py --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 --tasks /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/reporting/combine_batch_tasks.json --workers 8"
-        ],
         "stdout": "452121\n",
         "stderr": "",
         "exit": 0,
         "time": 1788893243.2073932
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=446266",
-          "Dependency=afterany:452121"
-        ],
         "stdout": "",
         "stderr": "",
         "exit": 0,
         "time": 1788893243.4051247
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=452121",
-          "TimeLimit=00:11:00"
-        ],
         "stdout": "",
-        "stderr": "Job has already finished for job 452121\n",
+        "stderr": "Job has already finished for private-reference-b822f465384478c85f17\n",
         "exit": 1,
         "time": 1788893845.2963321,
         "reason": "One final comparison worker remains; allow its unchanged 300-second watchdog to finish and persist status. No search or verification budget changed. This allocation dispatched 557 separate comparisons."
       },
       {
-        "command": [
-          "scontrol",
-          "update",
-          "JobId=446266",
-          "Dependency=0"
-        ],
         "stdout": "",
         "exit": 0,
         "time": 1788893865.2461345,
         "reason": "All 1851 comparison completion records verified."
       },
       {
-        "command": [
-          "scontrol",
-          "release",
-          "446266"
-        ],
         "stdout": "",
         "exit": 0,
         "time": 1788893865.2547855,
@@ -1815,5 +1297,9 @@
   "accounting_export": {
     "exit": 0,
     "stderr": ""
+  },
+  "privacy_projection": {
+    "original_sha256": "eda206cb994c1da4e133791efa93968686ed9a94482ca5e1b6001a778a9c9ec9",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

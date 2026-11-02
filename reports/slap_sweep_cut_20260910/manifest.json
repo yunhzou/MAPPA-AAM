@@ -2,7 +2,7 @@
   "cases": 1851,
   "tasks": 7404,
   "expected_calls": 355104,
-  "dataset": "/h/399/yunhengzou/coordinate_alignment/data/aam_benchmarks/golden_original_20260906",
+  "dataset": "private-reference-cd61f953dce9d808466d",
   "audit_sha256": "d7c0f678b2a8112a0d96036e5553f0ea9d28959217d082b05772c1213199bd0e",
   "commit": "8cb38919542c392293c1410ed83d8d1ccf67206d",
   "upstream_commit": "ea248fd9494f52f4865193e87a98cc92c62b5f9e",
@@ -16,8 +16,7 @@
     "vendor/slapmapper/aam/_smiles.py": "f56413cdb6a8ec1303179f7c87dbcc9241e2c6cabea038cddb63225d2333e7a5"
   },
   "script_sha256": "a6d1e3951945744ce647e27746aba18f9cb3e84b53ed647bdad4e4d2abdc7614",
-  "python": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/bin/python",
-  "workers_per_node": 32,
+  "python": "private-reference-1a9787024f1fc602b563",
   "batches": 32,
   "seed": 20260910,
   "hash_seed": 0,
@@ -29,5 +28,9 @@
   "balancing": "Unchanged upstream smiles2lgp element-balancing placeholders",
   "native_archive": "native.bin: independent gzip/pickle frames; records.jsonl: committed offsets and lengths",
   "evaluation": "Original strict heavy-atom relation modulo endpoint chemical symmetry, including unmatched atoms",
-  "scheduling": "Largest label-free structural work estimates distributed across nodes; no search-policy effect"
+  "scheduling": "Largest label-free structural work estimates distributed across nodes; no search-policy effect",
+  "privacy_projection": {
+    "original_sha256": "c6d4dfd07478cceaff50aafab8004335d9292d69bf3654f48ed7562593b75b69",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

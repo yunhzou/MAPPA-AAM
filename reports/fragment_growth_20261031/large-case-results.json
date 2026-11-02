@@ -376,7 +376,7 @@
   "historical_comparison": {
     "archive_task": "mac-check/7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
     "archive_blob": {
-      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/mac-failures-20261031/replay-8g/bundles/f73d2eeca2d5403eb30b1b0e4fa6eaf4-00000.bundle",
+      "path": "private-reference-8483c534ff406a694121",
       "offset": 0,
       "size": 315564,
       "sha256": "c2ebf7129ea7f901713ea97e73754820d743170e9b89e10366e8d2b3ae751802"
@@ -406,5 +406,9 @@
       }
     ]
   },
-  "measurement_conditions": "One fresh process per policy, two consecutive identical cuts per process; policies overlapped on separate CPUs on the 14-core M4 Pro. No other benchmark launched. Report CPU and wall time; one sample per condition, not statistical estimates."
+  "measurement_conditions": "One fresh process per policy, two consecutive identical cuts per process; policies overlapped on separate CPUs on the 14-core M4 Pro. No other benchmark launched. Report CPU and wall time; one sample per condition, not statistical estimates.",
+  "privacy_projection": {
+    "original_sha256": "80a84f793f90e38791d57a0fbe1cf1990f143e881e42d19719759e421a2f927f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

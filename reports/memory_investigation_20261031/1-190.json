@@ -11,7 +11,7 @@
     "sampled_cpu_seconds": 8.02000000000001,
     "memory_samples": 36,
     "phase_at_exit": "compute",
-    "worker": "cpu1-00148:270728:d02d119d6d754371b410d0a16fc9002c",
+    "worker": "private-reference-ca07f7cd9578a3694d5b:270728:d02d119d6d754371b410d0a16fc9002c",
     "monitoring_seconds": 0.008223403128795326,
     "elapsed_seconds": 8.167408350971527
   },
@@ -1586,5 +1586,9 @@
   ],
   "started": 624841.26165322,
   "peak_bytes": 2453839872,
-  "exitcode": 0
+  "exitcode": 0,
+  "privacy_projection": {
+    "original_sha256": "334e38bd4d75ffbf464f322292b6b0354e751f584427bf623c741b6a5663ce9f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

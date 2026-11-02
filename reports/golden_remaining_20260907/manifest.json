@@ -1,5 +1,5 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907",
+  "source": "private-reference-0329d2694d516a3fc298",
   "jobs": [
     {
       "index": 19,
@@ -330,5 +330,9 @@
   "purpose": "Separate diagnosis, not a replacement benchmark; 3 seeds, tolerance 1.0 unchanged",
   "search_watchdog": 300,
   "score_watchdog": 180,
-  "workers": 2
+  "workers": 2,
+  "privacy_projection": {
+    "original_sha256": "4ae8213c6acfaecaac79d93e4b5b167c85e3890d4ab556e969fc3d577ca7cd1c",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

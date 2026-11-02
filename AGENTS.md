@@ -52,6 +52,11 @@ Development often takes place locally and on a cluster. Whenever development spa
 
 There must be a single source of truth for the project, and communication with the user must consistently refer to it. Each machine must have only one copy of the codebase. Enforce this, and use Git to reconcile changes whenever the copies become unsynchronized.
 
+Keep cluster configuration, accounts, node/host names, paths, quotas and raw
+scheduler records in private external configuration or a Git-ignored private
+area. Commit only portable launchers and sanitized scientific evidence. Check
+generated reports and logs for infrastructure details before publishing.
+
 ## 6. Validation scope
 
 Use the test commands in README.md. For routine code refactors, run the smoke

@@ -60,14 +60,9 @@ Make verification consume the **complete fragment-family contract**: assignment 
 
 ## Artifacts
 
-Cluster investigation:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_remaining_20260907`
-
-The immutable initial diagnostic engine and manifest, all search cut checkpoints, process exit statuses, generator-only checks and independent positive witnesses are retained. Main Slurm array: 440281, at most 32 two-worker jobs, 32 GiB per job, five-minute search watchdog and nine-minute job limit. Saved-only rechecks use separate bounded jobs; stalled unstarted jobs were rescheduled, not completed searches.
+Full artifacts are retained privately.
+The immutable initial diagnostic engine and manifest, all search cut checkpoints, process exit statuses, generator-only checks and independent positive witnesses are retained. Each search used two workers, a five-minute search watchdog and a nine-minute overall limit. Saved-only rechecks were separately bounded; only unstarted work was rescheduled.
 
 Local report:
-
-`/h/399/yunhengzou/coordinate_alignment/reports/golden_remaining_20260907`
-
+Original artifact locations are retained privately.
 `cases.csv` records all 81 diagnostic entries with explicit warnings about negative generator-only results. `singletons.json` contains the independent saved-domain witnesses. `summary.json` records code hashes and recovered case lists. **136 regression tests passed.**

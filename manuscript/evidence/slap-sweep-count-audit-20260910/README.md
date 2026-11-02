@@ -152,7 +152,7 @@ available, reproduce into a **new** output directory:
 ```bash
 PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
   ../.venv/bin/python bench/audit_slap_sweep_counts.py \
-  --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_edge_sweep_full_20260910 \
+  --run private-artifact:f389dbdbb2deeb45 \
   --output manuscript/build/slap-count-audit-repeat --workers 8 \
   2> manuscript/build/slap-count-audit-repeat-stderr.log
 ```

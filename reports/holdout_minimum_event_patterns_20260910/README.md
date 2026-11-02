@@ -77,7 +77,7 @@ exactly matches the symbolic event-pattern sets. `finite_checks.json` records
 these tests and event-type/symmetry checks. All analysis is offline; none of the
 mapping searches or reported mapping timings was rerun.
 
-Full analysis and frozen sources: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_minimum_event_patterns_20260910`.
+Full analysis and frozen sources: private artifact storage.
 Compressed snapshots, membership witnesses, enumeration records, input/source
 hashes, and job submissions accompany this report. The fixed manuscript baseline
 is separate from this cap-1000 follow-up.
@@ -98,7 +98,7 @@ results. The default retry uses a 30-second solver-query limit.
 To rebuild this report, run `bench/publish_minimum_event_analysis.py --run`
 with the source directory above and a fresh `--destination`, using the frozen
 source paths in the submission records and the manuscript plotting dependencies.
-`slurm_accounting.tsv` records analysis workers, including cancelled allocations
+private accounting records record analysis workers, including cancelled allocations
 that never started. These postprocessing costs do not alter the mapping-speed
 comparison in the preceding benchmark report.
 
@@ -106,3 +106,5 @@ Presentation cleanup: the bundled HTML template now embeds the shared reaction
 style. `presentation-migration.json` inside the archive records its old and new
 hashes; original provenance hashes describe the historical publication. All other
 archived source members, including the frozen numerical analysis, are unchanged.
+
+Raw operational records and full artifacts are retained privately.

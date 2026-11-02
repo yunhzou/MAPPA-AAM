@@ -144,11 +144,7 @@ or SLAP algorithm was changed. Compact evidence is in `saved_evidence.tar.gz`.
 
 Full cluster paths:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary_family_overlap_20260909
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_slap_small_graph_oracle_20260909
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_output_comparison_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 Full AAM checkpoints remain in these runs/their recorded source directories.
 Compact evidence includes per-case overlap results, oracle inputs and mappings,

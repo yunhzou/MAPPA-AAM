@@ -1,8 +1,8 @@
 {
   "created_utc": "2026-11-01T06:53:39.861948+00:00",
   "source_commit": "2f009516016efe3e1dbf97079908ac2f712e0327",
-  "previous": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101",
-  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_decode_v4_20261101",
+  "previous": "private-reference-9c4f5e5ebc9c06f88f0c",
+  "output": "private-reference-baa9bb5434356fc8f362",
   "schema": "mappa.decoded_events/v4",
   "cases": 1851,
   "directions": 3702,
@@ -19,20 +19,10 @@
   "requested_workers": 500,
   "workers_per_batch": 100,
   "batches": 5,
-  "nodes_per_batch": 4,
-  "allocated_cpus_per_batch": 112,
   "purpose": "Complete a consistent v4 decoding set from existing catalogues; original Golden outputs remain intact",
   "submitted_utc": "2026-11-01T06:53:39.955058+00:00",
-  "job": "21137977",
-  "command": [
-    "sbatch",
-    "--parsable",
-    "--export=ALL,MAPPA_GOLDEN_ROOT=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_decode_v4_20261101",
-    "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_decode_v4_20261101/%A_%a.log",
-    "--job-name=mappa-golden-v4",
-    "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/MAPPA-AAM/bench/golden-dfw.sbatch",
-    "--resume",
-    "--stop-after",
-    "decoding"
-  ]
+  "privacy_projection": {
+    "original_sha256": "4a4d19ac70ade5c3e386adc36cc7fdec91ca13c6d8afe8ab63fca08056c7268a",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -7,7 +7,7 @@
         "cap": 2000,
         "tolerance": 1.0,
         "workers": 8,
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_full_20260906/1665"
+        "source": "private-reference-3029f2e00ac7ae1dced6"
       }
     ],
     "watchdog_seconds": 570,
@@ -29,8 +29,12 @@
       "evaluation_seconds": null,
       "total_seconds": null,
       "exit_code": "stopped_after_reference_witness",
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts",
-      "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/partial_reference_check.json"
+      "archive": "private-reference-83acfdb465babfc137b2",
+      "evaluation": "private-reference-a315bcec7a4cf6eca19b"
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "1aebaa6797252c76b8c52b31dbc5e15558a3a04359be54f55b327b2d60262bb0",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -84,15 +84,35 @@
       "snapshot": "coordinate_case127.json",
       "source": "reports/colored_alternatives_20260914/coordinate_case127.json",
       "scope": "Three saved four-event MAPPA candidates and source fragment partitions for coordinate case127; read-only family and WBO verification. No search or decoder rerun.",
-      "sha256": "8991c096bc9c7a440f3862de0615f95740ad4911a5d1b59196791c5f7deb3b18"
+      "sha256": "0ff286a126d647c44f46660fe3bd1edeb9c0b3cacef4e83b06e363193d5f17a8",
+      "source_sha256": "8991c096bc9c7a440f3862de0615f95740ad4911a5d1b59196791c5f7deb3b18",
+      "publication_projection": "Private archive location omitted; saved chemical evidence unchanged."
     },
     {
       "snapshot": "end_to_end_timing.json",
       "source": "reports/final_end_to_end_optimized_20260916/summary.json",
       "sha256": "f8c38b4b298458f2567b859d4511c42fb25c3740c90855fd2201d585843ac1c0"
+    },
+    {
+      "snapshot": "current_golden.json",
+      "source": "reports/golden_retest_20261101",
+      "scope": "Current complete Golden validation; sanitized scientific projection",
+      "sha256": "1c80af9f7c6b28cd98e240290475bd0ad0219684573b4451b92d08f47cc6be7a"
+    },
+    {
+      "snapshot": "current_golden_cases.json",
+      "source": "reports/golden_retest_20261101",
+      "scope": "Current complete Golden validation; sanitized scientific projection",
+      "sha256": "2d4292a662ac3d27863aadc1453c158bd1b8e765596c53193d3eea99692c9638"
     }
   ],
   "limits": "Coordinate final pipeline has only a one-seed run. Golden ten-seed has eleven completed nonrecoveries and no unresolved reactions. Timing from different CPU cohorts is not pooled.",
   "publication_pipeline": "one-seed cut sweep; competition disabled",
-  "coordinate_refresh": "Fresh final search plus optimized public decoding completes all 140; all archived event-class sets and family counts match."
+  "coordinate_refresh": "Fresh final search plus optimized public decoding completes all 140; all archived event-class sets and family counts match.",
+  "historical_campaign": "September 2026; existing algorithm_commit and frozen_search_commit apply only to archived studies.",
+  "current_golden_validation": {
+    "source_commit": "096a010961f53944ddd4ddc433bd8d56f282a2f2",
+    "full_scope_complete": true,
+    "enzyme_campaign_complete": false
+  }
 }

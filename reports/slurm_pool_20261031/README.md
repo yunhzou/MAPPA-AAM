@@ -1,11 +1,9 @@
 # Real Slurm pool test: EnzymeMap case 446
 
-Job **187503** completed with exit code **0:0** on NRT, partition `cpu`, QoS
-`cpu-short`, nodes `cpu-0012` and `cpu-0006`. Tested source: `7548fd2c413756aa7edc0cd8561c309e749d6f67`.
-The allocation requested four CPUs per node; two compute workers per node left
-capacity for supervision and the coordinator. Slurm accounting shows one batch
-submission and one application step (`187503.0`), which stayed alive for all passes.
-Total allocation elapsed time was 2:01 including native builds.
+The run completed with exit code **0:0** using source
+`7548fd2c413756aa7edc0cd8561c309e749d6f67`. One submission and one persistent
+application step served all passes. Total elapsed time was **2:01**, including
+native builds. Raw operational records are retained privately.
 
 ## Scientific and execution checks
 
@@ -52,11 +50,10 @@ publication per one-seed pass, plus catalogue loading/publication and coordinato
 traffic. These summed worker timings are not additive to wall time because tasks
 overlap. No scientific algorithm change was made to hide transport costs.
 
-`summary.json` contains configurations, stage timings, worker identities and
-verification results. The original output directory retains the Slurm log,
-compressed task metrics, manifests and result bundles. The test driver and batch
-script are versioned here; this is one case-study validation, not a benchmark
-campaign framework.
+`summary.json` is a public projection of configurations, stage timings and
+verification results. Raw logs, manifests, operational records and result bundles
+are retained privately. The test driver is versioned here; this is one case-study
+validation. New campaigns use the [portable launcher](../../bench/README.md).
 
 ## Measured parallelism
 
@@ -83,18 +80,18 @@ configuration did not make those single-reaction stages parallel.
 limited worker participation was not identified in the original completion/PID
 audit; the timestamp analysis above corrects that incomplete characterization.
 
-## Readiness diagnosis: job 189373
+## Readiness diagnosis
 
-A readiness-instrumented rerun on NRT `cpu-short` reproduced the first-pass symptom
+A readiness-instrumented distributed rerun reproduced the first-pass symptom
 without changing scheduling or adding reactions. All timestamps below are from
 the coordinator clock, relative to submitting the first 116-cut sweep.
 
 | Event | Seconds |
 |---|---:|
-| First worker on cpu-0004 ready; 116 runnable cuts | 6.3574 |
-| Second worker on cpu-0004 ready; 111 runnable cuts | 6.5015 |
+| First worker on the first service ready; 116 runnable cuts | 6.3574 |
+| Second worker on the first service ready; 111 runnable cuts | 6.5015 |
 | Last cut in the first sweep completed | 8.3484 |
-| Both workers on cpu-0008 ready; no runnable cuts | 9.1156–9.1158 |
+| Both workers on the second service ready; no runnable cuts | 9.1156–9.1158 |
 | Same sweep submitted after all four were ready | 9.1279 |
 | Second sweep's first task claimed | 9.1952 |
 | Second sweep's last task completed | 10.3008 |

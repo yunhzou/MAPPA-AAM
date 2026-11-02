@@ -4,7 +4,7 @@ The live frontier cap is enforced per seed ordering and cut. The evidence does n
 
 For Golden case 590, reverse, ten orderings and 56 cuts produced 52,738 terminals and 533,903 capped stops with a recorded maximum of 100 retained terminals per context. These terminals are raw search output, not final unordered-fragment deduplication counts. For case 1358, forward, 85 cuts produced 29,739 terminals and 473,410 capped stops. The native scheduler bounds its admitted frontier at 100, but commits proposed children to the trace before combined-frontier admission. Cap-rejected history therefore remains in the trace.
 
-Source locations in `/Users/yunhengz/Desktop/AAM Writing`:
+Source locations in the producing checkout:
 
 - `native/src/fragment_scheduler.h:166`: frontier admission and cap checks; child records are committed before admission at lines 219–224.
 - `src/rxn_core/aam.py:111`: independent seed-order graphs are combined per cut.
@@ -38,7 +38,6 @@ Preserve the cap and search semantics. Verify finalized cuts sequentially and ag
 
 Run `audit.py` with the existing `work/aam-event-env/bin/python`. This investigation performs no new search or decoding. It audits saved results and does not re-read the remote raw archives. `audit.json` records the source evidence hashes; guard checks reject missing/duplicate cuts and unknown outcomes.
 
-
 ## Implemented fix and validation
 
 `search_aam_checkpoints` persists raw cuts without assembling the global history. It returns checkpoint paths, aggregate search metrics, and capped status. It preserves the existing search semantics and full historical records on disk. Its working set includes the current cut per worker; one unusually large cut can still require substantial memory. The original `search_aam` API continues to return a materialized graph for callers that need it.
@@ -50,3 +49,5 @@ The tests cover exact graph equality with the existing search on a real molecule
 Fresh saved-archive verification using the new code, one seed, one CPU, both directions of cases 590 and 1358: 27.69 seconds combined verifier wall time, 25.83 CPU seconds, peak 162.67 MiB. A 3 GiB / 300-second external guard was applied per process. All four verdicts remained not_recovered. See fresh-seed1-case*.json. No full benchmark searches were rerun; the ten-seed correction uses the independently audited original per-cut records.
 
 For new Golden campaigns, deploy the updated src and bench modules together with the updated runner scripts. Existing frozen campaign archives and original execution records are not rewritten. The standalone saved-archive integration script accepts the existing campaign directory as an argument.
+
+Raw operational records and full artifacts are retained privately.

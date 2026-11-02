@@ -70,10 +70,6 @@ Harness: `bench/aam_resource_regression.py`. Summaries and every repetition's ti
 
 Full frozen sources, inputs, logs, stage timings, sampled memory, raw cuts and complete result archives remain on the cluster:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_resource_regression_v2_20260907
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_resource_regression_final_20260907
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_resource_regression_confirm_20260907
-```
+Full artifacts and raw operational records are retained privately.
 
 The earlier first harness run used Python container equality after JSON round trips; tuple/list normalization caused assertions in both versions. Those pipeline runs are excluded. All reported comparisons use canonical full-graph equality.

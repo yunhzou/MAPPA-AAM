@@ -22,12 +22,12 @@ For context, the earlier cap-100 run retained 27,295 complete families and decod
 
 ## Reproducibility
 
-- Cluster job: 7572965, completed with exit code 0.
+- The run completed with exit code 0; raw operational records remain private.
 - [Exact configuration and input hashes](result/configuration.json)
 - [Timing and outcome](result/result.json)
 - [Search counters](result/search.json)
 - [Independent checkpoint audit and hashes](checkpoint-audit.json)
-- [Runner](run_decode.py), [submission](run.sbatch)
+- [Runner](run_decode.py); site-specific submission is retained privately.
 - The frozen benchmark source is the parent report's `source.tar.gz` and `source_sha256.json`; this experiment does not change its engine.
 
 The raw decoder marks an empty retained catalogue complete. The audit explicitly records that this does **not** mean a complete molecular mapping was found.

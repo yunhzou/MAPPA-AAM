@@ -6,6 +6,25 @@ from pypdf import PdfReader
 MAN=Path(__file__).resolve().parents[1];E=MAN/'evidence'
 check_publication('manuscript.pdf',(MAN/'manuscript.pdf').read_bytes())
 def read(n):return json.loads((E/n).read_text())
+# Current Golden results are independently counted from every direction record.
+current=read('current_golden.json')
+current_cases=read('current_golden_cases.json')
+assert hashlib.sha256((E/'current_golden_cases.json').read_bytes()).hexdigest()==current['case_evidence_sha256']
+assert current['complete'] and current['manifest']['cases']==1851 and current['manifest']['directions']==3702
+assert current['source_commit']=='096a010961f53944ddd4ddc433bd8d56f282a2f2'
+assert {row['case'] for row in current_cases['cases']}==set(range(1851))
+assert len(current_cases['cases'])==1851
+for status,count in current['reference_reactions'].items():
+ assert sum(row['status']==status for row in current_cases['cases'])==count
+for status,count in current['reference_directions'].items():
+ assert sum(row[d]==status for row in current_cases['cases'] for d in ('forward','reverse'))==count
+assert current['reference_reactions']['recovered']==1830
+assert current['reference_directions']['recovered']==3618
+for stage,metrics in current['stage_metrics'].items():
+ records=[row['stages'][d][stage] for row in current_cases['cases'] for d in ('forward','reverse')]
+ assert len(records)==3702 and all(row['state']=='complete' for row in records)
+ assert sum(row['tasks'] for row in records)==metrics['final_tasks']['records']
+ assert abs(sum(row['compute_cpu_seconds'] for row in records)-metrics['final_tasks']['compute_cpu_seconds'])<1e-6
 from build_molecule_figure import check_example
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
 from build_alternatives_figure import check_example as check_alternatives
@@ -81,6 +100,7 @@ log=(MAN/'build/preprint.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
+for value in ['1,830','1,851','98.87','3,618','3,702']:assert value in alltext,value
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
 for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{seed['methods']['seeds3']['golden_recovery_percent']:.2f}",'120,052','300','162','168']:
  assert value in alltext,value
@@ -204,11 +224,11 @@ for key,units in e2e['complete_cohort'].items():
  for unit,d in units.items():
   values=[(r['result']['end_to_end'] if key=='end_to_end' else r['result']['stages'][key])[unit] for r in e2e['rows'] if r['execution']['complete']]
   assert d['n']==len(values)==e2e['completed'] and abs(d['mean']-sum(values)/len(values))<1e-8
-assert 'MAPPA search plus bond-event decoding' in alltext
+assert 'Archived MAPPA search plus event-window queries' in alltext.replace('\n',' ')
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. MAPPA and the SLAP sweep use final-source campaigns; archived default-comparator outputs were rescored with the current evaluator. Completeness and limits are recorded in the evidence.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden outcomes are validated separately from archived September comparisons; each study retains its recorded implementation and scope. Completeness and limits are recorded in the evidence.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

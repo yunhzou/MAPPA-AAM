@@ -1,9 +1,9 @@
 {
   "roots": {
-    "initial": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_20260908",
-    "blind": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_blind_20260908",
-    "pruned": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_pruned_20260908",
-    "profile": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_profile_20260908"
+    "initial": "private-reference-c7af996f50dbb5fe1fdd",
+    "blind": "private-reference-c97d961011eb0b283226",
+    "pruned": "private-reference-bd8eb03212a84e23d31c",
+    "profile": "private-reference-e8abf8272da47c65e0cb"
   },
   "experiments": {
     "initial": {
@@ -153,5 +153,9 @@
         true
       ]
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "7a72c4357f1ac3954ce9bc113595ed7b515578e8a1ddbd11b67eb7469240efe5",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

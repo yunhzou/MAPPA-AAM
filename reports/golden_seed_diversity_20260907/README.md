@@ -2,7 +2,7 @@
 
 ## Findings
 
-All 46 paired jobs have finished (Slurm array 442802); no results are pending.
+All 46 paired jobs have finished; no results are pending.
 
 | Unresolved baseline cases (33) | Random | Distance |
 |---|---:|---:|
@@ -37,15 +37,13 @@ Selecting ten orders is O(10 × (vertices + edges)). A local seven-repeat microb
 - All 33 unresolved cases in the saved 1,851-record baseline: 32 verified misses and one unknown.
 - Thirteen fixed index-spaced previously successful controls; no reference mapping inspected to choose seeds.
 - Ten seeds, cap 100, original tolerance 1.0, original smaller-first orientation and full single-edge sweep for both policies.
-- Eight workers per policy. Both policies run concurrently on the same 16-CPU Slurm allocation, sharing the same node and filesystem. These are single paired search runs per case, not repeated timing confidence intervals.
-- Up to 24 allocations, 96 GiB memory reservation per paired job, search watchdog 300 seconds and scoring watchdog 240 seconds, ten-minute Slurm limit. Incomplete verification is unknown, never a negative.
+- Eight workers per policy. Both policies run concurrently on the same machine and filesystem. These are single paired search runs per case, not repeated timing confidence intervals.
+- Search watchdog 300 seconds and scoring watchdog 240 seconds, ten-minute overall limit. Incomplete verification is unknown, never a negative.
 - Ground-truth recovery uses the existing exact compressed-family verifier, including one-sided reference semantics. This is coverage of the reference mapping, not top-one accuracy or atom coverage.
 
 All initial inputs, frozen source hashes, complete search archives, cuts and verification records are retained under:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907
-```
+Original artifact locations are retained privately.
 
 `summary.json` and `cases.json` contain the comparison; separate policy manifests fingerprint the executed source. This is an unresolved-case diagnostic plus a small control set, not a full 1,851-record new-policy evaluation. Combining independently recovered cases is an archival union, not one ten-seed run.
 

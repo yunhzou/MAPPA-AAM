@@ -1,4 +1,8 @@
 {
+  "schema": "mappa.public_golden_validation/v1",
+  "scope": "Latest complete Golden validation; subsequent discarded-history release has point validation, not a full Golden rerun. September studies use their own historical implementations.",
+  "source_commit": "096a010961f53944ddd4ddc433bd8d56f282a2f2",
+  "code_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
   "manifest": {
     "created_utc": "2026-11-01T22:43:35.651206+00:00",
     "source_commit": "096a010961f53944ddd4ddc433bd8d56f282a2f2",
@@ -56,2908 +60,471 @@
         "sha256": "7cca64e61ed85c70faae54e06cd53df897279900f23e0483e47f53bc7014234e"
       }
     ],
-    "remote_root": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010",
     "baseline_report": "reports/golden_pool_20261101",
     "fresh_results": true,
     "fresh_caches": true
   },
-  "launch": {
-    "created_utc": "2026-11-01T22:44:41.380150+00:00",
-    "source_commit": "096a010961f53944ddd4ddc433bd8d56f282a2f2",
-    "code_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-    "engine_sha256": "17dc52df466975dead001811a5182ca0a3b16c3cea05086d3580f956653a31a8",
-    "matching_reduction_job": "21159701",
-    "matching_reduction_command": [
-      "sbatch",
-      "--parsable",
-      "--array=0-4%2",
-      "--export=ALL,MAPPA_GOLDEN_ROOT=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010",
-      "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/search-%A_%a.log",
-      "--job-name=golden-retest-search",
-      "bench/golden-dfw.sbatch",
-      "--stop-after",
-      "deduplication"
-    ],
-    "workers_per_batch": 100,
-    "batches": 5,
-    "maximum_simultaneous_workers": 200,
-    "memory_bytes_per_worker": 2147483648,
-    "stage_barrier": "All matching and reduction must complete before decoding starts",
-    "finishing_job": "21159702",
-    "finishing_command": [
-      "sbatch",
-      "--parsable",
-      "--array=0-4%2",
-      "--export=ALL,MAPPA_GOLDEN_ROOT=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010",
-      "--dependency=afterok:21159701",
-      "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/finish-%A_%a.log",
-      "--job-name=golden-retest-decode",
-      "bench/golden-dfw.sbatch",
-      "--resume"
-    ]
+  "complete": true,
+  "reference_reactions": {
+    "recovered": 1830,
+    "not_recovered": 21,
+    "unknown": 0,
+    "error": 0,
+    "missing": 0
   },
-  "slurm_accounting": {
-    "observed_utc": "2026-11-01T22:58:20.604138+00:00",
-    "requested_timezone": "UTC",
-    "rows": [
-      {
-        "JobID": "21159701_0",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:44:45",
-        "End": "2026-11-01T22:46:30",
-        "Elapsed": "00:01:45",
-        "ElapsedRaw": "105",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159701_1",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:44:45",
-        "End": "2026-11-01T22:46:41",
-        "Elapsed": "00:01:56",
-        "ElapsedRaw": "116",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159701_2",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:46:35",
-        "End": "2026-11-01T22:48:14",
-        "Elapsed": "00:01:39",
-        "ElapsedRaw": "99",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159701_3",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:47:11",
-        "End": "2026-11-01T22:48:54",
-        "Elapsed": "00:01:43",
-        "ElapsedRaw": "103",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159701_4",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:48:23",
-        "End": "2026-11-01T22:50:10",
-        "Elapsed": "00:01:47",
-        "ElapsedRaw": "107",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159702_0",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:50:44",
-        "End": "2026-11-01T22:51:48",
-        "Elapsed": "00:01:04",
-        "ElapsedRaw": "64",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159702_1",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:50:44",
-        "End": "2026-11-01T22:53:21",
-        "Elapsed": "00:02:37",
-        "ElapsedRaw": "157",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159702_2",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:51:55",
-        "End": "2026-11-01T22:54:26",
-        "Elapsed": "00:02:31",
-        "ElapsedRaw": "151",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159702_3",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:53:42",
-        "End": "2026-11-01T22:54:45",
-        "Elapsed": "00:01:03",
-        "ElapsedRaw": "63",
-        "AllocCPUS": "112"
-      },
-      {
-        "JobID": "21159702_4",
-        "State": "COMPLETED",
-        "ExitCode": "0:0",
-        "Start": "2026-11-01T22:54:57",
-        "End": "2026-11-01T22:56:41",
-        "Elapsed": "00:01:44",
-        "ElapsedRaw": "104",
-        "AllocCPUS": "112"
-      }
-    ],
-    "matching_reduction_allocation_seconds": 325.0,
-    "decoding_verification_allocation_seconds": 357.0,
-    "full_allocation_seconds": 716.0
+  "reference_directions": {
+    "recovered": 3618,
+    "not_recovered": 84,
+    "unknown": 0,
+    "error": 0,
+    "missing": 0
   },
-  "results": {
-    "schema": "mappa.golden_retest_audit/v1",
-    "root": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010",
-    "observed_utc": "2026-11-01T22:58:52.451670+00:00",
-    "purpose": "Read-only extraction of retained task audits and verification results; no scientific recomputation",
-    "expected_cases": 1851,
-    "expected_directions": 3702,
-    "complete": true,
-    "reference_directions": {
-      "recovered": 3618,
-      "not_recovered": 84,
-      "unknown": 0,
-      "error": 0,
-      "missing": 0
-    },
-    "reference_reactions": {
-      "recovered": 1830,
-      "not_recovered": 21,
-      "unknown": 0,
-      "error": 0,
-      "missing": 0
-    },
-    "recovered_direction_fraction": 0.9773095623987034,
-    "recovered_reaction_fraction": 0.9886547811993517,
-    "stage_metrics": {
-      "matching": {
-        "expected_directions": 3702,
-        "direction_states": {
-          "complete": 3702,
-          "error": 0,
-          "missing": 0
-        },
-        "final_tasks": {
-          "records": 177552,
-          "states": {
-            "complete": 177552
-          },
-          "compute_cpu_seconds": 5136.068849283066,
-          "total_worker_cpu_seconds": 5887.826491576901,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 177552
-          },
-          "compute_seconds": 5348.726800840348,
-          "publish_cpu_seconds": 734.4649050929953,
-          "publish_seconds": 1273.3483167962404,
-          "monitoring_seconds": 27.244728757068515,
-          "memory_samples": 122427,
-          "measurement_coverage": {
-            "cpu_seconds": 177552,
-            "compute_seconds": 177552,
-            "publish_cpu_seconds": 177552,
-            "publish_seconds": 177552,
-            "monitoring_seconds": 177552,
-            "memory_samples": 177552,
-            "peak_tree_rss_bytes": 177552,
-            "process_lifetime_peak_rss_bytes": 177552,
-            "records_with_memory_samples": 115758
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 381693952,
-            "process_lifetime_peak_rss_bytes": 381693952,
-            "compute_sampled_rss_bytes": 311795712,
-            "publication_sampled_rss_bytes": 381693952
-          },
-          "memory_guards_bytes": {
-            "2147483648": 177552
-          },
-          "cache": {
-            "records": 177552,
-            "enabled_records": 177552,
-            "published_records": 4135,
-            "load_seconds": 205.48058312403737,
-            "save_seconds": 65.5822906747344,
-            "loaded_bytes": 2274216823,
-            "saved_bytes": 131789655,
-            "baseline_loads": 0,
-            "fragment_calls": 102896368,
-            "fragment_hits": 94493016,
-            "dependency_checks": 97322099,
-            "max_retained_bytes": 42941273,
-            "max_entries": 5460,
-            "hit_fraction": 0.9183318890322737,
-            "errors": {}
-          }
-        },
-        "all_attempts": {
-          "records": 177552,
-          "states": {
-            "complete": 177552
-          },
-          "compute_cpu_seconds": 5136.068849283066,
-          "total_worker_cpu_seconds": 5887.826491576901,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 177552
-          },
-          "compute_seconds": 5348.726800840348,
-          "publish_cpu_seconds": 734.4649050929953,
-          "publish_seconds": 1273.3483167962404,
-          "monitoring_seconds": 27.244728757068515,
-          "memory_samples": 122427,
-          "measurement_coverage": {
-            "cpu_seconds": 177552,
-            "compute_seconds": 177552,
-            "publish_cpu_seconds": 177552,
-            "publish_seconds": 177552,
-            "monitoring_seconds": 177552,
-            "memory_samples": 177552,
-            "peak_tree_rss_bytes": 177552,
-            "process_lifetime_peak_rss_bytes": 177552,
-            "records_with_memory_samples": 115758
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 381693952,
-            "process_lifetime_peak_rss_bytes": 381693952,
-            "compute_sampled_rss_bytes": 311795712,
-            "publication_sampled_rss_bytes": 381693952
-          },
-          "memory_guards_bytes": {
-            "2147483648": 177552
-          },
-          "cache": {
-            "records": 177552,
-            "enabled_records": 177552,
-            "published_records": 4135,
-            "load_seconds": 205.48058312403737,
-            "save_seconds": 65.5822906747344,
-            "loaded_bytes": 2274216823,
-            "saved_bytes": 131789655,
-            "baseline_loads": 0,
-            "fragment_calls": 102896368,
-            "fragment_hits": 94493016,
-            "dependency_checks": 97322099,
-            "max_retained_bytes": 42941273,
-            "max_entries": 5460,
-            "hit_fraction": 0.9183318890322737,
-            "errors": {}
-          }
-        },
-        "timing": {
-          "first_attempt_utc": "2026-11-01T22:45:00.596113+00:00",
-          "last_attempt_utc": "2026-11-01T22:49:38.062292+00:00",
-          "first_attempt_epoch": 1793573100.5961134,
-          "last_attempt_epoch": 1793573378.0622919,
-          "task_span_seconds": 277.4661784172058,
-          "unique_actual_workers": 500,
-          "peak_overlapping_attempts": 192,
-          "timed_attempts": 177552,
-          "incomplete_attempt_intervals": 0,
-          "mean_total_worker_cpus": 21.21997904452269,
-          "mean_compute_cpus": 18.510612279239062,
-          "mean_active_task_attempts": 74.87482285338078
-        }
-      },
-      "deduplication": {
-        "expected_directions": 3702,
-        "direction_states": {
-          "complete": 3702,
-          "error": 0,
-          "missing": 0
-        },
-        "final_tasks": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 2913.5951187090004,
-          "total_worker_cpu_seconds": 2980.8579996099998,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 3122.462100900244,
-          "publish_cpu_seconds": 66.97551711399989,
-          "publish_seconds": 94.34709754225332,
-          "monitoring_seconds": 4.893283904180862,
-          "memory_samples": 17788,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3625
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 301056000,
-            "process_lifetime_peak_rss_bytes": 381693952,
-            "compute_sampled_rss_bytes": 273108992,
-            "publication_sampled_rss_bytes": 301056000
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "all_attempts": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 2913.5951187090004,
-          "total_worker_cpu_seconds": 2980.8579996099998,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 3122.462100900244,
-          "publish_cpu_seconds": 66.97551711399989,
-          "publish_seconds": 94.34709754225332,
-          "monitoring_seconds": 4.893283904180862,
-          "memory_samples": 17788,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3625
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 301056000,
-            "process_lifetime_peak_rss_bytes": 381693952,
-            "compute_sampled_rss_bytes": 273108992,
-            "publication_sampled_rss_bytes": 301056000
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "timing": {
-          "first_attempt_utc": "2026-11-01T22:46:09.538397+00:00",
-          "last_attempt_utc": "2026-11-01T22:50:07.549365+00:00",
-          "first_attempt_epoch": 1793573169.538397,
-          "last_attempt_epoch": 1793573407.5493653,
-          "task_span_seconds": 238.010968208313,
-          "unique_actual_workers": 500,
-          "peak_overlapping_attempts": 148,
-          "timed_attempts": 3702,
-          "incomplete_attempt_intervals": 0,
-          "mean_total_worker_cpus": 12.52403627466899,
-          "mean_compute_cpus": 12.241432151811386,
-          "mean_active_task_attempts": 13.713107656225821
-        }
-      },
-      "decoding": {
-        "expected_directions": 3702,
-        "direction_states": {
-          "complete": 3702,
-          "error": 0,
-          "missing": 0
-        },
-        "final_tasks": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 8044.706976417986,
-          "total_worker_cpu_seconds": 8318.812059351007,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 8048.934501180658,
-          "publish_cpu_seconds": 273.18067493500007,
-          "publish_seconds": 306.93838231358677,
-          "monitoring_seconds": 12.082582262752112,
-          "memory_samples": 42398,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3391
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 1038876672,
-            "process_lifetime_peak_rss_bytes": 1105788928,
-            "compute_sampled_rss_bytes": 875155456,
-            "publication_sampled_rss_bytes": 1038876672
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "all_attempts": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 8044.706976417986,
-          "total_worker_cpu_seconds": 8318.812059351007,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 8048.934501180658,
-          "publish_cpu_seconds": 273.18067493500007,
-          "publish_seconds": 306.93838231358677,
-          "monitoring_seconds": 12.082582262752112,
-          "memory_samples": 42398,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3391
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 1038876672,
-            "process_lifetime_peak_rss_bytes": 1105788928,
-            "compute_sampled_rss_bytes": 875155456,
-            "publication_sampled_rss_bytes": 1038876672
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "timing": {
-          "first_attempt_utc": "2026-11-01T22:50:53.342143+00:00",
-          "last_attempt_utc": "2026-11-01T22:56:19.652364+00:00",
-          "first_attempt_epoch": 1793573453.3421433,
-          "last_attempt_epoch": 1793573779.6523638,
-          "task_span_seconds": 326.3102204799652,
-          "unique_actual_workers": 500,
-          "peak_overlapping_attempts": 200,
-          "timed_attempts": 3702,
-          "incomplete_attempt_intervals": 0,
-          "mean_total_worker_cpus": 25.493568810425185,
-          "mean_compute_cpus": 24.653555026824282,
-          "mean_active_task_attempts": 25.680468674130555
-        }
-      },
-      "verification": {
-        "expected_directions": 3702,
-        "direction_states": {
-          "complete": 3702,
-          "error": 0,
-          "missing": 0
-        },
-        "final_tasks": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 1334.6714210559999,
-          "total_worker_cpu_seconds": 1338.8636938850034,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 1511.9168752059923,
-          "publish_cpu_seconds": 3.86176925199986,
-          "publish_seconds": 14.620695845107548,
-          "monitoring_seconds": 2.226394985045772,
-          "memory_samples": 9320,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3369
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 837046272,
-            "process_lifetime_peak_rss_bytes": 1105788928,
-            "compute_sampled_rss_bytes": 837046272,
-            "publication_sampled_rss_bytes": 544260096
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "all_attempts": {
-          "records": 3702,
-          "states": {
-            "complete": 3702
-          },
-          "compute_cpu_seconds": 1334.6714210559999,
-          "total_worker_cpu_seconds": 1338.8636938850034,
-          "failed_attempt_sampled_cpu_seconds": 0,
-          "total_cpu_sources": {
-            "total_cpu_seconds": 3702
-          },
-          "compute_seconds": 1511.9168752059923,
-          "publish_cpu_seconds": 3.86176925199986,
-          "publish_seconds": 14.620695845107548,
-          "monitoring_seconds": 2.226394985045772,
-          "memory_samples": 9320,
-          "measurement_coverage": {
-            "cpu_seconds": 3702,
-            "compute_seconds": 3702,
-            "publish_cpu_seconds": 3702,
-            "publish_seconds": 3702,
-            "monitoring_seconds": 3702,
-            "memory_samples": 3702,
-            "peak_tree_rss_bytes": 3702,
-            "process_lifetime_peak_rss_bytes": 3702,
-            "records_with_memory_samples": 3369
-          },
-          "peaks": {
-            "peak_tree_rss_bytes": 837046272,
-            "process_lifetime_peak_rss_bytes": 1105788928,
-            "compute_sampled_rss_bytes": 837046272,
-            "publication_sampled_rss_bytes": 544260096
-          },
-          "memory_guards_bytes": {
-            "2147483648": 3702
-          },
-          "cache": {
-            "hit_fraction": null,
-            "errors": {}
-          }
-        },
-        "timing": {
-          "first_attempt_utc": "2026-11-01T22:51:26.053385+00:00",
-          "last_attempt_utc": "2026-11-01T22:56:39.660849+00:00",
-          "first_attempt_epoch": 1793573486.053385,
-          "last_attempt_epoch": 1793573799.660849,
-          "task_span_seconds": 313.6074640750885,
-          "unique_actual_workers": 500,
-          "peak_overlapping_attempts": 105,
-          "timed_attempts": 3702,
-          "incomplete_attempt_intervals": 0,
-          "mean_total_worker_cpus": 4.269234145410624,
-          "mean_compute_cpus": 4.255866246654236,
-          "mean_active_task_attempts": 5.052187896789329
-        }
-      }
-    },
-    "batches": {
-      "0": {
-        "metadata": {
-          "plan.json": {
-            "input_index": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/0/index.json",
-            "input_index_sha256": "f0eeae105c883defe6ed9f21a5db98210227b15ed53336833d35369a7c6cff22",
-            "config": {
-              "cut_floor": 0.2,
-              "graph_floor": 0.2,
-              "iso_tolerance": 1.0,
-              "event_threshold": 0.5,
-              "metal_event_threshold": 0.3,
-              "seed_count": 1,
-              "branch_limit": 100,
-              "task_chunksize": 1,
-              "anchors": [],
-              "seed_selection": "random",
-              "random_seed": 42,
-              "sweep_cuts": true
-            },
-            "cases": 371,
-            "directions": 742,
-            "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
-          },
-          "progress.json": {
-            "job": "21159781",
-            "source": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-            "memory_bytes": 2147483648,
-            "expected_cases": 371,
-            "expected_directions": 742,
-            "startup_seconds": 2.5318051659851335,
-            "workers": {
-              "cpu1-00011:1586116:229635e172a14a4e88a4026e9158a070": 1586150,
-              "cpu1-00011:1586116:c9ac9521c802473f8811688b6476a30b": 1586148,
-              "cpu1-00011:1586116:da4e35fca0994cc88c82a0233e074b47": 1586149,
-              "cpu1-00011:1586116:71ba0a0eff3043c8850b52fe5bf4d78c": 1586159,
-              "cpu1-00011:1586116:da91d7ddc08448e3b5f4ce836cd8eea5": 1586152,
-              "cpu1-00011:1586116:4eb5748e61814c5482bc274fff1edacd": 1586158,
-              "cpu1-00011:1586116:8cf5d4affc1b4a77a34cd18cf1adf5f9": 1586156,
-              "cpu1-00011:1586116:9f7d3c9c6df243078a4575ca7acd0aed": 1586160,
-              "cpu1-00011:1586116:652e2c257ce24ccc8efc399987d72a3d": 1586153,
-              "cpu1-00011:1586116:3d4d7ad5143f427d95ab79e23c6636cd": 1586161,
-              "cpu1-00011:1586116:77a3e3c66e4247619e631c8b98d06b4a": 1586157,
-              "cpu1-00011:1586116:7f79f6fe0e5b46e2807e9b395483f425": 1586155,
-              "cpu1-00011:1586116:a1e50b9f90a04cb7939a71f7f206c332": 1586154,
-              "cpu1-00011:1586116:fc41af481d784a6887043414e02f3753": 1586166,
-              "cpu1-00011:1586116:56f3436cc0df46719f0ff79dd57f80d3": 1586164,
-              "cpu1-00011:1586116:d455162d67a64708848c395dbe3977c0": 1586167,
-              "cpu1-00011:1586116:567cd5bb9ee6474fa5ace4ac093e62b9": 1586173,
-              "cpu1-00011:1586116:45383131983849058f90ff1d50e3946f": 1586165,
-              "cpu1-00011:1586116:abc857342d04471aae5c318f35fb00e4": 1586168,
-              "cpu1-00011:1586116:1a6df322669b4feb814b347018457f23": 1586171,
-              "cpu1-00011:1586116:ce3b9c9a9219426f92a1466cfcc7ad4a": 1586174,
-              "cpu1-00011:1586116:ac44ce8a787b47399da6d5137ef1f50e": 1586170,
-              "cpu1-00011:1586116:91039ee7f6604b238da0d37269ed55dc": 1586169,
-              "cpu1-00011:1586116:e455594d8fc34f1b98ce38efdf3f1e9d": 1586172,
-              "cpu1-00011:1586116:396ca99a4e2447b2878fbf2fa6f04ec0": 1586163,
-              "cpu1-00025:2002811:913fccf3a83d4936ac2d53cc8349b7e1": 2002880,
-              "cpu1-00025:2002811:88b1efab24c1439bab00a334ea6b2148": 2002882,
-              "cpu1-00025:2002811:82be762996984c53814c314fa909f86b": 2002877,
-              "cpu1-00025:2002811:befa4ef261274f0ea35ac0297cd6ed8c": 2002878,
-              "cpu1-00025:2002811:8e84c687dc6b4bf9b49a79238541c1c1": 2002881,
-              "cpu1-00025:2002811:1f8c0fc9a23845fb91fbdedb0ba06056": 2002879,
-              "cpu1-00025:2002811:23c3c606a6234fb0a916b16b46f47af4": 2002895,
-              "cpu1-00025:2002811:c300a9a2cdbd4ca1afa05b75b43a055c": 2002887,
-              "cpu1-00025:2002811:e81dd2151e53487e9a2fcc14020421ee": 2002897,
-              "cpu1-00025:2002811:64daa6fe379940ef8707a25a08e1423d": 2002889,
-              "cpu1-00025:2002811:d797c737f07a400ea94d22e8e96a4855": 2002901,
-              "cpu1-00025:2002811:23cec9aa08a74e8d89d9e50c6ad50334": 2002884,
-              "cpu1-00025:2002811:ff10e5aaf3e540f893fae08c592334b4": 2002894,
-              "cpu1-00025:2002811:90c4e13d0a544f65be144532eeea1a4b": 2002890,
-              "cpu1-00025:2002811:aeb4adbce52441899eacaa66bb725369": 2002900,
-              "cpu1-00025:2002811:f4913153c65a4050a47fa1aa8dc7428e": 2002883,
-              "cpu1-00025:2002811:bbb0b4231d92499d9d6b924a447ebf6a": 2002893,
-              "cpu1-00025:2002811:338a1acf5f9747888949f666c79f4913": 2002888,
-              "cpu1-00025:2002811:116d64e1d3a34c499cbc8f090dcdae6c": 2002886,
-              "cpu1-00025:2002811:c22bf2642a9f4b57bb182e7fc64a69f0": 2002896,
-              "cpu1-00025:2002811:2e7b39edb97f425580b8d85ec0b92ecf": 2002899,
-              "cpu1-00025:2002811:c2699aed1b834eb887a962680c4cabca": 2002891,
-              "cpu1-00025:2002811:b5c5d06b75654fe9abaf9ddf6a582f35": 2002898,
-              "cpu1-00025:2002811:6efa9241ea5a433494ad778837767f38": 2002885,
-              "cpu1-00025:2002811:359e5eed516242909fb165c4889b8a45": 2002892,
-              "cpu1-00034:2833418:2a2892fa4cbc481084669315b5d5c879": 2833452,
-              "cpu1-00034:2833418:d5928559650e432784ea07c3fe19207b": 2833451,
-              "cpu1-00034:2833418:71129310716841efaa1e9d7509fd9fa2": 2833448,
-              "cpu1-00034:2833418:fcb17d31c177459e8e2d3527d42ff8f6": 2833449,
-              "cpu1-00034:2833418:fd0f928c8fd74e9c9f3443a99057ee71": 2833450,
-              "cpu1-00034:2833418:4ac4884053fc41cc91002c2dfb49ce24": 2833464,
-              "cpu1-00021:1789996:765c54dc63dd4d4bbd4b067fe25f5a0a": 1790027,
-              "cpu1-00021:1789996:9c9ba297e22a4ee0a455e303a6444aba": 1790028,
-              "cpu1-00034:2833418:0750a9e1e85e4a248eb63141d643e1ac": 2833467,
-              "cpu1-00034:2833418:a6608b7ea0ec40a8a13c14626aa17500": 2833462,
-              "cpu1-00034:2833418:c224c4eeecf64713ba6fb462c0095cf7": 2833460,
-              "cpu1-00034:2833418:8668c9eb2abc45d3b41a980999249896": 2833469,
-              "cpu1-00021:1789996:6f944b38f5624290a9b1747371bfe387": 1790047,
-              "cpu1-00021:1789996:d728668ea21743dcb3a3e797fe39a2e2": 1790030,
-              "cpu1-00034:2833418:07f3821e68c04029a252d1ebb84c8330": 2833459,
-              "cpu1-00034:2833418:63db42fd2bf143c5aaf3a1a8daa7bd26": 2833454,
-              "cpu1-00034:2833418:69a7fc10ee90427db317d40c0fb9c50c": 2833466,
-              "cpu1-00034:2833418:daa42b37576042e1afb60e8136fa0d24": 2833453,
-              "cpu1-00034:2833418:ba65e2056b314842a1be4a6b4cdc7806": 2833465,
-              "cpu1-00034:2833418:e3a8062413af438b968fc24fc1b5e7b5": 2833470,
-              "cpu1-00034:2833418:59c342613c1047a1a3bcb5669a9ba45f": 2833468,
-              "cpu1-00034:2833418:4c8b08e4a6614c6e9d1258942ca92b6d": 2833458,
-              "cpu1-00034:2833418:f37c7caac8bc48da9c572f6456ca5cdb": 2833472,
-              "cpu1-00034:2833418:d0f195d84b7a4520a8660e0cb8ec39f8": 2833461,
-              "cpu1-00034:2833418:bf8e0adedf624b64a65d2f28429232ea": 2833455,
-              "cpu1-00034:2833418:b18ad64ece904e4dab8662b640ad5979": 2833456,
-              "cpu1-00034:2833418:3f56362ade2d4a458b2b42a88b0b79f7": 2833457,
-              "cpu1-00034:2833418:5bad431fcb884337870d305b587ffdb0": 2833471,
-              "cpu1-00034:2833418:11f32a82e10344f0bad9a194daedf81f": 2833463,
-              "cpu1-00021:1789996:b3c5f21a89664ef5929d548550fabc5e": 1790050,
-              "cpu1-00021:1789996:7090d92f17f6428c8ba5620c73102491": 1790043,
-              "cpu1-00021:1789996:1921e33dc988466ea5174fc44c14faab": 1790029,
-              "cpu1-00021:1789996:274d153573af48f883effbaee364ac05": 1790034,
-              "cpu1-00021:1789996:f5aeddcae05747a0a10d9d3ac3a52ef7": 1790038,
-              "cpu1-00021:1789996:c65c6e61812d4015bf8eea4e3ee3967f": 1790035,
-              "cpu1-00021:1789996:81d495fe00134863a868274658d24f94": 1790032,
-              "cpu1-00021:1789996:9a238cf4f16b4e9d88996734d1391ce8": 1790041,
-              "cpu1-00021:1789996:1c13deebd54c4074b778ccf2588f35b1": 1790044,
-              "cpu1-00021:1789996:ba2cd27ff80e4cac986eb317aba1d047": 1790036,
-              "cpu1-00021:1789996:d7eb52b7082f40b095c9dcadca327ea1": 1790051,
-              "cpu1-00021:1789996:36e0d8a5e44545d6ba54a1efb9850f41": 1790039,
-              "cpu1-00021:1789996:78627f811212443292355c8375fd329d": 1790046,
-              "cpu1-00021:1789996:5085167f7c6f474a99426b33e2799605": 1790033,
-              "cpu1-00021:1789996:2d82e00833384ab28ae10201e6c7b759": 1790049,
-              "cpu1-00021:1789996:a11a228c69b54067b782ad826aaea3ad": 1790031,
-              "cpu1-00021:1789996:71a201f21d76490d8b84dd7d16778262": 1790040,
-              "cpu1-00021:1789996:d21deb09c2dc422e8ac7b040120b2bfb": 1790048,
-              "cpu1-00021:1789996:8ac763a970d846a4869f0f2c6f0c1c7e": 1790045,
-              "cpu1-00021:1789996:37c47c51d74d4b78b1e44885dc8aeb60": 1790037,
-              "cpu1-00021:1789996:38650c07137a4bbca14c57e214ddea9c": 1790042
-            },
-            "stage": "finished",
-            "active_directions": 0,
-            "completed": [
-              {
-                "stage": "decoding",
-                "state": "complete",
-                "count": 742
-              },
-              {
-                "stage": "deduplication",
-                "state": "complete",
-                "count": 742
-              },
-              {
-                "stage": "matching",
-                "state": "complete",
-                "count": 742
-              },
-              {
-                "stage": "verification",
-                "state": "complete",
-                "count": 742
-              }
-            ],
-            "queue": {},
-            "elapsed_seconds": 56.50482505199034,
-            "finished": true
-          }
-        },
-        "stages": {
-          "matching": {
-            "all_attempts": {
-              "records": 35562,
-              "states": {
-                "complete": 35562
-              },
-              "compute_cpu_seconds": 1022.7448246300027,
-              "total_worker_cpu_seconds": 1179.2258132089876,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 35562
-              },
-              "compute_seconds": 1061.3572702967795,
-              "publish_cpu_seconds": 152.80416154300005,
-              "publish_seconds": 262.8172442689538,
-              "monitoring_seconds": 5.9271037399885245,
-              "memory_samples": 25127,
-              "measurement_coverage": {
-                "cpu_seconds": 35562,
-                "compute_seconds": 35562,
-                "publish_cpu_seconds": 35562,
-                "publish_seconds": 35562,
-                "monitoring_seconds": 35562,
-                "memory_samples": 35562,
-                "peak_tree_rss_bytes": 35562,
-                "process_lifetime_peak_rss_bytes": 35562,
-                "records_with_memory_samples": 23762
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 201494528,
-                "process_lifetime_peak_rss_bytes": 245071872,
-                "compute_sampled_rss_bytes": 192897024,
-                "publication_sampled_rss_bytes": 201494528
-              },
-              "memory_guards_bytes": {
-                "2147483648": 35562
-              },
-              "cache": {
-                "records": 35562,
-                "enabled_records": 35562,
-                "published_records": 817,
-                "load_seconds": 41.91350258770399,
-                "save_seconds": 14.795034928421956,
-                "loaded_bytes": 480882612,
-                "saved_bytes": 27967015,
-                "baseline_loads": 0,
-                "fragment_calls": 16574048,
-                "fragment_hits": 14914198,
-                "dependency_checks": 15473241,
-                "max_retained_bytes": 23462132,
-                "max_entries": 4456,
-                "hit_fraction": 0.8998524681477935,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:45:00.596113+00:00",
-              "last_attempt_utc": "2026-11-01T22:46:10.285645+00:00",
-              "first_attempt_epoch": 1793573100.5961134,
-              "last_attempt_epoch": 1793573170.2856452,
-              "task_span_seconds": 69.6895318031311,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 35562,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 16.921132667962706,
-              "mean_compute_cpus": 14.675731034026711,
-              "mean_active_task_attempts": 61.178276440840826
-            }
-          },
-          "deduplication": {
-            "all_attempts": {
-              "records": 742,
-              "states": {
-                "complete": 742
-              },
-              "compute_cpu_seconds": 590.2935746260002,
-              "total_worker_cpu_seconds": 604.3247049969999,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 742
-              },
-              "compute_seconds": 616.6307761330972,
-              "publish_cpu_seconds": 13.96969112799995,
-              "publish_seconds": 18.39056495175464,
-              "monitoring_seconds": 1.0539968732045963,
-              "memory_samples": 3516,
-              "measurement_coverage": {
-                "cpu_seconds": 742,
-                "compute_seconds": 742,
-                "publish_cpu_seconds": 742,
-                "publish_seconds": 742,
-                "monitoring_seconds": 742,
-                "memory_samples": 742,
-                "peak_tree_rss_bytes": 742,
-                "process_lifetime_peak_rss_bytes": 742,
-                "records_with_memory_samples": 727
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 231501824,
-                "process_lifetime_peak_rss_bytes": 245071872,
-                "compute_sampled_rss_bytes": 231501824,
-                "publication_sampled_rss_bytes": 199475200
-              },
-              "memory_guards_bytes": {
-                "2147483648": 742
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:46:10.926522+00:00",
-              "last_attempt_utc": "2026-11-01T22:46:29.126986+00:00",
-              "first_attempt_epoch": 1793573170.9265223,
-              "last_attempt_epoch": 1793573189.1269863,
-              "task_span_seconds": 18.200464010238647,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 742,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 33.20380758738007,
-              "mean_compute_cpus": 32.43288601290227,
-              "mean_active_task_attempts": 35.38635031318953
-            }
-          },
-          "decoding": {
-            "all_attempts": {
-              "records": 742,
-              "states": {
-                "complete": 742
-              },
-              "compute_cpu_seconds": 1619.4326337679997,
-              "total_worker_cpu_seconds": 1675.5498330420005,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 742
-              },
-              "compute_seconds": 1620.401953160821,
-              "publish_cpu_seconds": 55.92357512800005,
-              "publish_seconds": 61.76777332450729,
-              "monitoring_seconds": 2.5526778921484947,
-              "memory_samples": 8529,
-              "measurement_coverage": {
-                "cpu_seconds": 742,
-                "compute_seconds": 742,
-                "publish_cpu_seconds": 742,
-                "publish_seconds": 742,
-                "monitoring_seconds": 742,
-                "memory_samples": 742,
-                "peak_tree_rss_bytes": 742,
-                "process_lifetime_peak_rss_bytes": 742,
-                "records_with_memory_samples": 683
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 571523072,
-                "process_lifetime_peak_rss_bytes": 573349888,
-                "compute_sampled_rss_bytes": 455643136,
-                "publication_sampled_rss_bytes": 571523072
-              },
-              "memory_guards_bytes": {
-                "2147483648": 742
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:50:53.342143+00:00",
-              "last_attempt_utc": "2026-11-01T22:51:25.916800+00:00",
-              "first_attempt_epoch": 1793573453.3421433,
-              "last_attempt_epoch": 1793573485.9168005,
-              "task_span_seconds": 32.57465720176697,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 742,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 51.437220740763856,
-              "mean_compute_cpus": 49.71449503634856,
-              "mean_active_task_attempts": 51.766402007670244
-            }
-          },
-          "verification": {
-            "all_attempts": {
-              "records": 742,
-              "states": {
-                "complete": 742
-              },
-              "compute_cpu_seconds": 225.35294312300005,
-              "total_worker_cpu_seconds": 226.2179575569998,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 742
-              },
-              "compute_seconds": 291.09484414960025,
-              "publish_cpu_seconds": 0.7973168669999406,
-              "publish_seconds": 2.8889934074832126,
-              "monitoring_seconds": 0.4647901998250745,
-              "memory_samples": 1812,
-              "measurement_coverage": {
-                "cpu_seconds": 742,
-                "compute_seconds": 742,
-                "publish_cpu_seconds": 742,
-                "publish_seconds": 742,
-                "monitoring_seconds": 742,
-                "memory_samples": 742,
-                "peak_tree_rss_bytes": 742,
-                "process_lifetime_peak_rss_bytes": 742,
-                "records_with_memory_samples": 674
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 482463744,
-                "process_lifetime_peak_rss_bytes": 573349888,
-                "compute_sampled_rss_bytes": 482463744,
-                "publication_sampled_rss_bytes": 380366848
-              },
-              "memory_guards_bytes": {
-                "2147483648": 742
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:51:26.053385+00:00",
-              "last_attempt_utc": "2026-11-01T22:51:46.844842+00:00",
-              "first_attempt_epoch": 1793573486.053385,
-              "last_attempt_epoch": 1793573506.8448417,
-              "task_span_seconds": 20.791456699371338,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 742,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 10.88033228397315,
-              "mean_compute_cpus": 10.83872796319336,
-              "mean_active_task_attempts": 14.729792000957735
-            }
-          }
-        }
-      },
-      "1": {
-        "metadata": {
-          "plan.json": {
-            "input_index": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/1/index.json",
-            "input_index_sha256": "110f5fe88f5ab91529d75b96fda24df933f06b1484e0bde01d32316935dfa680",
-            "config": {
-              "cut_floor": 0.2,
-              "graph_floor": 0.2,
-              "iso_tolerance": 1.0,
-              "event_threshold": 0.5,
-              "metal_event_threshold": 0.3,
-              "seed_count": 1,
-              "branch_limit": 100,
-              "task_chunksize": 1,
-              "anchors": [],
-              "seed_selection": "random",
-              "random_seed": 42,
-              "sweep_cuts": true
-            },
-            "cases": 370,
-            "directions": 740,
-            "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
-          },
-          "progress.json": {
-            "job": "21159782",
-            "source": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-            "memory_bytes": 2147483648,
-            "expected_cases": 370,
-            "expected_directions": 740,
-            "startup_seconds": 3.495513729052618,
-            "workers": {
-              "cpu1-00038:1821511:c55044f9606f4cff97e54d495f535399": 1821545,
-              "cpu1-00038:1821511:2d112c405a2e4c0e8fb3151c43b32bda": 1821547,
-              "cpu1-00038:1821511:744d05a2b24b418badb31a3c8894cb62": 1821563,
-              "cpu1-00038:1821511:7c1904425cf741e5bd941a2b22d0999f": 1821546,
-              "cpu1-00038:1821511:757972ca384248f78e37db694a8bce01": 1821559,
-              "cpu1-00038:1821511:9e19cdb06d69427ebcaab1c528b71820": 1821562,
-              "cpu1-00038:1821511:07560497089a46b98034ffe5d126b125": 1821566,
-              "cpu1-00038:1821511:c8d88cf943a645b8804edc975bb885b3": 1821556,
-              "cpu1-00038:1821511:6983382360164aeeb62f5ddb308c76cf": 1821565,
-              "cpu1-00038:1821511:33806a78fe98476dbf8ec1c69769f008": 1821557,
-              "cpu1-00038:1821511:c70461a1e3f74d759deae35141cfd5f6": 1821553,
-              "cpu1-00038:1821511:6c5ebbd45d4840ad9f649cdbb0235bc7": 1821551,
-              "cpu1-00038:1821511:48e3feb5e32b4cf884fb07369d06b09c": 1821560,
-              "cpu1-00038:1821511:61777ebcf5834982a2239aa0fe7f4bf0": 1821561,
-              "cpu1-00038:1821511:d99ce8afc6d14584bb429fc852457ef9": 1821550,
-              "cpu1-00038:1821511:787465a8913449dcb3b38c83cd5fea19": 1821554,
-              "cpu1-00038:1821511:382efe8551cd437fa9663be00b73f08a": 1821568,
-              "cpu1-00039:2237034:86c75f3d8f194a569715358c7353f83e": 2237065,
-              "cpu1-00039:2237034:4d823f1ab5c04a34986d1c6dfa3e7382": 2237063,
-              "cpu1-00039:2237034:458a23811e114245b219e6addfcf5c63": 2237062,
-              "cpu1-00039:2237034:d2d38b5723314f57b231f6a81cbc31cf": 2237064,
-              "cpu1-00038:1821511:c4fb9ce7149f4c208d98e8971ac246fa": 1821558,
-              "cpu1-00038:1821511:398fad5e54204e5facb179db1bbc923e": 1821555,
-              "cpu1-00038:1821511:7352797ce3c54bc6afe5edca4ec99407": 1821569,
-              "cpu1-00038:1821511:e18ca2ea810b410db179ed0bb09c1532": 1821552,
-              "cpu1-00038:1821511:ff044228c4884735a7b2d0d7a281ae91": 1821570,
-              "cpu1-00039:2237034:aa82fb0223fd4da3a3fba41c9bbad92c": 2237061,
-              "cpu1-00039:2237034:6946dcd6f6b946919efa44ebba396cf7": 2237066,
-              "cpu1-00038:1821511:160324ca30b14c0da5a343184aa64a95": 1821564,
-              "cpu1-00038:1821511:d9709a1c123b4c8d81b804a476b8596a": 1821549,
-              "cpu1-00038:1821511:ad7aa5cf87fa4c15913f21b458e3e4e7": 1821567,
-              "cpu1-00039:2237034:f03c1016bad9451e9798f4a2e2be69fa": 2237071,
-              "cpu1-00039:2237034:36ec2449259c4b0da1f09e4899b8d04e": 2237085,
-              "cpu1-00039:2237034:441451cda90c40e28b11b72895265e2e": 2237075,
-              "cpu1-00039:2237034:e34d5bca9a59411c9050cfe5224667d1": 2237072,
-              "cpu1-00039:2237034:d21176b94d6f4fb88eb13578e6c359ea": 2237067,
-              "cpu1-00039:2237034:c362fe3109c54d5d9fec32d56fd357ea": 2237074,
-              "cpu1-00039:2237034:8121ac03bf054cc0a45df08ca8b295af": 2237077,
-              "cpu1-00039:2237034:5db37f1f25574c41b85bd7493b3bf3cf": 2237068,
-              "cpu1-00039:2237034:cd52e161b2014fd7a0e5e30cd0903680": 2237078,
-              "cpu1-00039:2237034:4671402e44684901b5c72eadddda0879": 2237076,
-              "cpu1-00039:2237034:c0eafe215f964b5b814752beadc2a675": 2237069,
-              "cpu1-00039:2237034:cf233c5613ad4a84a4c9cfd96381df77": 2237070,
-              "cpu1-00039:2237034:3444e7375bab4e1aba64449d5ea20d01": 2237073,
-              "cpu1-00039:2237034:519078f8e7e74bc1bad2ab14b9c78cae": 2237081,
-              "cpu1-00039:2237034:d5b204ffb7944edb902e5ef1e9731436": 2237083,
-              "cpu1-00039:2237034:0b4c0b19087245fca901be446d618e36": 2237082,
-              "cpu1-00039:2237034:56a07d8df0a048c5bb25203f9ea14ab2": 2237079,
-              "cpu1-00039:2237034:3c664bbb60d145ea9a674edade21b241": 2237084,
-              "cpu1-00039:2237034:2e4cc523ec044d129f760814f568d6ac": 2237080,
-              "cpu1-00042:899093:55c3b97a2c8d47afb206e217a7f8d23c": 899143,
-              "cpu1-00042:899093:7b04d487b5e94fa281dfb053ba3b8ee7": 899152,
-              "cpu1-00042:899093:1128dd77e17048dd958e478a2cb5c5bd": 899142,
-              "cpu1-00042:899093:9725fb4e10014956aa95bc5d8c215cca": 899151,
-              "cpu1-00042:899093:2038b2248772449787cb036af34d02e8": 899147,
-              "cpu1-00042:899093:960204957fda46caaf649c13eeb29aaf": 899145,
-              "cpu1-00042:899093:8c136deb253641ecb2856ef1200400c0": 899146,
-              "cpu1-00042:899093:d9fa4696ec5248aa8c4544a0f9242f9c": 899149,
-              "cpu1-00042:899093:466e9be09a0c4593836c3b760cc10cd2": 899153,
-              "cpu1-00042:899093:fdadac2c52264d838088a2c18de2cc03": 899163,
-              "cpu1-00042:899093:92b5c1589ec447f4945b42283e6306ab": 899160,
-              "cpu1-00042:899093:5a35a5caa8b5419eb724578080e5e06c": 899144,
-              "cpu1-00042:899093:d649abac160149c3815acd41cee89368": 899159,
-              "cpu1-00042:899093:fb9c4ee1de044b8eb93999abd7e8a09f": 899148,
-              "cpu1-00042:899093:b9dd71f966134122b9b483059602c40e": 899150,
-              "cpu1-00042:899093:9fb3417467444383bf60db1e223d14fe": 899155,
-              "cpu1-00042:899093:83391f539e1a4ba6b63fb833b5cc01ed": 899154,
-              "cpu1-00042:899093:dd2b765e6b9948a0b2518c4128280ef6": 899164,
-              "cpu1-00042:899093:fad09f7d44f14924b6f546500b51bd37": 899166,
-              "cpu1-00042:899093:6fb2a3bd138f4ab29ff6bdcf0016ee27": 899157,
-              "cpu1-00042:899093:c9f63619a7b7458582c92049157cbd99": 899158,
-              "cpu1-00042:899093:1ceb2d548eba4ffca468b8d93f798792": 899165,
-              "cpu1-00042:899093:2e3ded468aec483e87c70eaa1eea9375": 899162,
-              "cpu1-00042:899093:7e531e68af204f6aba8c08a14a58b325": 899161,
-              "cpu1-00042:899093:92b91c443e39430292212e385c15a984": 899156,
-              "cpu1-00114:2786268:8bebcf2fe9014808981f17509d485134": 2786317,
-              "cpu1-00114:2786268:e939978afb16467a9ecc7cffe4e5912e": 2786304,
-              "cpu1-00114:2786268:5d231cfb0efe41aaa8b8d6de095afe97": 2786295,
-              "cpu1-00114:2786268:6103d1660d90457b996e246ecaa717cf": 2786297,
-              "cpu1-00114:2786268:2eec8795b4e0411c82b7de63a3105b14": 2786306,
-              "cpu1-00114:2786268:bf92abf1d6784929b004c46aedce9e8e": 2786315,
-              "cpu1-00114:2786268:92859640cf3143d4b09c7c0010d13a30": 2786303,
-              "cpu1-00114:2786268:28d001f1c0624076be12bee81342d67a": 2786299,
-              "cpu1-00114:2786268:6c7f4a69ae294660b002fed7ec9d28e1": 2786312,
-              "cpu1-00114:2786268:34bb287be5594c72bb9a8974ec52cbb6": 2786300,
-              "cpu1-00114:2786268:9a3762f486a64865821cd50c12a4ef3d": 2786314,
-              "cpu1-00114:2786268:a3690710ae454fbbafdc7f6e8a400af6": 2786309,
-              "cpu1-00114:2786268:0245f4f12b5d4ad59a44ac20e9a7e8e1": 2786319,
-              "cpu1-00114:2786268:8a4e7810ff414ad08260d1c3276aafdb": 2786313,
-              "cpu1-00114:2786268:1505c8eaa81d4f9f8ca6cb69704bcebc": 2786302,
-              "cpu1-00114:2786268:1ef530fb2b924b1fbf781b76057ebc61": 2786310,
-              "cpu1-00114:2786268:0b7fd7ac87c34ae7bd934abda8f28a33": 2786308,
-              "cpu1-00114:2786268:0c4c19b30d674a5bafa061a63e70876b": 2786305,
-              "cpu1-00114:2786268:e587415a16f8413d8ced3db8d7701177": 2786318,
-              "cpu1-00114:2786268:be861d6c13044ca0b8a89522d0a18aa4": 2786296,
-              "cpu1-00114:2786268:da063560b4594cbbb401c681ad54c026": 2786311,
-              "cpu1-00114:2786268:7a536f68b36b450796828b472ff339a4": 2786301,
-              "cpu1-00114:2786268:0ede63ae5be84269afdbd6eb9ff3cf1f": 2786307,
-              "cpu1-00114:2786268:0caf2df41af7435495b3ba25c7484847": 2786316,
-              "cpu1-00114:2786268:7104800018824cdd827d17bd68cdbe0a": 2786298
-            },
-            "stage": "finished",
-            "active_directions": 0,
-            "completed": [
-              {
-                "stage": "decoding",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "deduplication",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "matching",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "verification",
-                "state": "complete",
-                "count": 740
-              }
-            ],
-            "queue": {},
-            "elapsed_seconds": 149.45930014294572,
-            "finished": true
-          }
-        },
-        "stages": {
-          "matching": {
-            "all_attempts": {
-              "records": 35593,
-              "states": {
-                "complete": 35593
-              },
-              "compute_cpu_seconds": 1064.31977535,
-              "total_worker_cpu_seconds": 1219.2183305420083,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 35593
-              },
-              "compute_seconds": 1109.5362128831912,
-              "publish_cpu_seconds": 151.63101177400117,
-              "publish_seconds": 268.8258851263672,
-              "monitoring_seconds": 5.03355715458747,
-              "memory_samples": 24716,
-              "measurement_coverage": {
-                "cpu_seconds": 35593,
-                "compute_seconds": 35593,
-                "publish_cpu_seconds": 35593,
-                "publish_seconds": 35593,
-                "monitoring_seconds": 35593,
-                "memory_samples": 35593,
-                "peak_tree_rss_bytes": 35593,
-                "process_lifetime_peak_rss_bytes": 35593,
-                "records_with_memory_samples": 23211
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 314028032,
-                "process_lifetime_peak_rss_bytes": 314028032,
-                "compute_sampled_rss_bytes": 250617856,
-                "publication_sampled_rss_bytes": 314028032
-              },
-              "memory_guards_bytes": {
-                "2147483648": 35593
-              },
-              "cache": {
-                "records": 35593,
-                "enabled_records": 35593,
-                "published_records": 835,
-                "load_seconds": 38.57740415702574,
-                "save_seconds": 9.559418365941383,
-                "loaded_bytes": 409302610,
-                "saved_bytes": 24328476,
-                "baseline_loads": 0,
-                "fragment_calls": 24802429,
-                "fragment_hits": 23011166,
-                "dependency_checks": 23539708,
-                "max_retained_bytes": 38564250,
-                "max_entries": 3555,
-                "hit_fraction": 0.9277787268335694,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:45:00.970543+00:00",
-              "last_attempt_utc": "2026-11-01T22:46:07.998313+00:00",
-              "first_attempt_epoch": 1793573100.970543,
-              "last_attempt_epoch": 1793573167.9983132,
-              "task_span_seconds": 67.02777028083801,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 35593,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 18.189749195499644,
-              "mean_compute_cpus": 15.878788312525282,
-              "mean_active_task_attempts": 62.720381203546644
-            }
-          },
-          "deduplication": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 611.8999940540002,
-              "total_worker_cpu_seconds": 625.7125037600005,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 701.2415850895923,
-              "publish_cpu_seconds": 13.756357149000005,
-              "publish_seconds": 21.23096937860828,
-              "monitoring_seconds": 1.0149403024697676,
-              "memory_samples": 3935,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 725
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 301056000,
-                "process_lifetime_peak_rss_bytes": 314028032,
-                "compute_sampled_rss_bytes": 259944448,
-                "publication_sampled_rss_bytes": 301056000
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:46:09.538397+00:00",
-              "last_attempt_utc": "2026-11-01T22:46:38.380629+00:00",
-              "first_attempt_epoch": 1793573169.538397,
-              "last_attempt_epoch": 1793573198.380629,
-              "task_span_seconds": 28.84223198890686,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 21.69431630674972,
-              "mean_compute_cpus": 21.215417526956507,
-              "mean_active_task_attempts": 25.33772530186445
-            }
-          },
-          "decoding": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 1672.650219902,
-              "total_worker_cpu_seconds": 1728.592247855,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 1673.7093477722956,
-              "publish_cpu_seconds": 55.76403127499998,
-              "publish_seconds": 59.15028960653581,
-              "monitoring_seconds": 2.279819517978467,
-              "memory_samples": 8765,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 669
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 1018454016,
-                "process_lifetime_peak_rss_bytes": 1018454016,
-                "compute_sampled_rss_bytes": 802435072,
-                "publication_sampled_rss_bytes": 1018454016
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:50:54.548513+00:00",
-              "last_attempt_utc": "2026-11-01T22:51:37.085610+00:00",
-              "first_attempt_epoch": 1793573454.548513,
-              "last_attempt_epoch": 1793573497.08561,
-              "task_span_seconds": 42.53709697723389,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 40.637287701606745,
-              "mean_compute_cpus": 39.32215263296441,
-              "mean_active_task_attempts": 40.81237750507646
-            }
-          },
-          "verification": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 363.5475299720001,
-              "total_worker_cpu_seconds": 364.33072738299995,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 426.186643698602,
-              "publish_cpu_seconds": 0.71973246299995,
-              "publish_seconds": 2.6305639456259087,
-              "monitoring_seconds": 0.5107781380647793,
-              "memory_samples": 2494,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 679
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 744488960,
-                "process_lifetime_peak_rss_bytes": 1018454016,
-                "compute_sampled_rss_bytes": 744488960,
-                "publication_sampled_rss_bytes": 447336448
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:51:37.194775+00:00",
-              "last_attempt_utc": "2026-11-01T22:53:20.050299+00:00",
-              "first_attempt_epoch": 1793573497.1947753,
-              "last_attempt_epoch": 1793573600.0502987,
-              "task_span_seconds": 102.85552334785461,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 3.542160066123462,
-              "mean_compute_cpus": 3.5345455269571877,
-              "mean_active_task_attempts": 4.279294698497858
-            }
-          }
-        }
-      },
-      "2": {
-        "metadata": {
-          "plan.json": {
-            "input_index": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/2/index.json",
-            "input_index_sha256": "afa1240857a9dde0d6495ced79df91a3bdc35fc89a0898d456682fe5a3531787",
-            "config": {
-              "cut_floor": 0.2,
-              "graph_floor": 0.2,
-              "iso_tolerance": 1.0,
-              "event_threshold": 0.5,
-              "metal_event_threshold": 0.3,
-              "seed_count": 1,
-              "branch_limit": 100,
-              "task_chunksize": 1,
-              "anchors": [],
-              "seed_selection": "random",
-              "random_seed": 42,
-              "sweep_cuts": true
-            },
-            "cases": 370,
-            "directions": 740,
-            "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
-          },
-          "progress.json": {
-            "job": "21159801",
-            "source": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-            "memory_bytes": 2147483648,
-            "expected_cases": 370,
-            "expected_directions": 740,
-            "startup_seconds": 2.820003518136218,
-            "workers": {
-              "cpu1-00011:1587340:7236d8cc943e4208a607f07408c07a57": 1587370,
-              "cpu1-00011:1587340:48f6ce2e093c4d5886b4a0f19a0f1da0": 1587372,
-              "cpu1-00011:1587340:a9c1b770d1244d0eaad30ad3bb00538b": 1587371,
-              "cpu1-00011:1587340:c3b2a9692d064faead7a3fc2fb8b85e5": 1587374,
-              "cpu1-00011:1587340:c50adbda535f4151bb84f07f36aaaa66": 1587369,
-              "cpu1-00011:1587340:f9329cd90d414d68a619e773f7700010": 1587368,
-              "cpu1-00011:1587340:de89b0d3f8c2475b8192df4ce3987eb6": 1587375,
-              "cpu1-00011:1587340:e5aa75cf60024b53a22010a2e546b2bf": 1587373,
-              "cpu1-00011:1587340:5b3a72cfe6354cdf8e14fcb01d3dca97": 1587367,
-              "cpu1-00009:3382894:dad76a00c6af4262a32974e4429d4591": 3382930,
-              "cpu1-00009:3382894:3e491acaaeab4f3d8eaa9515758b34a9": 3382932,
-              "cpu1-00009:3382894:193d47d316784e8aa643fc7a0cc2cba9": 3382931,
-              "cpu1-00011:1587340:fd707501702145a59c0d9157d4a78ded": 1587383,
-              "cpu1-00011:1587340:48143412431e4ed29c962eaaebf4cfc6": 1587378,
-              "cpu1-00011:1587340:257a32b44ef34aab9ecc548a46d4e881": 1587381,
-              "cpu1-00009:3382894:c954cf1a1c804f10bae33a89de832ba3": 3382935,
-              "cpu1-00009:3382894:f5e24a461e9746bfacdb14f07be102a9": 3382939,
-              "cpu1-00009:3382894:ac14d5a6055644bda5ffacb70d4415a3": 3382936,
-              "cpu1-00009:3382894:e4ebfd99f650450c93250dc8902b3462": 3382948,
-              "cpu1-00009:3382894:2a8cb6edb0a547268b3f77831d61e2ea": 3382949,
-              "cpu1-00009:3382894:3373806e13174882aff1789ba9a64ac9": 3382938,
-              "cpu1-00009:3382894:fe2bd2bb12cc4d23897be8866f4c1963": 3382934,
-              "cpu1-00009:3382894:d47e2f0a2da349ccaa5bf5c91cd86b9a": 3382943,
-              "cpu1-00009:3382894:dfd64989ef8c4838adba078c8614f4ce": 3382945,
-              "cpu1-00009:3382894:63b2b52d9ab3478a854c5259ae02c81c": 3382933,
-              "cpu1-00009:3382894:c7ab63eec5fa4632adf064603e94eff2": 3382951,
-              "cpu1-00009:3382894:24554ad865f2419cb47973e58a7f0df5": 3382941,
-              "cpu1-00009:3382894:01bfecabe17743e090da5dc1e64cb3f9": 3382946,
-              "cpu1-00011:1587340:7177d114d4cc47e89fa7f0f9d459825d": 1587380,
-              "cpu1-00011:1587340:6b6b3bf28cc44260828a042c31090d3c": 1587382,
-              "cpu1-00009:3382894:df53c2457d014b679bd2e8d0a405fd00": 3382942,
-              "cpu1-00009:3382894:bb6a49a5bc994ae0ab86ec54f20a2c55": 3382937,
-              "cpu1-00009:3382894:cf3b183b804b457f83ef959c32a9f054": 3382947,
-              "cpu1-00009:3382894:83575a28c32a4846bfb17060a53fd711": 3382940,
-              "cpu1-00011:1587340:f982ebbb42ae4e9bb9d4289ad8208cc1": 1587388,
-              "cpu1-00009:3382894:895417a8faf047aaad51b992c954947b": 3382950,
-              "cpu1-00009:3382894:c28811df3f90475c9815b065b5f9c98f": 3382944,
-              "cpu1-00009:3382894:5bc4e63a854446dfbfa2d6432ebc5975": 3382955,
-              "cpu1-00011:1587340:81bbd844c69b47289f3705064e61b4f7": 1587377,
-              "cpu1-00009:3382894:54534ce88cf440caa2c8beaee69a064b": 3382957,
-              "cpu1-00011:1587340:1658ca69dc2743979ca78036c899595b": 1587379,
-              "cpu1-00011:1587340:641f638650054a43944c489501eb798c": 1587389,
-              "cpu1-00011:1587340:b3ebd65381804eab8fe7d2db6c2f178c": 1587390,
-              "cpu1-00011:1587340:354be790ba244d8192ade0f63cea515a": 1587376,
-              "cpu1-00011:1587340:583b1a66662c40e8b37f02b1de9f446c": 1587387,
-              "cpu1-00009:3382894:0d28742c06cd46f7b5fb656ca33d48ee": 3382953,
-              "cpu1-00011:1587340:98aaa8e3014d48ea86ace29b55764167": 1587385,
-              "cpu1-00011:1587340:60e4d41bd494405fa5fdf89c93eae248": 1587391,
-              "cpu1-00011:1587340:4f87dd8187b54175a61f0e94601a44ed": 1587386,
-              "cpu1-00011:1587340:93a4d590832f48efb970ef970c2508d6": 1587384,
-              "cpu1-00025:2004098:2b04760d350547a3ac956a156cef2dde": 2004159,
-              "cpu1-00025:2004098:29d1d8d6a09d436e9274a69f3f29cb7e": 2004161,
-              "cpu1-00025:2004098:9e61583994e94b159ab8ea5caeeed4d0": 2004163,
-              "cpu1-00025:2004098:4594d57228af420e91fd0f09a7eadb58": 2004160,
-              "cpu1-00025:2004098:c9bdb40d8cca440f987cdf1b6fe2ec96": 2004165,
-              "cpu1-00025:2004098:807dd8e6125f4d48bdfe7d20bb1b9502": 2004162,
-              "cpu1-00025:2004098:61bacf6bf1754247a6909fb4e3b51ac3": 2004164,
-              "cpu1-00025:2004098:9ca21e904a854d5883f847ddeb88036c": 2004166,
-              "cpu1-00025:2004098:9eb00cfd997942e3be4dc690d4e32e54": 2004173,
-              "cpu1-00025:2004098:dc46fb732bd946c386f90d778fef6f4d": 2004170,
-              "cpu1-00025:2004098:fc81eb079bd242f0b028dfc06c7321af": 2004168,
-              "cpu1-00025:2004098:4cb0b356698740a29236ca05c58be4b6": 2004182,
-              "cpu1-00025:2004098:5f6089f77c344a0c9f286eeef236cbd3": 2004176,
-              "cpu1-00025:2004098:87c18fdc632f49178ac1f01d9734e642": 2004179,
-              "cpu1-00025:2004098:97fc494adc8649cf871c95c9f74bd9fd": 2004171,
-              "cpu1-00025:2004098:e50b77c88e62438f83523570daf26cde": 2004174,
-              "cpu1-00025:2004098:d8c89901096c47aeb1a6871a00afbd4f": 2004180,
-              "cpu1-00025:2004098:ea5f11c2eff0448dbdf88f06fca12e5a": 2004177,
-              "cpu1-00025:2004098:c45e1d00413345aab991df43d74fbdb3": 2004175,
-              "cpu1-00025:2004098:3d076fbc18c5497c9a0be061091e58af": 2004178,
-              "cpu1-00025:2004098:33c4ae1c88e74da687d85f03d02415c9": 2004169,
-              "cpu1-00025:2004098:375a920eef174d0583ce59dfc96d2487": 2004172,
-              "cpu1-00025:2004098:c329040a01a948b58adc3d0e6c2d089e": 2004181,
-              "cpu1-00025:2004098:5d055ba1594b41e48086de9466c31d2c": 2004183,
-              "cpu1-00025:2004098:d2dbe6e698c2468e9818aa5fabf6a968": 2004167,
-              "cpu1-00021:1792391:77d4e408a23f4ed6a4430f3f4a42a660": 1792419,
-              "cpu1-00021:1792391:a1c3c1029fe54c09af281d9376767e60": 1792432,
-              "cpu1-00021:1792391:9c4039d06cf54a58891bb9404f6879db": 1792422,
-              "cpu1-00021:1792391:229154e53c6444dbbf8cd81d57a5fa69": 1792421,
-              "cpu1-00021:1792391:a3d15233cde24febb56344bab31e12ea": 1792434,
-              "cpu1-00021:1792391:75e15a87f31844238b7093b39b40e0d4": 1792435,
-              "cpu1-00021:1792391:414d1170e28348c98fd8c891948ed42e": 1792429,
-              "cpu1-00021:1792391:a65f3c10fadb4364bb5f01d986a1f254": 1792420,
-              "cpu1-00021:1792391:80a875cf72f0490296c37d66f3432c53": 1792418,
-              "cpu1-00021:1792391:1942e393338e4697bd7dbea703be320e": 1792426,
-              "cpu1-00021:1792391:bf71cd3013cf4b608522e7cf9b7241c2": 1792423,
-              "cpu1-00021:1792391:8cdd8fbfe0114784a28220f87a606828": 1792438,
-              "cpu1-00021:1792391:fe1f22cf9be746ca87350879d72cebeb": 1792441,
-              "cpu1-00021:1792391:15a503a37f9e410f976e2638b70eb688": 1792425,
-              "cpu1-00021:1792391:ef6e76d3335142fd8b0413191b474eb0": 1792428,
-              "cpu1-00021:1792391:4f0f0684cbc3404fad3ca2f7d4caf940": 1792436,
-              "cpu1-00021:1792391:189d9a8bec07408ab9109fe6e5a15fb0": 1792442,
-              "cpu1-00021:1792391:0ff638d6a7164dfc9bec0ce5c30b204d": 1792427,
-              "cpu1-00021:1792391:b9660bc8b81140488b7233476ce7c941": 1792440,
-              "cpu1-00021:1792391:46af29e789584da785246d49ca09d5ac": 1792437,
-              "cpu1-00021:1792391:74ac7b7e4053432eb3752a39fe995057": 1792439,
-              "cpu1-00021:1792391:0be3f0a7260848519f6d634029b60b22": 1792430,
-              "cpu1-00021:1792391:598ceb482ffd406286fdc41ee3712c27": 1792431,
-              "cpu1-00021:1792391:125cf2e2beff4642a6bdde5f2b2e7b3e": 1792433,
-              "cpu1-00021:1792391:2508813b5f514d29a9ecca14b570c268": 1792424
-            },
-            "stage": "finished",
-            "active_directions": 0,
-            "completed": [
-              {
-                "stage": "decoding",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "deduplication",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "matching",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "verification",
-                "state": "complete",
-                "count": 740
-              }
-            ],
-            "queue": {},
-            "elapsed_seconds": 143.09843837399967,
-            "finished": true
-          }
-        },
-        "stages": {
-          "matching": {
-            "all_attempts": {
-              "records": 34940,
-              "states": {
-                "complete": 34940
-              },
-              "compute_cpu_seconds": 1027.2845956279987,
-              "total_worker_cpu_seconds": 1181.8037703030054,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 34940
-              },
-              "compute_seconds": 1069.8830971120624,
-              "publish_cpu_seconds": 151.0725372790005,
-              "publish_seconds": 264.3370448805508,
-              "monitoring_seconds": 5.4957516409340315,
-              "memory_samples": 24045,
-              "measurement_coverage": {
-                "cpu_seconds": 34940,
-                "compute_seconds": 34940,
-                "publish_cpu_seconds": 34940,
-                "publish_seconds": 34940,
-                "monitoring_seconds": 34940,
-                "memory_samples": 34940,
-                "peak_tree_rss_bytes": 34940,
-                "process_lifetime_peak_rss_bytes": 34940,
-                "records_with_memory_samples": 22634
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 381693952,
-                "process_lifetime_peak_rss_bytes": 381693952,
-                "compute_sampled_rss_bytes": 311795712,
-                "publication_sampled_rss_bytes": 381693952
-              },
-              "memory_guards_bytes": {
-                "2147483648": 34940
-              },
-              "cache": {
-                "records": 34940,
-                "enabled_records": 34940,
-                "published_records": 847,
-                "load_seconds": 44.64274981460767,
-                "save_seconds": 19.019665078551043,
-                "loaded_bytes": 605215291,
-                "saved_bytes": 35083511,
-                "baseline_loads": 0,
-                "fragment_calls": 21040092,
-                "fragment_hits": 19346915,
-                "dependency_checks": 19972929,
-                "max_retained_bytes": 42941273,
-                "max_entries": 5460,
-                "hit_fraction": 0.9195261598666014,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:46:44.195983+00:00",
-              "last_attempt_utc": "2026-11-01T22:47:49.095114+00:00",
-              "first_attempt_epoch": 1793573204.1959832,
-              "last_attempt_epoch": 1793573269.0951142,
-              "task_span_seconds": 64.8991310596466,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 34940,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 18.2098550628798,
-              "mean_compute_cpus": 15.828942219331966,
-              "mean_active_task_attempts": 62.553361053568544
-            }
-          },
-          "deduplication": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 599.0902083670001,
-              "total_worker_cpu_seconds": 612.7734187669993,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 630.4366481486359,
-              "publish_cpu_seconds": 13.625223891999958,
-              "publish_seconds": 19.211287107435055,
-              "monitoring_seconds": 0.9781977202510461,
-              "memory_samples": 3588,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 721
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 273108992,
-                "process_lifetime_peak_rss_bytes": 381693952,
-                "compute_sampled_rss_bytes": 273108992,
-                "publication_sampled_rss_bytes": 235888640
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:47:50.312604+00:00",
-              "last_attempt_utc": "2026-11-01T22:48:12.521479+00:00",
-              "first_attempt_epoch": 1793573270.3126042,
-              "last_attempt_epoch": 1793573292.521479,
-              "task_span_seconds": 22.208874702453613,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 27.59137628433289,
-              "mean_compute_cpus": 26.9752617542938,
-              "mean_active_task_attempts": 29.686021925830094
-            }
-          },
-          "decoding": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 1636.406904464999,
-              "total_worker_cpu_seconds": 1692.1712401700006,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 1637.0344073031447,
-              "publish_cpu_seconds": 55.57249148200004,
-              "publish_seconds": 65.9562786136521,
-              "monitoring_seconds": 2.5977752679027617,
-              "memory_samples": 8647,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 677
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 639029248,
-                "process_lifetime_peak_rss_bytes": 663629824,
-                "compute_sampled_rss_bytes": 542699520,
-                "publication_sampled_rss_bytes": 639029248
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:52:04.859842+00:00",
-              "last_attempt_utc": "2026-11-01T22:52:59.402914+00:00",
-              "first_attempt_epoch": 1793573524.8598418,
-              "last_attempt_epoch": 1793573579.402914,
-              "task_span_seconds": 54.54307222366333,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 31.024494425817434,
-              "mean_compute_cpus": 30.00210361738753,
-              "mean_active_task_attempts": 31.377475948290577
-            }
-          },
-          "verification": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 291.4398336919996,
-              "total_worker_cpu_seconds": 292.29780489299964,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 317.30759855743963,
-              "publish_cpu_seconds": 0.7906687330000164,
-              "publish_seconds": 2.540390676469542,
-              "monitoring_seconds": 0.4760694336728193,
-              "memory_samples": 1942,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 669
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 560123904,
-                "process_lifetime_peak_rss_bytes": 663629824,
-                "compute_sampled_rss_bytes": 560123904,
-                "publication_sampled_rss_bytes": 544260096
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:52:59.532423+00:00",
-              "last_attempt_utc": "2026-11-01T22:54:24.557587+00:00",
-              "first_attempt_epoch": 1793573579.5324225,
-              "last_attempt_epoch": 1793573664.5575874,
-              "task_span_seconds": 85.02516484260559,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 3.437779925908841,
-              "mean_compute_cpus": 3.427689134522687,
-              "mean_active_task_attempts": 3.896973322034815
-            }
-          }
-        }
-      },
-      "3": {
-        "metadata": {
-          "plan.json": {
-            "input_index": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/3/index.json",
-            "input_index_sha256": "72ace507a36ca4a2d2871d5533c45e6e99121380c5f4dd81ce446daf32c2d336",
-            "config": {
-              "cut_floor": 0.2,
-              "graph_floor": 0.2,
-              "iso_tolerance": 1.0,
-              "event_threshold": 0.5,
-              "metal_event_threshold": 0.3,
-              "seed_count": 1,
-              "branch_limit": 100,
-              "task_chunksize": 1,
-              "anchors": [],
-              "seed_selection": "random",
-              "random_seed": 42,
-              "sweep_cuts": true
-            },
-            "cases": 370,
-            "directions": 740,
-            "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
-          },
-          "progress.json": {
-            "job": "21159833",
-            "source": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-            "memory_bytes": 2147483648,
-            "expected_cases": 370,
-            "expected_directions": 740,
-            "startup_seconds": 3.6386910310247913,
-            "workers": {
-              "cpu1-00042:902448:91e875fdf5914c449164a62047fcaf90": 902489,
-              "cpu1-00042:902448:60e046f4201e426d9b9af19d4a53a33e": 902488,
-              "cpu1-00042:902448:70e1e285f462415590b314d4b45fb196": 902487,
-              "cpu1-00042:902448:24b3e8d47b1e408992b772661089a0e2": 902492,
-              "cpu1-00042:902448:9bbeb9d9037548a5ba58b793ac00b4c6": 902494,
-              "cpu1-00042:902448:b68b74bca7814f1ab1ce62a267df1380": 902493,
-              "cpu1-00042:902448:39fc5f069c4841ee8b610ba1c6c3d25c": 902490,
-              "cpu1-00042:902448:01a50e3108e64776a91be506dd936cb6": 902495,
-              "cpu1-00042:902448:4c58dbba61144d1d8fb78c3db37f7c8f": 902491,
-              "cpu1-00042:902448:7d0fa1bf0f664b018f1585795426c02d": 902498,
-              "cpu1-00042:902448:d5e99b3ec79b47eb85c9b5f1130b0588": 902507,
-              "cpu1-00042:902448:75f92c211d0e4ea2b947ee7abcadc923": 902510,
-              "cpu1-00042:902448:5bdf088f31a8412eb6d34c29f217ae6a": 902502,
-              "cpu1-00042:902448:782e949a96094bb88a10d6631c813e64": 902500,
-              "cpu1-00042:902448:0c234cacee104113830ab77840a0196a": 902505,
-              "cpu1-00042:902448:e90bf815970349f68b25684fd2e0c540": 902497,
-              "cpu1-00042:902448:d00fcde5b8624c26b051c1c6beaed1f3": 902499,
-              "cpu1-00042:902448:0638131538894cefafab37622e4efeba": 902503,
-              "cpu1-00042:902448:51add06db2ec498fa1eb1f00599f1b95": 902509,
-              "cpu1-00042:902448:ff923d6b624b4b349a9586be0345b25f": 902496,
-              "cpu1-00042:902448:3830985740234b98b01b3b9341434397": 902506,
-              "cpu1-00042:902448:e9ad0c8d22ac49e8b1870c4e95d9ec6b": 902501,
-              "cpu1-00042:902448:9798723565464fafb8395911623620f5": 902508,
-              "cpu1-00042:902448:beaa78c32a574789be02feb40c52fab1": 902504,
-              "cpu1-00042:902448:c1d7640eb81b4058833df5dcb18372fe": 902511,
-              "cpu1-00039:2240939:0edfe6c098fa42b29bae76157790b300": 2240966,
-              "cpu1-00039:2240939:27cd097a43154c07a51c6c1da66e6db3": 2240973,
-              "cpu1-00039:2240939:3df351cd80f7473a877801b9cefe2475": 2240968,
-              "cpu1-00039:2240939:d238be2620d44bc9a9d73a3ced6ceefa": 2240977,
-              "cpu1-00039:2240939:64823b061dc44e0ea65db997d34526f0": 2240967,
-              "cpu1-00039:2240939:319fe6dfee9648e58c3f629c67a7dbe9": 2240988,
-              "cpu1-00039:2240939:c9dabef291a0488d856884dfb77eeede": 2240970,
-              "cpu1-00039:2240939:95a0e0ec81d845598e0e2b6f91965677": 2240969,
-              "cpu1-00039:2240939:68de0cdc7941403cae442527a38f145f": 2240974,
-              "cpu1-00039:2240939:88f3e899ef3847e3874e6d13df345dd6": 2240972,
-              "cpu1-00039:2240939:7177e14516974cc5baeabc453fd2346d": 2240971,
-              "cpu1-00039:2240939:5e3152e5d20c4b90bf1e61b428ad7f52": 2240979,
-              "cpu1-00039:2240939:383ce21e68554b4bbeed475341fe9711": 2240981,
-              "cpu1-00039:2240939:2917b07821ff4e8d8405fab09425e5e8": 2240978,
-              "cpu1-00039:2240939:c388920a530a4d1581f48addf2e0f86b": 2240987,
-              "cpu1-00039:2240939:016ed8f290fa4988a293ea4d32c31498": 2240984,
-              "cpu1-00039:2240939:ddabeeed50ba4ae68f6afcf5b9301ced": 2240976,
-              "cpu1-00039:2240939:93f0a95163164d1c998c7d63e3e9b836": 2240990,
-              "cpu1-00039:2240939:68e2e12e7c5147ccb6fd5e0b43836aef": 2240982,
-              "cpu1-00039:2240939:f4c1c42715084ea09a82c217e0d58b9e": 2240989,
-              "cpu1-00039:2240939:10c69cffa1c34db3936d5a647bfb9789": 2240980,
-              "cpu1-00039:2240939:113d7eaf1ca945fab8a05057713167a0": 2240991,
-              "cpu1-00039:2240939:5c84b15d96d14b77877545375adf3982": 2240983,
-              "cpu1-00039:2240939:6fe3ff2fdb8544cebb62e911e4223081": 2240986,
-              "cpu1-00039:2240939:a68989cdb0294302bc66e739024f3a69": 2240985,
-              "cpu1-00034:2868906:a3c2830ef3ce4ac29d6ddb58e676c4cd": 2868950,
-              "cpu1-00034:2868906:6e9c71bc40c44cb08a80a3215847212a": 2868976,
-              "cpu1-00034:2868906:154bdefdcfa34db294e9228fc70ac559": 2868957,
-              "cpu1-00034:2868906:406587f84be04ab28ec2863e63364bd4": 2868974,
-              "cpu1-00034:2868906:6302a800ee44458598e087336adcd013": 2868961,
-              "cpu1-00038:1822842:dbb1b9e3ba6e4662a3499c0d24a95a5a": 1822871,
-              "cpu1-00034:2868906:988dada8b9c74a4b96ccb3d93ddab170": 2868966,
-              "cpu1-00034:2868906:160ee141b3074b53ae52ca07d12e895c": 2868969,
-              "cpu1-00034:2868906:cc0754a20ccd4ff39e0e447dc549a5b3": 2868962,
-              "cpu1-00034:2868906:67a3888d7bec4138bb171d00f44f04f5": 2868956,
-              "cpu1-00034:2868906:cab27ccb639e43358406b87ec614f29c": 2868973,
-              "cpu1-00034:2868906:95221cdef08c40298b22c503609f1107": 2868971,
-              "cpu1-00034:2868906:6ad01a2c475f4a43b0c58ad138630689": 2868953,
-              "cpu1-00034:2868906:2e9e686168b542cd91f1866cb2fc9edc": 2868965,
-              "cpu1-00034:2868906:5d70ba43920d4dba8e484ed071487224": 2868959,
-              "cpu1-00034:2868906:9d0aa3df5aa246f680d7a580e45794da": 2868970,
-              "cpu1-00038:1822842:83ead1da0de44344befb475c1c7463b5": 1822872,
-              "cpu1-00034:2868906:a4e03be7b463440695c7c8cc290e7a06": 2868968,
-              "cpu1-00034:2868906:c846d7ba4ea6446baa0febe15446c657": 2868964,
-              "cpu1-00034:2868906:96ac6c81fbfa4a0ab0d2bdab00a62221": 2868958,
-              "cpu1-00038:1822842:cc62bb38d2f140329f242da088002987": 1822873,
-              "cpu1-00034:2868906:2186517d968d435b94c35db22746700a": 2868967,
-              "cpu1-00034:2868906:54b709463bb747bbbe5184d78b6f0975": 2868972,
-              "cpu1-00034:2868906:b9097ad1bd0b4388b0687b3e2989dfe1": 2868963,
-              "cpu1-00038:1822842:df21092ebf1141df93d6bc36f8e21ada": 1822878,
-              "cpu1-00038:1822842:719b1970ed1c4e6c973eec33f4550d61": 1822870,
-              "cpu1-00034:2868906:dc90512210ed4431b507eedfe94c0312": 2868955,
-              "cpu1-00034:2868906:9e73455619e649af92ece2a361c4aeab": 2868975,
-              "cpu1-00034:2868906:c9c4f772ba2a46cc9f7f71ff4126a804": 2868960,
-              "cpu1-00034:2868906:ba54b215370943dbbe15bd6b2caccbd9": 2868954,
-              "cpu1-00038:1822842:8a14acc7281040df928fa4443bf94225": 1822876,
-              "cpu1-00038:1822842:863f97762194483297747fa3986804d4": 1822875,
-              "cpu1-00038:1822842:91201a2041e947e5b20cefb31decc528": 1822874,
-              "cpu1-00038:1822842:d10c4a8fbadc463aa77cd53a5b745af0": 1822877,
-              "cpu1-00038:1822842:84c9997ca3114b6db199e862eae04ca0": 1822885,
-              "cpu1-00038:1822842:91b45a9104224681a8301c1ee1b63437": 1822879,
-              "cpu1-00038:1822842:2d1f3a5e047b445bb528b4f42fc8a640": 1822892,
-              "cpu1-00038:1822842:3f54c30621bb49d4bca906f62c010ea8": 1822890,
-              "cpu1-00038:1822842:95b8fac873764b01b7fef7435fa51f47": 1822882,
-              "cpu1-00038:1822842:dde06d1733f24db1908256e6eefbe9e7": 1822887,
-              "cpu1-00038:1822842:b29ebdb797424024b525ffb72bcd6a72": 1822894,
-              "cpu1-00038:1822842:74eadf1d4fa946c3ae7eb1ebc02aa007": 1822888,
-              "cpu1-00038:1822842:5f49c29f1e7941cabababd1a7096a1f9": 1822881,
-              "cpu1-00038:1822842:5c0221d1a1b34a40b702d3c7ec96f10a": 1822891,
-              "cpu1-00038:1822842:f919e0fd02c84be58a597c5f3050f917": 1822893,
-              "cpu1-00038:1822842:fb83f0bd195742f69885ba0bdd099977": 1822880,
-              "cpu1-00038:1822842:f2baa814440c49c09471d53b14f91249": 1822884,
-              "cpu1-00038:1822842:8f9700d7af4f434699095be76ba6f203": 1822883,
-              "cpu1-00038:1822842:6ce9c3239b984b78876433f5bda8c97c": 1822886,
-              "cpu1-00038:1822842:331ed63f58e8450db026c8f8bd8dbf2c": 1822889
-            },
-            "stage": "finished",
-            "active_directions": 0,
-            "completed": [
-              {
-                "stage": "decoding",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "deduplication",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "matching",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "verification",
-                "state": "complete",
-                "count": 740
-              }
-            ],
-            "queue": {},
-            "elapsed_seconds": 55.767591441981494,
-            "finished": true
-          }
-        },
-        "stages": {
-          "matching": {
-            "all_attempts": {
-              "records": 35674,
-              "states": {
-                "complete": 35674
-              },
-              "compute_cpu_seconds": 976.8451007750073,
-              "total_worker_cpu_seconds": 1115.5939632839957,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 35674
-              },
-              "compute_seconds": 1024.3364150001435,
-              "publish_cpu_seconds": 135.3517694509992,
-              "publish_seconds": 232.75103458948433,
-              "monitoring_seconds": 5.370669701136649,
-              "memory_samples": 24522,
-              "measurement_coverage": {
-                "cpu_seconds": 35674,
-                "compute_seconds": 35674,
-                "publish_cpu_seconds": 35674,
-                "publish_seconds": 35674,
-                "monitoring_seconds": 35674,
-                "memory_samples": 35674,
-                "peak_tree_rss_bytes": 35674,
-                "process_lifetime_peak_rss_bytes": 35674,
-                "records_with_memory_samples": 23406
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 205299712,
-                "process_lifetime_peak_rss_bytes": 205299712,
-                "compute_sampled_rss_bytes": 190533632,
-                "publication_sampled_rss_bytes": 205299712
-              },
-              "memory_guards_bytes": {
-                "2147483648": 35674
-              },
-              "cache": {
-                "records": 35674,
-                "enabled_records": 35674,
-                "published_records": 847,
-                "load_seconds": 46.3000236133812,
-                "save_seconds": 9.695823128335178,
-                "loaded_bytes": 454721940,
-                "saved_bytes": 25295430,
-                "baseline_loads": 0,
-                "fragment_calls": 23411049,
-                "fragment_hits": 21820280,
-                "dependency_checks": 22319087,
-                "max_retained_bytes": 25586854,
-                "max_entries": 3034,
-                "hit_fraction": 0.9320505031619899,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:47:22.367315+00:00",
-              "last_attempt_utc": "2026-11-01T22:48:29.936942+00:00",
-              "first_attempt_epoch": 1793573242.3673146,
-              "last_attempt_epoch": 1793573309.9369416,
-              "task_span_seconds": 67.56962704658508,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 35674,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 16.510287418263573,
-              "mean_compute_cpus": 14.456866841984091,
-              "mean_active_task_attempts": 61.72968440993265
-            }
-          },
-          "deduplication": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 542.4050111370001,
-              "total_worker_cpu_seconds": 554.7352961969995,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 571.7035149370786,
-              "publish_cpu_seconds": 12.276110172999973,
-              "publish_seconds": 16.760808830615133,
-              "monitoring_seconds": 0.88947818800807,
-              "memory_samples": 3303,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 727
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 185831424,
-                "process_lifetime_peak_rss_bytes": 205299712,
-                "compute_sampled_rss_bytes": 185831424,
-                "publication_sampled_rss_bytes": 184274944
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:48:30.626695+00:00",
-              "last_attempt_utc": "2026-11-01T22:48:52.315742+00:00",
-              "first_attempt_epoch": 1793573310.6266947,
-              "last_attempt_epoch": 1793573332.3157415,
-              "task_span_seconds": 21.68904685974121,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 25.576748475134163,
-              "mean_compute_cpus": 25.00824562022602,
-              "mean_active_task_attempts": 27.608685725396384
-            }
-          },
-          "decoding": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 1416.3368687000007,
-              "total_worker_cpu_seconds": 1466.211166962999,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 1416.9665349163115,
-              "publish_cpu_seconds": 49.700425639,
-              "publish_seconds": 54.54477183462586,
-              "monitoring_seconds": 2.0563118046848103,
-              "memory_samples": 7505,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 686
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 612106240,
-                "process_lifetime_peak_rss_bytes": 645525504,
-                "compute_sampled_rss_bytes": 506777600,
-                "publication_sampled_rss_bytes": 612106240
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:53:52.001822+00:00",
-              "last_attempt_utc": "2026-11-01T22:54:25.110676+00:00",
-              "first_attempt_epoch": 1793573632.0018215,
-              "last_attempt_epoch": 1793573665.1106756,
-              "task_span_seconds": 33.10885405540466,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 44.28456401751107,
-              "mean_compute_cpus": 42.77819058098143,
-              "mean_active_task_attempts": 44.58043608548251
-            }
-          },
-          "verification": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 239.08178672200012,
-              "total_worker_cpu_seconds": 239.89113366399963,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 251.29701249965,
-              "publish_cpu_seconds": 0.7455724029999793,
-              "publish_seconds": 4.47746926988475,
-              "monitoring_seconds": 0.37442476861178875,
-              "memory_samples": 1609,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 679
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 533209088,
-                "process_lifetime_peak_rss_bytes": 645525504,
-                "compute_sampled_rss_bytes": 533209088,
-                "publication_sampled_rss_bytes": 407224320
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:54:25.264578+00:00",
-              "last_attempt_utc": "2026-11-01T22:54:43.609877+00:00",
-              "first_attempt_epoch": 1793573665.2645776,
-              "last_attempt_epoch": 1793573683.6098766,
-              "task_span_seconds": 18.345299005508423,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 13.076436289862002,
-              "mean_compute_cpus": 13.032318887264394,
-              "mean_active_task_attempts": 14.56016903907156
-            }
-          }
-        }
-      },
-      "4": {
-        "metadata": {
-          "plan.json": {
-            "input_index": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_retest_20261101_096a010/4/index.json",
-            "input_index_sha256": "79ea87fd781a0dc4d122815c81d663ebde0871ba2485a289b55ed5e7d5caeebd",
-            "config": {
-              "cut_floor": 0.2,
-              "graph_floor": 0.2,
-              "iso_tolerance": 1.0,
-              "event_threshold": 0.5,
-              "metal_event_threshold": 0.3,
-              "seed_count": 1,
-              "branch_limit": 100,
-              "task_chunksize": 1,
-              "anchors": [],
-              "seed_selection": "random",
-              "random_seed": 42,
-              "sweep_cuts": true
-            },
-            "cases": 370,
-            "directions": 740,
-            "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
-          },
-          "progress.json": {
-            "job": "21159702",
-            "source": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-            "memory_bytes": 2147483648,
-            "expected_cases": 370,
-            "expected_directions": 740,
-            "startup_seconds": 4.495305113028735,
-            "workers": {
-              "cpu1-00009:3388307:e2fa05bd46924273b981e626e8b6b768": 3388345,
-              "cpu1-00009:3388307:1ca3e83440664e94bc029bf9326ddf21": 3388341,
-              "cpu1-00009:3388307:c77f97e01d634b3682406572a338bb03": 3388342,
-              "cpu1-00009:3388307:121c600c9e99424f920838d6d91db6c9": 3388344,
-              "cpu1-00009:3388307:5d624f8a65ed46869ad7bbdd0b5943c3": 3388343,
-              "cpu1-00009:3388307:6b18e77231a342ec9e7ea1aa7cccf3ba": 3388340,
-              "cpu1-00009:3388307:178b0b1a850e4a78abf84fc59174be81": 3388353,
-              "cpu1-00009:3388307:30dbf236f8e74d23b736028760cb6a42": 3388348,
-              "cpu1-00009:3388307:d8f8a09db0f444de960d61ae619d8486": 3388350,
-              "cpu1-00009:3388307:9fe13b95b1cc4c85ade1d258ce435fca": 3388363,
-              "cpu1-00009:3388307:de765f6a467a4051b48c1fa511095e9b": 3388352,
-              "cpu1-00009:3388307:27698094ebbc4fd29db182fbc0b571a1": 3388354,
-              "cpu1-00009:3388307:56f9545ede09411f8bb58baf4f1a8e52": 3388365,
-              "cpu1-00009:3388307:f05377d209eb4105b01b59a364a27741": 3388357,
-              "cpu1-00009:3388307:e1a0755b41e14e81a82f3496532cf298": 3388359,
-              "cpu1-00009:3388307:163a18a2b12c48ed9af66ff07a4b71fb": 3388364,
-              "cpu1-00009:3388307:0fd0e3d6242d4a47bc0bca587413976e": 3388347,
-              "cpu1-00009:3388307:672569d6a2c043b19c44305b54dd51c9": 3388358,
-              "cpu1-00009:3388307:f330c35fc2644be0a9f7b4493a80a361": 3388349,
-              "cpu1-00009:3388307:5ddbd0d0a37c4870b8174a2aa6dd0097": 3388355,
-              "cpu1-00009:3388307:c69400cdec574d4b994dc7b187b9940c": 3388362,
-              "cpu1-00009:3388307:ee0c2237672f471a8e7f17c01a4b7f49": 3388356,
-              "cpu1-00009:3388307:5d5393d6f98a41539e8562e0f7168bfb": 3388366,
-              "cpu1-00009:3388307:2a817769937d46d3abb6e98cb564b44c": 3388351,
-              "cpu1-00009:3388307:0569fe68485f4251a0eee81608139867": 3388361,
-              "cpu1-00011:1589840:df0aa3ca0a754033b1c9a877a0144e27": 1589868,
-              "cpu1-00011:1589840:0554480487d3480ab72fe63a7238fb05": 1589867,
-              "cpu1-00011:1589840:ef2e84d554314500a625291a3c40c0d9": 1589879,
-              "cpu1-00011:1589840:f75861858f494666959382a5023a3524": 1589872,
-              "cpu1-00011:1589840:cf28867cf0f547ee931a7f8cea91a3b9": 1589880,
-              "cpu1-00011:1589840:729f223125d74087aedf20a284c1fa30": 1589870,
-              "cpu1-00011:1589840:de516600d17340b2b85368e9c5b7ce67": 1589885,
-              "cpu1-00011:1589840:3ff1c9349a6b42f6a4479c4bd9334cbd": 1589875,
-              "cpu1-00011:1589840:1b52a41b3735407fafc7339cf7ebd613": 1589873,
-              "cpu1-00011:1589840:ec1dc83afce7417f9223f72d9e34695b": 1589890,
-              "cpu1-00011:1589840:d909a287c5b242a58e1dcb06c7d8f13c": 1589883,
-              "cpu1-00011:1589840:677d5079b2d34eeebce25457ac59bf16": 1589884,
-              "cpu1-00011:1589840:2417b65121984d80b42b0f8b6f45d948": 1589888,
-              "cpu1-00011:1589840:5e1db562798544a0aa67f6b597f1587e": 1589889,
-              "cpu1-00011:1589840:bb49b41a09664208942575686cbf0550": 1589877,
-              "cpu1-00011:1589840:a0db2b5ff5d041d0aa3a268bad786c47": 1589886,
-              "cpu1-00011:1589840:41a92ce420fa4825b95a906ef475780b": 1589876,
-              "cpu1-00011:1589840:501027235453409dae74fc05ad646335": 1589887,
-              "cpu1-00011:1589840:a50bb8fc48884b759ab9a23ba5d9ecee": 1589874,
-              "cpu1-00011:1589840:f7c3df1b9dc14122b78b8fed43e5166f": 1589871,
-              "cpu1-00011:1589840:639e1b9eb4844ef2875fbdab0e908676": 1589869,
-              "cpu1-00011:1589840:5338dfc78de94e09bcdee1806ccf368b": 1589891,
-              "cpu1-00011:1589840:d0255b015fa9451785e08d2bdefd7196": 1589881,
-              "cpu1-00011:1589840:7e2d2acbecf14e0ebb495e924952d001": 1589882,
-              "cpu1-00011:1589840:c7544cddc0be47b9b38bf6ed41b8b716": 1589878,
-              "cpu1-00025:2006389:c6da959011db48829240c6c5f704a30a": 2006417,
-              "cpu1-00025:2006389:9b5ae6d900ea46dab217c756aefdf4a3": 2006426,
-              "cpu1-00025:2006389:e05585f286a040eab5fe206ff9d4b5eb": 2006420,
-              "cpu1-00025:2006389:479b4bcab28b412c93166393b0233a09": 2006422,
-              "cpu1-00025:2006389:124ccb76aa164697a959f5c02d5521e5": 2006418,
-              "cpu1-00025:2006389:226cfb1accd54d528ef5c78728201b9a": 2006421,
-              "cpu1-00025:2006389:473e7c9b54644d24ad8f46fa9fbca600": 2006429,
-              "cpu1-00025:2006389:e7190b64ee174f3cad263d592c4974ce": 2006430,
-              "cpu1-00025:2006389:0ec4b1e52e9c4c77aa44404c846d76dd": 2006432,
-              "cpu1-00025:2006389:7b37832c23f64fef9c5c19848491a976": 2006428,
-              "cpu1-00025:2006389:3c7a22ddba1646739ca6a064790fab21": 2006419,
-              "cpu1-00025:2006389:005b7a99f4cc450ea49295d5451e4cb9": 2006431,
-              "cpu1-00025:2006389:041f7d24b96b440bb122923066d0eee5": 2006425,
-              "cpu1-00025:2006389:04b6780ef2834367a4cdb45b6d478448": 2006441,
-              "cpu1-00025:2006389:74334d96c491486bab24511b8e0db4fc": 2006439,
-              "cpu1-00025:2006389:fb4ab045919840069ea266bb2b6f2f16": 2006433,
-              "cpu1-00025:2006389:04da8d8a8c374abb98702e180189993f": 2006427,
-              "cpu1-00025:2006389:05c0f7607e6c487f89edba90d4d0aa0b": 2006436,
-              "cpu1-00025:2006389:3e5a1a7c336842f481f67fe98b6172aa": 2006437,
-              "cpu1-00025:2006389:bd6934c5faf340b58866185c5b756b3e": 2006423,
-              "cpu1-00025:2006389:225b46bff1754cdebc278f22e0a59df8": 2006438,
-              "cpu1-00025:2006389:b51f7bc1ce2f42888d294f33fff6a8f5": 2006434,
-              "cpu1-00025:2006389:4e73818a179041678b635ea7b387af81": 2006424,
-              "cpu1-00025:2006389:fb344ff8dd5140c9bd30e169b18d257b": 2006435,
-              "cpu1-00025:2006389:8bdc2d29648d48dda0c62b0db264c5ae": 2006440,
-              "cpu1-00021:1806683:1ce29f1d3fde49e18739ef2794b08bb0": 1806710,
-              "cpu1-00021:1806683:8eefc31fe1024bb1b230bb2ecea26547": 1806713,
-              "cpu1-00021:1806683:f30c154cb74040ca844b9a13f5f95ba8": 1806725,
-              "cpu1-00021:1806683:a60f99e153b445cface89fdc621ebb28": 1806712,
-              "cpu1-00021:1806683:08bda467bb3544e08b2843d4d167b726": 1806714,
-              "cpu1-00021:1806683:805ffafed5d146f3966d5c1b71d8ccbe": 1806722,
-              "cpu1-00021:1806683:14c1307bd5fe420eaee5a0c0b6fc32b4": 1806727,
-              "cpu1-00021:1806683:48dc7696686143f3a684f38d89b31d59": 1806723,
-              "cpu1-00021:1806683:341ea6e2ca4a4b4a8d0ac97822328323": 1806718,
-              "cpu1-00021:1806683:22a1ddbccc644231a6218461312b17ae": 1806719,
-              "cpu1-00021:1806683:55562555f0464e04bce2725736ddb81d": 1806715,
-              "cpu1-00021:1806683:37fd62ab580f4a97ab432d59768285bc": 1806728,
-              "cpu1-00021:1806683:1ce2b7a020ff42c2b48eeb686769ff8a": 1806711,
-              "cpu1-00021:1806683:a544e897f5734b9f8d26cd9020f2a20e": 1806733,
-              "cpu1-00021:1806683:32955da6549c4bc2b4fd30d74cddf70d": 1806716,
-              "cpu1-00021:1806683:c3eaa6fd99a044ef9c6b8cef71538afe": 1806732,
-              "cpu1-00021:1806683:a9b61f40ce394b4b86b71242c789a5c4": 1806720,
-              "cpu1-00021:1806683:26ea69a66d7740b9a4f537ebbb91761d": 1806721,
-              "cpu1-00021:1806683:e2f9a4cead964e6fb24f096c56728fa1": 1806726,
-              "cpu1-00021:1806683:50d4f1eec92c48629b85f22335af958f": 1806734,
-              "cpu1-00021:1806683:834933be919a48cca906f69138851e65": 1806729,
-              "cpu1-00021:1806683:866e2d478465499ea21ea8e2fcb79184": 1806717,
-              "cpu1-00021:1806683:c4a052a917ad487a86b1868a0dc0fb44": 1806731,
-              "cpu1-00021:1806683:d3b72e96f8534ba09883ccf1a32d3dd8": 1806724,
-              "cpu1-00021:1806683:2306e77f9c7a45d7b25462107b74801e": 1806730
-            },
-            "stage": "finished",
-            "active_directions": 0,
-            "completed": [
-              {
-                "stage": "decoding",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "deduplication",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "matching",
-                "state": "complete",
-                "count": 740
-              },
-              {
-                "stage": "verification",
-                "state": "complete",
-                "count": 740
-              }
-            ],
-            "queue": {},
-            "elapsed_seconds": 97.24245948903263,
-            "finished": true
-          }
-        },
-        "stages": {
-          "matching": {
-            "all_attempts": {
-              "records": 35783,
-              "states": {
-                "complete": 35783
-              },
-              "compute_cpu_seconds": 1044.874552900005,
-              "total_worker_cpu_seconds": 1191.9846142390068,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 35783
-              },
-              "compute_seconds": 1083.6138055481715,
-              "publish_cpu_seconds": 143.60542504599957,
-              "publish_seconds": 244.61710793088423,
-              "monitoring_seconds": 5.41764652042184,
-              "memory_samples": 24017,
-              "measurement_coverage": {
-                "cpu_seconds": 35783,
-                "compute_seconds": 35783,
-                "publish_cpu_seconds": 35783,
-                "publish_seconds": 35783,
-                "monitoring_seconds": 35783,
-                "memory_samples": 35783,
-                "peak_tree_rss_bytes": 35783,
-                "process_lifetime_peak_rss_bytes": 35783,
-                "records_with_memory_samples": 22745
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 233078784,
-                "process_lifetime_peak_rss_bytes": 266637312,
-                "compute_sampled_rss_bytes": 203296768,
-                "publication_sampled_rss_bytes": 233078784
-              },
-              "memory_guards_bytes": {
-                "2147483648": 35783
-              },
-              "cache": {
-                "records": 35783,
-                "enabled_records": 35783,
-                "published_records": 789,
-                "load_seconds": 34.04690295131877,
-                "save_seconds": 12.512349173484836,
-                "loaded_bytes": 324094370,
-                "saved_bytes": 19115223,
-                "baseline_loads": 0,
-                "fragment_calls": 17068750,
-                "fragment_hits": 15400457,
-                "dependency_checks": 16017134,
-                "max_retained_bytes": 18796456,
-                "max_entries": 4026,
-                "hit_fraction": 0.9022603881362138,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:48:31.853966+00:00",
-              "last_attempt_utc": "2026-11-01T22:49:38.062292+00:00",
-              "first_attempt_epoch": 1793573311.8539658,
-              "last_attempt_epoch": 1793573378.0622919,
-              "task_span_seconds": 66.2083261013031,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 35783,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 18.003545542220653,
-              "mean_compute_cpus": 15.781618633603244,
-              "mean_active_task_attempts": 61.578775985252776
-            }
-          },
-          "deduplication": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 569.9063305250004,
-              "total_worker_cpu_seconds": 583.3120758890005,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 602.44957659184,
-              "publish_cpu_seconds": 13.348134772000032,
-              "publish_seconds": 18.753467273840215,
-              "monitoring_seconds": 0.9566708202473819,
-              "memory_samples": 3446,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 725
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 228278272,
-                "process_lifetime_peak_rss_bytes": 266637312,
-                "compute_sampled_rss_bytes": 224268288,
-                "publication_sampled_rss_bytes": 228278272
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:49:38.755440+00:00",
-              "last_attempt_utc": "2026-11-01T22:50:07.549365+00:00",
-              "first_attempt_epoch": 1793573378.7554395,
-              "last_attempt_epoch": 1793573407.5493653,
-              "task_span_seconds": 28.793925762176514,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 95,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 20.258164194311945,
-              "mean_compute_cpus": 19.79258872972525,
-              "mean_active_task_attempts": 21.911783383021803
-            }
-          },
-          "decoding": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 1699.8803495830005,
-              "total_worker_cpu_seconds": 1756.287571321,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 1700.8222580280853,
-              "publish_cpu_seconds": 56.220151410999975,
-              "publish_seconds": 65.51926893426571,
-              "monitoring_seconds": 2.595997780037578,
-              "memory_samples": 8952,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 676
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 1038876672,
-                "process_lifetime_peak_rss_bytes": 1105788928,
-                "compute_sampled_rss_bytes": 875155456,
-                "publication_sampled_rss_bytes": 1038876672
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:55:07.382289+00:00",
-              "last_attempt_utc": "2026-11-01T22:56:19.652364+00:00",
-              "first_attempt_epoch": 1793573707.3822894,
-              "last_attempt_epoch": 1793573779.6523638,
-              "task_span_seconds": 72.2700743675232,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 24.30172636034041,
-              "mean_compute_cpus": 23.52122042850553,
-              "mean_active_task_attempts": 24.49223225348951
-            }
-          },
-          "verification": {
-            "all_attempts": {
-              "records": 740,
-              "states": {
-                "complete": 740
-              },
-              "compute_cpu_seconds": 215.24932754699978,
-              "total_worker_cpu_seconds": 216.1260703880002,
-              "failed_attempt_sampled_cpu_seconds": 0,
-              "total_cpu_sources": {
-                "total_cpu_seconds": 740
-              },
-              "compute_seconds": 226.03077630070038,
-              "publish_cpu_seconds": 0.8084787859999736,
-              "publish_seconds": 2.0832785456441343,
-              "monitoring_seconds": 0.40033244487131014,
-              "memory_samples": 1463,
-              "measurement_coverage": {
-                "cpu_seconds": 740,
-                "compute_seconds": 740,
-                "publish_cpu_seconds": 740,
-                "publish_seconds": 740,
-                "monitoring_seconds": 740,
-                "memory_samples": 740,
-                "peak_tree_rss_bytes": 740,
-                "process_lifetime_peak_rss_bytes": 740,
-                "records_with_memory_samples": 668
-              },
-              "peaks": {
-                "peak_tree_rss_bytes": 837046272,
-                "process_lifetime_peak_rss_bytes": 1105788928,
-                "compute_sampled_rss_bytes": 837046272,
-                "publication_sampled_rss_bytes": 486653952
-              },
-              "memory_guards_bytes": {
-                "2147483648": 740
-              },
-              "cache": {
-                "hit_fraction": null,
-                "errors": {}
-              }
-            },
-            "timing": {
-              "first_attempt_utc": "2026-11-01T22:56:19.795412+00:00",
-              "last_attempt_utc": "2026-11-01T22:56:39.660849+00:00",
-              "first_attempt_epoch": 1793573779.795412,
-              "last_attempt_epoch": 1793573799.660849,
-              "task_span_seconds": 19.865437030792236,
-              "unique_actual_workers": 100,
-              "peak_overlapping_attempts": 100,
-              "timed_attempts": 740,
-              "incomplete_attempt_intervals": 0,
-              "mean_total_worker_cpus": 10.879502426903368,
-              "mean_compute_cpus": 10.835368344192709,
-              "mean_active_task_attempts": 12.058604697874438
-            }
-          }
-        }
-      }
-    },
-    "failures": [],
-    "audit_issues": [],
-    "metric_notes": [
-      "All-attempt totals include unique retry tokens once; final-task totals retain only the last archived task result.",
-      "Compute CPU is cpu_seconds. Total CPU is total_cpu_seconds; failed attempts without that field use explicitly counted sampled_cpu_seconds. Missing measurements are not inferred.",
-      "Task overlap measures lease/attempt intervals including publication, not simultaneous CPU execution. Mean CPUs divide measured CPU seconds by earliest-start/latest-finish task span.",
-      "Peak process-lifetime RSS may include earlier work in a persistent process. Unsampled tasks do not establish zero task memory.",
-      "Cache calls, hits and dependency checks are explicit per-task deltas in ReactionCache.proposal; I/O is per task. Retained bytes and entry counts are snapshot maxima, never summed.",
-      "Recovered reactions require either direction. Otherwise error, missing, unknown and two proven not-recovered directions remain distinct."
-    ]
-  },
-  "baseline": {
-    "baseline_name": "Golden persistent pools 2026-11-01; original matching/catalogues/verification plus subsequent v4 decoding",
-    "baseline_source_commit": "6397d461156f86b877efeb46ea40e4fe6056fc18",
-    "baseline_decoder_source_commit": "2f009516016efe3e1dbf97079908ac2f712e0327",
-    "scope": {
-      "reactions": 1851,
-      "directions": 3702,
-      "matching_cut_tasks": 177552,
-      "config": {
-        "cut_floor": 0.2,
-        "graph_floor": 0.2,
-        "iso_tolerance": 1.0,
-        "event_threshold": 0.5,
-        "metal_event_threshold": 0.3,
-        "seed_count": 1,
-        "branch_limit": 100,
-        "task_chunksize": 1,
-        "anchors": [],
-        "seed_selection": "random",
-        "random_seed": 42,
-        "sweep_cuts": true,
-        "growth_policy": "existence"
-      },
-      "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
-      "input_manifest_sha256": "652285008cea1d10a21ae80e476e0f6c0ff17df831f546dee426d1fd0306442b"
-    },
+  "stage_metrics": {
     "matching": {
-      "directions": 3702,
-      "cut_tasks": 177552,
-      "worker_cpu_seconds": 9158.681288802014,
-      "compute_cpu_seconds": 8378.071137263029,
-      "allocation_envelope_seconds": 373,
-      "allocation_envelope_definition": "First matching allocation start through last matching allocation finish, including staggered starts; excludes pre-start queue wait.",
-      "peak_sampled_worker_rss_bytes": 434335744,
-      "cache_errors": 0,
-      "per_batch": [
-        {
-          "batch": 0,
-          "states": {
-            "complete": 742
-          },
-          "directions": 742,
-          "tasks": 35562,
-          "workers_used": 100,
-          "peak_overlapping_tasks": 100,
-          "task_span_seconds": 70.72273707389832,
-          "task_start_utc": 1793509246.08996,
-          "task_finish_utc": 1793509316.8126972,
-          "total_worker_cpu_seconds": 1391.862313910005,
-          "compute_cpu_seconds": 1238.4399610300018,
-          "mean_compute_cpus": 19.68054930418835,
-          "peak_worker_rss_bytes": 266731520,
-          "cache_errors": 0,
-          "cache_hits": 15062167,
-          "cache_calls": 16681561
+      "expected_directions": 3702,
+      "direction_states": {
+        "complete": 3702,
+        "error": 0,
+        "missing": 0
+      },
+      "final_tasks": {
+        "records": 177552,
+        "states": {
+          "complete": 177552
         },
-        {
-          "batch": 1,
-          "states": {
-            "complete": 740
-          },
-          "directions": 740,
-          "tasks": 35593,
-          "workers_used": 100,
-          "peak_overlapping_tasks": 100,
-          "task_span_seconds": 81.49986958503723,
-          "task_start_utc": 1793509249.7212312,
-          "task_finish_utc": 1793509331.2211008,
-          "total_worker_cpu_seconds": 1491.2917985220079,
-          "compute_cpu_seconds": 1326.3616048529937,
-          "mean_compute_cpus": 18.29808815787109,
-          "peak_worker_rss_bytes": 333619200,
-          "cache_errors": 0,
-          "cache_hits": 23237409,
-          "cache_calls": 24981402
+        "compute_cpu_seconds": 5136.068849283066,
+        "total_worker_cpu_seconds": 5887.826491576901,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 177552
         },
-        {
-          "batch": 2,
-          "states": {
-            "complete": 740
-          },
-          "directions": 740,
-          "tasks": 34940,
-          "workers_used": 100,
-          "peak_overlapping_tasks": 100,
-          "task_span_seconds": 88.24141645431519,
-          "task_start_utc": 1793509342.6313138,
-          "task_finish_utc": 1793509430.8727303,
-          "total_worker_cpu_seconds": 1470.4384881000037,
-          "compute_cpu_seconds": 1311.047943929013,
-          "mean_compute_cpus": 16.663813288415277,
-          "peak_worker_rss_bytes": 434335744,
-          "cache_errors": 0,
-          "cache_hits": 19542022,
-          "cache_calls": 21202225
+        "compute_seconds": 5348.726800840348,
+        "publish_cpu_seconds": 734.4649050929953,
+        "publish_seconds": 1273.3483167962404,
+        "monitoring_seconds": 27.244728757068515,
+        "memory_samples": 122427,
+        "measurement_coverage": {
+          "cpu_seconds": 177552,
+          "compute_seconds": 177552,
+          "publish_cpu_seconds": 177552,
+          "publish_seconds": 177552,
+          "monitoring_seconds": 177552,
+          "memory_samples": 177552,
+          "peak_tree_rss_bytes": 177552,
+          "process_lifetime_peak_rss_bytes": 177552,
+          "records_with_memory_samples": 115758
         },
-        {
-          "batch": 3,
-          "states": {
-            "complete": 740
-          },
-          "directions": 740,
-          "tasks": 35674,
-          "workers_used": 100,
-          "peak_overlapping_tasks": 100,
-          "task_span_seconds": 85.87426161766052,
-          "task_start_utc": 1793509377.0069594,
-          "task_finish_utc": 1793509462.881221,
-          "total_worker_cpu_seconds": 1437.9333740719962,
-          "compute_cpu_seconds": 1291.457705283004,
-          "mean_compute_cpus": 16.74463741503982,
-          "peak_worker_rss_bytes": 203386880,
-          "cache_errors": 0,
-          "cache_hits": 21925370,
-          "cache_calls": 23507670
+        "peaks": {
+          "peak_tree_rss_bytes": 381693952,
+          "process_lifetime_peak_rss_bytes": 381693952,
+          "compute_sampled_rss_bytes": 311795712,
+          "publication_sampled_rss_bytes": 381693952
         },
-        {
-          "batch": 4,
-          "states": {
-            "complete": 740
-          },
-          "directions": 740,
-          "tasks": 35783,
-          "workers_used": 100,
-          "peak_overlapping_tasks": 100,
-          "task_span_seconds": 153.14630937576294,
-          "task_start_utc": 1793509445.3536587,
-          "task_finish_utc": 1793509598.499968,
-          "total_worker_cpu_seconds": 3367.1553141980025,
-          "compute_cpu_seconds": 3210.7639221680156,
-          "mean_compute_cpus": 21.98652600851308,
-          "peak_worker_rss_bytes": 291717120,
-          "cache_errors": 0,
-          "cache_hits": 15536541,
-          "cache_calls": 17149912
+        "memory_guards_bytes": {
+          "2147483648": 177552
+        },
+        "cache": {
+          "records": 177552,
+          "enabled_records": 177552,
+          "published_records": 4135,
+          "load_seconds": 205.48058312403737,
+          "save_seconds": 65.5822906747344,
+          "loaded_bytes": 2274216823,
+          "saved_bytes": 131789655,
+          "baseline_loads": 0,
+          "fragment_calls": 102896368,
+          "fragment_hits": 94493016,
+          "dependency_checks": 97322099,
+          "max_retained_bytes": 42941273,
+          "max_entries": 5460,
+          "hit_fraction": 0.9183318890322737,
+          "errors": {}
         }
-      ],
-      "source": "matching-results.json; README.md"
+      },
+      "all_attempts": {
+        "records": 177552,
+        "states": {
+          "complete": 177552
+        },
+        "compute_cpu_seconds": 5136.068849283066,
+        "total_worker_cpu_seconds": 5887.826491576901,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 177552
+        },
+        "compute_seconds": 5348.726800840348,
+        "publish_cpu_seconds": 734.4649050929953,
+        "publish_seconds": 1273.3483167962404,
+        "monitoring_seconds": 27.244728757068515,
+        "memory_samples": 122427,
+        "measurement_coverage": {
+          "cpu_seconds": 177552,
+          "compute_seconds": 177552,
+          "publish_cpu_seconds": 177552,
+          "publish_seconds": 177552,
+          "monitoring_seconds": 177552,
+          "memory_samples": 177552,
+          "peak_tree_rss_bytes": 177552,
+          "process_lifetime_peak_rss_bytes": 177552,
+          "records_with_memory_samples": 115758
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 381693952,
+          "process_lifetime_peak_rss_bytes": 381693952,
+          "compute_sampled_rss_bytes": 311795712,
+          "publication_sampled_rss_bytes": 381693952
+        },
+        "memory_guards_bytes": {
+          "2147483648": 177552
+        },
+        "cache": {
+          "records": 177552,
+          "enabled_records": 177552,
+          "published_records": 4135,
+          "load_seconds": 205.48058312403737,
+          "save_seconds": 65.5822906747344,
+          "loaded_bytes": 2274216823,
+          "saved_bytes": 131789655,
+          "baseline_loads": 0,
+          "fragment_calls": 102896368,
+          "fragment_hits": 94493016,
+          "dependency_checks": 97322099,
+          "max_retained_bytes": 42941273,
+          "max_entries": 5460,
+          "hit_fraction": 0.9183318890322737,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-01T22:45:00.596113+00:00",
+        "last_attempt_utc": "2026-11-01T22:49:38.062292+00:00",
+        "first_attempt_epoch": 1793573100.5961134,
+        "last_attempt_epoch": 1793573378.0622919,
+        "task_span_seconds": 277.4661784172058,
+        "unique_actual_workers": 500,
+        "peak_overlapping_attempts": 192,
+        "timed_attempts": 177552,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 21.21997904452269,
+        "mean_compute_cpus": 18.510612279239062,
+        "mean_active_task_attempts": 74.87482285338078
+      }
     },
     "deduplication": {
-      "tasks": 3702,
-      "worker_cpu_seconds": 2886.490053526004,
-      "compute_cpu_seconds": 2822.626719771008,
-      "peak_sampled_worker_rss_bytes": 272531456,
-      "source": "results-summary.json:stage_metrics.deduplication"
+      "expected_directions": 3702,
+      "direction_states": {
+        "complete": 3702,
+        "error": 0,
+        "missing": 0
+      },
+      "final_tasks": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 2913.5951187090004,
+        "total_worker_cpu_seconds": 2980.8579996099998,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 3122.462100900244,
+        "publish_cpu_seconds": 66.97551711399989,
+        "publish_seconds": 94.34709754225332,
+        "monitoring_seconds": 4.893283904180862,
+        "memory_samples": 17788,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3625
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 301056000,
+          "process_lifetime_peak_rss_bytes": 381693952,
+          "compute_sampled_rss_bytes": 273108992,
+          "publication_sampled_rss_bytes": 301056000
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "all_attempts": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 2913.5951187090004,
+        "total_worker_cpu_seconds": 2980.8579996099998,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 3122.462100900244,
+        "publish_cpu_seconds": 66.97551711399989,
+        "publish_seconds": 94.34709754225332,
+        "monitoring_seconds": 4.893283904180862,
+        "memory_samples": 17788,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3625
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 301056000,
+          "process_lifetime_peak_rss_bytes": 381693952,
+          "compute_sampled_rss_bytes": 273108992,
+          "publication_sampled_rss_bytes": 301056000
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-01T22:46:09.538397+00:00",
+        "last_attempt_utc": "2026-11-01T22:50:07.549365+00:00",
+        "first_attempt_epoch": 1793573169.538397,
+        "last_attempt_epoch": 1793573407.5493653,
+        "task_span_seconds": 238.010968208313,
+        "unique_actual_workers": 500,
+        "peak_overlapping_attempts": 148,
+        "timed_attempts": 3702,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 12.52403627466899,
+        "mean_compute_cpus": 12.241432151811386,
+        "mean_active_task_attempts": 13.713107656225821
+      }
+    },
+    "decoding": {
+      "expected_directions": 3702,
+      "direction_states": {
+        "complete": 3702,
+        "error": 0,
+        "missing": 0
+      },
+      "final_tasks": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 8044.706976417986,
+        "total_worker_cpu_seconds": 8318.812059351007,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 8048.934501180658,
+        "publish_cpu_seconds": 273.18067493500007,
+        "publish_seconds": 306.93838231358677,
+        "monitoring_seconds": 12.082582262752112,
+        "memory_samples": 42398,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3391
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 1038876672,
+          "process_lifetime_peak_rss_bytes": 1105788928,
+          "compute_sampled_rss_bytes": 875155456,
+          "publication_sampled_rss_bytes": 1038876672
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "all_attempts": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 8044.706976417986,
+        "total_worker_cpu_seconds": 8318.812059351007,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 8048.934501180658,
+        "publish_cpu_seconds": 273.18067493500007,
+        "publish_seconds": 306.93838231358677,
+        "monitoring_seconds": 12.082582262752112,
+        "memory_samples": 42398,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3391
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 1038876672,
+          "process_lifetime_peak_rss_bytes": 1105788928,
+          "compute_sampled_rss_bytes": 875155456,
+          "publication_sampled_rss_bytes": 1038876672
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-01T22:50:53.342143+00:00",
+        "last_attempt_utc": "2026-11-01T22:56:19.652364+00:00",
+        "first_attempt_epoch": 1793573453.3421433,
+        "last_attempt_epoch": 1793573779.6523638,
+        "task_span_seconds": 326.3102204799652,
+        "unique_actual_workers": 500,
+        "peak_overlapping_attempts": 200,
+        "timed_attempts": 3702,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 25.493568810425185,
+        "mean_compute_cpus": 24.653555026824282,
+        "mean_active_task_attempts": 25.680468674130555
+      }
     },
     "verification": {
-      "tasks": 3702,
-      "worker_cpu_seconds": 1310.3849627429995,
-      "compute_cpu_seconds": 1306.1240262079991,
-      "peak_sampled_worker_rss_bytes": 1219067904,
-      "source": "results-summary.json:stage_metrics.verification"
-    },
-    "decoding_v4": {
-      "directions": 3702,
-      "new_tasks": 3701,
-      "reused_point_directions": [
-        "01561/forward"
-      ],
-      "new_tasks_metrics": {
-        "tasks": 3701,
-        "compute_cpu_seconds": 7974.985429098019,
-        "publication_cpu_seconds": 272.6037877260003,
-        "total_cpu_seconds": 8248.505518385982,
-        "peak_sampled_worker_rss_bytes": 1102872576,
-        "peak_process_lifetime_rss_bytes": 1102872576
+      "expected_directions": 3702,
+      "direction_states": {
+        "complete": 3702,
+        "error": 0,
+        "missing": 0
       },
-      "reused_point_metrics": {
-        "tasks": 1,
-        "compute_cpu_seconds": 21.461264339,
-        "publication_cpu_seconds": 1.1773148969999987,
-        "total_cpu_seconds": 22.638967765999997,
-        "peak_sampled_worker_rss_bytes": 950726656,
-        "peak_process_lifetime_rss_bytes": 1017638912
+      "final_tasks": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 1334.6714210559999,
+        "total_worker_cpu_seconds": 1338.8636938850034,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 1511.9168752059923,
+        "publish_cpu_seconds": 3.86176925199986,
+        "publish_seconds": 14.620695845107548,
+        "monitoring_seconds": 2.226394985045772,
+        "memory_samples": 9320,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3369
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 837046272,
+          "process_lifetime_peak_rss_bytes": 1105788928,
+          "compute_sampled_rss_bytes": 837046272,
+          "publication_sampled_rss_bytes": 544260096
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
       },
-      "all_outputs_cpu_accounting": {
-        "compute_cpu_seconds": 7996.446693437019,
-        "publication_cpu_seconds": 273.78110262300027,
-        "total_cpu_seconds": 8271.144486151983,
-        "tasks": 3702,
-        "note": "Sum of 3701 new v4 decoding tasks and the one earlier reused point task; this is not one fresh uninterrupted pass."
+      "all_attempts": {
+        "records": 3702,
+        "states": {
+          "complete": 3702
+        },
+        "compute_cpu_seconds": 1334.6714210559999,
+        "total_worker_cpu_seconds": 1338.8636938850034,
+        "failed_attempt_sampled_cpu_seconds": 0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 3702
+        },
+        "compute_seconds": 1511.9168752059923,
+        "publish_cpu_seconds": 3.86176925199986,
+        "publish_seconds": 14.620695845107548,
+        "monitoring_seconds": 2.226394985045772,
+        "memory_samples": 9320,
+        "measurement_coverage": {
+          "cpu_seconds": 3702,
+          "compute_seconds": 3702,
+          "publish_cpu_seconds": 3702,
+          "publish_seconds": 3702,
+          "monitoring_seconds": 3702,
+          "memory_samples": 3702,
+          "peak_tree_rss_bytes": 3702,
+          "process_lifetime_peak_rss_bytes": 3702,
+          "records_with_memory_samples": 3369
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 837046272,
+          "process_lifetime_peak_rss_bytes": 1105788928,
+          "compute_sampled_rss_bytes": 837046272,
+          "publication_sampled_rss_bytes": 544260096
+        },
+        "memory_guards_bytes": {
+          "2147483648": 3702
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
       },
-      "allocation_envelope_seconds": 225,
-      "allocation_envelope_definition": "First v4 decoding allocation start through last allocation finish, including queue gaps; excludes the earlier reused point task, preparation and integrity audit.",
-      "peak_sampled_worker_rss_bytes": 1102872576,
-      "source": "v4-decoding-completion.json; v4-decoding.md"
-    },
-    "reference": {
-      "reaction_counts": {
-        "recovered": 1830,
-        "not_recovered": 21
-      },
-      "direction_counts": {
-        "recovered": 3617,
-        "not_recovered": 85
-      },
-      "unknown_reactions": 0,
-      "unknown_directions": 0,
-      "verification_failures": 0,
-      "missed_reaction_ids": [
-        7,
-        19,
-        20,
-        44,
-        590,
-        867,
-        964,
-        986,
-        1034,
-        1227,
-        1228,
-        1285,
-        1314,
-        1358,
-        1377,
-        1475,
-        1553,
-        1568,
-        1606,
-        1739,
-        1740
-      ],
-      "source": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/reference-results.json",
-      "sha256": "e1a2fe3b8745df39c5c31629a8940c83c979bf9d861e3fc55cf12ee5037fb398"
-    },
-    "limits": [
-      "The prior end-to-end elapsed timeline includes decoder failure, investigation, a retry, independent verification and later decoder replacement. No clean comparable full-pipeline baseline wall time is asserted.",
-      "The new first array combines matching and deduplication. Its allocation wall time must not be compared directly with the baseline matching-only 373 seconds; separate stage spans or CPU accounting are needed.",
-      "Baseline v4 decoder wall time covers only3701 freshly decoded directions; one completed point output is reused. Combined CPU accounting includes its earlier task explicitly.",
-      "Reference policy is Golden complete heavy-atom relation including unmatched atoms modulo chemical endpoint symmetry; it is not EnzymeMap exact-index verification.",
-      "Baseline config includes the historical growth_policy=existence selector removed by current code. All remaining scientific settings must remain identical in rerun indexes.",
-      "Baseline matching used100 active workers per pool but averaged16.7\u201322.0 worker CPU cores over task spans. Worker concurrency is not CPU saturation.",
-      "Deduplication and verification CPU totals are archived per-task audit aggregates from the original campaign; the verification includes the independent allocation used for the decoder-blocked batch. Original decoder failure metrics are not used as the current decoder baseline.",
-      "Task CPU aggregates use recorded total_cpu_seconds when present, otherwise sampled_cpu_seconds. Compare the new audit with the same aggregation convention, and retain compute-only totals separately.",
-      "Wall time and sampled RSS remain subject to node placement, workload, scheduler/storage effects and sampling coverage; algorithmic speedup is not isolated by cross-run wall time alone."
-    ],
-    "evidence_files": {
-      "README.md": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/README.md",
-      "launch.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/launch.json",
-      "inputs.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/inputs.json",
-      "matching-results.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/matching-results.json",
-      "results-summary.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/results-summary.json",
-      "reference-results.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/reference-results.json",
-      "v4-decoding.md": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/v4-decoding.md",
-      "v4-decoding-completion.json": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/reports/golden_pool_20261101/v4-decoding-completion.json"
+      "timing": {
+        "first_attempt_utc": "2026-11-01T22:51:26.053385+00:00",
+        "last_attempt_utc": "2026-11-01T22:56:39.660849+00:00",
+        "first_attempt_epoch": 1793573486.053385,
+        "last_attempt_epoch": 1793573799.660849,
+        "task_span_seconds": 313.6074640750885,
+        "unique_actual_workers": 500,
+        "peak_overlapping_attempts": 105,
+        "timed_attempts": 3702,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 4.269234145410624,
+        "mean_compute_cpus": 4.255866246654236,
+        "mean_active_task_attempts": 5.052187896789329
+      }
     }
   },
+  "failures": [],
+  "audit_issues": [],
   "comparison": {
     "direction_changes": [
       {
@@ -3052,10 +619,8 @@
       }
     }
   },
-  "reference_evidence": {
-    "path": "reference-results.json.gz",
-    "cases": 1851,
-    "sha256": "c68c759feaad6f294c191cc7b80a44b8b08785c75609a0a125ee3a586660dfb3"
-  },
-  "audit_script_sha256": "21815c9cbb3143ba641a3542c69a05c8640651d2621920d4e79f4ccd061da652"
+  "original_summary_sha256": "c33958f5edba4c8349924b293b74dc19b5b299440c8be914ee68734ade2ce66e",
+  "original_case_archive_sha256": "c68c759feaad6f294c191cc7b80a44b8b08785c75609a0a125ee3a586660dfb3",
+  "case_evidence_sha256": "2d4292a662ac3d27863aadc1453c158bd1b8e765596c53193d3eea99692c9638",
+  "publication_projection": "Private execution configuration, artifact locations and raw operational records omitted. Scientific settings, outcomes and stage measurements retained. CPU times are summed compute costs, not elapsed latency."
 }

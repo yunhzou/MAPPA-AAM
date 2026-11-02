@@ -2,90 +2,30 @@
   "utc": "2026-11-01T08:31:34.234492+00:00",
   "revision": "edf2e8ff94e98e40b1db48e62911050c13c26de6",
   "code_identity": "49090fa20bfb3f342487662a48b6fbdecaeb81b50b8f3432553e8404f44322f9",
-  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101",
+  "output": "private-reference-70a9f968180b5382ebae",
   "fresh": true,
   "reused_results": 0,
   "worker_memory_gib": 2,
   "resources": [
     {
-      "batch": 0,
-      "nodes": 7,
-      "workers_per_node": 14,
-      "cpus_per_node": 16,
-      "memory_gib_per_node": 32
+      "batch": 0
     },
     {
-      "batch": 1,
-      "nodes": 2,
-      "workers_per_node": 90,
-      "cpus_per_node": 92,
-      "memory_gib_per_node": 184
+      "batch": 1
     },
     {
-      "batch": 2,
-      "nodes": 2,
-      "workers_per_node": 90,
-      "cpus_per_node": 92,
-      "memory_gib_per_node": 184
+      "batch": 2
     },
     {
-      "batch": 3,
-      "nodes": 2,
-      "workers_per_node": 90,
-      "cpus_per_node": 92,
-      "memory_gib_per_node": 184
+      "batch": 3
     },
     {
-      "batch": 4,
-      "nodes": 2,
-      "workers_per_node": 90,
-      "cpus_per_node": 92,
-      "memory_gib_per_node": 184
+      "batch": 4
     }
   ],
-  "matching_jobs": [
-    {
-      "batch": 0,
-      "job": "21140383"
-    },
-    {
-      "batch": 1,
-      "job": "21140386"
-    },
-    {
-      "batch": 2,
-      "job": "21140387"
-    },
-    {
-      "batch": 3,
-      "job": "21140388"
-    },
-    {
-      "batch": 4,
-      "job": "21140389"
-    }
-  ],
-  "downstream_jobs": [
-    {
-      "batch": 0,
-      "job": "21140390"
-    },
-    {
-      "batch": 1,
-      "job": "21140391"
-    },
-    {
-      "batch": 2,
-      "job": "21140392"
-    },
-    {
-      "batch": 3,
-      "job": "21140393"
-    },
-    {
-      "batch": 4,
-      "job": "21140394"
-    }
-  ],
-  "stage_barrier": "All matching batches must succeed before any deduplication/decoding/verification pool starts"
+  "stage_barrier": "All matching batches must succeed before any deduplication/decoding/verification pool starts",
+  "privacy_projection": {
+    "original_sha256": "b8fb184321f65eecf8c4e55a713cdd725c9251ddbab37c5e6c3cc7b4863cfcec",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

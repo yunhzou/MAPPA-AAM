@@ -1,23 +1,31 @@
 #!/bin/bash
-#SBATCH --account=nvr_lpr_agentic
-#SBATCH --partition=cpu
-#SBATCH --qos=cpu-short
-#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=1
-#SBATCH --array=0-3
-#SBATCH --cpus-per-task=52
-#SBATCH --mem=200G
-#SBATCH --time=03:45:00
 #SBATCH --signal=B:USR1@180
-#SBATCH --job-name=mappa-enzymemap
+#SBATCH --job-name=mappa-benchmark
 set -euo pipefail
-SOURCE=/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/MAPPA-AAM
-PYTHON=/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/rebenchmark_20261027/venv/bin/python
-INDEX=/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/index.json
-OUTPUT=/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/enzymemap_pool_20261030
-cd "$SOURCE"
-export PYTHONPATH="$SOURCE/src:$SOURCE/bench"
-export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+
+: "${MAPPA_SOURCE:?Set the checkout directory}"
+: "${MAPPA_PYTHON:?Set the Python interpreter path}"
+: "${MAPPA_BATCH_ROOT:?Set the prepared campaign directory}"
+: "${MAPPA_EXPECTED_CODE_IDENTITY:?Set the validated source and native engine identity}"
+: "${MAPPA_WORKERS_PER_NODE:?Set the number of compute workers per node}"
+: "${SLURM_ARRAY_TASK_ID:?Submit this launcher as a Slurm job array}"
+
+cd "$MAPPA_SOURCE"
+export PYTHONPATH="$MAPPA_SOURCE/src:$MAPPA_SOURCE/bench"
+export MAPPA_NATIVE=1
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
+export PYTHONUNBUFFERED=1
 export TMPDIR="${SLURM_TMPDIR:-/tmp}"
-BATCH="$OUTPUT/bins100/$SLURM_ARRAY_TASK_ID"
-exec "$PYTHON" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" --workers 48 --memory-gib 4 --window 128 --run-seconds 12600 --resume "$@"
+
+"$MAPPA_PYTHON" - <<'IDENTITY'
+import os
+from mappa.execution.identity import code_identity
+
+if code_identity() != os.environ['MAPPA_EXPECTED_CODE_IDENTITY']:
+    raise SystemExit('Worker source or native engine changed')
+IDENTITY
+
+BATCH="$MAPPA_BATCH_ROOT/$SLURM_ARRAY_TASK_ID"
+exec "$MAPPA_PYTHON" bench/enzymemap.py "$BATCH/index.json" "$BATCH/result" \
+  --workers "$MAPPA_WORKERS_PER_NODE" "$@"

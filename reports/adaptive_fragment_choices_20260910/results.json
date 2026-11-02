@@ -1,15 +1,15 @@
 {
   "runs": {
-    "initial": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa",
-    "deeper": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n",
-    "feedback": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa",
-    "fair": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb"
+    "initial": "private-reference-8b92ab25c7a2287634b4",
+    "deeper": "private-reference-47dfbe010e17c660a2eb",
+    "feedback": "private-reference-8551f5417563ec626b26",
+    "fair": "private-reference-1f3921cb2a1734474d37"
   },
   "provenance": {
     "initial": {
       "manifest": {
         "parent_commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -36,7 +36,7 @@
     "deeper": {
       "manifest": {
         "parent_commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -63,7 +63,7 @@
     "feedback": {
       "manifest": {
         "parent_commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -91,7 +91,7 @@
     "fair": {
       "manifest": {
         "parent_commit": "e914b3a3045fba01a08b88fd98ef8dc427a58e34",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -121,7 +121,7 @@
     {
       "run": "initial",
       "slot": 0,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/0",
+      "path": "private-reference-b1b2b5d9b9de06aaa243",
       "index": 25,
       "direction": "R_to_P",
       "policy": "largest_first",
@@ -184,7 +184,6 @@
           "max_rss_kib": 270848
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -219,7 +218,7 @@
     {
       "run": "initial",
       "slot": 1,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/1",
+      "path": "private-reference-ad75bfac64de6d7491bf",
       "index": 25,
       "direction": "R_to_P",
       "policy": "smallest_first",
@@ -282,7 +281,6 @@
           "max_rss_kib": 315064
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -317,7 +315,7 @@
     {
       "run": "initial",
       "slot": 2,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/2",
+      "path": "private-reference-30a4923b4886b90fcd67",
       "index": 76,
       "direction": "P_to_R",
       "policy": "largest_first",
@@ -380,7 +378,6 @@
           "max_rss_kib": 184992
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -415,7 +412,7 @@
     {
       "run": "initial",
       "slot": 3,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/3",
+      "path": "private-reference-3cdef7bcbcd6d0ce25e5",
       "index": 76,
       "direction": "P_to_R",
       "policy": "smallest_first",
@@ -478,7 +475,6 @@
           "max_rss_kib": 229924
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -513,7 +509,7 @@
     {
       "run": "initial",
       "slot": 4,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/4",
+      "path": "private-reference-f5ce80badf1f32eb7c45",
       "index": 77,
       "direction": "P_to_R",
       "policy": "largest_first",
@@ -576,7 +572,6 @@
           "max_rss_kib": 219292
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -611,7 +606,7 @@
     {
       "run": "initial",
       "slot": 5,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/5",
+      "path": "private-reference-9cc76ba62e4e63fb26fe",
       "index": 77,
       "direction": "P_to_R",
       "policy": "smallest_first",
@@ -674,7 +669,6 @@
           "max_rss_kib": 211552
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -709,7 +703,7 @@
     {
       "run": "initial",
       "slot": 6,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/6",
+      "path": "private-reference-69cec66cd0b0704cda21",
       "index": 114,
       "direction": "R_to_P",
       "policy": "largest_first",
@@ -772,7 +766,6 @@
           "max_rss_kib": 144956
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -814,7 +807,7 @@
     {
       "run": "initial",
       "slot": 7,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa/results/7",
+      "path": "private-reference-7b553df5ddc33735feff",
       "index": 114,
       "direction": "R_to_P",
       "policy": "smallest_first",
@@ -877,7 +870,6 @@
           "max_rss_kib": 146080
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -919,7 +911,7 @@
     {
       "run": "deeper",
       "slot": 0,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/0",
+      "path": "private-reference-2cac2aff03a2330fbd32",
       "index": 25,
       "direction": "R_to_P",
       "policy": "largest_first",
@@ -982,7 +974,6 @@
           "max_rss_kib": 2243040
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1011,7 +1002,7 @@
     {
       "run": "deeper",
       "slot": 1,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/1",
+      "path": "private-reference-88462430420607162807",
       "index": 25,
       "direction": "R_to_P",
       "policy": "smallest_first",
@@ -1074,7 +1065,6 @@
           "max_rss_kib": 1983048
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1103,7 +1093,7 @@
     {
       "run": "deeper",
       "slot": 2,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/2",
+      "path": "private-reference-86bd36c5814d7f41fbae",
       "index": 76,
       "direction": "P_to_R",
       "policy": "largest_first",
@@ -1166,7 +1156,6 @@
           "max_rss_kib": 957332
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1195,7 +1184,7 @@
     {
       "run": "deeper",
       "slot": 3,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/3",
+      "path": "private-reference-27ac87ad4206ae514055",
       "index": 76,
       "direction": "P_to_R",
       "policy": "smallest_first",
@@ -1258,7 +1247,6 @@
           "max_rss_kib": 973596
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1287,7 +1275,7 @@
     {
       "run": "deeper",
       "slot": 4,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/4",
+      "path": "private-reference-81a793515d2b5608152e",
       "index": 77,
       "direction": "P_to_R",
       "policy": "largest_first",
@@ -1350,7 +1338,6 @@
           "max_rss_kib": 1039548
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1379,7 +1366,7 @@
     {
       "run": "deeper",
       "slot": 5,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/5",
+      "path": "private-reference-f4a392841b01098af106",
       "index": 77,
       "direction": "P_to_R",
       "policy": "smallest_first",
@@ -1442,7 +1429,6 @@
           "max_rss_kib": 911484
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1471,7 +1457,7 @@
     {
       "run": "deeper",
       "slot": 6,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/6",
+      "path": "private-reference-ec8453c8997adbbff68a",
       "index": 114,
       "direction": "R_to_P",
       "policy": "largest_first",
@@ -1534,7 +1520,6 @@
           "max_rss_kib": 528272
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1570,7 +1555,7 @@
     {
       "run": "deeper",
       "slot": 7,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n/results/7",
+      "path": "private-reference-cefe0fcc9b62ffd8076b",
       "index": 114,
       "direction": "R_to_P",
       "policy": "smallest_first",
@@ -1633,7 +1618,6 @@
           "max_rss_kib": 512836
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1669,7 +1653,7 @@
     {
       "run": "feedback",
       "slot": 0,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa/results/0",
+      "path": "private-reference-f98dbd35a0afe4128a76",
       "index": 25,
       "direction": "R_to_P",
       "policy": "event_guided",
@@ -1751,7 +1735,6 @@
           "max_rss_kib": 358548
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1787,7 +1770,7 @@
     {
       "run": "feedback",
       "slot": 1,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa/results/1",
+      "path": "private-reference-52a74822d259307314e3",
       "index": 76,
       "direction": "P_to_R",
       "policy": "event_guided",
@@ -1869,7 +1852,6 @@
           "max_rss_kib": 323860
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -1905,7 +1887,7 @@
     {
       "run": "feedback",
       "slot": 2,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa/results/2",
+      "path": "private-reference-481ee1df8b8614ec426f",
       "index": 77,
       "direction": "P_to_R",
       "policy": "event_guided",
@@ -1987,7 +1969,6 @@
           "max_rss_kib": 328748
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2023,7 +2004,7 @@
     {
       "run": "feedback",
       "slot": 3,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa/results/3",
+      "path": "private-reference-bbfd3447cef72f491a83",
       "index": 114,
       "direction": "R_to_P",
       "policy": "event_guided",
@@ -2105,7 +2086,6 @@
           "max_rss_kib": 223420
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2148,7 +2128,7 @@
     {
       "run": "fair",
       "slot": 0,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb/results/0",
+      "path": "private-reference-f4c14903d35a04093c5d",
       "index": 25,
       "direction": "R_to_P",
       "policy": "fair_depth",
@@ -2230,7 +2210,6 @@
           "max_rss_kib": 366268
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2272,7 +2251,7 @@
     {
       "run": "fair",
       "slot": 1,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb/results/1",
+      "path": "private-reference-3af83963c3cd77f8909a",
       "index": 76,
       "direction": "P_to_R",
       "policy": "fair_depth",
@@ -2354,7 +2333,6 @@
           "max_rss_kib": 325040
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2396,7 +2374,7 @@
     {
       "run": "fair",
       "slot": 2,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb/results/2",
+      "path": "private-reference-f89370cd827a2b7b881e",
       "index": 77,
       "direction": "P_to_R",
       "policy": "fair_depth",
@@ -2478,7 +2456,6 @@
           "max_rss_kib": 293672
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2520,7 +2497,7 @@
     {
       "run": "fair",
       "slot": 3,
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb/results/3",
+      "path": "private-reference-88d3bc77ce7d25041dcb",
       "index": 114,
       "direction": "R_to_P",
       "policy": "fair_depth",
@@ -2602,7 +2579,6 @@
           "max_rss_kib": 208268
         }
       ],
-      "host": "bosque6",
       "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima.",
       "validation": [
         {
@@ -2657,8 +2633,7 @@
       "skipped": "0",
       "tests": "483",
       "time": "97.167",
-      "timestamp": "2026-09-09T22:16:49.734559-04:00",
-      "hostname": "bosque6"
+      "timestamp": "2026-09-09T22:16:49.734559-04:00"
     }
   ],
   "default_regression": {
@@ -2700,5 +2675,9 @@
     "77": 8,
     "114": 4
   },
-  "scope": "Small fixed-direction pilot. Search times exclude persistence and diagnostic scoring. No proof of optimality, exhaustive coverage or production speedup."
+  "scope": "Small fixed-direction pilot. Search times exclude persistence and diagnostic scoring. No proof of optimality, exhaustive coverage or production speedup.",
+  "privacy_projection": {
+    "original_sha256": "d70ea0f7d220e826f0ea1024d021855ddab80c68bdcf27d307e4b4f6606b80f8",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

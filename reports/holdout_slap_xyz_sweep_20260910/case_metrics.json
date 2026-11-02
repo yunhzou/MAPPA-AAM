@@ -2,7 +2,6 @@
   {
     "index": 0,
     "name": "pr1.tempo_ts1",
-    "host": "bosque1",
     "aam_events": 0,
     "native_slap_events": 0,
     "bidirectional_uncut_slap_events": 0,
@@ -38,7 +37,6 @@
   {
     "index": 1,
     "name": "pr1.tempo_ts10",
-    "host": "bosque50",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -74,7 +72,6 @@
   {
     "index": 2,
     "name": "pr1.tempo_ts2",
-    "host": "bosque50",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -110,7 +107,6 @@
   {
     "index": 3,
     "name": "pr1.tempo_ts3",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -146,7 +142,6 @@
   {
     "index": 4,
     "name": "pr1.tempo_ts4",
-    "host": "bosque50",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -182,7 +177,6 @@
   {
     "index": 5,
     "name": "pr1.tempo_ts5",
-    "host": "bosque50",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -218,7 +212,6 @@
   {
     "index": 6,
     "name": "pr1.tempo_ts6",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -254,7 +247,6 @@
   {
     "index": 7,
     "name": "pr1.tempo_ts8",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -290,7 +282,6 @@
   {
     "index": 8,
     "name": "pr1.tempo_ts9",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -326,7 +317,6 @@
   {
     "index": 9,
     "name": "pr10.carborane_ts1",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -362,7 +352,6 @@
   {
     "index": 10,
     "name": "pr10.carborane_ts2",
-    "host": "bosque70",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -398,7 +387,6 @@
   {
     "index": 11,
     "name": "pr10.carborane_ts3",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -434,7 +422,6 @@
   {
     "index": 12,
     "name": "pr11.cycloadditions_tsIIIa",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -470,7 +457,6 @@
   {
     "index": 13,
     "name": "pr11.cycloadditions_tsIIIb",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -506,7 +492,6 @@
   {
     "index": 14,
     "name": "pr11.cycloadditions_tsIIa",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -542,7 +527,6 @@
   {
     "index": 15,
     "name": "pr11.cycloadditions_tsIIb",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -578,7 +562,6 @@
   {
     "index": 16,
     "name": "pr11.cycloadditions_tsIVa",
-    "host": "bosque60",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -614,7 +597,6 @@
   {
     "index": 17,
     "name": "pr11.cycloadditions_tsIVb",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -650,7 +632,6 @@
   {
     "index": 18,
     "name": "pr11.cycloadditions_tsIa",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -686,7 +667,6 @@
   {
     "index": 19,
     "name": "pr11.cycloadditions_tsIb",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -722,7 +702,6 @@
   {
     "index": 20,
     "name": "pr13.Cyclobutane_JOC2023_TS-CD1-3_step2",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -758,7 +737,6 @@
   {
     "index": 21,
     "name": "pr13.Cyclobutane_JOC2023_TS-CD_step1",
-    "host": "bosque50",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -794,7 +772,6 @@
   {
     "index": 22,
     "name": "pr13.Cyclobutane_JOC2023_TS-D1G-3_step3G",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -830,7 +807,6 @@
   {
     "index": 23,
     "name": "pr13.Cyclobutane_JOC2023_multiplicity_fixed_TS-CD1-3_step2",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -866,7 +842,6 @@
   {
     "index": 24,
     "name": "pr13.Cyclobutane_JOC2023_multiplicity_fixed_TS-D1G-3_step3G",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -902,7 +877,6 @@
   {
     "index": 25,
     "name": "pr14.Pd_hydroamination_JOC2025_TS11_step1_reductive_coupling",
-    "host": "bosque70",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -938,7 +912,6 @@
   {
     "index": 26,
     "name": "pr14.Pd_hydroamination_JOC2025_TS12_step2_prot_oxidation",
-    "host": "bosque70",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -974,7 +947,6 @@
   {
     "index": 27,
     "name": "pr14.Pd_hydroamination_JOC2025_TS13_step3_bHelimination",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -1010,7 +982,6 @@
   {
     "index": 28,
     "name": "pr14.Pd_hydroamination_JOC2025_TS14_step4_reductive_elimination",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -1046,7 +1017,6 @@
   {
     "index": 29,
     "name": "pr14.Pd_hydroamination_JOC2025_TS1_step1_OxidativeAdition_bluepath",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -1082,7 +1052,6 @@
   {
     "index": 30,
     "name": "pr14.Pd_hydroamination_JOC2025_TS2_step1_OxidativeAdition_blackpath",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -1118,7 +1087,6 @@
   {
     "index": 31,
     "name": "pr14.Pd_hydroamination_JOC2025_TS3_step2_alkene_inserion",
-    "host": "bosque59",
     "aam_events": 7,
     "native_slap_events": 9,
     "bidirectional_uncut_slap_events": 9,
@@ -1154,7 +1122,6 @@
   {
     "index": 32,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-a_step1_halogen_abstraction_mult1",
-    "host": "bosque60",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1190,7 +1157,6 @@
   {
     "index": 33,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-a_step1_halogen_abstraction_mult3",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1226,7 +1192,6 @@
   {
     "index": 34,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-a_step1_halogen_abstraction_mult5",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1262,7 +1227,6 @@
   {
     "index": 35,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-b_step2_radical_recombination_mult2",
-    "host": "bosque50",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -1298,7 +1262,6 @@
   {
     "index": 36,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-b_step2_radical_recombination_mult4",
-    "host": "bosque70",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -1334,7 +1297,6 @@
   {
     "index": 37,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-b_step2_radical_recombination_mult6",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1370,7 +1332,6 @@
   {
     "index": 38,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-c_step3_reductive_elimination_mult2",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1406,7 +1367,6 @@
   {
     "index": 39,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-c_step3_reductive_elimination_mult4",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1442,7 +1402,6 @@
   {
     "index": 40,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS-c_step3_reductive_elimination_mult6",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -1478,7 +1437,6 @@
   {
     "index": 41,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS2_Step3_bluepath_side_reation_mult2",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1514,7 +1472,6 @@
   {
     "index": 42,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS2_Step3_bluepath_side_reation_mult4",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1550,7 +1507,6 @@
   {
     "index": 43,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS2_Step3_bluepath_side_reation_mult6",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1586,7 +1542,6 @@
   {
     "index": 44,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS2_prime_step2_redPath_mult3",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1622,7 +1577,6 @@
   {
     "index": 45,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS2_prime_step2_redPath_mult5",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1658,7 +1612,6 @@
   {
     "index": 46,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS7_step1_radical_recombination_mult2",
-    "host": "bosque50",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -1694,7 +1647,6 @@
   {
     "index": 47,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS7_step1_radical_recombination_mult6",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1730,7 +1682,6 @@
   {
     "index": 48,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS8_step2_reductive_elimination_mult2",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1766,7 +1717,6 @@
   {
     "index": 49,
     "name": "pr15.Fe_crosscoupling_ACScat2023_TS8_step2_reductive_elimination_mult4",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -1802,7 +1752,6 @@
   {
     "index": 50,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS-a_step1_halogen_abstraction_mult3",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1838,7 +1787,6 @@
   {
     "index": 51,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS-a_step1_halogen_abstraction_mult5",
-    "host": "bosque60",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1874,7 +1822,6 @@
   {
     "index": 52,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS-b_step2_radical_recombination_mult2",
-    "host": "bosque70",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -1910,7 +1857,6 @@
   {
     "index": 53,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS-b_step2_radical_recombination_mult4",
-    "host": "bosque70",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -1946,7 +1892,6 @@
   {
     "index": 54,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS-b_step2_radical_recombination_mult6",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -1982,7 +1927,6 @@
   {
     "index": 55,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS2_prime_step2_redPath_mult3",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2018,7 +1962,6 @@
   {
     "index": 56,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS2_prime_step2_redPath_mult5",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2054,7 +1997,6 @@
   {
     "index": 57,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS7_step1_radical_recombination_mult2",
-    "host": "bosque50",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -2090,7 +2032,6 @@
   {
     "index": 58,
     "name": "pr15.Fe_crosscoupling_ACScat2023_multiplicity_fixed_TS7_step1_radical_recombination_mult6",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2126,7 +2067,6 @@
   {
     "index": 59,
     "name": "pr16.carbocation_ts11",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -2162,7 +2102,6 @@
   {
     "index": 60,
     "name": "pr16.carbocation_ts12",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2198,7 +2137,6 @@
   {
     "index": 61,
     "name": "pr16.carbocation_ts2",
-    "host": "bosque59",
     "aam_events": 0,
     "native_slap_events": 0,
     "bidirectional_uncut_slap_events": 0,
@@ -2234,7 +2172,6 @@
   {
     "index": 62,
     "name": "pr16.carbocation_ts3",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -2270,7 +2207,6 @@
   {
     "index": 63,
     "name": "pr16.carbocation_ts4",
-    "host": "bosque59",
     "aam_events": 0,
     "native_slap_events": 0,
     "bidirectional_uncut_slap_events": 0,
@@ -2306,7 +2242,6 @@
   {
     "index": 64,
     "name": "pr16.carbocation_ts5",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 9,
     "bidirectional_uncut_slap_events": 6,
@@ -2342,7 +2277,6 @@
   {
     "index": 65,
     "name": "pr16.carbocation_ts7",
-    "host": "bosque60",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -2378,7 +2312,6 @@
   {
     "index": 66,
     "name": "pr16.carbocation_ts8",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2414,7 +2347,6 @@
   {
     "index": 67,
     "name": "pr16.carbocation_ts9",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2450,7 +2382,6 @@
   {
     "index": 68,
     "name": "pr17.carbene.ins_ts6a",
-    "host": "bosque50",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -2486,7 +2417,6 @@
   {
     "index": 69,
     "name": "pr17.carbene.ins_ts8",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -2522,7 +2452,6 @@
   {
     "index": 70,
     "name": "pr18.Au.alkyl_tsBC",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2558,7 +2487,6 @@
   {
     "index": 71,
     "name": "pr19.heck_ts1",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -2594,7 +2522,6 @@
   {
     "index": 72,
     "name": "pr19.heck_ts9",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -2630,7 +2557,6 @@
   {
     "index": 73,
     "name": "pr2.mbh_ts1",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2666,7 +2592,6 @@
   {
     "index": 74,
     "name": "pr2.mbh_ts2",
-    "host": "bosque60",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2702,7 +2627,6 @@
   {
     "index": 75,
     "name": "pr2.mbh_ts8",
-    "host": "bosque50",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2738,7 +2662,6 @@
   {
     "index": 76,
     "name": "pr3.Suzuki.Ni_ts11.TM",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2774,7 +2697,6 @@
   {
     "index": 77,
     "name": "pr3.Suzuki.Ni_ts14.RE",
-    "host": "bosque50",
     "aam_events": 8,
     "native_slap_events": 8,
     "bidirectional_uncut_slap_events": 8,
@@ -2810,7 +2732,6 @@
   {
     "index": 78,
     "name": "pr4.Suzuki-Brcleavage_ts1.Br-cleavage-A",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2846,7 +2767,6 @@
   {
     "index": 79,
     "name": "pr4.Suzuki-Brcleavage_ts1.Br-cleavage-B",
-    "host": "bosque70",
     "aam_events": 0,
     "native_slap_events": 0,
     "bidirectional_uncut_slap_events": 0,
@@ -2882,7 +2802,6 @@
   {
     "index": 80,
     "name": "pr4.Suzuki-Brcleavage_ts1.Br-cleavage-C",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2918,7 +2837,6 @@
   {
     "index": 81,
     "name": "pr4.Suzuki-Brcleavage_ts1.Br-cleavage-D",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -2954,7 +2872,6 @@
   {
     "index": 82,
     "name": "pr4.Suzuki-Brcleavage_ts2.Br-cleavage-A",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -2990,7 +2907,6 @@
   {
     "index": 83,
     "name": "pr4.Suzuki-Brcleavage_ts2.Br-cleavage-B",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3026,7 +2942,6 @@
   {
     "index": 84,
     "name": "pr4.Suzuki-Brcleavage_ts2.Br-cleavage-C",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -3062,7 +2977,6 @@
   {
     "index": 85,
     "name": "pr4.Suzuki-Brcleavage_ts2.Br-cleavage-D",
-    "host": "bosque60",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -3098,7 +3012,6 @@
   {
     "index": 86,
     "name": "pr5.Noyori_ts26",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -3134,7 +3047,6 @@
   {
     "index": 87,
     "name": "pr5.Noyori_ts45",
-    "host": "bosque50",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3170,7 +3082,6 @@
   {
     "index": 88,
     "name": "pr5.Noyori_ts56",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -3206,7 +3117,6 @@
   {
     "index": 89,
     "name": "pr5.Noyori_ts5H2",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -3242,7 +3152,6 @@
   {
     "index": 90,
     "name": "pr5.Noyori_ts65",
-    "host": "bosque70",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -3278,7 +3187,6 @@
   {
     "index": 91,
     "name": "pr6.AlNHCs_tsI",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -3314,7 +3222,6 @@
   {
     "index": 92,
     "name": "pr6.AlNHCs_tsII",
-    "host": "bosque70",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -3350,7 +3257,6 @@
   {
     "index": 93,
     "name": "pr7.V.dodh_ts1011-triplet",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -3386,7 +3292,6 @@
   {
     "index": 94,
     "name": "pr7.V.dodh_ts1015",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -3422,7 +3327,6 @@
   {
     "index": 95,
     "name": "pr7.V.dodh_ts1112-triplet",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3458,7 +3362,6 @@
   {
     "index": 96,
     "name": "pr7.V.dodh_ts13",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -3494,7 +3397,6 @@
   {
     "index": 97,
     "name": "pr7.V.dodh_ts1314",
-    "host": "bosque59",
     "aam_events": 7,
     "native_slap_events": 7,
     "bidirectional_uncut_slap_events": 7,
@@ -3530,7 +3432,6 @@
   {
     "index": 98,
     "name": "pr7.V.dodh_ts14",
-    "host": "bosque60",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3566,7 +3467,6 @@
   {
     "index": 99,
     "name": "pr7.V.dodh_ts141",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -3602,7 +3502,6 @@
   {
     "index": 100,
     "name": "pr7.V.dodh_ts156",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -3638,7 +3537,6 @@
   {
     "index": 101,
     "name": "pr7.V.dodh_ts19",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3674,7 +3572,6 @@
   {
     "index": 102,
     "name": "pr7.V.dodh_ts25-singlet",
-    "host": "bosque59",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -3710,7 +3607,6 @@
   {
     "index": 103,
     "name": "pr7.V.dodh_ts25-triplet",
-    "host": "bosque60",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -3746,7 +3642,6 @@
   {
     "index": 104,
     "name": "pr7.V.dodh_ts32",
-    "host": "bosque60",
     "aam_events": 5,
     "native_slap_events": 7,
     "bidirectional_uncut_slap_events": 7,
@@ -3782,7 +3677,6 @@
   {
     "index": 105,
     "name": "pr7.V.dodh_ts45-singlet",
-    "host": "bosque50",
     "aam_events": 7,
     "native_slap_events": 7,
     "bidirectional_uncut_slap_events": 7,
@@ -3818,7 +3712,6 @@
   {
     "index": 106,
     "name": "pr7.V.dodh_ts45-triplet",
-    "host": "bosque50",
     "aam_events": 7,
     "native_slap_events": 7,
     "bidirectional_uncut_slap_events": 7,
@@ -3854,7 +3747,6 @@
   {
     "index": 107,
     "name": "pr7.V.dodh_ts56-singlet",
-    "host": "bosque50",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -3890,7 +3782,6 @@
   {
     "index": 108,
     "name": "pr7.V.dodh_ts56-triplet",
-    "host": "bosque70",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -3926,7 +3817,6 @@
   {
     "index": 109,
     "name": "pr7.V.dodh_ts61",
-    "host": "bosque70",
     "aam_events": 7,
     "native_slap_events": 7,
     "bidirectional_uncut_slap_events": 7,
@@ -3962,7 +3852,6 @@
   {
     "index": 110,
     "name": "pr7.V.dodh_ts67",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -3998,7 +3887,6 @@
   {
     "index": 111,
     "name": "pr7.V.dodh_ts71",
-    "host": "bosque70",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -4034,7 +3922,6 @@
   {
     "index": 112,
     "name": "pr7.V.dodh_ts81",
-    "host": "bosque70",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -4070,7 +3957,6 @@
   {
     "index": 113,
     "name": "pr7.V.dodh_ts81-b",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4106,7 +3992,6 @@
   {
     "index": 114,
     "name": "pr7.V.dodh_ts910",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4142,7 +4027,6 @@
   {
     "index": 115,
     "name": "pr7.V.dodh_ts910-water",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4178,7 +4062,6 @@
   {
     "index": 116,
     "name": "pr8.ketenes_ts1prime",
-    "host": "bosque59",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4214,7 +4097,6 @@
   {
     "index": 117,
     "name": "pr8.ketenes_ts2prime",
-    "host": "bosque59",
     "aam_events": 1,
     "native_slap_events": 1,
     "bidirectional_uncut_slap_events": 1,
@@ -4250,7 +4132,6 @@
   {
     "index": 118,
     "name": "pr9.carbene.rearr_ts10",
-    "host": "bosque60",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4286,7 +4167,6 @@
   {
     "index": 119,
     "name": "pr9.carbene.rearr_ts11",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4322,7 +4202,6 @@
   {
     "index": 120,
     "name": "pr9.carbene.rearr_ts13a",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4358,7 +4237,6 @@
   {
     "index": 121,
     "name": "pr9.carbene.rearr_ts33",
-    "host": "bosque50",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -4394,7 +4272,6 @@
   {
     "index": 122,
     "name": "pr9.carbene.rearr_ts39-endo",
-    "host": "bosque50",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4430,7 +4307,6 @@
   {
     "index": 123,
     "name": "pr9.carbene.rearr_ts41a-endo",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4466,7 +4342,6 @@
   {
     "index": 124,
     "name": "pr9.carbene.rearr_ts42",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4502,7 +4377,6 @@
   {
     "index": 125,
     "name": "pr9.carbene.rearr_ts47a",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4538,7 +4412,6 @@
   {
     "index": 126,
     "name": "TS_01",
-    "host": "bosque70",
     "aam_events": 3,
     "native_slap_events": 3,
     "bidirectional_uncut_slap_events": 3,
@@ -4574,7 +4447,6 @@
   {
     "index": 127,
     "name": "TS_02",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4610,7 +4482,6 @@
   {
     "index": 128,
     "name": "TS_03",
-    "host": "bosque59",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -4646,7 +4517,6 @@
   {
     "index": 129,
     "name": "TS_04",
-    "host": "bosque59",
     "aam_events": 8,
     "native_slap_events": 8,
     "bidirectional_uncut_slap_events": 8,
@@ -4682,7 +4552,6 @@
   {
     "index": 130,
     "name": "TS_05",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4718,7 +4587,6 @@
   {
     "index": 131,
     "name": "TS_07",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -4754,7 +4622,6 @@
   {
     "index": 132,
     "name": "TS_08",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4790,7 +4657,6 @@
   {
     "index": 133,
     "name": "TS_09",
-    "host": "bosque60",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,
@@ -4826,7 +4692,6 @@
   {
     "index": 134,
     "name": "TS_10",
-    "host": "bosque50",
     "aam_events": 6,
     "native_slap_events": 6,
     "bidirectional_uncut_slap_events": 6,
@@ -4862,7 +4727,6 @@
   {
     "index": 135,
     "name": "TS_11",
-    "host": "bosque50",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -4898,7 +4762,6 @@
   {
     "index": 136,
     "name": "TS_12",
-    "host": "bosque70",
     "aam_events": 5,
     "native_slap_events": 5,
     "bidirectional_uncut_slap_events": 5,
@@ -4934,7 +4797,6 @@
   {
     "index": 137,
     "name": "TS_13",
-    "host": "bosque70",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -4970,7 +4832,6 @@
   {
     "index": 138,
     "name": "TS_15",
-    "host": "bosque59",
     "aam_events": 4,
     "native_slap_events": 4,
     "bidirectional_uncut_slap_events": 4,
@@ -5006,7 +4867,6 @@
   {
     "index": 139,
     "name": "TS_16",
-    "host": "bosque59",
     "aam_events": 2,
     "native_slap_events": 2,
     "bidirectional_uncut_slap_events": 2,

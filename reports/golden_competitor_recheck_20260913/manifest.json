@@ -1,5 +1,5 @@
 {
-  "dataset": "/h/399/yunhengzou/coordinate_alignment/data/aam_benchmarks/golden_original_20260906",
+  "dataset": "private-reference-cd61f953dce9d808466d",
   "dataset_manifest": {
     "repository": "Laboratoire-de-Chemoinformatique/Reaction_Data_Cleaning",
     "upstream_commit": "793475e54d8b2c7f714165a61e4eb439435d7d92",
@@ -37,5 +37,9 @@
   "model_startup_timeout_seconds": 300,
   "ranking": "upstream output order, unmodified; SLAP first is not asserted to be a ranked top-one",
   "evaluation": "exact heavy-atom relation modulo endpoint chemical symmetry; unmatched atoms retained",
-  "note": "Local reproduction on pinned Golden, not an assertion of identical historical paper protocol."
+  "note": "Local reproduction on pinned Golden, not an assertion of identical historical paper protocol.",
+  "privacy_projection": {
+    "original_sha256": "600f8d3a86a4b86a9ae2eaeb6ff55c5f47a32ec7333aa7c0cdcb197eb1c82b60",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

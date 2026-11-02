@@ -9,6 +9,9 @@ work_pq_smoke/
 # Local Claude session state
 .claude/
 
+# Private site configuration and operational records; never publish.
+/private/
+
 # Local data and generated analysis artifacts
 data/
 out/

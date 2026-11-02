@@ -1,6 +1,6 @@
 # MAPPA source refactoring plan
 
-Status: all ownership stages implemented. Final repository suite: 616 passed on NRT.
+Status: all ownership stages implemented. Final repository suite: 616 passed.
 
 Recorded: 2026-10-28. Inspected source: `19c73fc`.
 
@@ -137,7 +137,7 @@ nested worker pools or reset budgets when moving work between workers.
 
 Keep work-reuse caches beside the algorithm that knows whether cached work is
 still valid. The task scheduler does not own all matching/search caches.
-Cluster-specific submission scripts remain under `bench/`.
+Portable submission scripts remain under `bench/`; site configuration stays private.
 
 Implemented under `mappa_core/core/scheduler/`. Local cut workers and portable
 cut-task adapters share `search.py`, both calling the same `SearchSession`.
@@ -228,7 +228,7 @@ coordinate routine; trajectory capture and represented-choice display share one
 module. Native sources and build configuration now live under `mappa_core/native/`;
 all 36 C/C++/header/license files are byte-identical across that relocation.
 The native engine rebuild, full repository suite and installed-package checks
-have passed on NRT.
+have passed.
 
 ## Files to dismantle rather than simply relocate
 
@@ -290,21 +290,21 @@ validation. Preserve the core algorithm while fixing refactoring regressions.
 
 ## Functional validation
 
-Each stage passed its affected checks on NRT CPU nodes before the next stage.
+Each stage passed its affected checks before the next stage.
 The final source `3ded484` passed **all 616 repository tests with zero skips** in
 69.89 seconds. The native engine was rebuilt from the relocated source first.
 These are software checks, not dataset benchmarks or new coverage measurements.
 
-| Stage | Passing affected checks | NRT jobs containing accepted results |
-|---|---:|---|
-| Alignment ownership | 233 | 68862, 68893 |
-| Matching dependency layers | 246 | 69015 |
-| Search dependency layers | 227 | 69055 |
-| Scheduler consolidation | 150 | 69149, 69243, 69284 |
-| Decoder and mapping analytics | 210 selected, plus query checks | 69342, 69418 |
-| TS and shared data | 121 | 69482 |
-| I/O and presentation | 250 | 69757, 69792 |
-| Full repository integration | 616 | 69950 |
+| Stage | Passing affected checks |
+|---|---:|
+| Alignment ownership | 233 |
+| Matching dependency layers | 246 |
+| Search dependency layers | 227 |
+| Scheduler consolidation | 150 |
+| Decoder and mapping analytics | 210 selected, plus query checks |
+| TS and shared data | 121 |
+| I/O and presentation | 250 |
+| Full repository integration | 616 |
 
 Stage counts overlap and must not be added. Early import/test-adapter failures
 were corrected, with failed checks rerun; the final full run passes every check.
@@ -316,27 +316,15 @@ Packaging checks verify 133 historical class relocation destinations, native
 sources/licenses and viewer assets in the wheel/source archive, and public
 search/decoding from an installed wheel. The selected Python engine is used for
 the wheel check; native execution is checked by the rebuilt source suite.
-Both small documentation notebooks passed separately (NRT job 70052), with
+Both small documentation notebooks passed separately, with
 their declared optional dependencies installed only in disposable node-local storage. No dataset campaign or monitor was restarted.
 
-Full receipts, logs, commands and exact test identities are stored locally in
-`reports/source_audit_20261028/full-refactor-validation/` under the Desktop
-checkout. The final remote logs are in
-`rebenchmark_20261027/refactor_final_integration/`. Ticket 25 records publication
-and the completed validation scope. Skills and viewer/chirality feature redesign
-remain outside this refactor, as requested.
+Full receipts, logs, commands and exact test identities are retained privately.
+Skills and viewer/chirality feature redesign remain outside this refactor.
 
 ## Pickup information
 
-- Canonical publication checkout at planning time:
-  `/private/tmp/mappa-exact-fragment-publish`.
 - Repository: `git@github.com:yunhzou/MAPPA-AAM.git`; published branch: `main`.
-- Desktop checkout `/Users/yunhengz/Desktop/AAM Writing` contains other work;
-  do not reset it or overwrite its changes.
-- Tracker: `/Users/yunhengz/reactivo/yunheng-task-tracker`, branch `MAPPA_AAM`,
-  existing ticket `25_source_ownership_cleanup.md`.
-- Re-read `AGENTS.md`, this plan, current `design.md` and Git status before
-  starting. Inspect current code rather than assuming the planning revision is
-  still current.
-- Implementation was authorized after the plan. Complete one major element at
-  a time. Preserve core logic; remove only established redundancies.
+- Use the active checkout and preserve unrelated local work.
+- Re-read `AGENTS.md`, this plan, current `design.md` and Git status before starting.
+- Implementation was authorized after the plan. Preserve core logic and remove only established redundancies.

@@ -4,7 +4,6 @@
     "source": "7ed20f02eb408ee6782b207689b5fb1717eec44dcc62d9bbba46d4cba6dde653",
     "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
     "platform": "macOS-26.7.1-arm64-arm-64bit",
-    "mappa_import": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/src/mappa/__init__.py",
     "case": 1561,
     "direction": "forward",
     "workers": 1,
@@ -124,13 +123,11 @@
         "mean_active_task_attempts": 0.9988051205171723
       },
       "reference": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/cc67912df8534b2c9a6a386ffba6eed1-00000.bundle",
         "offset": 6263,
         "size": 12445,
         "sha256": "94dddc1e16af5c7cda7ce2674806681ac702370735b267e532e3fbf7f5e7849d"
       },
       "audit": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/cc67912df8534b2c9a6a386ffba6eed1-00000.bundle",
         "offset": 18708,
         "size": 136153,
         "sha256": "737ba11d251f2a0e9530158fdd95184ca7c4dfa8b6d28960259220d30fb02ecf"
@@ -196,13 +193,11 @@
         "mean_active_task_attempts": 1.0
       },
       "reference": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/8bf1b2214afb4bda8d353b86134c6a79-00000.bundle",
         "offset": 9429546,
         "size": 816226,
         "sha256": "67a855cb12143e480cb457931b143cf1ab459e291f53903f527b28fd68f2fb51"
       },
       "audit": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/cc67912df8534b2c9a6a386ffba6eed1-00000.bundle",
         "offset": 154861,
         "size": 1073,
         "sha256": "e91240d0cb95f283c70612af5e6c4c232d475a44594ec8ae4731118da1c1267c"
@@ -268,13 +263,11 @@
         "mean_active_task_attempts": 1.0
       },
       "reference": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/8bf1b2214afb4bda8d353b86134c6a79-00000.bundle",
         "offset": 10245772,
         "size": 3006248,
         "sha256": "7655357ad0270594700d8da6fbe5e37d54436ce7ed9a51dcdff619270d1f1f95"
       },
       "audit": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/cc67912df8534b2c9a6a386ffba6eed1-00000.bundle",
         "offset": 155934,
         "size": 1119,
         "sha256": "b076cda1b7ac5cf76755f7537bb7753e17b8ab18d56f7e0eb9034cecdbd002a4"
@@ -340,13 +333,11 @@
         "mean_active_task_attempts": 1.0
       },
       "reference": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/8bf1b2214afb4bda8d353b86134c6a79-00000.bundle",
         "offset": 13252020,
         "size": 1025,
         "sha256": "1c92da4cc63bf20d26aae43db2ed931db4f3983868d2f37787d343f78edfb5b3"
       },
       "audit": {
-        "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_point_1561_20261101/result/bundles/cc67912df8534b2c9a6a386ffba6eed1-00000.bundle",
         "offset": 157053,
         "size": 1164,
         "sha256": "9382eeaf414934da3c42dcbfdce9af642542f4686cafc5c05122d91541c13d19"
@@ -3882,10 +3873,6 @@
     "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
   },
   "comparison_scope": "Original saved-catalogue replay isolates the historical decoder/publication failure. Fresh forward-only pipeline starts with empty results and caches on one Mac worker. Mac and DFW times are not directly comparable.",
-  "commands": {
-    "saved_catalogue": "PYTHONPATH=src:bench python reports/golden_pool_20261101/profile_decoder.py out/golden_decoder_1561/catalogue.bundle out/golden_decoder_1561/source.json --memory-gib 2",
-    "fresh_pipeline": "PYTHONPATH=src:bench OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench/enzymemap.py out/golden_point_1561_20261101/index.json out/golden_point_1561_20261101/result --local --workers 1 --window 1 --memory-gib 2"
-  },
   "input_index": {
     "config": {
       "cut_floor": 0.2,
@@ -3906,13 +3893,11 @@
         "case": 1561,
         "reversed": false,
         "input": {
-          "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_retest_20261101_096a010/inputs/0b5d06aea3d64260a294c7bbacbbbe4b-00000.bundle",
           "offset": 7201787,
           "size": 8100,
           "sha256": "df10e691816bee4507cad2f5e645ecbd096da356814df7c0e2a7a0ea09748573"
         },
         "reference": {
-          "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/golden_retest_20261101_096a010/inputs/0b5d06aea3d64260a294c7bbacbbbe4b-00000.bundle",
           "offset": 7199908,
           "size": 1879,
           "sha256": "8a0e81d71c3e60880d0b59b2555a81b06d48d73aee67586e80005b9fc71c0ca6"
@@ -3921,5 +3906,9 @@
     ],
     "verification": "golden:verify",
     "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+  },
+  "publication_projection": {
+    "omitted": "Private machine paths and execution commands",
+    "original_sha256": "55bdc0d6c1d3b5d9c49c5d6c0acda0acf330297547098f3f24409f98ce13c5fd"
   }
 }

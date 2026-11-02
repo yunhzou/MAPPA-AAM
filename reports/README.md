@@ -1,23 +1,24 @@
 # Paper benchmark index
 
-## EnzymeMap final benchmark report
+## Current implementation
 
-[Final EnzymeMap report](enzymemap_20261008/README.md) — **47,974 / 47,974 reactions completed (100%)** and **47,335 strict reference matches (98.6680%)** across the recorded configurations. Presents final outcome classifications, evaluation methods, validation and aggregate results. Processing completion, reference agreement and partial atom coverage are distinguished.
+[Latest complete Golden validation](golden_retest_20261101/README.md) records
+**1,830 / 1,851 recovered reactions (98.87%)**, using one seed and the full cut
+sweep at revision `096a010961f53944ddd4ddc433bd8d56f282a2f2`. All 3,702 directions
+completed matching, reduction, decoding and verification. Later history-release
+changes have point validation, not another full Golden rerun.
 
-Start here when querying results or preparing the paper. Existing reports and
-numerical evidence and raw-run references are preserved in place; this index
-does not merge experimental protocols. Historical driver code is available in Git at the exact revision linked in
-[bench/archive](https://github.com/yunhzou/MAPPA-AAM/blob/a4e8bed6500744b0251bea1ccd5b205ed7741086/bench/archive/README.md). Old generated viewer links resolve
-to their preserved Git revision after publication cleanup.
+[Current EnzymeMap campaign](enzymemap_history_pruned_20261102/README.md) covers
+47,974 reactions / 95,948 directions and remains unfinished. Its results must
+not be replaced with those of an earlier implementation.
 
-## Current published method
-
-[Baseline MAPPA, competition disabled](published_baseline_20260915/README.md) is the current coordinate evidence and film provenance. Golden scores are unchanged. Older reports below retain their original protocols and may include experimental extensions; do not use them as the current published pipeline.
-
-[Final end-to-end timing](final_end_to_end_20260916/README.md) and
-[decoder optimization](decoder_optimization_20260916/README.md) describe the
-final public pipeline. [Notebook validation](self_contained_notebook_20260916/README.md)
-checks the importable interface on embedded molecules.
+The [October EnzymeMap report](enzymemap_20261008/README.md) and the
+[September coordinate baseline](published_baseline_20260915/README.md) are
+historical studies. Their protocols and results remain distinct from the current
+implementation. The September [end-to-end timing](final_end_to_end_20260916/README.md)
+and [decoder optimization](decoder_optimization_20260916/README.md) describe
+that historical pipeline. Numerical evidence is retained without claiming that
+old experiments were rerun on current code.
 
 ## Archived evidence
 
@@ -90,34 +91,25 @@ No reference atom mappings are available; this is not an accuracy benchmark.
 |---|---|---|
 | Fixed-policy AAM search | [Report](golden_publication_20260908/README.md), [per case](golden_publication_20260908/per_case.csv), [per direction](golden_publication_20260908/per_direction.csv), [analytics](golden_publication_20260908/analytics.json) | Original compressed archives; single and bidirectional search; seed 10, cap 100, tolerance 1.0, sweep cut |
 | Concrete mapping collection | [Report](golden_pattern_benchmark_20260908/README.md), [metrics](golden_pattern_benchmark_20260908/benchmark_report.json), [per case](golden_pattern_benchmark_20260908/per_case.json) | Reuses the preceding search; concrete reference recovery 1839/1851 (99.35%) within +6 bond events, not top-k |
-| Default competitors | [Report](golden_competitors_20260908/README.md), [summary](golden_competitors_20260908/summary.json), [saved outputs](golden_competitors_20260908/saved_outputs.tar.gz) | Released mapper configurations evaluated under the common mapping criterion |
-| Expanded SLAP alternatives | [Report](golden_slap_budget_20260908/README.md), [main results](golden_slap_budget_20260908/expanded_summary.json), [all-atom results](golden_slap_budget_20260908/all_atoms_summary.json), [combined analysis](golden_slap_budget_20260908/combined_analysis.json), [case evaluations and provenance](golden_slap_budget_20260908/evaluations_and_provenance.tar.gz) | Both directions, binary/weighted, input-order diversity; combined recovery 1691/1851 (91.36%) |
+| Default competitors | [Report](golden_competitors_20260908/README.md), [summary](golden_competitors_20260908/summary.json), saved outputs (raw archive retained privately) | Released mapper configurations evaluated under the common mapping criterion |
+| Expanded SLAP alternatives | [Report](golden_slap_budget_20260908/README.md), [main results](golden_slap_budget_20260908/expanded_summary.json), [all-atom results](golden_slap_budget_20260908/all_atoms_summary.json), [combined analysis](golden_slap_budget_20260908/combined_analysis.json), case evaluations and provenance (raw archive retained privately) | Both directions, binary/weighted, input-order diversity; combined recovery 1691/1851 (91.36%) |
 
 All percentages above use all 1851 original Golden records. Earlier diagnostic
 reports remain useful for root-cause analysis, but are not additional independent
 paper test sets and must not be unioned into these fixed-policy results.
 
-## Full raw artifacts on the cluster
+## Public evidence and private operational records
 
-Git contains reports, case tables, selected viewers, and compact output/provenance
-archives. Large AAM archives and expanded candidate banks remain on the cluster:
-
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_pattern_collection_20260908_v2
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_competitors_full_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_slap_expanded_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_slap_all_atoms_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_slap_xyz_sweep_20260910
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_minimum_event_patterns_20260910
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_forward_cap1000_seed1_20260910
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910
-```
-
-These cluster copies are not a claim of independent/offsite backup. Do not delete
-them after pushing Git. Preserve failed attempts, final retry outcomes, frozen
-engines, input plans, manifests, environment/native hashes, and Slurm accounting.
+Public reports contain scientific settings, case outcomes, timing definitions
+and source checksums. Raw site configuration, machine paths, scheduler records
+and archives containing those details are retained privately. Their omission is
+not evidence of independent backup or permission to delete the originals.
+Public JSON projections record the original checksum when metadata is removed;
+opaque artifact references are provenance labels, not downloadable locations.
+CSV projections preserve scientific columns while omitting private location and
+execution identifiers. Retained originals are held outside the public tree.
+Use the recorded revision and scientific protocol when interpreting older
+results; the current implementation may differ.
 
 ## Find an individual reaction without rerunning search
 
@@ -137,7 +129,7 @@ indices. Use the saved inputs to resolve chemical structures.
   `recovered`, and `attempts`. Resolve each attempt using `plans.json` before
   opening `<method>/<attempt-index>.json`; attempt index is not reaction index.
 - Example collected-mapping viewer:
-  `/h/399/yunhengzou/coordinate_alignment/reports/golden_pattern_benchmark_20260908/case1033/viewer.html`.
+  `golden_pattern_benchmark_20260908/case1033/viewer.html.gz`.
   Git stores the compressed `.html.gz` version; decompress before opening.
 
 ## Definitions that must accompany paper claims
@@ -175,9 +167,8 @@ it is not a publication-ready matched-budget speedup claim.
 
 ## Reproduction and historical work
 
-See the [script guide](../bench/README.md). Use frozen scripts and exact commands
-from each run's manifests/submission records for historical reproduction; current
-repository code can change. All other `golden_*` reports here are exploratory or
+See the [script guide](../bench/README.md). Use each recorded revision and scientific configuration for historical
+reproduction, supplying site configuration privately; current code can change. All other `golden_*` reports here are exploratory or
 stage-specific history unless explicitly identified above. In particular, the
 SLAP `golden_slap_budget_20260908` cluster pilot is not the completed expanded run.
 

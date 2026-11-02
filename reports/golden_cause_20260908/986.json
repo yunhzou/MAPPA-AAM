@@ -133,7 +133,7 @@
     3
   ],
   "ordinary_representative_reference_equivalent": false,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cause986_audit_20260908",
+  "archive": "private-reference-e3685a33c3e9cec95c65",
   "diagnostic_swap_only": {
     "source_atoms": [
       11,
@@ -184,5 +184,9 @@
         26
       ]
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "27e3e561e53d98ef5116b45ebb0092fbf50fe1cc9ecf095c601a0598627b5c37",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

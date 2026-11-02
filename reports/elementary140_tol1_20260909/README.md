@@ -28,8 +28,7 @@ the finite greedy/capped search monotonically more complete.
 - Changed only `iso_tolerance`: **0.5 → 1.0**.
 - Kept explicit H, event scoring threshold 0.5, bond floor 0.2, 10 seed orders,
   cap100, both directions, sweep cuts and deterministic cut-seed construction.
-- 16 CPUs per search, at most 32 concurrent tasks. Initially the healthy
-  `cpunodes` nodes; pending tasks subsequently admitted to `cpunodes_nia`.
+- 16 workers per search; completed search work was not repeated when scheduling changed.
 - Same saved native XYZ SLAP outputs reused byte-for-byte: changing our
   matching tolerance does not change SLAP. SLAP H-group scoring refinement
   rerun, all 176 assignment-pool minima resolved.
@@ -56,9 +55,7 @@ different protocols, not silently merged fixed-cap results.
 
 The original saved record is:
 
-```text
-/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/TS_11/rp_stage.json
-```
+Full artifacts and raw operational records are retained privately.
 
 It used matching tolerance1, scoring threshold0.5, three seeds and cap100, and
 already contained the same heavy mapping. Original endpoint coordinates and
@@ -113,8 +110,4 @@ summarize, cap_followup), existing comparison/family-query scripts, and
 per-case scores/mappings, summaries and run provenance; full AAM checkpoints
 remain on the cluster. Old tolerance0.5 artifacts were not overwritten.
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909/case123_cap200
-/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/elementary140_tol1_20260909/viewer.html
-```
+Full artifacts and raw operational records are retained privately.

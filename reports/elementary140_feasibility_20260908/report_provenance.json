@@ -1,7 +1,11 @@
 {
   "script_sha256": "b5d479b9bea1e6a3dbad1be5a09b6988fc0d63989e7807b78ae2f9d632f74cdc",
   "ase_version": "3.26.0",
-  "ase_location": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_feasibility_20260908/dependencies",
-  "source_run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_feasibility_20260908",
-  "accuracy": null
+  "ase_location": "private-reference-739043c8d5fff0c5d8c5",
+  "source_run": "private-reference-52a70fdb906381d0c6fa",
+  "accuracy": null,
+  "privacy_projection": {
+    "original_sha256": "00fff543ad276fd51a36b67c1f2ca78610904a6c4ae20daf5a7ec798705048e0",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

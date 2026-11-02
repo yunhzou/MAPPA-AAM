@@ -90,9 +90,7 @@ is required and cannot be replaced by that raw-index count.
 
 Full analysis directory:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_output_comparison_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 Use `bench/compare_elementary_outputs.py report` on that directory to regenerate
 the summary without rereading the full AAM archives or rerunning mapping.

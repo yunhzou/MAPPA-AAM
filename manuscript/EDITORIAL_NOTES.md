@@ -1,14 +1,25 @@
 # Author information remaining before submission
 
-The scientific text has been rewritten around the final algorithm and supported results. The following information still requires author input; none has been invented:
+The scientific text describes the approved current algorithm and distinguishes its completed Golden validation from the archived September evaluations. The following information still requires author input; none has been invented:
 
 1. Corresponding-author details, individual contributions, and competing-interest declarations. The existing author order and supplied affiliations have been preserved. Placeholder declarations are omitted from the compiled paper.
 2. Provenance and selection of the 140 coordinate reaction pairs, the electronic-structure method/software used to obtain their cached WBO matrices, and redistribution permissions. The paper calls this a development collection without annotated mappings, not an independent accuracy benchmark.
 3. Permanent data/archive identifiers if required for submission. The code URL points to the existing repository on `main`.
+4. Applicability of the expanded acknowledgements and funding statements. Shifa supplied the full text in commit `f095f30a00d5e01e5ad79da2f47201123b2463b8`; it is not an unidentified template. Confirm the roles of C.C., Y.K., J.B.P.S. and A.W., who are not in the supplied author list, and which grants, software credits and computational acknowledgements apply to this paper. Preserve author-supplied text pending that confirmation, while applying the hardware-disclosure policy below to publication artifacts.
 
-Golden and coordinate configurations are reported separately. Golden tests the fragment-search stage; the published coordinate protocol also tests full event-window decoding. Competition is excluded from both published protocols. Resource-limited outcomes are explicitly distinguished from verified misses; excluded or unsearched continuations are not credited.
+The completed Golden validation at source `096a010961f53944ddd4ddc433bd8d56f282a2f2` covers matching, family reduction, local decoding and reference verification for 1,851 reactions / 3,702 directions. It recovers 1,830 reactions (98.87%) and 3,618 directions, with no failed tasks or unknown verification outcomes. Use `evidence/current_golden.json` and `current_golden_cases.json` for these claims. The source pin matters: a later revision's targeted checks do not constitute another full Golden evaluation.
 
-The paper's direct signed WBO-change score uses 0.5 for ordinary pairs and 0.3 for metal-involving pairs, including H. Superseded scoring definitions, abandoned reconstruction variants, and experiment diaries are excluded from the manuscript and compact bundle.
+The September seed, cap, comparator and coordinate studies remain archived results. Their default Golden count of 1,834/1,851 and ten-seed count of 1,840/1,851 must not be described as current-implementation results. Archived Golden timings cover search; the coordinate protocol also includes explicit whole-reaction event-window queries. Their timings do not measure ordinary current local decoding. Keep the studies and CPU cohorts separate, and preserve their original limits and denominators.
+
+The expanded EnzymeMap benchmark is still running. Do not include a final score, completion time, or blanket claim that all new benchmark work is finished. Resource-limited outcomes remain distinct from verified misses; excluded or unsearched continuations are not credited.
+
+The current direct signed WBO-change score uses 0.5 for ordinary pairs and 0.3 for metal-involving pairs, including H. A change must be strictly larger than the threshold. Count mapped/unmatched boundary contributions without inventing correspondences for unmatched atoms. Superseded scoring definitions, abandoned reconstruction variants, and experiment diaries are excluded from the manuscript and compact bundle.
+
+## Scientific presentation
+
+Growth keeps one compatible assignment and asks whether each proposed extension has a witness. Assignments inside the growing fragment may change; completed-fragment locks remain fixed. Choose a boundary atom and then an incident edge uniformly, without bond-weight priority. Only accepted growth edges add preservation constraints. At saturation, construct each distinct compressed placement directly from the finished constraints, pools and conditioned global target action. Apply the branch cap at every hierarchy level and across live parents.
+
+After matching, reduce saved families across seeds and cuts. Decode one reaction/direction catalogue by first collecting all unique fragments and their occurrence, constraint, action and boundary references, then computing shared local responses. Joint actions stay correlated during composition. Whole-reaction event-class enumeration and minimum-event queries are separate operations, not the ordinary decoder output. Describe this scientific structure without an implementation diary.
 
 
 ## Molecular figure conventions
@@ -21,11 +32,11 @@ Describe the default cut sweep as source-edge masking that changes growth routes
 
 A single search-edge mask can redirect later growth and produce multiple bond events. Never equate the number of sweep cuts with the number of final events, or imply that multi-event alternatives require enumerating event combinations. Search completeness is a separate issue.
 
-Default MAPPA uses one seed ordering and cut sweep, followed by separate decoding. The experimental competition module remains optional and off by default; exclude it from the paper, pseudocode, and film. Use baseline-only coordinate evidence from `reports/published_baseline_20260915/`. Golden already measures this pipeline.
+Default MAPPA uses one seed ordering and cut sweep, followed by separate family reduction and decoding. Experimental rematching is excluded from the reported pipeline. Retain the baseline-only coordinate evidence from `reports/published_baseline_20260915/` as an archived study; it has not been rerun under the current growth and decoding design. The saved research film illustrates its archived output, not a current execution trace.
 
 Keep Algorithm1 at the level of branches, fragments, cut conditions, conditioned growth, and separate decoding. Cross-reference Figure1 panels; keep isomorphism and automorphism internals in their own Methods subsections. Search caps preserve truncation status.
 
-Credit the cut-sweep strategy as introduced in this work and integral to default MAPPA. SLAP sweep is our extension to the prior algorithm. Distinguish the original SLAP literature score (86.9% on 1,758 reactions), our strict default binary score (85.95% on 1,851), the paired uncut binary/weighted bidirectional union (89.74%), and that union with our sweep (97.03%). Attribute the sweep benefit to the paired comparison, not the cross-protocol literature difference.
+Credit the cut-sweep strategy as introduced in this work and integral to default MAPPA. SLAP sweep is our extension to the prior algorithm. Distinguish the original SLAP literature score (86.9% on 1,758 reactions), the archived strict default binary score (85.95% on 1,851), the paired uncut binary/weighted bidirectional union (89.74%), and that union with our sweep (97.03%). Attribute the sweep benefit to the paired archived comparison, not the cross-protocol literature difference or an unmeasured current no-sweep control.
 
 
 ## Hardware disclosure for publication

@@ -89,9 +89,7 @@ performed inside mapping is included.
 The main campaign used 16 one-compute-thread shards per RXNMapper, LocalMapper,
 SLAP variant and Indigo; eight eight-thread shards for Chython's default ONNX
 configuration; and eight eight-CPU RDT shards. RDT's JVM uses
-`-XX:ActiveProcessorCount=8 -Xmx4g`. Slurm can allocate two logical CPUs for a
-one-thread request. Hardware, allocations, startup timings, and job accounting
-are saved. Setup-stalled shards were relocated without rerunning completed
+`-XX:ActiveProcessorCount=8 -Xmx4g`. Startup timings and raw operational records are retained privately. Setup-stalled shards were relocated without rerunning completed
 records. Per-reaction process watchdog: 300 seconds.
 
 No hardware-normalized speedup or SOTA claim follows from this table. Our larger
@@ -102,9 +100,7 @@ alternative recovery.
 ## Saved artifacts and reproduction
 
 Complete cluster run:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_competitors_full_20260908`
-
+Full artifacts and raw operational records are retained privately.
 This report contains `summary.json` and `saved_outputs.tar.gz`. The archive
 includes every returned mapping, SLAP compressed labeled graphs, per-record
 evaluations, startup/version records, model/template hashes, driver snapshots,

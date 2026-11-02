@@ -18,7 +18,7 @@ failures. The five allocations ran from 05:00:27 to 05:06:40 UTC: **6 minutes
 13 seconds**, including their staggered starts. They processed **177,552 cut
 tasks**. Peak observed matching-worker RSS was **414.2 MiB** and no cache errors
 were recorded. [matching-results.json](matching-results.json) contains the audit
-totals and Slurm accounting.
+totals and public timing projection.
 
 Every 100-worker pool used all its workers and reached 100 overlapping tasks.
 Two pools ran concurrently. Average worker CPU consumption per pool was only
@@ -28,20 +28,20 @@ measurements alone do not separate dispatch, shared-storage and task-size costs.
 
 The initial pass saved all **3,702 deduplicated catalogues** and **3,701 decoded outputs**.
 Golden **1561 forward** exceeded its guard while publishing its decoded
-record. In job 21135190, its compute peak was 1,752,666,112 bytes (1.63 GiB),
-and publication reached 2,186,715,136 bytes (2.04 GiB). A fresh-process retry,
-job 21135465, reproduced the failure: 1,752,473,600 bytes during computation and
+record. Its compute peak was 1,752,666,112 bytes (1.63 GiB),
+and publication reached 2,186,715,136 bytes (2.04 GiB). A fresh-process retry
+reproduced the failure: 1,752,473,600 bytes during computation and
 2,169,737,216 bytes during publication. Both guards remained 2,147,483,648 bytes.
 This isolates the failure to publication even without earlier tasks in the worker;
 it does not identify which serialization allocation caused the increase.
 The subsequent [Mac memory diagnostic](decoder-memory.md) traces the retained
 family tables, million bond-term records and serializer bookkeeping responsible
-for the large footprint. Job **21136551** subsequently completed this direction
+for the large footprint. A subsequent retry completed this direction
 with the refactored decoder and saved its output. The original failure and fresh
 retry audits remain available; no worker memory limit was increased.
 
 The normal runner stopped batch 1 before verification because of that failure.
-Job 21135583 completed its reference queries independently from the saved complete
+A separate pass completed its reference queries independently from the saved complete
 catalogues, as allowed by the scientific stage design. It does not rerun matching,
 alter decoding or mark the failed decoded output complete. Its recorded command
 and the fresh-process retry are retained with the run evidence. No worker memory
@@ -93,15 +93,9 @@ Eight affected tests passed in 10.41 seconds, including independent exhaustive
 small colored-graph permutations and complete pipeline checks of unmatched-atom
 semantics. The Slurm script passed shell syntax checking.
 
-DFW `cpu_short` permits ten nodes per user, with 96 CPUs per node. The initial
-two-node / 100-worker batch requests could not start: most spare CPUs belonged to
-nodes whose memory was already reserved. A revised batch spreads 100 workers over
-four nodes, requesting 28 CPUs and 54 GiB per node, with 25 compute workers per
-node. Each worker remains guarded at 2 GiB; each node has 4 GiB above the sum of
-worker limits. Five disjoint batches request 500 workers in total, but the
-ten-node quota permits at most two revised batches (200 workers) simultaneously,
-subject to other jobs. The allocation limit is one hour; admission stops after
-50 minutes and drains active work. Requests are not proof of running parallelism.
+Each compute worker retained a 2 GiB guard. Admission stopped after 50 minutes
+and drained active work. Requests are not proof of running parallelism.
+Raw operational records and allocation settings are retained privately.
 
 Case IDs modulo five establish disjoint ownership. Each allocation starts one
 persistent pool with one `srun`; tasks never invoke Slurm. Shared reaction caches
@@ -111,8 +105,8 @@ the entire matching array succeeds, then performs global per-direction
 deduplication, decoding and verification. Resource failures remain explicit and
 block the next pass; no automatic memory increase or silent retry is enabled.
 
-Launch and live-progress evidence are recorded alongside this report. Aggregated
-inputs/results live under the DFW MAPPA root in `golden_pool_20261101/`.
+Public projections of launch and progress evidence accompany this report.
+Aggregated inputs/results and raw operational records are retained privately.
 
 The original Golden case 0 completed all four stages locally in both directions
 in 15.05 seconds with two workers at 2 GiB each. Both reference queries recovered

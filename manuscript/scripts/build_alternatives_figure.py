@@ -26,7 +26,7 @@ def check_example(man):
  for m,expected_events,smiles in zip(d['figure_witnesses_zero_based'],expected,[A+'.[H:5][H:6]',B+'.[H:4][H:5]']):
   m={int(k):v for k,v in m.items()}
   delta=wp[np.ix_([m[i] for i in range(6)],[m[i] for i in range(6)])]-wr
-  events=[(i,j,int(np.sign(delta[i,j]))) for i in range(6) for j in range(i+1,6) if abs(delta[i,j])>=.5]
+  events=[(i,j,int(np.sign(delta[i,j]))) for i in range(6) for j in range(i+1,6) if abs(delta[i,j])>.5]
   assert events==expected_events
   b=bonds(smiles)
   assert len(b)==4
@@ -66,7 +66,7 @@ def check_case(man):
    assert all(matrix[i,j]==0 for i in hs for j in hs)
   lower=sum(abs(sum(wr[i,h]>.5 for h in hydrogens_r)-sum(wp[m[i],h]>.5 for h in hydrogens_p)) for i in heavy)
   assert lower==p['total']-sum(map(len,p['heavy_events'].values()))
-  assert p['events']=={key:[[i,j] for i in range(33) for j in range(i+1,33) if sign*delta[i,j]>=.5] for key,sign in [('broken',-1),('formed',1)]}
+  assert p['events']=={key:[[i,j] for i in range(33) for j in range(i+1,33) if sign*delta[i,j]>.5] for key,sign in [('broken',-1),('formed',1)]}
  for side,w in [('reactant',wr),('product',wp)]:
   params=Chem.SmilesParserParams();params.removeHs=False;mol=Chem.MolFromSmiles(d[side+'_smiles'],params)
   matrix=np.zeros((33,33))
@@ -117,7 +117,7 @@ def build(man):
   m={int(i):j for i,j in p['mapping'].items()};inverse={j:i for i,j in m.items()}
   assert sorted(m)==list(range(33)) and sorted(m.values())==list(range(33))
   v=[m[i] for i in range(33)];delta=wp[np.ix_(v,v)]-wr
-  assert p['events']=={key:[[i,j] for i in range(33) for j in range(i+1,33) if sign*delta[i,j]>=.5] for key,sign in [('broken',-1),('formed',1)]}
+  assert p['events']=={key:[[i,j] for i in range(33) for j in range(i+1,33) if sign*delta[i,j]>.5] for key,sign in [('broken',-1),('formed',1)]}
   owners={labels[i]:PALETTE[q%len(PALETTE)] for q,f in enumerate(p['source_fragments']) for i in f if i<15}
   for side,(x,w) in enumerate([(48,570),(765,590)]):
    mol=Chem.Mol(base[side]);co={}

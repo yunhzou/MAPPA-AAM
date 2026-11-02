@@ -130,7 +130,4 @@ the policy frozen before promoting it or making paper accuracy claims.**
 
 Compact evidence and frozen drivers are in `evidence.tar.gz`. Full archives:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_guided_pilot_20260909
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_local_fresh_20260909
-```
+Full artifacts and raw operational records are retained privately.

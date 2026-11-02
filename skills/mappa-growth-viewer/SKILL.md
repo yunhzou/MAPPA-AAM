@@ -10,8 +10,7 @@ playback, frame stepping, candidate and target inspection, branch navigation,
 persistent locked-fragment highlighting, and final bond-event overlays.
 
 The canonical implementation is in the MAPPA checkout containing this skill:
-resolve this file's symlink, then go up two directories. The current checkout is
-`/Users/yunhengz/Desktop/AAM Writing`. Read that checkout's
+resolve this file's symlink, then go up two directories. Read that checkout's
 `docs/SEARCH_TRAJECTORIES.md` for the manifest schema and replay contract.
 
 ## Select the saved evidence

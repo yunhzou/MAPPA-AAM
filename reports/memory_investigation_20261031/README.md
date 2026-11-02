@@ -1,6 +1,6 @@
 # Investigation of the 2 GiB worker failures
 
-DFW jobs 21089050 and 21089197 replayed exact archived failed tasks against
+Two distributed diagnostic runs replayed exact archived failed tasks against
 production algorithm revision 56c4b6c. Only the diagnostic script was installed;
 production algorithm files and benchmark parameters were not changed.
 Each selected task ran in a fresh spawned process, then repeated in that process.
@@ -42,3 +42,5 @@ The optimized transport was subsequently validated and accepted; see
 [the Mac comparison](../native_transport_20261031/mac-point.md). The old-export
 diagnostic `probe.py` is retained in Git at `246aa3d` and removed from the current
 tree because its expanded-record interface no longer exists.
+
+Raw operational records and full artifacts are retained privately.

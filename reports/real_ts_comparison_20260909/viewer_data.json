@@ -1,7 +1,7 @@
 [
   {
     "index": 4,
-    "name": "pr7.V.dodh_ts910 \u00b7 R_to_TS \u00b7 AAM extra oxygen-role assignment / SLAP binary best",
+    "name": "pr7.V.dodh_ts910 · R_to_TS · AAM extra oxygen-role assignment / SLAP binary best",
     "endpoints": [
       {
         "elements": [
@@ -2599,12 +2599,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
-    "note": "Historical heavy core #2 appears only on the AAM side for R\u2192TS; higher event cost, NOT ground truth."
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
+    "note": "Historical heavy core #2 appears only on the AAM side for R→TS; higher event cost, NOT ground truth."
   },
   {
     "index": 0,
-    "name": "pr1.tempo_ts1 \u00b7 R_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr1.tempo_ts1 · R_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -4905,12 +4905,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 0,
-    "name": "pr1.tempo_ts1 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr1.tempo_ts1 · R_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -7209,12 +7209,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 0,
-    "name": "pr1.tempo_ts1 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr1.tempo_ts1 · R_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -9513,12 +9513,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 0,
-    "name": "pr1.tempo_ts1 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr1.tempo_ts1 · R_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -11907,12 +11907,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 1,
-    "name": "pr1.tempo_ts1 \u00b7 P_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr1.tempo_ts1 · P_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -14213,12 +14213,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 1,
-    "name": "pr1.tempo_ts1 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr1.tempo_ts1 · P_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -16517,12 +16517,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 1,
-    "name": "pr1.tempo_ts1 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr1.tempo_ts1 · P_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -18821,12 +18821,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 1,
-    "name": "pr1.tempo_ts1 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr1.tempo_ts1 · P_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -21275,12 +21275,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 2,
-    "name": "pr16.carbocation_ts5 \u00b7 R_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr16.carbocation_ts5 · R_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -22621,12 +22621,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 2,
-    "name": "pr16.carbocation_ts5 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr16.carbocation_ts5 · R_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -23965,12 +23965,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 2,
-    "name": "pr16.carbocation_ts5 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr16.carbocation_ts5 · R_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -25369,12 +25369,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 2,
-    "name": "pr16.carbocation_ts5 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr16.carbocation_ts5 · R_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -26863,12 +26863,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 3,
-    "name": "pr16.carbocation_ts5 \u00b7 P_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr16.carbocation_ts5 · P_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -28299,12 +28299,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 3,
-    "name": "pr16.carbocation_ts5 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr16.carbocation_ts5 · P_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -29733,12 +29733,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 3,
-    "name": "pr16.carbocation_ts5 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr16.carbocation_ts5 · P_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -31227,12 +31227,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 3,
-    "name": "pr16.carbocation_ts5 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr16.carbocation_ts5 · P_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -32796,12 +32796,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 4,
-    "name": "pr7.V.dodh_ts910 \u00b7 R_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr7.V.dodh_ts910 · R_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -35472,12 +35472,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 4,
-    "name": "pr7.V.dodh_ts910 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr7.V.dodh_ts910 · R_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -38146,12 +38146,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 4,
-    "name": "pr7.V.dodh_ts910 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr7.V.dodh_ts910 · R_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -40820,12 +40820,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 4,
-    "name": "pr7.V.dodh_ts910 \u00b7 R_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr7.V.dodh_ts910 · R_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -43509,12 +43509,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 5,
-    "name": "pr7.V.dodh_ts910 \u00b7 P_to_TS \u00b7 AAM continuous / AAM binary",
+    "name": "pr7.V.dodh_ts910 · P_to_TS · AAM continuous / AAM binary",
     "endpoints": [
       {
         "elements": [
@@ -46157,12 +46157,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 5,
-    "name": "pr7.V.dodh_ts910 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP binary",
+    "name": "pr7.V.dodh_ts910 · P_to_TS · AAM continuous / SLAP binary",
     "endpoints": [
       {
         "elements": [
@@ -48802,12 +48802,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 5,
-    "name": "pr7.V.dodh_ts910 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP raw WBO",
+    "name": "pr7.V.dodh_ts910 · P_to_TS · AAM continuous / SLAP raw WBO",
     "endpoints": [
       {
         "elements": [
@@ -51447,12 +51447,12 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   },
   {
     "index": 5,
-    "name": "pr7.V.dodh_ts910 \u00b7 P_to_TS \u00b7 AAM continuous / SLAP float-cost diagnostic",
+    "name": "pr7.V.dodh_ts910 · P_to_TS · AAM continuous / SLAP float-cost diagnostic",
     "endpoints": [
       {
         "elements": [
@@ -54092,7 +54092,7 @@
         }
       }
     ],
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run",
+    "source": "private-reference-0c3cac7e183f0e88c2ea",
     "note": "Best all-H event score within saved families. Core assignments are not independently validated."
   }
 ]

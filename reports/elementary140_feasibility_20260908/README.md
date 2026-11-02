@@ -76,8 +76,7 @@ AAM elapsed medians are 3.214 and 3.629 seconds, with maxima 81.317 and 159.883
 seconds. SLAP elapsed median is 0.0711 seconds and maximum 0.3137 seconds.
 Do not interpret summed worker elapsed times as campaign wall time or CPU time.
 
-Five-minute process watchdog; ten-minute Slurm job limit. Original arrays:
-452980 (AAM), 452981 (SLAP XYZ). Twenty-two unstarted node-setup-stalled tasks
+Five-minute process watchdog; ten-minute Slurm job limit. Twenty-two unstarted node-setup-stalled tasks
 were relocated to available nodes; two needed a second relocation. Completed
 calculations were not repeated. All actions and exact commands are in
 `relocation.json`. Scheduler delay is not mapping compute. The preflight AAM
@@ -96,9 +95,7 @@ case 59 R→P and SLAP case 0 were reused, with original outcomes preserved.
 
 Full artifacts (including every AAM archive and terminal witness):
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_feasibility_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 Case lookup: `inputs/<index>/input.json`; AAM:
 `directions/<index>/<R_to_P|P_to_R>/cuts/aam.pkl.gz` and

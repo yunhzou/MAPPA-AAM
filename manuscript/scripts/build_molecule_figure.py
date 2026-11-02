@@ -36,7 +36,7 @@ def check_example():
  identity={i:i for i in zr};exchange={**identity,3:4,4:3}
  def events(m):
   assert sorted(m.values())==sorted(zp) and all(zr[i]==zp[j] for i,j in m.items())
-  return [[i,j,1 if d>0 else -1] for i in zr for j in zr if i<j and abs(d:=wp.get(tuple(sorted((m[i],m[j]))),0)-wr.get((i,j),0))>=.5]
+  return [[i,j,1 if d>0 else -1] for i in zr for j in zr if i<j and abs(d:=wp.get(tuple(sorted((m[i],m[j]))),0)-wr.get((i,j),0))>.5]
  def preserves(m,fragments):
   return all(wp.get(tuple(sorted((m[i],m[j]))),0)>=.2 and abs(wp.get(tuple(sorted((m[i],m[j]))),0)-v)<=1 for f in fragments for (i,j),v in wr.items() if i in f and j in f)
  assert preserves(identity,[[1,2,3,4],[5],[6]])
@@ -225,7 +225,7 @@ def build(man):
 
  # A: two genuine conditional forks, followed by the forced third placement.
  box(12,12,1416,557,bg,bg,r=16)
- label(34,47,'a','MAPPA growth: earlier placements condition every later choice')
+ label(34,47,'a','MAPPA placements: earlier choices condition later placements')
  t(34,80,'Local alcohol fragments A, B and C share this motif; R lies outside the matched atoms.',10.5,muted)
  for x,atoms,name in [(24,[11],'Seed'),(163,[11,12],'Grow'),(302,[11,12,13],'Match O-H')]:
   t(x+64,119,name,10,green,'bold',ha='center')
@@ -286,7 +286,7 @@ def build(man):
 
  # C: output projection uses dashed arrows; it is not a search branch.
  box(732,467,696,448,bg,bg,r=16)
- label(754,503,'c','Decode each compressed family')
+ label(754,503,'c','Local events within a family')
  t(754,536,'The oxygen exchange preserves matching at '+r'$\tau_{\mathrm{iso}}=1$',10.5,muted)
  box(757,621,216,189,'white','#CEC1E3',1.0,12)
  coords=mol(ACETATE,759,630,210,159,{3:PALE_O,4:PALE_O},notes={3:'c',4:'d'},font=33)

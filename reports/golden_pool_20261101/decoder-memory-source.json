@@ -1,15 +1,19 @@
 {
   "original": {
-    "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/1/result/bundles/1cf4e4a4a7e3497cb23b922462db128f-00000.bundle",
+    "path": "private-reference-b689a84e39b4ad697de5",
     "offset": 348506,
     "size": 819715,
     "sha256": "104c0a2bed85335f126612cbd595b6f7110d8a22daceb313af516487330dc091"
   },
-  "diagnostic_file": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/diagnostic-1561-catalogue.bundle",
+  "diagnostic_file": "private-reference-e3ed73b1da45430715b1",
   "platform": "macOS-26.7.1-arm64-arm-64bit",
   "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
   "source_commit": "2eed248a08b8be8dec267454fa8598e0acf40689",
   "memory_bytes": 2147483648,
   "command": "python reports/golden_pool_20261101/profile_decoder.py out/golden_decoder_1561/catalogue.bundle out/golden_decoder_1561/source.json",
-  "mappa_import": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/src/mappa/__init__.py"
+  "mappa_import": "private-reference-7c834dd7d8413cfa8541",
+  "privacy_projection": {
+    "original_sha256": "0514603b0edb377fd93054f2dfeeeaf838c53ea7f6d4bbe66d9ecad2db1a21ce",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

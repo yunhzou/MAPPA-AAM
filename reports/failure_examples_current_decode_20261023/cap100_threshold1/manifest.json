@@ -7,7 +7,6 @@
   "source_archive_sha256": "8ad3c9ff4a48a9da7cc92fb9b0a2c5bb82355698097df4d61e1d2499d81f3262",
   "comparison": "Only branch_limit changes from cap10_threshold1; same public decoder, instrumentation, inputs, resource budgets and frozen engine.",
   "runner_sha256": "d092646d1a2e546f44844fb5ebf70ca2bb238b6a77594a2219fa6b1138e0bf1d",
-  "job": "7573145",
   "families_complete": 27295,
   "event_classes": 342,
   "minimum_events": 6,
@@ -28,5 +27,9 @@
     "independent-audit.json": "48c049f0326fe2ec35b904ac026e147453c316a0697b1c6428e3c087ac773f10",
     "evidence.tar.gz": "71e764d72f0af5c0c8169ef94e21f7914b1f38d2c189e7afa0fe08e2a0c838a4",
     "audit_actions.py": "b562e870b4ba6123bd87f2d771d7ca6309b541cddea0a7a89f64867f4dde946e"
+  },
+  "privacy_projection": {
+    "original_sha256": "9eb23cfe33fc8898622582c6d52e4d9b55ea8bf0bd03fee63d0bda69eb459627",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

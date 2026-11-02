@@ -4311,7 +4311,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/44/cuts/aam.pkl.gz",
+    "archive": "private-reference-b701453bccccfbec6820",
     "total_seconds": 23.352130164159462
   },
   {
@@ -17332,7 +17332,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1351/cuts/aam.pkl.gz",
+    "archive": "private-reference-227c629cfc607acee2f4",
     "total_seconds": 68.29697054810822
   },
   {
@@ -20861,7 +20861,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1522/cuts/aam.pkl.gz",
+    "archive": "private-reference-e6763635ff48caba7513",
     "total_seconds": 13.01480147242546
   },
   {
@@ -22601,7 +22601,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1729/cuts/aam.pkl.gz",
+    "archive": "private-reference-af7c928558ebe63c3945",
     "total_seconds": 3.308579185977578
   },
   {
@@ -29642,7 +29642,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1786/cuts/aam.pkl.gz",
+    "archive": "private-reference-3f9193bf72419f953121",
     "total_seconds": 52.57744607888162
   },
   {
@@ -34398,7 +34398,7 @@
       ]
     ],
     "search_incomplete": false,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1817/cuts/aam.pkl.gz",
+    "archive": "private-reference-4ee480079ef35b4375ad",
     "total_seconds": 1.5591559398453683
   }
 ]

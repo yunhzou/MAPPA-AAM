@@ -1,9 +1,7 @@
 {
   "utc": "2026-11-02T02:08:06.228347+00:00",
-  "jobs": "21164779_[1-23%1] PENDING 5 165 (JobArrayTaskLimit)\n21164780_[25-39%1] PENDING 4 108 (JobArrayTaskLimit)\n21164782_[24-39%1] PENDING 4 108 (Dependency)\n21164781_[0-23%1] PENDING 5 165 (Dependency)\n21164779_0 RUNNING 5 170 cpu1-[00008,00051,00104,00114,00130]\n21164780_24 RUNNING 4 112 cpu1-[00031-00032,00109,00127]\n",
   "progress": {
     "0": {
-      "job": "21164883",
       "source": "3b4b2c193c3e122b846bbf7966397ac8155aab9b61627c9e8acf3690ce2e5bc0",
       "memory_bytes": 2147483648,
       "expected_cases": 1198,
@@ -27,7 +25,6 @@
       "worker_count": 155
     },
     "24": {
-      "job": "21164884",
       "source": "3b4b2c193c3e122b846bbf7966397ac8155aab9b61627c9e8acf3690ce2e5bc0",
       "memory_bytes": 2147483648,
       "expected_cases": 1200,
@@ -62,5 +59,8 @@
     }
   },
   "stderr": {},
-  "slurm_start_accounting_utc": "21164779_0|RUNNING|2026-11-02T02:01:37|2026-11-02T02:04:12|00:06:02|170|cpu1-[00008,00051,00104,00114,00130]\n21164780_24|RUNNING|2026-11-02T02:01:37|2026-11-02T02:04:12|00:06:02|112|cpu1-[00031-00032,00109,00127]\n"
+  "privacy_projection": {
+    "original_sha256": "0548a46c20720583392bffd2d46f9f6a11668893f898e99ad679ed4c63e2812f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

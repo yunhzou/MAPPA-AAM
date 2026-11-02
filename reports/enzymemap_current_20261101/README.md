@@ -1,9 +1,9 @@
 # Fresh EnzymeMap launch
 
-Launched on DFW on 2026-11-01 using scientific revision
+Launched on 2026-11-01 using scientific revision
 `edf2e8ff94e98e40b1db48e62911050c13c26de6`. The obsolete growth selector
 and implementation have been removed. The native source/build identity is
-recorded in [launch.json](launch.json).
+recorded in [Public launch projection](launch.json).
 
 The fresh manifests cover **47,974 reactions / 95,948 directions**. Each
 reaction belongs to one batch, with both directions together. Only immutable
@@ -11,27 +11,19 @@ endpoint/reference inputs are reused; no previous results or caches were importe
 Settings remain one seed, branch cap 100, tolerance 1, random seed 42 and the
 full cut sweep. Shared reaction cache snapshots are enabled, with 2 GiB per worker.
 
-| Batch | Directions | Matching job | Compute workers | Downstream job |
-| --- | ---: | --- | ---: | --- |
-| 0 | 11,492 | 21140383 | 98 across 7 nodes | 21140390 |
-| 1 | 21,114 | 21140386 | 180 across 2 nodes | 21140391 |
-| 2 | 21,114 | 21140387 | 180 across 2 nodes | 21140392 |
-| 3 | 21,114 | 21140388 | 180 across 2 nodes | 21140393 |
-| 4 | 21,114 | 21140389 | 180 across 2 nodes | 21140394 |
+| Batch | Directions |
+|---|---:|
+| 0 | 11,492 |
+| 1 | 21,114 |
+| 2 | 21,114 |
+| 3 | 21,114 |
+| 4 | 21,114 |
 
-All downstream jobs require successful completion of **all five** matching jobs.
-They resume saved results and run deduplication, decoding and verification.
-Failed matching or a drained allocation does not release this dependency.
-Continuation/retry therefore remains necessary if either occurs.
+All downstream passes require successful completion of all five matching
+batches. They resume saved results and run deduplication, decoding and
+verification. Failed or drained matching work does not release this barrier.
 
-At **08:38:15 UTC**, batch 0 was running with 112 allocated CPUs, including
-coordination overhead. The other four matching jobs were pending. These are
-requested capacities, not a claim of 818 concurrent compute workers. DFW's
-partition limit is ten nodes per user, and an existing service allocation
-already occupied one of those nodes. Smaller pending resource requests did not
-produce better scheduling estimates; the submitted requests were retained.
-
-The [startup audit](startup-observation.json) observed **98 distinct cuts running
+The [public startup audit](startup-observation.json) observed **98 distinct cuts running
 on 98 workers**, no duplicate active task attempts, and 10,025 completed cuts.
 Completed tasks recorded 18,608 CPU seconds of computation over a 331-second
 observation span; unfinished work is excluded from this CPU total. Fragment
@@ -45,8 +37,7 @@ in the audit. Other matching work continues. These are failures requiring
 resolution, not completed directions; the downstream dependency must remain
 blocked until matching succeeds. No memory allowance or algorithm was changed.
 
-Remote campaign directory:
-`/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101`
+Raw operational records and storage locations are retained privately.
 
 Each batch publishes `result/progress.json`, `result/ledger.sqlite` and aggregated
 bundles. During the initial admission window, the live queue can be ahead of the

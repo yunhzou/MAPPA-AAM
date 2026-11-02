@@ -1,6 +1,6 @@
 {
   "index": 9,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/9/cuts/aam.pkl.gz",
+  "archive": "private-reference-98f5ee0a1661becb39af",
   "records": [
     {
       "label": "Reference",
@@ -448,7 +448,7 @@
       ]
     },
     {
-      "label": "#2 \u2014 REFERENCE-EQUIVALENT | break 3, form 4, order 2 | 160 saved terminals",
+      "label": "#2 — REFERENCE-EQUIVALENT | break 3, form 4, order 2 | 160 saved terminals",
       "mapping": {
         "0": 13,
         "1": 1,
@@ -9252,5 +9252,9 @@
     ],
     "search_incomplete": false
   },
-  "cap_stops": 750
+  "cap_stops": 750,
+  "privacy_projection": {
+    "original_sha256": "84ab025170b962d2002b9b5d8339087dadd85e22f6f61ac2a40f1829fdccbe57",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

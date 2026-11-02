@@ -1,10 +1,13 @@
 {
-  "job": "21136551",
   "source_commit": "5fd12602addfb597bcad422fc5abc132594dd7d4",
   "case": "01561/forward",
   "published_blob_sha256": "b63de1fe927fa0fcea9ee0b0414da47525ab157c73c7a3e0d4280de12bf1b8a9",
   "expanded_record_sha256": "f415b641434ac0bf5e1a5211c43260731f0f75273bffd66de1e71b7bb1e9dfa3",
   "matches_pre_refactor_record": true,
   "elapsed_seconds": 20.734629415906966,
-  "peak_rss_bytes": 751697920
+  "peak_rss_bytes": 751697920,
+  "privacy_projection": {
+    "original_sha256": "73356bf814536de7272994587964d89aed7071a3388344437306a3b3d2431d5a",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

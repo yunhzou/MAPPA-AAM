@@ -1,6 +1,10 @@
 {
-  "raw_run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_tol15_20260911",
-  "frozen_driver": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_tol15_20260911/driver.py",
+  "raw_run": "private-reference-87f99b7a814b0faa9a28",
+  "frozen_driver": "private-reference-853e8322a74497867f28",
   "publisher_sha256": "c207c6e4365cfb9db869cc76fd522d40e3325655045525f5db7565ee52ac6e57",
-  "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_one_seed_bidirectional_20260910"
+  "baseline": "private-reference-26d96c73ce4a808501da",
+  "privacy_projection": {
+    "original_sha256": "a6d5b8dd451141492ff6884165284fef3fe02d842eb37588586bde3533de9e8c",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

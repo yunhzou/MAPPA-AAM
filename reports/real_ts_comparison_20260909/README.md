@@ -14,9 +14,7 @@ The first selection exposes the concrete oxygen-role contrast described below.
 
 Full viewer path:
 
-```text
-/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/real_ts_comparison_20260909/viewer.html
-```
+Original artifact locations are retained privately.
 
 ## 1. Best bond-event counts, including every explicit hydrogen
 
@@ -137,14 +135,13 @@ collection; import/input load and persistence are excluded. Scoring CPU includes
 loading saved family files, encoding, solver checks and witness realization;
 it excludes writing the final score JSON. Ground-reference queries and viewer
 generation are separate evaluation work, not included in these mapping/scoring
-columns. Per-phase CPU/wall records and Slurm accounting are saved.
+columns. Per-phase CPU/wall records and public timing projection are saved.
 
-Search tasks completed in 2–6 s including process startup/I/O. Mapping array
-455891 ran on bosque7; two tasks that never started remained CONFIGURING, were
-canceled after approximately 184 s and relocated to bosque11 as array 455928.
+Search tasks completed in 2–6 s including process startup/I/O. Two unstarted
+tasks were replaced after approximately 184 s of startup failure.
 All 30 actual mapping tasks succeeded without mapper timeouts. The scheduling
-wait is excluded from compute totals. Scoring array 455951 completed all 30
-tasks on bosque11. This is not a strict same-node paired timing experiment.
+wait is excluded from compute totals. All 30 scoring
+tasks completed. This is not a strict same-node paired timing experiment.
 
 ## Protocol, saved evidence and reproduction
 
@@ -170,7 +167,7 @@ tasks on bosque11. This is not a strict same-node paired timing experiment.
 
 [Summary and full minimum witnesses](summary.json), [class/cap/phase analysis](analysis.json),
 [manifest](manifest.json), [original core references](references.json),
-[Slurm accounting](slurm_accounting.psv), [saved native outputs](saved_outputs.tar.gz).
+raw accounting retained privately, saved native outputs (raw archive retained privately).
 The archive contains inputs, every full native AAM cut graph and SLAP output
 (including LAP internals), full-H scores, logs, pinned SLAP core and frozen
 search/scoring drivers. The accompanying [SLAP license](SLAP_LICENSE) applies
@@ -178,9 +175,7 @@ to that third-party source. Git stores the current analysis/publishing scripts.
 
 Full run, including frozen AAM source and native binary:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run
-```
+Original artifact locations are retained privately.
 
 Search code pin: `848e44bf889c250d179a95b654387b7e4be16370`; driver, native and
 input hashes are in the manifest/inputs. SLAP core SHA256:

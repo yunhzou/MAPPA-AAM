@@ -61,7 +61,7 @@ minimum scores of the preceding comparison.
 
 `audited_witnesses.json.gz` contains every scored mapping and its discovering
 cuts. `native_call_records.json.gz` records all committed cuts, timings and
-native-frame hashes. Full native LAP archives remain at `/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_slap_xyz_sweep_20260910`;
+native-frame hashes. Full native LAP archives remain at private artifact storage;
 `archive_hashes.json` identifies them. Frozen sources and input hashes are in
 `manifest.json`. There are no unresolved calls or score optimizations.
 Case 17 had one allocation stall before starting; it was canceled and submitted

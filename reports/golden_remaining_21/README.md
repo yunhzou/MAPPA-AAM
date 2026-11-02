@@ -16,9 +16,7 @@ Cases: 7, 19, 590, 603, 780, 833, 845, 865, 867, 871, 986, 1228, 1285, 1358, 137
 
 No matching searches were run for this viewer, and no reference-constrained diagnostic results were inserted. Core AAM is unchanged. `mappings.json` retains selected assignments, fragment groups, terminal IDs and archive provenance without the large drawings; `summary.json` retains case-level provenance. Full per-case drawing payloads remain at:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_remaining_viewer_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 ## Verification
 

@@ -6,7 +6,7 @@ while exporting matching history to Python, before symmetry finalization.
 Cut 410 finishes computation below the limit and exceeds it while saving.
 No decoding is involved.
 
-The exact endpoint graphs, policies and seed orders came from the archived DFW
+The exact endpoint graphs, policies and seed orders came from the archived
 tasks. Both endpoints contain 661 atoms. Regenerated plans matched all 28 failed
 tasks on cut, number, seeds, indices and orders; only these two forward cuts were
 executed locally. Each run used a fresh process with one compute thread.
@@ -61,7 +61,7 @@ show that all 28 failed cuts have the same allocation profile.
 ## Evidence and reproduction
 
 [Measurements and provenance](mac-diagnosis.json) contain all five phase traces,
-original cluster metrics, fixture hashes, native allocation accounting and graph
+public resource metrics, fixture hashes, native allocation accounting and graph
 storage counts. Graph inspection ran separately from the timed measurements.
 The isolated build preserved state/transition counts and cache statistics; it did
 not replace the installed engine. Its timing is not used for the main table.
@@ -88,3 +88,5 @@ checkpoints, identified by hashes and original bundle references in the evidence
 The parent samples child RSS every 20 ms; sampled guard values can overshoot.
 Diagnostic scripts received syntax and diff checks. No core source changed, so
 the scientific test suite and Golden benchmark were not rerun.
+
+Raw operational records and full artifacts are retained privately.

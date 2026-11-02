@@ -5,7 +5,7 @@
   "source_manifest": "source_sha256.json",
   "source_archive_sha256": "8ad3c9ff4a48a9da7cc92fb9b0a2c5bb82355698097df4d61e1d2499d81f3262",
   "runner_sha256": "af087078e6aec02a8ab061bda2d352552ba96a8d71ecb919324a8c8850342470",
-  "cluster_directory": "/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/current_decode_20261023_v1",
+  "cluster_directory": "private-reference-c7b2e29ef1b32d213bc1",
   "jobs": {
     "build": "7570589",
     "decode_array": "7570590",
@@ -74,5 +74,9 @@
     "cluster-evidence/results/search_memory_partitioned/constructive-membership-audit.json",
     "cluster-evidence/serial-parallel-equality.json"
   ],
-  "all_task_jobs_retired": true
+  "all_task_jobs_retired": true,
+  "privacy_projection": {
+    "original_sha256": "387cd87057589350fcc294a93a47efc4558abfe6107d4b97dc15d33e1ce0b94f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

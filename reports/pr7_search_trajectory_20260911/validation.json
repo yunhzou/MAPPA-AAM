@@ -2,7 +2,7 @@
   "status": "passed",
   "checks": [
     {
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_1/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+      "archive": "private-reference-5c40501d3187959b382b",
       "context": 24,
       "terminal": 198,
       "frames": 65,
@@ -11,7 +11,7 @@
       "events": 4
     },
     {
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_1/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+      "archive": "private-reference-5c40501d3187959b382b",
       "context": 24,
       "terminal": 199,
       "frames": 65,
@@ -20,7 +20,7 @@
       "events": 4
     },
     {
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_30/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+      "archive": "private-reference-ef2f693208bb4f656e5c",
       "context": 734,
       "terminal": 6085,
       "frames": 65,
@@ -29,7 +29,7 @@
       "events": 4
     },
     {
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_30/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+      "archive": "private-reference-ef2f693208bb4f656e5c",
       "context": 734,
       "terminal": 6086,
       "frames": 65,
@@ -38,7 +38,7 @@
       "events": 4
     },
     {
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_30/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+      "archive": "private-reference-ef2f693208bb4f656e5c",
       "context": 734,
       "terminal": 6087,
       "frames": 65,
@@ -46,5 +46,9 @@
       "complete": true,
       "events": 4
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "652d9e2535134bc9eeb947bd8e3fff4840513d426d7cc52a819ae7e7317e687a",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

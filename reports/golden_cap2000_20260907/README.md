@@ -62,7 +62,7 @@ Overall, five of the ten selected cases have a recovery in this experiment: four
 ## Reproduction and records
 
 - `results.csv` / `results.json`: each original attempt, timings and archive paths; verification time is separate from search/archive time.
-- Full immutable-source snapshot and intermediate archives: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907`.
+- Full immutable-source snapshot and intermediate archives: private artifact storage.
 - High-memory retry: `high_memory_retry` under that directory.
 - `bench/golden_cap_campaign.py` and `hpc/golden_cap_probe.sbatch`: launcher, watchdog and report export.
 - `bench/view_golden_mapping.py`: visualization from saved archives only; no matching rerun.

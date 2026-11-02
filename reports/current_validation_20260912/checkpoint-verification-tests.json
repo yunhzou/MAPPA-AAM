@@ -5,8 +5,8 @@
     {
       "case": 0,
       "cuts": {
-        "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed2/case0/R_to_P/cuts/cut_00000.raw.pkl.gz": "ef97e1a9abd16b84d6c6ce0423f9cd3df4091bcf30fae9ce5d23fe36a9c21c47",
-        "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed2/case0/R_to_P/cuts/cut_00001.raw.pkl.gz": "ae4539afcdeca6eefffa82825bcb0afa8a21d9bb815218743bdeb4d529339c42"
+        "private-reference-60c9c30b01d09f622f86": "ef97e1a9abd16b84d6c6ce0423f9cd3df4091bcf30fae9ce5d23fe36a9c21c47",
+        "private-reference-bc9924c8ec1dd637eb7e": "ae4539afcdeca6eefffa82825bcb0afa8a21d9bb815218743bdeb4d529339c42"
       },
       "states": 9782,
       "transitions": 9778,
@@ -15,13 +15,17 @@
     {
       "case": 1,
       "cuts": {
-        "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed2/case1/R_to_P/cuts/cut_00000.raw.pkl.gz": "e1b43ee93f567ed33fd194c08ddc583ee0fbc4ab338e3fe968b9671b82cbf4bc",
-        "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed2/case1/R_to_P/cuts/cut_00001.raw.pkl.gz": "703f4d010a8b9c071b40e48becb0689a27ffa9b4a64bae7a3325d2c383531ced"
+        "private-reference-2c29009419740eb377f3": "e1b43ee93f567ed33fd194c08ddc583ee0fbc4ab338e3fe968b9671b82cbf4bc",
+        "private-reference-ec04896f845f63edaba8": "703f4d010a8b9c071b40e48becb0689a27ffa9b4a64bae7a3325d2c383531ced"
       },
       "states": 879,
       "transitions": 875,
       "exact_graph_equality": true
     }
   ],
-  "scope": "Exact equality of combined-then-finalized and separately-finalized-then-combined graphs, including states, contexts, transition actions, constraints and stops. No atom-mapping or permutation enumeration."
+  "scope": "Exact equality of combined-then-finalized and separately-finalized-then-combined graphs, including states, contexts, transition actions, constraints and stops. No atom-mapping or permutation enumeration.",
+  "privacy_projection": {
+    "original_sha256": "535e86a1ec049508c073fa8745d39bfe7e912e5dfd38de2a0fd87da9a7eb7769",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

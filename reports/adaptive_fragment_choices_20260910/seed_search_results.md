@@ -12,8 +12,8 @@ introduced in this phase.
 
 ## Measured result
 
-Same fixed four cases as the preceding closure pilot. One CPU per case on
-bosque12, fixed RNG 42, explicit H, matching tolerance 1.0, event threshold 0.5,
+Same fixed four cases as the preceding closure pilot. One worker per case,
+fixed RNG 42, explicit H, matching tolerance 1.0, event threshold 0.5,
 per-growth branch cap 100. No sweep cuts or historical seed orders enter the
 blind adaptive search. All four use the same 400-operation checkpoint.
 
@@ -117,12 +117,12 @@ remain unvalidated for replacement of the mature pipeline.
 ## Validation, bounds and persistence
 
 - Final scheduler: **489 tests passed**, 24 multiprocessing/fork deprecation
-  warnings, 99.06 seconds; job 457201. A subsequently added score-equivalence
+  warnings, 99.06 seconds. A subsequently added score-equivalence
   test also passed, along with all six scheduler tests.
 - 24 saved checkpoints from the accepted one-route and balanced runs passed
   DAG, element/injectivity, locked-state extension and preserved-bond checks.
 - All workers retain a 300-second external timeout, five-second kill grace and
-  ten-minute Slurm limit; automatic requeue is disabled. No watchdog kill
+  ten-minute overall limit; automatic requeue is disabled. No watchdog kill
   occurred. Work budgets are finite. The larger Pd run stopped at the 30-second
   compute soft limit (2,732 operations); finalization brought compute to 30.618 s.
 - Mapping and full compressed graphs are saved at every budget. Further
@@ -137,18 +137,9 @@ are selected explicitly by `--element-pair` in `compare_adaptive_patterns.py`
 and `query_adaptive_patterns.py`; `--checkpoint-label` evaluates an earlier
 saved snapshot without rerunning mapping.
 
-Full accepted-run paths:
-
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_route_20260910_4bbcer
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_balanced_20260910_Nogs0S
-```
-
-Diagnosis paths and earlier negative ablations are listed in
-`seed_order_diagnosis.md` and `seed_results.json`. Mapping jobs: 457077, 457086,
-457096, 457143, 457192. Final validations: 457200; original pattern comparisons:
-457198; family queries: 457199 and 457212; element-pair comparisons/queries:
-457219/457220; 400-operation snapshot comparisons/queries: 457231/457232.
+Full accepted-run artifacts and raw operational records are retained privately.
+Diagnosis and earlier negative ablations are documented in
+`seed_order_diagnosis.md` and `seed_results.json`.
 
 The first historical-witness comparison used the wrong orientation for P→R
 exports. It was corrected by explicitly inverting historical R→P-normalized

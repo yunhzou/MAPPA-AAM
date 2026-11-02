@@ -65,12 +65,11 @@ That test passed when rerun with the test directory on `PYTHONPATH`. No scientif
 or execution failures remain. The suite includes the smoke checks. Pool tests
 required local socket and process-inspection access outside the filesystem sandbox.
 
-## DFW publication check
+## Distributed publication check
 
-Job **21136551** completed decoding and durable publication from the saved
+The distributed retry completed decoding and durable publication from the saved
 catalogue using source **5fd12602addfb597bcad422fc5abc132594dd7d4**. One compute
-worker retained its **2 GiB guard**; the two-CPU, 4 GiB allocation also housed the
-coordinator. Peak worker RSS was **0.931 GiB during computation** and **1.141 GiB
+worker retained its **2 GiB guard**. Peak worker RSS was **0.931 GiB during computation** and **1.141 GiB
 during publication**, versus the previous fresh-process retry's 1.632 and
 2.021 GiB (terminated). The published compressed result is 4,592,181 bytes.
 
@@ -81,7 +80,7 @@ Different-node measurements cannot isolate a code runtime change. The same-input
 Mac measurements above showed essentially unchanged runtime.
 
 The output and audit byte ranges were checksum-verified before recording the
-recovery through the existing ledger API. The actual published DFW result was
+recovery through the existing ledger API. The actual published distributed result was
 also loaded on Mac and its complete expanded record hashed: it matches the
 pre-refactor SHA256 above exactly. This checks the persisted result across the
 Python 3.10 cluster / Python 3.12 Mac binary round trip; see
@@ -94,7 +93,7 @@ deduplication, decoding and verification**, with no remaining operational
 failures. Matching and reference verification were not repeated. Coverage is
 unchanged: 1,830 of 1,851 reactions recovered.
 
-[Launch and source revision](refactor-decoder-launch.json) ·
+[Public projection: Launch and source revision](refactor-decoder-launch.json) ·
 [Published artifact, resource audit and completed counts](decoder-refactor-completion.json)
 
 ## Why the total decoding time barely changed
@@ -157,7 +156,7 @@ local responses, dependencies, constraints and provenance are unchanged.
 explicit optional whole-reaction report with a canonical ID. No new scheduling,
 cache, matching or event-counting algorithm was introduced.
 
-The complete new Golden 1561 record was compared with the actual published DFW
+The complete new Golden 1561 record was compared with the actual published distributed
 v3 result, changing only its schema version and removing `representatives`.
 Every remaining value and ordering is identical. Both expanded JSON records,
 after this normalization, have SHA256:
@@ -189,12 +188,11 @@ and [publication measurement](decoder-composition-publication.jsonl). Reproduce
 the comparison with `profile_decoder.py --timings --compare-record` and the trusted
 single-blob v3 baseline; the default command measures binary serialization.
 
-### DFW v4 publication check
+### Distributed v4 publication check
 
-Job **21137870** ran the committed change `f9a8d8bfd92ab13c856decb8f18ca2cda6917b57`
-on DFW `cpu_short`, reusing the complete saved catalogue. The allocation held two
-CPUs and 4 GiB for one compute worker plus its coordinator; the worker retained
-its **2 GiB guard**. No Golden ledger or completed stage artifact was replaced.
+The distributed run used committed change `f9a8d8bfd92ab13c856decb8f18ca2cda6917b57`,
+reusing the complete saved catalogue with one compute worker under its
+**2 GiB guard**. No Golden ledger or completed stage artifact was replaced.
 
 The task completed in **22.67 s**: 21.48 s computation and 1.19 s publication.
 Process-reported peak RSS was **0.948 GiB**; the 0.2-second sampler observed
@@ -205,6 +203,8 @@ and publication, not multi-node scaling. Allocation elapsed time was 30 seconds.
 The published 3,001,921-byte blob passed its checksum and was loaded on Mac.
 Its entire expanded v4 record has the same SHA256 above, confirming the
 cross-machine binary round trip and equality of every retained v3 field.
-[Launch](composition-decoder-launch.json) and
+[Public launch projection](composition-decoder-launch.json) and
 [completion, resource metrics and persisted-record comparison](decoder-composition-completion.json)
 retain the source revision and exact artifact references.
+
+Raw operational records and full artifacts are retained privately.

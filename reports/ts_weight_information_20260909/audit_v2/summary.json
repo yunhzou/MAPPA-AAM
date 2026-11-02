@@ -1,9 +1,9 @@
 {
   "scope": "Initial-cost numerical audit of cached reference TS geometries, not mapping accuracy.",
   "graph_floor": 0.2,
-  "slap_core": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/lib/python3.10/site-packages/slapmapper/core.py",
+  "slap_core": "private-reference-2f388164d5f16676a4c1",
   "slap_sha256": "62964b12866e691698d594bfdc65f84ae714fb049df4267a5f5964b5c7e5fa3c",
-  "source": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest",
+  "source": "private-reference-7c949873e5d2fdff3d82",
   "cases": [
     {
       "name": "pr1.tempo_ts1",
@@ -36,5 +36,9 @@
     "Weighted SMILES uses scaled discrete orders; this audit supplies raw continuous WBO directly.",
     "Integer storage truncates each neighborhood cost, not each individual input edge.",
     "Archived TS assignments are prior algorithm outputs, not independently curated atom identities."
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "9c30583cd081a22945b6307041f660ef295b910a28ec84a1f9f11dcc203e3d01",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

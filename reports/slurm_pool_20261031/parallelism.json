@@ -5,9 +5,6 @@
     "stage": "matching",
     "tasks": 116,
     "workers": 2,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 2.0399210453033447,
     "computation_cpu_seconds": 2.750536009000001,
     "total_worker_cpu_seconds": 2.9895786760000007,
@@ -25,9 +22,6 @@
     "stage": "deduplication",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 0.47171568870544434,
     "computation_cpu_seconds": 0.3821509329999997,
     "total_worker_cpu_seconds": 0.4002934149999997,
@@ -44,9 +38,6 @@
     "stage": "decoding",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 2.074634552001953,
     "computation_cpu_seconds": 1.9589396130000005,
     "total_worker_cpu_seconds": 2.052865677,
@@ -63,10 +54,6 @@
     "stage": "matching",
     "tasks": 116,
     "workers": 4,
-    "nodes": [
-      "cpu-0006",
-      "cpu-0012"
-    ],
     "active_window_seconds": 1.5296523571014404,
     "computation_cpu_seconds": 2.617551334,
     "total_worker_cpu_seconds": 2.835917926999998,
@@ -86,9 +73,6 @@
     "stage": "deduplication",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 0.4978914260864258,
     "computation_cpu_seconds": 0.3924591589999995,
     "total_worker_cpu_seconds": 0.4114073490000001,
@@ -105,9 +89,6 @@
     "stage": "decoding",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 2.2148749828338623,
     "computation_cpu_seconds": 2.096037201,
     "total_worker_cpu_seconds": 2.203529311,
@@ -124,10 +105,6 @@
     "stage": "matching",
     "tasks": 116,
     "workers": 4,
-    "nodes": [
-      "cpu-0006",
-      "cpu-0012"
-    ],
     "active_window_seconds": 1.171943187713623,
     "computation_cpu_seconds": 2.6362357550000013,
     "total_worker_cpu_seconds": 2.851899220999998,
@@ -147,9 +124,6 @@
     "stage": "deduplication",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0006"
-    ],
     "active_window_seconds": 0.5027098655700684,
     "computation_cpu_seconds": 0.3947897789999999,
     "total_worker_cpu_seconds": 0.41235058199999974,
@@ -166,9 +140,6 @@
     "stage": "decoding",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 2.272069215774536,
     "computation_cpu_seconds": 2.1616797619999994,
     "total_worker_cpu_seconds": 2.2565166250000006,
@@ -185,9 +156,6 @@
     "stage": "decoding",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 2.1678404808044434,
     "computation_cpu_seconds": 2.0403261419999996,
     "total_worker_cpu_seconds": 2.1558901419999996,
@@ -204,10 +172,6 @@
     "stage": "matching",
     "tasks": 464,
     "workers": 4,
-    "nodes": [
-      "cpu-0006",
-      "cpu-0012"
-    ],
     "active_window_seconds": 3.8321101665496826,
     "computation_cpu_seconds": 9.571086247999986,
     "total_worker_cpu_seconds": 10.86294895999999,
@@ -227,9 +191,6 @@
     "stage": "deduplication",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 1.3953635692596436,
     "computation_cpu_seconds": 1.269757833,
     "total_worker_cpu_seconds": 1.3248325549999986,
@@ -246,9 +207,6 @@
     "stage": "decoding",
     "tasks": 1,
     "workers": 1,
-    "nodes": [
-      "cpu-0012"
-    ],
     "active_window_seconds": 6.752425909042358,
     "computation_cpu_seconds": 6.3733961180000005,
     "total_worker_cpu_seconds": 6.733791590000001,

@@ -10,7 +10,7 @@ See [the cache integration report](cache-integration.md) for the subsequent resu
 EnzymeMap **10383 forward, cut 334**, the archived 4 GiB failure: 374 atoms
 per endpoint, cut `(131, 132)`, one original seed order, random seed 42,
 matching tolerance 1.0, branch limit 100. The original trusted input is
-[large-case-input.pkl.gz](large-case-input.pkl.gz).
+large-case-input.pkl.gz (raw archive retained privately).
 
 On the user's M4 Pro Mac, existence growth substantially improves the first
 search, with exactly equal complete finalized search graphs. It regresses on

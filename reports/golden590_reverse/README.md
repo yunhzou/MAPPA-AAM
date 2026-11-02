@@ -17,18 +17,14 @@ The search hit cap 100, so this is not an exhaustive impossibility statement.
 The previous R→P reference evaluation remained unknown; do not reinterpret that
 as a verified miss or a recovered mapping. No new recovery was established here.
 
-Timings: 66.96 seconds for search through final archive persistence on 16 Slurm
-CPUs; 148.75 seconds inside reference evaluation. These are separate stages, not
+Timings: 66.96 seconds for search through final archive persistence with 16
+workers; 148.75 seconds inside reference evaluation. These are separate stages, not
 a claim of equal-resource speedup over the older run. All 56 reverse cut graphs
 and the complete compressed AAM archive were saved.
 
-Full archive:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden590_reverse_20260908/cuts/aam.pkl.gz`
-
-Slurm job 443209. Search watchdog 300 seconds; verification watchdog 260 seconds;
-allocation 10 minutes. Both phases completed normally.
+Full artifacts are retained privately.
+Search watchdog 300 seconds; verification watchdog 260 seconds;
+overall limit 10 minutes. Both phases completed normally.
 
 Runner: `bench/golden_forced_direction.py`. Direction/evaluation regression tests:
-15 passed. Original R→P evidence is under
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random/590`.
+15 passed. Original R→P evidence and raw operational records are retained privately.

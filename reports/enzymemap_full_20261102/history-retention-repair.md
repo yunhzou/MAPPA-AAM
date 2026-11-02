@@ -82,5 +82,7 @@ the previous binary retains its original native history behavior.
 The worker memory guard is simulated by the probe's 20 ms RSS sampler; separate
 execution tests cover the production guard. Shared cache snapshot I/O was
 omitted in both versions, as in the initial diagnosis. No cluster throughput
-claim follows from these local points. DFW still had an active batch at validation
-time, so its running checkout and jobs were left unchanged.
+claim follows from these local points. The campaign still had an active batch
+at validation time, so its running checkout and work were left unchanged.
+
+Raw operational records and full artifacts are retained privately.

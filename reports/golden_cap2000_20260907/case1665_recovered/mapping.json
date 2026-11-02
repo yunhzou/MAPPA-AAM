@@ -1,6 +1,6 @@
 {
   "index": 1665,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00000.json",
+  "archive": "private-reference-464ed087b14c1c4ef4f9",
   "records": [
     {
       "label": "Reference",
@@ -1656,5 +1656,9 @@
     "reference_recovery": "recovered in this completed cut; full sweep stopped early",
     "top_terminal": 243
   },
-  "cap_stops": 11657
+  "cap_stops": 11657,
+  "privacy_projection": {
+    "original_sha256": "c0cd0023331674c5c41e9746730d4721039445dbd9fe036b45735d706fca1876",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

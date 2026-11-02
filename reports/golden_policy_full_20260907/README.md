@@ -37,25 +37,19 @@ The nine confirmed losses are 737, 775, 780, 846, 850, 1230, 1380, 1400 and 1817
 
 ## Runtime and watchdogs
 
-- 128 requested one-worker CPU slots at peak; no within-reaction parallelism. Slurm sometimes allocates two logical CPUs per one-worker request, so allocated CPU-hours are not worker compute-hours.
+- Each reaction used one worker with no within-reaction parallelism; reserved CPU-hours are not worker compute-hours.
 - 1,832 full search checkpoints; median completed search **5.36 seconds**, maximum **297.62 seconds**. Completed-search process CPU total: **10.15 hours**, excluding interrupted searches. Summed completed-search elapsed time is 36,960 seconds, not parallel wall time.
 - Five-minute search watchdog and ten-minute Slurm job limit. Twenty search processes reached the watchdog; one already had its finalized checkpoint, leaving 19 incomplete searches. No OOM search exits were recorded.
 - Maximum recorded completed-search process RSS: approximately **5.26 GiB**. This is not a measurement of every interrupted process's peak.
-- Submission to final recorded outcome: approximately **26.0 minutes**, including cluster delay and saved-cut evaluation repairs. Seventy-five jobs stalled in CONFIGURING without starting Python. Only unstarted jobs were cancelled/resubmitted away from those nodes; no completed search was restarted. `resubmission_unstarted.json` records the 234 unstarted tasks moved, including ordinary pending tasks.
-- `slurm_accounting.psv` retains main and replacement allocation records: **79.19 allocated CPU-hours**, including stalled allocations and process overhead. Separate saved-cut recheck allocations are excluded. Do not present this as 79.19 hours of AAM computation.
+- Submission to final recorded outcome: approximately **26.0 minutes**, including scheduling delay and saved-cut evaluation repairs. Only unstarted work was replaced; no completed search was restarted. Raw operational records are retained privately.
+- Private accounting records retain main and replacement allocation records: **79.19 allocated CPU-hours**, including stalled allocations and process overhead. Separate saved-cut recheck allocations are excluded. Do not present this as 79.19 hours of AAM computation.
 
 The frozen campaign's partial-evaluator constructor had an error, repaired without changing the frozen search engine. Saved cuts were reevaluated with the corrected adapter; later partial checks stop at a verified representative instead of ranking every terminal, since no full-sweep top-1 claim is made. Full-search scoring was not changed or rerun for this repair. All raw search checkpoints remain intact.
 
 ## Saved artifacts and reproducibility
 
-Full cluster run:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907`
-
+Full artifacts are retained privately.
 Each numbered case has original `input.json`, `reference.json`, `orientation.json`, per-cut JSON under `cuts/`, a finalized `cuts/aam.pkl.gz` when complete, evaluation and process-status records. Partial evaluations identify the precise witness cut. The immutable `engine/` snapshot and hashes in `manifest.json` identify the executed code; its recorded base revision precedes the policy commit, so the hashes, not that base revision alone, define the run.
 
-Local result folder:
-
-`/h/399/yunhengzou/coordinate_alignment/reports/golden_policy_full_20260907`
-
-`cases.csv` includes every record and archive location. `summary.json` includes all misses, unknowns, gains and losses. `manifest.json` includes input and engine hashes. Implementation regression tests: **134 passed**.
+Full artifacts are retained privately.
+`cases.csv` includes every record; original archive locations remain private. `summary.json` includes all misses, unknowns, gains and losses. `manifest.json` includes input and engine hashes. Implementation regression tests: **134 passed**.

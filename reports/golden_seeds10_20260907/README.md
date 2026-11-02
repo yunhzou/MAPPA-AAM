@@ -14,9 +14,9 @@ The union percentage combines new recoveries with the original 1,818 recovered r
 
 - Four CPUs per reaction; up to 32 concurrent reactions.
 - Search watchdog300seconds, verification watchdog240seconds, Slurm limit10minutes.
-- Jobs442479 and442511. The latter replaces one allocation stuck configuring before Python started; completed searches were not rerun.
+- One unstarted attempt was replaced after startup failure; completed searches were not rerun.
 - Frozen search source, inputs, cut intermediates, complete checkpoints where finished, evaluation results and logs:
-  `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_20260907`
-- `manifest.json` records exact configuration and frozen-source hashes; `slurm_accounting.psv` records allocation and runtime data.
+Original artifact locations are retained privately.
+- `manifest.json` records exact configuration and frozen-source hashes; private accounting records record allocation and runtime data.
 
 No chemistry heuristics or benchmark-specific search rules were added.

@@ -6,21 +6,33 @@ MAPPA is a Python library for atom–atom matching (AAM) between molecular struc
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
-**Golden reference coverage: 99.08% with the default one-seed sweep; 99.41% with ten seeds.** These scores measure recovery among alternatives across all 1,851 reactions.
+**Latest full Golden rerun: 98.87% reference coverage (1,830 / 1,851; one seed).** This measures recovery among the returned alternatives.
 
 [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
 ## Golden benchmark: coverage of mapping alternatives
 
-![Golden benchmark: MAPPA covers 99.08% of references by default and 99.41% with ten seeds](docs/assets/golden-coverage.png)
-
 **Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
+
+The [latest completed full rerun](reports/golden_retest_20261101/README.md) used
+source commit `096a010961f53944ddd4ddc433bd8d56f282a2f2`, one seed, branch cap 100
+and both search directions. All 1,851 reactions completed matching, reduction,
+decoding and verification. Its 1,830 recovered references are the result recorded
+for that revision; later changes require their own full-run validation.
+
+### Historical September comparison
+
+The chart and table below preserve the September experiments: 1,834 / 1,851
+references with one seed and 1,840 / 1,851 with ten seeds. Their algorithms,
+outputs and timing protocol belong to those recorded revisions.
+
+![Historical September Golden comparison: 99.08% coverage with one seed and 99.41% with ten seeds](docs/assets/golden-coverage.png)
 
 <!-- golden-coverage-table:start -->
 
 | Method | Search setting | Output | References covered | Coverage | Mean CPU s/reaction |
 |---|---|---|---:|---:|---:|
-| **MAPPA** | **1 seed, sweep (default)** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
+| **MAPPA** | **1 seed, sweep** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
 | MAPPA | 3 seeds, sweep | Compressed families | 1,837 / 1,851 | 99.24% | 2.265 |
 | MAPPA | 10 seeds, sweep | Compressed families | 1,840 / 1,851 | 99.41% | 6.993 |
 | SLAP | Bidirectional + our sweep | Multiple candidates | 1,796 / 1,851 | 97.03% | 2.793 |
@@ -40,9 +52,16 @@ MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines s
 
 [Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/publish_readme_coverage.py)
 
-## EnzymeMap: final benchmark results
+## EnzymeMap benchmark status
 
-MAPPA completed **47,974 / 47,974 reactions (100%)**, with **47,335 / 47,974 strict reference matches (98.6680%)** across the recorded configurations and output policies. All remaining reference differences are classified. The [final EnzymeMap report](reports/enzymemap_20261008/README.md) presents the results, evaluation protocol and validation; machine-readable aggregate results are included.
+The fresh full EnzymeMap campaign using the current algorithm is in progress.
+Its final coverage and throughput have not yet been established.
+
+The [historical October report](reports/enzymemap_20261008/README.md) recorded
+**47,974 / 47,974 reactions completed (100%)** and **47,335 strict reference matches
+(98.6680%)** across its recorded configurations and output policies. Those results
+retain their original evaluation protocol and do not establish the current
+algorithm's full-dataset accuracy.
 
 ## What you can do with MAPPA
 
@@ -81,6 +100,8 @@ for fid in range(len(decoded.catalogue.families)):
 For many reactions, the [persistent work pool](docs/shared-execution.md) offers
 the same separate stages on local CPUs or inside one Slurm allocation, using RAM
 or aggregated result bundles. Scheduling stays outside the core algorithms.
+The [portable benchmark launcher](bench/README.md) keeps cluster configuration
+private and uses the same separate stages for EnzymeMap and Golden.
 
 ## Grow, branch, decode
 
@@ -336,7 +357,7 @@ Matcher changes require the exhaustive compression and Python/native comparison
 tests (`test_growth_compression_exactness.py`, `test_target_action_growth.py`,
 `test_bond_tolerance.py`, plus the affected growth tests). Scheduling changes
 require the execution tests. Documentation-only edits need link/content checks,
-not molecular calculations. Run computational checks on NRT CPU nodes. Record
+not molecular calculations. Run computational checks on suitable CPU resources. Record
 which tests ran; passing smoke checks does not mean the full suite passed.
 
 ## Repository layout

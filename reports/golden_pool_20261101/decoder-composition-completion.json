@@ -1,7 +1,6 @@
 {
   "observed_utc": "2026-11-01T06:49:53.542749+00:00",
   "case": "01561/forward",
-  "job": "21137870",
   "source_commit": "f9a8d8bfd92ab13c856decb8f18ca2cda6917b57",
   "memory_bytes": 2147483648,
   "manifest": {
@@ -10,7 +9,7 @@
     "source": "508c5850742f4c3ebc7f8c26dda5948d7446ea3a4febed0bc44c49c10a1ab992",
     "results": {
       "01561/forward": {
-        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/composition-decoder-1561-forward/bundles/c60b9b8a0642413985971cda054233e3-00000.bundle",
+        "path": "private-reference-d508271555208bc6013b",
         "offset": 0,
         "size": 3001921,
         "sha256": "d0b1cbabee2e70ce2f87442efdbb928cae2dc51b14bfc2ef0a29784b1322ea30"
@@ -18,7 +17,7 @@
     }
   },
   "audit": {
-    "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/composition-decoder-1561-forward/bundles/3e475a3728324d7a991cb6897034983b-00000.bundle",
+    "path": "private-reference-11c28ed54cee7c582bd6",
     "offset": 0,
     "size": 1164,
     "sha256": "48e7aa267c0524fa74e062e38a72d459bd6763d4b52fcce8458018be86aa0ccc"
@@ -27,10 +26,9 @@
     "f27ccb41220341abb6b74244ab306290/01561/forward/decoding": {
       "state": "complete",
       "result": {
-        "blob": "Blob(path='/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/golden_pool_20261101/composition-decoder-1561-forward/bundles/c60b9b8a0642413985971cda054233e3-00000.bundle', offset=0, size=3001921, sha256='d0b1cbabee2e70ce2f87442efdbb928cae2dc51b14bfc2ef0a29784b1322ea30')",
+        "blob": "Blob(path='private-reference-d508271555208bc6013b', offset=0, size=3001921, sha256='d0b1cbabee2e70ce2f87442efdbb928cae2dc51b14bfc2ef0a29784b1322ea30')",
         "cpu_seconds": 21.461264339,
         "compute_seconds": 21.475602891063318,
-        "compute_pid": 874481,
         "publish_seconds": 1.1886839589569718,
         "publish_cpu_seconds": 1.1773148969999987,
         "total_cpu_seconds": 22.638967765999997,
@@ -45,7 +43,7 @@
         "sampled_cpu_seconds": 22.63,
         "memory_samples": 114,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00006:874469:81e3da9aca904a2e8ba480dc79e4da91",
+        "worker": "private-reference-6f788d53b86f12e18fa4:874469:81e3da9aca904a2e8ba480dc79e4da91",
         "monitoring_seconds": 0.03170436411164701,
         "elapsed_seconds": 22.665525901014917
       }
@@ -53,7 +51,10 @@
   },
   "persisted_record_sha256": "6f67159f8a07143ba94a67f5534159e52d543a36b99f7be492cad3980802bad6",
   "all_retained_fields_identical": true,
-  "comparison": "Actual DFW v4 output equals local v4 and published v3 after removing representatives and changing schema only",
+  "comparison": "Actual cluster v4 output equals local v4 and published v3 after removing representatives and changing schema only",
   "golden_ledgers_modified": false,
-  "slurm_accounting": "21137870|COMPLETED|00:00:30|0:0"
+  "privacy_projection": {
+    "original_sha256": "70f40c2749451433c2a7b6be59564dbc3895996c6921ecec2958f3b98077f254",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

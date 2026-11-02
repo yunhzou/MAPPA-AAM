@@ -189,7 +189,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103776256,
-          "pid": 15791,
           "time": 1449525.978561708,
           "cpu_seconds": 1.253282
         },
@@ -197,7 +196,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 103776256,
-          "pid": 15791,
           "time": 1449525.978594708,
           "cpu_seconds": 1.253314
         },
@@ -205,7 +203,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 164347904,
-          "pid": 15791,
           "time": 1449526.227734958,
           "cpu_seconds": 1.501402
         },
@@ -213,7 +210,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 1726562304,
-          "pid": 15791,
           "time": 1449537.111500125,
           "cpu_seconds": 12.384156,
           "symmetry_work": {
@@ -224,7 +220,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 1810644992,
-          "pid": 15791,
           "time": 1449539.270399375,
           "cpu_seconds": 14.542877,
           "symmetry_work": {
@@ -235,7 +230,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 3374530560,
-          "pid": 15791,
           "time": 1449539.697879208,
           "cpu_seconds": 14.970165,
           "symmetry_work": {
@@ -246,7 +240,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 3388293120,
-          "pid": 15791,
           "time": 1449539.833746708,
           "cpu_seconds": 15.106024,
           "states": 120139,
@@ -259,7 +252,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 3451764736,
-          "pid": 15791,
           "time": 1449541.96517775,
           "cpu_seconds": 17.237284
         },
@@ -267,7 +259,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 3482009600,
-          "pid": 15791,
           "time": 1449542.923454666,
           "cpu_seconds": 18.195461
         },
@@ -275,7 +266,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 3482009600,
-          "pid": 15791,
           "time": 1449542.923739333,
           "cpu_seconds": 18.195746,
           "repair": {
@@ -317,12 +307,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 4544593920,
-          "pid": 15791,
           "time": 1449545.2564465,
           "cpu_seconds": 20.474233,
           "bundle_bytes": 3866347,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-1/bundles/b27d9bca0b68403995f6a6c386e732ed-00000.bundle",
+            "path": "private-reference-c4d40610ab0b0f7bda2c",
             "offset": 48665,
             "size": 3866347,
             "sha256": "43cd2c2784fc2d068a1aa08d7a155325ed765d2136a0a94cd5e119eff9d07adf"
@@ -332,7 +321,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 3172466688,
-          "pid": 15791,
           "time": 1449545.482620875,
           "cpu_seconds": 20.700334
         },
@@ -340,7 +328,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 3172466688,
-          "pid": 15791,
           "time": 1449545.482671916,
           "cpu_seconds": 20.700384
         },
@@ -348,7 +335,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 3134717952,
-          "pid": 15791,
           "time": 1449545.488920291,
           "cpu_seconds": 20.706632,
           "collected": 671
@@ -357,7 +343,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 2918711296,
-          "pid": 15791,
           "time": 1449545.497876375,
           "cpu_seconds": 20.715589
         },
@@ -365,7 +350,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 2912419840,
-          "pid": 15791,
           "time": 1449545.5120795,
           "cpu_seconds": 20.729792
         },
@@ -373,7 +357,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 2912419840,
-          "pid": 15791,
           "time": 1449545.512098916,
           "cpu_seconds": 20.729811
         }
@@ -412,7 +395,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103088128,
-          "pid": 15864,
           "time": 1449586.905710125,
           "cpu_seconds": 1.200002
         },
@@ -420,7 +402,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 103088128,
-          "pid": 15864,
           "time": 1449586.905746125,
           "cpu_seconds": 1.200038
         },
@@ -428,7 +409,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 165822464,
-          "pid": 15864,
           "time": 1449587.151021916,
           "cpu_seconds": 1.444568
         },
@@ -436,7 +416,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 1742618624,
-          "pid": 15864,
           "time": 1449598.685145083,
           "cpu_seconds": 12.977477,
           "symmetry_work": {
@@ -447,7 +426,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 1825619968,
-          "pid": 15864,
           "time": 1449600.986219833,
           "cpu_seconds": 15.27832,
           "symmetry_work": {
@@ -458,7 +436,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 3383623680,
-          "pid": 15864,
           "time": 1449601.430168291,
           "cpu_seconds": 15.722219,
           "symmetry_work": {
@@ -469,7 +446,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 3397386240,
-          "pid": 15864,
           "time": 1449601.575104041,
           "cpu_seconds": 15.867139,
           "states": 120139,
@@ -482,7 +458,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 3461054464,
-          "pid": 15864,
           "time": 1449603.790020416,
           "cpu_seconds": 18.08191
         },
@@ -490,7 +465,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 3490398208,
-          "pid": 15864,
           "time": 1449604.809032666,
           "cpu_seconds": 19.100837
         },
@@ -498,7 +472,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 3490398208,
-          "pid": 15864,
           "time": 1449604.80936575,
           "cpu_seconds": 19.10117,
           "repair": {
@@ -540,12 +513,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 4553015296,
-          "pid": 15864,
           "time": 1449607.323484208,
           "cpu_seconds": 21.546635,
           "bundle_bytes": 3866347,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-2/bundles/36cbe32d87f949c8a37ba51aa816350f-00000.bundle",
+            "path": "private-reference-9b8b6b7c358374396628",
             "offset": 48665,
             "size": 3866347,
             "sha256": "fbece8f2a9bd2f32777ba393a55b6720ca3cef4563e9aef4f9e5f2e9dfde4d73"
@@ -555,7 +527,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 3179839488,
-          "pid": 15864,
           "time": 1449607.56556425,
           "cpu_seconds": 21.788509
         },
@@ -563,7 +534,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 3179839488,
-          "pid": 15864,
           "time": 1449607.565605875,
           "cpu_seconds": 21.78855
         },
@@ -571,7 +541,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 3143139328,
-          "pid": 15864,
           "time": 1449607.572121333,
           "cpu_seconds": 21.795066,
           "collected": 671
@@ -580,7 +549,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 2927132672,
-          "pid": 15864,
           "time": 1449607.581470791,
           "cpu_seconds": 21.804415
         },
@@ -588,7 +556,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 2919809024,
-          "pid": 15864,
           "time": 1449607.594668916,
           "cpu_seconds": 21.817613
         },
@@ -596,7 +563,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 2919809024,
-          "pid": 15864,
           "time": 1449607.594688375,
           "cpu_seconds": 21.817633
         }
@@ -635,7 +601,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103071744,
-          "pid": 15911,
           "time": 1449649.329800791,
           "cpu_seconds": 1.205669
         },
@@ -643,7 +608,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 103071744,
-          "pid": 15911,
           "time": 1449649.329838583,
           "cpu_seconds": 1.205706
         },
@@ -651,7 +615,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 165691392,
-          "pid": 15911,
           "time": 1449649.584425833,
           "cpu_seconds": 1.459607
         },
@@ -659,7 +622,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 1725022208,
-          "pid": 15911,
           "time": 1449661.197951375,
           "cpu_seconds": 13.070248,
           "symmetry_work": {
@@ -670,7 +632,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 1808039936,
-          "pid": 15911,
           "time": 1449663.545702708,
           "cpu_seconds": 15.417781,
           "symmetry_work": {
@@ -681,7 +642,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 3371974656,
-          "pid": 15911,
           "time": 1449663.987946625,
           "cpu_seconds": 15.859958,
           "symmetry_work": {
@@ -692,7 +652,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 3385737216,
-          "pid": 15911,
           "time": 1449664.135186208,
           "cpu_seconds": 16.007181,
           "states": 120139,
@@ -705,7 +664,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 3448799232,
-          "pid": 15911,
           "time": 1449666.336533625,
           "cpu_seconds": 18.208361
         },
@@ -713,7 +671,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 3476291584,
-          "pid": 15911,
           "time": 1449667.341224166,
           "cpu_seconds": 19.212421
         },
@@ -721,7 +678,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 3476291584,
-          "pid": 15911,
           "time": 1449667.341502875,
           "cpu_seconds": 19.212699,
           "repair": {
@@ -763,12 +719,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 4539891712,
-          "pid": 15911,
           "time": 1449669.64907975,
           "cpu_seconds": 21.511529,
           "bundle_bytes": 3866346,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-3/bundles/d36dd88ecb3a4df79ec37df094dd4d6d-00000.bundle",
+            "path": "private-reference-b0cd205dea2873752726",
             "offset": 48665,
             "size": 3866346,
             "sha256": "918545489aae8fd5eea4d11690353b5236c9bf65b070bbe85cc6f8fc949b65fd"
@@ -778,7 +733,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 3170910208,
-          "pid": 15911,
           "time": 1449669.8725085,
           "cpu_seconds": 21.734921
         },
@@ -786,7 +740,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 3170910208,
-          "pid": 15911,
           "time": 1449669.872547083,
           "cpu_seconds": 21.734958
         },
@@ -794,7 +747,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 3131064320,
-          "pid": 15911,
           "time": 1449669.8785075,
           "cpu_seconds": 21.740919,
           "collected": 671
@@ -803,7 +755,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 2916106240,
-          "pid": 15911,
           "time": 1449669.886136541,
           "cpu_seconds": 21.748548
         },
@@ -811,7 +762,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 2908766208,
-          "pid": 15911,
           "time": 1449669.896718791,
           "cpu_seconds": 21.75913
         },
@@ -819,7 +769,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 2908766208,
-          "pid": 15911,
           "time": 1449669.896740041,
           "cpu_seconds": 21.759151
         }
@@ -858,7 +807,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103137280,
-          "pid": 15746,
           "time": 1449472.0865265,
           "cpu_seconds": 1.150868
         },
@@ -866,7 +814,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 103137280,
-          "pid": 15746,
           "time": 1449472.08655925,
           "cpu_seconds": 1.1509
         },
@@ -874,7 +821,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 164806656,
-          "pid": 15746,
           "time": 1449472.322726333,
           "cpu_seconds": 1.385893
         },
@@ -882,7 +828,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 400687104,
-          "pid": 15746,
           "time": 1449483.020791625,
           "cpu_seconds": 12.082587,
           "symmetry_work": {
@@ -893,7 +838,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 401309696,
-          "pid": 15746,
           "time": 1449483.030636166,
           "cpu_seconds": 12.092431,
           "symmetry_work": {
@@ -904,7 +848,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 401358848,
-          "pid": 15746,
           "time": 1449483.031663458,
           "cpu_seconds": 12.093458,
           "symmetry_work": {
@@ -915,7 +858,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 401358848,
-          "pid": 15746,
           "time": 1449483.032029208,
           "cpu_seconds": 12.093823,
           "states": 501,
@@ -928,7 +870,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 401358848,
-          "pid": 15746,
           "time": 1449483.033193333,
           "cpu_seconds": 12.094987
         },
@@ -936,7 +877,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 438550528,
-          "pid": 15746,
           "time": 1449483.955514375,
           "cpu_seconds": 13.016464
         },
@@ -944,7 +884,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 438550528,
-          "pid": 15746,
           "time": 1449483.955599958,
           "cpu_seconds": 13.016548,
           "repair": {
@@ -986,12 +925,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 438616064,
-          "pid": 15746,
           "time": 1449483.967757916,
           "cpu_seconds": 13.020885,
           "bundle_bytes": 76343,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-1/bundles/4ea44d45d2d641b2969f7a494c1993ac-00000.bundle",
+            "path": "private-reference-a24ee61585f25f43b1d7",
             "offset": 48665,
             "size": 76343,
             "sha256": "9116c8110907631f76c168c6f7e2a1e72ac992f72ad4078def351546fe5e113b"
@@ -1001,7 +939,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 438616064,
-          "pid": 15746,
           "time": 1449483.968019791,
           "cpu_seconds": 13.021147
         },
@@ -1009,7 +946,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 438616064,
-          "pid": 15746,
           "time": 1449483.968027666,
           "cpu_seconds": 13.021154
         },
@@ -1017,7 +953,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 438616064,
-          "pid": 15746,
           "time": 1449483.976057041,
           "cpu_seconds": 13.029184,
           "collected": 6008
@@ -1026,7 +961,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 435306496,
-          "pid": 15746,
           "time": 1449483.980134541,
           "cpu_seconds": 13.033262
         },
@@ -1034,7 +968,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 383320064,
-          "pid": 15746,
           "time": 1449483.994212541,
           "cpu_seconds": 13.04734
         },
@@ -1042,7 +975,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 383320064,
-          "pid": 15746,
           "time": 1449483.994234,
           "cpu_seconds": 13.047361
         }
@@ -1081,7 +1013,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103104512,
-          "pid": 15826,
           "time": 1449547.075578,
           "cpu_seconds": 1.18152
         },
@@ -1089,7 +1020,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 103104512,
-          "pid": 15826,
           "time": 1449547.075612875,
           "cpu_seconds": 1.181554
         },
@@ -1097,7 +1027,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 163020800,
-          "pid": 15826,
           "time": 1449547.319685208,
           "cpu_seconds": 1.422881
         },
@@ -1105,7 +1034,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 402980864,
-          "pid": 15826,
           "time": 1449558.446217791,
           "cpu_seconds": 12.548104,
           "symmetry_work": {
@@ -1116,7 +1044,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 403587072,
-          "pid": 15826,
           "time": 1449558.457392125,
           "cpu_seconds": 12.559278,
           "symmetry_work": {
@@ -1127,7 +1054,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 403619840,
-          "pid": 15826,
           "time": 1449558.458558083,
           "cpu_seconds": 12.560444,
           "symmetry_work": {
@@ -1138,7 +1064,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 403619840,
-          "pid": 15826,
           "time": 1449558.4590115,
           "cpu_seconds": 12.560898,
           "states": 501,
@@ -1151,7 +1076,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 403619840,
-          "pid": 15826,
           "time": 1449558.460293791,
           "cpu_seconds": 12.56218
         },
@@ -1159,7 +1083,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 440238080,
-          "pid": 15826,
           "time": 1449559.449100083,
           "cpu_seconds": 13.550913
         },
@@ -1167,7 +1090,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 440238080,
-          "pid": 15826,
           "time": 1449559.449179791,
           "cpu_seconds": 13.550992,
           "repair": {
@@ -1209,12 +1131,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 440303616,
-          "pid": 15826,
           "time": 1449559.458125666,
           "cpu_seconds": 13.555816,
           "bundle_bytes": 76345,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-2/bundles/1aa997cf7d414cb2befe3f0328d5004f-00000.bundle",
+            "path": "private-reference-7e26817f3c5d512948f1",
             "offset": 48665,
             "size": 76345,
             "sha256": "10ed5eb2326a67e15ef1102db11aaed9cb0b645a546161544a609b6af455c317"
@@ -1224,7 +1145,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 440303616,
-          "pid": 15826,
           "time": 1449559.458431416,
           "cpu_seconds": 13.556121
         },
@@ -1232,7 +1152,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 440303616,
-          "pid": 15826,
           "time": 1449559.458441875,
           "cpu_seconds": 13.556132
         },
@@ -1240,7 +1159,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 440303616,
-          "pid": 15826,
           "time": 1449559.4683705,
           "cpu_seconds": 13.56606,
           "collected": 6008
@@ -1249,7 +1167,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 436994048,
-          "pid": 15826,
           "time": 1449559.473198833,
           "cpu_seconds": 13.570889
         },
@@ -1257,7 +1174,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 386056192,
-          "pid": 15826,
           "time": 1449559.490647083,
           "cpu_seconds": 13.588334
         },
@@ -1265,7 +1181,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 386056192,
-          "pid": 15826,
           "time": 1449559.490674166,
           "cpu_seconds": 13.588361
         }
@@ -1304,7 +1219,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 102989824,
-          "pid": 15874,
           "time": 1449609.161090166,
           "cpu_seconds": 1.212819
         },
@@ -1312,7 +1226,6 @@
           "phase": "cut_start",
           "cut": 432,
           "rss": 102989824,
-          "pid": 15874,
           "time": 1449609.161126125,
           "cpu_seconds": 1.212855
         },
@@ -1320,7 +1233,6 @@
           "phase": "native_start",
           "cut": 432,
           "rss": 165838848,
-          "pid": 15874,
           "time": 1449609.406364833,
           "cpu_seconds": 1.455245
         },
@@ -1328,7 +1240,6 @@
           "phase": "growth_finished",
           "cut": 432,
           "rss": 400130048,
-          "pid": 15874,
           "time": 1449620.89869475,
           "cpu_seconds": 12.946127,
           "symmetry_work": {
@@ -1339,7 +1250,6 @@
           "phase": "states_exported",
           "cut": 432,
           "rss": 400752640,
-          "pid": 15874,
           "time": 1449620.908861458,
           "cpu_seconds": 12.956285,
           "symmetry_work": {
@@ -1350,7 +1260,6 @@
           "phase": "transitions_exported",
           "cut": 432,
           "rss": 400769024,
-          "pid": 15874,
           "time": 1449620.909903375,
           "cpu_seconds": 12.957327,
           "symmetry_work": {
@@ -1361,7 +1270,6 @@
           "phase": "native_finished",
           "cut": 432,
           "rss": 400769024,
-          "pid": 15874,
           "time": 1449620.910310166,
           "cpu_seconds": 12.957734,
           "states": 501,
@@ -1374,7 +1282,6 @@
           "phase": "finalization_start",
           "cut": 432,
           "rss": 400769024,
-          "pid": 15874,
           "time": 1449620.911532291,
           "cpu_seconds": 12.958956
         },
@@ -1382,7 +1289,6 @@
           "phase": "finalization_finished",
           "cut": 432,
           "rss": 437059584,
-          "pid": 15874,
           "time": 1449621.860539333,
           "cpu_seconds": 13.907874
         },
@@ -1390,7 +1296,6 @@
           "phase": "publication_start",
           "cut": 432,
           "rss": 437059584,
-          "pid": 15874,
           "time": 1449621.860629291,
           "cpu_seconds": 13.907964,
           "repair": {
@@ -1432,12 +1337,11 @@
           "phase": "publication_finished",
           "cut": 432,
           "rss": 437108736,
-          "pid": 15874,
           "time": 1449621.8689565,
           "cpu_seconds": 13.912447,
           "bundle_bytes": 76344,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-3/bundles/23c84a99375644ed8ed0373091484449-00000.bundle",
+            "path": "private-reference-d0335619334b3cd73b16",
             "offset": 48665,
             "size": 76344,
             "sha256": "abcb5e8ad40a7b2692018bf17c29ebf8d99fac9e979543dc83cb62cf72f98f88"
@@ -1447,7 +1351,6 @@
           "phase": "output_released",
           "cut": 432,
           "rss": 437108736,
-          "pid": 15874,
           "time": 1449621.869207666,
           "cpu_seconds": 13.912699
         },
@@ -1455,7 +1358,6 @@
           "phase": "before_collect",
           "cut": 432,
           "rss": 437108736,
-          "pid": 15874,
           "time": 1449621.869215875,
           "cpu_seconds": 13.912707
         },
@@ -1463,7 +1365,6 @@
           "phase": "after_collect",
           "cut": 432,
           "rss": 437108736,
-          "pid": 15874,
           "time": 1449621.877868458,
           "cpu_seconds": 13.921359,
           "collected": 6008
@@ -1472,7 +1373,6 @@
           "phase": "symmetry_released",
           "cut": 432,
           "rss": 433799168,
-          "pid": 15874,
           "time": 1449621.882414083,
           "cpu_seconds": 13.925905
         },
@@ -1480,7 +1380,6 @@
           "phase": "session_released",
           "cut": 432,
           "rss": 381812736,
-          "pid": 15874,
           "time": 1449621.899523,
           "cpu_seconds": 13.943003
         },
@@ -1488,7 +1387,6 @@
           "phase": "complete",
           "cut": 432,
           "rss": 381812736,
-          "pid": 15874,
           "time": 1449621.899554708,
           "cpu_seconds": 13.943033
         }
@@ -1527,7 +1425,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103153664,
-          "pid": 15836,
           "time": 1449561.035135375,
           "cpu_seconds": 1.274846
         },
@@ -1535,7 +1432,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 103153664,
-          "pid": 15836,
           "time": 1449561.035171416,
           "cpu_seconds": 1.274881
         },
@@ -1543,7 +1439,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 164921344,
-          "pid": 15836,
           "time": 1449561.280020916,
           "cpu_seconds": 1.518825
         },
@@ -1551,7 +1446,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 1065172992,
-          "pid": 15836,
           "time": 1449569.786534625,
           "cpu_seconds": 10.024244,
           "symmetry_work": {
@@ -1562,7 +1456,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 1108688896,
-          "pid": 15836,
           "time": 1449571.134067875,
           "cpu_seconds": 11.371664,
           "symmetry_work": {
@@ -1573,7 +1466,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 1875771392,
-          "pid": 15836,
           "time": 1449571.359753875,
           "cpu_seconds": 11.597332,
           "symmetry_work": {
@@ -1584,7 +1476,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 1874903040,
-          "pid": 15836,
           "time": 1449571.439131041,
           "cpu_seconds": 11.676676,
           "states": 67124,
@@ -1597,7 +1488,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 1907326976,
-          "pid": 15836,
           "time": 1449572.558546791,
           "cpu_seconds": 12.796037
         },
@@ -1605,7 +1495,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 1936162816,
-          "pid": 15836,
           "time": 1449573.239806958,
           "cpu_seconds": 13.477222
         },
@@ -1613,7 +1502,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 1936162816,
-          "pid": 15836,
           "time": 1449573.240002791,
           "cpu_seconds": 13.477416,
           "repair": {
@@ -1655,12 +1543,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 2460794880,
-          "pid": 15836,
           "time": 1449574.329294166,
           "cpu_seconds": 14.561512,
           "bundle_bytes": 2023248,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-1/bundles/f68cdc6e11da4f84b3d62a8b02cfa9c9-00000.bundle",
+            "path": "private-reference-3ea9fa3476633f52d51f",
             "offset": 48665,
             "size": 2023248,
             "sha256": "7ec95f20dad22bde1a220461f69913c12b52a3f90bdbf421eeaf261acfcd5c47"
@@ -1670,7 +1557,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 1878835200,
-          "pid": 15836,
           "time": 1449574.43820075,
           "cpu_seconds": 14.670418
         },
@@ -1678,7 +1564,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 1878835200,
-          "pid": 15836,
           "time": 1449574.438231,
           "cpu_seconds": 14.670449
         },
@@ -1686,7 +1571,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 1827454976,
-          "pid": 15836,
           "time": 1449574.44413125,
           "cpu_seconds": 14.676349,
           "collected": 671
@@ -1695,7 +1579,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 1664925696,
-          "pid": 15836,
           "time": 1449574.451421833,
           "cpu_seconds": 14.683635
         },
@@ -1703,7 +1586,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 1657700352,
-          "pid": 15836,
           "time": 1449574.461724875,
           "cpu_seconds": 14.693938
         },
@@ -1711,7 +1593,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 1657700352,
-          "pid": 15836,
           "time": 1449574.46174775,
           "cpu_seconds": 14.69396
         }
@@ -1750,7 +1631,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103137280,
-          "pid": 15889,
           "time": 1449623.330070791,
           "cpu_seconds": 1.192994
         },
@@ -1758,7 +1638,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 103137280,
-          "pid": 15889,
           "time": 1449623.330115541,
           "cpu_seconds": 1.193039
         },
@@ -1766,7 +1645,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 165117952,
-          "pid": 15889,
           "time": 1449623.576732958,
           "cpu_seconds": 1.438939
         },
@@ -1774,7 +1652,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 1069416448,
-          "pid": 15889,
           "time": 1449632.179633458,
           "cpu_seconds": 10.039622,
           "symmetry_work": {
@@ -1785,7 +1662,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 1112637440,
-          "pid": 15889,
           "time": 1449633.515904,
           "cpu_seconds": 11.375667,
           "symmetry_work": {
@@ -1796,7 +1672,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 1879785472,
-          "pid": 15889,
           "time": 1449633.730688166,
           "cpu_seconds": 11.590434,
           "symmetry_work": {
@@ -1807,7 +1682,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 1878917120,
-          "pid": 15889,
           "time": 1449633.808483125,
           "cpu_seconds": 11.668215,
           "states": 67124,
@@ -1820,7 +1694,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 1911717888,
-          "pid": 15889,
           "time": 1449634.920097625,
           "cpu_seconds": 12.779788
         },
@@ -1828,7 +1701,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 1941372928,
-          "pid": 15889,
           "time": 1449635.606846875,
           "cpu_seconds": 13.466442
         },
@@ -1836,7 +1708,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 1941372928,
-          "pid": 15889,
           "time": 1449635.607023166,
           "cpu_seconds": 13.466618,
           "repair": {
@@ -1878,12 +1749,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 2466349056,
-          "pid": 15889,
           "time": 1449636.708013416,
           "cpu_seconds": 14.562818,
           "bundle_bytes": 2023250,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-2/bundles/cb48edc5d24e42db93ed6407b83f9364-00000.bundle",
+            "path": "private-reference-790a6d687c58eadf6f05",
             "offset": 48665,
             "size": 2023250,
             "sha256": "147571d9253d063db7dcb7a1fb681d49ff6f270fc2db2b2b5b11b7af81411bb7"
@@ -1893,7 +1763,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 1884389376,
-          "pid": 15889,
           "time": 1449636.8181265,
           "cpu_seconds": 14.672924
         },
@@ -1901,7 +1770,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 1884389376,
-          "pid": 15889,
           "time": 1449636.818166791,
           "cpu_seconds": 14.672962
         },
@@ -1909,7 +1777,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 1833009152,
-          "pid": 15889,
           "time": 1449636.824187375,
           "cpu_seconds": 14.678983,
           "collected": 671
@@ -1918,7 +1785,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 1669431296,
-          "pid": 15889,
           "time": 1449636.830510541,
           "cpu_seconds": 14.685307
         },
@@ -1926,7 +1792,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 1662205952,
-          "pid": 15889,
           "time": 1449636.840018916,
           "cpu_seconds": 14.694815
         },
@@ -1934,7 +1799,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 1662205952,
-          "pid": 15889,
           "time": 1449636.840038958,
           "cpu_seconds": 14.694835
         }
@@ -1973,7 +1837,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103088128,
-          "pid": 15936,
           "time": 1449671.425262041,
           "cpu_seconds": 1.199559
         },
@@ -1981,7 +1844,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 103088128,
-          "pid": 15936,
           "time": 1449671.425299708,
           "cpu_seconds": 1.199597
         },
@@ -1989,7 +1851,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 165150720,
-          "pid": 15936,
           "time": 1449671.680473958,
           "cpu_seconds": 1.45275
         },
@@ -1997,7 +1858,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 1069531136,
-          "pid": 15936,
           "time": 1449680.316791541,
           "cpu_seconds": 10.0882,
           "symmetry_work": {
@@ -2008,7 +1868,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 1112702976,
-          "pid": 15936,
           "time": 1449681.62121725,
           "cpu_seconds": 11.39251,
           "symmetry_work": {
@@ -2019,7 +1878,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 1879769088,
-          "pid": 15936,
           "time": 1449681.841359041,
           "cpu_seconds": 11.612634,
           "symmetry_work": {
@@ -2030,7 +1888,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 1878917120,
-          "pid": 15936,
           "time": 1449681.923666958,
           "cpu_seconds": 11.694895,
           "states": 67124,
@@ -2043,7 +1900,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 1911717888,
-          "pid": 15936,
           "time": 1449683.040510458,
           "cpu_seconds": 12.810127
         },
@@ -2051,7 +1907,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 1941487616,
-          "pid": 15936,
           "time": 1449683.7330375,
           "cpu_seconds": 13.50261
         },
@@ -2059,7 +1914,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 1941487616,
-          "pid": 15936,
           "time": 1449683.733217791,
           "cpu_seconds": 13.50279,
           "repair": {
@@ -2101,12 +1955,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 2466480128,
-          "pid": 15936,
           "time": 1449684.824501416,
           "cpu_seconds": 14.590161,
           "bundle_bytes": 2023249,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-3/bundles/48149849ae874d75ad7d0099f8c2ae66-00000.bundle",
+            "path": "private-reference-930a46f3d9cbbecaa039",
             "offset": 48665,
             "size": 2023249,
             "sha256": "1f2fbe2d84bf06634164316e5f5c8d8c4b190ac03bb41322a80b118e86e07f33"
@@ -2116,7 +1969,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 1882423296,
-          "pid": 15936,
           "time": 1449684.934199458,
           "cpu_seconds": 14.699856
         },
@@ -2124,7 +1976,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 1882423296,
-          "pid": 15936,
           "time": 1449684.934241833,
           "cpu_seconds": 14.699898
         },
@@ -2132,7 +1983,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 1833140224,
-          "pid": 15936,
           "time": 1449684.940812375,
           "cpu_seconds": 14.706468,
           "collected": 671
@@ -2141,7 +1991,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 1670610944,
-          "pid": 15936,
           "time": 1449684.948034666,
           "cpu_seconds": 14.713691
         },
@@ -2149,7 +1998,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 1663385600,
-          "pid": 15936,
           "time": 1449684.958576125,
           "cpu_seconds": 14.724232
         },
@@ -2157,7 +2005,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 1663385600,
-          "pid": 15936,
           "time": 1449684.9586305,
           "cpu_seconds": 14.724287
         }
@@ -2196,7 +2043,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103055360,
-          "pid": 15779,
           "time": 1449515.095270458,
           "cpu_seconds": 1.171358
         },
@@ -2204,7 +2050,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 103055360,
-          "pid": 15779,
           "time": 1449515.0953075,
           "cpu_seconds": 1.171396
         },
@@ -2212,7 +2057,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 165756928,
-          "pid": 15779,
           "time": 1449515.330806625,
           "cpu_seconds": 1.405703
         },
@@ -2220,7 +2064,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 316375040,
-          "pid": 15779,
           "time": 1449523.26595625,
           "cpu_seconds": 9.340076,
           "symmetry_work": {
@@ -2231,7 +2074,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 317128704,
-          "pid": 15779,
           "time": 1449523.273067916,
           "cpu_seconds": 9.347187,
           "symmetry_work": {
@@ -2242,7 +2084,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 317161472,
-          "pid": 15779,
           "time": 1449523.27375525,
           "cpu_seconds": 9.347875,
           "symmetry_work": {
@@ -2253,7 +2094,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 317161472,
-          "pid": 15779,
           "time": 1449523.274113041,
           "cpu_seconds": 9.348232,
           "states": 345,
@@ -2266,7 +2106,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 317161472,
-          "pid": 15779,
           "time": 1449523.275088583,
           "cpu_seconds": 9.349207
         },
@@ -2274,7 +2113,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 352305152,
-          "pid": 15779,
           "time": 1449523.91446325,
           "cpu_seconds": 9.988534
         },
@@ -2282,7 +2120,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 352305152,
-          "pid": 15779,
           "time": 1449523.914529875,
           "cpu_seconds": 9.9886,
           "repair": {
@@ -2324,12 +2161,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 352370688,
-          "pid": 15779,
           "time": 1449523.926009083,
           "cpu_seconds": 9.992862,
           "bundle_bytes": 83129,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-1/bundles/d5f1db78f1654d7ab39f38c822916861-00000.bundle",
+            "path": "private-reference-5e5c77708399e00286d3",
             "offset": 48665,
             "size": 83129,
             "sha256": "5ac2d612681ff373506d2263c1116764f6852c3eb445dd3bef1d234a0acd71c8"
@@ -2339,7 +2175,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 352370688,
-          "pid": 15779,
           "time": 1449523.926269333,
           "cpu_seconds": 9.993122
         },
@@ -2347,7 +2182,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 352370688,
-          "pid": 15779,
           "time": 1449523.926277083,
           "cpu_seconds": 9.993129
         },
@@ -2355,7 +2189,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 351322112,
-          "pid": 15779,
           "time": 1449523.934074,
           "cpu_seconds": 10.000927,
           "collected": 6008
@@ -2364,7 +2197,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 349224960,
-          "pid": 15779,
           "time": 1449523.938011375,
           "cpu_seconds": 10.004863
         },
@@ -2372,7 +2204,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 297238528,
-          "pid": 15779,
           "time": 1449523.94969325,
           "cpu_seconds": 10.016546
         },
@@ -2380,7 +2211,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 297238528,
-          "pid": 15779,
           "time": 1449523.949713125,
           "cpu_seconds": 10.016566
         }
@@ -2419,7 +2249,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 102940672,
-          "pid": 15848,
           "time": 1449575.916708041,
           "cpu_seconds": 1.206439
         },
@@ -2427,7 +2256,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 102940672,
-          "pid": 15848,
           "time": 1449575.916744958,
           "cpu_seconds": 1.206475
         },
@@ -2435,7 +2263,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 164888576,
-          "pid": 15848,
           "time": 1449576.164349916,
           "cpu_seconds": 1.453297
         },
@@ -2443,7 +2270,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 317620224,
-          "pid": 15848,
           "time": 1449584.750649208,
           "cpu_seconds": 10.038422,
           "symmetry_work": {
@@ -2454,7 +2280,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 318373888,
-          "pid": 15848,
           "time": 1449584.758006875,
           "cpu_seconds": 10.045778,
           "symmetry_work": {
@@ -2465,7 +2290,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 318406656,
-          "pid": 15848,
           "time": 1449584.75872825,
           "cpu_seconds": 10.0465,
           "symmetry_work": {
@@ -2476,7 +2300,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 318406656,
-          "pid": 15848,
           "time": 1449584.759134666,
           "cpu_seconds": 10.046906,
           "states": 345,
@@ -2489,7 +2312,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 318423040,
-          "pid": 15848,
           "time": 1449584.7601635,
           "cpu_seconds": 10.047935
         },
@@ -2497,7 +2319,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 354795520,
-          "pid": 15848,
           "time": 1449585.428839208,
           "cpu_seconds": 10.716548
         },
@@ -2505,7 +2326,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 354795520,
-          "pid": 15848,
           "time": 1449585.428898916,
           "cpu_seconds": 10.716608,
           "repair": {
@@ -2547,12 +2367,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 354861056,
-          "pid": 15848,
           "time": 1449585.437433958,
           "cpu_seconds": 10.720901,
           "bundle_bytes": 83129,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-2/bundles/308399060f2446a3adfd865171561cae-00000.bundle",
+            "path": "private-reference-28ccfbc243a6ec910e58",
             "offset": 48665,
             "size": 83129,
             "sha256": "d1574254c0ad744d886b56a26ca250e7aa4628039df0ccdda142bd98f682138b"
@@ -2562,7 +2381,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 354861056,
-          "pid": 15848,
           "time": 1449585.437703416,
           "cpu_seconds": 10.721171
         },
@@ -2570,7 +2388,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 354861056,
-          "pid": 15848,
           "time": 1449585.437711708,
           "cpu_seconds": 10.72118
         },
@@ -2578,7 +2395,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 353812480,
-          "pid": 15848,
           "time": 1449585.445936833,
           "cpu_seconds": 10.729382,
           "collected": 6008
@@ -2587,7 +2403,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 351715328,
-          "pid": 15848,
           "time": 1449585.450101458,
           "cpu_seconds": 10.733537
         },
@@ -2595,7 +2410,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 299728896,
-          "pid": 15848,
           "time": 1449585.463592916,
           "cpu_seconds": 10.747029
         },
@@ -2603,7 +2417,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 299728896,
-          "pid": 15848,
           "time": 1449585.463611708,
           "cpu_seconds": 10.747047
         }
@@ -2642,7 +2455,6 @@
           "phase": "prepared",
           "cut": null,
           "rss": 103022592,
-          "pid": 15902,
           "time": 1449638.332670083,
           "cpu_seconds": 1.250874
         },
@@ -2650,7 +2462,6 @@
           "phase": "cut_start",
           "cut": 410,
           "rss": 103022592,
-          "pid": 15902,
           "time": 1449638.332708541,
           "cpu_seconds": 1.250912
         },
@@ -2658,7 +2469,6 @@
           "phase": "native_start",
           "cut": 410,
           "rss": 163708928,
-          "pid": 15902,
           "time": 1449638.58988425,
           "cpu_seconds": 1.507422
         },
@@ -2666,7 +2476,6 @@
           "phase": "growth_finished",
           "cut": 410,
           "rss": 321617920,
-          "pid": 15902,
           "time": 1449647.199412625,
           "cpu_seconds": 10.116184,
           "symmetry_work": {
@@ -2677,7 +2486,6 @@
           "phase": "states_exported",
           "cut": 410,
           "rss": 322322432,
-          "pid": 15902,
           "time": 1449647.207007708,
           "cpu_seconds": 10.123779,
           "symmetry_work": {
@@ -2688,7 +2496,6 @@
           "phase": "transitions_exported",
           "cut": 410,
           "rss": 322371584,
-          "pid": 15902,
           "time": 1449647.20777275,
           "cpu_seconds": 10.124544,
           "symmetry_work": {
@@ -2699,7 +2506,6 @@
           "phase": "native_finished",
           "cut": 410,
           "rss": 322371584,
-          "pid": 15902,
           "time": 1449647.2081825,
           "cpu_seconds": 10.124954,
           "states": 345,
@@ -2712,7 +2518,6 @@
           "phase": "finalization_start",
           "cut": 410,
           "rss": 322371584,
-          "pid": 15902,
           "time": 1449647.209211958,
           "cpu_seconds": 10.125983
         },
@@ -2720,7 +2525,6 @@
           "phase": "finalization_finished",
           "cut": 410,
           "rss": 356679680,
-          "pid": 15902,
           "time": 1449647.879673208,
           "cpu_seconds": 10.796364
         },
@@ -2728,7 +2532,6 @@
           "phase": "publication_start",
           "cut": 410,
           "rss": 356679680,
-          "pid": 15902,
           "time": 1449647.879743041,
           "cpu_seconds": 10.796433,
           "repair": {
@@ -2770,12 +2573,11 @@
           "phase": "publication_finished",
           "cut": 410,
           "rss": 357089280,
-          "pid": 15902,
           "time": 1449647.889470583,
           "cpu_seconds": 10.80088,
           "bundle_bytes": 83129,
           "reference": {
-            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-3/bundles/428a1e197c194a3f984f488ca0f09300-00000.bundle",
+            "path": "private-reference-be6cc1093c936622dd9d",
             "offset": 48665,
             "size": 83129,
             "sha256": "0db1b046313ab41f87b3a693d5664f779f07893a53e246d48c99bca775d632b7"
@@ -2785,7 +2587,6 @@
           "phase": "output_released",
           "cut": 410,
           "rss": 357089280,
-          "pid": 15902,
           "time": 1449647.889741541,
           "cpu_seconds": 10.80115
         },
@@ -2793,7 +2594,6 @@
           "phase": "before_collect",
           "cut": 410,
           "rss": 357089280,
-          "pid": 15902,
           "time": 1449647.8897505,
           "cpu_seconds": 10.801159
         },
@@ -2801,7 +2601,6 @@
           "phase": "after_collect",
           "cut": 410,
           "rss": 356040704,
-          "pid": 15902,
           "time": 1449647.897989833,
           "cpu_seconds": 10.809398,
           "collected": 6008
@@ -2810,7 +2609,6 @@
           "phase": "symmetry_released",
           "cut": 410,
           "rss": 353943552,
-          "pid": 15902,
           "time": 1449647.902446375,
           "cpu_seconds": 10.813855
         },
@@ -2818,7 +2616,6 @@
           "phase": "session_released",
           "cut": 410,
           "rss": 303005696,
-          "pid": 15902,
           "time": 1449647.914855708,
           "cpu_seconds": 10.826265
         },
@@ -2826,7 +2623,6 @@
           "phase": "complete",
           "cut": 410,
           "rss": 303005696,
-          "pid": 15902,
           "time": 1449647.914873541,
           "cpu_seconds": 10.826282
         }
@@ -2894,8 +2690,12 @@
     "Original native binary preserved only as an ignored benchmark artifact, loaded through the existing probe override. No production fallback or mode added.",
     "Baseline ceiling8GiB; repaired ceiling2GiB. No repaired guard failures. Time excludes input preparation and startup; includes matching,finalization and saving.",
     "Full retained path and catalogue relations compared for both cuts; removed IDs and rejected payloads intentionally differ.",
-    "No full EnzymeMap accuracy rerun or cluster throughput measurement. DFW running checkout/jobs left unchanged.",
+    "No full EnzymeMap accuracy rerun or cluster throughput measurement. cluster running checkout/jobs left unchanged.",
     "Shared-policy memoized decisions remain while active policies can reuse them and are released when all policies finish.",
     "Completed-fragment cache64MiB, enabled locally; shared snapshot I/O omitted as in the original diagnosis."
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "bf22abbc52b0135dca6499102ea2ace59c8b0f97bf62812c204292c541a40404",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

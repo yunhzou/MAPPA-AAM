@@ -9,9 +9,8 @@ not confirmations of equivalence.
 Frozen candidate `2d04f60`, original `98b01b1`. All 1,851 Golden and 140
 holdout cases, both directions, identical original ten seed orders per cut,
 full sweep, cap 100, explicit H, matching tolerance 1.0 and scoring 0.5.
-Both implementations now receive eight CPUs per reaction. The current batch
-campaign allocates at most 1,024 CPUs and retains independent 300-second
-search and 240-second evaluation watchdogs.
+Both implementations use eight worker processes per reaction and retain
+independent 300-second search and 240-second evaluation watchdogs.
 
 The new backend shares identical conditional decisions across the original
 policies. A necessary element-capacity check skips growth only when no unused
@@ -22,16 +21,12 @@ The diagnostic Golden 1636 R-to-P uncut profile fell from 21.483 to 0.857 CPU
 seconds with 1,124 states and 1,123 transitions in both runs. This is a local
 profile, **not** a claimed full-benchmark speedup. Focused tests compare complete
 correlated fragment records, states and stop reasons against the original.
-The complete repository suite passed: **518 tests in 203.61 seconds**, Slurm
-job `466076`; the unabridged log is retained in the preceding campaign folder
-as `capacity_full_tests_466076.out`. Saved-certificate verification tests include
+The complete repository suite passed: **518 tests in 203.61 seconds**.
+The unabridged log is retained privately. Saved-certificate verification tests include
 both orientations, unequal composition, partial reference relations and
 different explicit-H witnesses within one heavy-atom class.
 
-Current full artifacts:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/shared_capacity_full_20260910`
-
+Full artifacts are retained privately.
 The preceding shared per-cut campaign and its explicit checkpoint continuations
 remain at `../shared_cut_workers_full_20260910`. No completed cut was rematched
 to regenerate reporting. Saved full-atom ranking witnesses can now certify
@@ -60,12 +55,10 @@ are debugging tests only. Do not claim no regression from those examples.
 - Both directions for every record: 3,982 directional comparisons,
   7,964 search calls. Smaller-to-larger and bidirectional unions reported
   separately. Branches are never spliced between directions.
-- Original uses eight CPUs per call; adaptive one CPU. Same partition,
-  hardware recorded per call. Compare CPU cost; elapsed timings are **not**
-  an equal-resource speedup comparison. Maximum aggregate allocation is
-  1,024 CPUs, subject to cluster availability.
+- Original uses eight workers per call; adaptive one worker. Compare CPU cost;
+  elapsed timings are **not** an equal-resource speedup comparison.
 - Five-minute external search watchdog, four-minute analysis watchdog,
-  five-second hard-kill grace, ten-minute Slurm allocation. No automatic
+  five-second hard-kill grace, ten-minute overall limit. No automatic
   retries, budget escalation or substitution of a different algorithm.
 
 ## Confirmation metrics
@@ -88,21 +81,15 @@ not queue time. Failed/censored work stays in status/accounting records and
 is never silently counted as zero-time success. All intermediate cuts,
 adaptive snapshots, final AAM graphs, evaluations and hashes are retained.
 
-Full artifacts:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910`
-
+Full artifacts are retained privately.
 Driver: `bench/adaptive_full_benchmark.py`. `compare` reads saved artifacts
 without rerunning AAM. The final report must identify recovery losses as well
 as speedups before any decision to replace the mature pipeline.
 
-Original search arrays: `457271`–`457274`; adaptive arrays: `457275`–`457278`.
 Search engine/driver freeze: `0ce0f17`; subsequent reporting and monitor code
 does not alter that frozen search or its evaluations.
 
-A separate bounded campaign monitor refreshes the full comparison from saved
-outputs. It replaces only allocations stuck in `CONFIGURING` for ten minutes
-that have never started a worker, using the same frozen worker on `cpunodes`.
-Started/failed calculations are not silently rerun. Scheduler actions are
-journaled separately. The monitor's two-hour allocation is not an AAM run;
-each AAM subprocess retains its independent five-minute watchdog.
+A separate monitor replaced only unstarted work after startup failures.
+Started or failed calculations were not silently rerun. Scheduler actions and
+raw operational records are retained privately; each AAM subprocess retained
+its independent five-minute watchdog.

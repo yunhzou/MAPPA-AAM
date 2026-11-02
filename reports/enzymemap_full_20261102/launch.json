@@ -2,74 +2,20 @@
   "utc": "2026-11-02T00:47:15.118442+00:00",
   "revision": "0f86f117d5705da31c8bc022419c6b80b3add761",
   "code_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
-  "output": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102",
+  "output": "private-reference-1c3a4578f735e673867f",
   "cases": 47974,
   "directions": 95948,
   "fresh": true,
   "worker_memory_gib": 2,
   "commands": [
     {
-      "job": "21162307",
-      "command": [
-        "sbatch",
-        "--parsable",
-        "--nodes=8",
-        "--cpus-per-task=24",
-        "--mem=46G",
-        "--array=0",
-        "--job-name=mappa-enzyme-search",
-        "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.out",
-        "--error=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.err",
-        "bench/enzymemap-dfw.sbatch",
-        "--stop-after",
-        "deduplication"
-      ],
-      "workers_per_node": 21,
-      "nodes": 8,
-      "total_workers": 168,
-      "dependency": null
+      "total_workers": 168
     },
     {
-      "job": "21162459",
-      "command": [
-        "sbatch",
-        "--parsable",
-        "--nodes=8",
-        "--cpus-per-task=24",
-        "--mem=46G",
-        "--array=1-39%1",
-        "--job-name=mappa-enzyme-search",
-        "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.out",
-        "--error=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.err",
-        "bench/enzymemap-dfw.sbatch",
-        "--stop-after",
-        "deduplication"
-      ],
-      "workers_per_node": 21,
-      "nodes": 8,
-      "total_workers": 168,
-      "dependency": null
+      "total_workers": 168
     },
     {
-      "job": "21162460",
-      "command": [
-        "sbatch",
-        "--parsable",
-        "--nodes=8",
-        "--cpus-per-task=24",
-        "--mem=46G",
-        "--array=0-39%1",
-        "--job-name=mappa-enzyme-finish",
-        "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/finish-%A_%a.out",
-        "--error=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/finish-%A_%a.err",
-        "--dependency=afterok:21162307:21162459",
-        "bench/enzymemap-dfw.sbatch",
-        "--resume"
-      ],
-      "workers_per_node": 21,
-      "nodes": 8,
-      "total_workers": 168,
-      "dependency": "21162307:21162459"
+      "total_workers": 168
     }
   ],
   "stage_barrier": "All matching and reduction across all40batches must succeed before decoding and verification",
@@ -80,55 +26,18 @@
   "verification": "exact annotated heavy-atom indices; no endpoint-symmetry relaxation;1000ms per family",
   "superseded_pending_commands": [
     {
-      "job": "21162309",
-      "command": [
-        "sbatch",
-        "--parsable",
-        "--nodes=2",
-        "--cpus-per-task=92",
-        "--mem=184G",
-        "--array=1-39%4",
-        "--job-name=mappa-enzyme-search",
-        "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.out",
-        "--error=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/search-%A_%a.err",
-        "bench/enzymemap-dfw.sbatch",
-        "--stop-after",
-        "deduplication"
-      ],
-      "workers_per_node": 90,
-      "nodes": 2,
-      "total_workers": 180,
-      "dependency": null
+      "total_workers": 180
     },
     {
-      "job": "21162310",
-      "command": [
-        "sbatch",
-        "--parsable",
-        "--nodes=2",
-        "--cpus-per-task=92",
-        "--mem=184G",
-        "--array=0-39%4",
-        "--job-name=mappa-enzyme-finish",
-        "--output=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/finish-%A_%a.out",
-        "--error=/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/finish-%A_%a.err",
-        "--dependency=afterok:21162307:21162309",
-        "bench/enzymemap-dfw.sbatch",
-        "--resume"
-      ],
-      "workers_per_node": 90,
-      "nodes": 2,
-      "total_workers": 180,
-      "dependency": "21162307:21162309"
+      "total_workers": 180
     }
   ],
   "resource_revision": {
     "utc": "2026-11-02T00:51:17.836832+00:00",
-    "reason": "Reuse the allocation that actually started promptly; avoid waiting for184GiB free on each of two nodes",
-    "cancelled_pending_jobs": [
-      "21162309",
-      "21162310"
-    ],
     "running_first_batch_unchanged": true
+  },
+  "privacy_projection": {
+    "original_sha256": "90e000b67a3c7c8a883211c6a530aa9a87db64b2f30ec11ef7cb8c97b195b8a2",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

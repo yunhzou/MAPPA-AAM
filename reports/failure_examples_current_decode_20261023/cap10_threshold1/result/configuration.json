@@ -31,7 +31,11 @@
     "event_slack": null
   },
   "execution": "reference",
-  "mappa_path": "/lustre/fsw/portfolios/nvr/users/yunhengz/mappa/current_decode_20261023_v1/source/src/mappa/__init__.py",
+  "mappa_path": "private-reference-adab52e4b4ead6f6fcad",
   "memory_gib": 5.0,
-  "python": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]"
+  "python": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
+  "privacy_projection": {
+    "original_sha256": "7851e1967c5b062650a68ad0c7f694652e33b0e2d9495587c49b2f9cc4a5c787",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

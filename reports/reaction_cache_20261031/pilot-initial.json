@@ -1,5 +1,4 @@
 {
-  "job": "21132532",
   "code": "de60c1d6a4f224dbf40dcd73233fb6a01c1be0e7dc0ed4bcd990d55ea6e02fcc",
   "config": {
     "cut_floor": 0.2,
@@ -43,13 +42,13 @@
         "convert_seed": 84
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a8d45157bedd4afa9fb37b97175b49f6-00000.bundle",
+        "path": "private-reference-ae3c48e21029e7f9e289",
         "offset": 3760,
         "size": 13084,
         "sha256": "ad4a2aadcf657b2e625e23b755ca8a992bc98f46c285fa563893ae1ad865b883"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a8d45157bedd4afa9fb37b97175b49f6-00000.bundle",
+        "path": "private-reference-ae3c48e21029e7f9e289",
         "offset": 0,
         "size": 1363,
         "sha256": "6c01e8874dfd89355da000ccc37370b0098bf46ad2ab606fb7d8bcaeaad88fec"
@@ -70,13 +69,13 @@
         "convert_seed": 85
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a8d45157bedd4afa9fb37b97175b49f6-00000.bundle",
+        "path": "private-reference-ae3c48e21029e7f9e289",
         "offset": 19242,
         "size": 13336,
         "sha256": "c1484264c8e04f11972a710d07ffa48ec21ccafc78b24cccd09e54153e9e8f69"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a8d45157bedd4afa9fb37b97175b49f6-00000.bundle",
+        "path": "private-reference-ae3c48e21029e7f9e289",
         "offset": 0,
         "size": 1363,
         "sha256": "6c01e8874dfd89355da000ccc37370b0098bf46ad2ab606fb7d8bcaeaad88fec"
@@ -97,13 +96,13 @@
         "convert_seed": 85
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a2db0ca643994220984984fc2fb98d52-00000.bundle",
+        "path": "private-reference-a0bfef62d31912ced32d",
         "offset": 3743,
         "size": 13332,
         "sha256": "a9b6c1072c39104decb0533e41c422a7a1ec317a2d3e4c233feaaf8a1111c7f2"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a2db0ca643994220984984fc2fb98d52-00000.bundle",
+        "path": "private-reference-a0bfef62d31912ced32d",
         "offset": 0,
         "size": 1349,
         "sha256": "b1c1b2adb5ca5ea97e3c0ae5a0c5db4004ea8e80784da2a999fb591441ee5110"
@@ -124,13 +123,13 @@
         "convert_seed": 84
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a2db0ca643994220984984fc2fb98d52-00000.bundle",
+        "path": "private-reference-a0bfef62d31912ced32d",
         "offset": 19475,
         "size": 13085,
         "sha256": "7ae371e18eed748cd8a372cecd831506ea91274fdb209e066ad807bedc7d28f9"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/a2db0ca643994220984984fc2fb98d52-00000.bundle",
+        "path": "private-reference-a0bfef62d31912ced32d",
         "offset": 0,
         "size": 1349,
         "sha256": "b1c1b2adb5ca5ea97e3c0ae5a0c5db4004ea8e80784da2a999fb591441ee5110"
@@ -151,13 +150,13 @@
         "convert_seed": 86
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/18b5087cb541419fb9ebf7559d489035-00000.bundle",
+        "path": "private-reference-4a8e9e2416804a8df7a4",
         "offset": 3830,
         "size": 13608,
         "sha256": "4cdeef4c356a49886eab0e7bdef53342d55b212f3b2bff40da62167d9e8cf778"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/18b5087cb541419fb9ebf7559d489035-00000.bundle",
+        "path": "private-reference-4a8e9e2416804a8df7a4",
         "offset": 0,
         "size": 1390,
         "sha256": "05ec95ac400f3157d1b13552ddfaf6329ac6a63e7fafbea4f39116eb08dab894"
@@ -178,13 +177,13 @@
         "convert_seed": 87
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/18b5087cb541419fb9ebf7559d489035-00000.bundle",
+        "path": "private-reference-4a8e9e2416804a8df7a4",
         "offset": 19882,
         "size": 13821,
         "sha256": "0e43079eb7975a226dbb30a398b540d31ad82c301fdb9ecf6f60c451e9bb0bfc"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/18b5087cb541419fb9ebf7559d489035-00000.bundle",
+        "path": "private-reference-4a8e9e2416804a8df7a4",
         "offset": 0,
         "size": 1390,
         "sha256": "05ec95ac400f3157d1b13552ddfaf6329ac6a63e7fafbea4f39116eb08dab894"
@@ -205,13 +204,13 @@
         "convert_seed": 87
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/cbaef4abb262495498cac0ece9a199c6-00000.bundle",
+        "path": "private-reference-d7925d625252b2eda841",
         "offset": 3827,
         "size": 13823,
         "sha256": "ec7685be1bb0c01b81590b83832d369d6af3bd211b9434e6561a5d3b0aff6253"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/cbaef4abb262495498cac0ece9a199c6-00000.bundle",
+        "path": "private-reference-d7925d625252b2eda841",
         "offset": 0,
         "size": 1386,
         "sha256": "60c4178d8e91d08ed47254910af96cd6e95243a48a101e4e46fb613c970e8bc9"
@@ -232,13 +231,13 @@
         "convert_seed": 86
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/cbaef4abb262495498cac0ece9a199c6-00000.bundle",
+        "path": "private-reference-d7925d625252b2eda841",
         "offset": 20092,
         "size": 13608,
         "sha256": "073d4fa74c2b8cf131d42cdee2c4696452200786ee851f8d0d6ee64c2a428a19"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/cbaef4abb262495498cac0ece9a199c6-00000.bundle",
+        "path": "private-reference-d7925d625252b2eda841",
         "offset": 0,
         "size": 1386,
         "sha256": "60c4178d8e91d08ed47254910af96cd6e95243a48a101e4e46fb613c970e8bc9"
@@ -259,13 +258,13 @@
         "convert_seed": 98
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/3aca1a5767794a5e96b9448b0ff186e5-00000.bundle",
+        "path": "private-reference-4d36d83b247eaa90ffe2",
         "offset": 4232,
         "size": 16734,
         "sha256": "5b09ae8a274e645ab84158fcced3d90e440e057666718f5a411dd3b532acf133"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/3aca1a5767794a5e96b9448b0ff186e5-00000.bundle",
+        "path": "private-reference-4d36d83b247eaa90ffe2",
         "offset": 0,
         "size": 1547,
         "sha256": "d389853befd33342d2d35f0074476d669c26c6c4026523f085010749443a1a74"
@@ -286,13 +285,13 @@
         "convert_seed": 97
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/3aca1a5767794a5e96b9448b0ff186e5-00000.bundle",
+        "path": "private-reference-4d36d83b247eaa90ffe2",
         "offset": 23658,
         "size": 16508,
         "sha256": "ec162f0c49924a1adb641b37d1e126d9fcbea8f92834f41f6e3496b7ec0bb38b"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/3aca1a5767794a5e96b9448b0ff186e5-00000.bundle",
+        "path": "private-reference-4d36d83b247eaa90ffe2",
         "offset": 0,
         "size": 1547,
         "sha256": "d389853befd33342d2d35f0074476d669c26c6c4026523f085010749443a1a74"
@@ -313,13 +312,13 @@
         "convert_seed": 97
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/345fa09cc91d4c99b333dac2445ae0fc-00000.bundle",
+        "path": "private-reference-a7fee10edf384d8cec69",
         "offset": 4242,
         "size": 16509,
         "sha256": "ce797e63a263f95fcb5813e754a9e25045f014f544dbb8ff134ff5f3c20fb8b2"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/345fa09cc91d4c99b333dac2445ae0fc-00000.bundle",
+        "path": "private-reference-a7fee10edf384d8cec69",
         "offset": 0,
         "size": 1553,
         "sha256": "471e9145c5838c35599f85070e769abe33d4cb490e21bf3b280c3f1d05010fb3"
@@ -340,13 +339,13 @@
         "convert_seed": 98
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/345fa09cc91d4c99b333dac2445ae0fc-00000.bundle",
+        "path": "private-reference-a7fee10edf384d8cec69",
         "offset": 23439,
         "size": 16741,
         "sha256": "d59784cc89b20a0a6565ba012b264a0a5dd9f3d8f211c777c58e511ee1ad4c6e"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/345fa09cc91d4c99b333dac2445ae0fc-00000.bundle",
+        "path": "private-reference-a7fee10edf384d8cec69",
         "offset": 0,
         "size": 1553,
         "sha256": "471e9145c5838c35599f85070e769abe33d4cb490e21bf3b280c3f1d05010fb3"
@@ -367,13 +366,13 @@
         "convert_seed": 96
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/90b965ba8b0b4332ace2d63d32006ac1-00000.bundle",
+        "path": "private-reference-d1e201401cad1ec31ea4",
         "offset": 4072,
         "size": 16072,
         "sha256": "e358d073052e59fcf451c08c4f53366bca1b9d13e467bab755db17d07e636052"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/90b965ba8b0b4332ace2d63d32006ac1-00000.bundle",
+        "path": "private-reference-d1e201401cad1ec31ea4",
         "offset": 0,
         "size": 1440,
         "sha256": "b38aa6b4a16add47dc7181dbeee0349d327261b56089e66d20c8829c0173cc1b"
@@ -394,13 +393,13 @@
         "convert_seed": 95
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/90b965ba8b0b4332ace2d63d32006ac1-00000.bundle",
+        "path": "private-reference-d1e201401cad1ec31ea4",
         "offset": 22780,
         "size": 15843,
         "sha256": "82a420327b46bd978e532001c26a68585d1e62bd058d9bb82d102cd8922fa733"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/90b965ba8b0b4332ace2d63d32006ac1-00000.bundle",
+        "path": "private-reference-d1e201401cad1ec31ea4",
         "offset": 0,
         "size": 1440,
         "sha256": "b38aa6b4a16add47dc7181dbeee0349d327261b56089e66d20c8829c0173cc1b"
@@ -421,13 +420,13 @@
         "convert_seed": 95
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/06b5631f08b84ad19ba12e92580feb26-00000.bundle",
+        "path": "private-reference-98319d158e6e6ee79954",
         "offset": 4079,
         "size": 15847,
         "sha256": "0516cc1ca885b0e3fcd253ed5d19abeb409d7d2282610ac0d5bca7f2f102d259"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/06b5631f08b84ad19ba12e92580feb26-00000.bundle",
+        "path": "private-reference-98319d158e6e6ee79954",
         "offset": 0,
         "size": 1444,
         "sha256": "40aa474ce5b30cd1fa58ca6f9aa884a5dd55a84be0b6d58c8e8a05e39c50b484"
@@ -448,13 +447,13 @@
         "convert_seed": 96
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/06b5631f08b84ad19ba12e92580feb26-00000.bundle",
+        "path": "private-reference-98319d158e6e6ee79954",
         "offset": 22560,
         "size": 16077,
         "sha256": "9dc4a5f26c6a5609e451384e284eede8af60f092c42cda82cef2c702d29bbf6d"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/06b5631f08b84ad19ba12e92580feb26-00000.bundle",
+        "path": "private-reference-98319d158e6e6ee79954",
         "offset": 0,
         "size": 1444,
         "sha256": "40aa474ce5b30cd1fa58ca6f9aa884a5dd55a84be0b6d58c8e8a05e39c50b484"
@@ -475,13 +474,13 @@
         "convert_seed": 96
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/344593dc7e454a8bad54d2c03023ac02-00000.bundle",
+        "path": "private-reference-3abc0447f9462fa84d03",
         "offset": 4162,
         "size": 16120,
         "sha256": "57bbb5ef050a50ca84366b06825d1b26cdf306fc0966a1b40f8425571be97021"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/344593dc7e454a8bad54d2c03023ac02-00000.bundle",
+        "path": "private-reference-3abc0447f9462fa84d03",
         "offset": 0,
         "size": 1475,
         "sha256": "45d4be2e8d650ad7129e24a17ac921037fbc723e022be37750b2fec9056e6b4c"
@@ -502,13 +501,13 @@
         "convert_seed": 97
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/344593dc7e454a8bad54d2c03023ac02-00000.bundle",
+        "path": "private-reference-3abc0447f9462fa84d03",
         "offset": 22971,
         "size": 16367,
         "sha256": "4a074a5544cedf30945b43af6ba1084dfd7617be399d78e182a08677326317a5"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/344593dc7e454a8bad54d2c03023ac02-00000.bundle",
+        "path": "private-reference-3abc0447f9462fa84d03",
         "offset": 0,
         "size": 1475,
         "sha256": "45d4be2e8d650ad7129e24a17ac921037fbc723e022be37750b2fec9056e6b4c"
@@ -529,13 +528,13 @@
         "convert_seed": 97
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/adc291076db3450dbc5f06b76e227db3-00000.bundle",
+        "path": "private-reference-8cbc91edd1e8fffcbd73",
         "offset": 4159,
         "size": 16363,
         "sha256": "c29084478673d522f751754545254a8debbf4b2ed6c8ee68326c879fda948499"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/adc291076db3450dbc5f06b76e227db3-00000.bundle",
+        "path": "private-reference-8cbc91edd1e8fffcbd73",
         "offset": 0,
         "size": 1473,
         "sha256": "280fe50f926e41c6548f05cf391fcfb83c72fe65c2092c7eb9d89dd48e019073"
@@ -556,13 +555,13 @@
         "convert_seed": 96
       },
       "blob": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/adc291076db3450dbc5f06b76e227db3-00000.bundle",
+        "path": "private-reference-8cbc91edd1e8fffcbd73",
         "offset": 23212,
         "size": 16117,
         "sha256": "d772df89bda664e1c0c90e95a7cfcbe0d67be14ab2a78f095688fff1f37273b1"
       },
       "reference": {
-        "path": "/scratch/fsw/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/mappa/rebenchmark_20261027/enzymemap_fresh_20261030/inputs/adc291076db3450dbc5f06b76e227db3-00000.bundle",
+        "path": "private-reference-8cbc91edd1e8fffcbd73",
         "offset": 0,
         "size": 1473,
         "sha256": "280fe50f926e41c6548f05cf391fcfb83c72fe65c2092c7eb9d89dd48e019073"
@@ -761,22 +760,22 @@
     }
   },
   "workers": {
-    "cpu1-00102:1126941:14e3856b27564de1927b44ebc69fabb3": 1126962,
-    "cpu1-00102:1126941:5799007a9b78476eb7270055ca331d78": 1126957,
-    "cpu1-00102:1126941:5a4a15c5c1934dbe96d744e72f083739": 1126959,
-    "cpu1-00102:1126941:879eb520ae0d42a5b2c7aef117a916c8": 1126955,
-    "cpu1-00102:1126941:8320883fd3e94649991e65e973e9f9be": 1126956,
-    "cpu1-00102:1126941:191ae5a283754223bb8060cece7e0221": 1126961,
-    "cpu1-00102:1126941:3d2aefc2ad08475b8c78bf32537fcd89": 1126958,
-    "cpu1-00102:1126941:e6f4ce4de0d749199b825512c9afb126": 1126960,
-    "cpu1-00105:2656826:dc95c71f9d9143ed99e4a205ce1ca18c": 2656844,
-    "cpu1-00105:2656826:dbe62686ba494483aa82404e9a7e7b49": 2656843,
-    "cpu1-00105:2656826:4c419bb654f545ecacd0f330002ee05f": 2656842,
-    "cpu1-00105:2656826:6e13354ce8ad49dcbd6f1dcaa9f63635": 2656848,
-    "cpu1-00105:2656826:7cee46ffe4c145ab93a256ebdd0a2156": 2656845,
-    "cpu1-00105:2656826:0f938710ac684225a7026f3c53ecaaca": 2656847,
-    "cpu1-00105:2656826:c1074b29276a4683bbe46cf4f2236a05": 2656846,
-    "cpu1-00105:2656826:a6a4a79f14184c8fbb93d09860711031": 2656841
+    "private-reference-7b2bfb8590f8545caa63:1126941:14e3856b27564de1927b44ebc69fabb3": 1126962,
+    "private-reference-7b2bfb8590f8545caa63:1126941:5799007a9b78476eb7270055ca331d78": 1126957,
+    "private-reference-7b2bfb8590f8545caa63:1126941:5a4a15c5c1934dbe96d744e72f083739": 1126959,
+    "private-reference-7b2bfb8590f8545caa63:1126941:879eb520ae0d42a5b2c7aef117a916c8": 1126955,
+    "private-reference-7b2bfb8590f8545caa63:1126941:8320883fd3e94649991e65e973e9f9be": 1126956,
+    "private-reference-7b2bfb8590f8545caa63:1126941:191ae5a283754223bb8060cece7e0221": 1126961,
+    "private-reference-7b2bfb8590f8545caa63:1126941:3d2aefc2ad08475b8c78bf32537fcd89": 1126958,
+    "private-reference-7b2bfb8590f8545caa63:1126941:e6f4ce4de0d749199b825512c9afb126": 1126960,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:dc95c71f9d9143ed99e4a205ce1ca18c": 2656844,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:dbe62686ba494483aa82404e9a7e7b49": 2656843,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:4c419bb654f545ecacd0f330002ee05f": 2656842,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:6e13354ce8ad49dcbd6f1dcaa9f63635": 2656848,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:7cee46ffe4c145ab93a256ebdd0a2156": 2656845,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:0f938710ac684225a7026f3c53ecaaca": 2656847,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:c1074b29276a4683bbe46cf4f2236a05": 2656846,
+    "private-reference-7e9b7309c0b7ec94c4d6:2656826:a6a4a79f14184c8fbb93d09860711031": 2656841
   },
   "startup_seconds": 2.9518688659882173,
   "exact_graph_comparisons": 1842,
@@ -55679,5 +55678,9 @@
     "4389eccb0b04857ccf16487c27c146efd168794b5b83e438d99c632da3cbaf22.latest.cache": 53693,
     "60fcb1f7bc47143c674563b115ffc665825ac0d29d1f417fbd283fd47477c552.latest.cache": 59047
   },
-  "complete": true
+  "complete": true,
+  "privacy_projection": {
+    "original_sha256": "b50c7c03d314cfd44285c6e8af80cd795ec2f1efc9f9cc2121c3c1a2ef36e2ea",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

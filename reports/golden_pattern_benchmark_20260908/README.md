@@ -61,10 +61,8 @@ reference recovery as 100% extraction completeness.
 
 ## Parallelism, timings and provenance
 
-- Main pass: 16 nodes, up to 24 archive workers each (384 allocated logical CPUs).
-  Two stalled allocations were replaced. Main batch elapsed: 11 minutes 57 seconds.
-  The completed case-1033 P→R preflight on bosque1 was reused; worker environments
-  are recorded individually. This validation pass is not a homogeneous-hardware
+- Main batch elapsed: 11 minutes 57 seconds. Two unstarted allocations were
+  replaced. The completed case-1033 P→R preflight was reused. This validation pass is not a homogeneous-hardware
   clean timing benchmark.
 - Two tail baselines contained 56,667 and 17,499 saved classes. Reuse of their saved
   scores/certificates removed redundant work; exact explicit-mapping certificates
@@ -79,13 +77,13 @@ reference recovery as 100% extraction completeness.
 - Archive loading/hashing, extraction, persistence and reference verification
   are separately recorded. Summed extraction wall time is not cluster elapsed.
   Original parallel retry `worker_cpu_seconds` fields contain parent CPU only;
-  use `slurm_accounting.tsv` for their inclusive CPU totals. Future instrumentation
+  use the private accounting records for their inclusive CPU totals. Future instrumentation
   now separately captures child CPU. Do not publish those parent-only fields as
   total CPU cost.
 - Immutable main, repaired and parallel worker snapshots are retained. Their
   source hashes are in the manifest files; all prior partial retry artifacts are
-  preserved. Final jobs for the parallel repair were 452148 and 452150; job 452149
-  exited without doing work and is also retained in the accounting log.
+  preserved. The two parallel repair runs completed; an additional attempt
+  exited without doing work. Raw operational records are retained privately.
 
 Validation: **84 focused tests passed**, including exact-pattern oracles, partial
 mappings, coupled symmetry, resumption, parallel/serial output identity and order,
@@ -94,9 +92,7 @@ shared feasibility/scoring, and the existing graph/viewer tests.
 ## Artifacts and viewer
 
 Complete machine-readable run and witnesses:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_pattern_collection_20260908_v2`
-
+Original artifact locations are retained privately.
 Per direction: `results/<index>/<direction>/patterns.jsonl.gz` stores physical
 mappings, events, action traces and originating paths; `paths.jsonl.gz` records
 visited families and completion. `candidates.json` and `summary.json` store scores,
@@ -105,8 +101,6 @@ source path recorded in the manifests.
 
 The updated case-1033 viewer shows all 181 collected candidates, including the
 reference-equivalent mapping at rank 7, and is rendered from saved mappings only:
-
-`/h/399/yunhengzou/coordinate_alignment/reports/golden_pattern_benchmark_20260908/case1033/viewer.html`
-
+Original artifact locations are retained privately.
 GitHub stores `case1033/viewer.html.gz`; decompress it before opening. The plain
 HTML remains on the cluster. The report and per-case tables are committed here.

@@ -23,7 +23,7 @@
         "sampled_cpu_seconds": 46.02,
         "memory_samples": 213,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00109:319901:df292c3338c74321928488e395332cea",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:df292c3338c74321928488e395332cea",
         "monitoring_seconds": 0.03406218544114381,
         "elapsed_seconds": 46.17756601492874
       }
@@ -41,7 +41,7 @@
         "sampled_cpu_seconds": 224.54999999999998,
         "memory_samples": 1080,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00140:106585:5741ff9038f649dca68d6cb7e27ef28c",
+        "worker": "private-reference-921cc3ae1e84b43612b9:106585:5741ff9038f649dca68d6cb7e27ef28c",
         "monitoring_seconds": 0.19118825811892748,
         "elapsed_seconds": 224.69300156086683
       }
@@ -59,7 +59,7 @@
         "sampled_cpu_seconds": 77.77000000000001,
         "memory_samples": 374,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00139:1414808:6f2287941e0d4091b0e7b5ddc900fcad",
+        "worker": "private-reference-783a4f5065e458c2d943:1414808:6f2287941e0d4091b0e7b5ddc900fcad",
         "monitoring_seconds": 0.08912768214941025,
         "elapsed_seconds": 77.92407505796291
       }
@@ -77,7 +77,7 @@
         "sampled_cpu_seconds": 72.71000000000001,
         "memory_samples": 349,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00109:319901:75d2bdc200d04a2383fbfd5f66ac3ed6",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:75d2bdc200d04a2383fbfd5f66ac3ed6",
         "monitoring_seconds": 0.055512753897346556,
         "elapsed_seconds": 72.71210542402696
       }
@@ -87,7 +87,6 @@
       "metrics": {
         "cpu_seconds": 39.530220451000005,
         "compute_seconds": 39.5282307555899,
-        "compute_pid": 611041,
         "peak_tree_rss_bytes": 2162765824,
         "phase_peak_tree_rss_bytes": {
           "compute": 2094235648,
@@ -98,7 +97,7 @@
         "sampled_cpu_seconds": 39.959999999999994,
         "memory_samples": 197,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00144:611025:c336faa1f94a46f28c504324e34b6161",
+        "worker": "private-reference-05ff86f8e29b09e726d5:611025:c336faa1f94a46f28c504324e34b6161",
         "monitoring_seconds": 0.03112941700965166,
         "elapsed_seconds": 40.40213976521045
       }
@@ -116,7 +115,7 @@
         "sampled_cpu_seconds": 61.94999999999999,
         "memory_samples": 294,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00130:3978571:7de34e8a27424a0bad812f39ce48582d",
+        "worker": "private-reference-1c039d3dde4e1c859445:3978571:7de34e8a27424a0bad812f39ce48582d",
         "monitoring_seconds": 0.04898238030727953,
         "elapsed_seconds": 62.119114839006215
       }
@@ -134,7 +133,7 @@
         "sampled_cpu_seconds": 26.30000000000001,
         "memory_samples": 131,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00130:3978571:995da3722790488eae4d44805fadb01e",
+        "worker": "private-reference-1c039d3dde4e1c859445:3978571:995da3722790488eae4d44805fadb01e",
         "monitoring_seconds": 0.03256036282982677,
         "elapsed_seconds": 26.33370788593311
       }
@@ -152,7 +151,7 @@
         "sampled_cpu_seconds": 29.75999999999999,
         "memory_samples": 149,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00016:2292690:c97813f0c52640b5a7bc2e816d6c105d",
+        "worker": "private-reference-03769da5ead2f3f3a87d:2292690:c97813f0c52640b5a7bc2e816d6c105d",
         "monitoring_seconds": 0.03640983998775482,
         "elapsed_seconds": 29.866450315807015
       }
@@ -170,7 +169,7 @@
         "sampled_cpu_seconds": 28.33,
         "memory_samples": 140,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00016:2292690:cd89eaf3df534587a2fbd1b8cfdb2a76",
+        "worker": "private-reference-03769da5ead2f3f3a87d:2292690:cd89eaf3df534587a2fbd1b8cfdb2a76",
         "monitoring_seconds": 0.032536000944674015,
         "elapsed_seconds": 28.370449305977672
       }
@@ -188,7 +187,7 @@
         "sampled_cpu_seconds": 32.97000000000001,
         "memory_samples": 162,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00139:1414808:be73f7734a424ea7898c686e57dc8e93",
+        "worker": "private-reference-783a4f5065e458c2d943:1414808:be73f7734a424ea7898c686e57dc8e93",
         "monitoring_seconds": 0.035671464167535305,
         "elapsed_seconds": 33.03566697286442
       }
@@ -206,7 +205,7 @@
         "sampled_cpu_seconds": 49.33,
         "memory_samples": 245,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00139:1414808:da422aa0cf7d4662896842918e5736fe",
+        "worker": "private-reference-783a4f5065e458c2d943:1414808:da422aa0cf7d4662896842918e5736fe",
         "monitoring_seconds": 0.05491891549900174,
         "elapsed_seconds": 49.33294660318643
       }
@@ -224,7 +223,7 @@
         "sampled_cpu_seconds": 156.23000000000002,
         "memory_samples": 766,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00109:319901:1bcf70add0e44c50aa0a1cb480c52a70",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:1bcf70add0e44c50aa0a1cb480c52a70",
         "monitoring_seconds": 0.17190281045623124,
         "elapsed_seconds": 156.4039034730522
       }
@@ -242,7 +241,7 @@
         "sampled_cpu_seconds": 44.59,
         "memory_samples": 221,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00139:1414808:7d882dbe6f224e458768200d2faef7f4",
+        "worker": "private-reference-783a4f5065e458c2d943:1414808:7d882dbe6f224e458768200d2faef7f4",
         "monitoring_seconds": 0.05816836771555245,
         "elapsed_seconds": 44.781180772930384
       }
@@ -252,7 +251,6 @@
       "metrics": {
         "cpu_seconds": 10.450882750999995,
         "compute_seconds": 10.452193634584546,
-        "compute_pid": 611050,
         "peak_tree_rss_bytes": 2154061824,
         "phase_peak_tree_rss_bytes": {
           "compute": 2067214336,
@@ -263,7 +261,7 @@
         "sampled_cpu_seconds": 10.670000000000016,
         "memory_samples": 54,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00144:611025:d12d98987c4d4badaed6388978030fca",
+        "worker": "private-reference-05ff86f8e29b09e726d5:611025:d12d98987c4d4badaed6388978030fca",
         "monitoring_seconds": 0.01034655049443245,
         "elapsed_seconds": 10.952431824989617
       }
@@ -281,7 +279,7 @@
         "sampled_cpu_seconds": 10.819999999999993,
         "memory_samples": 55,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00144:611025:529996ecfc71408bb13318aa92591da1",
+        "worker": "private-reference-05ff86f8e29b09e726d5:611025:529996ecfc71408bb13318aa92591da1",
         "monitoring_seconds": 0.009532611817121506,
         "elapsed_seconds": 10.823220589198172
       }
@@ -299,7 +297,7 @@
         "sampled_cpu_seconds": 27.30000000000001,
         "memory_samples": 137,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00105:3342836:6c90f9fc841a4eafa3766879841ea2bb",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:6c90f9fc841a4eafa3766879841ea2bb",
         "monitoring_seconds": 0.02807454636786133,
         "elapsed_seconds": 27.295173057937063
       }
@@ -317,7 +315,7 @@
         "sampled_cpu_seconds": 9.43999999999997,
         "memory_samples": 48,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00105:3342836:819f228ed1404eaea71f8d93f5780196",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:819f228ed1404eaea71f8d93f5780196",
         "monitoring_seconds": 0.00783963908907026,
         "elapsed_seconds": 9.592465806053951
       }
@@ -327,7 +325,6 @@
       "metrics": {
         "cpu_seconds": 11.587762137999995,
         "compute_seconds": 11.588537285919301,
-        "compute_pid": 3344507,
         "peak_tree_rss_bytes": 2247655424,
         "phase_peak_tree_rss_bytes": {
           "compute": 1828286464,
@@ -338,7 +335,7 @@
         "sampled_cpu_seconds": 13.199999999999989,
         "memory_samples": 67,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00105:3342836:852ed9f9448945c6a21a722639835d8d",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:852ed9f9448945c6a21a722639835d8d",
         "monitoring_seconds": 0.01077838719356805,
         "elapsed_seconds": 13.33312259602826
       }
@@ -356,7 +353,7 @@
         "sampled_cpu_seconds": 28.190000000000005,
         "memory_samples": 140,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00105:3342836:caba1aec55bd4d3196b0a1aa0d6faab4",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:caba1aec55bd4d3196b0a1aa0d6faab4",
         "monitoring_seconds": 0.02612735191360116,
         "elapsed_seconds": 28.29731409694068
       }
@@ -374,7 +371,7 @@
         "sampled_cpu_seconds": 36.46000000000001,
         "memory_samples": 181,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00109:319901:1de0ba7f43b54f9c84df86b81c2d436f",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:1de0ba7f43b54f9c84df86b81c2d436f",
         "monitoring_seconds": 0.03920385439414531,
         "elapsed_seconds": 36.461388322059065
       }
@@ -392,7 +389,7 @@
         "sampled_cpu_seconds": 13.539999999999992,
         "memory_samples": 68,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00130:3978571:f24fe8ff0c274b4f9718ce7f3b8fb21f",
+        "worker": "private-reference-1c039d3dde4e1c859445:3978571:f24fe8ff0c274b4f9718ce7f3b8fb21f",
         "monitoring_seconds": 0.014358562766574323,
         "elapsed_seconds": 13.545183261972852
       }
@@ -402,7 +399,6 @@
       "metrics": {
         "cpu_seconds": 5.781367082999992,
         "compute_seconds": 5.781615087995306,
-        "compute_pid": 3342864,
         "peak_tree_rss_bytes": 2173382656,
         "phase_peak_tree_rss_bytes": {
           "compute": 2120577024,
@@ -413,7 +409,7 @@
         "sampled_cpu_seconds": 5.900000000000006,
         "memory_samples": 31,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00105:3342836:604dd08ffd544027b0febe986d72c7c5",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:604dd08ffd544027b0febe986d72c7c5",
         "monitoring_seconds": 0.005069012753665447,
         "elapsed_seconds": 6.181801188969985
       }
@@ -423,7 +419,6 @@
       "metrics": {
         "cpu_seconds": 0.15342847499999834,
         "compute_seconds": 0.15341674094088376,
-        "compute_pid": 3978631,
         "peak_tree_rss_bytes": 2153664512,
         "phase_peak_tree_rss_bytes": {
           "compute": 2092568576,
@@ -434,7 +429,7 @@
         "sampled_cpu_seconds": 0.30999999999997385,
         "memory_samples": 3,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00130:3978571:c301a2220cb24df0b940b8a77803ab37",
+        "worker": "private-reference-1c039d3dde4e1c859445:3978571:c301a2220cb24df0b940b8a77803ab37",
         "monitoring_seconds": 0.0004668160108849406,
         "elapsed_seconds": 0.4671666449867189
       }
@@ -444,7 +439,6 @@
       "metrics": {
         "cpu_seconds": 0.2788144030000126,
         "compute_seconds": 0.27894667629152536,
-        "compute_pid": 106613,
         "peak_tree_rss_bytes": 2149715968,
         "phase_peak_tree_rss_bytes": {
           "compute": 2062831616,
@@ -455,7 +449,7 @@
         "sampled_cpu_seconds": 0.4000000000000341,
         "memory_samples": 3,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00140:106585:0b7512968d7d4d3984721215e183766b",
+        "worker": "private-reference-921cc3ae1e84b43612b9:106585:0b7512968d7d4d3984721215e183766b",
         "monitoring_seconds": 0.0004885643720626831,
         "elapsed_seconds": 0.4010469187051058
       }
@@ -482,9 +476,11 @@
     "cache_errors": []
   },
   "utc": "2026-11-01T08:38:15.270433+00:00",
-  "job": "21140383",
   "scope": "Current live batch-0 queue; completed reaction audits retired later are not included",
-  "slurm": "             JOBID      STATE     TIME  NODES   CPUS                              NODELIST(REASON)\n      21140390_[0]    PENDING     0:00      7    112                                  (Dependency)\n      21140389_[4]    PENDING     0:00      2    184                                    (Priority)\n      21140388_[3]    PENDING     0:00      2    184                                    (Priority)\n      21140386_[1]    PENDING     0:00      2    184                                    (Priority)\n      21140387_[2]    PENDING     0:00      2    184                                    (Priority)\n      21140394_[4]    PENDING     0:00      2    184                                  (Dependency)\n      21140393_[3]    PENDING     0:00      2    184                                  (Dependency)\n      21140392_[2]    PENDING     0:00      2    184                                  (Dependency)\n      21140391_[1]    PENDING     0:00      2    184                                  (Dependency)\n        21140383_0    RUNNING     5:44      7    112 cpu1-[00016,00105,00109,00130,00139-00140,00144]\n",
   "registered_worker_incarnations": 122,
-  "worker_registration_note": "Includes replacement processes after memory-limit exits; current concurrency is running_workers."
+  "worker_registration_note": "Includes replacement processes after memory-limit exits; current concurrency is running_workers.",
+  "privacy_projection": {
+    "original_sha256": "ca19f58bfe05803114aade10f51c4bd4873ad59011656309520153e38657c2bc",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

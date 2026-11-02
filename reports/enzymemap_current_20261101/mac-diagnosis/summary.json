@@ -14,7 +14,6 @@
       "original_metrics": {
         "cpu_seconds": 0.19332380999992438,
         "compute_seconds": 0.19333656295202672,
-        "compute_pid": 319917,
         "peak_tree_rss_bytes": 2150580224,
         "phase_peak_tree_rss_bytes": {
           "compute": 2023731200,
@@ -25,7 +24,7 @@
         "sampled_cpu_seconds": 0.16999999999995907,
         "memory_samples": 2,
         "phase_at_exit": "publication",
-        "worker": "cpu1-00109:319901:f55eeb624d5d46de92e81e1eb5b2b65c",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:f55eeb624d5d46de92e81e1eb5b2b65c",
         "monitoring_seconds": 0.0004155180649831891,
         "elapsed_seconds": 0.3167805710108951
       },
@@ -48,7 +47,7 @@
         "sampled_cpu_seconds": 46.02,
         "memory_samples": 213,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00109:319901:df292c3338c74321928488e395332cea",
+        "worker": "private-reference-c446f3acf119471a4d55:319901:df292c3338c74321928488e395332cea",
         "monitoring_seconds": 0.03406218544114381,
         "elapsed_seconds": 46.17756601492874
       },
@@ -71,7 +70,7 @@
         "sampled_cpu_seconds": 3602.38,
         "memory_samples": 17726,
         "phase_at_exit": "compute",
-        "worker": "cpu1-00105:3342836:6f9e22f5129c42868a620d928def150e",
+        "worker": "private-reference-7e9b7309c0b7ec94c4d6:3342836:6f9e22f5129c42868a620d928def150e",
         "monitoring_seconds": 3.610449464060366,
         "elapsed_seconds": 3602.5242974179564
       },
@@ -90,7 +89,6 @@
         "phase": "native_finished",
         "cut": 262,
         "rss": 90521600,
-        "pid": 72857,
         "time": 1418997.93223875,
         "cpu_seconds": 0.494538,
         "states": 85,
@@ -109,7 +107,6 @@
         "phase": "publication_start",
         "cut": 262,
         "rss": 92471296,
-        "pid": 72857,
         "time": 1418997.970638208,
         "cpu_seconds": 0.532922,
         "repair": {
@@ -161,7 +158,6 @@
         "phase": "native_finished",
         "cut": 262,
         "rss": 2636038144,
-        "pid": 72884,
         "time": 1419097.660420208,
         "cpu_seconds": 78.389122,
         "states": 85,
@@ -180,7 +176,6 @@
         "phase": "publication_start",
         "cut": 262,
         "rss": 2636054528,
-        "pid": 72884,
         "time": 1419097.678248958,
         "cpu_seconds": 78.406938,
         "repair": {
@@ -232,7 +227,6 @@
         "phase": "native_finished",
         "cut": 144,
         "rss": 2869231616,
-        "pid": 72912,
         "time": 1419059.18270825,
         "cpu_seconds": 16.48839,
         "states": 66433,
@@ -251,7 +245,6 @@
         "phase": "publication_start",
         "cut": 144,
         "rss": 2918580224,
-        "pid": 72912,
         "time": 1419061.361187375,
         "cpu_seconds": 18.663742,
         "repair": {
@@ -317,7 +310,6 @@
         "phase": "native_finished",
         "cut": 262,
         "rss": 87539712,
-        "pid": 73366,
         "time": 1419435.3878835,
         "cpu_seconds": 0.426032,
         "states": 85,
@@ -336,7 +328,6 @@
         "phase": "publication_start",
         "cut": 262,
         "rss": 89964544,
-        "pid": 73366,
         "time": 1419435.426914083,
         "cpu_seconds": 0.465045,
         "repair": {
@@ -14029,5 +14020,9 @@
       "exact_graph_comparison": "265/265 finalized search graphs identical in every dataclass field, including contexts, roots, states, transitions and stops. No mapping-family expansion.",
       "limits": "The small competing-positive query is 14.85 to 16.10 microseconds in the final paired round. Ring completion stays about 16/32 microseconds. This is not a claim that every call improves or that hard absence queries have a uniform runtime bound. Local tests do not establish cluster throughput. Previous 400-query permutation validation remains historical and was not rerun for this predicate-preserving change."
     }
+  },
+  "privacy_projection": {
+    "original_sha256": "6c3d03db3cbde5cb5e8e01893e1efe887b3e649f6c609dd86b4be8cf42713b5a",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

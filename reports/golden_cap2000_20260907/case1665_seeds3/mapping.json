@@ -1,6 +1,6 @@
 {
   "index": 1665,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/case1665_seeds3_cap2000/cuts/aam.pkl.gz",
+  "archive": "private-reference-a8aa9b5ffe5bf6a5022d",
   "records": [
     {
       "label": "Reference",
@@ -1717,5 +1717,9 @@
       "bond_order_changed": 0
     }
   },
-  "cap_stops": 0
+  "cap_stops": 0,
+  "privacy_projection": {
+    "original_sha256": "e03cd1b7458853c17c2b69288e5b1b8213c162d8083000e5e824df6762cdc0fc",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -2,7 +2,7 @@
 
 Commit `096a010961f53944ddd4ddc433bd8d56f282a2f2` completed all **1,851 reactions /
 3,702 directions**, including matching, reduction, decoding and reference
-verification. All ten DFW allocations exited successfully. There were no failed
+verification. There were no failed
 tasks, retries, unknown verification results or cache errors.
 
 ## Reference recovery
@@ -22,13 +22,6 @@ not prove that no valid mapping exists.
 
 ## Time and memory
 
-The complete fresh run took **11 minutes 56 seconds**, from the first allocation
-start to the last allocation finish. Matching and reduction occupied a
-**5 minute 25 second** allocation window; decoding and verification occupied
-**5 minutes 57 seconds**, with 34 seconds between the windows. These durations
-include staggered allocation starts and pool startup, and exclude preparation,
-compilation and the subsequent read-only audit.
-
 CPU seconds below are summed across workers and exclude result-publication CPU:
 
 | Stage | Previous compute CPU seconds | Current compute CPU seconds | Change |
@@ -45,13 +38,8 @@ Matching's sampled worker RSS fell from **414.2 to 364.0 MiB**. The current
 pipeline peaked at **990.75 MiB** sampled worker RSS under the unchanged **2 GiB**
 guard. Sampling is not a proof that every transient allocation was observed.
 
-Each batch used all 100 matching workers and reached 100 overlapping tasks.
-Two pools could run concurrently; observed global task overlap peaked at 192
-during matching and 200 during decoding. Average total worker CPU consumption
-within each matching batch was 16.5–18.2 cores. Worker concurrency does not mean
-all allocated CPUs were continuously busy. The completed-fragment cache recorded
-a **91.83% hit rate**, no baseline-recovery loads, no errors, and at most
-**40.95 MiB** retained in a worker snapshot.
+The completed-fragment cache recorded a **91.83% hit rate**, no baseline
+recovery loads, no errors, and at most **40.95 MiB** retained in a snapshot.
 
 ## Local point test of the previous failure
 
@@ -81,7 +69,7 @@ family tables and 13 shared responses.
 The 49.09-second total also includes pool startup and stage coordination. The
 isolated replay and persistent-worker pipeline have different resident memory
 histories; their RSS values need not match. These Mac timings are not directly
-comparable to the DFW timings above. [Point-test evidence](point-1561.json)
+comparable to the distributed-run timings above. [Point-test evidence](point-1561.json)
 contains input checksums, commands, stage audits, verification and the complete
 saved-catalogue replay log. No algorithm or configuration was changed.
 
@@ -101,23 +89,20 @@ atoms, modulo chemically colored endpoint symmetries. Its per-family query limit
 remains 10 seconds. All 5,553 unique prepared input/reference blobs were verified
 against their saved checksums. The new run imported no old results or caches.
 
-The same four-node / 100-worker layout was retained: 28 allocated CPUs and
-54 GiB per node (112 CPUs per pool), with a 2 GiB guard per compute worker. Five disjoint batches
-ran with at most two pools concurrently. All matching and reduction finished
-before decoding began. Jobs were `21159701` and `21159702`.
+All matching and reduction finished before decoding began. Private execution
+configuration and raw operational records are excluded from this public report.
 
 There is no clean previous end-to-end wall-time baseline: the original run
 included a decoder failure and later repair, and the latest decoder-only pass
 reused one previously completed point result. Its CPU figure above explicitly
-includes that point, covering all 3,702 outputs; its 225-second allocation window
-does not include the earlier point run. The old matching-only 373-second window
-also differs in scope from the new matching-plus-reduction window. CPU totals
+includes that point, covering all 3,702 outputs; its elapsed window
+excludes the earlier point run. CPU totals
 provide the stage comparison; elapsed time is not presented as an isolated
 algorithm speedup. These are single full runs, not repeated timing trials.
 
-[summary.json](summary.json) retains source/build identities, input hashes,
-launch commands, Slurm accounting, per-stage/per-batch CPU and memory evidence,
-cache statistics and the complete comparison. [reference-results.json.gz](reference-results.json.gz)
-retains every reaction/direction outcome, compact per-case stage metrics and
-references to the original verification evidence. The audit reads saved results;
-it performs no further scientific computation.
+[summary.json](summary.json) retains a scientific projection of the source
+identity, input checksums, stage CPU and memory measurements and comparison.
+[reference-results.json.gz](reference-results.json.gz) retains every case and
+direction outcome, stage measurements and verification evidence checksums;
+private artifact locations are omitted. Original records are retained privately.
+The audit reads saved results and performs no further scientific computation.

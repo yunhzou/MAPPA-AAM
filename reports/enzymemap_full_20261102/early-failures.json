@@ -1,9 +1,8 @@
 {
   "observed_utc": "2026-11-02T00:50:51.377964+00:00",
   "purpose": "Read-only audit of published ledger and archived task results; no scientific recomputation or job changes.",
-  "campaign_root": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102",
+  "campaign_root": "private-reference-1c3a4578f735e673867f",
   "batch": 0,
-  "slurm_job": "21162307_0",
   "source_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
   "progress_snapshot": {
     "elapsed_seconds": 144.7581835410092,
@@ -64,7 +63,7 @@
       "memory_guard_bytes": 2147483648,
       "operation": "mappa.mappa_core.core.scheduler.search:search_complete_cut",
       "audit": {
-        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/0/result/bundles/1c34c1efdf474dbb90ab4e963b14356c-00000.bundle",
+        "path": "private-reference-e284f85918834c81eaf5",
         "offset": 1516917,
         "size": 1178008,
         "sha256": "0ee9aa545f19a9dc7ce2df2500c7688bf7a9b1ef5a708719b4d0379cda41e64a"
@@ -102,7 +101,7 @@
       "memory_guard_bytes": 2147483648,
       "operation": "mappa.mappa_core.core.scheduler.search:search_complete_cut",
       "audit": {
-        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/0/result/bundles/1c34c1efdf474dbb90ab4e963b14356c-00000.bundle",
+        "path": "private-reference-e284f85918834c81eaf5",
         "offset": 2694925,
         "size": 1188518,
         "sha256": "5e45d56c83592aedf677da9d93deb871854d60f1816e1e56b2e11f8f6fa22aa5"
@@ -123,5 +122,9 @@
     "compute_peak_rss_bytes": 1760972800,
     "publication_peak_rss_bytes": 2167967744,
     "memory_guard_bytes": 2147483648
+  },
+  "privacy_projection": {
+    "original_sha256": "d6d8171fc596e7964d850510dcbf9db3c281d5222079ea1b1b2f9eb1c9f93f04",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

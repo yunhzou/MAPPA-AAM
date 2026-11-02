@@ -893,7 +893,7 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/endpoints/R/reactant_combined.xyz"
+      "xyz": "private-reference-0c3e1d9aea475a7fd82f"
     },
     "TS": {
       "elements": [
@@ -1786,17 +1786,17 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/targets/GT_sp/ts_groundtruth_01_reference_ts_01_TS1.xyz"
+      "xyz": "private-reference-ac4882c8dcc10f3de06a"
     }
   },
   "sha256": {
     "R": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/endpoints/R/reactant_combined.xyz": "680eaa9cca55e3eb079da8151eb583b6dcad5324815a87be06e72acbf52ed75a",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/endpoints/R/wbo": "9f80b3e3549a4af774a93da73e25a10ae3225c04bdd2e0a5773755540ccb54c1"
+      "private-reference-0c3e1d9aea475a7fd82f": "680eaa9cca55e3eb079da8151eb583b6dcad5324815a87be06e72acbf52ed75a",
+      "private-reference-e3c523740bdec844c226": "9f80b3e3549a4af774a93da73e25a10ae3225c04bdd2e0a5773755540ccb54c1"
     },
     "TS": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/targets/GT_sp/ts_groundtruth_01_reference_ts_01_TS1.xyz": "0ba6d3cf69790ffe8b28ed173c1ecf36173f2b5faff72f9d49ef6d2992e69264",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr1.tempo_ts1/targets/GT_sp/wbo": "97494a76d94aa1256c70a9d7c056be986567a5a30c6d0bdb09a9f96f44e7d0fd"
+      "private-reference-ac4882c8dcc10f3de06a": "0ba6d3cf69790ffe8b28ed173c1ecf36173f2b5faff72f9d49ef6d2992e69264",
+      "private-reference-0bd4ef8faf4ba0625eb7": "97494a76d94aa1256c70a9d7c056be986567a5a30c6d0bdb09a9f96f44e7d0fd"
     }
   },
   "costs": [
@@ -2561,10 +2561,14 @@
       ]
     }
   ],
-  "archived_event_source": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/pr1.tempo_ts1/ts_stage.json",
+  "archived_event_source": "private-reference-3b1d6309d90f6e2040a3",
   "archived_event_sha256": "302a7be2d8ca3bd98e1eec54b67bffbb908dda09520490eb4b458208f899d02a",
   "event_examples": [],
   "archived_mechanisms_without_ts_assignment": [
     1
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "c4e01cc3e20bdff5feca39520a6df91fca4255260a73030205fd641e01a4016f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

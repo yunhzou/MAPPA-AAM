@@ -103,22 +103,20 @@ explicit-H methanol/water graphs reproduces this seed-order dependence.
 
 ## Saved evidence
 
-Cluster root:
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907`
-
+Full artifacts are retained privately.
 - `misses137.csv`: saved-family audit, including source and atom-pair orbit tests.
 - `probes.csv`: separate controlled searches; reference-directed rows are labeled.
 - `verification23.csv`: checks on unchanged archives, with witness evidence paths.
 - Full AAM checkpoints, per-cut intermediates, failed/negative probes, logs,
-  and frozen diagnostic engines stay under the cluster root.
+  and frozen diagnostic engines stay in private artifact storage.
 - Core Python growth, native C++, seed generation, compression, tolerance and
   cap defaults were not changed by this investigation. Optional checker
   parameters are for explicit diagnostic comparisons; no automatic fallback
   or new default search heuristic was installed.
 
-Validation: 87 relevant regression tests passed. All 125 diagnostic Slurm jobs
+Validation: 87 relevant regression tests passed. All 125 diagnostic tasks
 completed; the longest job was 289 seconds, below the five-minute calculation
-watchdog. Raw accounting is in `slurm_accounting.psv`. This is diagnostic cost,
+watchdog. Raw accounting is retained privately. This is diagnostic cost,
 not a cold benchmark speed comparison.
 
 Regenerate compact tables without remapping:

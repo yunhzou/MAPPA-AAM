@@ -3,7 +3,7 @@
   "recovered": true,
   "cuts": [
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00000.json",
+      "cut": "private-reference-464ed087b14c1c4ef4f9",
       "terminals": 13985,
       "representative_witness": {
         "terminal": 243,
@@ -260,7 +260,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00001.json",
+      "cut": "private-reference-4cbcbbaa47aec27b2fc6",
       "terminals": 8788,
       "representative_witness": {
         "terminal": 8673,
@@ -517,7 +517,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00002.json",
+      "cut": "private-reference-e5c3b1c33d468d677e26",
       "terminals": 12082,
       "representative_witness": {
         "terminal": 243,
@@ -774,7 +774,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00003.json",
+      "cut": "private-reference-b90346a5c7b8d7a459f3",
       "terminals": 11951,
       "representative_witness": {
         "terminal": 243,
@@ -1031,7 +1031,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00004.json",
+      "cut": "private-reference-0cbc07dff27ca5bea8ad",
       "terminals": 12153,
       "representative_witness": {
         "terminal": 243,
@@ -1288,7 +1288,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00005.json",
+      "cut": "private-reference-5164c24db1b7601fabc9",
       "terminals": 10123,
       "representative_witness": {
         "terminal": 14756,
@@ -1545,7 +1545,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00006.json",
+      "cut": "private-reference-0f12c42a6461b122a0a3",
       "terminals": 14155,
       "representative_witness": {
         "terminal": 245,
@@ -1802,7 +1802,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cap2000_20260907/high_memory_retry/case1665_seeds100_cap2000/cuts/cut_00007.json",
+      "cut": "private-reference-f013e1f1074658a30ca1",
       "terminals": 14186,
       "representative_witness": {
         "terminal": 32345,
@@ -2058,5 +2058,9 @@
         ]
       }
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "76e29a61a6ff7de22155562ff036c234b800376a950968c82f58c237178d3170",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

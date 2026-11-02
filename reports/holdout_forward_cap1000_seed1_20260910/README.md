@@ -109,7 +109,7 @@ results for cases 11, 64 and 101 (`directional_checks.json`).
 `.svg` show the scores, mapping CPU and alternative overlap. `per_case.csv` and
 `per_case.json` contain all 140 records. Compressed case outputs, source hashes,
 frozen analysis scripts, job records and the preceding finite checks accompany
-the report. Full source run: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_forward_cap1000_seed1_20260910`.
+the report. Full source run: private artifact storage.
 
 `summary.json:new_analysis_timing` records case-worker analysis separately
 (6374.888 CPU s; publication,

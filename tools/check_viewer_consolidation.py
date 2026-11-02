@@ -33,8 +33,7 @@ def main():
     libraries = ROOT / 'manuscript/build/browser-libs/root/usr/lib/x86_64-linux-gnu'
     if libraries.exists():
         environment['LD_LIBRARY_PATH'] = str(libraries) + ':' + environment.get('LD_LIBRARY_PATH', '')
-    cached = Path('/h/399/yunhengzou/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome')
-    executable = os.environ.get('MANUSCRIPT_BROWSER', str(cached) if cached.exists() else None)
+    executable = os.environ.get('MANUSCRIPT_BROWSER')
     errors, external, checks, color_checks = [], [], [], []
     with sync_playwright() as pw:
         browser = pw.chromium.launch(executable_path=executable, env=environment, headless=True,

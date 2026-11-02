@@ -44,10 +44,8 @@
       "memory_bytes": 2147483648
     }
   ],
-  "slurm": [
-    "21135189_4|PENDING|0:00|112|4|(QOSMaxNodePerUserLimit)",
-    "21135190_[0-4]|PENDING|0:00|112|4|(Dependency)",
-    "21135189_3|RUNNING|0:04|112|4|cpu1-[00103-00104,00109,00112]",
-    "21135189_2|RUNNING|0:38|112|4|cpu1-[00011-00012,00036,00052]"
-  ]
+  "privacy_projection": {
+    "original_sha256": "50ff63f030784959bc58270557ae74439eb5a4d5fc79089d0bbd2dcf3a2d51e4",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

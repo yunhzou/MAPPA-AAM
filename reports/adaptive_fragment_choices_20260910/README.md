@@ -35,7 +35,7 @@ mappings used for scoring are not the entire compressed result.
 
 ## Initial experiment
 
-One CPU per case/policy on bosque6; fixed order generated with RNG seed 42;
+One CPU per case/policy on the same machine; fixed order generated with RNG seed 42;
 explicit H; matching tolerance 1.0; event threshold 0.5; native growth branch
 cap 100; no external cuts. The table gives best **representative event score**
 and cumulative **compute CPU seconds** after 1,600 grow/close operations.
@@ -84,7 +84,7 @@ equal-accuracy speedup claim against either full AAM or SLAP.
 ## Correctness and resource checks
 
 - **483 tests passed**, 26 existing multiprocessing/fork deprecation warnings,
-  97.18 seconds. No test failure. Full-suite Slurm job: `457020`.
+  97.18 seconds. No test failure. Raw test logs are retained privately.
 - **80 saved graph checkpoints validated**: acyclicity, injective and
   element-compatible states, monotone locked mapping, and preserved-bond
   compatibility at tolerance 1.0. This is not an exhaustive generator proof;
@@ -93,7 +93,7 @@ equal-accuracy speedup claim against either full AAM or SLAP.
   engine on the same pinned CPU, three trials per case: **all 12 graph digests
   exactly equal**. Median current/baseline CPU ratios were 0.992, 1.004, 1.016,
   1.015. No material slowdown observed in this small regression check; it is
-  not a rerun of the entire benchmark. Job: `457039`.
+  not a rerun of the entire benchmark. Raw operational records are retained privately.
 - Every pilot worker used external `timeout --kill-after=5s 300`, plus a
   ten-minute Slurm allocation. Search additionally had a finite operation
   budget and a 30-second compute soft limit. Snapshot finalization can extend
@@ -122,15 +122,9 @@ an exhaustive alternative to all cuts, seeds or possible growth decisions.
 diagnostics, default-regression results, test counts, input/native hashes and
 frozen implementation hashes. Full checkpoints and witness mappings remain at:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_20260910_lRLOXa
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_deeper_20260910_mzYH3n
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_feedback_20260910_I8Kjaa
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_fragment_fair_20260910_fKvIsb
-```
+Full artifacts and raw operational records are retained privately.
 
-Mapping jobs: `456959`, `456973`, `456996`, `457015`. Audit jobs: `456988`,
-`457022`, `457023`, `457021`. Each policy/case is an independent one-CPU task;
+Each policy/case is an independent one-CPU task;
 no case consumed the entire node. No watchdog kill occurred in these jobs.
 
 Create a new empty run directory, then use `bench/adaptive_fragment_pilot.py`
@@ -143,6 +137,6 @@ existing output directory. Audit saved outputs with
 from saved artifacts.
 
 Saved full-sweep score source:
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/{case}/{direction}/independent_native_dependency/summary.json`.
+Full artifacts and raw operational records are retained privately.
 The previous full-sweep results are historical comparisons, not freshly timed
 adaptive-equivalent coverage measurements.

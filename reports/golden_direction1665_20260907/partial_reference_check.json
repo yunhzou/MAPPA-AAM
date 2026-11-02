@@ -3,7 +3,7 @@
   "recovered": true,
   "cuts": [
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00000.json",
+      "cut": "private-reference-2b78ac55922a7483285f",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -260,7 +260,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00001.json",
+      "cut": "private-reference-7ed045f7d40ad770337c",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -517,7 +517,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00002.json",
+      "cut": "private-reference-36ba4e1853194c700da4",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -774,7 +774,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00003.json",
+      "cut": "private-reference-7952ee7fba285d83e219",
       "terminals": 2022,
       "representative_witness": {
         "terminal": 4,
@@ -1031,7 +1031,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00004.json",
+      "cut": "private-reference-5b7693e26a29f81e9df7",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -1288,7 +1288,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00005.json",
+      "cut": "private-reference-ad723426e052fe6592b0",
       "terminals": 4005,
       "representative_witness": {
         "terminal": 114314,
@@ -1545,7 +1545,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00006.json",
+      "cut": "private-reference-c8b87eed3a071c69b07e",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -1802,7 +1802,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00007.json",
+      "cut": "private-reference-27d7689babf3bd7f7ca9",
       "terminals": 2044,
       "representative_witness": {
         "terminal": 18,
@@ -2059,7 +2059,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00008.json",
+      "cut": "private-reference-fe5e7b53a3a6c4c865a5",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -2316,7 +2316,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00009.json",
+      "cut": "private-reference-994565ea8f0497e36861",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -2573,7 +2573,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00010.json",
+      "cut": "private-reference-c85274d0d21532447737",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -2830,7 +2830,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00011.json",
+      "cut": "private-reference-95ac4d636cb60e4f646b",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -3087,7 +3087,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00012.json",
+      "cut": "private-reference-39cc5fc703493a7181f8",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -3344,7 +3344,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00013.json",
+      "cut": "private-reference-1b26e87443b1f78ed3cc",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -3601,7 +3601,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00014.json",
+      "cut": "private-reference-7a85970ef1212e0dd53d",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -3858,7 +3858,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00015.json",
+      "cut": "private-reference-cda30f7c10d6f3ca5357",
       "terminals": 2022,
       "representative_witness": {
         "terminal": 4,
@@ -4115,7 +4115,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00016.json",
+      "cut": "private-reference-6760cf0b8798b5dd2654",
       "terminals": 4001,
       "representative_witness": {
         "terminal": 3,
@@ -4372,7 +4372,7 @@
       }
     },
     {
-      "cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00017.json",
+      "cut": "private-reference-51f13d8090f80c921dd8",
       "terminals": 2022,
       "representative_witness": {
         "terminal": 4,
@@ -4628,5 +4628,9 @@
         ]
       }
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "9079b9e984cf7f62c65947cd9dbb48c8413b8cec030f0bd0482711c332b93042",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

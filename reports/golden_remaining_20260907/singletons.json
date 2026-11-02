@@ -2,7 +2,7 @@
   {
     "index": 1817,
     "reference_recovery": "recovered",
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1817/cuts/aam.pkl.gz",
+    "archive": "private-reference-4ee480079ef35b4375ad",
     "terminal": 36,
     "transitions": [
       25,
@@ -589,7 +589,7 @@
   {
     "index": 1729,
     "reference_recovery": "recovered",
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907/1729/cuts/aam.pkl.gz",
+    "archive": "private-reference-af7c928558ebe63c3945",
     "terminal": 47,
     "transitions": [
       0,
