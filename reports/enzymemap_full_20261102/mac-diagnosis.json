@@ -1,0 +1,1101 @@
+{
+  "case": 37270,
+  "direction": "forward",
+  "revision": "beed5b5b90e8989cc2bbff4fecf178cbff51e6b2",
+  "local_code_identity": "7ed20f02eb408ee6782b207689b5fb1717eec44dcc62d9bbba46d4cba6dde653",
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "engine_path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/src/mappa/_engine.cpython-312-darwin.so",
+  "engine_sha256": "8ee3b6cb1a7f4cdc6bd2bdf1fc3359ee8af8e29288387f922b72a980fc4dcbb7",
+  "input_provenance": {
+    "inputs.pkl.gz": {
+      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/inputs.pkl.gz",
+      "bytes": 2012190,
+      "sha256": "2dda73b99acb36f5f7297824ca6e8f8210cab820a8b10c9a08a44a299e2e9f6d"
+    },
+    "37270-forward-compute.pkl.gz": {
+      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/37270-forward-compute.pkl.gz",
+      "bytes": 29376,
+      "sha256": "54edda5777032baab13298230095786444551b382bb6eb6c784de78fd0b68857"
+    },
+    "37270-forward-publication410.pkl.gz": {
+      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/37270-forward-publication410.pkl.gz",
+      "bytes": 29420,
+      "sha256": "1ae183c0c9b7695f9ae12d0a8c33e9e42d9e8fce1b5d9fb47b02221b2e291e82"
+    }
+  },
+  "plan_validation": {
+    "directions": [
+      "forward",
+      "reverse"
+    ],
+    "failed_cuts_checked": 28,
+    "exact_fields": [
+      "cut",
+      "number",
+      "seeds",
+      "indices",
+      "orders"
+    ],
+    "all_equal": true
+  },
+  "original_cluster_results": {
+    "432": {
+      "peak_tree_rss_bytes": 2473099264,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2473099264,
+        "publication": 0
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 31.73,
+      "memory_samples": 151,
+      "phase_at_exit": "compute",
+      "worker": "cpu1-00016:1775865:069dde0c68004b6e8f371218321d636a",
+      "monitoring_seconds": 0.045751444529742,
+      "elapsed_seconds": 31.844613802153617
+    },
+    "410": {
+      "cpu_seconds": 24.634306409,
+      "compute_seconds": 24.63637961598579,
+      "compute_pid": 555698,
+      "peak_tree_rss_bytes": 2167967744,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 1760972800,
+        "publication": 2167967744
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 25.900000000000002,
+      "memory_samples": 123,
+      "phase_at_exit": "publication",
+      "worker": "cpu1-00055:555669:5d042c3c2c174e48842a319dde160ead",
+      "monitoring_seconds": 0.029654096579179168,
+      "elapsed_seconds": 26.49850362498546
+    }
+  },
+  "summaries": {
+    "forward432-2g": {
+      "exitcode": -15,
+      "peak_rss_bytes": 2225635328,
+      "guard_sample": {
+        "rss": 2225635328,
+        "elapsed_seconds": 15.4483050419949,
+        "phase": "432:states_exported"
+      }
+    },
+    "forward432-8g": {
+      "exitcode": 0,
+      "peak_rss_bytes": 4538777600,
+      "states": 120139,
+      "transitions": 120138,
+      "cut_through_publication_seconds": 20.239850375102833,
+      "matching_and_finalization_seconds": 17.6737453751266,
+      "finalization_seconds": 0.9732584168668836,
+      "publication_seconds": 2.5661049999762326,
+      "before_publication_rss_bytes": 3475259392,
+      "bundle_bytes": 3864653
+    },
+    "forward410-2g": {
+      "exitcode": -15,
+      "peak_rss_bytes": 2197716992,
+      "guard_sample": {
+        "rss": 2197716992,
+        "elapsed_seconds": 13.715451624942943,
+        "phase": "410:publication_start"
+      }
+    },
+    "forward410-8g": {
+      "exitcode": 0,
+      "peak_rss_bytes": 2466349056,
+      "states": 67124,
+      "transitions": 67123,
+      "cut_through_publication_seconds": 13.855183583917096,
+      "matching_and_finalization_seconds": 12.706859916914254,
+      "finalization_seconds": 0.6963624160271138,
+      "publication_seconds": 1.1483236670028418,
+      "before_publication_rss_bytes": 1941995520,
+      "bundle_bytes": 2022773
+    },
+    "forward432-instrumented": {
+      "exitcode": 0,
+      "peak_rss_bytes": 4545331200,
+      "states": 120139,
+      "transitions": 120138,
+      "cut_through_publication_seconds": 20.007272499846295,
+      "matching_and_finalization_seconds": 17.533570707775652,
+      "finalization_seconds": 1.0186519171111286,
+      "publication_seconds": 2.473701792070642,
+      "before_publication_rss_bytes": 3482779648,
+      "bundle_bytes": 3864653
+    }
+  },
+  "runs": {
+    "forward432-2g": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103137280,
+          "pid": 10721,
+          "time": 1447311.464908083,
+          "cpu_seconds": 1.218489
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103137280,
+          "pid": 10721,
+          "time": 1447311.464947583,
+          "cpu_seconds": 1.218528
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 164691968,
+          "pid": 10721,
+          "time": 1447311.721428375,
+          "cpu_seconds": 1.460983
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1745682432,
+          "pid": 10721,
+          "time": 1447323.160337416,
+          "cpu_seconds": 12.853907,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1832861696,
+          "pid": 10721,
+          "time": 1447325.433853208,
+          "cpu_seconds": 15.127008,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        }
+      ],
+      "peaks": {
+        "startup": 103104512,
+        "None:prepared": 103137280,
+        "432:cut_start": 171261952,
+        "432:native_start": 1741537280,
+        "432:growth_finished": 1831895040,
+        "432:states_exported": 2225635328
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "stopped": "memory_guard",
+      "guard_sample": {
+        "rss": 2225635328,
+        "elapsed_seconds": 15.4483050419949,
+        "phase": "432:states_exported"
+      },
+      "elapsed_seconds": 15.488712458871305,
+      "exitcode": -15
+    },
+    "forward432-8g": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103776256,
+          "pid": 10816,
+          "time": 1447373.759775,
+          "cpu_seconds": 1.229215
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103776256,
+          "pid": 10816,
+          "time": 1447373.759813875,
+          "cpu_seconds": 1.229254
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 166920192,
+          "pid": 10816,
+          "time": 1447374.009717833,
+          "cpu_seconds": 1.476207
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1729675264,
+          "pid": 10816,
+          "time": 1447385.34460575,
+          "cpu_seconds": 12.797759,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1812611072,
+          "pid": 10816,
+          "time": 1447387.625961208,
+          "cpu_seconds": 15.076242,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 3376463872,
+          "pid": 10816,
+          "time": 1447388.075935666,
+          "cpu_seconds": 15.525379,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 3388407808,
+          "pid": 10816,
+          "time": 1447388.259149625,
+          "cpu_seconds": 15.707034,
+          "states": 120139,
+          "transitions": 120138,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 3447652352,
+          "pid": 10816,
+          "time": 1447390.459922916,
+          "cpu_seconds": 17.892545
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 3475259392,
+          "pid": 10816,
+          "time": 1447391.433181333,
+          "cpu_seconds": 18.865169
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 3475259392,
+          "pid": 10816,
+          "time": 1447391.43355925,
+          "cpu_seconds": 18.865547,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 4538777600,
+          "pid": 10816,
+          "time": 1447393.99966425,
+          "cpu_seconds": 21.354468,
+          "bundle_bytes": 3864653,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/forward432-8g/bundles/dcb58a47228d442fbad01bce5addee52-00000.bundle",
+            "offset": 48665,
+            "size": 3864653,
+            "sha256": "179c333d91c16c3e22a1e0f915c8448d8de566fe92788340a868fad293582a57"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 3186114560,
+          "pid": 10816,
+          "time": 1447394.242183041,
+          "cpu_seconds": 21.596072
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 3186114560,
+          "pid": 10816,
+          "time": 1447394.242222875,
+          "cpu_seconds": 21.596111
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 3133685760,
+          "pid": 10816,
+          "time": 1447394.249872916,
+          "cpu_seconds": 21.60375,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 2918596608,
+          "pid": 10816,
+          "time": 1447394.260962375,
+          "cpu_seconds": 21.614832
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 2911256576,
+          "pid": 10816,
+          "time": 1447394.273699125,
+          "cpu_seconds": 21.627555
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 2911256576,
+          "pid": 10816,
+          "time": 1447394.273740875,
+          "cpu_seconds": 21.627596
+        }
+      ],
+      "peaks": {
+        "startup": 103694336,
+        "None:prepared": 103776256,
+        "432:cut_start": 171704320,
+        "432:native_start": 1725562880,
+        "432:growth_finished": 1811775488,
+        "432:states_exported": 3360505856,
+        "432:transitions_exported": 3411705856,
+        "432:native_finished": 3447652352,
+        "432:finalization_start": 3475210240,
+        "432:finalization_finished": 3475259392,
+        "432:publication_start": 4538777600,
+        "432:publication_finished": 4538777600,
+        "432:output_released": 3186114560,
+        "432:before_collect": 3186114560,
+        "432:after_collect": 3133685760,
+        "432:symmetry_released": 2918596608,
+        "432:session_released": 2911256576,
+        "432:complete": 2911256576
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 22.065523375058547,
+      "exitcode": 0
+    },
+    "forward410-2g": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103006208,
+          "pid": 11100,
+          "time": 1447439.098221291,
+          "cpu_seconds": 1.220202
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103006208,
+          "pid": 11100,
+          "time": 1447439.09825575,
+          "cpu_seconds": 1.220236
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 164741120,
+          "pid": 11100,
+          "time": 1447439.341015,
+          "cpu_seconds": 1.460196
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 1070465024,
+          "pid": 11100,
+          "time": 1447447.607636708,
+          "cpu_seconds": 9.72283,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 1113571328,
+          "pid": 11100,
+          "time": 1447448.858883916,
+          "cpu_seconds": 10.973328,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 1880735744,
+          "pid": 11100,
+          "time": 1447449.075220791,
+          "cpu_seconds": 11.189645,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 1878900736,
+          "pid": 11100,
+          "time": 1447449.146567208,
+          "cpu_seconds": 11.260983,
+          "states": 67124,
+          "transitions": 67123,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 1910620160,
+          "pid": 11100,
+          "time": 1447450.197788291,
+          "cpu_seconds": 12.311529
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 1940963328,
+          "pid": 11100,
+          "time": 1447450.917033416,
+          "cpu_seconds": 13.02659
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 1940963328,
+          "pid": 11100,
+          "time": 1447450.91726225,
+          "cpu_seconds": 13.026818,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        }
+      ],
+      "peaks": {
+        "startup": 102940672,
+        "None:prepared": 103006208,
+        "410:cut_start": 168902656,
+        "410:native_start": 1067089920,
+        "410:growth_finished": 1113145344,
+        "410:states_exported": 1873936384,
+        "410:transitions_exported": 1896906752,
+        "410:native_finished": 1906753536,
+        "410:finalization_start": 1940865024,
+        "410:finalization_finished": 1940963328,
+        "410:publication_start": 2197716992
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "stopped": "memory_guard",
+      "guard_sample": {
+        "rss": 2197716992,
+        "elapsed_seconds": 13.715451624942943,
+        "phase": "410:publication_start"
+      },
+      "elapsed_seconds": 13.740263249957934,
+      "exitcode": -15
+    },
+    "forward410-8g": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103284736,
+          "pid": 11355,
+          "time": 1447559.840702375,
+          "cpu_seconds": 1.204779
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103284736,
+          "pid": 11355,
+          "time": 1447559.840741791,
+          "cpu_seconds": 1.204818
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 164970496,
+          "pid": 11355,
+          "time": 1447560.081908166,
+          "cpu_seconds": 1.445465
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 1072988160,
+          "pid": 11355,
+          "time": 1447569.148831125,
+          "cpu_seconds": 10.403547,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 1116225536,
+          "pid": 11355,
+          "time": 1447570.44358725,
+          "cpu_seconds": 11.696417,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 1882292224,
+          "pid": 11355,
+          "time": 1447570.671167375,
+          "cpu_seconds": 11.923809,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 1880457216,
+          "pid": 11355,
+          "time": 1447570.744650166,
+          "cpu_seconds": 11.997283,
+          "states": 67124,
+          "transitions": 67123,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 1911848960,
+          "pid": 11355,
+          "time": 1447571.8510345,
+          "cpu_seconds": 13.101095
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 1941995520,
+          "pid": 11355,
+          "time": 1447572.547396916,
+          "cpu_seconds": 13.796993
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 1941995520,
+          "pid": 11355,
+          "time": 1447572.547601708,
+          "cpu_seconds": 13.797198,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 2466349056,
+          "pid": 11355,
+          "time": 1447573.695925375,
+          "cpu_seconds": 14.918653,
+          "bundle_bytes": 2022773,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/forward410-8g/bundles/3427f31ec5d54944984d1435eec7b1d0-00000.bundle",
+            "offset": 48665,
+            "size": 2022773,
+            "sha256": "1f5ee2dc1242dea2ed54cd326e593839688e55e357b10399e351c79b61f4faea"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 1880195072,
+          "pid": 11355,
+          "time": 1447573.809174791,
+          "cpu_seconds": 15.03185
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 1880195072,
+          "pid": 11355,
+          "time": 1447573.809267875,
+          "cpu_seconds": 15.031942
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 1834057728,
+          "pid": 11355,
+          "time": 1447573.816547416,
+          "cpu_seconds": 15.039222,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 1671528448,
+          "pid": 11355,
+          "time": 1447573.826497208,
+          "cpu_seconds": 15.049065
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 1664286720,
+          "pid": 11355,
+          "time": 1447573.839233875,
+          "cpu_seconds": 15.061802
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 1664286720,
+          "pid": 11355,
+          "time": 1447573.83925825,
+          "cpu_seconds": 15.061826
+        }
+      ],
+      "peaks": {
+        "startup": 103219200,
+        "None:prepared": 103284736,
+        "410:cut_start": 168509440,
+        "410:native_start": 1069826048,
+        "410:growth_finished": 1115783168,
+        "410:states_exported": 1863942144,
+        "410:transitions_exported": 1897971712,
+        "410:native_finished": 1911848960,
+        "410:finalization_start": 1947615232,
+        "410:finalization_finished": 1941995520,
+        "410:publication_start": 2466349056,
+        "410:publication_finished": 2466349056,
+        "410:output_released": 1880195072,
+        "410:before_collect": 1880195072,
+        "410:after_collect": 1834057728,
+        "410:symmetry_released": 1671528448,
+        "410:session_released": 1664286720,
+        "410:complete": 1664286720
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 15.351050124969333,
+      "exitcode": 0
+    },
+    "forward432-instrumented": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103219200,
+          "pid": 11953,
+          "time": 1447846.979522708,
+          "cpu_seconds": 1.198836
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103219200,
+          "pid": 11953,
+          "time": 1447846.979562875,
+          "cpu_seconds": 1.198876
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 164020224,
+          "pid": 11953,
+          "time": 1447847.223473583,
+          "cpu_seconds": 1.439675
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1730674688,
+          "pid": 11953,
+          "time": 1447858.410772041,
+          "cpu_seconds": 12.59694,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1817804800,
+          "pid": 11953,
+          "time": 1447860.692026083,
+          "cpu_seconds": 14.869282,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 3381641216,
+          "pid": 11953,
+          "time": 1447861.154598666,
+          "cpu_seconds": 15.329008,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 3393601536,
+          "pid": 11953,
+          "time": 1447861.32086,
+          "cpu_seconds": 15.493935,
+          "states": 120139,
+          "transitions": 120138,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 3455401984,
+          "pid": 11953,
+          "time": 1447863.494162916,
+          "cpu_seconds": 17.662673
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 3482779648,
+          "pid": 11953,
+          "time": 1447864.512814833,
+          "cpu_seconds": 18.675466
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 3482779648,
+          "pid": 11953,
+          "time": 1447864.513133583,
+          "cpu_seconds": 18.675784,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 4545331200,
+          "pid": 11953,
+          "time": 1447866.986835375,
+          "cpu_seconds": 21.072705,
+          "bundle_bytes": 3864653,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/forward432-instrumented/bundles/df45aadd797e41e2bbb0049172347c86-00000.bundle",
+            "offset": 48665,
+            "size": 3864653,
+            "sha256": "f0367724c671e5225e18cf2a2d9356a36be57228d50c09f716473f4a04b819af"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 3206299648,
+          "pid": 11953,
+          "time": 1447867.221139708,
+          "cpu_seconds": 21.306702
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 3206299648,
+          "pid": 11953,
+          "time": 1447867.221179125,
+          "cpu_seconds": 21.306741
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 3141287936,
+          "pid": 11953,
+          "time": 1447867.228791166,
+          "cpu_seconds": 21.314353,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 2925133824,
+          "pid": 11953,
+          "time": 1447867.239414291,
+          "cpu_seconds": 21.324976
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 2917793792,
+          "pid": 11953,
+          "time": 1447867.251765791,
+          "cpu_seconds": 21.337327
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 2917793792,
+          "pid": 11953,
+          "time": 1447867.251790583,
+          "cpu_seconds": 21.337353
+        }
+      ],
+      "peaks": {
+        "startup": 103170048,
+        "None:prepared": 103219200,
+        "432:cut_start": 168214528,
+        "432:native_start": 1726775296,
+        "432:growth_finished": 1816920064,
+        "432:states_exported": 3342352384,
+        "432:transitions_exported": 3423879168,
+        "432:native_finished": 3455401984,
+        "432:finalization_start": 3482779648,
+        "432:finalization_finished": 3482779648,
+        "432:publication_start": 4545282048,
+        "432:publication_finished": 4545331200,
+        "432:output_released": 3206299648,
+        "432:before_collect": 3206299648,
+        "432:after_collect": 3141287936,
+        "432:symmetry_released": 2925133824,
+        "432:session_released": 2917793792,
+        "432:complete": 2917793792
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 21.660194457974285,
+      "exitcode": 0
+    }
+  },
+  "native_history": {
+    "phase": "native_history",
+    "source_atoms": 661,
+    "target_atoms": 661,
+    "states": 120139,
+    "transitions": 120138,
+    "matches": 120138,
+    "stops": 111473,
+    "state_deferred_pairs": 9910765,
+    "match_deferred_pairs": 9910765,
+    "state_mapping_labels_bytes": 635295032,
+    "state_deferred_bytes": 79286120,
+    "candidate_image_bytes": 317644872,
+    "match_deferred_bytes": 79286120,
+    "match_other_vector_bytes": 2642424,
+    "pool_storage_bytes": 2883524,
+    "transition_preserved_bytes": 240072,
+    "graph_object_and_vector_bytes": 28311656,
+    "match_object_bytes": 23066496,
+    "accounted_capacity_bytes": 1168656316
+  },
+  "graph_storage": {
+    "source": {
+      "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/forward432-8g/bundles/dcb58a47228d442fbad01bce5addee52-00000.bundle",
+      "offset": 48665,
+      "size": 3864653,
+      "sha256": "179c333d91c16c3e22a1e0f915c8448d8de566fe92788340a868fad293582a57"
+    },
+    "atoms": 661,
+    "states": 120139,
+    "transitions": 120138,
+    "terminals": 100,
+    "stop_reasons": {
+      "capped": 111373,
+      "objective_met": 100
+    },
+    "fragment_transitions": 120138,
+    "state_deferred_pair_occurrences": 9910765,
+    "transition_deferred_list_objects": 120138,
+    "distinct_deferred_sequence_sha256": 47,
+    "transition_fields": {
+      "deferred_pair_occurrences": 9910765,
+      "list_container_bytes": 87321968,
+      "pair_list_bytes_excluding_atoms": 1189291800,
+      "fragment_atom_occurrences": 150147,
+      "witness_atom_occurrences": 150147
+    },
+    "native_full_array_payload_lower_bound_bytes": 952939904,
+    "native_deferred_payload_lower_bound_bytes": 158572240,
+    "notes": [
+      "Read-only inspection of published current result in a separate process; not included in timed replay. List allocation sizes after checkpoint reload can differ from original native export.",
+      "Python byte totals exclude atom integers and are summed per list occurrence; native export constructs each transition list and pair list separately.",
+      "Distinct deferred values are counted by SHA256 of their integer sequence; this is diagnostic counting, not scientific deduplication.",
+      "Native estimates are payload lower bounds; the diagnostic build separately measures vector capacities and object storage."
+    ],
+    "stop_stages": {
+      "capped/combined_live_leaves": 111373,
+      "objective_met/": 100
+    }
+  },
+  "scope": [
+    "Two exact forward cuts, each in separate fresh processes at 2 GiB and diagnostic 8 GiB ceilings.",
+    "Unmodified production engine used for all four primary runs. Isolated observational engine used only for native ownership accounting.",
+    "Completed-fragment cache enabled locally; shared cache snapshot loading and saving omitted.",
+    "Parent samples direct child RSS every 20 ms; no nested worker pool. Guard samples can exceed the limit.",
+    "No decoding, full-reaction accuracy measurement, cluster memory change, job change or production source change.",
+    "Graph storage inspected separately from timed runs. Instrumented timing is diagnostic, not a speed comparison."
+  ]
+}

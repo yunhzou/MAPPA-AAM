@@ -68,5 +68,10 @@ Evidence: [manifest](manifest.json), [input checks](preflight.json),
 [Slurm and worker observation](startup-observation.json), and
 [failure counts and audit references](early-failures.json).
 
+Subsequent [Mac point diagnosis](mac-diagnosis.md) reproduced one compute failure
+and one publication failure in fresh processes. Repeated search-history storage
+and transport explain substantial memory use; the cluster settings remain
+unchanged. This local diagnosis does not update the startup progress snapshot.
+
 Remote campaign:
 `/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102`.

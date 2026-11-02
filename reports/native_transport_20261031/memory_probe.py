@@ -73,14 +73,8 @@ def replay(input_path, cuts, directory, connection, trace=False, instrumented_en
                       symmetry_work=args[1].symmetry_stats())
                 if hasattr(args[1], 'memory_stats'):
                     phase('target_memory', **args[1].memory_stats())
-                matches = [edge.match for edge in result[0].transitions if edge.match is not None]
-                deferred = [match['deferred_edges'] for match in matches]
-                phase('graph_fields', matches=len(matches),
-                      fragments=sum(len(match['fragment']) for match in matches),
-                      witness_entries=sum(len(match['symmetry']['witness']) for match in matches),
-                      deferred_pairs=sum(map(len, deferred)),
-                      deferred_list_bytes=sum(sys.getsizeof(rows)+sum(sys.getsizeof(pair) for pair in rows) for rows in deferred),
-                      unique_deferred_values=len({tuple(map(tuple, rows)) for rows in deferred}))
+                # Inspect retained graph fields separately: building inspection
+                # lists here would contaminate the measured native-return peak.
                 return result
             _engine.search_fragments = native
             original_finalize = search.finalize_graph_symmetry
