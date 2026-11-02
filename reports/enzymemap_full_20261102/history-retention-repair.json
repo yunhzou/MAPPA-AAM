@@ -1,0 +1,2901 @@
+{
+  "baseline_revision": "a03dc494",
+  "local_code_identity": "e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca",
+  "engine_sha256": "fe1f051d6629891b96dc00b639ae7413e783a16dc9f6b071afe1daba920f01e0",
+  "baseline_engine_sha256": "8ee3b6cb1a7f4cdc6bd2bdf1fc3359ee8af8e29288387f922b72a980fc4dcbb7",
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "summaries": {
+    "432": {
+      "baseline": {
+        "repetitions": 3,
+        "median_seconds": 20.31924116704613,
+        "median_compute_seconds": 17.90361962513998,
+        "median_publication_seconds": 2.332707167137414,
+        "maximum_peak_rss_bytes": 4553015296,
+        "median_peak_rss_bytes": 4544593920,
+        "values": [
+          {
+            "total_seconds": 19.277851792052388,
+            "compute_seconds": 16.945144624914974,
+            "publication_seconds": 2.332707167137414,
+            "peak_rss_bytes": 4544593920,
+            "bundle_bytes": 3866347
+          },
+          {
+            "total_seconds": 20.417738083051518,
+            "compute_seconds": 17.90361962513998,
+            "publication_seconds": 2.514118457911536,
+            "peak_rss_bytes": 4553015296,
+            "bundle_bytes": 3866347
+          },
+          {
+            "total_seconds": 20.31924116704613,
+            "compute_seconds": 18.011664292076603,
+            "publication_seconds": 2.307576874969527,
+            "peak_rss_bytes": 4539891712,
+            "bundle_bytes": 3866346
+          }
+        ]
+      },
+      "repaired": {
+        "repetitions": 3,
+        "median_seconds": 12.382512791082263,
+        "median_compute_seconds": 12.373566915979609,
+        "median_publication_seconds": 0.0089458751026541,
+        "maximum_peak_rss_bytes": 457244672,
+        "median_peak_rss_bytes": 441647104,
+        "values": [
+          {
+            "total_seconds": 11.88119866605848,
+            "compute_seconds": 11.869040708057582,
+            "publication_seconds": 0.012157958000898361,
+            "peak_rss_bytes": 441647104,
+            "bundle_bytes": 76343
+          },
+          {
+            "total_seconds": 12.382512791082263,
+            "compute_seconds": 12.373566915979609,
+            "publication_seconds": 0.0089458751026541,
+            "peak_rss_bytes": 457244672,
+            "bundle_bytes": 76345
+          },
+          {
+            "total_seconds": 12.707830375060439,
+            "compute_seconds": 12.6995031661354,
+            "publication_seconds": 0.008327208925038576,
+            "peak_rss_bytes": 441057280,
+            "bundle_bytes": 76344
+          }
+        ]
+      }
+    },
+    "410": {
+      "baseline": {
+        "repetitions": 3,
+        "median_seconds": 13.377897875150666,
+        "median_compute_seconds": 12.276907625142485,
+        "median_publication_seconds": 1.0912836249917746,
+        "maximum_peak_rss_bytes": 2466480128,
+        "median_peak_rss_bytes": 2466349056,
+        "values": [
+          {
+            "total_seconds": 13.294122750172392,
+            "compute_seconds": 12.204831375041977,
+            "publication_seconds": 1.089291375130415,
+            "peak_rss_bytes": 2460794880,
+            "bundle_bytes": 2023248
+          },
+          {
+            "total_seconds": 13.377897875150666,
+            "compute_seconds": 12.276907625142485,
+            "publication_seconds": 1.1009902500081807,
+            "peak_rss_bytes": 2466349056,
+            "bundle_bytes": 2023250
+          },
+          {
+            "total_seconds": 13.399201707914472,
+            "compute_seconds": 12.307918082922697,
+            "publication_seconds": 1.0912836249917746,
+            "peak_rss_bytes": 2466480128,
+            "bundle_bytes": 2023249
+          }
+        ]
+      },
+      "repaired": {
+        "repetitions": 3,
+        "median_seconds": 9.520689000142738,
+        "median_compute_seconds": 9.512153958203271,
+        "median_publication_seconds": 0.009727542055770755,
+        "maximum_peak_rss_bytes": 369000448,
+        "median_peak_rss_bytes": 364838912,
+        "values": [
+          {
+            "total_seconds": 8.830701582832262,
+            "compute_seconds": 8.81922237481922,
+            "publication_seconds": 0.011479208013042808,
+            "peak_rss_bytes": 369000448,
+            "bundle_bytes": 83129
+          },
+          {
+            "total_seconds": 9.520689000142738,
+            "compute_seconds": 9.512153958203271,
+            "publication_seconds": 0.008535041939467192,
+            "peak_rss_bytes": 358809600,
+            "bundle_bytes": 83129
+          },
+          {
+            "total_seconds": 9.556762041989714,
+            "compute_seconds": 9.547034499933943,
+            "publication_seconds": 0.009727542055770755,
+            "peak_rss_bytes": 364838912,
+            "bundle_bytes": 83129
+          }
+        ]
+      }
+    }
+  },
+  "comparisons": {
+    "432": {
+      "ordered_paths_equal": true,
+      "all_fragment_and_conditioned_symmetry_records_equal": true,
+      "weighted_stop_descriptors_equal": true,
+      "catalogue_families_equal": true,
+      "catalogue_branch_groups_equal": true,
+      "cache_and_symmetry_work_counters_equal_all_repetitions": true,
+      "paths": 100,
+      "families": 100,
+      "branches": 100,
+      "before_states": 120139,
+      "after_states": 501,
+      "before_transitions": 120138,
+      "after_transitions": 500,
+      "before_stop_records": 111473,
+      "after_stop_records": 276,
+      "cap_occurrences": 111373,
+      "all_retained_transitions_reach_returned_terminals": true,
+      "family_signature_sha256": "af5e8ebdc85211db74a7865795ba366997ae391542893c5cd1b49c095c77d8c9",
+      "deferred_lists": 22
+    },
+    "410": {
+      "ordered_paths_equal": true,
+      "all_fragment_and_conditioned_symmetry_records_equal": true,
+      "weighted_stop_descriptors_equal": true,
+      "catalogue_families_equal": true,
+      "catalogue_branch_groups_equal": true,
+      "cache_and_symmetry_work_counters_equal_all_repetitions": true,
+      "paths": 100,
+      "families": 100,
+      "branches": 100,
+      "before_states": 67124,
+      "after_states": 345,
+      "before_transitions": 67123,
+      "after_transitions": 344,
+      "before_stop_records": 60571,
+      "after_stop_records": 219,
+      "cap_occurrences": 60471,
+      "all_retained_transitions_reach_returned_terminals": true,
+      "family_signature_sha256": "ebc250daef21f0b76dc0fff4fd5b632a215682e8a93816358ef468c0dbed9383",
+      "deferred_lists": 18
+    }
+  },
+  "runs": {
+    "baseline432-1": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103776256,
+          "pid": 15791,
+          "time": 1449525.978561708,
+          "cpu_seconds": 1.253282
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103776256,
+          "pid": 15791,
+          "time": 1449525.978594708,
+          "cpu_seconds": 1.253314
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 164347904,
+          "pid": 15791,
+          "time": 1449526.227734958,
+          "cpu_seconds": 1.501402
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1726562304,
+          "pid": 15791,
+          "time": 1449537.111500125,
+          "cpu_seconds": 12.384156,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1810644992,
+          "pid": 15791,
+          "time": 1449539.270399375,
+          "cpu_seconds": 14.542877,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 3374530560,
+          "pid": 15791,
+          "time": 1449539.697879208,
+          "cpu_seconds": 14.970165,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 3388293120,
+          "pid": 15791,
+          "time": 1449539.833746708,
+          "cpu_seconds": 15.106024,
+          "states": 120139,
+          "transitions": 120138,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 3451764736,
+          "pid": 15791,
+          "time": 1449541.96517775,
+          "cpu_seconds": 17.237284
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 3482009600,
+          "pid": 15791,
+          "time": 1449542.923454666,
+          "cpu_seconds": 18.195461
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 3482009600,
+          "pid": 15791,
+          "time": 1449542.923739333,
+          "cpu_seconds": 18.195746,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 4544593920,
+          "pid": 15791,
+          "time": 1449545.2564465,
+          "cpu_seconds": 20.474233,
+          "bundle_bytes": 3866347,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-1/bundles/b27d9bca0b68403995f6a6c386e732ed-00000.bundle",
+            "offset": 48665,
+            "size": 3866347,
+            "sha256": "43cd2c2784fc2d068a1aa08d7a155325ed765d2136a0a94cd5e119eff9d07adf"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 3172466688,
+          "pid": 15791,
+          "time": 1449545.482620875,
+          "cpu_seconds": 20.700334
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 3172466688,
+          "pid": 15791,
+          "time": 1449545.482671916,
+          "cpu_seconds": 20.700384
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 3134717952,
+          "pid": 15791,
+          "time": 1449545.488920291,
+          "cpu_seconds": 20.706632,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 2918711296,
+          "pid": 15791,
+          "time": 1449545.497876375,
+          "cpu_seconds": 20.715589
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 2912419840,
+          "pid": 15791,
+          "time": 1449545.5120795,
+          "cpu_seconds": 20.729792
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 2912419840,
+          "pid": 15791,
+          "time": 1449545.512098916,
+          "cpu_seconds": 20.729811
+        }
+      ],
+      "peaks": {
+        "startup": 103759872,
+        "None:prepared": 103776256,
+        "432:cut_start": 171589632,
+        "432:native_start": 1720287232,
+        "432:growth_finished": 1809924096,
+        "432:states_exported": 3349463040,
+        "432:transitions_exported": 3406954496,
+        "432:native_finished": 3451764736,
+        "432:finalization_start": 3481911296,
+        "432:finalization_finished": 3482009600,
+        "432:publication_start": 4544593920,
+        "432:publication_finished": 4544593920,
+        "432:output_released": 3172466688,
+        "432:before_collect": 3172466688,
+        "432:after_collect": 3134717952,
+        "432:symmetry_released": 2918711296,
+        "432:session_released": 2912419840,
+        "432:complete": 2912419840
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 21.483785083983094,
+      "exitcode": 0
+    },
+    "baseline432-2": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103088128,
+          "pid": 15864,
+          "time": 1449586.905710125,
+          "cpu_seconds": 1.200002
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103088128,
+          "pid": 15864,
+          "time": 1449586.905746125,
+          "cpu_seconds": 1.200038
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 165822464,
+          "pid": 15864,
+          "time": 1449587.151021916,
+          "cpu_seconds": 1.444568
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1742618624,
+          "pid": 15864,
+          "time": 1449598.685145083,
+          "cpu_seconds": 12.977477,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1825619968,
+          "pid": 15864,
+          "time": 1449600.986219833,
+          "cpu_seconds": 15.27832,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 3383623680,
+          "pid": 15864,
+          "time": 1449601.430168291,
+          "cpu_seconds": 15.722219,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 3397386240,
+          "pid": 15864,
+          "time": 1449601.575104041,
+          "cpu_seconds": 15.867139,
+          "states": 120139,
+          "transitions": 120138,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 3461054464,
+          "pid": 15864,
+          "time": 1449603.790020416,
+          "cpu_seconds": 18.08191
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 3490398208,
+          "pid": 15864,
+          "time": 1449604.809032666,
+          "cpu_seconds": 19.100837
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 3490398208,
+          "pid": 15864,
+          "time": 1449604.80936575,
+          "cpu_seconds": 19.10117,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 4553015296,
+          "pid": 15864,
+          "time": 1449607.323484208,
+          "cpu_seconds": 21.546635,
+          "bundle_bytes": 3866347,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-2/bundles/36cbe32d87f949c8a37ba51aa816350f-00000.bundle",
+            "offset": 48665,
+            "size": 3866347,
+            "sha256": "fbece8f2a9bd2f32777ba393a55b6720ca3cef4563e9aef4f9e5f2e9dfde4d73"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 3179839488,
+          "pid": 15864,
+          "time": 1449607.56556425,
+          "cpu_seconds": 21.788509
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 3179839488,
+          "pid": 15864,
+          "time": 1449607.565605875,
+          "cpu_seconds": 21.78855
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 3143139328,
+          "pid": 15864,
+          "time": 1449607.572121333,
+          "cpu_seconds": 21.795066,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 2927132672,
+          "pid": 15864,
+          "time": 1449607.581470791,
+          "cpu_seconds": 21.804415
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 2919809024,
+          "pid": 15864,
+          "time": 1449607.594668916,
+          "cpu_seconds": 21.817613
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 2919809024,
+          "pid": 15864,
+          "time": 1449607.594688375,
+          "cpu_seconds": 21.817633
+        }
+      ],
+      "peaks": {
+        "startup": 103088128,
+        "None:prepared": 103088128,
+        "432:cut_start": 170459136,
+        "432:native_start": 1738473472,
+        "432:growth_finished": 1825095680,
+        "432:states_exported": 3371089920,
+        "432:transitions_exported": 3423485952,
+        "432:native_finished": 3461054464,
+        "432:finalization_start": 3489824768,
+        "432:finalization_finished": 3490398208,
+        "432:publication_start": 4553015296,
+        "432:publication_finished": 4553015296,
+        "432:output_released": 3179839488,
+        "432:before_collect": 3179839488,
+        "432:after_collect": 3143139328,
+        "432:symmetry_released": 2927132672,
+        "432:session_released": 2919809024,
+        "432:complete": 2919809024
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 22.063847417011857,
+      "exitcode": 0
+    },
+    "baseline432-3": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103071744,
+          "pid": 15911,
+          "time": 1449649.329800791,
+          "cpu_seconds": 1.205669
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103071744,
+          "pid": 15911,
+          "time": 1449649.329838583,
+          "cpu_seconds": 1.205706
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 165691392,
+          "pid": 15911,
+          "time": 1449649.584425833,
+          "cpu_seconds": 1.459607
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 1725022208,
+          "pid": 15911,
+          "time": 1449661.197951375,
+          "cpu_seconds": 13.070248,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 1808039936,
+          "pid": 15911,
+          "time": 1449663.545702708,
+          "cpu_seconds": 15.417781,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 3371974656,
+          "pid": 15911,
+          "time": 1449663.987946625,
+          "cpu_seconds": 15.859958,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 3385737216,
+          "pid": 15911,
+          "time": 1449664.135186208,
+          "cpu_seconds": 16.007181,
+          "states": 120139,
+          "transitions": 120138,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 3448799232,
+          "pid": 15911,
+          "time": 1449666.336533625,
+          "cpu_seconds": 18.208361
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 3476291584,
+          "pid": 15911,
+          "time": 1449667.341224166,
+          "cpu_seconds": 19.212421
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 3476291584,
+          "pid": 15911,
+          "time": 1449667.341502875,
+          "cpu_seconds": 19.212699,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 4539891712,
+          "pid": 15911,
+          "time": 1449669.64907975,
+          "cpu_seconds": 21.511529,
+          "bundle_bytes": 3866346,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline432-3/bundles/d36dd88ecb3a4df79ec37df094dd4d6d-00000.bundle",
+            "offset": 48665,
+            "size": 3866346,
+            "sha256": "918545489aae8fd5eea4d11690353b5236c9bf65b070bbe85cc6f8fc949b65fd"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 3170910208,
+          "pid": 15911,
+          "time": 1449669.8725085,
+          "cpu_seconds": 21.734921
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 3170910208,
+          "pid": 15911,
+          "time": 1449669.872547083,
+          "cpu_seconds": 21.734958
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 3131064320,
+          "pid": 15911,
+          "time": 1449669.8785075,
+          "cpu_seconds": 21.740919,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 2916106240,
+          "pid": 15911,
+          "time": 1449669.886136541,
+          "cpu_seconds": 21.748548
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 2908766208,
+          "pid": 15911,
+          "time": 1449669.896718791,
+          "cpu_seconds": 21.75913
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 2908766208,
+          "pid": 15911,
+          "time": 1449669.896740041,
+          "cpu_seconds": 21.759151
+        }
+      ],
+      "peaks": {
+        "startup": 102989824,
+        "None:prepared": 103071744,
+        "432:cut_start": 171917312,
+        "432:native_start": 1720434688,
+        "432:growth_finished": 1807679488,
+        "432:states_exported": 3353411584,
+        "432:transitions_exported": 3416014848,
+        "432:native_finished": 3448799232,
+        "432:finalization_start": 3476176896,
+        "432:finalization_finished": 3476291584,
+        "432:publication_start": 4539793408,
+        "432:publication_finished": 4539891712,
+        "432:output_released": 3170910208,
+        "432:before_collect": 3170910208,
+        "432:after_collect": 3131064320,
+        "432:symmetry_released": 2916106240,
+        "432:session_released": 2908766208,
+        "432:complete": 2908766208
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 21.915086125023663,
+      "exitcode": 0
+    },
+    "repaired432-1": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103137280,
+          "pid": 15746,
+          "time": 1449472.0865265,
+          "cpu_seconds": 1.150868
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103137280,
+          "pid": 15746,
+          "time": 1449472.08655925,
+          "cpu_seconds": 1.1509
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 164806656,
+          "pid": 15746,
+          "time": 1449472.322726333,
+          "cpu_seconds": 1.385893
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 400687104,
+          "pid": 15746,
+          "time": 1449483.020791625,
+          "cpu_seconds": 12.082587,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 401309696,
+          "pid": 15746,
+          "time": 1449483.030636166,
+          "cpu_seconds": 12.092431,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 401358848,
+          "pid": 15746,
+          "time": 1449483.031663458,
+          "cpu_seconds": 12.093458,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 401358848,
+          "pid": 15746,
+          "time": 1449483.032029208,
+          "cpu_seconds": 12.093823,
+          "states": 501,
+          "transitions": 500,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 401358848,
+          "pid": 15746,
+          "time": 1449483.033193333,
+          "cpu_seconds": 12.094987
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 438550528,
+          "pid": 15746,
+          "time": 1449483.955514375,
+          "cpu_seconds": 13.016464
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 438550528,
+          "pid": 15746,
+          "time": 1449483.955599958,
+          "cpu_seconds": 13.016548,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 438616064,
+          "pid": 15746,
+          "time": 1449483.967757916,
+          "cpu_seconds": 13.020885,
+          "bundle_bytes": 76343,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-1/bundles/4ea44d45d2d641b2969f7a494c1993ac-00000.bundle",
+            "offset": 48665,
+            "size": 76343,
+            "sha256": "9116c8110907631f76c168c6f7e2a1e72ac992f72ad4078def351546fe5e113b"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 438616064,
+          "pid": 15746,
+          "time": 1449483.968019791,
+          "cpu_seconds": 13.021147
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 438616064,
+          "pid": 15746,
+          "time": 1449483.968027666,
+          "cpu_seconds": 13.021154
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 438616064,
+          "pid": 15746,
+          "time": 1449483.976057041,
+          "cpu_seconds": 13.029184,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 435306496,
+          "pid": 15746,
+          "time": 1449483.980134541,
+          "cpu_seconds": 13.033262
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 383320064,
+          "pid": 15746,
+          "time": 1449483.994212541,
+          "cpu_seconds": 13.04734
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 383320064,
+          "pid": 15746,
+          "time": 1449483.994234,
+          "cpu_seconds": 13.047361
+        }
+      ],
+      "peaks": {
+        "startup": 103055360,
+        "None:prepared": 103137280,
+        "432:cut_start": 169672704,
+        "432:native_start": 400670720,
+        "432:growth_finished": 401276928,
+        "432:states_exported": 401309696,
+        "432:transitions_exported": 401358848,
+        "432:native_finished": 401358848,
+        "432:finalization_start": 441647104,
+        "432:finalization_finished": 438550528,
+        "432:publication_start": 438550528,
+        "432:publication_finished": 438616064,
+        "432:output_released": 438616064,
+        "432:before_collect": 438616064,
+        "432:after_collect": 438616064,
+        "432:symmetry_released": 435306496,
+        "432:session_released": 383320064,
+        "432:complete": 383320064
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 13.193602167069912,
+      "exitcode": 0
+    },
+    "repaired432-2": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103104512,
+          "pid": 15826,
+          "time": 1449547.075578,
+          "cpu_seconds": 1.18152
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 103104512,
+          "pid": 15826,
+          "time": 1449547.075612875,
+          "cpu_seconds": 1.181554
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 163020800,
+          "pid": 15826,
+          "time": 1449547.319685208,
+          "cpu_seconds": 1.422881
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 402980864,
+          "pid": 15826,
+          "time": 1449558.446217791,
+          "cpu_seconds": 12.548104,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 403587072,
+          "pid": 15826,
+          "time": 1449558.457392125,
+          "cpu_seconds": 12.559278,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 403619840,
+          "pid": 15826,
+          "time": 1449558.458558083,
+          "cpu_seconds": 12.560444,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 403619840,
+          "pid": 15826,
+          "time": 1449558.4590115,
+          "cpu_seconds": 12.560898,
+          "states": 501,
+          "transitions": 500,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 403619840,
+          "pid": 15826,
+          "time": 1449558.460293791,
+          "cpu_seconds": 12.56218
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 440238080,
+          "pid": 15826,
+          "time": 1449559.449100083,
+          "cpu_seconds": 13.550913
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 440238080,
+          "pid": 15826,
+          "time": 1449559.449179791,
+          "cpu_seconds": 13.550992,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 440303616,
+          "pid": 15826,
+          "time": 1449559.458125666,
+          "cpu_seconds": 13.555816,
+          "bundle_bytes": 76345,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-2/bundles/1aa997cf7d414cb2befe3f0328d5004f-00000.bundle",
+            "offset": 48665,
+            "size": 76345,
+            "sha256": "10ed5eb2326a67e15ef1102db11aaed9cb0b645a546161544a609b6af455c317"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 440303616,
+          "pid": 15826,
+          "time": 1449559.458431416,
+          "cpu_seconds": 13.556121
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 440303616,
+          "pid": 15826,
+          "time": 1449559.458441875,
+          "cpu_seconds": 13.556132
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 440303616,
+          "pid": 15826,
+          "time": 1449559.4683705,
+          "cpu_seconds": 13.56606,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 436994048,
+          "pid": 15826,
+          "time": 1449559.473198833,
+          "cpu_seconds": 13.570889
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 386056192,
+          "pid": 15826,
+          "time": 1449559.490647083,
+          "cpu_seconds": 13.588334
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 386056192,
+          "pid": 15826,
+          "time": 1449559.490674166,
+          "cpu_seconds": 13.588361
+        }
+      ],
+      "peaks": {
+        "startup": 103088128,
+        "None:prepared": 103104512,
+        "432:cut_start": 171311104,
+        "432:native_start": 402964480,
+        "432:growth_finished": 402980864,
+        "432:states_exported": 403587072,
+        "432:transitions_exported": 403619840,
+        "432:native_finished": 403619840,
+        "432:finalization_start": 457244672,
+        "432:finalization_finished": 440238080,
+        "432:publication_start": 440303616,
+        "432:publication_finished": 440303616,
+        "432:output_released": 440303616,
+        "432:before_collect": 440303616,
+        "432:after_collect": 440303616,
+        "432:symmetry_released": 436994048,
+        "432:session_released": 386056192,
+        "432:complete": 386056192
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 13.83113754214719,
+      "exitcode": 0
+    },
+    "repaired432-3": {
+      "cuts": [
+        432
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 102989824,
+          "pid": 15874,
+          "time": 1449609.161090166,
+          "cpu_seconds": 1.212819
+        },
+        {
+          "phase": "cut_start",
+          "cut": 432,
+          "rss": 102989824,
+          "pid": 15874,
+          "time": 1449609.161126125,
+          "cpu_seconds": 1.212855
+        },
+        {
+          "phase": "native_start",
+          "cut": 432,
+          "rss": 165838848,
+          "pid": 15874,
+          "time": 1449609.406364833,
+          "cpu_seconds": 1.455245
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 432,
+          "rss": 400130048,
+          "pid": 15874,
+          "time": 1449620.89869475,
+          "cpu_seconds": 12.946127,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 432,
+          "rss": 400752640,
+          "pid": 15874,
+          "time": 1449620.908861458,
+          "cpu_seconds": 12.956285,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 432,
+          "rss": 400769024,
+          "pid": 15874,
+          "time": 1449620.909903375,
+          "cpu_seconds": 12.957327,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 432,
+          "rss": 400769024,
+          "pid": 15874,
+          "time": 1449620.910310166,
+          "cpu_seconds": 12.957734,
+          "states": 501,
+          "transitions": 500,
+          "symmetry_work": {
+            "generator_calls": 4031
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 432,
+          "rss": 400769024,
+          "pid": 15874,
+          "time": 1449620.911532291,
+          "cpu_seconds": 12.958956
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 432,
+          "rss": 437059584,
+          "pid": 15874,
+          "time": 1449621.860539333,
+          "cpu_seconds": 13.907874
+        },
+        {
+          "phase": "publication_start",
+          "cut": 432,
+          "rss": 437059584,
+          "pid": 15874,
+          "time": 1449621.860629291,
+          "cpu_seconds": 13.907964,
+          "repair": {
+            "calls": 8666,
+            "full_hits": 2304,
+            "history_hits": 2304,
+            "topology_hits": 0,
+            "boundary_rebases": 7,
+            "dependency_checks": 2310,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 25309,
+            "reused_extensions": 6049,
+            "entries": 1571,
+            "resident_bytes": 67052190,
+            "peak_resident_bytes": 67108862,
+            "cache_budget_bytes": 67108864,
+            "evictions": 4791,
+            "oversized_results": 0,
+            "revision": 6362
+          },
+          "symmetry": {
+            "calls": 500,
+            "partition_hits": 99,
+            "group_solves": 401,
+            "color_hits": 329832,
+            "cache_clears": 0,
+            "resident_bytes": 8241532,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 500,
+          "generators": 131,
+          "groups": 46
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 432,
+          "rss": 437108736,
+          "pid": 15874,
+          "time": 1449621.8689565,
+          "cpu_seconds": 13.912447,
+          "bundle_bytes": 76344,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired432-3/bundles/23c84a99375644ed8ed0373091484449-00000.bundle",
+            "offset": 48665,
+            "size": 76344,
+            "sha256": "abcb5e8ad40a7b2692018bf17c29ebf8d99fac9e979543dc83cb62cf72f98f88"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 432,
+          "rss": 437108736,
+          "pid": 15874,
+          "time": 1449621.869207666,
+          "cpu_seconds": 13.912699
+        },
+        {
+          "phase": "before_collect",
+          "cut": 432,
+          "rss": 437108736,
+          "pid": 15874,
+          "time": 1449621.869215875,
+          "cpu_seconds": 13.912707
+        },
+        {
+          "phase": "after_collect",
+          "cut": 432,
+          "rss": 437108736,
+          "pid": 15874,
+          "time": 1449621.877868458,
+          "cpu_seconds": 13.921359,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 432,
+          "rss": 433799168,
+          "pid": 15874,
+          "time": 1449621.882414083,
+          "cpu_seconds": 13.925905
+        },
+        {
+          "phase": "session_released",
+          "cut": 432,
+          "rss": 381812736,
+          "pid": 15874,
+          "time": 1449621.899523,
+          "cpu_seconds": 13.943003
+        },
+        {
+          "phase": "complete",
+          "cut": 432,
+          "rss": 381812736,
+          "pid": 15874,
+          "time": 1449621.899554708,
+          "cpu_seconds": 13.943033
+        }
+      ],
+      "peaks": {
+        "startup": 102989824,
+        "None:prepared": 102989824,
+        "432:cut_start": 172032000,
+        "432:native_start": 400064512,
+        "432:growth_finished": 400130048,
+        "432:states_exported": 400752640,
+        "432:transitions_exported": 400769024,
+        "432:native_finished": 400769024,
+        "432:finalization_start": 441057280,
+        "432:finalization_finished": 437059584,
+        "432:publication_start": 437059584,
+        "432:publication_finished": 437108736,
+        "432:output_released": 437108736,
+        "432:before_collect": 437108736,
+        "432:after_collect": 437108736,
+        "432:symmetry_released": 433799168,
+        "432:session_released": 381812736,
+        "432:complete": 381812736
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 14.182413832983002,
+      "exitcode": 0
+    },
+    "baseline410-1": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103153664,
+          "pid": 15836,
+          "time": 1449561.035135375,
+          "cpu_seconds": 1.274846
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103153664,
+          "pid": 15836,
+          "time": 1449561.035171416,
+          "cpu_seconds": 1.274881
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 164921344,
+          "pid": 15836,
+          "time": 1449561.280020916,
+          "cpu_seconds": 1.518825
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 1065172992,
+          "pid": 15836,
+          "time": 1449569.786534625,
+          "cpu_seconds": 10.024244,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 1108688896,
+          "pid": 15836,
+          "time": 1449571.134067875,
+          "cpu_seconds": 11.371664,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 1875771392,
+          "pid": 15836,
+          "time": 1449571.359753875,
+          "cpu_seconds": 11.597332,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 1874903040,
+          "pid": 15836,
+          "time": 1449571.439131041,
+          "cpu_seconds": 11.676676,
+          "states": 67124,
+          "transitions": 67123,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 1907326976,
+          "pid": 15836,
+          "time": 1449572.558546791,
+          "cpu_seconds": 12.796037
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 1936162816,
+          "pid": 15836,
+          "time": 1449573.239806958,
+          "cpu_seconds": 13.477222
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 1936162816,
+          "pid": 15836,
+          "time": 1449573.240002791,
+          "cpu_seconds": 13.477416,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 2460794880,
+          "pid": 15836,
+          "time": 1449574.329294166,
+          "cpu_seconds": 14.561512,
+          "bundle_bytes": 2023248,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-1/bundles/f68cdc6e11da4f84b3d62a8b02cfa9c9-00000.bundle",
+            "offset": 48665,
+            "size": 2023248,
+            "sha256": "7ec95f20dad22bde1a220461f69913c12b52a3f90bdbf421eeaf261acfcd5c47"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 1878835200,
+          "pid": 15836,
+          "time": 1449574.43820075,
+          "cpu_seconds": 14.670418
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 1878835200,
+          "pid": 15836,
+          "time": 1449574.438231,
+          "cpu_seconds": 14.670449
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 1827454976,
+          "pid": 15836,
+          "time": 1449574.44413125,
+          "cpu_seconds": 14.676349,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 1664925696,
+          "pid": 15836,
+          "time": 1449574.451421833,
+          "cpu_seconds": 14.683635
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 1657700352,
+          "pid": 15836,
+          "time": 1449574.461724875,
+          "cpu_seconds": 14.693938
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 1657700352,
+          "pid": 15836,
+          "time": 1449574.46174775,
+          "cpu_seconds": 14.69396
+        }
+      ],
+      "peaks": {
+        "startup": 103153664,
+        "None:prepared": 103153664,
+        "410:cut_start": 171130880,
+        "410:native_start": 1061814272,
+        "410:growth_finished": 1108230144,
+        "410:states_exported": 1859715072,
+        "410:transitions_exported": 1893433344,
+        "410:native_finished": 1907326976,
+        "410:finalization_start": 1936162816,
+        "410:finalization_finished": 1936162816,
+        "410:publication_start": 2460794880,
+        "410:publication_finished": 2460794880,
+        "410:output_released": 1878835200,
+        "410:before_collect": 1878835200,
+        "410:after_collect": 1827454976,
+        "410:symmetry_released": 1664925696,
+        "410:session_released": 1657700352,
+        "410:complete": 1657700352
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 14.904171874979511,
+      "exitcode": 0
+    },
+    "baseline410-2": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103137280,
+          "pid": 15889,
+          "time": 1449623.330070791,
+          "cpu_seconds": 1.192994
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103137280,
+          "pid": 15889,
+          "time": 1449623.330115541,
+          "cpu_seconds": 1.193039
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 165117952,
+          "pid": 15889,
+          "time": 1449623.576732958,
+          "cpu_seconds": 1.438939
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 1069416448,
+          "pid": 15889,
+          "time": 1449632.179633458,
+          "cpu_seconds": 10.039622,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 1112637440,
+          "pid": 15889,
+          "time": 1449633.515904,
+          "cpu_seconds": 11.375667,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 1879785472,
+          "pid": 15889,
+          "time": 1449633.730688166,
+          "cpu_seconds": 11.590434,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 1878917120,
+          "pid": 15889,
+          "time": 1449633.808483125,
+          "cpu_seconds": 11.668215,
+          "states": 67124,
+          "transitions": 67123,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 1911717888,
+          "pid": 15889,
+          "time": 1449634.920097625,
+          "cpu_seconds": 12.779788
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 1941372928,
+          "pid": 15889,
+          "time": 1449635.606846875,
+          "cpu_seconds": 13.466442
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 1941372928,
+          "pid": 15889,
+          "time": 1449635.607023166,
+          "cpu_seconds": 13.466618,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 2466349056,
+          "pid": 15889,
+          "time": 1449636.708013416,
+          "cpu_seconds": 14.562818,
+          "bundle_bytes": 2023250,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-2/bundles/cb48edc5d24e42db93ed6407b83f9364-00000.bundle",
+            "offset": 48665,
+            "size": 2023250,
+            "sha256": "147571d9253d063db7dcb7a1fb681d49ff6f270fc2db2b2b5b11b7af81411bb7"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 1884389376,
+          "pid": 15889,
+          "time": 1449636.8181265,
+          "cpu_seconds": 14.672924
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 1884389376,
+          "pid": 15889,
+          "time": 1449636.818166791,
+          "cpu_seconds": 14.672962
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 1833009152,
+          "pid": 15889,
+          "time": 1449636.824187375,
+          "cpu_seconds": 14.678983,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 1669431296,
+          "pid": 15889,
+          "time": 1449636.830510541,
+          "cpu_seconds": 14.685307
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 1662205952,
+          "pid": 15889,
+          "time": 1449636.840018916,
+          "cpu_seconds": 14.694815
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 1662205952,
+          "pid": 15889,
+          "time": 1449636.840038958,
+          "cpu_seconds": 14.694835
+        }
+      ],
+      "peaks": {
+        "startup": 103055360,
+        "None:prepared": 103137280,
+        "410:cut_start": 170393600,
+        "410:native_start": 1066221568,
+        "410:growth_finished": 1111900160,
+        "410:states_exported": 1805729792,
+        "410:transitions_exported": 1900724224,
+        "410:native_finished": 1909047296,
+        "410:finalization_start": 1941372928,
+        "410:finalization_finished": 1941372928,
+        "410:publication_start": 2466349056,
+        "410:publication_finished": 2466349056,
+        "410:output_released": 1884389376,
+        "410:before_collect": 1884389376,
+        "410:after_collect": 1833009152,
+        "410:symmetry_released": 1669431296,
+        "410:session_released": 1662205952,
+        "410:complete": 1662205952
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 14.851593042025343,
+      "exitcode": 0
+    },
+    "baseline410-3": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103088128,
+          "pid": 15936,
+          "time": 1449671.425262041,
+          "cpu_seconds": 1.199559
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103088128,
+          "pid": 15936,
+          "time": 1449671.425299708,
+          "cpu_seconds": 1.199597
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 165150720,
+          "pid": 15936,
+          "time": 1449671.680473958,
+          "cpu_seconds": 1.45275
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 1069531136,
+          "pid": 15936,
+          "time": 1449680.316791541,
+          "cpu_seconds": 10.0882,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 1112702976,
+          "pid": 15936,
+          "time": 1449681.62121725,
+          "cpu_seconds": 11.39251,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 1879769088,
+          "pid": 15936,
+          "time": 1449681.841359041,
+          "cpu_seconds": 11.612634,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 1878917120,
+          "pid": 15936,
+          "time": 1449681.923666958,
+          "cpu_seconds": 11.694895,
+          "states": 67124,
+          "transitions": 67123,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 1911717888,
+          "pid": 15936,
+          "time": 1449683.040510458,
+          "cpu_seconds": 12.810127
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 1941487616,
+          "pid": 15936,
+          "time": 1449683.7330375,
+          "cpu_seconds": 13.50261
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 1941487616,
+          "pid": 15936,
+          "time": 1449683.733217791,
+          "cpu_seconds": 13.50279,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 2466480128,
+          "pid": 15936,
+          "time": 1449684.824501416,
+          "cpu_seconds": 14.590161,
+          "bundle_bytes": 2023249,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/baseline410-3/bundles/48149849ae874d75ad7d0099f8c2ae66-00000.bundle",
+            "offset": 48665,
+            "size": 2023249,
+            "sha256": "1f2fbe2d84bf06634164316e5f5c8d8c4b190ac03bb41322a80b118e86e07f33"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 1882423296,
+          "pid": 15936,
+          "time": 1449684.934199458,
+          "cpu_seconds": 14.699856
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 1882423296,
+          "pid": 15936,
+          "time": 1449684.934241833,
+          "cpu_seconds": 14.699898
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 1833140224,
+          "pid": 15936,
+          "time": 1449684.940812375,
+          "cpu_seconds": 14.706468,
+          "collected": 671
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 1670610944,
+          "pid": 15936,
+          "time": 1449684.948034666,
+          "cpu_seconds": 14.713691
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 1663385600,
+          "pid": 15936,
+          "time": 1449684.958576125,
+          "cpu_seconds": 14.724232
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 1663385600,
+          "pid": 15936,
+          "time": 1449684.9586305,
+          "cpu_seconds": 14.724287
+        }
+      ],
+      "peaks": {
+        "startup": 103071744,
+        "None:prepared": 103088128,
+        "410:cut_start": 171343872,
+        "410:native_start": 1066336256,
+        "410:growth_finished": 1111818240,
+        "410:states_exported": 1797062656,
+        "410:transitions_exported": 1903706112,
+        "410:native_finished": 1910456320,
+        "410:finalization_start": 1941291008,
+        "410:finalization_finished": 1941487616,
+        "410:publication_start": 2466480128,
+        "410:publication_finished": 2466480128,
+        "410:output_released": 1882423296,
+        "410:before_collect": 1882423296,
+        "410:after_collect": 1833140224,
+        "410:symmetry_released": 1670610944,
+        "410:session_released": 1663385600,
+        "410:complete": 1663385600
+      },
+      "guard_gib": 8.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 14.965625165961683,
+      "exitcode": 0
+    },
+    "repaired410-1": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103055360,
+          "pid": 15779,
+          "time": 1449515.095270458,
+          "cpu_seconds": 1.171358
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103055360,
+          "pid": 15779,
+          "time": 1449515.0953075,
+          "cpu_seconds": 1.171396
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 165756928,
+          "pid": 15779,
+          "time": 1449515.330806625,
+          "cpu_seconds": 1.405703
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 316375040,
+          "pid": 15779,
+          "time": 1449523.26595625,
+          "cpu_seconds": 9.340076,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 317128704,
+          "pid": 15779,
+          "time": 1449523.273067916,
+          "cpu_seconds": 9.347187,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 317161472,
+          "pid": 15779,
+          "time": 1449523.27375525,
+          "cpu_seconds": 9.347875,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 317161472,
+          "pid": 15779,
+          "time": 1449523.274113041,
+          "cpu_seconds": 9.348232,
+          "states": 345,
+          "transitions": 344,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 317161472,
+          "pid": 15779,
+          "time": 1449523.275088583,
+          "cpu_seconds": 9.349207
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 352305152,
+          "pid": 15779,
+          "time": 1449523.91446325,
+          "cpu_seconds": 9.988534
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 352305152,
+          "pid": 15779,
+          "time": 1449523.914529875,
+          "cpu_seconds": 9.9886,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 352370688,
+          "pid": 15779,
+          "time": 1449523.926009083,
+          "cpu_seconds": 9.992862,
+          "bundle_bytes": 83129,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-1/bundles/d5f1db78f1654d7ab39f38c822916861-00000.bundle",
+            "offset": 48665,
+            "size": 83129,
+            "sha256": "5ac2d612681ff373506d2263c1116764f6852c3eb445dd3bef1d234a0acd71c8"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 352370688,
+          "pid": 15779,
+          "time": 1449523.926269333,
+          "cpu_seconds": 9.993122
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 352370688,
+          "pid": 15779,
+          "time": 1449523.926277083,
+          "cpu_seconds": 9.993129
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 351322112,
+          "pid": 15779,
+          "time": 1449523.934074,
+          "cpu_seconds": 10.000927,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 349224960,
+          "pid": 15779,
+          "time": 1449523.938011375,
+          "cpu_seconds": 10.004863
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 297238528,
+          "pid": 15779,
+          "time": 1449523.94969325,
+          "cpu_seconds": 10.016546
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 297238528,
+          "pid": 15779,
+          "time": 1449523.949713125,
+          "cpu_seconds": 10.016566
+        }
+      ],
+      "peaks": {
+        "startup": 102957056,
+        "None:prepared": 103055360,
+        "410:cut_start": 170393600,
+        "410:native_start": 316227584,
+        "410:growth_finished": 316375040,
+        "410:states_exported": 317128704,
+        "410:transitions_exported": 317161472,
+        "410:native_finished": 317161472,
+        "410:finalization_start": 369000448,
+        "410:finalization_finished": 352305152,
+        "410:publication_start": 352305152,
+        "410:publication_finished": 352370688,
+        "410:output_released": 352370688,
+        "410:before_collect": 352370688,
+        "410:after_collect": 351322112,
+        "410:symmetry_released": 349224960,
+        "410:session_released": 297238528,
+        "410:complete": 297238528
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 10.20204837503843,
+      "exitcode": 0
+    },
+    "repaired410-2": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 102940672,
+          "pid": 15848,
+          "time": 1449575.916708041,
+          "cpu_seconds": 1.206439
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 102940672,
+          "pid": 15848,
+          "time": 1449575.916744958,
+          "cpu_seconds": 1.206475
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 164888576,
+          "pid": 15848,
+          "time": 1449576.164349916,
+          "cpu_seconds": 1.453297
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 317620224,
+          "pid": 15848,
+          "time": 1449584.750649208,
+          "cpu_seconds": 10.038422,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 318373888,
+          "pid": 15848,
+          "time": 1449584.758006875,
+          "cpu_seconds": 10.045778,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 318406656,
+          "pid": 15848,
+          "time": 1449584.75872825,
+          "cpu_seconds": 10.0465,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 318406656,
+          "pid": 15848,
+          "time": 1449584.759134666,
+          "cpu_seconds": 10.046906,
+          "states": 345,
+          "transitions": 344,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 318423040,
+          "pid": 15848,
+          "time": 1449584.7601635,
+          "cpu_seconds": 10.047935
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 354795520,
+          "pid": 15848,
+          "time": 1449585.428839208,
+          "cpu_seconds": 10.716548
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 354795520,
+          "pid": 15848,
+          "time": 1449585.428898916,
+          "cpu_seconds": 10.716608,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 354861056,
+          "pid": 15848,
+          "time": 1449585.437433958,
+          "cpu_seconds": 10.720901,
+          "bundle_bytes": 83129,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-2/bundles/308399060f2446a3adfd865171561cae-00000.bundle",
+            "offset": 48665,
+            "size": 83129,
+            "sha256": "d1574254c0ad744d886b56a26ca250e7aa4628039df0ccdda142bd98f682138b"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 354861056,
+          "pid": 15848,
+          "time": 1449585.437703416,
+          "cpu_seconds": 10.721171
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 354861056,
+          "pid": 15848,
+          "time": 1449585.437711708,
+          "cpu_seconds": 10.72118
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 353812480,
+          "pid": 15848,
+          "time": 1449585.445936833,
+          "cpu_seconds": 10.729382,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 351715328,
+          "pid": 15848,
+          "time": 1449585.450101458,
+          "cpu_seconds": 10.733537
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 299728896,
+          "pid": 15848,
+          "time": 1449585.463592916,
+          "cpu_seconds": 10.747029
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 299728896,
+          "pid": 15848,
+          "time": 1449585.463611708,
+          "cpu_seconds": 10.747047
+        }
+      ],
+      "peaks": {
+        "startup": 102907904,
+        "None:prepared": 102940672,
+        "410:cut_start": 169541632,
+        "410:native_start": 317521920,
+        "410:growth_finished": 317620224,
+        "410:states_exported": 318373888,
+        "410:transitions_exported": 318406656,
+        "410:native_finished": 318406656,
+        "410:finalization_start": 358809600,
+        "410:finalization_finished": 354795520,
+        "410:publication_start": 354795520,
+        "410:publication_finished": 354861056,
+        "410:output_released": 354861056,
+        "410:before_collect": 354861056,
+        "410:after_collect": 353812480,
+        "410:symmetry_released": 351715328,
+        "410:session_released": 299728896,
+        "410:complete": 299728896
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 10.895799666875973,
+      "exitcode": 0
+    },
+    "repaired410-3": {
+      "cuts": [
+        410
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 103022592,
+          "pid": 15902,
+          "time": 1449638.332670083,
+          "cpu_seconds": 1.250874
+        },
+        {
+          "phase": "cut_start",
+          "cut": 410,
+          "rss": 103022592,
+          "pid": 15902,
+          "time": 1449638.332708541,
+          "cpu_seconds": 1.250912
+        },
+        {
+          "phase": "native_start",
+          "cut": 410,
+          "rss": 163708928,
+          "pid": 15902,
+          "time": 1449638.58988425,
+          "cpu_seconds": 1.507422
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 410,
+          "rss": 321617920,
+          "pid": 15902,
+          "time": 1449647.199412625,
+          "cpu_seconds": 10.116184,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "states_exported",
+          "cut": 410,
+          "rss": 322322432,
+          "pid": 15902,
+          "time": 1449647.207007708,
+          "cpu_seconds": 10.123779,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 410,
+          "rss": 322371584,
+          "pid": 15902,
+          "time": 1449647.20777275,
+          "cpu_seconds": 10.124544,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "native_finished",
+          "cut": 410,
+          "rss": 322371584,
+          "pid": 15902,
+          "time": 1449647.2081825,
+          "cpu_seconds": 10.124954,
+          "states": 345,
+          "transitions": 344,
+          "symmetry_work": {
+            "generator_calls": 3216
+          }
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 410,
+          "rss": 322371584,
+          "pid": 15902,
+          "time": 1449647.209211958,
+          "cpu_seconds": 10.125983
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 410,
+          "rss": 356679680,
+          "pid": 15902,
+          "time": 1449647.879673208,
+          "cpu_seconds": 10.796364
+        },
+        {
+          "phase": "publication_start",
+          "cut": 410,
+          "rss": 356679680,
+          "pid": 15902,
+          "time": 1449647.879743041,
+          "cpu_seconds": 10.796433,
+          "repair": {
+            "calls": 6553,
+            "full_hits": 1483,
+            "history_hits": 1483,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1563,
+            "mapping_misses": 80,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18416,
+            "reused_extensions": 2355,
+            "entries": 1703,
+            "resident_bytes": 67101854,
+            "peak_resident_bytes": 67108844,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3367,
+            "oversized_results": 0,
+            "revision": 5070
+          },
+          "symmetry": {
+            "calls": 344,
+            "partition_hits": 99,
+            "group_solves": 245,
+            "color_hits": 226716,
+            "cache_clears": 0,
+            "resident_bytes": 5959824,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 344,
+          "generators": 131,
+          "groups": 37
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 410,
+          "rss": 357089280,
+          "pid": 15902,
+          "time": 1449647.889470583,
+          "cpu_seconds": 10.80088,
+          "bundle_bytes": 83129,
+          "reference": {
+            "path": "/Users/yunhengz/Desktop/AAM Writing/MAPPA-AAM/out/enzymemap_37270_mac_20261102/repaired410-3/bundles/428a1e197c194a3f984f488ca0f09300-00000.bundle",
+            "offset": 48665,
+            "size": 83129,
+            "sha256": "0db1b046313ab41f87b3a693d5664f779f07893a53e246d48c99bca775d632b7"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 410,
+          "rss": 357089280,
+          "pid": 15902,
+          "time": 1449647.889741541,
+          "cpu_seconds": 10.80115
+        },
+        {
+          "phase": "before_collect",
+          "cut": 410,
+          "rss": 357089280,
+          "pid": 15902,
+          "time": 1449647.8897505,
+          "cpu_seconds": 10.801159
+        },
+        {
+          "phase": "after_collect",
+          "cut": 410,
+          "rss": 356040704,
+          "pid": 15902,
+          "time": 1449647.897989833,
+          "cpu_seconds": 10.809398,
+          "collected": 6008
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 410,
+          "rss": 353943552,
+          "pid": 15902,
+          "time": 1449647.902446375,
+          "cpu_seconds": 10.813855
+        },
+        {
+          "phase": "session_released",
+          "cut": 410,
+          "rss": 303005696,
+          "pid": 15902,
+          "time": 1449647.914855708,
+          "cpu_seconds": 10.826265
+        },
+        {
+          "phase": "complete",
+          "cut": 410,
+          "rss": 303005696,
+          "pid": 15902,
+          "time": 1449647.914873541,
+          "cpu_seconds": 10.826282
+        }
+      ],
+      "peaks": {
+        "startup": 102940672,
+        "None:prepared": 103022592,
+        "410:cut_start": 170393600,
+        "410:native_start": 321617920,
+        "410:growth_finished": 321617920,
+        "410:states_exported": 322322432,
+        "410:transitions_exported": 322371584,
+        "410:native_finished": 322371584,
+        "410:finalization_start": 364838912,
+        "410:finalization_finished": 356679680,
+        "410:publication_start": 356679680,
+        "410:publication_finished": 357089280,
+        "410:output_released": 357089280,
+        "410:before_collect": 357089280,
+        "410:after_collect": 356040704,
+        "410:symmetry_released": 353943552,
+        "410:session_released": 303005696,
+        "410:complete": 303005696
+      },
+      "guard_gib": 2.0,
+      "seconds": 300.0,
+      "elapsed_seconds": 10.968529707984999,
+      "exitcode": 0
+    }
+  },
+  "tests": {
+    "focused": {
+      "passed": 112,
+      "seconds": 4.39,
+      "modules": [
+        "test_search_graph",
+        "test_completed_branch_cap",
+        "test_aam_checkpoint_transport",
+        "test_final_branches",
+        "test_shared_seed_search",
+        "test_collection_sharing",
+        "test_native_scheduler"
+      ]
+    },
+    "smoke": {
+      "passed": 27,
+      "seconds": 1.53
+    },
+    "integration": {
+      "passed": 61,
+      "modules": [
+        "test_shared_execution",
+        "test_decoder_optimizations",
+        "test_partial_event_decoding",
+        "test_hierarchy_transport"
+      ],
+      "initial_passed": 47,
+      "sandbox_blocked": 14,
+      "retry_passed": 14,
+      "retry_seconds": 9.42
+    }
+  },
+  "scope": [
+    "Every point run uses a fresh single-compute-thread process. Twelve runs sequential, alternating versions; no concurrent tests.",
+    "Original native binary preserved only as an ignored benchmark artifact, loaded through the existing probe override. No production fallback or mode added.",
+    "Baseline ceiling8GiB; repaired ceiling2GiB. No repaired guard failures. Time excludes input preparation and startup; includes matching,finalization and saving.",
+    "Full retained path and catalogue relations compared for both cuts; removed IDs and rejected payloads intentionally differ.",
+    "No full EnzymeMap accuracy rerun or cluster throughput measurement. DFW running checkout/jobs left unchanged.",
+    "Shared-policy memoized decisions remain while active policies can reuse them and are released when all policies finish.",
+    "Completed-fragment cache64MiB, enabled locally; shared snapshot I/O omitted as in the original diagnosis."
+  ]
+}

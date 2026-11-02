@@ -37,11 +37,21 @@ def problem():
     return AAMProblem(endpoint, endpoint, 'hydrogen')
 
 
+def path_signatures(graph):
+    return [(path.context, tuple(path.mapping.items()), tuple(
+        (edge.seed, edge.step, edge.match, edge.preserved_bonds)
+        for edge in (graph.transitions[index] for index in path.transitions)))
+        for path in graph.paths()]
+
+
 def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     graph = network(['C'] * 4)
     recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 1, 2, 3)))
     prefix = _Branch(recorder)
     prefix.commit(iso({0: 0}))
+    discarded = prefix.fork()
+    discarded.commit(iso({2: 3}))
+    recorder.stop(discarded, 'capped', stage='combined_live_leaves', count=3, limit=2)
     left, right = prefix.fork(), prefix.fork()
     left.commit(iso({1: 1}))
     left.commit(iso({2: 2}))
@@ -51,7 +61,15 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     left.merge_exact_paths(right)
     left.commit(iso({3: 3}))
     recorder.stop(left, 'objective_met')
+    expected = path_signatures(recorder.finish())
+    recorder.retain([left])
     result = recorder.finish()
+    assert path_signatures(result) == expected
+    assert all(edge.match is None or edge.match['symmetry']['witness'] != {2: 3}
+               for edge in result.transitions)
+    assert result.states[left.node].mapping == tuple(sorted(left.mapping.items()))
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.state, result.stop_context(cap), cap.occurrences) == (None, 0, 1)
     paths = tuple(result.paths())
     assert len(paths) == 2
     assert all(p.transitions[0] == 0 for p in paths)
@@ -65,6 +83,66 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     assert len(combined.branches()) == 1
     assert len(combined.branches()[0].paths) == 4
     assert len(combined.literal_branches()) == 2
+
+
+def test_rejected_subtree_keeps_histories_already_joined_to_a_survivor(monkeypatch):
+    import mappa.mappa_core.core.search.branching.construction as construction
+    from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
+
+    def grow(source, target, *, seed, context, config, **kwargs):
+        placements = ([iso({0: 0, 1: 1}), iso({0: 0, 1: 2}), iso({0: 0})]
+                      if seed == 0 else
+                      [iso({0: 0, 1: value}) for value in (1, 3, 4)])
+        return FragmentMatchResult(tuple(placements), False, len(placements),
+                                   config.branch_limit, 0.)
+
+    monkeypatch.setattr(construction, 'match_fragment', grow)
+    source = network(['C', 'O'])
+    target = network(['C', 'O', 'O', 'O', 'O'])
+    result = find_islands(source, target, [0, 1], max_branches=3)
+    paths = list(result.paths())
+    assert [path.mapping for path in paths] == [{0: 0, 1: 1}] * 2 + [{0: 0, 1: 2}]
+    assert [[edge.match['fragment'] for edge in
+             (result.transitions[index] for index in path.transitions) if edge.match]
+            for path in paths] == [[[0, 1]], [[0], [0, 1]], [[0, 1]]]
+    assert all(state.mapping in ((), ((0, 0),), ((0, 0), (1, 1)), ((0, 0), (1, 2)))
+               for state in result.states)
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.state, result.stop_context(cap), cap.seed, cap.step, cap.stage,
+            cap.count, cap.limit, cap.occurrences) == (
+                None, 0, 1, (1, 1), 'combined_live_leaves', 4, 3, 2)
+
+
+def test_retention_releases_discarded_payloads_and_aggregates_stop_evidence():
+    import gc
+    import weakref
+
+    class Payload(dict):
+        pass
+
+    recorder = SearchGraphBuilder(SearchContext((0, 1), tuple(range(102)), (0, 1)))
+    live = _Branch(recorder)
+    live.commit(iso({0: 0}))
+    payloads = []
+    for target in range(1, 101):
+        discarded = live.fork()
+        match = iso({1: target})
+        match = replace(match, symmetry=Payload(match.symmetry))
+        payloads.append(weakref.ref(match.symmetry))
+        discarded.commit(match)
+        recorder.stop(discarded, 'capped', stage='combined_live_leaves', count=2, limit=1)
+        recorder.retain([live])
+        assert len(recorder.states) == 2 and len(recorder.transitions) == 1
+        del discarded, match
+    gc.collect()
+    assert all(reference() is None for reference in payloads)
+    result = recorder.finish()
+    cap, = result.stops
+    assert (cap.state, cap.count, cap.limit, cap.occurrences) == (None, 2, 1, 100)
+    assert not result.terminals and not list(result.paths())
+    recorder.stop(live, 'stalled')
+    recorder.retain([])
+    assert [path.mapping for path in recorder.finish().paths()] == [{0: 0}]
 
 
 def test_online_admission_reuses_equal_continuation(monkeypatch):
@@ -112,12 +190,12 @@ def test_deferred_bond_storage_is_shared_without_changing_records():
         branch = parent.fork()
         branch.commit(FragmentPlacement(mapping, frozenset(mapping), frozenset(cuts),
                        {'witness': mapping, 'blocks': []}, ()))
-        parent.graph.stop(branch, 'capped', count=2, limit=1)
+        parent.graph.stop(branch, 'stalled')
     graph = parent.graph.finish()
     a, b, c = [e.match['deferred_edges'] for e in graph.transitions]
     assert a is b and a[0] is c[0]
     assert a == [[0, 2], [1, 3]]
-    assert len(graph.stops) == 3  # discarded-path diagnostics are preserved
+    assert len(graph.stops) == 3  # retained partial results keep their own records
     record = graph.to_record()
     restored = AAMSearchGraph.from_record(json.loads(json.dumps(record)), copy=False)
     assert restored.to_record() == record
@@ -197,7 +275,7 @@ def test_fragment_bonds_retain_only_recorded_growth_edges(seed):
     assert result.preserved_bonds == expected
 
 
-def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ancestry():
+def test_symmetry_finalization_uses_retained_ancestry_and_preserves_cap_evidence():
     target = network(['C'] * 3)
     recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
     prefix = _Branch(recorder)
@@ -207,7 +285,10 @@ def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ances
     capped.commit(iso({2: 2}))
     recorder.stop(live, 'objective_met')
     recorder.stop(capped, 'capped')
+    recorder.retain([live])
     raw = recorder.finish()
+    assert len(raw.transitions) == 2
+    assert next(stop for stop in raw.stops if stop.reason == 'capped').state is None
     selected = raw.ancestor_transitions(raw.terminals)
     assert len(selected) == 2
     result, metrics = finalize_graph_symmetry(raw, target, iso_tolerance=.5)
@@ -220,7 +301,7 @@ def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ances
                 == 'conditioned_search_transition') == (edge.id in selected)
     complete, metrics = finalize_graph_symmetry(result, target, iso_tolerance=.5,
                                                states=range(len(result.states)))
-    assert metrics['completed_candidate_group_requests'] == 1
+    assert metrics['completed_candidate_group_requests'] == 0
     for edge_id in selected:
         assert complete.transitions[edge_id].match == result.transitions[edge_id].match
     again, metrics = finalize_graph_symmetry(complete, target, iso_tolerance=.5)
@@ -264,6 +345,9 @@ def test_cap_is_recorded_without_claiming_a_match(monkeypatch, stage):
     assert not result.terminals
     assert result.capped
     assert all(s.stage == stage and s.count == 2 and s.limit == 1 for s in result.stops)
+    assert len(result.states) == 1 and not result.transitions
+    assert all(s.state is None and result.stop_context(s) == 0 for s in result.stops)
+    assert sum(s.occurrences for s in result.stops) == (1 if stage == 'fragment_growth' else 2)
 
 
 def test_partial_fragment_api_and_sparse_original_atom_indices():

@@ -37,6 +37,52 @@ def test_different_product_fragment_pairs_remain_separate():
     assert len(index.branches)==2
 
 
+def test_discarded_history_pruning_preserves_catalogue_relation_and_decoding():
+    from itertools import permutations
+    from mappa import decode_events
+    from mappa.mappa_core.core.search.branching.construction import _Branch
+    from mappa.mappa_core.core.search.graph import SearchGraphBuilder
+    from mappa.mappa_core.core.matching.representation.records import FragmentPlacement
+
+    value = problem('CCC', [(0, 1, 1.)], [(0, 2, 1.)])
+    builder = SearchGraphBuilder(SearchContext((0, 1, 2), (0, 1, 2), (0,),
+                                               cuts=((0, 1),)))
+    root = _Branch(builder)
+    discarded = root.fork()
+    discarded.commit(FragmentPlacement({0: 1}, frozenset({0}), frozenset(),
+                        {'witness': {0: 1}, 'blocks': []}, ()))
+    builder.stop(discarded, 'capped', stage='combined_live_leaves', count=2, limit=1)
+    live = root.fork()
+    witness = {0: 0, 1: 1, 2: 2}
+    symmetry = dict(witness=witness, exact_fixed=[0], compression_version=3,
+                    blocks=[dict(r_atoms=[1, 2], p_atoms=[1, 2])],
+                    automorph_generators=())
+    live.commit(FragmentPlacement(witness, frozenset(witness), frozenset(), symmetry, ()))
+    builder.stop(live, 'objective_met')
+    before = FinalBranchCatalogue(value).add_graph(builder.finish())
+    builder.retain([live])
+    compact = builder.finish()
+    after = FinalBranchCatalogue(value).add_graph(compact)
+    assert len(compact.states) == 2 and len(compact.transitions) == 1
+    assert before.branches == after.branches
+    assert before.path_count == after.path_count == 1
+    assert len(before.families) == len(after.families) == 1
+    left, right = before.families[0], after.families[0]
+    assert (left.mapping, left.actions, left.required_edges, left.policy) == (
+        right.mapping, right.actions, right.required_edges, right.policy)
+    for catalogue in (before, after):
+        path = catalogue.families[0].as_path(value)
+        recovered = {images for images in permutations(range(3)) if query_path(
+            path, value, dict(enumerate(images)), source_atoms=(0, 1, 2))[0] == 'recovered'}
+        assert recovered == {(0, 1, 2), (0, 2, 1)}
+        decoded = decode_events(catalogue)
+        assert [decoded.contributions(0, [choice])['total']
+                for choice in ((1, 2), (2, 1))] == [2, 0]
+    origin, = after.families[0].provenance
+    assert origin['terminal'] == live.node
+    assert origin['transitions'] == next(compact.paths()).transitions
+
+
 def test_noncommuting_choices_remain_alternatives_inside_one_branch():
     value=problem('HHH',[],[]);a=saved_path(value,[(1,0,2)]);b=saved_path(value,[(0,2,1)])
     def combine(first,second):

@@ -25,7 +25,8 @@ def reduce_matching(payload, workspace):
         if any(tuple(c.cuts) != scope.bonds for c in cut.graph.contexts):
             raise ValueError('Graph belongs to another cut')
         catalogue.add_graph(cut.graph, archive=f'{matched.case}/cut/{scope.number:05d}')
-        stops.update(stop.reason for stop in cut.graph.stops)
+        for stop in cut.graph.stops:
+            stops[stop.reason] += stop.occurrences
         del cut
     return CatalogueResult(matched.case, catalogue, matched.scope, tuple(sorted(stops.items())),
                            source.config, source.execution)

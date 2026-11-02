@@ -4,6 +4,7 @@ class SharedStatePairs {
     std::unordered_map<uint64_t,py::tuple> rows;
     std::unordered_map<std::string,py::tuple> blocks;
     std::unordered_map<std::string,py::object> sequences;
+    std::unordered_map<PyObject*,py::list> bond_rows,bond_records;
     py::object sequence_type=py::module_::import("mappa.mappa_core.core.search.pairs").attr("SharedPairs");
 public:
     py::tuple pairs(const std::vector<Pair>& values) {
@@ -24,6 +25,19 @@ public:
             result[i]=row->second;
         }
         blocks.emplace(std::move(key),result);
+        return result;
+    }
+    py::list bond_record(const py::tuple& values) {
+        auto previous=bond_records.find(values.ptr());
+        if (previous!=bond_records.end()) return previous->second;
+        py::list result;
+        for (auto pair:values) {
+            auto row=bond_rows.find(pair.ptr());
+            if (row==bond_rows.end())
+                row=bond_rows.emplace(pair.ptr(),py::list(py::reinterpret_borrow<py::tuple>(pair))).first;
+            result.append(row->second);
+        }
+        bond_records.emplace(values.ptr(),result);
         return result;
     }
     py::object state(const std::vector<int>& values,const std::vector<int>& source_ids,
@@ -94,11 +108,8 @@ py::tuple scheduled_graph_result(const ScheduledGraph& graph,const std::vector<i
             py::dict match;py::list fragment;
             for (int r:edge.match->fragment) fragment.append(r_ids[r]);
             match["island_idx"]=edge.island;match["fragment"]=fragment;
-            py::list deferred;
-            for (auto [a,b]:edge.match->deferred_edges) {
-                py::list pair;pair.append(r_ids[a]);pair.append(r_ids[b]);deferred.append(pair);
-            }
-            match["deferred_edges"]=deferred;match["symmetry"]=translated_symmetry(edge.match->cand);
+            match["deferred_edges"]=shared.bond_record(r_pairs(edge.match->deferred_edges));
+            match["symmetry"]=translated_symmetry(edge.match->cand);
             match_record=match;
         }
         transitions[i]=transition_type(i,edge.source,edge.target,
@@ -107,9 +118,10 @@ py::tuple scheduled_graph_result(const ScheduledGraph& graph,const std::vector<i
     }
     for (size_t i=0;i<graph.stops.size();++i) {
         const auto& stop=graph.stops[i];
-        stops[i]=stop_type(stop.state,stop.reason,
+        stops[i]=stop_type(stop.state<0 ? py::object(py::none()) : py::object(py::int_(stop.state)),stop.reason,
             stop.seed<0 ? py::object(py::none()) : py::object(py::int_(r_ids[stop.seed])),
-            stop.stage,stop.count,stop.limit,py::make_tuple(stop.pass,stop.position));
+            stop.stage,stop.count,stop.limit,py::make_tuple(stop.pass,stop.position),
+            stop.state<0 ? py::object(py::int_(0)) : py::object(py::none()),stop.occurrences);
     }
     auto result=types.attr("AAMSearchGraph")(py::make_tuple(context),py::make_tuple(0),states,transitions,stops);
     return py::make_tuple(result,graph.growth_calls,graph.max_growth_candidates);

@@ -74,9 +74,13 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
     full = search(source, dest, [0, 1], max_branches=4, **kwargs)
     capped = search(source, dest, [0, 1], max_branches=3, **kwargs)
     assert len(full.terminals) == 4
-    assert 0 < len(capped.terminals) <= 3
-    assert any(s.reason == 'capped' and s.stage == 'combined_live_leaves'
-               and s.count == 4 and s.limit == 3 for s in capped.stops)
+    assert [path.mapping for path in capped.paths()] == [
+        {0: 0, 1: 2}, {0: 0, 1: 3}]
+    cap, = [stop for stop in capped.stops if stop.reason == 'capped']
+    assert (cap.state, capped.stop_context(cap), cap.seed, cap.step, cap.stage,
+            cap.count, cap.limit, cap.occurrences) == (
+                None, 0, 1, (1, 1), 'combined_live_leaves', 4, 3, 2)
+    assert len(capped.transitions) == 3
 
 
 @pytest.mark.parametrize('checkpoint_only', [False, True])

@@ -258,6 +258,7 @@ def find_islands(g_R, g_P, seed_order,
             graph.seed = int(seed)
             new_branches = []
             pending_seen = {}
+            discarded = False
 
             def _admit_subtree(subtree, *, made_progress=False,
                                source_branch=None):
@@ -268,7 +269,7 @@ def find_islands(g_R, g_P, seed_order,
                 other seed orders remain valid; exactly ``max_branches`` live
                 leaves is allowed.
                 """
-                nonlocal progressed
+                nonlocal progressed, discarded
                 additions = []
                 local_seen = {}
                 for candidate in subtree:
@@ -283,6 +284,7 @@ def find_islands(g_R, g_P, seed_order,
                     local_seen[sig] = candidate
                     additions.append((sig, candidate))
                 if len(new_branches) + len(additions) > max_branches:
+                    discarded = True
                     for _sig, candidate in additions:
                         graph.stop(candidate, 'capped', stage='combined_live_leaves',
                                    count=len(new_branches) + len(additions), limit=max_branches)
@@ -344,6 +346,7 @@ def find_islands(g_R, g_P, seed_order,
                             'mapped_before': len(b.mapping),
                         })
                 if result.capped:
+                    discarded = True
                     graph.stop(b, 'capped', stage='fragment_growth',
                                count=result.branch_count, limit=result.branch_limit)
                     # Only this parent branch's descendant subtree is
@@ -374,6 +377,8 @@ def find_islands(g_R, g_P, seed_order,
             new_branches.sort(key=lambda b: -len(b.mapping))
             # Admission already enforces unique live state keys.
             branches = new_branches
+            if discarded:
+                graph.retain(branches)
             # Soft warning: pathological symmetry can blow this up. Default
             # cap is 1e6 so we should never hit it on real molecules; if we
             # do, surface it so we know.

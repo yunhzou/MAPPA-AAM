@@ -33,7 +33,8 @@ def contents(graph):
     states = {state_key(s) for s in graph.states}
     edges = {(state_key(graph.states[e.source]), state_key(graph.states[e.target]),
               frozen_value(e.match), e.preserved_bonds) for e in graph.transitions if e.match is not None}
-    stops = {(state_key(graph.states[s.state]), s.reason, s.stage) for s in graph.stops}
+    stops = {(None if s.state is None else state_key(graph.states[s.state]),
+              s.reason, s.stage, s.count, s.limit) for s in graph.stops}
     return states, edges, stops
 
 
@@ -83,7 +84,9 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
         assert actual == tuple(reference)
         assert nx.is_directed_acyclic_graph(nx.DiGraph((e.source,e.target)
             for e in child.builder.transitions))
-        assert child.growth_calls == len(child.decisions)
+        # Completed policies release their working memo; returned paths above
+        # still have to equal the independent union of the original searches.
+        assert not child.decisions and not child.branches and not child.available_elements
         assert child.work == child.growth_calls + child.reused_states
 
 

@@ -133,6 +133,13 @@ orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are ne
 
 The library and this notebook use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
+The returned search graph retains the complete fragment paths leading to its
+results. Discarded paths release their payloads. Their cap evidence remains in
+`graph.stops`: a cap summary has `state=None`, an explicit `context`, and an
+`occurrences` count. Its `count` and `limit` describe the original admission
+decision. Use `graph.stop_context(stop)` for either a summary or a stop attached
+to a retained state. Historical checkpoints keep their original attached stops.
+
 Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Saved raw/finalized graph-only checkpoints remain readable.
 
 ## Experimental fragment competition (optional; default off)

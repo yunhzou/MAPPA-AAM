@@ -153,7 +153,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     for key,value in groups.items():metrics[key]=metrics.get(key,0)+value
     metrics.update(cuts=len(cuts), raw_result_count=len(graph.terminals),
         retained_branch_count=len(graph.terminals),
-        subtree_branch_cap_count=sum(stop.reason == 'capped' for stop in graph.stops))
+        subtree_branch_cap_count=sum(stop.occurrences for stop in graph.stops if stop.reason == 'capped'))
     result = AAMResult(problem, config, graph,
                       AAMSearchMetrics.from_record(metrics, time.perf_counter()-started))
     if directory is not None:
@@ -230,7 +230,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
         count = len(graph.terminals)
         metrics['raw_result_count'] += count
         metrics['retained_branch_count'] += count
-        metrics['subtree_branch_cap_count'] += sum(stop.reason == 'capped' for stop in graph.stops)
+        metrics['subtree_branch_cap_count'] += sum(stop.occurrences for stop in graph.stops if stop.reason == 'capped')
         by_context = {}
         for terminal in graph.terminals:
             context = graph.states[terminal].context

@@ -92,6 +92,19 @@ unchanged. Identical growth output is never expanded into bijections.
             request = next(policy, None)
             if request is not None:
                 self.agenda.append((policy, request))
+        if not self.agenda:
+            self._finish_policies()
+
+    def _finish_policies(self):
+        # Memoized decisions may serve another active policy. Once all policies
+        # finish, only returned-path ancestry and compact stop evidence remain.
+        self.builder.retain((self.root,))
+        self.branches.clear()
+        self.decisions.clear()
+        self.available_elements.clear()
+        self.builder.nodes.clear()
+        self.builder.edges.clear()
+        self.builder.stop_keys.clear()
 
     def _expand(self, branch, seed):
         key = (branch.node, seed)
@@ -186,6 +199,8 @@ unchanged. Identical growth output is never expanded into bijections.
             pass
         else:
             self.agenda.append((policy, request))
+        if not self.agenda:
+            self._finish_policies()
         self.elapsed += time.perf_counter()-started
         return True
 
@@ -201,7 +216,8 @@ unchanged. Identical growth output is never expanded into bijections.
                                           workspace=self.condition.workspace)
         metrics = AAMSearchMetrics.from_record(dict(cuts=1, raw_result_count=len(graph.terminals),
             retained_branch_count=len(graph.terminals),
-            subtree_branch_cap_count=sum(s.reason=='capped' for s in graph.stops)), self.elapsed)
+            subtree_branch_cap_count=sum(s.occurrences for s in graph.stops
+                                         if s.reason=='capped')), self.elapsed)
         return AdaptiveResult(AAMResult(self.problem, self.config, graph, metrics), self.work,
             self.growth_calls, 0, self.reused_states, pending, not self.agenda)
 

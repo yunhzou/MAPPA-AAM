@@ -17,6 +17,8 @@ struct ScheduledBranch {
     }
 };
 
+using BranchPtr=std::shared_ptr<ScheduledBranch>;
+
 struct ScheduledKeyHash {
     size_t operator()(const ScheduledBranch* b) const { return b->key_hash; }
 };
@@ -39,6 +41,7 @@ struct ScheduledStop {
     int state,seed,pass,position;
     std::string reason,stage;
     long count=0,limit=0;
+    long occurrences=1;
 };
 struct ScheduledGraph {
     std::vector<ScheduledState> states;
@@ -47,6 +50,8 @@ struct ScheduledGraph {
     int seed=-1,pass=0,position=0;
     long growth_calls=0;
     long max_growth_candidates=0;
+    std::map<std::tuple<int,int,int,std::string,std::string,long,long>,size_t> cap_summaries;
+    bool needs_pruning=false;
     int state(const ScheduledBranch& b) {
         states.push_back({b.mapping,b.labels,b.deferred});
         return (int)states.size()-1;
@@ -59,11 +64,51 @@ struct ScheduledGraph {
         kept.node=node;
     }
     void stop(const ScheduledBranch& b,std::string reason,std::string stage="",long count=0,long limit=0) {
-        stops.push_back({b.node,seed,pass,position,std::move(reason),std::move(stage),count,limit});
+        int state=b.node;
+        if (reason=="capped") {
+            needs_pruning=true;
+            auto key=std::make_tuple(seed,pass,position,reason,stage,count,limit);
+            auto previous=cap_summaries.find(key);
+            if (previous!=cap_summaries.end()) {
+                ++stops[previous->second].occurrences;
+                return;
+            }
+            cap_summaries.emplace(std::move(key),stops.size());
+            state=-1;
+        }
+        stops.push_back({state,seed,pass,position,std::move(reason),std::move(stage),count,limit});
+    }
+    void prune(const std::vector<BranchPtr>& frontier) {
+        std::vector<uint8_t> retained(states.size(),0);
+        retained[0]=1;
+        for (const auto& branch:frontier) retained[branch->node]=1;
+        for (const auto& stop:stops) if (stop.state>=0) retained[stop.state]=1;
+        // Every edge points to a newly appended state. Reverse traversal keeps
+        // every incoming path through joins, not just one representative path.
+        for (auto edge=transitions.rbegin();edge!=transitions.rend();++edge)
+            if (retained[edge->target]) retained[edge->source]=1;
+        std::vector<int> indices(states.size(),-1);
+        size_t kept=0;
+        for (size_t i=0;i<states.size();++i) if (retained[i]) {
+            indices[i]=(int)kept;
+            if (kept!=i) states[kept]=std::move(states[i]);
+            ++kept;
+        }
+        states.resize(kept);
+        kept=0;
+        for (size_t i=0;i<transitions.size();++i) if (retained[transitions[i].target]) {
+            auto& edge=transitions[i];
+            edge.source=indices[edge.source];edge.target=indices[edge.target];
+            if (kept!=i) transitions[kept]=std::move(edge);
+            ++kept;
+        }
+        transitions.resize(kept);
+        for (auto& stop:stops) if (stop.state>=0) stop.state=indices[stop.state];
+        for (const auto& branch:frontier) branch->node=indices[branch->node];
+        needs_pruning=false;
     }
 };
 
-using BranchPtr=std::shared_ptr<ScheduledBranch>;
 using ScheduledFrontier=std::unordered_map<const ScheduledBranch*,BranchPtr,ScheduledKeyHash,ScheduledKeyEqual>;
 
 BranchPtr commit_scheduled_fragment(const BranchPtr& parent,IsoOut iso,
@@ -213,6 +258,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
             }
             std::stable_sort(next.begin(),next.end(),[](const auto& a,const auto& b){return a->mapped>b->mapped;});
             branches=std::move(next);
+            if (graph.needs_pruning) graph.prune(branches);
             if (stop_at_core && !core.empty() && !branches.empty() &&
                 std::all_of(branches.begin(),branches.end(),[&](const auto& b){return core_complete(*b);})) {
                 for (const auto& b:branches) graph.stop(*b,"objective_met");

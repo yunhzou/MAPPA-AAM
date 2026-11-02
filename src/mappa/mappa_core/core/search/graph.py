@@ -38,6 +38,14 @@ class _BondRecords:
             self.records[key] = record
         return record
 
+    def retain(self, records):
+        self.records, self.rows = {}, {}
+        for record in records:
+            key = tuple(map(tuple, record))
+            self.records.setdefault(key, record)
+            for edge, row in zip(key, record):
+                self.rows.setdefault(edge, row)
+
 
 @dataclass(frozen=True)
 class SearchContext:
@@ -95,13 +103,20 @@ class FragmentTransition:
 
 @dataclass(frozen=True)
 class SearchStop:
-    state: int
+    """A saved state stop, or counted cap evidence with an explicit context.
+
+    Attached stops take their context from the state. Only detached stops use
+    the context field; occurrences counts stops, not attempted branch choices.
+    """
+    state: int | None
     reason: str
     seed: int | None = None
     stage: str = ""
     count: int = 0
     limit: int = 0
     step: tuple[int, ...] = ()
+    context: int | None = None
+    occurrences: int = 1
 
 
 @dataclass(frozen=True)
@@ -240,6 +255,14 @@ class AAMSearchGraph:
     states: tuple[SearchState, ...]
     transitions: tuple[FragmentTransition, ...]
     stops: tuple[SearchStop, ...]
+
+    def stop_context(self, stop):
+        """Attached historical stops derive context from their saved state."""
+        if stop.state is not None:
+            return self.states[stop.state].context
+        if stop.context is None:
+            raise ValueError('Detached stop requires its search context')
+        return stop.context
 
     @property
     def terminals(self):
@@ -387,8 +410,8 @@ class AAMSearchGraph:
                                             record, placement.preserved_bonds))
             stops.append(SearchStop(node, 'objective_met', seed, 'seeded_fragment'))
         if result.capped:
-            stops.append(SearchStop(0, 'capped', seed, 'fragment_growth',
-                                    result.branch_count, result.branch_limit))
+            stops.append(SearchStop(None, 'capped', seed, 'fragment_growth',
+                                    result.branch_count, result.branch_limit, context=0))
         elif not result.matches:
             stops.append(SearchStop(0, 'stalled', seed, 'seeded_fragment'))
         return cls((context,), (0,), tuple(states), tuple(edges), tuple(stops))
@@ -447,8 +470,11 @@ class AAMSearchGraph:
                 state.islands, state.deferred_edges) for state in graph.states)
             transitions.extend(FragmentTransition(edge.id+t, edge.source+s, edge.target+s,
                 edge.seed, edge.step, edge.match, edge.preserved_bonds) for edge in graph.transitions)
-            stops.extend(SearchStop(stop.state+s, stop.reason, stop.seed, stop.stage,
-                stop.count, stop.limit, stop.step) for stop in graph.stops)
+            stops.extend(replace(stop,
+                state=None if stop.state is None else stop.state+s,
+                context=graph.stop_context(stop)+c
+                if stop.state is None or stop.context is not None else None)
+                for stop in graph.stops)
         return cls(tuple(contexts), tuple(roots), tuple(states), tuple(transitions), tuple(stops))
 
 
@@ -463,6 +489,7 @@ class SearchGraphBuilder:
         self.seed = None
         self._partitions = {}
         self._bond_records = _BondRecords()
+        self._cap_stops = {}
 
     def bond_record(self, edges):
         """DAG-owned read-only bond lists, shared by exact value.
@@ -528,8 +555,70 @@ class SearchGraphBuilder:
         kept.node = node
 
     def stop(self, branch, reason, *, stage="", count=0, limit=0):
-        self.stops.append(SearchStop(branch.node, reason, self.seed, stage, count, limit,
-                                     self.step))
+        self._record_stop(SearchStop(None if reason == 'capped' else branch.node,
+            reason, self.seed, stage, count, limit, self.step,
+            context=0 if reason == 'capped' else None))
+
+    def _record_stop(self, stop):
+        if stop.reason == 'capped':
+            key = (stop.context, stop.reason, stop.seed, stop.step,
+                   stop.stage, stop.count, stop.limit)
+            index = self._cap_stops.get(key)
+            if index is not None:
+                previous = self.stops[index]
+                self.stops[index] = replace(previous,
+                    occurrences=previous.occurrences+stop.occurrences)
+                return
+            self._cap_stops[key] = len(self.stops)
+        self.stops.append(stop)
+
+    def retain(self, branches):
+        """Release discarded history while preserving every live incoming path.
+
+        Matching supplies all branch objects whose node IDs it will reuse.
+        Loading, inspecting and finalizing historical graphs never prunes them.
+        """
+        branches = tuple({id(branch): branch for branch in branches}.values())
+        required = set(self.roots)
+        required.update(branch.node for branch in branches)
+        required.update(stop.state for stop in self.stops
+                        if stop.reason != 'capped' and stop.state is not None)
+        incoming = [[] for _state in self.states]
+        for edge in self.transitions:
+            incoming[edge.target].append(edge)
+        pending, retained = list(required), set()
+        while pending:
+            node = pending.pop()
+            for edge in incoming[node]:
+                retained.add(edge.id)
+                if edge.source not in required:
+                    required.add(edge.source)
+                    pending.append(edge.source)
+        indices = {node: index for index, node in enumerate(sorted(required))}
+        states = [self.states[node] if node == index else replace(self.states[node], id=index)
+                  for node, index in indices.items()]
+        transitions = []
+        for edge in self.transitions:
+            if edge.id not in retained:
+                continue
+            index, source, target = len(transitions), indices[edge.source], indices[edge.target]
+            transitions.append(edge if (edge.id, edge.source, edge.target) == (index, source, target)
+                               else replace(edge, id=index, source=source, target=target))
+        stops, self.stops = self.stops, []
+        self._cap_stops.clear()
+        for stop in stops:
+            if stop.reason == 'capped':
+                context = self.states[stop.state].context if stop.state is not None else stop.context
+                self._record_stop(replace(stop, state=None, context=context))
+            else:
+                self._record_stop(replace(stop, state=indices[stop.state]))
+        self.roots = [indices[node] for node in self.roots]
+        self.states, self.transitions = states, transitions
+        for branch in branches:
+            branch.node = indices[branch.node]
+        self._partitions.clear()
+        self._bond_records.retain(edge.match['deferred_edges'] for edge in transitions
+                                  if edge.match is not None)
 
     def finish(self):
         return AAMSearchGraph((self.context,), tuple(self.roots), tuple(self.states),

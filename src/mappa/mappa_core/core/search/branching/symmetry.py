@@ -11,9 +11,9 @@ from mappa.mappa_core.core.search.graph import frozen_value
 def finalize_graph_symmetry(graph, target, *, iso_tolerance, states=None, workspace=None):
     """Finalize exact groups on ancestors of the requested result states.
 
-    By default these are returned terminals. Capped/dead history stays in the
-    graph, without eagerly computing groups that no returned path uses. Pass
-    explicit state IDs (or all graph state IDs) to inspect that history too.
+    By default these are returned terminals. Historical graphs may also contain
+    discarded paths; their unused groups are not computed. Explicit state IDs
+    can select recorded history without changing its contents.
     Immutable generators and group tuples are interned within this result.
     """
     enabled = gc.isenabled()

@@ -177,6 +177,16 @@ blocks. Binary checkpoints and pool handoffs preserve that sharing. Explicit
 record/JSON export may expand views and need substantially more memory. Storage
 sharing does not merge scientific alternatives or enumerate fragment bijections.
 
+Matching retains the full ancestry of live continuations and returned results,
+including every incoming path at a join. Once a path has no surviving descendant,
+its mapping, fragment and boundary payloads are released during ordinary search,
+before transport or publication. Cap evidence records the context, seed, step,
+stage, attempted count, limit and occurrence count without retaining rejected
+child states. A cap summary is not a returned mapping. Shared-policy searches
+also retain decisions still reusable by their active policies, and release that
+working state when those policies finish. Historical archives keep their original
+recorded contents when loaded.
+
 Graph combination concatenates and reindexes histories; it does not deduplicate
 final families. Public branch grouping retains every path. Seed order, growth
 history, island labels, anchors and witnesses do not split an atom-set branch;

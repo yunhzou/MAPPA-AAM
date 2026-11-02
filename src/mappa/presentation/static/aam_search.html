@@ -44,6 +44,7 @@ function draw(){
       viewer.addCylinder({start:xyz(x),end:xyz(y),radius:.11,color:c});}}
   }
   rv.render();pv.render();
+  if(ends.value===''){status.textContent='No returned branch in this search context.';graphView();return}
   const terminal=Number(ends.value),node=upto?g.transitions[selected[upto-1]].target:rootFor(terminal);
   const stops=g.stops.filter(s=>s.state===terminal);
   status.textContent='State '+node+' · '+g.states[node].mapping.length+' assigned atoms · '+fragment+' fragment decisions · stop: '+stops.map(s=>s.reason+(s.stage?' ('+s.stage+')':'')).join(', ');
@@ -67,12 +68,16 @@ function graphView(){
     if(![...ends.options].some(o=>o.value===node))ends.add(new Option('Recorded state '+node,node));
     ends.value=node;chooseEnd()});
 }
-function nextHistory(){let next=iterator.next();if(next.done){iterator=histories(Number(ends.value));next=iterator.next()}
+function nextHistory(){if(!iterator)return;let next=iterator.next();if(next.done){iterator=histories(Number(ends.value));next=iterator.next()}
   selected=next.value||[];slider.max=selected.length;slider.value=selected.length;draw()}
-function chooseEnd(){iterator=histories(Number(ends.value));nextHistory()}
-function chooseContext(){ends.replaceChildren();const stops=g.stops.filter(s=>g.states[s.state].context===Number(contexts.value));
-  for(const node of new Set(stops.map(s=>s.state))){const o=new Option('Terminal state '+node,node);ends.add(o)}
-  document.getElementById('notice').textContent=stops.some(s=>s.reason==='capped')?'Cap reached: retained search is incomplete':'';
+function chooseEnd(){const empty=ends.value==='';
+  for(const id of ['history','play','step'])document.getElementById(id).disabled=empty;
+  iterator=empty?null:histories(Number(ends.value));
+  if(empty){selected=[];slider.max=0;slider.value=0;draw()}else nextHistory()}
+function chooseContext(){ends.replaceChildren();const stops=g.stops.filter(s=>(s.state===null?s.context:g.states[s.state].context)===Number(contexts.value));
+  for(const node of new Set(stops.filter(s=>s.state!==null).map(s=>s.state))){const o=new Option('Recorded stop state '+node,node);ends.add(o)}
+  const capped=stops.filter(s=>s.reason==='capped').reduce((count,s)=>count+(s.occurrences??1),0);
+  document.getElementById('notice').textContent=capped?'Search incomplete: '+capped+' capped branches.':'';
   chooseEnd()}
 g.contexts.forEach((c,i)=>contexts.add(new Option('Run '+i+' · seeds '+c.seed_order.join(',')+' · cuts '+JSON.stringify(c.cuts),i)));
 contexts.onchange=chooseContext;ends.onchange=chooseEnd;slider.oninput=draw;

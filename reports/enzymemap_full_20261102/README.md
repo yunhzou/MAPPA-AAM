@@ -73,5 +73,10 @@ and one publication failure in fresh processes. Repeated search-history storage
 and transport explain substantial memory use; the cluster settings remain
 unchanged. This local diagnosis does not update the startup progress snapshot.
 
+The subsequent [history-retention repair](history-retention-repair.md) preserves
+both sampled cuts' returned mappings and cap evidence while reducing peak memory
+to 0.43/0.34 GiB. The report records controlled timings and validation; it does
+not claim deployment into the running DFW campaign.
+
 Remote campaign:
 `/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102`.
