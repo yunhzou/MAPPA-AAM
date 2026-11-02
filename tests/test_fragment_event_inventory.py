@@ -75,6 +75,12 @@ def test_shared_fragment_results_bind_original_branch_action_positions(shift_act
     assert len(decoded.local.fragments) == 3
     assert first.fragment_responses[0][1] == (0,)
     assert second.fragment_responses[0][1] == ((1,) if shift_actions else (0,))
+    record = decoded_events_record(decoded)
+    first_group, second_group = [record['tables'][row['tables'][0]]['internal'][0]
+                                 for row in record['families']]
+    assert (first_group is second_group) == (not shift_actions)
+    assert first_group['terms'][0]['action_ids'] == (0,)
+    assert second_group['terms'][0]['action_ids'] == ((1,) if shift_actions else (0,))
     assert_all_choices(decoded)
     assert source.to_record() == before
 
@@ -89,6 +95,11 @@ def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
     assert second.cut_bonds == frozenset(((1, 2), (2, 3)))
     assert any(t.atoms == (1, 2) and t.manual_cut for t in second.internal[0])
     assert not any(t.atoms == (1, 2) for t in first.internal[0])
+    record = decoded_events_record(decoded)
+    first_group, second_group = [record['tables'][row['tables'][0]]['internal'][0]
+                                 for row in record['families']]
+    assert first_group is not second_group
+    assert any(t['atoms'] == (1, 2) and t['manual_cut'] for t in second_group['terms'])
     assert decoded.contributions(0, [(2, 1), None])['total'] > 0
     with pytest.raises(ValueError, match='original fragment constraints'):
         decoded.contributions(1, [(2, 1), None])
@@ -106,7 +117,7 @@ def test_export_and_bundle_share_records_without_mutating_runtime_tables(tmp_pat
     restored = pickle.loads(pickle.dumps(record, protocol=5))
     assert restored == record
     first, second = [restored['tables'][row['tables'][0]] for row in restored['families']]
-    assert first['internal'][0]['terms'] is second['internal'][0]['terms']
+    assert first['internal'][0] is second['internal'][0]
     store = BundleStore(tmp_path / 'bundles', scratch=tmp_path)
     restored = store.load(store.put(record))
     assert restored == record
@@ -115,13 +126,32 @@ def test_export_and_bundle_share_records_without_mutating_runtime_tables(tmp_pat
     assert first['atom_actions'] is second['atom_actions']
     assert first['atom_domains'][1] is first['atom_domains'][2]
     assert first['atom_actions'][1] is first['atom_actions'][2]
-    assert first['internal'][0]['terms'] is second['internal'][0]['terms']
+    assert first['internal'][0] is second['internal'][0]
+    assert first['components'] is second['components']
     exported = record['tables'][0]
     assert exported['atom_domains'] is not runtime.atom_domains
     assert exported['atom_actions'] is not runtime.atom_actions
     exported['atom_domains'][0] = (-1,)
     exported['atom_actions'][0] = (-1,)
+    exported['internal'][0]['fragment'] = -1
     assert runtime.atom_domains == domains and runtime.atom_actions == actions
+    assert -1 not in runtime.internal
+    assert_all_choices(decoded)
+
+
+def test_export_distinguishes_group_owners_with_shared_terms():
+    source = two_branches()
+    source.coupled_branches[0] = {(((0,), (0,)), ((1, 2), (1, 2)), ((3, 4, 5), (3, 4, 5)))}
+    decoded = decode_events(source)
+    record = decoded_events_record(decoded)
+    groups = []
+    for number in record['families'][0]['tables']:
+        table = record['tables'][number]
+        owner = table['fragments'].index((3, 4, 5))
+        groups.append(next(row for row in table['internal'] if row['fragment'] == owner))
+    assert {row['fragment'] for row in groups} == {1, 2}
+    assert groups[0]['terms'] is groups[1]['terms']
+    assert groups[0] is not groups[1]
     assert_all_choices(decoded)
 
 

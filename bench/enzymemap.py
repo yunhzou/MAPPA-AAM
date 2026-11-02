@@ -106,7 +106,21 @@ def require_drained(output):
             raise ValueError('Execution requires a drained saved queue; unarchived tasks or attempts remain')
 
 
-def decoding_recovery_plan(source, output, memory_bytes, owners):
+def recovery_owner(output, owners):
+    owner = owners.enter_context((Path(output)/'bundles/cache/.owner.lock').open('rb'))
+    try:
+        fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise RuntimeError('Original campaign or predecessor has an active coordinator or decoding recovery') from None
+    require_drained(output)
+
+
+def recovery_registration(output, plan):
+    return dict(schema='mappa.decoding-recovery-owner/v1', output=str(Path(output).resolve()),
+                plan_sha256=hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest())
+
+
+def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
     """Select terminal decode failures without loading catalogues or changing their campaign."""
     source, output = Path(source).resolve(), Path(output).resolve()
     if output.is_relative_to(source) or source.is_relative_to(output):
@@ -121,12 +135,7 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
         result = directory/'result'
         # Hold original ownership through recovery: another output must not
         # retry these same tasks or resume their source campaign concurrently.
-        owner = owners.enter_context((result/'bundles/cache/.owner.lock').open('rb'))
-        try:
-            fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            raise RuntimeError('Original campaign has an active coordinator or decoding recovery') from None
-        require_drained(result)
+        recovery_owner(result, owners)
         index_raw = (directory/'index.json').read_bytes()
         index = json.loads(index_raw)
         plan_raw = (result/'plan.json').read_bytes()
@@ -198,6 +207,99 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
     return selected, requested
 
 
+def decoding_recovery_plan(source, output, memory_bytes, owners):
+    """Validate a registered recovery chain and continue only its latest failures."""
+    source, output = Path(source).resolve(), Path(output).resolve()
+    predecessors = []
+    directory = source
+    while not (directory/'manifest.json').exists():
+        plan = json.loads((directory/'plan.json').read_text())
+        if plan.get('schema') != 'mappa.decoding-recovery/v1':
+            raise ValueError('Recovery source must be an original campaign or a decoding recovery')
+        if directory in predecessors:
+            raise ValueError('Decoding recovery lineage contains a cycle')
+        predecessors.append(directory)
+        if 'recovery_source' in plan:
+            if plan.get('source_kind') != 'decoding_recovery':
+                raise ValueError('Decoding recovery source kind differs')
+            directory = Path(plan['recovery_source']).resolve()
+        else:
+            directory = Path(plan['original_campaign']).resolve()
+    selected, requested = campaign_decoding_recovery_plan(directory, output, memory_bytes, owners)
+    registration = directory/'decoding-recovery.json'
+    for directory in reversed(predecessors):
+        if output.is_relative_to(directory) or directory.is_relative_to(output):
+            raise ValueError('Decoding recovery requires a separate output directory')
+        recovery_owner(directory, owners)
+        plan_raw = (directory/'plan.json').read_bytes()
+        plan = json.loads(plan_raw)
+        if json.loads(registration.read_text()) != recovery_registration(directory, plan):
+            raise ValueError('Predecessor differs from its registered decoding recovery')
+        expected = dict(requested, decoder_source=plan['decoder_source'])
+        if plan != expected:
+            raise ValueError('Predecessor input, configuration or recovery lineage differs')
+        if json.loads((directory/'progress.json').read_text())['source'] != plan['decoder_source']:
+            raise ValueError('Predecessor decoder source identity differs')
+        ledger_path = (directory/'ledger.sqlite').resolve()
+        with closing(sqlite3.connect(f'{ledger_path.as_uri()}?mode=ro', uri=True)) as ledger:
+            records = {(row[0], row[1]): row for row in ledger.execute('SELECT * FROM results')}
+        names = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}": row
+                 for row in selected}
+        if (set(records) != {(name, 'decoding') for name in names}
+                or any(row[2] not in ('complete', 'error') for row in records.values())):
+            raise ValueError('Predecessor recovery has incomplete terminal scope')
+        remaining = []
+        for name, row in names.items():
+            saved = records[name, 'decoding']
+            previous = read_blob(Blob(**row['audit']), None)
+            audit = Blob(**json.loads(saved[4]))
+            current = read_blob(audit, None)
+            old_task = previous['tasks'][0]
+            old_attempts = {attempt[0]: attempt for attempt in previous['attempts']}
+            attempts = {attempt[0]: attempt for attempt in current['attempts']}
+            if (len(current['tasks']) != 1 or current['tasks'][0][:4] != old_task[:4]
+                    or current['case'][:2] != previous['case'][:2]
+                    or current['case'][3] < previous['case'][3]
+                    or current['case'][2] is not None or current['case'][4] is not None
+                    or current['dependencies'] != previous['dependencies']
+                    or current['retries'] != previous['retries']
+                    or len(old_attempts) != len(previous['attempts'])
+                    or len(attempts) != len(current['attempts'])
+                    or len(attempts) != len(old_attempts)+1
+                    or any(attempts.get(token) != attempt for token, attempt in old_attempts.items())):
+                raise ValueError('Predecessor changed the original task, attempts or consumed budget')
+            task = current['tasks'][0]
+            token, = attempts.keys()-old_attempts.keys()
+            attempt = attempts[token]
+            if (attempt[1] != task[0] or attempt[2] != task[5] or token != task[6]
+                    or attempt[4] is None or attempt[5] != task[4] or attempt[6] != task[8]):
+                raise ValueError('Predecessor task differs from its terminal attempt')
+            state = task[4]
+            if saved[2] == 'complete':
+                result = _loads_checkpoint(task[8])
+                if (state != 'complete' or saved[3] is None
+                        or result['blob'] != Blob(**json.loads(saved[3]))):
+                    raise ValueError('Predecessor successful decoding lacks its completed result')
+                continue
+            if state != 'memory_limit':
+                raise ValueError('Decoding recovery selects only archived memory failures')
+            if current['case'][3] >= current['case'][1]:
+                raise ValueError('Decoding recovery has no remaining case budget')
+            remaining.append(dict(row, audit=asdict(audit), spent_seconds=current['case'][3]))
+        if not remaining:
+            raise ValueError('Predecessor contains no decoding memory failures')
+        history = [*plan.get('predecessors', []), dict(path=str(directory),
+            plan_sha256=hashlib.sha256(plan_raw).hexdigest(),
+            ledger_sha256=hashlib.sha256(ledger_path.read_bytes()).hexdigest(),
+            decoder_source=plan['decoder_source'])]
+        selected = remaining
+        requested = dict(plan, source_kind='decoding_recovery', recovery_source=str(directory),
+            predecessors=history, decoder_source=code_identity(), directions=len(selected),
+            cases=len({row['case'] for row in selected}), directions_to_recover=selected)
+        registration = directory/'decoding-recovery.json'
+    return selected, requested
+
+
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
         retry_memory_limits=False, verify_only=False, recover_decoding=False):
@@ -210,13 +312,14 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
     with ExitStack() as owners:
         output = Path(output)
         if recover_decoding:
+            if (output/'decoding-recovery.json').exists():
+                raise ValueError('Recovery output already has a registered successor; use that latest recovery')
             rows, requested = decoding_recovery_plan(index_path, output, memory_bytes, owners)
             registration = Path(index_path)/'decoding-recovery.json'
-            registered = dict(schema='mappa.decoding-recovery-owner/v1', output=str(output.resolve()),
-                              plan_sha256=hashlib.sha256(json.dumps(requested, sort_keys=True).encode()).hexdigest())
+            registered = recovery_registration(output, requested)
             if registration.exists():
                 if not resume or json.loads(registration.read_text()) != registered:
-                    raise ValueError('Original campaign already has a registered decoding recovery; resume its unchanged output')
+                    raise ValueError('Source already has a registered decoding recovery; resume its unchanged output')
             elif resume:
                 raise ValueError('Decoding recovery resume requires its original registration')
             if resume:
@@ -414,7 +517,7 @@ def main():
     parser.add_argument('--verify-only',action='store_true',
                         help='Verify completed catalogues without requiring decoding; requires --resume')
     parser.add_argument('--recover-decoding',action='store_true',
-                        help='Read the original campaign root and retry its decoding memory failures into separate output, with original guards and remaining budgets')
+                        help='Read an original campaign or its latest terminal recovery and retry decoding memory failures into separate output, preserving guards and remaining budgets')
     parser.add_argument('--retry-memory-limits',action='store_true',
                         help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])

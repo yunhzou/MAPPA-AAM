@@ -16,7 +16,7 @@ memory guard. Matching and reduction must complete across the full campaign
 before decoding begins. Continuations preserve completed work, task ownership
 and consumed budgets.
 
-The checked source/engine identity is
+The original pass used source/engine identity
 `3b4b2c193c3e122b846bbf7966397ac8155aab9b61627c9e8acf3690ce2e5bc0`.
 
 ## Recorded early validation
@@ -33,8 +33,9 @@ under the unchanged 2 GiB guard. These measurements cover this reaction, not
 future decoding or the whole dataset. The directions recorded 109,875 fragment
 cache hits and 931 task-boundary snapshot loads.
 
-The full declared attempt scope is now terminal. Final outcomes and resource
-measurements are recorded below; decoding failures remain explicit.
+The original declared attempt scope is terminal. Its outcomes and resource
+measurements are recorded below; the separate decoding repair and recovery
+preserve that history.
 
 Public scientific projections: [inputs](manifest.json), [run provenance](launch.json),
 [progress](startup-observation.json), [parallel execution and cache measurements](parallel-observation.json),
@@ -43,14 +44,14 @@ Private site configuration, original operational records and continuation
 instructions are retained outside the published repository. See the
 [portable runner](../../bench/README.md) for execution interfaces.
 
-## Final results
+## Original pass results
 
-The last allocation ended at **2026-11-02 03:18:25 Toronto time (08:18:25 UTC)**.
+The last original-pass allocation ended at **2026-11-02 03:18:25 Toronto time (08:18:25 UTC)**.
 The independent final audit finished at 08:25:21 UTC. All 47,974 reactions and
 95,948 directions have terminal records for every stage. Matching, reduction and
 reference verification completed throughout the declared scope. **84 directions
-still lack successful decoding outputs**, so this is not an all-success pipeline
-run.
+lacked successful decoding outputs at that audit**. Their later recovery is
+recorded separately below.
 
 | Stage | Complete directions / 95,948 | Errors | Successful completion |
 |---|---:|---:|---:|
@@ -79,8 +80,8 @@ All 84 decoding errors were **memory-limit failures**, affecting 67 reactions:
 metrics do not distinguish catalogue loading from later decoding operations.
 Publication-phase failures occurred after the decoding operation returned.
 The full case list, phase and sampled memory measurements are in
-[completion.json](completion.json). No decoding retries, budget resets or
-campaign memory-guard changes were made. The separate five-case local diagnosis
+[completion.json](completion.json). The original pass made no decoding retries, budget resets or
+memory-guard changes. The separate five-case local diagnosis
 below explains the measured memory growth without changing this campaign.
 
 ## Time and resource use
@@ -119,8 +120,9 @@ running ownership; snapshots are not continuous CPU-utilization measurements.
 Every stage's direction identities exactly match its immutable input index, and
 all 40 batches are disjoint. Every verification artifact passed its saved
 checksum. The scientific source/engine identity, configuration and **2 GiB guard**
-remained unchanged. All saved queues are drained, all coordinator ownership locks
-are released, and no campaign allocations remain active or pending.
+remained unchanged. At the original-pass completion audit, all saved queues were drained, all
+coordinator ownership locks were released, and no original-pass allocations
+remained active or pending. The separate decoding recovery is recorded below.
 
 Runner revision `9f7d850`, validated by 19 affected campaign tests, allowed
 external verification to continue in the same pool after terminal decoding
@@ -233,6 +235,13 @@ changes serialized bytes, so equality was checked on restored values rather
 than requiring identical byte streams. Independent event-oracle tests cover
 correlated actions, preserved constraints, cuts, partitions and unmatched bonds.
 
+The separate **37270 forward** comparison also passed for the complete typed
+result and saved record, including nested types, values and ordering across
+8,309 families/tables and 16 responses. It reconstructed the pre-repair decoder
+methods from Git and used the same saved catalogue and event thresholds. The
+comparison held both results under a 6 GiB diagnostic guard; this was an accuracy
+check, not the 2 GiB recovery execution or a speed measurement.
+
 Validation passed 27 smoke checks, 51 decoder checks and 26 catalogue/transport
 checks. The execution/campaign suite passed 44 checks before the final ownership
 registration change; all 24 campaign checks passed again after that change.
@@ -244,8 +253,20 @@ references confirmed that prior catalogues, interpretations, outputs and session
 were released. An isolated collection check found zero unreachable cycles and
 reduced RSS by only 19 MiB. Allocator diagnostics nevertheless showed hundreds
 of MiB in unused small-object blocks and pools. Thus cold-worker success does
-not establish persistent-worker safety. Linux validation and an earlier session
-release experiment are required before claiming all failures recovered.
+not establish persistent-worker safety. An earlier session-release experiment also exceeded 2 GiB on the second
+consecutive case, so it was not applied to production. Linux validation and
+explicit recovery results are required before claiming all failures recovered.
+
+The Linux validation then completed **all five cases in one persistent worker**
+under the unchanged 2 GiB guard. All five published outputs matched the repaired
+Mac outputs byte for byte. The external sampler observed a maximum of
+**1.707 GiB**; the operating system's whole-process high-water measurement was
+**1.738 GiB**. The five tasks took 24 minutes, with 1,395.51 seconds of compute
+CPU and 8.94 seconds of publication CPU. These are instrumented validation
+measurements, not a baseline speed comparison. The same 27 scientific smoke
+checks passed on Linux. The observed Mac persistent-process memory limit does not imply a Linux
+failure, and these five successful tasks do not establish the outcome of the
+remaining recovery scope.
 
 Recovery uses the original 84 failed decoding tasks and saved catalogues. The
 maintained runner preserves task identity, attempt history, the 2 GiB guard and
@@ -254,3 +275,40 @@ ledger; original scientific records remain unchanged. One operational
 registration and exclusive batch ownership prevent simultaneous or sequential
 replays from reusing the same pre-retry budget. No matching, reduction or
 reference verification is repeated.
+
+The first recovery round completed **75 of 84 directions** under the unchanged
+2 GiB guard. Nine still exceeded the guard: seven during computation and two
+during publication. The combined successful decoding count is **95,939 / 95,948**;
+matching, reduction and external verification outcomes are unchanged.
+
+The round took **16 min 46 s**, with 84 simultaneously claimed tasks on 84
+workers. It used 9.62 accounted CPU hours from 25.15 reserved CPU hours (38.25%).
+Task overlap is not a claim of sustained CPU saturation. The maximum sampled
+RSS among successful tasks was 1.942 GiB. Failed tasks and their memory
+measurements remain separately recorded.
+
+The terminal audit verified all 84 input catalogue ranges and all 75 published
+outputs. All 121 hashed original campaign files remained unchanged. Every task
+retained its original identity, history, settings, guard and consumed budget,
+with exactly one new attempt and no additional time grant. All dispatch queues
+were drained at the end of this round. The nine remaining directions have
+2,221–3,008 seconds left from their original budgets.
+
+A further inspection found repeated exported fragment-group records. In the
+saved 37270 forward result, exact sharing of group dictionaries and component
+tuples removed **118.69 MiB** of duplicate containers. The follow-up production
+replay completed under 2 GiB with a **1.674 GiB** process peak, compared with
+1.878 GiB after the first repair. Pickler storage fell from 64 to 32 MiB. The
+complete typed output retained identical values, nested types and ordering;
+2,702,578 container pairs were checked. Compute CPU was 367.54 s versus 364.70 s
+in the earlier instrumented run, a 0.78% difference, not a controlled speed
+comparison.
+
+The additional export change passed 52 decoder tests and 27 smoke checks. The
+chained-recovery runner passed 32 EnzymeMap/Golden campaign tests. It accepts the
+latest terminal recovery as input, preserves all prior attempts and latest spent
+time, and selects only remaining memory failures. Successful outputs stay in
+their existing ledgers. This second recovery has not yet been submitted.
+
+Detailed repair measurements, comparison scope and recovery status are recorded
+in [decoding-recovery.json](decoding-recovery.json).

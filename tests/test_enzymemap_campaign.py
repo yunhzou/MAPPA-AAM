@@ -448,6 +448,121 @@ def test_decoding_recovery_attempts_all_selected_and_does_not_retry_new_failures
     assert json.loads((output/'progress.json').read_text())['failed_stages'] == ['decoding']
 
 
+def failed_recovery(tmp_path):
+    """One second-attempt memory failure beside an already recovered direction."""
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+
+    source, selected = failed_decode_campaign(tmp_path)
+    output = tmp_path/'first-recovery'
+    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_decoding=True)
+    run(source, output, **options)
+    store = BundleStore(output/'bundles')
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        rows = ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall()
+        failed, completed = rows
+        record = store.load(Blob(**json.loads(failed[4])))
+        task = list(record['tasks'][0])
+        task[4] = 'memory_limit'
+        record['tasks'] = [tuple(task)]
+        record['attempts'] = [tuple('memory_limit' if i == 5 else value for i, value in enumerate(attempt))
+                              if attempt[0] == task[6] else attempt for attempt in record['attempts']]
+        record['case'] = tuple(73. if i == 3 else value for i, value in enumerate(record['case']))
+        # Archive order is not a scientific contract; preserve attempts by token.
+        record['attempts'].reverse()
+        audit = store.put(record)
+        ledger.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=?",
+            (json.dumps(asdict(audit)), json.dumps({task[0]: 'memory_limit'}), failed[0]))
+    return source, output, failed[0], completed, record, options
+
+
+def test_decoding_recovery_chain_preserves_latest_budget_history_and_successes(tmp_path, monkeypatch):
+    import enzymemap
+    import shutil
+    from mappa.execution import WorkPool
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+
+    source, previous, name, completed, old_audit, options = failed_recovery(tmp_path)
+    copy = tmp_path/'copied-predecessor'
+    shutil.copytree(previous, copy)
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(copy, tmp_path/'copied-successor', **options)
+    assert not (tmp_path/'copied-successor').exists()
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(source, tmp_path/'stale-original', **options)
+
+    output = tmp_path/'second-recovery'
+    before = (previous/'ledger.sqlite').read_bytes()
+    original_enter = WorkPool.__enter__
+    def enter_recovery(pool):
+        predecessor_pool = WorkPool.local(store=BundleStore(previous/'bundles'))
+        with pytest.raises(RuntimeError, match='already has an active coordinator'):
+            original_enter(predecessor_pool)
+        return original_enter(pool)
+    monkeypatch.setattr(WorkPool, '__enter__', enter_recovery)
+    monkeypatch.setattr(enzymemap, 'code_identity', lambda: 'repaired-decoder')
+    status = run(previous, output, **options)
+    assert status['pass_finished'] == 'decoding'
+    assert status['expected_directions'] == 1 and not status.get('finished', False)
+    plan = json.loads((output/'plan.json').read_text())
+    assert plan['source_kind'] == 'decoding_recovery'
+    assert plan['recovery_source'] == str(previous.resolve())
+    assert plan['original_campaign'] == str(source.resolve())
+    assert plan['original_source'] == 'original-code'
+    assert plan['decoder_source'] == 'repaired-decoder'
+    assert plan['directions_to_recover'][0]['spent_seconds'] == 73.
+    assert len(plan['predecessors']) == 1
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute('SELECT * FROM results').fetchall()
+    assert len(rows) == 1 and rows[0][:3] == (name, 'decoding', 'complete')
+    audit = BundleStore(output/'bundles').load(Blob(**json.loads(rows[0][4])))
+    attempts = {attempt[0]: attempt for attempt in audit['attempts']}
+    assert len(attempts) == 3 and len(old_audit['attempts']) == 2
+    assert all(attempts[attempt[0]] == attempt for attempt in old_audit['attempts'])
+    assert audit['tasks'][0][:4] == old_audit['tasks'][0][:4]
+    assert audit['case'][:2] == old_audit['case'][:2]
+    assert 73. <= audit['case'][3] < audit['case'][1]
+    assert audit['retries'] == old_audit['retries'] == []
+    assert (previous/'ledger.sqlite').read_bytes() == before
+    with sqlite3.connect(previous/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results WHERE case_name=?', (completed[0],)).fetchone() == completed
+    assert run(previous, output, resume=True, **options)['pass_finished'] == 'decoding'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results').fetchall() == rows
+    with pytest.raises(ValueError, match='registered successor'):
+        run(source, previous, resume=True, **options)
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(previous, tmp_path/'stale-predecessor', **options)
+
+
+@pytest.mark.parametrize('change, message', [
+    ('scope', 'incomplete terminal scope'),
+    ('budget', 'consumed budget'),
+    ('attempts', 'attempts or consumed budget'),
+    ('result', 'completed result'),
+])
+def test_decoding_recovery_chain_rejects_changed_predecessor(tmp_path, change, message):
+    source, previous, name, completed, record, options = failed_recovery(tmp_path)
+    store = BundleStore(previous/'bundles')
+    with sqlite3.connect(previous/'ledger.sqlite') as ledger:
+        if change == 'scope':
+            ledger.execute('DELETE FROM results WHERE case_name=?', (completed[0],))
+        elif change == 'result':
+            ledger.execute('UPDATE results SET reference=? WHERE case_name=?',
+                           (json.dumps(asdict(store.put('wrong result reference'))), completed[0]))
+        else:
+            if change == 'budget':
+                record['case'] = tuple(36. if i == 3 else value for i, value in enumerate(record['case']))
+            else:
+                record['attempts'].pop()
+            ledger.execute('UPDATE results SET audit=? WHERE case_name=?',
+                           (json.dumps(asdict(store.put(record))), name))
+    output = tmp_path/'second-recovery'
+    with pytest.raises(ValueError, match=message):
+        run(previous, output, **options)
+    assert not output.exists()
+    assert not (previous/'decoding-recovery.json').exists()
+
+
 @pytest.mark.parametrize('change, message', [
     ('catalogue', 'differs from its saved catalogue'),
     ('thresholds', 'thresholds differ'),

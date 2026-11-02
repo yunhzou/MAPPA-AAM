@@ -104,7 +104,7 @@ def decoded_events_record(result):
     families = [dict(family_id=fid, tables=[],
         action_responses=[r.generators for r in actions])
         for fid, actions in enumerate(result.family_actions)]
-    term_records, term_lists = {}, {}
+    term_records, term_lists, group_records = {}, {}, {}
     tuple_records, map_records = {}, {}
 
     def atom_record(mapping):
@@ -134,16 +134,29 @@ def decoded_events_record(result):
         if terms not in term_lists:
             term_lists[terms] = [term_record(term) for term in terms]
         return term_lists[terms]
+
+    def groups_record(groups, label):
+        rows = []
+        for region, terms in groups.items():
+            saved_terms = terms_record(terms)
+            # Shared terms retain their original action bindings. The region
+            # remains part of the key because the same terms can change owners.
+            # term_lists owns every saved list until export finishes.
+            key = label, region, id(saved_terms)
+            if key not in group_records:
+                group_records[key] = {label: region, 'terms': saved_terms}
+            rows.append(group_records[key])
+        return rows
+
     for fid, number, table in result._export_tables():
         if table is not None:
             tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
-                internal=[dict(fragment=k, terms=terms_record(v))
-                          for k,v in table.internal.items()],
-                boundary=[dict(fragments=k, terms=terms_record(v))
-                          for k,v in table.boundary.items()],
+                internal=groups_record(table.internal, 'fragment'),
+                boundary=groups_record(table.boundary, 'fragments'),
                 product_boundary_pairs=table.product_boundary_pairs.tolist(),
                 atom_domains=atom_record(table.atom_domains), atom_actions=atom_record(table.atom_actions),
-                components=table.components, statistics=table.statistics))
+                components=tuple_records.setdefault(table.components, table.components),
+                statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
     return dict(schema='mappa.decoded_events/v4', method='compressed_event_interpretation',

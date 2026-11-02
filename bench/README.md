@@ -195,6 +195,24 @@ require explicit diagnosis. Terminal recovery rows, including failures, are
 never retried automatically. Success reports `pass_finished: decoding`, without
 rewriting the original benchmark's status or accuracy evidence.
 
+If a later validated repair is needed, pass the **latest terminal recovery** as
+the input and choose another separate output:
+
+```bash
+python bench/enzymemap.py /path/to/decoding-recovery /path/to/next-decoding-recovery \
+  --recover-decoding --local --workers 4 --memory-gib 2 --window 16
+```
+
+This selects only its remaining memory failures, retaining every prior attempt
+and the latest consumed budget. Successful directions stay in their existing
+outputs. All predecessor scopes must be terminal, drained and free of active
+owners. Their registered plans, ledgers, original inputs and scientific settings
+are checked, and ownership remains locked through the new run. Each recovery
+registers at most one successor; copied or older sources cannot restart a chain
+or restore earlier budgets. A predecessor with a successor cannot resume. A new
+decoder identity requires a new successor output; resuming that output still
+requires its unchanged decoder identity and plan.
+
 ## Golden and cache pilots
 
 For a bounded local study of selected Golden cases, use the prepared Golden
