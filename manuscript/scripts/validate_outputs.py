@@ -90,6 +90,8 @@ supplement=(MAN/'includes/supplement.tex').read_text()
 stages=['matching-rules','growth','completion','cut-sweep','reduction','decoding','verification']
 positions=[paper.index(r'\label{sec:'+stage+'}') for stage in stages]
 assert positions==sorted(positions)
+assert paper.index(r'\label{sec:verification}') > paper.index(r'\section{Evaluation}')
+assert 'fig5_pipeline' not in tex and 'fig:pipeline' not in tex
 assert paper.index(r'\label{fig:alternatives}') > paper.index(r'\section{Evaluation}')
 assert r'\label{sec:historical-evaluation}' in supplement
 assert 'figs/fig2_golden.pdf' not in paper and 'figs/fig3_coordinate.pdf' not in paper
@@ -98,7 +100,7 @@ bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig5_pipeline.pdf','figs/fig6_current_golden.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_golden.pdf'}
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -144,10 +146,7 @@ assert '--' not in comparison
 
 for fig in figs:
  figure_text=PdfReader(MAN/fig).pages[0].extract_text()
- if fig.endswith('fig5_pipeline.pdf'):
-  for label in ['Grow one fragment','Complete at saturation','Final family catalogue','Reference verification']:
-   assert label in figure_text,label
- elif fig.endswith('fig6_current_golden.pdf'):
+ if fig.endswith('fig6_current_golden.pdf'):
   for label in ['98.87','1,830','1,851','Local decoding','Verification']:
    assert label in figure_text,label
  else:

@@ -7,8 +7,7 @@ The manuscript describes one-witness fragment growth, direct compressed completi
 - `includes/paper.tex`: the scientific stages, molecular examples, completed current-method validation, and discussion.
 - `includes/supplement.tex`: solver and representation details, evaluation protocols, and historical comparisons.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): full technical settings and links to code, input/source pins, and per-case evidence.
-- `figs/fig5_pipeline.{pdf,svg,png}`: the main scientific overview, from one-witness growth and compressed completion through conditional search and final-family reduction. Local decoding and reference verification are separate consumers of the catalogue.
-- `figs/fig1_algorithm.{pdf,svg,png}`: the molecular worked example: RDKit vector depictions of alcohol sites and methyl acetate saponification illustrate hydrogen-preserving local matches, conditional assignments, compressed symmetry, cut sweep, and event decoding.
+- `figs/fig1_algorithm.{pdf,svg,png}`: the integrated molecular overview: RDKit vector depictions connect one-witness growth, conditional completed placements, aggregation across cuts, and shared fragment/boundary event responses. Reference verification belongs to the evaluation and is outside this MAPPA overview.
 - `evidence/current_golden.json` and `current_golden_cases.json`: publication-safe summary and per-case outcomes for the completed Golden validation.
 - `evidence/competitors.json`: archived Golden results for RXNMapper, LocalMapper, Chython, Indigo, RDT, and default SLAP configurations. The historical comparison retains its original seed/sweep settings and timing cohorts.
 - `evidence/molecule_example.json`: checked SMILES, mappings, and heavy-atom event lists for the constructed illustration.
@@ -20,7 +19,7 @@ The manuscript describes one-witness fragment growth, direct compressed completi
 - `evidence/multicandidate_example.json` and `evidence/output_multiplicity.json`: saved API example and archived comparator-output audit for the discussion.
 - `manuscript_bundle.zip`: compact paper, source, figure, and evidence bundle.
 
-The main paper explains the method through the pipeline and molecular examples, then presents the completed current-method validation. Historical comparator, cap, seed, and coordinate studies remain in the supplement with their original scientific scope. They do not supply a speed comparison for the current implementation.
+The main paper explains the method through an integrated molecular overview, then presents the completed current-method validation. Historical comparator, cap, seed, and coordinate studies remain in the supplement with their original scientific scope. They do not supply a speed comparison for the current implementation.
 
 ## Results and scope
 

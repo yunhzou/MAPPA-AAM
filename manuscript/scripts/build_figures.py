@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 plt.rcParams.update({'font.family':'DejaVu Sans','font.size':9,'axes.titlesize':10,
  'axes.labelsize':9,'axes.spines.top':False,'axes.spines.right':False,
  'pdf.fonttype':42,'ps.fonttype':42,'svg.fonttype':'none','savefig.dpi':240})
@@ -27,50 +26,6 @@ competitors=read('competitors.json')
 local=next(d for d in competitors['methods'] if d['method']=='localmapper')
 seed=read('seed_comparison.json');methods=seed['methods'];slap=read('slap_sweep.json');N=1851
 current=read('current_golden.json')
-
-
-def build_pipeline():
- fig,ax=plt.subplots(figsize=(11.4,4.6))
- ax.set(xlim=(0,11.4),ylim=(0,4.6));ax.axis('off')
- positions=[.15,3.0,5.85,8.7];width=2.55;height=1.05
- def box(x,y,title,detail,color):
-  ax.add_patch(FancyBboxPatch((x,y),width,height,
-      boxstyle='round,pad=0.02,rounding_size=0.09',
-      facecolor=color+'0D',edgecolor=color,linewidth=1.1))
-  ax.text(x+width/2,y+.72,title,ha='center',va='center',
-      fontsize=10,weight='bold',color=color)
-  ax.text(x+width/2,y+.30,detail,ha='center',va='center',
-      fontsize=9,color=INK,linespacing=1.45)
- def arrow(start,end,color=MUTED):
-  ax.add_patch(FancyArrowPatch(start,end,arrowstyle='-|>',
-      mutation_scale=12,linewidth=1.1,color=color,shrinkA=2,shrinkB=3))
- ax.text(.15,4.4,'Matching',fontsize=11,weight='bold',color=INK)
- ax.text(11.25,4.4,'Endpoint graphs + matching rules',
-     ha='right',fontsize=9,color=MUTED)
- box(positions[0],3.0,'Grow one fragment','Keep one compatible\nassignment',GREEN)
- box(positions[1],3.0,'Complete at saturation','Distinct placements;\nsymmetry stays compressed',GREEN)
- box(positions[2],3.0,'Conditional search','Commit placements;\nvary seeds and cuts',GREEN)
- box(positions[3],3.0,'Final family catalogue','Group fragment pairs;\nshare repeated families',BLUE)
- for left,right in zip(positions,positions[1:]):
-  arrow((left+width,3.525),(right,3.525))
- # A committed placement starts the next fragment in that continuation.
- ax.plot([7.125,7.125,1.425],[3.0,2.55,2.55],color=MUTED,lw=1.0)
- arrow((1.425,2.55),(1.425,3.0))
- ax.text(4.275,2.55,' Next fragment ',ha='center',va='center',
-     fontsize=9,color=MUTED,bbox=dict(facecolor='white',edgecolor='none',pad=3))
- ax.text(.15,2.25,'Separate post-processing',fontsize=11,weight='bold',color=INK)
- box(positions[0],.25,'Unique fragments','Collect all family\nand boundary references',PURPLE)
- box(positions[1],.25,'Local bond responses','Decode internal bonds\nand fragment boundaries',PURPLE)
- box(positions[2],.25,'Joint event choices','Compose responses under\nthe saved constraints',PURPLE)
- box(positions[3],.25,'Reference verification','Does the retained output\ninclude the annotation?',ORANGE)
- for left,right in zip(positions[:2],positions[1:3]):
-  arrow((left+width,.775),(right,.775),PURPLE)
- # Decoding and reference membership are independent catalogue consumers.
- ax.plot([9.975,9.975,1.425,1.425],[3.0,2.08,2.08,1.62],color=BLUE,lw=1.1)
- arrow((1.425,1.62),(1.425,1.3),BLUE)
- arrow((9.975,2.08),(9.975,1.3),BLUE)
- fig.subplots_adjust(left=.015,right=.985,bottom=.025,top=.98)
- save(fig,'fig5_pipeline')
 
 
 def build_current_golden(summary,cases):
@@ -121,7 +76,6 @@ def build_current_golden(summary,cases):
  save(fig,'fig6_current_golden')
 
 
-build_pipeline()
 build_current_golden(current,read('current_golden_cases.json')['cases'])
 keys=['seeds1','seeds2','seeds3','seeds10'];counts=[methods[k]['golden_outcomes']['recovered'] for k in keys];costs=[methods[k]['common_mean_cpu_seconds'] for k in keys]
 assert seed['fresh'] and all(sum(methods[k]['golden_outcomes'].values()) == N for k in keys)

@@ -17,12 +17,13 @@ flowchart LR
     Catalogue --> Inventory[Collect all unique fragments and branch references]
     Inventory --> Local[Decode local fragment and boundary responses]
     Local --> Compose[Compose requested branch event results]
-    Catalogue --> Verify[Separate reference-membership query]
 ```
 
 A cut is a search condition and provenance field, not the unit of decoding.
 A representative mapping is one witness of a compressed family. Scheduling must
 preserve the scientific stages and their meaning.
+Reference verification is external evaluation logic that queries the completed
+catalogue; it is not a stage of the MAPPA mapping pipeline.
 
 ## Inputs and matching rules
 

@@ -201,123 +201,110 @@ def molecule(ax,smiles,x,y,w,h,owners=None,notes=None,font=24,explicit_hydrogens
 
 def build(man):
  proof=check_example();(man/'evidence/molecule_example.json').write_text(json.dumps(proof,indent=2)+'\n')
- # A connected branching overview, with chemical drawings as the tree states.
  fig=plt.figure(figsize=(10.8,8.15));ax=fig.add_axes([0,0,1,1]);ax.set(xlim=(0,1440),ylim=(1087,0));ax.axis('off')
  navy='#22324D';muted='#64748B';faint='#BCC7D5';bg='#F5F7FB';violet='#7957BA';orange='#CC762F';green='#128477'
  def t(x,y,s,size=11,color=navy,weight='normal',ha='left'):
   return ax.text(x,y,s,fontsize=size,color=color,weight=weight,ha=ha,va='center',linespacing=1.3,zorder=6)
  def box(x,y,w,h,fc='white',ec=LINE,lw=.8,r=12):
-  patch=FancyBboxPatch((x,y),w,h,boxstyle=f'round,pad=0,rounding_size={r}',facecolor=fc,edgecolor=ec,lw=lw,zorder=1)
-  ax.add_patch(patch)
- def ar(a,b,color=navy,lw=1.9,dashed=False,rad=0,style='-|>'):
-  ax.add_patch(FancyArrowPatch(a,b,arrowstyle=style,mutation_scale=11,lw=lw,color=color,linestyle=(0,(3,3)) if dashed else '-',connectionstyle=f'arc3,rad={rad}',zorder=2))
- def tree(points,color=navy,lw=2.0):
+  ax.add_patch(FancyBboxPatch((x,y),w,h,boxstyle=f'round,pad=0,rounding_size={r}',facecolor=fc,edgecolor=ec,lw=lw,zorder=1))
+ def ar(a,b,color=navy,lw=1.9,dashed=False):
+  ax.add_patch(FancyArrowPatch(a,b,arrowstyle='-|>',mutation_scale=11,lw=lw,color=color,linestyle=(0,(3,3)) if dashed else '-',zorder=2))
+ def tree(points,color=navy,lw=1.7):
   xs,ys=zip(*points[:-1]);ax.plot(xs,ys,color=color,lw=lw,solid_joinstyle='round',solid_capstyle='round',zorder=2)
   ar(points[-2],points[-1],color,lw)
- def dot(x,y,color=navy,r=4.3):ax.add_patch(Circle((x,y),r,fc=color,ec='none',zorder=3))
+ def dot(x,y,color=navy,r=3):ax.add_patch(Circle((x,y),r,fc=color,ec='none',zorder=3))
  def label(x,y,letter,title):
   t(x,y,letter,14,navy,'bold');t(x+36,y,title,14,navy,'bold')
- def continuation(x,y):
-  tree([(x,y),(x+35,y),(x+35,y-27),(x+96,y-27)],faint,1.3)
-  tree([(x,y),(x+35,y),(x+35,y+27),(x+96,y+27)],faint,1.3)
-  dot(x+35,y,faint,3)
-  for yy in [y-27,y+27]:t(x+114,yy,'···',13,faint)
 
- # A: two genuine conditional forks, followed by the forced third placement.
- box(12,12,1416,557,bg,bg,r=16)
- label(34,47,'a','MAPPA placements: earlier choices condition later placements')
- t(34,80,'Local alcohol fragments A, B and C share this motif; R lies outside the matched atoms.',10.5,muted)
- for x,atoms,name in [(24,[11],'Seed'),(163,[11,12],'Grow'),(302,[11,12,13],'Match O-H')]:
-  t(x+64,119,name,10,green,'bold',ha='center')
-  molecule(ax,ALCOHOL_FRAGMENT,x,137,130,116,{i:PALE_A for i in atoms},notes=False,font=28)
- ar((149,195),(160,195),green,1.4);ar((288,195),(299,195),green,1.4)
- t(236,280,'Three distinct target sites',10.5,navy,'bold',ha='center')
- molecule(ax,ALCOHOL_SITES,33,302,405,207,{i:PALE_A for i in [21,22,23,31,32,33,41,42,43]},notes={23:'a',33:'b',43:'c'},font=26)
- t(239,536,'Each site preserves C-C, C-O and O-H.',10,muted,ha='center')
- ax.plot([458,458],[108,545],color='#DDE4EE',lw=.8)
- t(680,120,'Place A',11,green,'bold',ha='center')
- t(956,120,'Place B, given A',11,orange,'bold',ha='center')
- t(1258,120,'Place C, given A and B',10.5,violet,'bold',ha='center')
- root=(485,330)
- def card(x,y,w,main,sub,color):
-  box(x,y-28,w,56,'white','#D6E1E9',.8,8)
-  t(x+w/2,y-8,main,12,color,'bold',ha='center')
-  t(x+w/2,y+14,sub,9,muted,ha='center')
- for site,y,remaining in [('a',206,['b','c']),('b',338,['a','c']),('c',470,['a','b'])]:
-  tree([root,(525,330),(525,y),(588,y)],navy,1.7)
-  card(592,y,176,'A → '+site,'lock '+site,green)
-  for dest,yy in zip(remaining,[y-36,y+36]):
+ # The local motif and open placement tree distinguish witness growth from
+ # completion. The tree's six paths are the checked conditional assignments.
+ box(12,12,1416,545,bg,bg,r=16)
+ label(34,46,'a','MAPPA matching: grow, complete and branch')
+ t(34,79,'A, B and C are successive local alcohol fragments; R lies outside the matched motif.',10.5,muted)
+ t(236,116,'One witness during growth',11,green,'bold',ha='center')
+ for x,atoms,name in [(24,[11],'Seed'),(170,[11,12],'Extend'),(316,[11,12,13],'Include O-H')]:
+  molecule(ax,ALCOHOL_FRAGMENT,x,145,132,116,{i:PALE_A for i in atoms},notes=False,font=28)
+  t(x+66,278,name,10,green,ha='center')
+ ar((151,203),(167,203),green,1.4);ar((297,203),(313,203),green,1.4)
+ t(236,320,'Target: three distinct sites',10.5,navy,'bold',ha='center')
+ sites=molecule(ax,ALCOHOL_SITES,33,338,405,166,{i:PALE_A for i in [21,22,23,31,32,33,41,42,43]},notes=False,font=26)
+ for atom,name,dx,dy in [(23,'a',30,-24),(33,'b',-30,24),(43,'c',-25,-25)]:
+  x,y=sites[atom];t(x+dx,y+dy,name,11,green,'bold',ha='center')
+ t(236,532,'C-C, C-O and every attached H are checked.',9.5,muted,ha='center')
+ t(654,116,'At saturation',11,green,'bold',ha='center')
+ t(654,145,'Complete A',10,green,ha='center')
+ t(950,116,'Complete B',11,orange,'bold',ha='center')
+ t(1263,116,'Complete C',11,violet,'bold',ha='center')
+ t(950,145,'A remains fixed',9.5,muted,ha='center')
+ t(1263,145,'A and B remain fixed',9.5,muted,ha='center')
+ ar((446,203),(510,203),green,1.6)
+ for site,y,remaining in [('a',203,['b','c']),('b',335,['a','c']),('c',467,['a','b'])]:
+  tree([(510,203),(546,203),(546,y),(592,y)],green)
+  t(654,y,'A → '+site,14,green,'bold',ha='center')
+  for dest,yy in zip(remaining,[y-34,y+34]):
    last=next(k for k in remaining if k!=dest)
-   tree([(770,y),(807,y),(807,yy),(858,yy)],navy,1.6)
-   card(862,yy,187,'B → '+dest,'A:'+site+' stays fixed',orange)
-   ar((1052,yy),(1133,yy),navy,1.5)
-   card(1137,yy,249,'C → '+last,'only unused site remains',violet)
-  dot(807,y,navy,3)
- dot(525,330,navy,3)
- t(953,550,'Each path is a joint assignment; occupied target atoms cannot be reused.',10,muted,ha='center')
+   tree([(716,y),(796,y),(796,yy),(870,yy)],navy,1.5)
+   t(950,yy,'B → '+dest,13,orange,'bold',ha='center')
+   ar((1023,yy),(1173,yy),navy,1.5)
+   t(1263,yy,'C → '+last,13,violet,'bold',ha='center')
+  dot(796,y)
+ t(977,532,'Three placements → two unused sites → one remaining site',10,muted,ha='center')
 
- # Lower panels use the same geometry, translated down for the deeper tree.
- original_t,original_box,original_ar,original_tree,original_dot,original_molecule=t,box,ar,tree,dot,molecule
- def t(x,y,*args,**kw):return original_t(x,y+120,*args,**kw)
- def box(x,y,*args,**kw):return original_box(x,y+120,*args,**kw)
- def ar(a,b,*args,**kw):return original_ar((a[0],a[1]+120),(b[0],b[1]+120),*args,**kw)
- def tree(points,*args,**kw):
-  # original_tree resolves the wrapped ar; translate its line directly here.
-  color=args[0] if args else navy;lw=args[1] if len(args)>1 else 2.0
-  xs,ys=zip(*points[:-1]);ax.plot(xs,[y+120 for y in ys],color=color,lw=lw,zorder=2)
-  ar(points[-2],points[-1],color,lw)
- def dot(x,y,*args,**kw):return original_dot(x,y+120,*args,**kw)
- def mol(smiles,x,y,*args,**kw):return original_molecule(ax,smiles,x,y+120,*args,**kw)
- # B: show source-edge conditions, not takeover or a fabricated trajectory.
- box(12,467,702,448,bg,bg,r=16)
- label(34,503,'b','Vary the constraints with a cut sweep')
- t(34,536,'Methyl acetate: three illustrated source conditions',10.5,muted)
- for y,title,cut in [(565,'Uncut source',None),(668,'Mask O4-C5',(4,5)),(771,'Mask C2-O4',(2,4))]:
-  t(46,y+39,title,10.5,green,'bold')
-  coords=mol(ESTER,214,y-7,306,96,{i:PALE_A for i in [1,2,3,4,5]},notes={2:'2',4:'4',5:'5'},font=24)
+ # Cut conditions converge into one catalogue. The union is schematic: it does
+ # not claim each illustrated cut returns the same fragment or search history.
+ box(12,576,708,454,bg,bg,r=16)
+ label(34,612,'b','Explore cuts; collect the retained families')
+ t(34,646,'Methyl acetate: three source conditions are shown.',10.5,muted)
+ for y,title,cut in [(675,'Uncut',None),(780,'Cut O4-C5',(4,5)),(885,'Cut C2-O4',(2,4))]:
+  t(40,y+39,title,10.5,green,'bold')
+  coords=molecule(ax,ESTER,157,y-7,280,96,{i:PALE_A for i in [1,2,3,4,5]},notes={2:'2',4:'4',5:'5'},font=24)
   if cut:
-   a0,b0=coords[cut[0]],coords[cut[1]]
-   a0,b0=tuple(a0[k]+.23*(b0[k]-a0[k]) for k in range(2)),tuple(a0[k]+.77*(b0[k]-a0[k]) for k in range(2))
-   ax.plot([a0[0],b0[0]],[a0[1],b0[1]],color='white',lw=4.5,zorder=7)
-   ax.plot([a0[0],b0[0]],[a0[1],b0[1]],color=violet,lw=1.5,ls=(0,(2,3)),zorder=8)
-  ar((535,y+39),(578,y+39),navy,1.5)
-  t(590,y+39,'Grow',10.5,navy)
- t(370,887,'Pool the retained branches; decode on original bond weights.',9.8,muted,ha='center')
+   start,end=coords[cut[0]],coords[cut[1]]
+   left=tuple(start[k]+.23*(end[k]-start[k]) for k in range(2))
+   right=tuple(start[k]+.77*(end[k]-start[k]) for k in range(2))
+   ax.plot([left[0],right[0]],[left[1],right[1]],color='white',lw=4.5,zorder=7)
+   ax.plot([left[0],right[0]],[left[1],right[1]],color=violet,lw=1.5,ls=(0,(2,3)),zorder=8)
+  tree([(446,y+39),(491,y+39),(491,819),(564,819)],navy,1.5)
+ t(616,800,r'$\bigcup$',28,navy,ha='center')
+ t(616,870,'Family\ncatalogue',11,navy,'bold',ha='center')
+ t(616,940,'Across seeds\nand cuts',10,muted,ha='center')
+ t(34,1006,'Merge repeated families; retain their constraints.',10,muted)
 
- # C: output projection uses dashed arrows; it is not a search branch.
- box(732,467,696,448,bg,bg,r=16)
- label(754,503,'c','Local events within a family')
- t(754,536,'The oxygen exchange preserves matching at '+r'$\tau_{\mathrm{iso}}=1$',10.5,muted)
- box(757,621,216,189,'white','#CEC1E3',1.0,12)
- coords=mol(ACETATE,759,630,210,159,{3:PALE_O,4:PALE_O},notes={3:'c',4:'d'},font=33)
- t(865,594,'Matching symmetry',10.5,violet,'bold',ha='center')
- t(865,790,r'$g=(c\ d)$',12,violet,ha='center')
- t(865,851,'One branch\ncorrelated alternatives',10.5,violet,ha='center')
- # Witness cards show oxygen identities while leaving unchanged carbons unlabeled.
- for y,mapping,count,color in [(575,{3:3,4:4,5:5,6:6},2,green),(757,{3:4,4:3,5:5,6:6},4,RED)]:
-  box(1056,y,347,144,'white','#D6E1E9',.9,10)
-  mol(ACETATE,1060,y+10,146,118,{1:PALE_A,2:PALE_A,3:PALE_O,4:PALE_O},notes={i:mapping[i] for i in [3,4]},font=29,bond_changes={} if count==2 else {(2,3):1,(2,4):-1})
-  t(1209,y+60,'+',11)
-  mol(ALCOHOL,1220,y+39,95,72,{5:PALE_B},notes={6:'6'},font=28,bond_changes={(5,6):1})
-  t(1359,y+51,str(count),20,color,'bold',ha='center')
-  t(1359,y+83,'events',10,color,ha='center')
- ar((975,704),(1053,647),violet,1.8,True)
- ar((975,730),(1053,829),violet,1.8,True)
- t(1230,739,'Exchange O3 / O4',10,violet,ha='center')
- # Shared legend, kept outside the chemical trees.
- ar((35,949),(84,949),navy,1.7);t(95,949,'Search continuation',10,muted)
- ar((394,949),(443,949),violet,1.7,True);t(454,949,'Event projection',10,muted)
- for x,sign,label in [(886,-1,'Break / weaken'),(1155,1,'Form / strengthen')]:
-  ax.plot([x,x+50],[1069,1069],color='black',lw=1.1)
-  bond_event_marker(ax,(x,1069),(x+50,1069),sign,size=8)
-  t(x+61,949,label,10,muted)
- fig.canvas.draw()
- renderer=fig.canvas.get_renderer()
- for label in ax.texts:
-  extent=label.get_window_extent(renderer)
-  assert extent.x0>=-1 and extent.x1<=fig.bbox.width+1 and extent.y0>=-1 and extent.y1<=fig.bbox.height+1,label.get_text()
+ # Local decoding reads shared fragments and their saved context. The two
+ # pictured realizations share two boundary changes and differ internally.
+ box(738,576,690,454,bg,bg,r=16)
+ label(760,612,'c','Decode shared fragments and boundaries')
+ t(760,646,'Use original bond weights and the saved joint choices.',10.5,muted)
+ t(867,699,'Unique fragment',11,violet,'bold',ha='center')
+ molecule(ax,ACETATE,761,728,210,159,{3:PALE_O,4:PALE_O},notes={3:'3',4:'4'},font=33)
+ ar((655,819),(758,819),navy,1.7)
+ t(866,907,r'Allowed O exchange: $3\leftrightarrow4$',10,violet,ha='center')
+ t(866,958,'One compressed family\nshared local responses',10,violet,ha='center')
+ for y,mapping,count,color in [(690,{3:3,4:4,5:5,6:6},2,green),(861,{3:4,4:3,5:5,6:6},4,RED)]:
+  box(1056,y,347,135,'white','#D6E1E9',.9,10)
+  molecule(ax,ACETATE,1060,y+2,146,104,{1:PALE_A,2:PALE_A,3:PALE_O,4:PALE_O},notes={i:mapping[i] for i in [3,4]},font=29,bond_changes={} if count==2 else {(2,3):1,(2,4):-1})
+  t(1209,y+51,'+',11)
+  molecule(ax,ALCOHOL,1220,y+27,95,72,{5:PALE_B},notes={6:'6'},font=28,bond_changes={(5,6):1})
+  t(1359,y+43,str(count),20,color,'bold',ha='center')
+  t(1359,y+74,'events',10,color,ha='center')
+  t(1230,y+119,f'2 boundary + {count-2} internal',10,muted,ha='center')
+ ar((974,799),(1053,751),violet,1.8,True)
+ ar((974,825),(1053,922),violet,1.8,True)
+ t(1230,844,'Exchange O3 / O4',9.5,violet,ha='center')
+
+ # Preserve the original chemical/event legend; search cuts are not events.
+ ar((35,1064),(84,1064),navy,1.7);t(95,1064,'Search / aggregation',10,muted)
+ ar((414,1064),(463,1064),violet,1.7,True);t(474,1064,'Event projection',10,muted)
+ for x,sign,text in [(886,-1,'Break / weaken'),(1155,1,'Form / strengthen')]:
+  ax.plot([x,x+50],[1064,1064],color='black',lw=1.1)
+  bond_event_marker(ax,(x,1064),(x+50,1064),sign,size=8)
+  t(x+61,1064,text,10,muted)
+ fig.canvas.draw();renderer=fig.canvas.get_renderer()
+ for text in ax.texts:
+  extent=text.get_window_extent(renderer)
+  assert extent.x0>=-1 and extent.x1<=fig.bbox.width+1 and extent.y0>=-1 and extent.y1<=fig.bbox.height+1,text.get_text()
  for ext in ['pdf','svg','png']:fig.savefig(man/'figs'/f'fig1_algorithm.{ext}',facecolor='white',dpi=260)
  plt.close(fig)
- print('Branching overview: RDKit vector molecules and checked illustrative mappings.')
+ print('Molecular overview: witness growth, conditional placements, cut aggregation and local events.')
 
 if __name__=='__main__':build(Path(__file__).resolve().parents[1])

@@ -14,12 +14,12 @@ MAPPA separates three decisions: whether a fragment can continue growing, which 
 
 MAPPA takes two molecular endpoints and returns mapping families, each representing a set of allowed atom correspondences. A \emph{witness} is one explicit assignment. During growth, it establishes that the current fragment has at least one match. A \emph{compressed placement} represents the allowed assignments of a completed fragment. A \emph{search branch} records conditional fragment choices while the remaining atoms are mapped. A final \emph{mapping family} retains the resulting assignments together with the constraints and symmetry relations that connect them.
 
-\Cref{fig:pipeline} shows the scientific stages. Matching first explores fragment placements under the requested seed and cut conditions. Finalization and reduction then collect the saved families for each reaction and direction. This catalogue supports two separate operations: local bond-event decoding and reference-membership verification. Neither operation repeats fragment growth.
+\Cref{fig:algorithm} connects the scientific stages through molecular examples. Matching grows fragments and constructs their compressed placements under the requested seed and cut conditions. Finalization and reduction collect the saved families into a catalogue for each reaction and direction. Decoding then interprets these families through shared local bond responses, without repeating fragment growth.
 
 \begin{figure}[t]
-\centering\includegraphics[width=\linewidth]{figs/fig5_pipeline.pdf}
-\caption{\textbf{Scientific stages of MAPPA.} Growth asks for one compatible assignment; saturation triggers compressed completion and conditional branching. Seed orderings and cut conditions repeat this matching process. Finalized results are reduced to a mapping catalogue before local decoding. Reference verification queries the same catalogue independently of decoding.}
-\label{fig:pipeline}
+\centering\includegraphics[width=\linewidth]{figs/fig1_algorithm.pdf}
+\caption{\textbf{From fragment matching to bond-event interpretation.} (a) Growth keeps one witness; saturation produces the compressed placements used for conditional branching. Three illustrative source alcohol motifs can occupy three target sites with distinct molecular environments. Placing A conditions the sites available to B and C. Attached hydrogens participate in matching but are implicit in the drawings. (b) Uncut and single-edge-masked ester searches contribute families to one catalogue across seeds and cuts. A mask changes the growth conditions, not the bond events. (c) Decoding shares responses for unique fragments and their boundaries. Exchanging the acetate oxygen images preserves matching at $\tau_{\mathrm{iso}}=1$ but adds two internal changes to two boundary changes at event threshold $0.5$. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. Dashed arrows project choices within the compressed family. Panel a is a constructed local-placement example; panels b and c use methyl acetate saponification. These illustrations are not a complete search trace, and the formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.}
+\label{fig:algorithm}
 \end{figure}
 
 \subsection{Endpoint graphs and matching rules}
@@ -92,11 +92,6 @@ Masking an edge changes which preservation constraints growth can acquire. It ca
 \end{algorithmic}
 \end{algorithm}
 
-\begin{figure}[t]
-\centering\includegraphics[width=\linewidth]{figs/fig1_algorithm.pdf}
-\caption{\textbf{Fragment choices, cut conditions and bond-event interpretation.} (a) Three source alcohol motifs can occupy three target sites with distinct molecular environments. Placing A conditions the available sites for B and C. This illustrates injectivity and conditional placement, rather than a full growth trace; attached hydrogens are included in the local matches. (b) Single-edge masks in an ester change the growth conditions, and their search outputs are pooled. A mask alone assigns no bond event. (c) Exchanging acetate oxygen images preserves matching at $\tau_{\mathrm{iso}}=1$ but changes two heavy-atom events into four at threshold $0.5$. Neither acetate oxygen carries H. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. Dashed arrows indicate event projections within a family. These formal-bond-order signatures illustrate decoding, not distinct mechanisms or resonance-normalized transformations.}
-\label{fig:algorithm}
-\end{figure}
 
 \subsection{Aggregating the final mapping families}
 \label{sec:reduction}
@@ -108,7 +103,7 @@ After matching, saved symmetry is finalized and results from all supplied seeds 
 \end{equation}
 Growing fragment A before B or B before A does not create a new final group when the paired sets agree. Each group nevertheless retains its mapping families: different preserved edges or correlated actions can permit different assignments even when the fragment sets coincide.
 
-Reduction shares identical normalized family records while preserving distinct constraints, alternative fragment partitions and provenance. It preserves the union of represented mappings and does not assume that the remaining families are mutually disjoint. This cross-search reduction is separate from constructing compressed placements during matching. The resulting catalogue is the input to decoding and verification; a single cut is not an independent decoding unit.
+Reduction shares identical normalized family records while preserving distinct constraints, alternative fragment partitions and provenance. It preserves the union of represented mappings and does not assume that the remaining families are mutually disjoint. This cross-search reduction is separate from constructing compressed placements during matching. The resulting catalogue is the input to decoding; a single cut is not an independent decoding unit.
 
 \subsection{Decoding through shared local bond responses}
 \label{sec:decoding}
@@ -126,15 +121,15 @@ Each bond response depends on the destinations of its two endpoints. If the resp
 
 For a requested joint choice, the decoder checks the full family constraints and combines the local contributions, counting each bond once. An action shared across several fragments remains one correlated choice. Alternative fragment partitions are alternative descriptions of the same family, so their totals are not added together. Ordinary decoding retains these local responses and composition rules; enumerating whole-reaction event patterns or selecting a minimum-event mapping are separate queries.
 
-\subsection{Reference verification and computational organization}
-\label{sec:verification}
-
-Reference verification asks whether an annotated atom relation belongs to the retained mapping catalogue under a declared atom subset and endpoint-equivalence policy. It queries the compressed relation rather than comparing only its representative witness. An unresolved query is reported separately from verified inclusion or exclusion. A reference absent from the saved catalogue may still be compatible with search choices that were not explored.
-
-Matching, family reduction and decoding have separate interfaces for local and distributed execution. Persistent workers reuse completed-fragment results when their recorded dependencies remain valid. The cache stores compressed results and their dependency information; eviction changes computation, not the scientific result. Aggregated storage permits intermediate results to be passed between stages without creating a file for every cut or seed. A decoding task loads one reaction/direction catalogue, prepares its local responses, publishes the result and releases its working data. Technical cache and execution details are given in \Cref{sec:cache-details}.
+Matching, family reduction and decoding have separate interfaces for local and distributed execution. Completed-fragment results can be reused when their recorded dependencies remain valid; cache eviction changes computation, not the scientific result. Technical cache and execution details are given in \Cref{sec:cache-details}.
 
 \FloatBarrier
 \section{Evaluation}
+
+\subsection{Reference verification}
+\label{sec:verification}
+
+We evaluate MAPPA with a separate verifier that asks whether an annotated atom relation belongs to the retained mapping catalogue under a declared atom subset and endpoint-equivalence policy. The verifier queries the compressed relation rather than comparing only its representative witness; it is not part of the mapping or decoding algorithm. An unresolved query is reported separately from verified inclusion or exclusion. A reference absent from the saved catalogue may still be compatible with search choices that were not explored.
 
 \subsection{Golden reference recovery}
 \label{sec:current-validation}

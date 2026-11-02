@@ -25,7 +25,10 @@ guarantees.
 
 Use molecular examples, figures and concise pseudocode to clarify the stages.
 Keep one-witness growth, compressed completion, final family reduction and local
-decoding distinct. Explain verification separately. Avoid repeating the same
+decoding distinct. Show these stages through molecular changes and relationships,
+not a pipeline of text boxes. Reference verification is external evaluation
+logic: explain it in the evaluation, outside the MAPPA pipeline and its overview
+figure. Avoid repeating the same
 explanation across prose, algorithms and captions, and keep repair history and
 retired implementation choices out of the main narrative.
 
