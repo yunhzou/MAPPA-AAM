@@ -1,0 +1,33 @@
+{
+  "input_manifest_checksums_verified": true,
+  "sample_inputs": [
+    {
+      "batch": 0,
+      "case": 37270,
+      "atoms": [
+        661,
+        661
+      ],
+      "reference_pairs": 319
+    },
+    {
+      "batch": 1,
+      "case": 37269,
+      "atoms": [
+        661,
+        661
+      ],
+      "reference_pairs": 319
+    },
+    {
+      "batch": 39,
+      "case": 34458,
+      "atoms": [
+        467,
+        467
+      ],
+      "reference_pairs": 235
+    }
+  ],
+  "immutable_blob_checksums_checked_on_load": true
+}

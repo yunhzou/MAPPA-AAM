@@ -1,0 +1,365 @@
+{
+  "cases": 47974,
+  "directions": 95948,
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 1,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "batches": [
+    {
+      "batch": 0,
+      "workers": 100,
+      "cases": 1198,
+      "directions": 2396,
+      "input_bytes": 46985546,
+      "index_sha256": "7897b804ef7424f08389c90f16f07836ae6d088d7b8468cebce8800eac4d8d64"
+    },
+    {
+      "batch": 1,
+      "workers": 100,
+      "cases": 1198,
+      "directions": 2396,
+      "input_bytes": 46985527,
+      "index_sha256": "53084b9ea96eda9ca838a18de5c7206b793fdab8960f0972795d989280628f18"
+    },
+    {
+      "batch": 2,
+      "workers": 100,
+      "cases": 1198,
+      "directions": 2396,
+      "input_bytes": 46985545,
+      "index_sha256": "cf83f61c9e46a5aa0799d4ed518ab5dac3777f8a17cd2a1d9566df9ed1d2a613"
+    },
+    {
+      "batch": 3,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985573,
+      "index_sha256": "5bac6f75d33f9a53fd36196155501cd2c14d981f10773de39f9b00d3d077bcea"
+    },
+    {
+      "batch": 4,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985597,
+      "index_sha256": "f37df5dd9fb609f1b65d24e4681f1f557dcc228d5a0504c7f912db177576c6a3"
+    },
+    {
+      "batch": 5,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985529,
+      "index_sha256": "b7f9d419261258962865d492bc6426b2aee2920f41822214b46bfe17b661b6be"
+    },
+    {
+      "batch": 6,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985545,
+      "index_sha256": "63e8de33e7f33fa2b4d770fd992f50a3ab9b19517c8b72c39a928a0f29eb3e74"
+    },
+    {
+      "batch": 7,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987782,
+      "index_sha256": "119f9841fc49fd0333eca6034967944d1bd306795a96f8b4da097432932fa423"
+    },
+    {
+      "batch": 8,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985527,
+      "index_sha256": "a8f109baf2aa68a1ea2f84a6a7101896a06033a4ad528f6e230d9c8c63af0c23"
+    },
+    {
+      "batch": 9,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987609,
+      "index_sha256": "7f40e705083809f86041c5f584e7d9a8bb435876cfb830a49f5bacd113fd1287"
+    },
+    {
+      "batch": 10,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987783,
+      "index_sha256": "a3a1613a219511c4c44f71fd9863a8672d11abae3a71e4f6e3a6c6cda1ac0b84"
+    },
+    {
+      "batch": 11,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985527,
+      "index_sha256": "e2c6d3bd78f35fa0b8301d5d103b02cf8e26daa22557ba96f5198db19ab928b9"
+    },
+    {
+      "batch": 12,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987745,
+      "index_sha256": "a146b0d67feb09278f0cc5745efe49e6d7970319e2c696fc5e74da2bb7616991"
+    },
+    {
+      "batch": 13,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985525,
+      "index_sha256": "7f9ed9ec5634d41402175fc1b11d3f6b61eb064f013ad8efe8dc2bf413820499"
+    },
+    {
+      "batch": 14,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987626,
+      "index_sha256": "7d4e8f1d4261397d45a95deb1d97ce4e33cdda74ddc2c4e3dcd110863db11cd8"
+    },
+    {
+      "batch": 15,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985531,
+      "index_sha256": "2665c47d1eabaa4e3b21da95c043425c027d209a620000744275240a34d8f854"
+    },
+    {
+      "batch": 16,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985525,
+      "index_sha256": "332aeaa5dd880e932f35908ac7e86d29ef3da21405b507bb290b9f557132a9a5"
+    },
+    {
+      "batch": 17,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985526,
+      "index_sha256": "028303cf41365de2c9af54ebaf3ae4dca78a5dbc7138309bcdd95fa738a16464"
+    },
+    {
+      "batch": 18,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985593,
+      "index_sha256": "9746bdfeb60948982215081759f3f9f62c69dd1fc94999f3fa53e3dd16a350e3"
+    },
+    {
+      "batch": 19,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987401,
+      "index_sha256": "542713d2ca1370941f04f4616f59c7e2fcef951c3bc968f332cb68c36c7173fa"
+    },
+    {
+      "batch": 20,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985592,
+      "index_sha256": "13aa2150d59ecfec9c9169977181f1ed07bfc67ad3b3458a95012467fb977f00"
+    },
+    {
+      "batch": 21,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985589,
+      "index_sha256": "a7243a60bb7181c7868de76ffe3d952d2996de80dc3c4e11a97975400066ae4d"
+    },
+    {
+      "batch": 22,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985597,
+      "index_sha256": "bd0d5c600cc8b86c7f1d81804fa627ef28f76841453b04043c9fcbd9f8d4ae44"
+    },
+    {
+      "batch": 23,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987745,
+      "index_sha256": "686723920f19f106cd2ef78792f15f3eae5266b7e26fb44f2751585222af3357"
+    },
+    {
+      "batch": 24,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987615,
+      "index_sha256": "fbc0dcc2706637b20c0200187e11e6d9b82a551b7b94904ec4ad5a795f3eebb2"
+    },
+    {
+      "batch": 25,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987592,
+      "index_sha256": "a0213ec6fbe33ac3c428050dc7b84e54dbcbe314af57118b6b127744a45dc241"
+    },
+    {
+      "batch": 26,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985526,
+      "index_sha256": "9b112e0bd91d0666d9750d4b89e1c5a561072c51b9325af4d7ae53c1481fea16"
+    },
+    {
+      "batch": 27,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987751,
+      "index_sha256": "9ab60179299000665d1d6d1b4a8e52b1e4dc74054433599588d18b7e96dea71d"
+    },
+    {
+      "batch": 28,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987658,
+      "index_sha256": "c99665bdda3a0e1b47caeec44192dc1cb2abe4333ee7049e84a2bb4aff1cc163"
+    },
+    {
+      "batch": 29,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987729,
+      "index_sha256": "1f2d707ebd47762ec007e8e641e411135736f73d927c7aee31d5dc1714de8af3"
+    },
+    {
+      "batch": 30,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987721,
+      "index_sha256": "821a1fa1b8bd1ea984fc0bbd27b5f11469425e428daea1cd1aa1f9b9055a8dba"
+    },
+    {
+      "batch": 31,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985525,
+      "index_sha256": "5b4eb598e24c8514dc95ea638f6d2b46a086ad27a5a2e812e3697479d8c9a6bf"
+    },
+    {
+      "batch": 32,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987651,
+      "index_sha256": "c87e65abb5b7bb25f56a682ccc99a89c9a2e962b472e40921cfc796a3129a02c"
+    },
+    {
+      "batch": 33,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987722,
+      "index_sha256": "3ec050547b0a3347fcbaba2fe03816cd87d89a4fcc4055a21c234a07de723f9f"
+    },
+    {
+      "batch": 34,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985544,
+      "index_sha256": "d3feaffc791d9e250ee42e8c1e9c23f228a26199d41daa6f46c10f52c6bb6891"
+    },
+    {
+      "batch": 35,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985543,
+      "index_sha256": "9b3ea44d7b4423baf29cab47b68104d43dbf58929afba719366373baf3642d62"
+    },
+    {
+      "batch": 36,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985527,
+      "index_sha256": "da077b612281004a28e7bbe2d03fc9433f9c70e0671e6edffc8fe622f809cda8"
+    },
+    {
+      "batch": 37,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987629,
+      "index_sha256": "4e71fdbcdc959b0127b889cf864327dc5673eed4b1751e68b42482d12fe2d2f4"
+    },
+    {
+      "batch": 38,
+      "workers": 100,
+      "cases": 1200,
+      "directions": 2400,
+      "input_bytes": 46987723,
+      "index_sha256": "aa23e685edc6332b09202e2cc7ff88b5f376723b1c41669c0dcfe828647b644b"
+    },
+    {
+      "batch": 39,
+      "workers": 100,
+      "cases": 1199,
+      "directions": 2398,
+      "input_bytes": 46985527,
+      "index_sha256": "ae47be8b872f610564dda0f9138954a51f937ed1079f5c162b8bf4fb7d272957"
+    }
+  ],
+  "fresh": true,
+  "reused_scientific_results": 0,
+  "ordering": "descending prepared-input bytes; greedy load per planned worker",
+  "sources": [
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/0/index.json",
+      "sha256": "ccce8a8a6cf20769f32ffe7691b9307703b14bacb2ab68f5678930341789520f"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/1/index.json",
+      "sha256": "a0b0e628448a1ba52cef487a787d960a8e221020d9b2a21094c5cceea97f0160"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/2/index.json",
+      "sha256": "d0e31428949a9409124405eb8bfed25970a31761ce1db043724dd932c35af07e"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/3/index.json",
+      "sha256": "950f8cb49f305978837d245def4e943b2af25fa7ace328018925c95a3b947201"
+    },
+    {
+      "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_current_20261101/4/index.json",
+      "sha256": "68a48e39a731d61acf2a6b0c65bbbbd06e71e1c0eaf05e59555963c7cc1ba70a"
+    }
+  ]
+}

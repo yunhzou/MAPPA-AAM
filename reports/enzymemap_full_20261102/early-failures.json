@@ -1,0 +1,127 @@
+{
+  "observed_utc": "2026-11-02T00:50:51.377964+00:00",
+  "purpose": "Read-only audit of published ledger and archived task results; no scientific recomputation or job changes.",
+  "campaign_root": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102",
+  "batch": 0,
+  "slurm_job": "21162307_0",
+  "source_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
+  "progress_snapshot": {
+    "elapsed_seconds": 144.7581835410092,
+    "stage": "matching",
+    "completed_directions": 118,
+    "failed_directions": 2,
+    "active_directions": 98,
+    "queue": {
+      "complete": 10392,
+      "pending": 7073,
+      "running": 155
+    }
+  },
+  "failed_directions": [
+    {
+      "case": 37270,
+      "direction": "forward",
+      "stage": "matching",
+      "total_cut_tasks": 665,
+      "completed_cut_tasks": 644,
+      "failed_cut_tasks": 21,
+      "failure_state": "memory_limit",
+      "failed_phase_counts": {
+        "compute": 18,
+        "publication": 3
+      },
+      "failed_cuts_by_phase": {
+        "compute": [
+          22,
+          63,
+          157,
+          185,
+          225,
+          257,
+          265,
+          276,
+          294,
+          296,
+          318,
+          381,
+          412,
+          432,
+          568,
+          580,
+          591,
+          626
+        ],
+        "publication": [
+          161,
+          410,
+          415
+        ]
+      },
+      "failed_peak_rss_bytes": {
+        "minimum": 2154622976,
+        "maximum": 2473099264
+      },
+      "memory_guard_bytes": 2147483648,
+      "operation": "mappa.mappa_core.core.scheduler.search:search_complete_cut",
+      "audit": {
+        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/0/result/bundles/1c34c1efdf474dbb90ab4e963b14356c-00000.bundle",
+        "offset": 1516917,
+        "size": 1178008,
+        "sha256": "0ee9aa545f19a9dc7ce2df2500c7688bf7a9b1ef5a708719b4d0379cda41e64a"
+      }
+    },
+    {
+      "case": 37270,
+      "direction": "reverse",
+      "stage": "matching",
+      "total_cut_tasks": 665,
+      "completed_cut_tasks": 658,
+      "failed_cut_tasks": 7,
+      "failure_state": "memory_limit",
+      "failed_phase_counts": {
+        "compute": 6,
+        "publication": 1
+      },
+      "failed_cuts_by_phase": {
+        "compute": [
+          398,
+          399,
+          400,
+          402,
+          534,
+          592
+        ],
+        "publication": [
+          580
+        ]
+      },
+      "failed_peak_rss_bytes": {
+        "minimum": 2205454336,
+        "maximum": 2380951552
+      },
+      "memory_guard_bytes": 2147483648,
+      "operation": "mappa.mappa_core.core.scheduler.search:search_complete_cut",
+      "audit": {
+        "path": "/lustre/fsw/portfolios/nemotron/projects/nemotron_omni_vision/users/yunhengz/mappa/enzymemap_full_20261102/0/result/bundles/1c34c1efdf474dbb90ab4e963b14356c-00000.bundle",
+        "offset": 2694925,
+        "size": 1188518,
+        "sha256": "5e45d56c83592aedf677da9d93deb871854d60f1816e1e56b2e11f8f6fa22aa5"
+      }
+    }
+  ],
+  "interpretation": [
+    "All 28 failed cut tasks were stopped by the 2 GiB worker memory guard. Their recorded error fields were null; no Python traceback was recorded.",
+    "search_complete_cut performs both cut matching and graph-symmetry finalization. The finalize suffix in the task key does not identify the failing scientific substep.",
+    "Twenty-four failures occurred during the combined compute operation. These audits do not distinguish growth, symmetry finalization, or retained memory from earlier tasks in a persistent worker.",
+    "Four failures occurred during publication after computation had finished. Publication includes output serialization and any cache publication; these audits do not isolate their individual allocations.",
+    "No decoding failure is represented in these matching-stage audits. The progress snapshot is partial and is not the final campaign result."
+  ],
+  "publication_example": {
+    "case": 37270,
+    "direction": "forward",
+    "cut": 410,
+    "compute_peak_rss_bytes": 1760972800,
+    "publication_peak_rss_bytes": 2167967744,
+    "memory_guard_bytes": 2147483648
+  }
+}
