@@ -1,6 +1,6 @@
 # Golden seed scaling and recovery — local results
 
-Final snapshot: 2026-11-02T09:19:02+00:00. **Seven reactions have complete balanced grids: 112 trials.** Five additional case 1799 trials also finished, giving **117 executed trials out of 128 planned cells**. All 117 recovered their references. The 11 optional cells were not started after the active trial drained: seven cases satisfy the requested five-to-ten-case scope, and memory repair took priority. All 58 cache-on/off pairs have identical catalogue and scope hashes, per-cut records, graph counts, cap evidence and verification outcomes. Missing cells are not imputed.
+Scaling snapshot: 2026-11-02T09:19:02+00:00. **Seven reactions have complete balanced grids: 112 trials.** Five additional case 1799 trials also finished, giving **117 executed trials out of 128 planned cells**. All 117 recovered their references. The 11 optional cells were not started after the active trial drained: seven cases satisfy the requested five-to-ten-case scope, and memory repair took priority. All 58 cache-on/off pairs have identical catalogue and scope hashes, per-cut records, graph counts, cap evidence and verification outcomes. Missing cells are not imputed.
 
 ![CPU per seed relative to the one-seed baseline](scaling.png)
 
@@ -96,7 +96,7 @@ The two-seed forward trial overlapped a separate local decoder memory diagnostic
 
 ## Recovery of 21 previous misses
 
-**Eight of 21 cases now recover a reference.** Twelve completed both directions without recovery; case 590 remains unresolved because its forward direction reached the memory guard. Across all 42 directions, 40 finished: 13 recovered and 27 did not. Two reached the memory guard; there were no unknown verdicts or timeouts. All retained outcomes use 10 seeds, cap 2,000 and the completed-fragment cache.
+**At the main tolerance of 1, eight of 21 cases recover a reference.** Twelve completed both directions without recovery; case 590 remains unresolved because its forward direction reached the memory guard. Across all 42 directions, 40 finished: 13 recovered and 27 did not. Two reached the memory guard; there were no unknown verdicts or timeouts. All retained outcomes use 10 seeds, cap 2,000 and the completed-fragment cache.
 
 | Case | Forward | Reverse | Case outcome |
 |---:|---|---|---|
@@ -128,9 +128,48 @@ This follow-up used disjoint case groups, at most three simultaneous local one-w
 
 The earlier miss list comes from the frozen one-seed, cap 100 validation. This follow-up changes both seed count and cap, so the eight recoveries cannot be attributed to seeds alone and do not establish a new full-benchmark score. A completed capped search without recovery also does not prove that no valid mapping exists.
 
+## Secondary tolerance investigation
+
+Tolerance **1 remains the main setting**. A separate, adaptive investigation tested the 13 cases still missed or unresolved above at tolerance 1.5, then four completed misses at tolerance 2.0. These **34 additional direction trials are terminal**: 33 completed and one reached the unchanged memory guard. No experiment remains active. There were no unknown verifier verdicts or timeouts.
+
+| Matching tolerance | Cases tested | Directions attempted | Recovered directions | Completed negative directions | Memory limits | Additional recovered cases |
+|---:|---:|---:|---:|---:|---:|---|
+| 1.5 | 13 | 26 | 1 | 24 | 1 | 1553 |
+| 2.0 | 4 | 8 | 8 | 0 | 0 | 1228, 1314, 1739, 1740 |
+
+Case 1553 recovered only in reverse at tolerance 1.5. Each of the four tolerance-2 cases recovered in both directions. Thus the secondary settings recover **five additional cases**; the union with the main follow-up is 13/21. This adaptive union is not a replacement for the main 8/21 result or a new full-benchmark score.
+
+The seven cases with completed negative results at every tested setting are **7, 19, 986, 1285, 1358, 1377 and 1475**. Case **590 remains unresolved**: its forward direction reached the 8 GiB guard during reduction after 55/58 cuts at tolerance 1.5 (sampled peak 8.006 GiB, worker elapsed 929.23 s). Its reverse completed all 56 cuts without recovery in 1,084.64 s. The earlier tolerance-1 limits for cases 590 and 1606 remain in the record; case 1606 was not rerun. No memory limit was interpreted as reference absence.
+
+### What the tolerance changes
+
+Matching tolerance bounds the difference between the bond orders of a required source edge and its target edge. It does not change the exact reference verifier, the positive-bond floor, or the event thresholds. Inspection of the immutable inputs found these annotated retained-bond changes:
+
+| Case | Annotated bond-order difference admitted by the secondary setting | First tested setting that recovered |
+|---:|---|---:|
+| 1553 | 3 ↔ 1.5 | 1.5 |
+| 1228 | 3 ↔ 1 | 2.0 |
+| 1314 | 1 ↔ 3 | 2.0 |
+| 1739 | 3 ↔ 1 and 1 ↔ 3 | 2.0 |
+| 1740 | 3 ↔ 1 and 1 ↔ 3 | 2.0 |
+
+These changes explain why a larger tolerance can admit annotated relationships that a smaller tolerance rejects within a fragment. They do not establish the sole cause of each recovery: cuts can omit constraints, and changing compatibility can also change growth, fragment choices and which branches reach the cap. Larger tolerance does not guarantee monotonic recovery.
+
+A separate input audit compared every pair of positive endpoint edges whose unordered element labels agree, before occupancy, locks and full fragment constraints. For six remaining completed misses—**7, 986, 1285, 1358, 1377 and 1475**—the allowed edge pairs are unchanged from tolerance 1 through 2. Increasing tolerance within that interval adds no local edge choices for them. **Case 19 is different:** 1→1.5 adds six such pairs and 1.5→2 adds 13 more. Case 19 was not run at tolerance 2. Case 590 also gains an edge pair at 2 but was not tested there. No further trials were launched. These compatibility counts are input evidence, not a proof that an unbounded search cannot recover the remaining references.
+
+### Reproducibility and measurement limits
+
+All secondary trials used the maintained `bench/golden.py diagnose` API with **10 seeds, cap 2,000, random seed 42, full single-edge cut sweeps, graph/cut floors 0.2, cache on, 8 GiB and 1,800 s per direction**. The completed-fragment cache budget was 64 MiB. Event thresholds remained 0.5 and 0.3. The verifier still checks the exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry. No event decoding was performed.
+
+The input indexes retained the original checksummed endpoint/reference blobs and changed only `iso_tolerance`; the CLI supplied the seed count and branch cap. Every direction started in a fresh worker, with no imported result or cache snapshot. The 1.5 trials used four disjoint streams. Two targeted tolerance-2 streams began only after their own 1.5 case results were terminal and negative; at most five streams ran concurrently. Each stream had a 7,200 s admission budget. There were no automatic retries or guard increases.
+
+The frozen scientific revision was `06f7941aea263709c45a7b5271bdb06b7506e9ce`, with source identity `8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1` and runner SHA256 `af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19`. The later launch revision changed documentation only. The six exact launch argument lists, with portable input/output placeholders, are recorded in `tolerance_followup.portable_commands` in [summary.json](summary.json). That section also preserves all 34 direction records, completed cuts/seeds, cap evidence, stage CPU/wall measurements, sampled RSS, verifier verdicts and witness hashes, input hashes and the input compatibility audit. The original scaling and tolerance-1 result records remain unchanged.
+
+These concurrent local diagnostic timings are not a controlled speed comparison. Whole-worker measurements include external verification and scope auditing; partial phase measurements for case 590 do not include all interrupted work. The follow-up closed after its final stream exited at **2026-11-02 18:37:54 UTC**; the terminal audit was recorded at 18:39:30 UTC.
+
 ## Provenance
 
-- Scientific source identity: e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca.
+- Original scaling and tolerance-1 source identity: e210faf401a2d33d679c8194a47137237478bbb7074532e4b827b14eeee9d1ca.
 - Selection SHA256: 23efb3e68c513b4e345a1aaf65902fb2adba295f30336fc8f8e977bcef83ae68.
 - scaling_first5: runner 15aa015b06ad77235075db050206ebea773a30a335fafd6c065699cf079aa7bc; catalogue-signature/v1; result snapshot d44e4af66de33d231aef87caaab0e5426b3742c8f479aa5e7cf8664f4d71dae1.
 - scaling_remaining3: runner 4b46f2d7b2a55b8f902defac80b19d2a6f033628327dd31412a7a5995705e043; catalogue-signature/v2; result snapshot dfa415b87a4a983b4a64493b714cb2d1b49da9e5e83a348fe98f64be003140bf.
@@ -139,4 +178,4 @@ The earlier miss list comes from the frozen one-seed, cap 100 validation. This f
 - scaling_709_seed10: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot af63ad14e50a2be3d67c3427ca250b517b6b7c83ad8ba2bdd7073cf9777bab66.
 - scaling_1799: runner af0c5d4c5e4c82f0f8b745201f56c3c1bafdd99a574b0b0fb805ca15fef49b19; catalogue-signature/v2; result snapshot 0b53a4b5778acaeb0b3c8d949593671a91ccb8ce69900a30b0017ecd77fd4276.
 
-[summary.json](summary.json) preserves all 128 requested cells, per-direction stage measurements, cache counters, completed scope, caps, catalogue signatures, reference outcomes, actual guards and source-input hashes, plus all 42 recovery directions and their partial failure records. [scaling.svg](scaling.svg) is the vector plot. This planned local study is closed; unrun optional cells remain explicit.
+[summary.json](summary.json) preserves all 128 requested cells, per-direction stage measurements, cache counters, completed scope, caps, catalogue signatures, reference outcomes, actual guards and source-input hashes, plus all 42 tolerance-1 recovery directions and their partial failure records. The separate `tolerance_followup` section records the 34 higher-tolerance trials. [scaling.svg](scaling.svg) is the vector plot. This planned local study is closed; unrun optional cells remain explicit.
