@@ -1,0 +1,35 @@
+{
+  "utc": "2026-11-02T02:07:11.950531+00:00",
+  "batches": {
+    "0": {
+      "task_states": {
+        "complete": 23393,
+        "pending": 21323,
+        "running": 124
+      },
+      "workers_with_attempts": 155,
+      "peak_overlapping_attempts_in_snapshot": 137,
+      "sampled_completed_attempts": 500,
+      "sample_cpu_seconds": 39.76818062599995,
+      "sample_cache_loads": 0,
+      "sample_cache_hits": 42597,
+      "sample_cache_errors": [],
+      "previous_failure_task_states": []
+    },
+    "24": {
+      "task_states": {
+        "complete": 11260,
+        "pending": 11230,
+        "running": 70
+      },
+      "workers_with_attempts": 100,
+      "peak_overlapping_attempts_in_snapshot": 95,
+      "sampled_completed_attempts": 500,
+      "sample_cpu_seconds": 33.119981964,
+      "sample_cache_loads": 2,
+      "sample_cache_hits": 35771,
+      "sample_cache_errors": [],
+      "previous_failure_task_states": []
+    }
+  }
+}

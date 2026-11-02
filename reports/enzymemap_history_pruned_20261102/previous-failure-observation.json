@@ -1,0 +1,40 @@
+{
+  "utc": "2026-11-02T02:07:43.392859+00:00",
+  "case": 37270,
+  "directions": {
+    "37270/forward": {
+      "state": "complete",
+      "tasks": {
+        "complete": 665
+      },
+      "attempts": {
+        "complete": 665
+      },
+      "peak_tree_rss_bytes": 303472640,
+      "lifetime_peak_rss_bytes": 314605568,
+      "memory_samples": 7993,
+      "memory_guard_bytes": [
+        2147483648
+      ],
+      "cache_hits": 71188,
+      "cache_snapshot_loads": 473
+    },
+    "37270/reverse": {
+      "state": "complete",
+      "tasks": {
+        "complete": 665
+      },
+      "attempts": {
+        "complete": 665
+      },
+      "peak_tree_rss_bytes": 286744576,
+      "lifetime_peak_rss_bytes": 286744576,
+      "memory_samples": 4976,
+      "memory_guard_bytes": [
+        2147483648
+      ],
+      "cache_hits": 38687,
+      "cache_snapshot_loads": 458
+    }
+  }
+}
