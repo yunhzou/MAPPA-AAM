@@ -18644,5 +18644,661 @@
         }
       }
     ]
+  },
+  "scaling_analysis": {
+    "audited_utc": "2026-11-02T18:25:06.425298+00:00",
+    "status": "Reanalysis of completed trials; no new scientific runs",
+    "recorded_trials": 117,
+    "balanced_trials": 112,
+    "equal_cache_pairs": 58,
+    "normalized_metric": "T(N)/(N*T(1)), computed separately for each case and cache setting",
+    "interpretation": "Below one means lower average CPU per seed than at one seed; one means linear scaling relative to that baseline. This is not the cache on/off speedup.",
+    "seeds": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "directions_summed": [
+      "forward",
+      "reverse"
+    ],
+    "cases": [
+      {
+        "case": 1001,
+        "explicit_atoms_forward": [
+          9,
+          9
+        ],
+        "cuts_forward": 8,
+        "cuts_reverse": 8,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              0.0034059999999999646,
+              0.005239999999999995,
+              0.0063180000000000736,
+              0.009426999999999991
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.0034059999999999646,
+              0.0026199999999999973,
+              0.0012636000000000147,
+              0.0009426999999999991
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.7692307692307765,
+              0.3709923664122219,
+              0.27677627715795916
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.007869999999999933,
+              0.01206099999999996,
+              0.015449000000000157,
+              0.025961000000000012
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.007869999999999933,
+              0.00603049999999998,
+              0.0030898000000000314,
+              0.0025961000000000014
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 2.7677627715795916
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              0.0037339999999999596,
+              0.004480000000000067,
+              0.007170000000000065,
+              0.009833999999999982
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.0037339999999999596,
+              0.0022400000000000336,
+              0.001434000000000013,
+              0.0009833999999999982
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.5998928762721097,
+              0.3840385645420537,
+              0.2633636850562423
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.008500000000000063,
+              0.010500000000000037,
+              0.016952000000000023,
+              0.02581199999999989
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.008500000000000063,
+              0.0052500000000000185,
+              0.0033904000000000043,
+              0.0025811999999999892
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 2.6336368505624232
+          }
+        }
+      },
+      {
+        "case": 1850,
+        "explicit_atoms_forward": [
+          26,
+          23
+        ],
+        "cuts_forward": 26,
+        "cuts_reverse": 24,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              0.02033599999999991,
+              0.02610899999999991,
+              0.05140599999999998,
+              0.09275799999999979
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.02033599999999991,
+              0.013054499999999955,
+              0.010281199999999996,
+              0.009275799999999978
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.641940401258852,
+              0.5055664830841877,
+              0.456127065302912
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.0553799999999999,
+              0.079868,
+              0.14218199999999995,
+              0.3588069999999999
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.0553799999999999,
+              0.039934,
+              0.02843639999999999,
+              0.03588069999999999
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 4.561270653029121
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              0.01966599999999996,
+              0.029046999999999962,
+              0.054155000000000064,
+              0.11467399999999997
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.01966599999999996,
+              0.014523499999999981,
+              0.010831000000000012,
+              0.011467399999999997
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.7385080850198317,
+              0.550747482965526,
+              0.5831079019627794
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.05174400000000004,
+              0.08285600000000004,
+              0.14085199999999992,
+              0.38156099999999965
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.05174400000000004,
+              0.04142800000000002,
+              0.028170399999999984,
+              0.038156099999999964
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 5.831079019627794
+          }
+        }
+      },
+      {
+        "case": 1022,
+        "explicit_atoms_forward": [
+          26,
+          26
+        ],
+        "cuts_forward": 28,
+        "cuts_reverse": 28,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              0.14480199999999965,
+              0.5016640000000002,
+              1.0813959999999998,
+              2.0568689999999994
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.14480199999999965,
+              0.2508320000000001,
+              0.21627919999999995,
+              0.20568689999999995
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.7322412673858145,
+              1.4936202538639,
+              1.4204700211323078
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.6753969999999997,
+              2.438702000000001,
+              5.055147,
+              9.214721999999998
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.6753969999999997,
+              1.2193510000000005,
+              1.0110294,
+              0.9214721999999999
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 14.204700211323077
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              0.16589000000000004,
+              0.6003880000000005,
+              1.2709929999999998,
+              2.4543749999999984
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.16589000000000004,
+              0.30019400000000024,
+              0.25419859999999994,
+              0.24543749999999984
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.8095967207185495,
+              1.5323322683706064,
+              1.479519561154981
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              0.7012380000000003,
+              2.562221000000001,
+              5.241576999999999,
+              9.626331999999998
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              0.7012380000000003,
+              1.2811105000000005,
+              1.0483153999999997,
+              0.9626331999999997
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 14.79519561154981
+          }
+        }
+      },
+      {
+        "case": 785,
+        "explicit_atoms_forward": [
+          40,
+          40
+        ],
+        "cuts_forward": 41,
+        "cuts_reverse": 41,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              0.3063620000000003,
+              0.41782500000000017,
+              0.7660590000000012,
+              2.063273000000002
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.3063620000000003,
+              0.20891250000000008,
+              0.15321180000000023,
+              0.20632730000000019
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.681913879658704,
+              0.5001005346616098,
+              0.6734754963082888
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              1.6533929999999997,
+              2.3560780000000006,
+              4.272250000000003,
+              9.354331000000004
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              1.6533929999999997,
+              1.1780390000000003,
+              0.8544500000000006,
+              0.9354331000000004
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 6.734754963082889
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              0.41145400000000054,
+              0.5699660000000003,
+              1.035431,
+              2.690712999999996
+            ],
+            "matching_cpu_seconds_per_seed": [
+              0.41145400000000054,
+              0.28498300000000015,
+              0.2070862,
+              0.2690712999999996
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.6926242058650537,
+              0.5033034069422092,
+              0.6539523251687899
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              1.747109000000001,
+              2.5266580000000016,
+              4.569603000000001,
+              9.895357999999998
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              1.747109000000001,
+              1.2633290000000008,
+              0.9139206000000002,
+              0.9895357999999999
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 6.539523251687899
+          }
+        }
+      },
+      {
+        "case": 912,
+        "explicit_atoms_forward": [
+          44,
+          44
+        ],
+        "cuts_forward": 42,
+        "cuts_reverse": 44,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              3.2001159999999995,
+              5.556129000000007,
+              17.915178999999984,
+              40.199860000000044
+            ],
+            "matching_cpu_seconds_per_seed": [
+              3.2001159999999995,
+              2.7780645000000037,
+              3.5830357999999967,
+              4.019986000000005
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.8681136871288428,
+              1.1196580998938779,
+              1.256200087746821
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              15.814137999999996,
+              26.242779000000017,
+              79.88112399999999,
+              163.62726300000006
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              15.814137999999996,
+              13.121389500000008,
+              15.976224799999997,
+              16.362726300000006
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 12.562000877468208
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              5.1553040000000045,
+              8.837555000000002,
+              25.67517500000001,
+              57.33716800000003
+            ],
+            "matching_cpu_seconds_per_seed": [
+              5.1553040000000045,
+              4.418777500000001,
+              5.135035000000002,
+              5.7337168000000025
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              0.8571322855063439,
+              0.9960683210922183,
+              1.1121976124007424
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              17.708592999999997,
+              29.950081999999995,
+              86.89499599999999,
+              180.75895200000002
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              17.708592999999997,
+              14.975040999999997,
+              17.3789992,
+              18.0758952
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 11.121976124007425
+          }
+        }
+      },
+      {
+        "case": 1518,
+        "explicit_atoms_forward": [
+          104,
+          46
+        ],
+        "cuts_forward": 104,
+        "cuts_reverse": 50,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              7.144899000000004,
+              17.820867000000025,
+              43.70081099999999,
+              87.08024599999996
+            ],
+            "matching_cpu_seconds_per_seed": [
+              7.144899000000004,
+              8.910433500000012,
+              8.740162199999997,
+              8.708024599999996
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.2471041927954485,
+              1.2232730231735944,
+              1.218775044965645
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              21.006696000000023,
+              48.40533500000005,
+              125.32420300000005,
+              239.86801099999994
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              21.006696000000023,
+              24.202667500000025,
+              25.06484060000001,
+              23.986801099999994
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 12.187750449656448
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              20.596959000000012,
+              48.91761799999998,
+              115.99853400000003,
+              227.72686299999995
+            ],
+            "matching_cpu_seconds_per_seed": [
+              20.596959000000012,
+              24.45880899999999,
+              23.19970680000001,
+              22.772686299999997
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.1874961250347673,
+              1.1263656348492996,
+              1.1056334238466943
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              34.484236,
+              79.65834100000001,
+              197.34573100000006,
+              381.15212
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              34.484236,
+              39.829170500000004,
+              39.46914620000001,
+              38.115212
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 11.056334238466942
+          }
+        }
+      },
+      {
+        "case": 709,
+        "explicit_atoms_forward": [
+          98,
+          98
+        ],
+        "cuts_forward": 102,
+        "cuts_reverse": 102,
+        "cache": {
+          "on": {
+            "matching_cpu_seconds": [
+              24.202405999999986,
+              55.60067999999988,
+              134.8626740000002,
+              265.33651799999984
+            ],
+            "matching_cpu_seconds_per_seed": [
+              24.202405999999986,
+              27.80033999999994,
+              26.97253480000004,
+              26.533651799999983
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.1486601786615742,
+              1.1144567527707805,
+              1.0963228945089178
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              110.04216800000003,
+              242.46488799999986,
+              568.1164530000004,
+              1109.5343230000005
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              110.04216800000003,
+              121.23244399999993,
+              113.62329060000009,
+              110.95343230000006
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 10.963228945089178
+          },
+          "off": {
+            "matching_cpu_seconds": [
+              54.81706199999994,
+              125.01496399999994,
+              299.2280659999998,
+              590.3495190000001
+            ],
+            "matching_cpu_seconds_per_seed": [
+              54.81706199999994,
+              62.50748199999997,
+              59.84561319999996,
+              59.03495190000001
+            ],
+            "normalized_cpu_per_seed": [
+              1.0,
+              1.140292451280954,
+              1.0917333220083927,
+              1.076944836992542
+            ],
+            "matching_through_reduction_cpu_seconds": [
+              140.1676469999999,
+              309.807743,
+              730.6147759999999,
+              1444.2833680000006
+            ],
+            "matching_through_reduction_cpu_seconds_per_seed": [
+              140.1676469999999,
+              154.9038715,
+              146.12295519999998,
+              144.42833680000007
+            ],
+            "ten_seed_to_one_seed_matching_cpu_ratio": 10.76944836992542
+          }
+        }
+      }
+    ],
+    "aggregate": {
+      "on": {
+        "matching_cpu_seconds": [
+          35.02232699999999,
+          79.92851399999992,
+          198.38384300000018,
+          396.83895099999984
+        ],
+        "matching_cpu_seconds_per_seed": [
+          35.02232699999999,
+          39.96425699999996,
+          39.67676860000004,
+          39.68389509999999
+        ],
+        "normalized_cpu_per_seed": [
+          1.0,
+          1.1411079852004116,
+          1.132899267373069,
+          1.133102751853125
+        ],
+        "matching_through_reduction_cpu_seconds": [
+          149.25504200000006,
+          321.99971099999993,
+          782.8068080000005,
+          1531.9834180000005
+        ],
+        "matching_through_reduction_cpu_seconds_per_seed": [
+          149.25504200000006,
+          160.99985549999997,
+          156.5613616000001,
+          153.19834180000004
+        ]
+      },
+      "off": {
+        "matching_cpu_seconds": [
+          81.17006899999996,
+          183.97401799999992,
+          443.2695239999998,
+          880.6831460000001
+        ],
+        "matching_cpu_seconds_per_seed": [
+          81.17006899999996,
+          91.98700899999996,
+          88.65390479999996,
+          88.06831460000001
+        ],
+        "normalized_cpu_per_seed": [
+          1.0,
+          1.133262668533644,
+          1.0921994510069963,
+          1.084985089762583
+        ],
+        "matching_through_reduction_cpu_seconds": [
+          194.86906699999992,
+          424.598401,
+          1024.8244869999999,
+          2026.1235030000007
+        ],
+        "matching_through_reduction_cpu_seconds_per_seed": [
+          194.86906699999992,
+          212.2992005,
+          204.96489739999998,
+          202.61235030000006
+        ]
+      }
+    },
+    "source_applicability": {
+      "baseline_commit": "1134e9946e56866a28a966cd70e4e495d2539344",
+      "audited_commit": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+      "unchanged_git_objects": [
+        {
+          "path": "src/mappa/mappa_core/core",
+          "baseline_git_object": "722240ae8fc6b73285fd6f5c5bbcfe6aaf436a45",
+          "current_git_object": "722240ae8fc6b73285fd6f5c5bbcfe6aaf436a45"
+        },
+        {
+          "path": "src/mappa/mappa_core/native",
+          "baseline_git_object": "50d243b2afafe90bc389ca16991c8afdd028c9d2",
+          "current_git_object": "50d243b2afafe90bc389ca16991c8afdd028c9d2"
+        },
+        {
+          "path": "bench/golden.py",
+          "baseline_git_object": "d255337a58038e5a1d64591a9dcdb51588d53b38",
+          "current_git_object": "d255337a58038e5a1d64591a9dcdb51588d53b38"
+        }
+      ],
+      "scope": "Matching/search source, native kernels and maintained diagnostic runner are unchanged. These are retained matching measurements, not a rerun of the current complete decoding pipeline.",
+      "reduction_note": "Only FinalBranchCatalogue.from_record changed since the measured version; the diagnostic builds catalogues using add_graph and does not restore saved catalogues."
+    },
+    "limitations": [
+      "One trial per setting; no repeats or uncertainty estimate.",
+      "Matching-cost stratification is a diagnostic selection, not a representative benchmark-wide sample.",
+      "Seed order prefixes are deterministic by cut and fixed random seed; distinct seed orders can explore different amounts of work.",
+      "The smallest measurements are milliseconds and must not support strong timing claims.",
+      "Event decoding is outside this timing study."
+    ]
   }
 }

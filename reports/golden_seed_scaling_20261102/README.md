@@ -2,7 +2,7 @@
 
 Final snapshot: 2026-11-02T09:19:02+00:00. **Seven reactions have complete balanced grids: 112 trials.** Five additional case 1799 trials also finished, giving **117 executed trials out of 128 planned cells**. All 117 recovered their references. The 11 optional cells were not started after the active trial drained: seven cases satisfy the requested five-to-ten-case scope, and memory repair took priority. All 58 cache-on/off pairs have identical catalogue and scope hashes, per-cut records, graph counts, cap evidence and verification outcomes. Missing cells are not imputed.
 
-![Matching CPU across seed counts](scaling.png)
+![CPU per seed relative to the one-seed baseline](scaling.png)
 
 The eight reactions were selected at recorded matching-cost quantiles using [selection.json](selection.json). Selection costs came from the earlier one-seed, cap-100 study; these measurements use cap 2,000. This cost-stratified sample does not estimate benchmark-wide speed or accuracy.
 
@@ -23,7 +23,30 @@ All seven reactions and all 14 directions recover their references at every comp
 
 ## Work across seed counts
 
-Cache-on matching CPU grows by 1.00×, 2.28×, 5.66×, 11.33× at 1, 2, 5 and 10 seeds. More seeds still execute more searches even when cache hits are common.
+**This cohort does not show sublinear matching CPU overall.** With the cache enabled, ten seeds take 11.33 times the one-seed matching CPU. The cache still reduces matching CPU relative to disabling completed-fragment retention, but that is a separate comparison.
+
+The figure shows **T(N)/(N × T(1))** for each reaction and cache setting. A value below one means less average CPU per seed than at one seed; the horizontal line at one marks linear scaling. Each reaction sums both directions. Curves share the same vertical scale, and cache-on and cache-off are each normalized to their own one-seed time.
+
+| Seeds | Matching on CPU s/seed | Matching off CPU s/seed | On normalized | Off normalized | Through reduction on CPU s/seed |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 35.022 | 81.170 | 1.000 | 1.000 | 149.255 |
+| 2 | 39.964 | 91.987 | 1.141 | 1.133 | 161.000 |
+| 5 | 39.677 | 88.654 | 1.133 | 1.092 | 156.561 |
+| 10 | 39.684 | 88.068 | 1.133 | 1.085 | 153.198 |
+
+Reaction sizes span **9–104 explicit atoms per endpoint**. Cut counts below include each direction’s no-cut task. This cost-stratified selection covers different sizes, but atom count alone does not explain search cost.
+
+| Case | Explicit atoms R/P | Cut tasks R/P | On, 1 seed CPU s | On, 10 seeds CPU s | On, T(10)/(10 T(1)) | Off/on at 10 seeds |
+|---:|:---:|:---:|---:|---:|---:|---:|
+| 1001 | 9/9 | 8/8 | 0.0034 | 0.0094 | 0.277 | 1.04× |
+| 1850 | 26/23 | 26/24 | 0.0203 | 0.0928 | 0.456 | 1.24× |
+| 1022 | 26/26 | 28/28 | 0.1448 | 2.0569 | 1.420 | 1.19× |
+| 785 | 40/40 | 41/41 | 0.3064 | 2.0633 | 0.673 | 1.30× |
+| 912 | 44/44 | 42/44 | 3.2001 | 40.1999 | 1.256 | 1.43× |
+| 1518 | 104/46 | 104/50 | 7.1449 | 87.0802 | 1.219 | 2.62× |
+| 709 | 98/98 | 102/102 | 24.2024 | 265.3365 | 1.096 | 2.22× |
+
+Three individual reactions have lower CPU per seed at ten seeds, including the two smallest timings. Four have higher CPU per seed. These single observations do not establish a universal scaling law. The increased number of seed searches, cache calls and retained families remains visible despite high cache-hit fractions.
 
 | Seeds | Fragment calls | Full hits | Logical extensions | Reused extensions | Evictions | Saved states | Families |
 |---:|---:|---:|---:|---:|---:|---:|---:|
@@ -33,6 +56,8 @@ Cache-on matching CPU grows by 1.00×, 2.28×, 5.66×, 11.33× at 1, 2, 5 and 10
 | 10 | 56,934,197 | 97.78% | 24,706,626 | 86.24% | 1,119,778 | 9,504,322 | 2,304,520 |
 
 Counts sum the same fixed cohort. Saved states and families are summed across directions, not deduplicated across different reactions. High hit fractions do not remove the cost of cache calls, new seed orders, finalization or reduction. These measurements do not establish eviction as a bottleneck.
+
+The raw result checksums, all 58 complete cache pairs, and all 112 balanced task scopes were rechecked for this analysis. Git objects for the matching/search code, native kernels and maintained runner are identical between the measured study commit `1134e99` and audited commit `06f7941`. The later decoder changes are outside this timing scope. No new matching run was needed.
 
 ## Timing boundaries
 
