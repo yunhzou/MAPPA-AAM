@@ -1,5 +1,11 @@
 # EnzymeMap rerun with discarded-history release
 
+**Current result:** All **84 original decoding memory failures** have been
+recovered under the unchanged **2 GiB** guard. **95,948 / 95,948 directions now
+have successful decoding outputs.** External reference verification is
+unchanged: 93,292 recovered, 2,652 not recovered and four unknown. The original
+pass and its failed-attempt history remain preserved below.
+
 This fresh benchmark uses revision `69ac5a91d589cd6b253482488c51e6856f163af8`,
 including the validated [history-retention repair](../enzymemap_full_20261102/history-retention-repair.md).
 The Linux native build passed all 27 smoke tests.
@@ -44,7 +50,7 @@ Private site configuration, original operational records and continuation
 instructions are retained outside the published repository. See the
 [portable runner](../../bench/README.md) for execution interfaces.
 
-## Original pass results
+## Original pass results (historical)
 
 The last original-pass allocation ended at **2026-11-02 03:18:25 Toronto time (08:18:25 UTC)**.
 The independent final audit finished at 08:25:21 UTC. All 47,974 reactions and
@@ -86,7 +92,7 @@ below explains the measured memory growth without changing this campaign.
 
 ## Time and resource use
 
-The campaign took **6 h 14 min 13 s**, measured from the first allocation start
+The original pass took **6 h 14 min 13 s**, measured from the first allocation start
 at 02:04:12 UTC through the final allocation end at 08:18:25 UTC. This includes
 startup, idle periods and orchestration changes, but excludes input preparation
 and the initial queue wait. Matching and reduction finished at 06:38:01 UTC;
@@ -247,7 +253,7 @@ checks. The execution/campaign suite passed 44 checks before the final ownership
 registration change; all 24 campaign checks passed again after that change.
 These are the affected suites, not a full-suite or matching benchmark rerun.
 
-The Mac persistent-worker check completed the first four former failures under
+The Mac persistent-worker check using `b8c923e` completed the first four former failures under
 2 GiB, then reached the guard on 37270 forward during table construction. Weak
 references confirmed that prior catalogues, interpretations, outputs and sessions
 were released. An isolated collection check found zero unreachable cycles and
@@ -267,6 +273,9 @@ measurements, not a baseline speed comparison. The same 27 scientific smoke
 checks passed on Linux. The observed Mac persistent-process memory limit does not imply a Linux
 failure, and these five successful tasks do not establish the outcome of the
 remaining recovery scope.
+
+That five-case Mac sequence was not rerun under `940edab`; the later cold Mac
+validation and Linux recovery results are recorded separately below.
 
 Recovery uses the original 84 failed decoding tasks and saved catalogues. The
 maintained runner preserves task identity, attempt history, the 2 GiB guard and
@@ -313,11 +322,11 @@ their existing ledgers.
 
 The second round finished at **11:51:45 UTC on 2 November 2026**. It recovered
 both remaining publication failures, **06726 forward and 37269 forward**, under
-the same 2 GiB guard. Seven directions still exceeded the guard during
+the same 2 GiB guard. At that point, seven directions still exceeded the guard during
 computation: 10376, 10379, 10380, 10381, 10382, 10383 and 27963, all forward.
-Across both rounds, **77 of 84 original failures are recovered**, bringing
+After two rounds, **77 of 84 original failures had recovered**, bringing
 successful decoding to **95,941 / 95,948 directions**. Matching, reduction and
-external reference verification outcomes are unchanged.
+external reference verification outcomes were unchanged.
 
 | Recovered direction | Peak sampled RSS (GiB) | Compute CPU (s) | Publication CPU (s) |
 |---|---:|---:|---:|
@@ -336,7 +345,7 @@ and all 75 successful outputs from the first round. The predecessor ledger and
 all 121 hashed original campaign files were unchanged. Each direction retained
 its two earlier attempts and added exactly one attempt, with no extra time,
 memory increase or automatic retry. All recovery queues were drained. The
-seven unresolved directions retain **1,665–2,580 seconds** of their original
+seven unresolved directions then retained **1,665–2,580 seconds** of their original
 budgets. Output checksums establish saved-byte integrity; they are separate
 from the scientific value comparisons described above.
 
@@ -350,7 +359,7 @@ dictionaries alone occupied **399.73 MiB**. Runtime fragment maps occupied
 did not change recovery budgets. Memory after catalogue loading also includes
 allocator-retained space; it is not a measurement of live scientific data alone.
 
-The next storage repair removes these derived maps from the saved event record,
+The third storage repair (`940edab`) removes these derived maps from the saved event record,
 using schema **`mappa.decoded_events/v5`**. Runtime table queries retain them.
 The original catalogue, ordered actions, constraints, local responses, bindings,
 partitions and occupancy boundaries remain saved. No production reader used the
@@ -371,7 +380,7 @@ partial occupancy and metal thresholds.
 
 The cold production replay of 37270 forward completed under 2 GiB at a
 **1.203 GiB** lifetime peak, compared with 1.674 GiB for `6974f54` (**482.56 MiB
-lower**). It retained 8,309 tables and 16 responses. Compute CPU was 363.62 s
+lower**). It retained 8,309 tables and 16 responses. Compute CPU was 363.61 s
 versus 367.54 s, and publication CPU was 0.24 s versus 0.64 s; these are single
 instrumented runs, not a controlled throughput comparison. The saved output
 fell from 9,511,318 to 4,093,248 bytes.
@@ -381,5 +390,31 @@ the schema identifier and deleting the two declared fields: **1,174,466 nested
 container pairs** had identical values, types and order. The comparison held
 both saved outputs under a separate 6 GiB diagnostic guard; production decoding
 and recovery retain 2 GiB. This comparison establishes that result's preservation,
-not universal equivalence. The seven remaining directions are prepared for a
-separate recovery using their latest remaining original budgets.
+not universal equivalence. These checks preceded the third recovery using the
+seven remaining directions' latest original budgets.
+
+The third round finished at **12:47:39 UTC on 2 November 2026**, with **all seven
+directions recovered and no new errors** under 2 GiB. Sampled task peaks ranged
+from **1.182 to 1.704 GiB**; 27963 forward had the largest peak. All seven workers
+claimed overlapping tasks. The round took **18 min 46 s** and used **1.7731
+accounted CPU hours from 3.1278 reserved CPU hours (56.69%)**. Accounted CPU
+includes smoke tests and orchestration; allocation steps are not counted again.
+The task measurements recorded 6,349.04 seconds of compute CPU and 8.57 seconds
+of publication CPU. These observations do not establish a controlled speedup.
+
+The final audit verified all seven new outputs and all 77 earlier successful
+recovery outputs. Both predecessor ledgers and all 121 hashed original campaign
+files were unchanged. Every task retained its three previous attempts and added
+one attempt without changing its guard or granting extra time. All finished
+with at least 681.58 seconds of their original budget unused. The original 84
+memory failures remain in their original records; their successful continuations
+are recorded separately. All recovery queues and ownership were released.
+
+Across the three rounds, **84 / 84 original memory failures are recovered** and
+**95,948 / 95,948 directions have completed decoding**. Matching, reduction and
+reference verification were not repeated. Reference outcomes remain 93,292
+recovered, 2,652 not recovered and four unknown. Earlier successful outputs
+retain their generating revision; the seven third-round outputs use the
+documented v5 schema. The saved-value comparison above verifies that schema's
+declared projection for its tested input, while the terminal audit verifies
+artifact integrity, provenance and execution limits.
