@@ -6,6 +6,34 @@ Before starting project work, clone or reuse [PersonalCodingMoat](https://github
 
 Keep explanations and documentation short, plain, and understandable to researchers. When communicating with the user, skip niche details unless they matter so the user can focus on important decisions. Say what is needed, then stop. Don’t repeat yourself or keep selling an idea. Explain more when the user asks or when a design decision needs discussion.
 
+### 1.1 Paper writing
+
+Write the main manuscript for researchers who have not read the code. Organize
+the algorithm into clear scientific stages: explain each stage's purpose, input,
+operation and output, and how it connects to the next stage. Introduce the core
+idea in plain language before notation or technical detail. Define essential
+terms once and use them consistently. Follow the current approved `design.md`
+and verify descriptions against the implementation.
+
+Keep the main text at the level needed to understand the method, why it works
+and what the evidence supports. Retain rules, assumptions and limitations that
+affect scientific meaning. Put detailed derivations, solver mechanics, data
+structures, cache and scheduling protocols, and full reproducibility settings in
+the supplement or repository documentation unless essential to a central claim.
+Simplify the explanation without changing the algorithm or overstating its
+guarantees.
+
+Use molecular examples, figures and concise pseudocode to clarify the stages.
+Keep one-witness growth, compressed completion, final family reduction and local
+decoding distinct. Explain verification separately. Avoid repeating the same
+explanation across prose, algorithms and captions, and keep repair history and
+retired implementation choices out of the main narrative.
+
+Present results for the implementation and scientific scope actually measured.
+Separate historical studies from current-method evidence. During revision, ask
+whether each technical detail helps the reader understand or assess a central
+claim; move details that interrupt that explanation to supporting material.
+
 ## 2. Coding principles
 
 ### 2.1 Coding style
