@@ -309,3 +309,188 @@ def test_fresh_batches_reject_duplicate_and_incomplete_inputs(tmp_path):
     index.write_text(json.dumps(data))
     with pytest.raises(ValueError, match='both directions'):
         prepare_fresh([index], tmp_path/'partial', workers=[1])
+
+
+def failed_decode_campaign(tmp_path, *, bad_catalogue=False):
+    """Keep a terminal campaign, with two diagnosed failures and two successes."""
+    from prepare_batches import prepare_fresh
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    import pickle
+
+    index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['directions'] += [dict(row, case=1) for row in data['directions']]
+    index.write_text(json.dumps(data))
+    source = tmp_path/'original'
+    prepare_fresh([index], source, workers=[1, 1])
+    selected = {}
+    for batch in range(2):
+        output = source/str(batch)/'result'
+        run(output.parent/'index.json', output, local=True, workers=1, memory_bytes=2*2**30)
+        store = BundleStore(output/'bundles')
+        with sqlite3.connect(output/'ledger.sqlite') as ledger:
+            name, raw = ledger.execute("SELECT case_name,audit FROM results WHERE stage='decoding' ORDER BY case_name LIMIT 1").fetchone()
+            record = store.load(Blob(**json.loads(raw)))
+            task_row = list(record['tasks'][0])
+            if bad_catalogue and batch == 0:
+                task = _loads_checkpoint(task_row[1])
+                task.payload['catalogue'] = store.put('invalid catalogue type')
+                task_row[1] = pickle.dumps(task, protocol=5)
+                ledger.execute("UPDATE results SET reference=? WHERE case_name=? AND stage='deduplication'",
+                    (json.dumps(asdict(task.payload['catalogue'])), name))
+            task_row[4] = 'memory_limit'
+            record['tasks'] = [tuple(task_row)]
+            record['attempts'] = [tuple('memory_limit' if i == 5 else item for i, item in enumerate(attempt))
+                                  for attempt in record['attempts']]
+            record['case'] = tuple(37. if i == 3 else item for i, item in enumerate(record['case']))
+            audit = store.put(record)
+            ledger.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=? AND stage='decoding'",
+                (json.dumps(asdict(audit)), json.dumps({task_row[0]: 'memory_limit'}), name))
+        progress = output/'progress.json'
+        progress.write_text(json.dumps(dict(json.loads(progress.read_text()), source='original-code')))
+        selected[name] = dict(audit=audit, record=record, output=output)
+    (source/'launch.json').write_text(json.dumps(dict(code_identity='original-code')))
+    return source, selected
+
+
+def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypatch):
+    import enzymemap
+    from mappa.execution import WorkPool
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    source, selected = failed_decode_campaign(tmp_path)
+    original_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
+    output = tmp_path/'recovery'
+    options = dict(local=True, workers=2, window=2, memory_bytes=2*2**30, recover_decoding=True)
+    original_enter = WorkPool.__enter__
+    def enter_recovery(pool):
+        with pytest.raises(RuntimeError, match='active coordinator or decoding recovery'):
+            run(source, tmp_path/'duplicate', **options)
+        assert not (tmp_path/'duplicate').exists()
+        for entry in selected.values():
+            source_pool = WorkPool.local(store=BundleStore(entry['output']/'bundles'))
+            with pytest.raises(RuntimeError, match='already has an active coordinator'):
+                original_enter(source_pool)
+        return original_enter(pool)
+    monkeypatch.setattr(WorkPool, '__enter__', enter_recovery)
+    status = run(source, output, **options)
+    assert status['pass_finished'] == 'decoding'
+    assert not status.get('finished', False)
+    assert status['expected_directions'] == 2
+    plan = json.loads((output/'plan.json').read_text())
+    assert plan['original_source'] == 'original-code'
+    assert plan['decoder_source'] == enzymemap.code_identity()
+    assert plan['memory_bytes'] == 2*2**30
+    registration = source/'decoding-recovery.json'
+    assert json.loads(registration.read_text())['output'] == str(output.resolve())
+    assert {row['task'] for row in plan['directions_to_recover']} == {
+        entry['record']['tasks'][0][0] for entry in selected.values()}
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute('SELECT * FROM results ORDER BY case_name').fetchall()
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+    assert len(rows) == 2
+    store = BundleStore(output/'bundles')
+    for name, stage, state, reference, audit, error in rows:
+        assert (stage, state, error) == ('decoding', 'complete', None)
+        previous = selected[name]['record']
+        recovered = store.load(Blob(**json.loads(audit)))
+        assert recovered['case'][0:2] == previous['case'][0:2]
+        assert previous['case'][3] <= recovered['case'][3] < previous['case'][1]
+        assert recovered['attempts'][0] == previous['attempts'][0]
+        assert len(recovered['attempts']) == len(previous['attempts'])+1
+        assert recovered['tasks'][0][0:4] == previous['tasks'][0][0:4]
+        assert not recovered['retries']
+        task = _loads_checkpoint(recovered['tasks'][0][1])
+        assert store.load(Blob(**json.loads(reference))).config == task.payload['config']
+    assert run(source, output, resume=True, **options)['pass_finished'] == 'decoding'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results ORDER BY case_name').fetchall() == rows
+    after = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
+    assert after.pop(Path('decoding-recovery.json')) == registration.read_bytes()
+    assert after == original_files
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(source, tmp_path/'later-duplicate', **options)
+    assert not (tmp_path/'later-duplicate').exists()
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(source, output, **options)
+
+    with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+        queue.execute('INSERT INTO attempts VALUES (?,?,?,?,?,?,?)', next(iter(selected.values()))['record']['attempts'][0])
+    before = {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()}
+    with pytest.raises(ValueError, match='unarchived tasks or attempts remain'):
+        run(source, output, resume=True, **options)
+    assert {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()} == before
+    with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+        queue.execute('DELETE FROM attempts')
+    before = {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()}
+    monkeypatch.setattr(enzymemap, 'code_identity', lambda: 'changed-decoder')
+    with pytest.raises(ValueError, match='registered decoding recovery'):
+        run(source, output, resume=True, **options)
+    assert {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()} == before
+
+
+def test_decoding_recovery_attempts_all_selected_and_does_not_retry_new_failures(tmp_path):
+    source, selected = failed_decode_campaign(tmp_path, bad_catalogue=True)
+    output = tmp_path/'recovery'
+    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_decoding=True)
+    with pytest.raises(RuntimeError, match='decoding contains failed directions'):
+        run(source, output, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        before = db.execute('SELECT * FROM results ORDER BY case_name').fetchall()
+    assert len(before) == len(selected) == 2
+    assert sorted(row[2] for row in before) == ['complete', 'error']
+    with pytest.raises(RuntimeError, match='decoding contains failed directions'):
+        run(source, output, resume=True, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results ORDER BY case_name').fetchall() == before
+    assert json.loads((output/'progress.json').read_text())['failed_stages'] == ['decoding']
+
+
+@pytest.mark.parametrize('change, message', [
+    ('catalogue', 'differs from its saved catalogue'),
+    ('thresholds', 'thresholds differ'),
+    ('identity', 'source identities differ'),
+    ('guard', 'original memory guard'),
+    ('budget', 'no remaining case budget'),
+    ('unarchived', 'unarchived tasks or attempts remain'),
+])
+def test_decoding_recovery_rejects_changed_original_before_writing(tmp_path, change, message):
+    from dataclasses import replace
+    import pickle
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    source, selected = failed_decode_campaign(tmp_path)
+    name, entry = next(iter(selected.items()))
+    original_output = entry['output']
+    store = BundleStore(original_output/'bundles')
+    record = entry['record']
+    if change in ('catalogue', 'thresholds', 'budget'):
+        if change == 'budget':
+            record['case'] = tuple(record['case'][1] if i == 3 else item for i, item in enumerate(record['case']))
+        else:
+            task_row = list(record['tasks'][0])
+            task = _loads_checkpoint(task_row[1])
+            if change == 'catalogue':
+                task.payload['catalogue'] = store.put('another catalogue')
+            else:
+                task.payload['config'] = replace(task.payload['config'], threshold=.9)
+            task_row[1] = pickle.dumps(task, protocol=5)
+            record['tasks'] = [tuple(task_row)]
+        with sqlite3.connect(original_output/'ledger.sqlite') as db:
+            db.execute("UPDATE results SET audit=? WHERE case_name=? AND stage='decoding'",
+                       (json.dumps(asdict(store.put(record))), name))
+    elif change == 'identity':
+        path = original_output/'progress.json'
+        path.write_text(json.dumps(dict(json.loads(path.read_text()), source='another-original-code')))
+    elif change == 'unarchived':
+        with sqlite3.connect(original_output/'bundles/queue.sqlite') as db:
+            db.execute('INSERT INTO attempts VALUES (?,?,?,?,?,?,?)', record['attempts'][0])
+    original_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
+    output = tmp_path/'recovery'
+    with pytest.raises(ValueError, match=message):
+        run(source, output, local=True, memory_bytes=(4 if change == 'guard' else 2)*2**30,
+            recover_decoding=True)
+    assert not output.exists()
+    assert {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()} == original_files

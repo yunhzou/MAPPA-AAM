@@ -161,6 +161,40 @@ failures, consumed budgets and attempt audits remain recorded. A successful
 verification-only pass reports `pass_finished: verification`; it does not claim
 that decoding or the full benchmark finished. No decoding is retried.
 
+## Recover decoding after a repair
+
+After validating a decoder repair, retry a completed campaign's archived decoding
+memory failures into a **separate output directory**:
+
+```bash
+python bench/enzymemap.py /path/to/original-campaign /path/to/decoding-recovery \
+  --recover-decoding --local --workers 4 --memory-gib 2 --window 16
+```
+
+The original campaign root must contain the manifest and batch directories made
+by `prepare_batches.py fresh`. All original stages must be terminal and their
+queues drained. Recovery validates input/configuration identities, saved
+catalogue references and original decoder thresholds. Its plan records the
+original campaign identities and the current decoder identity. It restores only
+archived decoding memory failures, with their original task IDs, attempts,
+memory guards and remaining time budgets. It never reruns matching, reduction
+or reference verification, grants no fresh time and leaves the original scientific
+artifacts unchanged. Catalogue payloads are loaded only by compute workers.
+Original batch ownership stays locked for the recovery pool's lifetime, preventing
+concurrent source continuations or a second recovery of the same tasks.
+A single `decoding-recovery.json` registration beside the original manifest binds
+the campaign to this recovery output. A second output or fresh restart is rejected
+so the original pre-retry budget cannot be reused.
+
+Within an existing Slurm allocation, omit `--local` and set `--workers` per node.
+This campaign-wide command uses one recovery pool; the batch-array launcher is
+for the ordinary per-batch passes. Use the same worker guard as the original run.
+After a normal drain, repeat the recovery command with `--resume`. Resume requires
+the same recovery code/input plan and a drained saved queue; unarchived attempts
+require explicit diagnosis. Terminal recovery rows, including failures, are
+never retried automatically. Success reports `pass_finished: decoding`, without
+rewriting the original benchmark's status or accuracy evidence.
+
 ## Golden and cache pilots
 
 For a bounded local study of selected Golden cases, use the prepared Golden

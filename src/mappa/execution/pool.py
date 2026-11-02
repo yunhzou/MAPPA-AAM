@@ -283,6 +283,25 @@ class WorkPool:
             'mappa.mappa_core.core.scheduler.decoding:decode_catalogue', 'catalogue',
             config=config or EventDecodeConfig())
 
+    def retry_decoding(self, case, audit, *, catalogue):
+        """Retry one archived memory failure, preserving its guard and spent time."""
+        record = self.store.load(audit)
+        if len(record['tasks']) != 1 or record['tasks'][0][4] != 'memory_limit':
+            raise ValueError('Decoding recovery requires one archived memory failure')
+        row = record['tasks'][0]
+        task = _loads_checkpoint(row[1])
+        if task.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue':
+            raise ValueError('Decoding recovery requires a decoding task audit')
+        if task.payload['catalogue'] != catalogue:
+            raise ValueError('Decoding recovery catalogue differs from the original task')
+        if row[3] != self.memory_bytes or task.memory_bytes != self.memory_bytes:
+            raise ValueError('Decoding recovery must preserve the original memory guard')
+        if record['case'][3] >= record['case'][1]:
+            raise ValueError('Decoding recovery has no remaining case budget')
+        self.queue.restore_case(record)
+        self.queue.retry(task.key)
+        return StageResults('decoding', self.store, pool=self, tasks={case: (task.key,)})
+
     def __exit__(self, exc_type, exc, traceback):
         try:
             self.queue.finish_input(cancel_pending=exc is not None)

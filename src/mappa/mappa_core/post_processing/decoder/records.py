@@ -92,18 +92,44 @@ class EventInterpretation:
     def fragment_partitions(self):
         return self.inventory.partitions
 
-    def tables(self, family_id, partition=0):
-        """Prepare one saved partition lazily; share bond responses across branches."""
-        from .events import FragmentEventTables
+    def _table_key(self, family_id, partition):
         family = self.catalogue.families[family_id]
         fragments = self.fragment_partitions[family_id][partition]
         cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
                                   for pair in origin.get('cuts', ())}))
-        key = family.mapping, family.actions, family.required_edges, fragments, cut_bonds
+        return family.mapping, family.actions, family.required_edges, fragments, cut_bonds
+
+    def _prepare_table(self, family_id, partition, key):
+        from .events import FragmentEventTables
+        if key in self._tables:
+            return self._tables[key]
+        return FragmentEventTables(self.local, self.catalogue.families[family_id],
+                                   self.inventory.uses[family_id][partition], key[-1])
+
+    def tables(self, family_id, partition=0):
+        """Prepare one saved partition lazily; share bond responses across branches."""
+        key = self._table_key(family_id, partition)
         if key not in self._tables:
-            self._tables[key] = FragmentEventTables(self.local,
-                family, self.inventory.uses[family_id][partition], cut_bonds)
+            self._tables[key] = self._prepare_table(family_id, partition, key)
         return self._tables[key]
+
+    def _export_tables(self):
+        """Yield stable table references without retaining export-only working state.
+
+        A shared table is supplied only at its first occurrence. Tables explicitly
+        requested through tables() remain owned by the interpretation.
+        """
+        references = {}
+        for family_id, partitions in enumerate(self.fragment_partitions):
+            for partition in range(len(partitions)):
+                key = self._table_key(family_id, partition)
+                if key in references:
+                    yield family_id, references[key], None
+                    continue
+                number = references[key] = len(references)
+                table = self._prepare_table(family_id, partition, key)
+                yield family_id, number, table
+                del table
 
     def contributions(self, family_id, choices=None, *, partition=0, include_events=False):
         """Compose internal and boundary categories for one permitted choice."""

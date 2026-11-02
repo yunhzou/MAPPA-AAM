@@ -105,11 +105,11 @@ private and uses the same separate stages for EnzymeMap and Golden.
 
 ## Grow, branch, decode
 
-A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding exposes distinct bond-change candidates for inspection.
+A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding attaches local bond-change responses to these retained choices for inspection.
 
 ![Manuscript overview: fragment growth, three levels of conditional branching, cut sweep, and symmetry-aware event decoding](manuscript/figs/fig1_algorithm.png)
 
-Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions, while decoding separates bond-change patterns within the retained families.
+Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions. Decoding collects the unique saved fragments, shares their local responses, and composes the bond changes for requested valid choices.
 
 ![MAPPA: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.gif)
 
@@ -315,10 +315,12 @@ AAMResult
    |- contexts, states, transitions, and stop/cap evidence
    `- compressed placements, conditioned generators, and provenance
 
-DecodedEvents                              # separate signed-event post-processing
-`- EventCandidate[]                        # one witness per unique event class
-   |- event edges, count, and supporting family IDs
-   `- symmetry evidence and conditional shuffle queries
+FinalBranchCatalogue                      # reduction across retained seeds/cuts
+`- saved mapping families, ordered actions and constraints
+
+EventInterpretation                       # separate event decoding
+|- unique fragments and shared local/boundary responses
+`- original family/partition references and correlated choices
 
 MechanismResult / AnalyticalAAMResult       # explicit family analysis
 `- analytical mapping families per mechanism

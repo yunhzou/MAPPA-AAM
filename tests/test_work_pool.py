@@ -225,6 +225,86 @@ def test_handoff_rejects_missing_cuts_and_different_memory_store(tmp_path):
         WorkPool.local(store=BundleStore(tmp_path/'bundles')).deduplicate(matched)
 
 
+def test_decoding_retry_preserves_task_attempt_guard_and_remaining_budget(tmp_path):
+    from mappa.mappa_core.core.scheduler import Task, TaskQueue
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    store = BundleStore(tmp_path/'results')
+    catalogue = store.put('catalogue reference; the coordinator must not decode it')
+    task = Task('original/case/decoding',
+        'mappa.mappa_core.core.scheduler.decoding:decode_catalogue',
+        dict(catalogue=catalogue, config=EventDecodeConfig(.7, .4)),
+        case='original/case/decoding', case_seconds=120., memory_bytes=2*2**30)
+    old = TaskQueue(':memory:', 'original')
+    old.add([task])
+    claimed = old.claim('old-worker', 2*2**30, 'original')
+    old.finish(task.key, claimed['token'], 'memory_limit',
+               dict(phase='publication', memory_guard_bytes=2*2**30))
+    with old.db:
+        old.db.execute('UPDATE cases SET spent=37')
+    audit = old.archive_case(task.key, store)
+    original = store.load(audit)
+    old.close()
+
+    pool = WorkPool.local(store=store, memory_bytes=2*2**30, case_seconds=999.)
+    pool.queue = TaskQueue(':memory:', 'new')
+    result = pool.retry_decoding('case', audit, catalogue=catalogue)
+    assert result.tasks == {'case': (task.key,)}
+    assert pool.queue.db.execute('SELECT * FROM cases').fetchone() == original['case']
+    assert pool.queue.db.execute('SELECT * FROM attempts').fetchall() == original['attempts']
+    claimed = pool.queue.claim('new-worker', 2*2**30, 'new')
+    assert claimed['task'] == task
+    budget, deadline, spent, active = pool.queue.db.execute(
+        'SELECT seconds,deadline,spent,active_since FROM cases').fetchone()
+    assert budget == 120. and spent == 37.
+    assert deadline-active == pytest.approx(83.)
+    pool.queue.finish(task.key, claimed['token'], 'complete', dict(blob=store.put('decoded')))
+    recovered = store.load(pool.queue.archive_case(task.key, store))
+    assert len(recovered['attempts']) == 2
+    assert recovered['attempts'][0] == original['attempts'][0]
+    assert not recovered['retries']
+    assert store.load(audit) == original
+    pool.queue.close()
+
+
+@pytest.mark.parametrize('change, message', [
+    ('operation', 'decoding task audit'),
+    ('state', 'one archived memory failure'),
+    ('catalogue', 'catalogue differs'),
+    ('guard', 'original memory guard'),
+    ('budget', 'no remaining case budget'),
+])
+def test_decoding_retry_rejects_changed_scope_or_resources(tmp_path, change, message):
+    from dataclasses import replace
+    from mappa.mappa_core.core.scheduler import Task, TaskQueue
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    store = MemoryStore()
+    catalogue = store.put('catalogue')
+    task = Task('original/case', 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue',
+                dict(catalogue=catalogue, config=EventDecodeConfig()),
+                case='original/case', case_seconds=120., memory_bytes=2*2**30)
+    if change == 'operation':
+        task = replace(task, operation='execution_helpers:value')
+    old = TaskQueue(':memory:', 'original')
+    old.add([task])
+    claimed = old.claim('worker', 2*2**30, 'original')
+    old.finish(task.key, claimed['token'], 'timeout' if change == 'state' else 'memory_limit', {})
+    if change == 'budget':
+        with old.db:
+            old.db.execute('UPDATE cases SET spent=seconds')
+    audit = old.archive_case(task.key, store)
+    old.close()
+    pool = WorkPool.local(store=store, memory_bytes=(4 if change == 'guard' else 2)*2**30)
+    pool.queue = TaskQueue(':memory:', 'new')
+    with pytest.raises(ValueError, match=message):
+        pool.retry_decoding('case', audit,
+            catalogue=store.put('other') if change == 'catalogue' else catalogue)
+    assert not pool.queue.snapshot()
+    assert not pool.queue.db.execute('SELECT * FROM attempts').fetchall()
+    pool.queue.close()
+
+
 def test_pool_startup_timeout_closes_waiting_supervisor(monkeypatch):
     import time
     import mappa.execution.pool as module

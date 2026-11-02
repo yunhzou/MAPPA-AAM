@@ -205,6 +205,8 @@ The catalogue preserves source histories, cut provenance and alternative fragmen
 partitions. Raw paths, public atom-set branches and catalogue families are separate
 counts. Finalized search graphs may be ingested one at a time; the accumulated
 catalogue and provenance still consume memory.
+Restoring a catalogue shares equal immutable mapping, constraint and action
+records while preserving every family's values, action order and provenance.
 
 ## Decoding: unique fragments first
 
@@ -253,6 +255,12 @@ No correspondence is invented for unmatched atoms.
 and family/partition views. These reaction-specific results are released after
 publication. Binary export preserves shared tables; explicit JSON may expand
 references.
+
+Export processes family/partition working tables one at a time and shares equal
+saved metadata without merging families or their choices. Arrays used to evaluate
+joint choices are prepared only when evaluation is requested. The retained
+catalogue and exported records still consume memory; transient-table release is
+not a fixed bound on total decoding memory.
 
 Normal decoding/export retains the catalogue and local composition without a
 whole-reaction event-pattern deduplication pass or automatic representative

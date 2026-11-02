@@ -2,12 +2,14 @@
 from dataclasses import replace
 from itertools import product
 import pickle
+from weakref import WeakSet
 
 import pytest
 
 from mappa import decode_events
-from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_core.post_processing.decoder.events import FragmentEventTables, SignedEventIndex
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentInventory
+from mappa.mappa_core.core.scheduler.storage import BundleStore
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_event_interpretation import dense_categories
 from test_fragment_conversion import endpoint, saved
@@ -92,8 +94,10 @@ def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
         decoded.contributions(1, [(2, 1), None])
 
 
-def test_export_and_pickle_share_local_records_between_distinct_branches():
+def test_export_and_bundle_share_records_without_mutating_runtime_tables(tmp_path):
     decoded = decode_events(two_branches())
+    runtime = decoded.tables(0)
+    domains, actions = dict(runtime.atom_domains), dict(runtime.atom_actions)
     record = decoded_events_record(decoded)
     first, second = [record['tables'][row['tables'][0]] for row in record['families']]
     a = next(region['terms'] for region in first['internal'] if region['fragment'] == 0)
@@ -103,6 +107,53 @@ def test_export_and_pickle_share_local_records_between_distinct_branches():
     assert restored == record
     first, second = [restored['tables'][row['tables'][0]] for row in restored['families']]
     assert first['internal'][0]['terms'] is second['internal'][0]['terms']
+    store = BundleStore(tmp_path / 'bundles', scratch=tmp_path)
+    restored = store.load(store.put(record))
+    assert restored == record
+    first, second = [restored['tables'][row['tables'][0]] for row in restored['families']]
+    assert first['atom_domains'] is second['atom_domains']
+    assert first['atom_actions'] is second['atom_actions']
+    assert first['atom_domains'][1] is first['atom_domains'][2]
+    assert first['atom_actions'][1] is first['atom_actions'][2]
+    assert first['internal'][0]['terms'] is second['internal'][0]['terms']
+    exported = record['tables'][0]
+    assert exported['atom_domains'] is not runtime.atom_domains
+    assert exported['atom_actions'] is not runtime.atom_actions
+    exported['atom_domains'][0] = (-1,)
+    exported['atom_actions'][0] = (-1,)
+    assert runtime.atom_domains == domains and runtime.atom_actions == actions
+    assert_all_choices(decoded)
+
+
+def test_export_releases_working_tables_and_does_not_compile_evaluation(monkeypatch):
+    source = two_branches()
+    source.families.extend((replace(source.families[0]),
+                            replace(source.families[1], required_edges=((0, 1),))))
+    next(iter(source.branches.values())).update((2, 3))
+    decoded = decode_events(source)
+    alive = WeakSet()
+    construct = FragmentEventTables.__init__
+
+    def observed(self, *args, **kwargs):
+        assert not alive, 'export retained a previous working table'
+        construct(self, *args, **kwargs)
+        alive.add(self)
+
+    def forbidden(self):
+        pytest.fail('export compiled an evaluation kernel')
+
+    with monkeypatch.context() as patch:
+        patch.setattr(FragmentEventTables, '__init__', observed)
+        patch.setattr(FragmentEventTables, '_evaluation', property(forbidden))
+        record = decoded_events_record(decoded)
+    assert not alive and not decoded._tables
+    assert [row['tables'] for row in record['families']] == [[0], [1], [0], [2]]
+    assert len(record['tables']) == 3
+    assert record['catalogue'] == source.to_record()
+    assert_all_choices(decoded)
+    table = decoded.tables(0)
+    assert table is decoded.tables(2)
+    assert '_evaluation' in vars(table)
 
 
 def test_inventory_keeps_alternative_and_coupled_partitions():

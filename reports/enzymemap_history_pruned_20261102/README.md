@@ -198,7 +198,59 @@ workers overlapped the fifth baseline and the lifetime experiment. Their memory
 residency differed, so the small cross-run peak difference is not a measured
 causal saving. RSS drops after releasing the output or session also reflect
 allocator and operating-system behavior; they are not exact cache-owned byte
-counts. All six probes used fresh workers. Persistent-worker overlap between an
-old session and the next catalogue remains unmeasured, but was not required to
-reproduce these intrinsic peaks. The measurements identify compute and
-publication costs; they do not establish a repaired decoder or final accuracy.
+counts. All six probes used fresh workers. These baseline probes did not measure persistent-worker overlap between an
+old session and the next catalogue. That overlap was not required to reproduce
+the intrinsic peaks. The baseline measurements identify compute and publication
+costs; follow-up repair and validation are recorded below.
+
+
+## Decoder storage repair and recovery
+
+The repair keeps the saved mapping relation and the decoded-event schema. It
+changes object ownership and storage sharing:
+
+- Export releases each temporary family/partition table after recording it.
+  Explicit table queries still retain the tables they request.
+- Arrays used to evaluate a requested joint choice are built only for evaluation;
+  exporting local responses does not build those unused arrays.
+- Equal saved atom-domain and action metadata share storage, including immutable
+  tuple values. Families, correlated actions, constraints, cuts and alternative
+  partitions remain distinct and in their original order.
+- Catalogue loading restores shared immutable mappings, constraints and ordered
+  actions instead of allocating equal copies for every family.
+
+A fresh local replay of **37270 forward** completed and published under the
+unchanged **2 GiB** guard. Peak sampled RSS fell from **3.023 GiB** in the baseline
+to **1.878 GiB**. Its output retained 8,309 family tables, 16 response records and
+604,739 term references. The compressed output is 11,014,645 bytes. This one-case
+measurement is not a general bound on decoding memory. Persistent-worker
+validation and recovery of the full failed scope are separate checks.
+
+For **13967 reverse**, the complete repaired typed result and saved record
+matched the retained baseline exactly, including every nested container's type,
+values and order: 25,448 families/tables and 16 responses. Structural sharing
+changes serialized bytes, so equality was checked on restored values rather
+than requiring identical byte streams. Independent event-oracle tests cover
+correlated actions, preserved constraints, cuts, partitions and unmatched bonds.
+
+Validation passed 27 smoke checks, 51 decoder checks and 26 catalogue/transport
+checks. The execution/campaign suite passed 44 checks before the final ownership
+registration change; all 24 campaign checks passed again after that change.
+These are the affected suites, not a full-suite or matching benchmark rerun.
+
+The Mac persistent-worker check completed the first four former failures under
+2 GiB, then reached the guard on 37270 forward during table construction. Weak
+references confirmed that prior catalogues, interpretations, outputs and sessions
+were released. An isolated collection check found zero unreachable cycles and
+reduced RSS by only 19 MiB. Allocator diagnostics nevertheless showed hundreds
+of MiB in unused small-object blocks and pools. Thus cold-worker success does
+not establish persistent-worker safety. Linux validation and an earlier session
+release experiment are required before claiming all failures recovered.
+
+Recovery uses the original 84 failed decoding tasks and saved catalogues. The
+maintained runner preserves task identity, attempt history, the 2 GiB guard and
+unused portions of the original budgets. Results go into a separate recovery
+ledger; original scientific records remain unchanged. One operational
+registration and exclusive batch ownership prevent simultaneous or sequential
+replays from reusing the same pre-retry budget. No matching, reduction or
+reference verification is repeated.

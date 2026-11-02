@@ -100,8 +100,24 @@ def decoded_events_record(result):
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
-    tables, table_ids, responses, response_ids, families = [], {}, [], {}, []
+    tables, responses, response_ids = [], [], {}
+    families = [dict(family_id=fid, tables=[],
+        action_responses=[r.generators for r in actions])
+        for fid, actions in enumerate(result.family_actions)]
     term_records, term_lists = {}, {}
+    tuple_records, map_records = {}, {}
+
+    def atom_record(mapping):
+        # Export owns these maps. Runtime tables remain independent, while
+        # equal saved maps and immutable values can share their storage.
+        record = {a: tuple_records.setdefault(value, value) for a, value in mapping.items()}
+        bucket = map_records.setdefault(hash(tuple(record.items())), [])
+        for previous in bucket:
+            if record == previous and tuple(record) == tuple(previous):
+                return previous
+        bucket.append(record)
+        return record
+
     def term_record(term):
         response = term.response
         if response not in response_ids:
@@ -118,24 +134,18 @@ def decoded_events_record(result):
         if terms not in term_lists:
             term_lists[terms] = [term_record(term) for term in terms]
         return term_lists[terms]
-    for fid, partitions in enumerate(result.fragment_partitions):
-        saved = []
-        for partition in range(len(partitions)):
-            table = result.tables(fid, partition)
-            identity = id(table)
-            if identity not in table_ids:
-                table_ids[identity] = len(tables)
-                tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
-                    internal=[dict(fragment=k, terms=terms_record(v))
-                              for k,v in table.internal.items()],
-                    boundary=[dict(fragments=k, terms=terms_record(v))
-                              for k,v in table.boundary.items()],
-                    product_boundary_pairs=table.product_boundary_pairs.tolist(),
-                    atom_domains=table.atom_domains, atom_actions=table.atom_actions,
-                    components=table.components, statistics=table.statistics))
-            saved.append(table_ids[identity])
-        families.append(dict(family_id=fid, tables=saved,
-            action_responses=[r.generators for r in result.family_actions[fid]]))
+    for fid, number, table in result._export_tables():
+        if table is not None:
+            tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
+                internal=[dict(fragment=k, terms=terms_record(v))
+                          for k,v in table.internal.items()],
+                boundary=[dict(fragments=k, terms=terms_record(v))
+                          for k,v in table.boundary.items()],
+                product_boundary_pairs=table.product_boundary_pairs.tolist(),
+                atom_domains=atom_record(table.atom_domains), atom_actions=atom_record(table.atom_actions),
+                components=table.components, statistics=table.statistics))
+        families[fid]['tables'].append(number)
+        del table
     return dict(schema='mappa.decoded_events/v4', method='compressed_event_interpretation',
         scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,

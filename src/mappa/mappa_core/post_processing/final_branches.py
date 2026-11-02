@@ -310,7 +310,17 @@ class FinalBranchCatalogue:
         result.path_count = int(record['input_paths'])
         result.incomplete_paths = int(record.get('incomplete_paths', 0))
         result.reconstruction = dict(record.get('reconstruction', {}))
-        result.families = [FinalFamily.from_record(f) for f in record['families']]
+        mappings, pairs = {}, {}
+        for family_record in record['families']:
+            family = FinalFamily.from_record(family_record)
+            # Restore immutable sharing without normalizing the saved program.
+            family.mapping = result._intern(mappings, tuple(
+                result._intern(pairs, pair) for pair in family.mapping))
+            family.required_edges = result._intern(result._required, tuple(
+                result._intern(pairs, pair) for pair in family.required_edges))
+            family.actions = result._intern(result._programs, tuple(
+                result._intern(result._factors, action) for action in family.actions))
+            result.families.append(family)
         for branch in record['branches']:
             pairs = tuple((tuple(rs), tuple(ps)) for rs, ps in branch['fragment_pairs'])
             result.branches[tuple(branch['policy']), pairs] = set(branch['families'])

@@ -185,6 +185,72 @@ def test_flat_archive_roundtrip_needs_no_original_search_graph():
 
 
 
+@pytest.mark.parametrize('transport', ['json', 'bundle'])
+def test_catalogue_restore_shares_storage_without_changing_ordered_choices(tmp_path, transport):
+    import json
+    from itertools import product
+    from mappa import decode_events
+    from mappa.execution import BundleStore
+    from mappa.mappa_core.domain import AAMSearchConfig
+    from mappa.mappa_core.core.scheduler.results import CatalogueResult
+    from mappa.mappa_core.post_processing.final_branches import FinalFamily
+
+    value = problem('CCCC', [(0, 1, 1.), (1, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    catalogue = FinalBranchCatalogue(value)
+    identity = tuple((i, i) for i in range(4))
+    pool, group = ('pool', (0, 1)), ('group', ((0, 2, 1, 3),))
+    policy = (.2, 0.)
+    catalogue.families = [
+        FinalFamily(identity, ((0, 1),), (pool, group), policy),
+        FinalFamily(identity, ((0, 1), (1, 2)), (pool, group), policy),
+        FinalFamily(identity, ((0, 1),), (group, pool), policy),
+        FinalFamily(((0, 1), (1, 0), (2, 2), (3, 3)), ((0, 1),), (pool, group), policy),
+    ]
+    for number, family in enumerate(catalogue.families):
+        family.provenance.append(dict(archive=f'cut/{number}', transitions=[number], cuts=[[2, 3]]))
+    atoms = tuple(range(4))
+    catalogue.branches[policy, ((atoms, atoms),)] = set(range(4))
+    catalogue.coupled_branches[0] = {(((0, 1), (0, 1)), ((2, 3), (2, 3)))}
+    catalogue.path_count = 4
+    expected_record = json.loads(json.dumps(catalogue.to_record()))
+    if transport == 'json':
+        restored = FinalBranchCatalogue.from_record(value, expected_record)
+    else:
+        store = BundleStore(tmp_path/'bundles', scratch=tmp_path)
+        saved = CatalogueResult('example', catalogue, (), (), AAMSearchConfig(), 'native')
+        restored = store.load(store.put(saved)).catalogue
+    assert json.loads(json.dumps(restored.to_record())) == expected_record
+    first, constrained, reversed_order, other_witness = restored.families
+    assert first.mapping is constrained.mapping is reversed_order.mapping
+    assert other_witness.mapping[2] is first.mapping[2]
+    assert first.required_edges is reversed_order.required_edges is other_witness.required_edges
+    assert constrained.required_edges[0] is first.required_edges[0]
+    assert first.actions is constrained.actions is other_witness.actions
+    assert first.actions[0] is reversed_order.actions[1]
+    assert first.actions[1] is reversed_order.actions[0]
+    assert first.provenance is not constrained.provenance
+
+    decoded = decode_events(restored)
+    expected = [
+        {(0, 1, 2, 3), (1, 0, 2, 3)},
+        {(0, 1, 2, 3)},
+        {(0, 1, 2, 3), (1, 0, 2, 3), (1, 2, 0, 3)},
+        {(0, 1, 2, 3), (1, 0, 2, 3)},
+    ]
+    for number, family in enumerate(restored.families):
+        mappings = set()
+        for choices in product((None, (1, 0)), (None, (1,))):
+            if family.actions[0][0] == 'group':
+                choices = choices[::-1]
+            try:
+                mapping = decoded.realize(number, choices)
+            except ValueError as error:
+                assert str(error) == 'choices violate original fragment constraints'
+            else:
+                mappings.add(tuple(mapping[i] for i in range(4)))
+        assert mappings == expected[number]
+
+
 @pytest.mark.smoke
 def test_aam_result_groups_atom_sets_before_return_without_anchor_key(monkeypatch):
     from mappa.mappa_core.domain import AAMResult, AAMSearchConfig, AAMSearchMetrics

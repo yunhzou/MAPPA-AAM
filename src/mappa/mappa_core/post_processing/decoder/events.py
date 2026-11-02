@@ -577,8 +577,6 @@ class FragmentEventTables:
             self.atom_domains.update(response.atom_domains)
             if response.terms:
                 self.internal[owner] = tuple(local.bind(term, binding) for term in response.terms)
-        groups = defaultdict(list)
-        self._constant = Counter()
         self.projected_pair_states = sum(response.projected_pair_states
                                          for response, _ in self.fragment_responses)
         # Internal and boundary work follows original bond neighborhoods.
@@ -605,24 +603,6 @@ class FragmentEventTables:
         # Preserve the public record order of the original sorted bond walk.
         self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1][0].atoms))
         self.boundary = {key: tuple(terms) for key, terms in self.boundary.items()}
-        for terms in (*self.internal.values(), *self.boundary.values()):
-            for term in terms:
-                a, b = term.atoms
-                region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
-                if term.response.constant is None:
-                    groups[term.response].append((a, b, region))
-                else:
-                    self._constant[region, term.response.constant] += 1
-        regions = sorted({region for terms in groups.values() for _,_,region in terms}
-                         | {region for region, _ in self._constant})
-        self._regions = tuple(regions)
-        region_ids = {region:i for i,region in enumerate(regions)}
-        self._fixed = np.zeros((len(regions), 5), dtype=np.int64)
-        for (region, code), count in self._constant.items():
-            self._fixed[region_ids[region], code] += count
-        self._groups = tuple((response, np.array([(a,b) for a,b,_ in terms], dtype=int),
-                              np.array([region_ids[region] for _,_,region in terms], dtype=int))
-                             for response, terms in groups.items())
         # Product-to-unmatched boundaries depend on occupied target atoms, not
         # a fabricated correspondence between unmatched reactants and products.
         bonds = index.product_bonds
@@ -634,6 +614,29 @@ class FragmentEventTables:
             self.product_boundary_pairs = bonds[eligible]
         self.product_boundary_actions = tuple(range(len(family.actions)))
         self.components = self._dependency_components(family)
+
+    @cached_property
+    def _evaluation(self):
+        """Compile array lookups only when a caller evaluates joint choices."""
+        groups, constant = defaultdict(list), Counter()
+        for terms in (*self.internal.values(), *self.boundary.values()):
+            for term in terms:
+                a, b = term.atoms
+                region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
+                if term.response.constant is None:
+                    groups[term.response].append((a, b, region))
+                else:
+                    constant[region, term.response.constant] += 1
+        regions = tuple(sorted({region for terms in groups.values() for _,_,region in terms}
+                               | {region for region, _ in constant}))
+        region_ids = {region:i for i,region in enumerate(regions)}
+        fixed = np.zeros((len(regions), 5), dtype=np.int64)
+        for (region, code), count in constant.items():
+            fixed[region_ids[region], code] += count
+        variable = tuple((response, np.array([(a,b) for a,b,_ in terms], dtype=int),
+                          np.array([region_ids[region] for _,_,region in terms], dtype=int))
+                         for response, terms in groups.items())
+        return fixed, variable, regions
 
     def _dependency_components(self, family):
         """Separate contribution groups without separating shared choices.
@@ -674,10 +677,11 @@ class FragmentEventTables:
     def evaluate(self, vector, *, include_events=False):
         """Lookup only the requested joint choice; sum each pair once."""
         vector = np.asarray(vector, dtype=int)
-        totals = self._fixed.copy()
-        for response, pairs, regions in self._groups:
+        fixed, groups, regions = self._evaluation
+        totals = fixed.copy()
+        for response, pairs, region_ids in groups:
             codes = response.lookup(self.index.padded_product[vector[pairs[:,0]], vector[pairs[:,1]]])
-            np.add.at(totals, (regions, codes), 1)
+            np.add.at(totals, (region_ids, codes), 1)
         inverse = np.full(self.index.m, -1, dtype=int)
         mapped = np.flatnonzero(vector >= 0)
         inverse[vector[mapped]] = mapped
@@ -687,7 +691,7 @@ class FragmentEventTables:
         target_boundary = pairs[boundary]
         internal, boundary_result = {}, {}
         counts = totals[:,1:].sum(axis=0)
-        for (left, right), row in zip(self._regions, totals[:,1:]):
+        for (left, right), row in zip(regions, totals[:,1:]):
             if np.any(row):
                 collection = internal if left == right else boundary_result
                 key = left if left == right else (left, right)
@@ -722,8 +726,9 @@ class FragmentEventTables:
     def counts(self, vectors):
         """Vectorized category lookup for caller-supplied, validated realizations."""
         vectors = np.asarray(vectors, dtype=int)
-        result = np.broadcast_to(self._fixed[:,1:].sum(axis=0), (len(vectors), 4)).copy()
-        for response, pairs, _ in self._groups:
+        fixed, groups, _ = self._evaluation
+        result = np.broadcast_to(fixed[:,1:].sum(axis=0), (len(vectors), 4)).copy()
+        for response, pairs, _ in groups:
             values = self.index.padded_product[vectors[:,pairs[:,0]], vectors[:,pairs[:,1]]]
             codes = response.lookup(values)
             for code in range(1, 5):
