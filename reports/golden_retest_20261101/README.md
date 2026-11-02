@@ -53,6 +53,38 @@ all allocated CPUs were continuously busy. The completed-fragment cache recorded
 a **91.83% hit rate**, no baseline-recovery loads, no errors, and at most
 **40.95 MiB** retained in a worker snapshot.
 
+## Local point test of the previous failure
+
+Golden **1561 forward** previously exceeded 2 GiB while publishing decoded
+output. A fresh Mac test at report commit `26f0a5b` used the same scientific code
+as this full rerun and retained the 2 GiB guard.
+
+The exact historical catalogue now decodes and serializes successfully in
+**11.66 seconds**, peaking at **1.005 GiB** sampled RSS. It contains the original
+14,132 families across 192 cuts. This diagnostic measures publication using the
+production serializer settings without retaining its output.
+
+A separate fresh run started with empty results and caches on **one persistent
+Mac worker**. All 192 cuts, reduction, decoding, durable publication and reference
+verification completed in **49.09 seconds**, with no failures or retries. Peak
+sampled worker RSS was **1.145 GiB**. The complete 45-heavy-atom reference was
+recovered. Reading the saved result confirmed a v4 decoded record with 14,130
+family tables and 13 shared responses.
+
+| Fresh local stage | Compute elapsed seconds | Publication seconds |
+|---|---:|---:|
+| Matching, summed over 192 cuts | 14.70 | 6.34 |
+| Reduction | 13.44 | 0.25 |
+| Decoding | 10.76 | 0.70 |
+| Verification | 1.80 | 0.01 |
+
+The 49.09-second total also includes pool startup and stage coordination. The
+isolated replay and persistent-worker pipeline have different resident memory
+histories; their RSS values need not match. These Mac timings are not directly
+comparable to the DFW timings above. [Point-test evidence](point-1561.json)
+contains input checksums, commands, stage audits, verification and the complete
+saved-catalogue replay log. No algorithm or configuration was changed.
+
 ## Comparable scope and limits
 
 The comparison uses the previous [Golden pool run](../golden_pool_20261101/README.md),
