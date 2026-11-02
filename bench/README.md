@@ -131,6 +131,63 @@ the handoff; no dataset-wide graph is collected in RAM.
 
 ## Golden and cache pilots
 
+For a bounded local study of selected Golden cases, use the prepared Golden
+indexes and the current verifier directly:
+
+```bash
+export PYTHONPATH=src:bench
+python bench/golden.py diagnose --index /path/to/prepared/index.json \
+  --cases 1001 1850 1022 785 912 1518 709 1799 \
+  --seeds 1 2 5 10 --cache on off --branch-limit 2000 \
+  --direction-seconds 300 --run-seconds 7200 --memory-gib 4 \
+  --output /path/to/new-local-diagnostic
+```
+
+Case IDs are explicit, zero-based selections; this command does not select the
+whole dataset implicitly. Repeat `--index` when the chosen cases span several
+prepared indexes. Both directions run by default; `--directions forward` or
+`--directions reverse` selects one for an explicit follow-up in a new output
+directory. Each selected case/direction must be present exactly once.
+The example cases span matching-cost quantiles of the saved current Golden run;
+they are a diagnostic sample, not a new benchmark denominator. For a study of
+previous misses, supply those case IDs with `--seeds 10 --cache on` and the same
+cap. A relocated input bundle can use the existing `MAPPA_BUNDLE_ROOTS` setting.
+Pass `--cpu-model` with a verified hardware model when recording timing results.
+The report includes platform information, core code identity and the diagnostic
+runner's SHA-256; each task rejects a runner changed after planning.
+
+Each reaction/direction and seed/cache setting starts a fresh process. The same
+native `SearchSession` then retains its prepared state across the full canonical
+cut sweep and all requested seeds. Seed-order prefixes, random settings and
+input checksums remain fixed. `--cache off` sets completed-fragment retention to
+zero; it preserves the native algorithm, dependency tracking and other caches.
+The enabled control uses the existing 64 MiB completed-fragment cache. These
+controls do not compare different search algorithms or shared-file cache I/O.
+
+The runner performs matching, symmetry finalization, family reduction and the
+existing Golden reference-membership query; it does not decode events. CPU and
+wall time are reported separately for each stage, preparation and parity audits.
+Task totals also include progress/result publication, while process startup is
+reported separately. The existing local worker records sampled process-tree RSS
+and the fresh process's lifetime peak RSS. Reports include cache calls/hits,
+retention statistics, weighted cap/stop counts and completed cut/seed scope.
+Cache controls compare the saved scientific family records and branch
+associations, exact search scope, and per-cut graph/stop counts. This is catalogue
+parity, not a claim of byte-identical search-history storage.
+Two-cache studies automatically retain catalogue fingerprints. For separate
+single-cache runs that will be compared later, pass `--audit-catalogue` to each
+run. Single-cache studies otherwise skip that fingerprint calculation.
+
+One `results.json` aggregates all requested settings; one atomically replaced
+`progress.json` reports the current direction and stage. No cut or seed files
+are created. Direction deadlines and the memory guard are enforced by the
+existing worker supervisor. The run budget, SIGINT or SIGTERM stops further
+admission; active work drains within its direction deadline and publication
+allowance. Timeout, memory failure, unknown verification and nonrecovery remain
+distinct. There are no automatic retries. Incomplete runs exit with status 75
+and preserve completed records; use a new output directory for an explicit
+follow-up. These times describe sequential local work, not distributed latency.
+
 `golden.py INPUTS MANIFEST OUTPUT --batches COUNT` checks and aggregates the original
 1,851 Golden inputs and prepares both directions. Its manifest selects complete
 heavy-atom reference verification, including unmatched atoms and chemical endpoint

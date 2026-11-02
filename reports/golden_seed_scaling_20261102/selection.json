@@ -1,0 +1,90 @@
+{
+  "schema": "mappa.golden_seed_scaling_selection/v1",
+  "source": "manuscript/evidence/current_golden_cases.json",
+  "source_sha256": "2d4292a662ac3d27863aadc1453c158bd1b8e765596c53193d3eea99692c9638",
+  "source_commit": "096a010961f53944ddd4ddc433bd8d56f282a2f2",
+  "selection_population": 1851,
+  "selection_rule": "Sort by summed forward and reverse matching compute CPU, breaking ties by case ID; select zero-based rank round(q*(1851-1)).",
+  "measurement_scope": "Recorded one-seed, branch-cap-100 matching CPU and cut-task counts from the frozen completed Golden run; selection evidence, not new study results.",
+  "cases": [
+    {
+      "case": 1001,
+      "matching_cpu_quantile": 0,
+      "rank_zero_based": 0,
+      "matching_compute_cpu_seconds": 0.03405544100000135,
+      "matching_cut_tasks": 16
+    },
+    {
+      "case": 1850,
+      "matching_cpu_quantile": 0.1,
+      "rank_zero_based": 185,
+      "matching_compute_cpu_seconds": 0.22205770100000422,
+      "matching_cut_tasks": 50
+    },
+    {
+      "case": 1022,
+      "matching_cpu_quantile": 0.25,
+      "rank_zero_based": 462,
+      "matching_compute_cpu_seconds": 0.5136377629999975,
+      "matching_cut_tasks": 56
+    },
+    {
+      "case": 785,
+      "matching_cpu_quantile": 0.5,
+      "rank_zero_based": 925,
+      "matching_compute_cpu_seconds": 1.2810524930000007,
+      "matching_cut_tasks": 82
+    },
+    {
+      "case": 912,
+      "matching_cpu_quantile": 0.75,
+      "rank_zero_based": 1388,
+      "matching_compute_cpu_seconds": 2.9831607269999996,
+      "matching_cut_tasks": 86
+    },
+    {
+      "case": 1518,
+      "matching_cpu_quantile": 0.9,
+      "rank_zero_based": 1665,
+      "matching_compute_cpu_seconds": 6.3276008159999915,
+      "matching_cut_tasks": 154
+    },
+    {
+      "case": 709,
+      "matching_cpu_quantile": 0.99,
+      "rank_zero_based": 1832,
+      "matching_compute_cpu_seconds": 24.01822122499999,
+      "matching_cut_tasks": 204
+    },
+    {
+      "case": 1799,
+      "matching_cpu_quantile": 1.0,
+      "rank_zero_based": 1850,
+      "matching_compute_cpu_seconds": 56.39955004600003,
+      "matching_cut_tasks": 289
+    }
+  ],
+  "previously_not_recovered_cases": [
+    7,
+    19,
+    20,
+    44,
+    590,
+    867,
+    964,
+    986,
+    1034,
+    1227,
+    1228,
+    1285,
+    1314,
+    1358,
+    1377,
+    1475,
+    1553,
+    1568,
+    1606,
+    1739,
+    1740
+  ]
+}

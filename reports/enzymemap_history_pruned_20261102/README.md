@@ -45,33 +45,38 @@ instructions are retained outside the published repository. See the
 
 ## Latest monitored progress
 
-At **2026-11-01 23:35 Toronto time (2026-11-02 04:35 UTC)**, published ledgers
+At **2026-11-02 00:52 Toronto time (2026-11-02 05:52 UTC)**, published ledgers
 across all 40 batches recorded:
 
 | Stage | Complete directions / 95,948 | Percent |
 |---|---:|---:|
-| Matching | 60,060 | 62.60% |
-| Family reduction | 57,568 | 60.00% |
+| Matching | 83,956 | 87.50% |
+| Family reduction | 83,956 | 87.50% |
 | Decoding | 0 | 0% |
 | Reference verification | 0 | 0% |
 
-No direction failures or retired retries were recorded. All started batches
-reported the required source/engine identity, the same scientific configuration
-and the unchanged 2 GiB guard. Matching advanced by 3,441 directions since
-04:25:19 UTC, approximately 20,375 directions per hour over that 10-minute,
-8-second interval.
-This is observed matching throughput, not an end-to-end completion estimate.
+Thirty-five batches have complete matching and reduction records. The audit
+checked all 95,948 direction identities across the 40 disjoint inputs, each
+completed stage's exact membership, input hashes, scientific settings and the
+required source/engine identity. No scientific direction failures or retired
+retries were recorded; the 2 GiB guard remains unchanged. Five batches remain.
+This is matching/reduction progress, not final benchmark completion.
 
-The scheduler/log check found 24 successfully completed matching
-allocations, two running allocations, no failed or drained allocations and no
-errors in the matching logs. Both finish arrays still depend on both matching
-arrays; the global barrier remains intact. No intervention was needed.
+One allocation failed during worker startup: no workers became ready and no
+scientific tasks started. Its only saved artifacts were the input plan and an
+empty cache ownership file. All recorded steps had terminated. Direct inspection
+found no remaining job processes on the accessible former nodes; access to one
+former node was unavailable after allocation release. Subsequent allocations
+started successfully, so the evidence identifies an isolated startup failure,
+not a demonstrated algorithm or memory failure. Its underlying scheduler cause
+has not been established.
 
-The two running pools registered 255 workers, all with retained execution
-records. Their latest queue snapshots contained 2,949 and 840 completed attempts,
-with peak overlaps of 148 and 83 retained attempts during each snapshot's
-preceding minute. Both listed no running tasks at their captured instants;
-neither contained duplicate running task ownership. Published snapshots can lag,
-and retired attempts leave the active queue. Worker registration and task overlap
-do not establish continuous CPU utilization. Raw operational snapshots remain
-private.
+The startup evidence was preserved privately. Only that untouched batch was
+resubmitted with the same validated code, inputs, resource guard and budgets;
+completed work was preserved. Both decoding prerequisites were repaired to
+require the replacement batch and every still-unfinished original matching
+batch. All other prerequisites were independently verified complete. At this
+observation the replacement was queued; successful worker startup has not yet
+been confirmed. The global matching/reduction barrier remains intact.
+
+Raw operational snapshots and exact continuation commands remain private.
