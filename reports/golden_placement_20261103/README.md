@@ -554,6 +554,20 @@ baseline plus selected recovery studies now recover **1,844/1,851 reactions
 Original execution failures and consumed budgets remain unchanged; a negative
 result describes the retained capped catalogue, not all possible mappings.
 
+The local MAPPA viewer contains ground-truth mappings for all 20 original
+unresolved reactions, labelled by their final recovery setting. It preserves
+all 1,000 endpoint heavy atoms and 440 reference pairs, including unmatched
+atoms. The input coordinates are placeholders, so the viewer uses generated
+2D topology layouts; these are not measured molecular geometries. Hydrogen
+identities are unannotated and are omitted from this reference display.
+
+The shared viewer now supports partial correspondences without inventing pairs.
+All 20 cases passed browser checks for endpoint connectivity, atom counts,
+mapping labels, boundary highlights, controls and rotation, with zero JavaScript
+errors or external requests. Eleven presentation tests and 26 smoke checks
+passed. The viewer and its input-bound audit remain in the private campaign
+artifacts; no scientific search or verification was run to generate the display.
+
 ## Stopped initial campaign
 
 The initial campaign used revision

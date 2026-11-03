@@ -61,43 +61,58 @@ def align_product(reactant, product):
 
 
 def comparison_document(case):
-    """Adapt complete saved R/P or endpoint/TS witnesses to the original viewer."""
+    """Display saved endpoint correspondences, retaining any unmatched atoms."""
     r, p = case['endpoints']
     mechanisms = []
     for index, record in enumerate(case['records'], 1):
         source = record['mapping']
-        mapping = dict(source) if source and isinstance(source[0], (tuple, list)) else dict(enumerate(source))
-        assert sorted(mapping) == sorted(mapping.values()) == list(range(len(r['elements'])))
-        assert all(r['elements'][a] == p['elements'][b] for a, b in mapping.items())
-        ordered = [p['coordinates'][mapping[a]] for a in range(len(mapping))]
+        pairs = list(source.items()) if isinstance(source, dict) else (
+            list(source) if source and isinstance(source[0], (tuple, list)) else list(enumerate(source)))
+        mapping = dict(pairs)
+        if (len(mapping) != len(pairs) or len(set(mapping.values())) != len(mapping)
+                or any(not isinstance(a, (int, np.integer)) or not isinstance(b, (int, np.integer))
+                       or not 0 <= a < len(r['elements']) or not 0 <= b < len(p['elements'])
+                       for a, b in pairs)):
+            raise ValueError('Mapping must contain distinct, in-bounds endpoint atom indices')
+        if any(r['elements'][a] != p['elements'][b] for a, b in pairs):
+            raise ValueError('Mapped atoms must have the same element')
+        complete = len(mapping) == len(r['elements']) == len(p['elements'])
+        ordered = [p['coordinates'][mapping[a]] for a in range(len(mapping))] if complete else None
         # Decoder signs describe WBO decreases/increases, including bonds that
         # remain present. Presentation uses the same >0.2 bond-presence cutoff
         # as the endpoint renderer to distinguish loss/gain from order changes.
         events = []
         for event in record.get('events', []):
             event = dict(event)
+            if 'p' not in event:
+                event['p'] = [mapping[a] for a in (event.get('r') or ()) if a in mapping]
             if event['kind'] in ('broken', 'formed') and 'wbo' in event:
                 before, after = event['wbo']
                 if before is not None and after is not None and before > 0.2 and after > 0.2:
                     event['decoder_kind'] = event['kind']
                     event['kind'] = 'weakened' if before > after else 'strengthened'
             events.append(event)
-        by_kind = {kind: [e['r'] for e in events if e['kind'] == kind]
+        by_kind = {kind: [e['r'] for e in events if e['kind'] == kind and len(e.get('r') or ()) == 2
+                         and all(a is not None for a in e['r'])]
                    for kind in ('broken', 'formed', 'strengthened', 'weakened', 'order_changed')}
         mechanisms.append(dict(
             id=index, label=record['name'], mapping_RP=mapping,
-            product_xyz_in_R=ordered, product_xyz_in_R_aligned=align_product(r['coordinates'], ordered),
+            product_xyz_in_R=ordered,
+            product_xyz_in_R_aligned=align_product(r['coordinates'], ordered) if complete else None,
             broken_bonds_R=by_kind['broken'], formed_bonds_R=by_kind['formed'],
-            formed_bonds_P=[[mapping[a], mapping[b]] for a, b in by_kind['formed']],
+            formed_bonds_P=[e['p'] for e in events if e['kind'] == 'formed' and len(e.get('p') or ()) == 2
+                            and all(a is not None for a in e['p'])],
             order_events={k: by_kind[k] for k in ('strengthened', 'weakened', 'order_changed')},
-            event_records=events, event_counts={kind: len(pairs) for kind, pairs in by_kind.items()},
+            event_records=events, event_counts={kind: sum(e['kind'] == kind for e in events) for kind in by_kind},
             pattern_id=record.get('pattern'), provenance=record.get('provenance', {}),
-            core_atoms=sorted({a for e in events for a in e['r']}), igs=[], gt=None,
+            core_atoms=sorted({a for e in events for a in (e.get('r') or ()) if a is not None}), igs=[], gt=None,
         ))
+    endpoints = [dict(elements=e['elements'], coords=e['coordinates'], wbo=e['wbo'],
+                      atom_indices=e.get('atom_indices', list(range(len(e['elements'])))))
+                 for e in (r, p)]
     return dict(step=str(case['name']), index=case['index'], n_atoms=len(r['elements']),
                 default_mech_id=1, include_gt=False, note=case.get('note', ''),
-                reactant=dict(elements=r['elements'], coords=r['coordinates'], wbo=r['wbo']),
-                product=dict(elements=p['elements'], coords=p['coordinates'], wbo=p['wbo']),
+                reactant=endpoints[0], product=endpoints[1],
                 mechanisms=mechanisms)
 
 
