@@ -229,6 +229,20 @@ remain in the source campaign. Compare operation CPU on identical successful
 directions, report publication separately, and keep failed or missing results in
 the full denominator.
 
+After both campaigns are terminal and drained, compare every saved decoded
+record outside the timed stage:
+
+```bash
+python bench/performance.py audit-decoding --baseline-campaign /path/to/original-campaign \
+  --candidate-campaign /path/to/new-decoding --output /path/to/output-audit \
+  --workers 4 --memory-gib 8 --task-seconds 1800
+```
+
+Add `--slurm` inside an existing allocation. The audit streams complete record
+and metadata hashes, releases each old artifact before loading its replacement,
+and reports missing or failed outputs separately. `--resume` requires a cleanly
+drained audit with unchanged source files, implementation and budgets.
+
 ## Recover decoding after a repair
 
 After validating a decoder repair, retry a completed campaign's archived decoding

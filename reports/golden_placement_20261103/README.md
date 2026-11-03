@@ -136,6 +136,42 @@ values, coverage, failed-attempt measurements and provenance are in
 available as [SVG](timing-distribution.svg). Percentiles use empirical nearest
 ranks; the median averages the two middle values for an even sample.
 
+## Full measurement of the latest decoder
+
+A separate decoding-only measurement was submitted on **2026-11-03 at
+22:09:50 UTC**, using
+[`119dca4`](https://github.com/yunhzou/MAPPA-AAM/commit/119dca46af5d911071b656edba8998afef78ad7d).
+It includes the later shared-preparation decoder repair and reuses all **3,702
+completed catalogues**, covering **1,851 reactions** at the original seed 1,
+cap 2,000 and tolerance 1 settings. Matching, reduction and reference verification
+are not repeated. Every catalogue passed a compressed-range checksum audit;
+all original stage ledgers remain unchanged.
+
+The new measurement has independent outputs and explicit fresh 1,800-second
+compute budgets per direction. Ordinary directions use a **4 GiB worker guard**;
+all 63 directions with any historical decoding memory failure, including the
+16 that subsequently succeeded, use **8 GiB**. These allowances do not change
+the retained mapping relation or event thresholds.
+
+The initial large requests were cancelled before any task started and replaced
+with smaller allocations that fit available resources. The replacement requests
+**194 compute workers across ten disjoint pools**. At **22:14:58 UTC**, nine pools
+had registered **181 workers**; the final 13-worker pool was still pending.
+This is startup evidence, not completion or proof that every worker was busy.
+
+The runner executes only decoding from saved catalogue references. Local
+validation passed **37 campaign tests**, **12 preparation tests** and **26 smoke
+tests**. Linux validation passed **19 decoding-only checks** and **26 smoke
+tests**; the unrelated publication-test module was excluded from Linux collection
+because its optional PDF dependency was absent. No core algorithm was changed
+to launch this measurement.
+
+Full timing and output comparison remain pending. The fair speed comparison uses
+the same previously successful directions and reports computation and publication
+separately. The 47 previously unsuccessful directions have no successful baseline
+output and will be reported separately. Output-content validation is outside the
+timed decoding stage.
+
 ## Matching repair and local validation
 
 The original full run exposed a bottleneck in checking whether two selected

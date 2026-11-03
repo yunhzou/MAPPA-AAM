@@ -397,3 +397,152 @@ def test_direct_inputs_and_golden_unmatched_policy_across_complete_pipeline(tmp_
         result = store.load(Blob(**json.loads(raw)))
         assert result['status'] == ('not_recovered' if omit_atom else 'recovered')
         assert result['policy'] == REFERENCE_POLICY
+
+
+@pytest.mark.parametrize('change,expected', [
+    (None, 'equal'), ('record', 'different'), ('metadata', 'different'),
+    ('missing_baseline', 'previously_missing'), ('missing_candidate', 'candidate_error')])
+def test_decoding_audit_hashes_complete_records_and_releases_old_before_loading_new(change, expected):
+    import weakref
+    import performance
+    from mappa import AAMSearchConfig
+    from mappa.mappa_core.core.scheduler.results import CutScope, DecodingResult, MatchingResult
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    references = {name: Blob('unused.bundle', i, 1, str(i)*64)
+                  for i, name in enumerate(('matching', 'baseline', 'candidate'))}
+    scope = (CutScope(0, (), (0, 1)),)
+    config = AAMSearchConfig(seed_count=2)
+    record = dict(schema='audit-test', tables=[dict(boundary=[[0, 1, .5], [2, 3, .7]])])
+    payload = dict(case='00000/forward', matching=asdict(references['matching']),
+        search_config=json.loads(json.dumps(asdict(config))), decode_config=asdict(EventDecodeConfig()),
+        runner_sha256=hashlib.sha256(Path(performance.__file__).read_bytes()).hexdigest())
+    for arm in ('baseline', 'candidate'):
+        missing = change == 'missing_'+arm
+        payload[arm] = None if missing else asdict(references[arm])
+        payload[arm+'_state'] = 'error' if missing else 'complete'
+
+    class Workspace:
+        old = None
+        def load(self, reference):
+            if reference == references['matching']:
+                return MatchingResult(payload['case'], reference, scope, ())
+            candidate = reference == references['candidate']
+            if candidate and self.old is not None:
+                assert self.old() is None, 'Old decoded artifact is still resident'
+            value = json.loads(json.dumps(record))
+            if candidate and change == 'record':
+                value['tables'][0]['boundary'][1][2] = .8
+            stops = (('capped', 1),) if candidate and change == 'metadata' else ()
+            saved = DecodingResult(payload['case'], EventDecodeConfig(), scope, stops,
+                                   value, config, 'reused_native')
+            if not candidate:
+                self.old = weakref.ref(saved)
+            return saved
+
+    result = performance.audit_decoding_direction(payload, Workspace())
+    assert result['status'] == expected
+    if result['baseline']:
+        canonical = json.dumps(record, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+        assert result['baseline']['record_sha256'] == hashlib.sha256(canonical).hexdigest()
+        assert result['baseline']['canonical_record_bytes'] == len(canonical)
+    if change == 'metadata':
+        assert result['baseline']['record_sha256'] == result['candidate']['record_sha256']
+        assert result['baseline']['metadata_sha256'] != result['candidate']['metadata_sha256']
+
+
+def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(tmp_path):
+    from performance import audit_decoding
+    from prepare_batches import prepare_decoding, prepare_fresh
+    from mappa.execution.identity import code_identity
+
+    index = prepared_index(tmp_path)
+    baseline = tmp_path/'baseline'
+    prepare_fresh([index], baseline, [1])
+    (baseline/'launch.json').write_text(json.dumps(dict(source_commit='a'*40, source_identity=code_identity())))
+    assert run(baseline/'0/index.json', baseline/'0/result', local=True, workers=1,
+               memory_bytes=2**30, stop_after='decoding')['pass_finished'] == 'decoding'
+    candidate = tmp_path/'candidate'
+    prepare_decoding(baseline, candidate, [1])
+    (candidate/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity=code_identity())))
+    assert run(candidate/'0/index.json', candidate/'0/result', local=True, workers=1,
+               memory_bytes=2**30, decode_only=True)['pass_finished'] == 'decoding'
+    frozen = {path: hashlib.sha256(path.read_bytes()).hexdigest()
+              for source in (baseline, candidate) for path in source.rglob('*') if path.is_file()}
+    output = tmp_path/'audit'
+    report = audit_decoding(baseline, candidate, output, workers=1,
+                            memory_bytes=2**30, task_seconds=60.)
+    assert report['complete'] and report['terminal_complete']
+    assert report['status_counts'] == {'equal': 2}
+    assert report['sources']['candidate'] == dict(source_commit='b'*40, source_identity=code_identity())
+    assert report['baseline_states'] == report['candidate_states'] == {'complete': 2}
+    assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in frozen} == frozen
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute('SELECT * FROM results').fetchall()
+    bundles = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in (output/'bundles').glob('*.bundle')}
+    assert audit_decoding(baseline, candidate, output, workers=1, memory_bytes=2**30,
+                          task_seconds=60., resume=True)['complete']
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results').fetchall() == rows
+    assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in bundles} == bundles
+    with (candidate/'0/result/ledger.sqlite').open('ab') as stream:
+        stream.write(b'changed-after-audit')
+    with pytest.raises(ValueError, match='sources, implementation or budgets changed'):
+        audit_decoding(baseline, candidate, output, memory_bytes=2**30, task_seconds=60., resume=True)
+
+
+def test_decoding_audit_plans_missing_baseline_outputs_and_rejects_incomplete_candidate(tmp_path):
+    from performance import decoding_audit_plan
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    target = tmp_path/'target'
+    manifest = prepare_decoding(source, target, [1])
+    (target/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity='e'*64)))
+    folder = target/'0'; index = json.loads((folder/'index.json').read_text())
+    output = folder/'result'; output.mkdir(); (output/'bundles').mkdir()
+    with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+        queue.execute('CREATE TABLE tasks (key TEXT)'); queue.execute('CREATE TABLE attempts (key TEXT)')
+    (output/'plan.json').write_text(json.dumps(dict(mode='decode_only', config=index['config'],
+        decoder_source='e'*64, decode_config=manifest['decode_config'],
+        decoding_source=manifest['decoding_source'],
+        input_index_sha256=manifest['batches'][0]['index_sha256'])))
+    (output/'progress.json').write_text(json.dumps(dict(source='e'*64)))
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        db.execute('CREATE TABLE results (case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT)')
+        for row in index['directions']:
+            name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+            db.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                       (name, 'decoding', 'complete', json.dumps(row['catalogue']), None, None))
+    plan = decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    assert plan['directions'] == 6
+    assert plan['baseline_states'] == {'complete': 5, 'error': 1}
+    assert plan['candidate_states'] == {'complete': 6}
+    assert sum(row['baseline'] is None for row in plan['rows']) == 1
+    original_index = (folder/'index.json').read_text()
+    original_manifest = (target/'manifest.json').read_text()
+    original_plan = (output/'plan.json').read_text()
+    for field, value, message in (
+            ('decoder_source', 'f'*64, 'decoder identities differ'),
+            ('decode_config', dict(threshold=.7, metal_threshold=.4), 'decoding policies differ')):
+        changed_plan = json.loads(original_plan); changed_plan[field] = value
+        (output/'plan.json').write_text(json.dumps(changed_plan))
+        with pytest.raises(ValueError, match=message):
+            decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    (output/'plan.json').write_text(original_plan)
+    index['directions'][0]['catalogue']['offset'] += 1
+    (folder/'index.json').write_text(json.dumps(index))
+    digest = hashlib.sha256((folder/'index.json').read_bytes()).hexdigest()
+    manifest['batches'][0]['index_sha256'] = digest
+    (target/'manifest.json').write_text(json.dumps(manifest))
+    changed_plan = json.loads(original_plan); changed_plan['input_index_sha256'] = digest
+    (output/'plan.json').write_text(json.dumps(changed_plan))
+    with pytest.raises(ValueError, match='catalogue or original input lineage differs'):
+        decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    (folder/'index.json').write_text(original_index)
+    (target/'manifest.json').write_text(original_manifest)
+    (output/'plan.json').write_text(original_plan)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        db.execute("DELETE FROM results WHERE case_name='00000/forward'")
+    with pytest.raises(ValueError, match='duplicate or missing decoding directions'):
+        decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
