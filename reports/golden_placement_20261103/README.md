@@ -577,6 +577,74 @@ errors or external requests. Eleven presentation tests and 26 smoke checks
 passed. The viewer and its input-bound audit remain in the private campaign
 artifacts; no scientific search or verification was run to generate the display.
 
+## Audit of the seven remaining reference disagreements
+
+All seven archived original mapped reactions reproduce the current prepared
+elements, full bond-order matrices, chemical/stereochemical features and reference
+pairs. This independently rechecks the conversion against the
+[previous original-RDF audit](../golden_miss_analysis_20260913/original-reference-audit.json);
+it does not claim a new read of the original RDF file. No viewer or atom-index
+conversion error was found.
+
+A read-only inspection covered every family in all 14 saved ten-seed,
+cap-2,000, discovery-tolerance-2 catalogues. Self tolerance remains 1. The table
+counts paired heavy atoms, not hydrogens or events. Every retained family in
+each row has the stated pair count, in both directions.
+
+| Case | Reference pairs | Saved pairs | Forward / reverse families | Observation in the original annotation |
+|---|---:|---:|---:|---|
+| 7 | 29 | 30 | 19,218 / 7,220 | Ester oxygen label 3 disappears; product hydroxyl oxygen 33 has no reactant counterpart. |
+| 19 | 23 | 23 | 64,428 / 227,157 | Complete correspondence with substantial bond rearrangement; no unmatched-atom explanation. |
+| 986 | 16 | 16 | 4,678 / 2,464 | Adjacent pyridine labels 15/16 exchange, introducing four additional shared-pair bond changes. |
+| 1285 | 14 | 14 | 697 / 2,219 | Oxygen 3 changes its carbon attachment from 2 to 4; oxygen 6 changes from 4 to 2. |
+| 1358 | 36 | 37 | 122,090 / 81,870 | A terminal methyl has label 35 in the reactant and 38 in the product, attached to shared carbon 34 on both sides. |
+| 1377 | 22 | 23 | 402,233 / 470,474 | Product ring oxygen 26 has no annotated reactant counterpart. |
+| 1475 | 18 | 19 | 28,134 / 22,434 | Product cyclopropyl labels 19–21 have no annotated reactant counterparts. |
+
+The strict verifier requires both the specified pairs and the specified absence
+of other heavy-atom pairs, modulo endpoint chemical symmetry. Local and placement
+rearrangements preserve paired-heavy-atom cardinality. Thus the extra pair alone
+proves strict non-recovery for **7, 1358, 1377 and 1475** in these saved catalogues.
+For **19, 986 and 1285**, the counts agree; their negative joint-reference queries
+cannot be explained by cardinality. Neither conclusion proves absence from an
+unbounded search.
+
+A separate diagnostic query asked only whether case 7's 29 specified pairs
+occur, without requiring other atoms to remain unmatched. The first saved
+forward family passed: its realized mapping contains all 29 pairs modulo
+endpoint chemical symmetry, plus exactly one extra pair, **O3 → O33**
+(viewer **R2 → P27**). Independent replay checked the local and placement
+choices. The query used 0.978 CPU seconds and 1.921 elapsed seconds within its
+15-second guard. This subset check is diagnostic evidence, not strict reference
+recovery or permission to change the benchmark metric.
+
+Case 7 is not established to have a chemically wrong reference. Its labels are
+consistent with an ester-hydrolysis interpretation in which the acid's hydroxyl
+oxygen comes from omitted water and the ester oxygen leaves in omitted ethanol:
+
+```text
+R–C(=O5)–O3–Et + H2O33  →  R–C(=O5)–O33H + HO3–Et
+```
+
+Numbers here are original atom-map labels, not viewer indices. Water and ethanol
+are illustrative missing species, not supplied benchmark inputs or an inferred
+experimental record. Isotope experiments establish that such oxygen provenance
+is possible in ester hydrolysis ([Polanyi and Szabo, 1934](https://doi.org/10.1039/TF9343000508)).
+The Golden authors explicitly include reactions without full stoichiometry
+([Lin et al., 2022](https://doi.org/10.1002/minf.202100138)). The endpoint graphs
+alone cannot establish the actual mechanism or justify correcting any reference.
+Likewise, the label exchanges in the table are annotation facts requiring source
+review, not automatic evidence of chemical error.
+
+The inspection covered **1,455,316 families** with no invalid heavy-element
+pairs. Loading used 78.846 CPU seconds and scanning used 10.429 CPU seconds.
+Each catalogue finished within its 60-second inspection guard; the largest
+observed process peak was 2.670 GiB under a 4 GiB guard, with one process at a
+time. No matching, reduction or decoding was rerun. Strict outcomes and the
+**1,844/1,851 selected-setting recovery union remain unchanged**. Input-bound
+evidence is retained with the existing private viewer audit and summarized in
+[recovery-evidence.json](recovery-evidence.json).
+
 ## Stopped initial campaign
 
 The initial campaign used revision

@@ -3607,5 +3607,1228 @@
       },
       "completion_scope": "The retained, branch-capped catalogues were validated. Forward absence is conclusive within its complete retained catalogue, not a claim of exhaustive uncapped matching. Reverse recovery has an independently replayed witness."
     }
+  },
+  "remaining_reference_audit": {
+    "schema": "golden-current-reference-cardinality/v1",
+    "scope": "Saved seed10/tolerance2/cap2000 catalogue inspection; no matching, reduction or decoding. Strict original reference outcomes unchanged.",
+    "source_revision": "488fe32c52a78e7174a2e709a843326bed104874",
+    "inspection_source_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+    "source_module_sha256": {
+      "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+      "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+      "src/mappa/mappa_core/post_processing/final_branches.py": "72c95413c5c4d10b3051981443340876b77cc6debad875cc22c88a93f744053c",
+      "src/mappa/mappa_workflow/mapping_analytics/family.py": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92"
+    },
+    "started_utc": "2026-11-03T21:37:06.798537+00:00",
+    "finished_utc": "2026-11-03T21:40:49.728156+00:00",
+    "config": {
+      "anchors": [],
+      "branch_limit": 2000,
+      "cut_floor": 0.2,
+      "event_threshold": 0.5,
+      "graph_floor": 0.2,
+      "iso_tolerance": 2.0,
+      "metal_event_threshold": 0.3,
+      "random_seed": 42,
+      "seed_count": 10,
+      "seed_selection": "random",
+      "self_tolerance": 1.0,
+      "sweep_cuts": true,
+      "task_chunksize": 1
+    },
+    "input_index_sha256": "de768201723fa54ab862bd9bb4d0943a86b489ec5f04c99581a92b7ce9146b65",
+    "maximum_parallel_processes": 1,
+    "memory_guard_bytes": 4294967296,
+    "status": "complete",
+    "all_scans_complete": true,
+    "summary": {
+      "bounded_or_failed_scans": 0,
+      "cardinality_mismatch_cases": [
+        7,
+        1358,
+        1377,
+        1475
+      ],
+      "complete_scans": 14,
+      "directions": 14,
+      "families": 1455316,
+      "load_cpu_seconds": 78.84585,
+      "matching_cardinality_cases": [
+        19,
+        986,
+        1285
+      ],
+      "maximum_sampled_tree_rss_bytes": 2866429952,
+      "records": [
+        {
+          "case": 7,
+          "families": 26438,
+          "reference_heavy_pairs": 29,
+          "saved_family_heavy_pair_counts": [
+            30
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 19,
+          "families": 291585,
+          "reference_heavy_pairs": 23,
+          "saved_family_heavy_pair_counts": [
+            23
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 986,
+          "families": 7142,
+          "reference_heavy_pairs": 16,
+          "saved_family_heavy_pair_counts": [
+            16
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 1285,
+          "families": 2916,
+          "reference_heavy_pairs": 14,
+          "saved_family_heavy_pair_counts": [
+            14
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 1358,
+          "families": 203960,
+          "reference_heavy_pairs": 36,
+          "saved_family_heavy_pair_counts": [
+            37
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 1377,
+          "families": 872707,
+          "reference_heavy_pairs": 22,
+          "saved_family_heavy_pair_counts": [
+            23
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 1475,
+          "families": 50568,
+          "reference_heavy_pairs": 18,
+          "saved_family_heavy_pair_counts": [
+            19
+          ],
+          "strict_cardinality_incompatible": true
+        }
+      ],
+      "scan_cpu_seconds": 10.428740999999999
+    },
+    "cardinality_invariant": {
+      "explanation": "Each saved family starts with one injective element-preserving mapping. A local relation is a bijection between its fixed source and target sets; its source and target self choices are permutations. A placement action is a target permutation applied to the entire continuation. The ordered evaluator changes target images without adding or removing source keys. Hence every represented physical mapping has the same mapped heavy-atom cardinality as family.mapping. Endpoint chemical equivalence also preserves elements and cardinality.",
+      "representative_heavy_element_mismatches": 0,
+      "scope": "Mathematical invariant of valid saved relations/actions, combined with complete representative count scans; no enumeration of all internal choices.",
+      "source_evidence": [
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "lines": "96\u2013105",
+          "meaning": "Representative injectivity and element checks"
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "lines": "117\u2013140,161\u2013174",
+          "meaning": "Discovery bijects fixed sets; both self actions are checked permutations"
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relaxed.py",
+          "lines": "118\u2013134",
+          "meaning": "Self choices preserve bijection, elements, anchors and original constraints"
+        },
+        {
+          "file": "src/mappa/mappa_workflow/mapping_analytics/family.py",
+          "lines": "199\u2013231",
+          "meaning": "Ordered physical realization preserves source keys and validates injectivity/elements"
+        }
+      ]
+    },
+    "original_reference_reconstruction": {
+      "archived_source_file": "reports/golden_miss_analysis_20260913/original-reference-audit.json",
+      "archived_source_sha256": "13bd87ea8e0bdc3d123953927a35e12bf2b495d9ff3ef240a386c8caddc27210",
+      "asserted_original_rdf_sha256": "4e287d49b70791ec30acee6d12babc26a8b7d15bd5730a3a4464e78e43eb74ce",
+      "independent_reviewer": "golden_launch_audit",
+      "interpretation": "The unmatched atoms are present in the original reference and were preserved by preparation and viewing. Incomplete reaction inputs can legitimately leave atoms unmatched; this audit does not establish that an original annotation is chemically wrong.",
+      "label_observations": {
+        "1285": {
+          "shared_pair_wbo_changes": 9,
+          "unmatched_product_labels": [],
+          "unmatched_reactant_labels": [
+            [
+              1,
+              "O"
+            ],
+            [
+              5,
+              "O"
+            ]
+          ]
+        },
+        "1358": {
+          "both_are_methyl_attached_to_original_label": 34,
+          "product_prepared_index": 2,
+          "reactant_prepared_index": 22,
+          "shared_pair_wbo_changes": 4,
+          "unmatched_product_labels": [
+            [
+              38,
+              "C"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              35,
+              "C"
+            ]
+          ]
+        },
+        "1377": {
+          "product_oxygen_bonds_original_labels": [
+            19,
+            24
+          ],
+          "unmatched_product_labels": [
+            [
+              26,
+              "O"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              15,
+              "O"
+            ],
+            [
+              23,
+              "O"
+            ],
+            [
+              25,
+              "Cl"
+            ]
+          ]
+        },
+        "1475": {
+          "reactant_product_element_changes": {
+            "C": [
+              12,
+              14
+            ],
+            "N": [
+              1,
+              0
+            ],
+            "O": [
+              3,
+              2
+            ]
+          },
+          "unmatched_product_labels": [
+            [
+              19,
+              "C"
+            ],
+            [
+              20,
+              "C"
+            ],
+            [
+              21,
+              "C"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              22,
+              "N"
+            ],
+            [
+              23,
+              "C"
+            ],
+            [
+              24,
+              "O"
+            ]
+          ]
+        },
+        "19": {
+          "all_heavy_atoms_paired": true,
+          "shared_pair_wbo_changes": 15
+        },
+        "7": {
+          "product_oxygen_neighbors_original_labels": [
+            [
+              4,
+              1
+            ]
+          ],
+          "product_oxygen_prepared_index": 27,
+          "shared_pair_wbo_changes": 0,
+          "source_oxygen_neighbors_original_labels": [
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ],
+          "source_oxygen_prepared_index": 2,
+          "unmatched_product_labels": [
+            [
+              33,
+              "O"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              1,
+              "C"
+            ],
+            [
+              2,
+              "C"
+            ],
+            [
+              3,
+              "O"
+            ]
+          ]
+        },
+        "986": {
+          "all_heavy_atoms_paired": true,
+          "shared_pair_wbo_changes": 7
+        }
+      },
+      "original_rdf_reopened": false,
+      "recipe": "Clear mapped labels, obtain canonical SMILES atom output order, renumber, add hydrogens, assign stereochemistry; retain original atom-map labels through the reordered index correspondence.",
+      "records": [
+        {
+          "case": 7,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 30,
+          "reactant_heavy": 32,
+          "reference_pairs": 29
+        },
+        {
+          "case": 19,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 23,
+          "reactant_heavy": 23,
+          "reference_pairs": 23
+        },
+        {
+          "case": 986,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 16,
+          "reactant_heavy": 16,
+          "reference_pairs": 16
+        },
+        {
+          "case": 1285,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 14,
+          "reactant_heavy": 16,
+          "reference_pairs": 14
+        },
+        {
+          "case": 1358,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 37,
+          "reactant_heavy": 37,
+          "reference_pairs": 36
+        },
+        {
+          "case": 1377,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 23,
+          "reactant_heavy": 25,
+          "reference_pairs": 22
+        },
+        {
+          "case": 1475,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 21,
+          "reactant_heavy": 21,
+          "reference_pairs": 18
+        }
+      ],
+      "scope": "Original archived mapped SMILES reconstructed with the original preparation recipe; current source atom order, complete WBO matrices, heavy features and reference pairs compared. No source annotations or mappings changed.",
+      "status": "all_seven_pass"
+    },
+    "catalogue_records": [
+      {
+        "case": 7,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 19218,
+        "heavy_pair_histogram": {
+          "30": 19218
+        },
+        "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+        "inspection_elapsed_seconds": 2.4754588750656694,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 1.805481,
+          "wall_seconds": 1.8131393750663847
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 26,
+              "N": 1,
+              "O": 2,
+              "Si": 1
+            },
+            "families": 19218
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 409616384,
+        "reference_heavy_pairs": 29,
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "sampled_peak_tree_rss_bytes": 409616384,
+        "scan": {
+          "cpu_seconds": 0.16853799999999985,
+          "wall_seconds": 0.1685670840088278
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 32,
+        "status": "complete",
+        "target_heavy_atoms": 30,
+        "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c"
+      },
+      {
+        "case": 7,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 7220,
+        "heavy_pair_histogram": {
+          "30": 7220
+        },
+        "input_sha256": "44cc45da69df1e9f5932df608224afda8cf7fab452a179d966e9156f2aedfabe",
+        "inspection_elapsed_seconds": 1.3885814999230206,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.912006,
+          "wall_seconds": 0.9193624171894044
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 26,
+              "N": 1,
+              "O": 2,
+              "Si": 1
+            },
+            "families": 7220
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 343834624,
+        "reference_heavy_pairs": 29,
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "sampled_peak_tree_rss_bytes": 343851008,
+        "scan": {
+          "cpu_seconds": 0.06463200000000002,
+          "wall_seconds": 0.06463525001890957
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 30,
+        "status": "complete",
+        "target_heavy_atoms": 32,
+        "catalogue_sha256": "56ee7206e9856bacd43539a94259152a49c45dc74da3133f235fec8472553767"
+      },
+      {
+        "case": 19,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 64428,
+        "heavy_pair_histogram": {
+          "23": 64428
+        },
+        "input_sha256": "ed0f5ee417f25b215aa69a391595c53ef4a37f67ad1bf53de3dc3624d1deffed",
+        "inspection_elapsed_seconds": 4.4252721248194575,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 3.3039110000000003,
+          "wall_seconds": 3.3108764169737697
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 20,
+              "N": 1,
+              "O": 2
+            },
+            "families": 64428
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 556482560,
+        "reference_heavy_pairs": 23,
+        "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+        "sampled_peak_tree_rss_bytes": 556498944,
+        "scan": {
+          "cpu_seconds": 0.4262260000000002,
+          "wall_seconds": 0.4262406670022756
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "172c2a5c28558969f86d949f090e68dadd9dade63149765a3018572f2c9633b8"
+      },
+      {
+        "case": 19,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 227157,
+        "heavy_pair_histogram": {
+          "23": 227157
+        },
+        "input_sha256": "3b6c0e8bddae83874ef7bd12472b773c153f22771441da680c8a4d0fb478095a",
+        "inspection_elapsed_seconds": 14.853052416117862,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 12.177705,
+          "wall_seconds": 12.196077457861975
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 20,
+              "N": 1,
+              "O": 2
+            },
+            "families": 227157
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1728118784,
+        "reference_heavy_pairs": 23,
+        "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+        "sampled_peak_tree_rss_bytes": 1728135168,
+        "scan": {
+          "cpu_seconds": 1.4636419999999983,
+          "wall_seconds": 1.4640304578933865
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "cb44a7ae6220fb1d2e4d7d50741413c2481bf2a384d95d469012162a8b8b8e13"
+      },
+      {
+        "case": 986,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 4678,
+        "heavy_pair_histogram": {
+          "16": 4678
+        },
+        "input_sha256": "206e5ea768b110e4193828602b79c5e44a4c928195aaf0b3d32d0f0a54aa7305",
+        "inspection_elapsed_seconds": 1.3829985409975052,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.139982,
+          "wall_seconds": 0.14493129099719226
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 10,
+              "N": 2,
+              "O": 3
+            },
+            "families": 4678
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 85819392,
+        "reference_heavy_pairs": 16,
+        "reference_sha256": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a",
+        "sampled_peak_tree_rss_bytes": 85819392,
+        "scan": {
+          "cpu_seconds": 0.02301800000000004,
+          "wall_seconds": 0.023021125001832843
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "bfa4433ff906490ce349e8a0f905134ba90cbec52e652ff347c6995766d5a575"
+      },
+      {
+        "case": 986,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 2464,
+        "heavy_pair_histogram": {
+          "16": 2464
+        },
+        "input_sha256": "2b537b1bdbc934bd565940c712401e98dd9d487ad0be12438c6af18b2d398451",
+        "inspection_elapsed_seconds": 0.4863673751242459,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.08037,
+          "wall_seconds": 0.08093304093927145
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 10,
+              "N": 2,
+              "O": 3
+            },
+            "families": 2464
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 73531392,
+        "reference_heavy_pairs": 16,
+        "reference_sha256": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a",
+        "sampled_peak_tree_rss_bytes": 72613888,
+        "scan": {
+          "cpu_seconds": 0.012249999999999983,
+          "wall_seconds": 0.012250083032995462
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "60e23b359bb79618b2c68f9a1836ba843fd23e1c540f9a5143a2621e1f205c27"
+      },
+      {
+        "case": 1285,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 697,
+        "heavy_pair_histogram": {
+          "14": 697
+        },
+        "input_sha256": "87c8730aa81e3b8442b43ad71fa19bf336725631d7510ab545775f82fc70d46b",
+        "inspection_elapsed_seconds": 0.47993212495930493,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.03367200000000001,
+          "wall_seconds": 0.04018704197369516
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 9,
+              "N": 2,
+              "O": 3
+            },
+            "families": 697
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 61702144,
+        "reference_heavy_pairs": 14,
+        "reference_sha256": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35",
+        "sampled_peak_tree_rss_bytes": 54181888,
+        "scan": {
+          "cpu_seconds": 0.003123999999999988,
+          "wall_seconds": 0.0031240000389516354
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 14,
+        "catalogue_sha256": "95e3ca43c6b699d972c448789d9e9781398001eaf5661ec1ca328bb1d3f25007"
+      },
+      {
+        "case": 1285,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 2219,
+        "heavy_pair_histogram": {
+          "14": 2219
+        },
+        "input_sha256": "1e7e98a417932f71cd6081d7c11bdfe82266609c66d41c581df08035b35e47b6",
+        "inspection_elapsed_seconds": 0.4211343750357628,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.059211000000000014,
+          "wall_seconds": 0.059790708124637604
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 9,
+              "N": 2,
+              "O": 3
+            },
+            "families": 2219
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 66682880,
+        "reference_heavy_pairs": 14,
+        "reference_sha256": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35",
+        "sampled_peak_tree_rss_bytes": 66289664,
+        "scan": {
+          "cpu_seconds": 0.009295999999999971,
+          "wall_seconds": 0.009297667071223259
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 14,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "2f7bce9a99be0a4f6024219a03cd773368d8f77aff68886079d10ecb682e0ccd"
+      },
+      {
+        "case": 1358,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 122090,
+        "heavy_pair_histogram": {
+          "37": 122090
+        },
+        "input_sha256": "835b893c9bd4cd3e4b3ec7a6bdecfba350d1a53b7e9fc2c26079ca7d8dcaef31",
+        "inspection_elapsed_seconds": 13.749164375010878,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 11.521062,
+          "wall_seconds": 11.52698004199192
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 30,
+              "N": 2,
+              "O": 4,
+              "Si": 1
+            },
+            "families": 122090
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1329037312,
+        "reference_heavy_pairs": 36,
+        "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+        "sampled_peak_tree_rss_bytes": 1327644672,
+        "scan": {
+          "cpu_seconds": 1.2654979999999991,
+          "wall_seconds": 1.2657314999960363
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 37,
+        "status": "complete",
+        "target_heavy_atoms": 37,
+        "catalogue_sha256": "9c4a94b6e65d1d2a0f3a19bb8340dbcf6ebec49c32ac1baf80c14abf6d987cdc"
+      },
+      {
+        "case": 1358,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 81870,
+        "heavy_pair_histogram": {
+          "37": 81870
+        },
+        "input_sha256": "144d0e4980760f31bad57687eea2d96195a4e663d3838da966ab29103835920c",
+        "inspection_elapsed_seconds": 8.916240375023335,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 7.290094,
+          "wall_seconds": 7.293325749924406
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 30,
+              "N": 2,
+              "O": 4,
+              "Si": 1
+            },
+            "families": 81870
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1064288256,
+        "reference_heavy_pairs": 36,
+        "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+        "sampled_peak_tree_rss_bytes": 1062223872,
+        "scan": {
+          "cpu_seconds": 0.8510150000000003,
+          "wall_seconds": 0.8510703330393881
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 37,
+        "status": "complete",
+        "target_heavy_atoms": 37,
+        "catalogue_sha256": "d5936fd1732b2508e173a46513b35c3fb8eaa6107ac6d0758d02e41883ff9614"
+      },
+      {
+        "case": 1377,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 402233,
+        "heavy_pair_histogram": {
+          "23": 402233
+        },
+        "input_sha256": "851ded7a5e7ed81f4fc0efd40a331cae9ca8f9c761032391b12d9ceaeb50246b",
+        "inspection_elapsed_seconds": 23.054869583109394,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 18.547525999999998,
+          "wall_seconds": 18.566258083097637
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 16,
+              "Cl": 1,
+              "N": 3,
+              "O": 3
+            },
+            "families": 402233
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 2637987840,
+        "reference_heavy_pairs": 22,
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "sampled_peak_tree_rss_bytes": 2638004224,
+        "scan": {
+          "cpu_seconds": 2.733395999999999,
+          "wall_seconds": 2.7337352498434484
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 25,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "1f3083e7226682823821bd33ba99fb5074099dfaeff298bb23c4ded5ac1ffab5"
+      },
+      {
+        "case": 1377,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 470474,
+        "heavy_pair_histogram": {
+          "23": 470474
+        },
+        "input_sha256": "00f80ecf64242ef8754bbcd85dcc5db30a19fead9120f186f2dbad7df5a9e5d3",
+        "inspection_elapsed_seconds": 26.350187208037823,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 21.225209000000003,
+          "wall_seconds": 21.229222082998604
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 16,
+              "Cl": 1,
+              "N": 3,
+              "O": 3
+            },
+            "families": 470474
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 2866413568,
+        "reference_heavy_pairs": 22,
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "sampled_peak_tree_rss_bytes": 2866429952,
+        "scan": {
+          "cpu_seconds": 3.1151940000000025,
+          "wall_seconds": 3.1154851668979973
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 25,
+        "catalogue_sha256": "f43c314076ea3251f0c60fb8eb0489704a39016d97eef6762ca853447099de9b"
+      },
+      {
+        "case": 1475,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 28134,
+        "heavy_pair_histogram": {
+          "19": 28134
+        },
+        "input_sha256": "638dc276bb3cd121e0bee4dc3b5135573b6b18cfc8c5b4f19afd7a224b87d39a",
+        "inspection_elapsed_seconds": 1.5198578331619501,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.945599,
+          "wall_seconds": 0.9526827919762582
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 12,
+              "F": 3,
+              "Mg": 1,
+              "O": 2
+            },
+            "families": 28134
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 225509376,
+        "reference_heavy_pairs": 18,
+        "reference_sha256": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf",
+        "sampled_peak_tree_rss_bytes": 225509376,
+        "scan": {
+          "cpu_seconds": 0.15850600000000004,
+          "wall_seconds": 0.15850545815192163
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 21,
+        "status": "complete",
+        "target_heavy_atoms": 21,
+        "catalogue_sha256": "03f2e6776488a30712cae0b3dad6ca31e3c71b09bc8a6a5a095333914800a838"
+      },
+      {
+        "case": 1475,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 22434,
+        "heavy_pair_histogram": {
+          "19": 22434
+        },
+        "input_sha256": "54a458202dab228bc6a698038d3709803ffd8571e7f55243583217c74861f00f",
+        "inspection_elapsed_seconds": 1.4715424578171223,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.8040220000000001,
+          "wall_seconds": 0.8073458750732243
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 12,
+              "F": 3,
+              "Mg": 1,
+              "O": 2
+            },
+            "families": 22434
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 203603968,
+        "reference_heavy_pairs": 18,
+        "reference_sha256": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf",
+        "sampled_peak_tree_rss_bytes": 203620352,
+        "scan": {
+          "cpu_seconds": 0.13440600000000003,
+          "wall_seconds": 0.13834804180078208
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 21,
+        "status": "complete",
+        "target_heavy_atoms": 21,
+        "catalogue_sha256": "7654ac985fe971b322ae2559d746e2cfe49ceb9a441492a884b4ad31def618a7"
+      }
+    ],
+    "case7_subset_query": {
+      "case": 7,
+      "direction": "forward",
+      "scope": "diagnostic_required_pair_subset_only",
+      "status": "recovered",
+      "strict_original_verdict": "not_recovered",
+      "strict_reference_score_unchanged": true,
+      "complete_reference": false,
+      "required_heavy_pairs": 29,
+      "checked_families": 1,
+      "winning_family": 0,
+      "catalogue_families": 19218,
+      "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+      "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+      "source_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+      "load": {
+        "cpu_seconds": 1.816376,
+        "wall_seconds": 1.8189785000868142
+      },
+      "query": {
+        "cpu_seconds": 0.9784770000000003,
+        "wall_seconds": 1.9212572081014514
+      },
+      "guard_seconds_by_phase": {
+        "load": 60.0,
+        "proof_validation": 15.0,
+        "query": 15.0
+      },
+      "memory_guard_bytes": 4294967296,
+      "process_lifetime_peak_rss_bytes": 462225408,
+      "sampled_peak_tree_rss_bytes": 462225408,
+      "unknown_queries": 0,
+      "independent_validation": {
+        "direct_reference_pair_identity": false,
+        "element_preserving": true,
+        "endpoint_equivalence": true,
+        "endpoint_equivalence_check": "independent_colored_endpoint_and_mapping_certificate",
+        "injective": true,
+        "ordered_actions": [
+          {
+            "both_self_constraints": true,
+            "discovery_anchors_domains_accepted_edges": true,
+            "kind": "relation",
+            "transition": 1
+          },
+          {
+            "element_and_exact_wbo_preserved": true,
+            "group_membership": true,
+            "kind": "placement",
+            "transition": 1
+          },
+          {
+            "both_self_constraints": true,
+            "discovery_anchors_domains_accepted_edges": true,
+            "kind": "relation",
+            "transition": 0
+          }
+        ],
+        "passed": true,
+        "physical_mapping_replayed": true
+      },
+      "full_heavy_mapping": [
+        [
+          2,
+          27
+        ],
+        [
+          3,
+          25
+        ],
+        [
+          4,
+          26
+        ],
+        [
+          5,
+          24
+        ],
+        [
+          6,
+          23
+        ],
+        [
+          7,
+          22
+        ],
+        [
+          8,
+          28
+        ],
+        [
+          9,
+          29
+        ],
+        [
+          10,
+          19
+        ],
+        [
+          11,
+          18
+        ],
+        [
+          12,
+          17
+        ],
+        [
+          13,
+          16
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          14
+        ],
+        [
+          16,
+          13
+        ],
+        [
+          17,
+          12
+        ],
+        [
+          18,
+          11
+        ],
+        [
+          19,
+          10
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          8
+        ],
+        [
+          22,
+          7
+        ],
+        [
+          23,
+          6
+        ],
+        [
+          24,
+          5
+        ],
+        [
+          25,
+          4
+        ],
+        [
+          26,
+          1
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          28,
+          0
+        ],
+        [
+          29,
+          2
+        ],
+        [
+          30,
+          20
+        ],
+        [
+          31,
+          21
+        ]
+      ],
+      "additional_heavy_pairs": [
+        [
+          2,
+          27
+        ]
+      ],
+      "additional_pair_elements": [
+        "O"
+      ],
+      "additional_pair_original_atom_map_labels": [
+        [
+          3,
+          33
+        ]
+      ],
+      "note": "A diagnostic subset witness does not change the exact partial-reference evaluation policy or published recovery score.",
+      "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c",
+      "checked_fragment_edges": 73
+    },
+    "source_identity_note": "The current identity includes presentation/viewers.py. Relative to verifier repair a59711120948022c666e24f684d18a22dcb0632a, only the two presentation files changed under src and bench; the matching, decoding and reference-query implementation is unchanged.",
+    "interpretation": "Four retained-catalogue misses are implied by paired-heavy-atom cardinality; three require joint pairing analysis. Case 7 contains the required 29 pairs modulo endpoint chemical symmetry plus one oxygen pair. These facts do not establish chemically incorrect annotations. No benchmark reference or score was changed.",
+    "strict_recovery_union": {
+      "recovered": 1844,
+      "total": 1851,
+      "uniform_setting": false,
+      "changed": false
+    },
+    "inspection_identity_difference": {
+      "changed_identity_inputs": [
+        {
+          "current_sha256": "1a8ad18a607ccba0adb9ed3ff163e14f1e8e807936be8cbc77e6826b797880d6",
+          "file": "src/mappa/presentation/viewers.py",
+          "old_sha256": "4d143c36c314bb318d0a14e200336e36ad00ef554c17bf232f2b05ccf784d045"
+        }
+      ],
+      "current_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+      "identity_scope": "All mappa Python files and compiled native engines. Presentation Python is included; static HTML is not.",
+      "previous_repaired_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "unchanged_matching_symmetry_decoder_reference_query_modules": true,
+      "validated_by": "Recomputed full identity with only changed Python file restored in memory to a597111 bytes; exactly reproduces the previous repaired identity. No source file changed."
+    },
+    "private_audit_sha256": "aba925725e2c339a7fa7b12505e0cb55f44d3a64bf9608b56d15303755bce459"
   }
 }
