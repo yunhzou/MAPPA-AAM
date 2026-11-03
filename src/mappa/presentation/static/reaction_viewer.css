@@ -11,6 +11,9 @@ h2{margin:0 0 4px;font-size:18px}
 .download-all:hover{background:#eef}
 .index-toggle{display:flex;align-items:center;gap:6px;padding:0 12px;border:1px solid #aaa;background:white;border-radius:6px;font-family:ui-monospace,monospace;font-size:12px;color:#024;white-space:nowrap}
 .index-toggle input{margin:0}
+.bond-legend{font-size:12px;margin:0 0 10px}
+.bond-loss{color:#c00000}
+.bond-gain{color:#008000}
 .ref-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
 .ref-row.no-gt{grid-template-columns:repeat(2,1fr)}
 .ig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}

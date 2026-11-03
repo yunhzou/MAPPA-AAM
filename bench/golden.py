@@ -19,6 +19,42 @@ from mappa.mappa_core.utils.io.records import problem_from_record
 REFERENCE_POLICY = 'exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry'
 
 
+def reference_view_cases(index, cases, *, geometry_cache):
+    """Load only selected original inputs/references; never load scientific results."""
+    import numpy as np
+    from mappa.presentation.geometry import display_endpoint
+    from mappa.presentation.trajectory import bond_events
+
+    rows = {row['case']: row for row in json.loads(Path(index).read_text())['directions']
+            if not row['reversed']}
+    documents = []
+    for case in dict.fromkeys(cases):
+        row = rows[case]
+        raw = read_blob(Blob(**row['input']), None)
+        reference = read_blob(Blob(**row['reference']), None)
+        endpoints, indices, geometry = [], [], []
+        for side, feature in zip(('reactant', 'product'), reference['features']):
+            endpoint = display_endpoint(raw[side], cache=Path(geometry_cache))
+            heavy = feature['heavy']
+            endpoints.append(dict(elements=[endpoint['elements'][i] for i in heavy],
+                coordinates=[endpoint['coordinates'][i] for i in heavy],
+                wbo=np.asarray(endpoint['wbo'])[np.ix_(heavy, heavy)].tolist(),
+                atom_indices=heavy))
+            indices.append({original: dense for dense, original in enumerate(heavy)})
+            geometry.append(endpoint['geometry'])
+        mapping = {indices[0][a]: indices[1][b] for a, b in reference['mapping']}
+        events = bond_events(dict(reactant=endpoints[0], product=endpoints[1]), mapping)
+        documents.append(dict(name=f'Golden {case}', index=case, endpoints=endpoints,
+            note='Ground-truth heavy-atom mapping, in original forward orientation. '
+                 'Unmatched atoms are retained; hydrogen correspondence is unannotated. '
+                 'Generated geometry, when needed, uses ETKDGv3 + UFF for display only; '
+                 'unspecified stereochemistry is illustrative. Separate molecules are spaced for display.',
+            records=[dict(name='Ground-truth mapping', mapping=list(mapping.items()), events=events,
+                provenance=dict(kind='ground_truth_reference', geometry=geometry,
+                    input_sha256=row['input']['sha256'], reference_sha256=row['reference']['sha256']))]))
+    return documents
+
+
 def endpoint_generators(feature, degree):
     """Lift chemically colored heavy-atom symmetries into original atom indexing."""
     import pynauty

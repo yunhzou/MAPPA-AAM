@@ -11,6 +11,7 @@
   <label class="index-toggle"><input type="checkbox" id="rOrdered" checked> R-order + spatial alignment</label>
   <button class="download-all" id="downloadAllBtn">Download</button>
 </div>
+<p class="bond-legend"><span class="bond-loss">Red: breaking / weakening</span> · <span class="bond-gain">Green: forming / strengthening</span></p>
 <div class="ref-row" id="ref-row">
   <div class="panel"><div class="ph"><span class="lbl">Reactant</span><span class="rk">static <button class="dl" onclick="downloadR()">XYZ</button></span></div>
     <div class="vw"><div id="vw_R" class="vwbox"></div></div>
@@ -33,7 +34,7 @@
   </div>
   <div class="meta" id="interp_meta"></div>
 </div>
-<div class="ig-grid" id="grid"></div><details id="event-details" hidden><summary>Selected bond events and saved mapping</summary><div id="event-table"></div><pre id="witness"></pre></details>
+<div class="ig-grid" id="grid"></div><details id="event-details" open hidden><summary>Bond changes</summary><div id="event-table"></div><details><summary>Saved atom mapping and provenance</summary><pre id="witness"></pre></details></details>
 <script>
 const DATA = __DATA__;
 let currentMechId = DATA.default_mech_id;

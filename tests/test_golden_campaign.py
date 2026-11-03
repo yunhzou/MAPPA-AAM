@@ -18,6 +18,82 @@ from mappa.execution import BundleStore
 from test_enzymemap_campaign import prepared_index
 
 
+def test_reference_view_preserves_selected_native_atoms_and_unmatched_boundaries(tmp_path, monkeypatch):
+    import mappa
+    import golden
+    from mappa.presentation.viewers import comparison_document
+
+    def endpoint(elements, coordinates, bonds):
+        weights = np.zeros((len(elements), len(elements)))
+        for a, b, value in bonds:
+            weights[a, b] = weights[b, a] = value
+        return dict(elements=elements, coordinates=coordinates, wbo=weights.tolist())
+
+    reactant = endpoint(['H', 'C', 'O', 'H', 'N', 'F'],
+        [[-.2, 0., .3], [0., 0., 0.], [1.1, .2, -.1],
+         [2.2, .4, 0.], [.1, 1.2, .9], [1.5, 1.1, -.4]],
+        [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.), (1, 4, 1.), (2, 5, 1.)])
+    product = endpoint(['O', 'H', 'C', 'H', 'Cl', 'N'],
+        [[5., 1.3, .5], [2., -.4, .1], [3., .2, .4],
+         [6., 1., -.2], [4., 1.2, 1.5], [2.3, 1.1, -.6]],
+        [(1, 2, 1.), (0, 3, 1.), (2, 4, 1.), (2, 5, 2.), (0, 4, 1.)])
+    source = tmp_path/'prepared'
+    store = BundleStore(source)
+    input_blob = store.put(dict(reactant=reactant, product=product))
+    reference_blob = store.put(dict(mapping=[(1, 2), (4, 5)],
+        features=[dict(heavy=[1, 2, 4, 5]), dict(heavy=[0, 2, 4, 5])]))
+    unreadable = dict(path=str(source/'not-selected.bundle'), offset=0, size=1, sha256='a'*64)
+    index = source/'index.json'
+    index.write_text(json.dumps(dict(directions=[
+        dict(case=99, reversed=False, input=unreadable, reference=unreadable),
+        dict(case=17, reversed=True, input=unreadable, reference=unreadable),
+        dict(case=17, reversed=False, input=asdict(input_blob), reference=asdict(reference_blob))])))
+    original = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Viewing a saved reference must not run mapping, decoding or verification')
+
+    monkeypatch.setattr(mappa, 'search_aam', forbidden)
+    monkeypatch.setattr(mappa, 'decode_events', forbidden)
+    monkeypatch.setattr(golden, 'query_path', forbidden)
+    cases = golden.reference_view_cases(index, [17], geometry_cache=tmp_path/'geometry')
+    assert [case['index'] for case in cases] == [17]
+    case = cases[0]
+    for shown, native, heavy in zip(case['endpoints'], (reactant, product),
+                                    ([1, 2, 4, 5], [0, 2, 4, 5])):
+        assert shown['atom_indices'] == heavy
+        assert shown['elements'] == [native['elements'][i] for i in heavy]
+        assert shown['coordinates'] == [native['coordinates'][i] for i in heavy]
+        assert shown['wbo'] == np.asarray(native['wbo'])[np.ix_(heavy, heavy)].tolist()
+    record, = case['records']
+    assert dict(record['mapping']) == {0: 1, 2: 3}
+    assert {e['kind']: (e['r'], e['p'], e['wbo']) for e in record['events']} == {
+        'broken': ([0, 1], [1], [1., None]),
+        'formed': ([0], [1, 2], [None, 1.]),
+        'strengthened': ([0, 2], [1, 3], [1., 2.]),
+    }
+    assert len(record['events']) == 3  # Wholly unmatched bonds create no correspondence.
+    assert record['provenance']['input_sha256'] == input_blob.sha256
+    assert record['provenance']['reference_sha256'] == reference_blob.sha256
+    assert record['provenance']['geometry'] == [dict(source='native', display_only=False)]*2
+    shown = comparison_document(case)
+    assert shown['reactant']['atom_indices'] == [1, 2, 4, 5]
+    assert shown['product']['atom_indices'] == [0, 2, 4, 5]
+    assert shown['mechanisms'][0]['product_xyz_in_R_aligned'] is None
+    assert shown['mechanisms'][0]['broken_bonds_R'] == [[0, 1]]
+    assert shown['mechanisms'][0]['formed_bonds_P'] == [[1, 2]]
+    from tools.render_mapping_comparison import render
+
+    case['note'] = 'Saved reference note; no inferred search settings.'
+    case['recovery'] = [dict(seeds=10, status='represented')]
+    comparison = tmp_path/'comparison.json'
+    comparison.write_text(json.dumps(cases))
+    html = tmp_path/'view.html'
+    assert render(comparison, html) == 1
+    assert case['note'] in html.read_text()
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == original
+
+
 def decoding_campaign(tmp_path):
     """Archived stage metadata; catalogue files deliberately do not exist."""
     from prepare_batches import prepare_fresh

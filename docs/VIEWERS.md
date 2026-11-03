@@ -39,6 +39,23 @@ panels. Event names and numerical WBO changes remain in the details.
 
 ## Saved comparisons
 
+Open selected Golden references in one command, without loading catalogues:
+
+```sh
+PYTHONPATH=src:bench python tools/render_mapping_comparison.py \
+  private/local-golden-inputs/index.json private/golden-viewer/view.html \
+  --golden-cases 1654 824 --open
+```
+
+The input index supplies checksummed original endpoints and reference mappings.
+Native coordinates are preserved. Missing coordinates use deterministic 3D
+display conformers through `mappa.presentation.geometry`; its chemistry-keyed
+cache is reused on subsequent views. The reference adapter displays heavy atoms
+and retains unmatched atoms. The HTML and adjacent JSON identify the reference
+and geometry provenance. No matching, decoding or verification is invoked.
+Use `--geometry-cache PATH` to share display geometry across report directories.
+The [MAPPA viewer skill](../skills/mappa-viewer/SKILL.md) provides the fast workflow.
+
 `tools/render_mapping_comparison.py INPUT.json OUTPUT.html` renders saved full
 mapping records without starting a benchmark search. Historical comparison
 exports remain with their saved reports; their retired generators are available
