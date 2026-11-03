@@ -16,9 +16,12 @@ were rejected and removed. Its reports now use the shared original renderer.
 
 `mappa.presentation.viewers.reaction_html` renders one reaction; `collection_html` adds a
 case selector with one shared copy of the renderer and libraries. Existing
-diagnostic layouts use `style_document` / `viewer_style`. Golden 2D diagrams
-remain 2D where the evidence has no native geometry; they use the same reaction
-style. Batch layouts retain their existing result-navigation behavior.
+diagnostic layouts use `style_document` / `viewer_style`. Saved native geometries
+remain unchanged. When generated 3D conformers are requested for graph-only
+inputs, label their generation method, preserve atom identities and chemical
+stereochemistry, and retain them separately from the scientific inputs. Rigid
+placement of separate molecules is a display choice, not a predicted complex.
+Batch layouts retain their existing result-navigation behavior.
 Different layouts and chemical highlight colors are not independent skins.
 
 The reusable **algorithm search trajectory** pipeline is documented in

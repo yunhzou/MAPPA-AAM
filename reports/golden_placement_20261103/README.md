@@ -557,9 +557,18 @@ result describes the retained capped catalogue, not all possible mappings.
 The local MAPPA viewer contains ground-truth mappings for all 20 original
 unresolved reactions, labelled by their final recovery setting. It preserves
 all 1,000 endpoint heavy atoms and 440 reference pairs, including unmatched
-atoms. The input coordinates are placeholders, so the viewer uses generated
-2D topology layouts; these are not measured molecular geometries. Hydrogen
-identities are unannotated and are omitted from this reference display.
+atoms. At the user's request, generated 3D conformers replace the initial flat
+layouts. All 40 endpoints were reconstructed in their exact original atom order,
+including charges and stereochemical labels. RDKit ETKDGv3 generated three
+conformers per nontrivial connected component; UFF relaxation selected the
+lowest-energy converged conformer. All 94 components completed, with hydrogens
+included during geometry generation. Separate molecules are translated for
+display, not optimized as a complex. These are generated, not experimental,
+geometries. Hydrogen identities are unannotated and omitted from the reference
+display. Reference pairs, original WBOs, events and recovery labels are unchanged.
+Independent coordinate checks confirmed all ten specified E/Z bonds and
+nonplanarity at all 338 tetrahedral carbon/silicon centers. The 91 components
+requiring optimization converged; the remaining three are isolated atoms.
 
 The shared viewer now supports partial correspondences without inventing pairs.
 All 20 cases passed browser checks for endpoint connectivity, atom counts,
