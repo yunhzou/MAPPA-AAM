@@ -1545,6 +1545,80 @@
         }
       ],
       "interpretation": "Family count alone does not explain the measurements. Earlier rejection and shared preparation are concrete optimization targets; static code evidence does not apportion the measured cost. No algorithm change or new verification run was used for this comparison."
+    },
+    "verification_prefix_profile": {
+      "case": 1314,
+      "catalogue_blob_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+      "catalogue_families": 38826,
+      "catalogue_load": {
+        "cpu_seconds": 2.109266,
+        "wall_seconds": 2.111772542120889
+      },
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 10,
+        "seed_selection": "random",
+        "self_tolerance": 1,
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "direction": "forward",
+      "encoding_cpu_fraction_of_query_phases": 0.9825185791723869,
+      "limitations": [
+        "One cold-process prefix of this saved catalogue, not all families or a historical paired comparison.",
+        "cProfile instrumentation overhead is included in loop and per-query phase timings; cumulative owners overlap and must not be added together.",
+        "Loop budget is checked between queries. The original per-query budget does not interrupt preparation; an outer diagnostic-process guard bounds this probe.",
+        "Catalogue loading was measured separately. No matching, reduction, saved scientific task or source code was changed.",
+        "This observation does not identify which prefix behaviors dominate the full89.33-second saved verification task."
+      ],
+      "maximum_profiled_query_cpu_seconds": 0.540721,
+      "maximum_profiled_query_wall_seconds": 1.3956943748053163,
+      "observed_utc": "2026-11-03T17:54:24.856892+00:00",
+      "prefix": {
+        "first_family": 0,
+        "last_family": 499,
+        "outcomes": {
+          "not_recovered": 500
+        },
+        "queries": 500,
+        "stopped_after_recovery": false
+      },
+      "profiled_loop": {
+        "cpu_seconds": 11.216771999999999,
+        "wall_seconds": 12.072389125125483
+      },
+      "query_checks": {
+        "cache_hits": 0,
+        "components": 0,
+        "fixed_choices": 1866,
+        "solver_calls": 0
+      },
+      "query_timing_totals": {
+        "encoding": {
+          "cpu_seconds": 10.89517800000001,
+          "wall_seconds": 11.677761829691008
+        },
+        "solving": {
+          "cpu_seconds": 0.19385200000002722,
+          "wall_seconds": 0.19384363619610667
+        }
+      },
+      "reference_blob_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+      "requested_limits": {
+        "loop_budget_seconds": 15,
+        "maximum_families": 500,
+        "outer_process_guard_seconds": 60,
+        "per_query_timeout_ms": 10000
+      },
+      "schema": "mappa.verification_prefix_profile/v1",
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af"
     }
   },
   "verification_resources": {

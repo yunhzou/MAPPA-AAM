@@ -368,6 +368,15 @@ of the measured cost. Saved catalogue counts and measurement scopes are in the
 [recovery evidence](recovery-evidence.json); no verification repair or rerun was
 performed for this comparison.
 
+A separate bounded profile examined the first 500 current families for case
+1314 forward. All rejected the reference. Preparation used **10.895 CPU seconds
+(98.25% of measured query phases)** and the solving phase used 0.194 seconds,
+with **zero SMT solver calls**: propagation rejected these queries. Catalogue
+loading separately used 2.109 CPU seconds. Profiling includes instrumentation
+and cold imports, covers only this prefix and is not a historical speed ratio.
+It locates the measured cost in preparation; it does not establish that all of
+that preparation is avoidable.
+
 ## Stopped initial campaign
 
 The initial campaign used revision
