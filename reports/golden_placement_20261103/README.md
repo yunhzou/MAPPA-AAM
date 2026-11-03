@@ -247,6 +247,41 @@ unchanged; this repair does not demonstrate recovery of the campaign's memory
 failures. The cluster implementation and results remain frozen, and these
 measurements are not a full Golden rerun or a universal no-regression claim.
 
+## Tolerance-2 recovery of the remaining reactions
+
+The frozen full run recovered **1,831/1,851 reactions (98.92%)**, counting either
+direction. Nineteen reactions had two completed negative reference checks;
+case 1799 remained unresolved because both checks timed out. These 20 reactions
+were tested locally with **one seed, cap 2,000 and matching tolerance 2**.
+Only matching tolerance changed: self tolerance remained 1, with the original
+inputs, full bidirectional cut sweep, random seed 42 and reference policy.
+
+All 20 reaction outcomes are now determined: **four recovered and 16 did not**.
+Cases **1553, 1739 and 1740** were completed misses at tolerance 1; **1799** resolves
+a previous timeout. The combined recovery is **1,835/1,851 (99.14%)**. This is the
+union of the baseline and a selected follow-up, not the accuracy of a full run
+at tolerance 2. A capped miss does not establish mapping absence.
+
+The [saved evidence](recovery-evidence.json) currently contains 39 completed
+reference checks, without errors or unknown verdicts. The remaining check is
+1799 forward; its completed reverse check already establishes reaction recovery.
+Whole-pass verification timing remains pending. No event decoding was run.
+
+The Mac study used six workers with a 4 GiB guard and fresh results and caches.
+All **2,033 matching cuts and 40 reductions** completed without failures or retries.
+Their task spans were **23.70 seconds** and **65.72 seconds**, respectively;
+compute CPU totals were 112.61 and 137.20 seconds, excluding publication.
+Peak sampled reduction memory was **3.03 GiB**, during publication.
+Native task, cache and saved-fragment checks confirmed discovery tolerance 2
+and self tolerance 1; all 685 inspected case-7 fragment witnesses remained valid.
+
+This is separate from the historical
+[13/21 recovery study](../golden_seed_scaling_20261102/README.md), which used
+**ten seeds**, cap 2,000 and adaptive tolerances under the earlier implementation.
+That study recovered eight cases at tolerance 1, one additional case at 1.5 and
+four at 2. Its seed count and cohort differ from the current one-seed follow-up.
+The proposed cap-100 speed comparison has not been started.
+
 ## Stopped initial campaign
 
 The initial campaign used revision

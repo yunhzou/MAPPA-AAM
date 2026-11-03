@@ -1,0 +1,602 @@
+{
+  "schema": "mappa.golden_tolerance_recovery/v1",
+  "observed_utc": "2026-11-03T08:59:40.663685+00:00",
+  "scientific_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+  "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+  "baseline_revision": "1710f690f5c49b34d11de69782aa54b1f4d79304",
+  "cohort": "All 20 reactions without a confirmed recovery in the frozen one-seed, cap-2000, tolerance-1 Golden benchmark: 19 completed misses and one verification timeout.",
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 2000,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true,
+    "self_tolerance": 1.0
+  },
+  "scientific_change": {
+    "iso_tolerance": [
+      1.0,
+      2.0
+    ]
+  },
+  "input_index_sha256": "a2ecd54babc13aa16583e8d9ef199e3b1c7345b0c2ad7b14494c9f742889ff6d",
+  "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
+  "runner_sha256": "c4607ae9f8eadec8d1a9fa2f822d83fc6ecf65bcccae68828318f62313729f9b",
+  "platform": "Apple M4 Pro",
+  "workers": 6,
+  "memory_guard_bytes": 4294967296,
+  "stage_budget_seconds": 3600,
+  "fresh_matching_results_and_caches": true,
+  "event_decoding_performed": false,
+  "reaction_outcomes_complete": true,
+  "all_direction_checks_terminal": false,
+  "direction_check_counts": {
+    "not_recovered": 33,
+    "recovered": 6
+  },
+  "reaction_counts": {
+    "not_recovered": 16,
+    "recovered": 4
+  },
+  "newly_recovered_cases": [
+    1553,
+    1739,
+    1740,
+    1799
+  ],
+  "combined_recovery": {
+    "baseline_recovered": 1831,
+    "additional_recovered": 4,
+    "recovered": 1835,
+    "total": 1851,
+    "percent": 99.13560237709346,
+    "definition": "Union of the frozen tolerance-1 full benchmark and this selected tolerance-2 follow-up; not a full benchmark run at tolerance 2."
+  },
+  "matching_directions": 40,
+  "reduced_directions": 40,
+  "matching_cuts": 2033,
+  "matching_reduction_resources": {
+    "matching": {
+      "metrics": {
+        "records": 2033,
+        "states": {
+          "complete": 2033
+        },
+        "compute_cpu_seconds": 112.61457900000006,
+        "total_worker_cpu_seconds": 123.79205500000006,
+        "observed_worker_cpu_seconds": 123.79205500000006,
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 2033
+        },
+        "failed_attempt_sampled_cpu_seconds": 0.0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 2033
+        },
+        "compute_seconds": 112.91138374689035,
+        "publish_cpu_seconds": 11.08597,
+        "publish_seconds": 17.098009746987373,
+        "monitoring_seconds": 8.03327369876206,
+        "memory_samples": 662,
+        "measurement_coverage": {
+          "cpu_seconds": 2033,
+          "compute_seconds": 2033,
+          "publish_cpu_seconds": 2033,
+          "publish_seconds": 2033,
+          "total_cpu_seconds": 2033,
+          "monitoring_seconds": 2033,
+          "memory_samples": 2033,
+          "sampled_cpu_seconds": 2033,
+          "records_with_memory_samples": 410,
+          "peak_tree_rss_bytes": 2033,
+          "process_lifetime_peak_rss_bytes": 2033,
+          "compute_phase_rss": 2033,
+          "publication_phase_rss": 2033
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 911032320,
+          "process_lifetime_peak_rss_bytes": 911032320,
+          "compute_sampled_rss_bytes": 911032320,
+          "publication_sampled_rss_bytes": 911032320
+        },
+        "memory_guards_bytes": {
+          "4294967296": 2033
+        },
+        "cache": {
+          "records": 2033,
+          "enabled_records": 2033,
+          "published_records": 72,
+          "load_seconds": 3.5386455834377557,
+          "save_seconds": 2.6356122468132526,
+          "loaded_bytes": 172185504,
+          "saved_bytes": 86110132,
+          "baseline_loads": 0,
+          "fragment_calls": 31670550,
+          "fragment_hits": 30977541,
+          "dependency_checks": 32111441,
+          "max_retained_bytes": 67108857,
+          "max_entries": 19459,
+          "hit_fraction": 0.9781181886642323,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T08:34:47.076156+00:00",
+        "last_attempt_utc": "2026-11-03T08:35:10.773668+00:00",
+        "first_attempt_epoch": 1793694887.076156,
+        "last_attempt_epoch": 1793694910.773668,
+        "task_span_seconds": 23.69751214981079,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 2033,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 5.223841820078504,
+        "mean_compute_cpus": 4.752168847433177,
+        "mean_observed_worker_cpus": 5.223841820078504,
+        "mean_active_task_attempts": 5.9370259260641705
+      }
+    },
+    "deduplication": {
+      "metrics": {
+        "records": 40,
+        "states": {
+          "complete": 40
+        },
+        "compute_cpu_seconds": 137.203553,
+        "total_worker_cpu_seconds": 150.94379200000003,
+        "observed_worker_cpu_seconds": 150.94379200000003,
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 40
+        },
+        "failed_attempt_sampled_cpu_seconds": 0.0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 40
+        },
+        "compute_seconds": 137.3502332919743,
+        "publish_cpu_seconds": 13.737902999999985,
+        "publish_seconds": 14.056088953278959,
+        "monitoring_seconds": 8.600408920552582,
+        "memory_samples": 714,
+        "measurement_coverage": {
+          "cpu_seconds": 40,
+          "compute_seconds": 40,
+          "publish_cpu_seconds": 40,
+          "publish_seconds": 40,
+          "total_cpu_seconds": 40,
+          "monitoring_seconds": 40,
+          "memory_samples": 40,
+          "sampled_cpu_seconds": 40,
+          "records_with_memory_samples": 32,
+          "peak_tree_rss_bytes": 40,
+          "process_lifetime_peak_rss_bytes": 40,
+          "compute_phase_rss": 40,
+          "publication_phase_rss": 40
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 3254632448,
+          "process_lifetime_peak_rss_bytes": 3254648832,
+          "compute_sampled_rss_bytes": 2281766912,
+          "publication_sampled_rss_bytes": 3254632448
+        },
+        "memory_guards_bytes": {
+          "4294967296": 40
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T08:35:10.912396+00:00",
+        "last_attempt_utc": "2026-11-03T08:36:16.632123+00:00",
+        "first_attempt_epoch": 1793694910.912396,
+        "last_attempt_epoch": 1793694976.632123,
+        "task_span_seconds": 65.71972703933716,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 40,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 2.29678056802718,
+        "mean_compute_cpus": 2.087707286396298,
+        "mean_observed_worker_cpus": 2.29678056802718,
+        "mean_active_task_attempts": 2.308485033226045
+      }
+    }
+  },
+  "reactions": [
+    {
+      "case": 7,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+        }
+      }
+    },
+    {
+      "case": 19,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 20,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 44,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 590,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "ebf2419c9c82e90fa3f2e3eb1deee94152c12838b5df63a94615c3ee5140a691"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "ebf2419c9c82e90fa3f2e3eb1deee94152c12838b5df63a94615c3ee5140a691"
+        }
+      }
+    },
+    {
+      "case": 867,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 964,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        }
+      }
+    },
+    {
+      "case": 986,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        }
+      }
+    },
+    {
+      "case": 1034,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4d6b3964e968b1aebc632424717ff924df7579284a9819a24b3168bdee11c8d1"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4d6b3964e968b1aebc632424717ff924df7579284a9819a24b3168bdee11c8d1"
+        }
+      }
+    },
+    {
+      "case": 1228,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "a40af8800eb45bccf6c3f5f3fc9c39990d68f0cd60f2fd2c17b57a685a3ab329"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "a40af8800eb45bccf6c3f5f3fc9c39990d68f0cd60f2fd2c17b57a685a3ab329"
+        }
+      }
+    },
+    {
+      "case": 1285,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+        }
+      }
+    },
+    {
+      "case": 1314,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "53411f4b4f9a4663a2468252a15dae6fbe6d40097b2e807ae8054c98ebb5acb0"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "53411f4b4f9a4663a2468252a15dae6fbe6d40097b2e807ae8054c98ebb5acb0"
+        }
+      }
+    },
+    {
+      "case": 1358,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "0fe5475210921aa736a2df89c651c5de28f9535d2adba9ee314afbcbfef04edd"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "0fe5475210921aa736a2df89c651c5de28f9535d2adba9ee314afbcbfef04edd"
+        }
+      }
+    },
+    {
+      "case": 1377,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "f2093d5b8aa3b1dd62480ba5734b393af1c3b5dde3af63c13d2fc06be69e1d58"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "f2093d5b8aa3b1dd62480ba5734b393af1c3b5dde3af63c13d2fc06be69e1d58"
+        }
+      }
+    },
+    {
+      "case": 1475,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 1553,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "1ba3eb772275a1ce174a41cf04f8e72eb8df3b80c2a46546e2f81682accccfb4"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "a7e871785be4d36d0815a780e498626f214ef7a132bada30dc1f0f301c7f6e09"
+        }
+      }
+    },
+    {
+      "case": 1568,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 1739,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "89e6587df07fadc7f6e63113e223107d62f3f94a2648197256a52a657cf55070"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "1f15068eaf0c63723a42dea8b645d41390a7579361ee93d293387bcbc52819c2"
+        }
+      }
+    },
+    {
+      "case": 1740,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "62ae97a45648b51c8b9581070c2f4a133c1a6d3bda88b9fdabd5ef93c46dc181"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "9ae56d6ed6a0dd1fea8a5454440878c469e87f55ead917747e86ff4f7f5ed521"
+        }
+      }
+    },
+    {
+      "case": 1799,
+      "baseline": "unresolved",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "running",
+          "status": "pending"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "d36859e5bdbe079171d8e90f6dc628c895b9e0809eae67489a70588ccc6c9f3f"
+        }
+      }
+    }
+  ],
+  "catalogue_size_diagnostic": {
+    "method": "Read each saved catalogue in one separate diagnostic process; count families and paired atom-set compositions without querying or enumerating mappings. Load time includes restoring the saved record. This diagnostic overlapped the verification pass.",
+    "cases": [
+      {
+        "case": 1799,
+        "reversed": true,
+        "families": 10559,
+        "fragment_compositions": 10548,
+        "load_seconds": 2.318
+      },
+      {
+        "case": 590,
+        "reversed": true,
+        "families": 108072,
+        "fragment_compositions": 107416,
+        "load_seconds": 4.75
+      },
+      {
+        "case": 590,
+        "reversed": false,
+        "families": 112242,
+        "fragment_compositions": 112242,
+        "load_seconds": 5.099
+      },
+      {
+        "case": 1799,
+        "reversed": false,
+        "families": 211116,
+        "fragment_compositions": 211102,
+        "load_seconds": 22.896
+      }
+    ]
+  },
+  "configuration_audit": {
+    "case": 7,
+    "families": 5523,
+    "unique_saved_fragments": 685,
+    "all_discovery_edge_tolerances": 2.0,
+    "all_source_and_target_self_tolerances": 1.0,
+    "identity_witnesses_valid": 685,
+    "archived_native_task_and_cache_identity_checked": true
+  },
+  "limitations": [
+    "One seed; the historical 13/21 recovery used ten seeds and adaptive tolerances under the older algorithm.",
+    "Capped nonrecovery does not establish mapping absence.",
+    "The other Golden reactions were not rerun at tolerance 2; no claim of uniform-tolerance coverage or absence of regressions.",
+    "Case 1799 was unresolved at baseline; its recovery is not established to be caused solely by the tolerance change.",
+    "At this snapshot, 1799 forward remains active, while its reverse check establishes recovery. Final whole-pass verification timing remains pending."
+  ]
+}
