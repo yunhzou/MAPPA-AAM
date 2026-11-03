@@ -509,6 +509,13 @@ counts cannot establish coverage of every compressed choice. Heavy-atom
 references leave hydrogen correspondence unspecified. Unknown, timeout, capped
 search and missing work remain distinct from proven absence.
 
+Verification first rejects references outside conservative per-atom bounds of
+the complete ordered relation, including both local self-relationships,
+placements and endpoint equivalence. These bounds cannot establish acceptance;
+survivors retain every joint constraint. Reuse shared immutable action preparation
+and stop work once absence is proven. Construct physical output expressions only
+for callers that need a mapping or an event query.
+
 Matcher acceptance requires independent mapping-relation checks, meaningful
 branch and cap checks, and Python/native agreement. Critical cases include C6
 into C6 producing one compressed match, and C6 into two rings retaining both

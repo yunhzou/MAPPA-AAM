@@ -15,13 +15,14 @@ def endpoint(elements,edges):
     return MolecularEndpoint(tuple(elements),np.zeros((len(elements),3)),w)
 
 
-def fragment_path(problem, *, atoms=None, targets=None, anchors=(), accepted=()):
+def fragment_path(problem, *, atoms=None, targets=None, anchors=(), accepted=(),
+                  self_tolerance=0.):
     atoms = tuple(range(problem.source_atom_count)) if atoms is None else atoms
     targets = atoms if targets is None else targets
     source = relaxed_automorphism(problem.reactant.elements, problem.reactant.wbo,
-        atoms=atoms, anchors=tuple(r for r, _ in anchors), tolerance=0.)
+        atoms=atoms, anchors=tuple(r for r, _ in anchors), tolerance=self_tolerance)
     target = relaxed_automorphism(problem.product.elements, problem.product.wbo,
-        atoms=targets, anchors=tuple(p for _, p in anchors), tolerance=0.)
+        atoms=targets, anchors=tuple(p for _, p in anchors), tolerance=self_tolerance)
     witness = tuple(zip(atoms, targets))
     domains = tuple((r, tuple(p for p in targets
         if problem.reactant.elements[r] == problem.product.elements[p])) for r in atoms)
@@ -268,6 +269,142 @@ def test_reference_atom_set_rejects_before_action_construction(monkeypatch):
     def forbidden(*args):raise AssertionError('Atom-set mismatch needs no group query')
     monkeypatch.setattr('mappa.mappa_core.core.symmetry.constraints.group_factors',forbidden)
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
+
+
+def test_reference_rejects_cross_fragment_images_before_relation_compilation(monkeypatch):
+    molecule = endpoint('CCCC', [(0, 1), (2, 3)])
+    problem = AAMProblem(molecule, molecule)
+    fragments = tuple(fragment_path(problem, atoms=pair, accepted=(pair,)).fragments[0]
+                      for pair in ((0, 1), (2, 3)))
+    path = FinalFamily(tuple(enumerate(range(4))), ((0, 1), (2, 3)),
+        tuple(('relation', fragment) for fragment in fragments), (.2, 0.)).as_path(problem)
+    options = dict(source_atoms=tuple(range(4)),
+                   source_generators=((1, 0, 3, 2),),
+                   target_generators=((1, 0, 3, 2),))
+    assert query_path(path, problem, {0: 1, 1: 0, 2: 3, 3: 2}, **options)[0] == 'recovered'
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Separate fragment images already exclude this reference')
+
+    monkeypatch.setattr('mappa.mappa_core.core.symmetry.constraints.compile_relaxed_relation',
+                        forbidden)
+    # All requested targets occur in the family, but neither local rearrangement
+    # nor the declared endpoint equivalence can move an atom between these pairs.
+    assert query_path(path, problem, {0: 2, 1: 3, 2: 0, 3: 1}, **options)[0] == 'not_recovered'
+
+
+def test_reference_endpoint_equivalence_preserves_partial_and_unmatched_atoms(monkeypatch):
+    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+
+    molecule = endpoint('CCCC', [(0, 1), (2, 3)])
+    problem = AAMProblem(molecule, molecule)
+    path = fragment_path(problem, atoms=(0, 1), accepted=((0, 1),))
+    exchange = ((2, 3, 0, 1),)
+    options = dict(source_atoms=tuple(range(4)), source_generators=exchange,
+                   target_generators=exchange)
+    reference = {2: 2, 3: 3}
+    status, witness = query_path(path, problem, reference, **options)
+    assert status == 'recovered'
+    physical = dict(witness['mapping'])
+    assert set(physical) == {0, 1} and set(physical.values()) == {0, 1}
+    for missing in ('source_generators', 'target_generators'):
+        assert query_path(path, problem, reference,
+                          **{key: value for key, value in options.items() if key != missing})[0] == 'not_recovered'
+    assert query_path(path, problem, {2: 2}, complete_reference=False, **options)[0] == 'recovered'
+    assert query_path(path, problem, {2: 2}, **options)[0] == 'not_recovered'
+    assert query_path(path, problem, {0: 0, 1: 1, 2: 4, 3: 4},
+                      source_atoms=tuple(range(4)))[0] == 'recovered'
+    assert project_path_assignments(path, problem, (0, 1), assignment_limit=2) == [
+        {0: 0, 1: 1}, {0: 1, 1: 0}]
+    assert project_path_assignments(path, problem, (0, 2), assignment_limit=2) == []
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('A required unmatched atom is already known to be mapped')
+
+    monkeypatch.setattr('mappa.mappa_core.core.symmetry.constraints.compile_relaxed_relation',
+                        forbidden)
+    assert query_path(path, problem, {0: 0}, source_atoms=tuple(range(4)))[0] == 'not_recovered'
+
+
+def test_reference_bounds_include_both_self_actions_around_fixed_discovery():
+    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+
+    problem = AAMProblem(endpoint('CCC', [(0, 1), (0, 2)]),
+                         endpoint('CCC', [(0, 1), (1, 2)]))
+    path = fragment_path(problem, accepted=((0, 1),))
+    fragment = Fragment(replace(path.fragments[0].relation,
+                                domains=tuple((atom, (atom,)) for atom in range(3))))
+    path = FinalFamily(tuple(enumerate(range(3))), ((0, 1),),
+                       (('relation', fragment),), (.2, 0.)).as_path(problem)
+    # Source leaves 1/2 may exchange; target leaves 0/2 may exchange. Either
+    # exchange alone misses some of the four physically permitted mappings.
+    expected = {(0, 1, 2), (0, 2, 1), (2, 1, 0), (2, 0, 1)}
+    for images in permutations(range(3)):
+        status, witness = query_path(path, problem, dict(enumerate(images)),
+                                     source_atoms=(0, 1, 2))
+        assert status == ('recovered' if images in expected else 'not_recovered')
+        if status == 'recovered':
+            assert dict(witness['mapping']) == dict(enumerate(images))
+    projected = project_path_assignments(path, problem, range(3), assignment_limit=4)
+    assert {tuple(mapping[r] for r in range(3)) for mapping in projected} == expected
+
+
+def test_reference_and_projection_keep_nontransitive_two_sided_relations():
+    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+
+    molecule = endpoint('CCCC', [(0, 1), (0, 2), (0, 3)])
+    weights = molecule.wbo.copy()
+    for atom, weight in enumerate((1., 1.6, 2.2), 1):
+        weights[0, atom] = weights[atom, 0] = weight
+    molecule = MolecularEndpoint(molecule.elements, molecule.coordinates, weights)
+    problem = AAMProblem(molecule, molecule)
+    path = fragment_path(problem, accepted=((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    fragment = Fragment(replace(path.fragments[0].relation,
+                                domains=tuple((atom, (atom,)) for atom in range(4))))
+    path = FinalFamily(tuple(enumerate(range(4))), ((0, 1), (0, 2), (0, 3)),
+                       (('relation', fragment),), (.2, 0.)).as_path(problem)
+    # Exact discovery fixes each weighted arm. Each self-side may swap adjacent
+    # weights, once. Together they give five permutations, not their six-element closure.
+    expected = {(0, *tail) for tail in permutations((1, 2, 3)) if tail != (3, 2, 1)}
+    for images in permutations(range(4)):
+        status, witness = query_path(path, problem, dict(enumerate(images)),
+                                     source_atoms=tuple(range(4)))
+        assert status == ('recovered' if images in expected else 'not_recovered')
+        if status == 'recovered':
+            assert dict(witness['mapping']) == dict(enumerate(images))
+    projected = project_path_assignments(path, problem, range(4), assignment_limit=5)
+    assert {tuple(mapping[r] for r in range(4)) for mapping in projected} == expected
+
+    # Reference equivalence is chemical endpoint normalization, not a further
+    # physical self rearrangement. Either endpoint may normalize the sixth reference.
+    reference = {0: 0, 1: 3, 2: 2, 3: 1}
+    for side in ('source_generators', 'target_generators'):
+        status, witness = query_path(path, problem, reference, source_atoms=tuple(range(4)),
+                                     **{side: ((0, 3, 2, 1),)})
+        assert status == 'recovered'
+        assert tuple(dict(witness['mapping'])[r] for r in range(4)) in expected
+
+
+def test_reference_joint_rejection_does_not_build_output_expressions(monkeypatch):
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
+
+    problem = AAMProblem(endpoint('CC', [(0, 1)]),
+                         endpoint('CCCC', [(0, 1), (2, 3)]))
+    path = fragment_path(problem, accepted=((0, 1),))
+    edge = replace(path.graph.transitions[0], match=None,
+                   placement_generators=((2, 3, 0, 1),))
+    path = replace(path, graph=replace(path.graph, transitions=(edge,)))
+    expression = FiniteConstraints.expression
+
+    def require_live_query(self, value):
+        assert not self.failed, 'A rejected reference needs no output expressions'
+        return expression(self, value)
+
+    monkeypatch.setattr(FiniteConstraints, 'expression', require_live_query)
+    # Each requested image is individually reachable. Their shared component
+    # choice cannot stay for atom 0 and move for atom 1 at the same time.
+    assert query_path(path, problem, {0: 0, 1: 3},
+                      source_atoms=(0, 1))[0] == 'not_recovered'
 
 
 def test_reference_respects_complete_fragment_ring_correlation():

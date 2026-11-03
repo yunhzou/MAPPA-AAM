@@ -1,12 +1,19 @@
 """Reference membership in the complete saved fragment relationships."""
 from functools import lru_cache, cached_property
 from dataclasses import dataclass
-from itertools import combinations
 import time
+
+from mappa.mappa_core.core.symmetry.actions import ActionIndex
+
+
+@lru_cache(maxsize=1)
+def _reference_actions(degree):
+    """Reuse the core's bounded immutable action domains in one endpoint frame."""
+    return ActionIndex(degree)
 
 
 @lru_cache(maxsize=256)
-def atom_sets(degree, generators, pools=()):
+def atom_sets(degree, generators):
     """Possible atom sets only; this never asserts joint assignment compatibility."""
     parent=list(range(degree))
     def root(a):
@@ -15,11 +22,43 @@ def atom_sets(degree, generators, pools=()):
         return a
     for generator in generators:
         for a,b in enumerate(generator):parent[root(a)]=root(b)
-    for pool in pools:
-        for b in pool[1:]:parent[root(b)]=root(pool[0])
     groups={}
     for a in range(degree):groups.setdefault(root(a),set()).add(a)
     return tuple(frozenset(groups[root(a)]) for a in range(degree))
+
+
+def _compatible_reference(path, representative, reference, source_atoms,
+                          source_generators, target_generators, complete_reference,
+                          source_count, target_count):
+    """Reject only references outside the full ordered program's atom bounds.
+
+    The core bounds include source self, discovery and target self choices.
+    They deliberately ignore joint restrictions: surviving references still
+    require the exact compiler and solver below.
+    """
+    requested = tuple(atom for atom in source_atoms if complete_reference or atom in reference)
+    if not requested:
+        return True
+    index = _reference_actions(target_count)
+    program = []
+    for edge_id in reversed(path.transitions):
+        edge = path.graph.transitions[edge_id]
+        if edge.match is not None:
+            program.append(index.action_domains(('relation', edge.match)))
+        if edge.placement_generators:
+            program.append(index.action_domains(('group', edge.placement_generators)))
+    source = atom_sets(source_count, tuple(source_generators))
+    target = atom_sets(target_count, tuple(target_generators))
+    for atom in requested:
+        wanted = reference.get(atom, target_count)
+        allowed = target[wanted] if 0 <= wanted < target_count else frozenset((wanted,))
+        domain = frozenset(representative.get(r, target_count) for r in source[atom])
+        for action in program:
+            domain = frozenset(q for p in domain
+                for q in (action[p] if p < target_count else (p,)))
+        if domain.isdisjoint(allowed):
+            return False
+    return True
 
 
 def compile_path(path, problem, reference, *, source_atoms, source_generators=(),
@@ -33,18 +72,14 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
     started = time.perf_counter()
     encoder = FiniteConstraints()
+    source_atoms = tuple(source_atoms)
     nr, np_ = problem.source_atom_count, problem.target_atom_count
     representative = path.mapping
     values = [encoder.constant(representative.get(r, np_)) for r in range(nr)]
     actions = []
-    placements = tuple(generator for edge_id in path.transitions
-                       for generator in path.graph.transitions[edge_id].placement_generators)
-    # The union orbit bounds the ordered placement program; it only rejects
-    # unreachable references. The exact correlated order is compiled below.
-    target_sets = atom_sets(np_, placements + tuple(target_generators))
-    reachable = {q for p in representative.values() for q in target_sets[p]}
-    if any(atom in reference and reference[atom] != np_ and reference[atom] not in reachable
-           for atom in source_atoms):
+    if not _compatible_reference(path, representative, reference, source_atoms,
+                                 source_generators, target_generators,
+                                 complete_reference, nr, np_):
         encoder.failed = True
         return CompiledFamily(encoder, values, representative, actions, path, problem,
                               time.perf_counter() - started)
@@ -74,21 +109,25 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
         if complete_reference or atom in reference:
             encoder.restrict(value[0], {reference.get(atom, np_)})
     encoder.propagate()
-    expressions = [(encoder.expression(value), frozenset(encoder.domain(value)))
-                   for value, _ in physical_values]
-    return CompiledFamily(encoder, expressions, representative, actions, path, problem,
+    return CompiledFamily(encoder, physical_values, representative, actions, path, problem,
                           time.perf_counter() - started)
 
 
 @dataclass
 class CompiledFamily:
     constraints: object
-    values: list
+    physical_values: list
     representative: dict
     actions: list
     path: object
     problem: object
     encoding_seconds: float
+
+    @cached_property
+    def values(self):
+        """Build output expressions only when a caller needs physical images."""
+        return [(self.constraints.expression(value), frozenset(self.constraints.domain(value)))
+                for value, _ in self.physical_values]
 
     @cached_property
     def solver(self):

@@ -59,6 +59,8 @@ def query_assignments(decoded, candidate, assignments, *, same_events=True, seco
             source_atoms=tuple(fixed),
             complete_reference=False,
         )
+        if compiled.constraints.failed:
+            continue
         if same_events:
             try:
                 terms, total, _ = _event_model(compiled, decoded.index, deadline)

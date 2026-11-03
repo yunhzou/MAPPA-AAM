@@ -149,6 +149,18 @@ def test_saved_partial_graph_survives_catalogue_and_artifact():
     assert query_assignments(decoded, candidate,{0:0,1:1}).status=='allowed'
 
 
+def test_impossible_assignment_needs_no_event_composition(monkeypatch):
+    problem = AAMProblem(endpoint('CC', []), endpoint('CCC', []))
+    decoded = refine_mapping(catalogue(problem, {0: 0, 1: 1}), RefinementConfig(event_slack=0))
+    candidate = decoded.candidates[0]
+    assert query_assignments(decoded, candidate, {0: 0}).status == 'allowed'
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('An impossible mapping needs no event query')
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.event_query._event_model', forbidden)
+    assert query_assignments(decoded, candidate, {0: 2}).status == 'forbidden'
+
+
 def test_empty_mapping_has_no_events_and_creates_no_atoms():
     problem=AAMProblem(endpoint('CO',[(0,1,1)]),endpoint('CCC',[(0,1,1),(1,2,1)]))
     decoded=refine_mapping(catalogue(problem,{}),RefinementConfig(event_slack=0))

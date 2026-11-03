@@ -298,20 +298,32 @@ external reference verification; event decoding is not part of this recovery
 test. The one-seed verification tail overlapped this launch, so elapsed time is
 not an isolated machine benchmark.
 
-The follow-up confirmed **seven additional recoveries**: **20, 44, 867, 964,
+The initial follow-up confirmed **seven additional recoveries**: **20, 44, 867, 964,
 1034, 1228 and 1314**. Cases **7, 986 and 1285** had two completed negative checks.
-Cases **19, 1358, 1377, 1475 and 1568** remain unresolved after interrupted
-verification; **590** remains unresolved after memory failures. The union with
-the baseline and one-seed follow-up is **1,842/1,851 (99.51%)**. This is a selected
+Cases **19, 1358, 1377, 1475 and 1568** were unresolved after interrupted
+verification; **590** was unresolved after memory failures. The initial union with
+the baseline and one-seed follow-up was **1,842/1,851 (99.51%)**. This is a selected
 recovery union, not a completed full benchmark at one setting.
 
-All 32 verification records are terminal: **13 recovered, eight not recovered,
+All 32 initial verification records were terminal: **13 recovered, eight not recovered,
 nine lost task leases and two dependency errors** for unavailable catalogues.
 The 21 completed checks used 2,403.48 compute CPU seconds. Lost attempts returned
 no CPU or memory measurements, so this is not the total verification cost.
 Power logs record sleep intervals of 5,286 and 910 seconds; the wake times,
 11:19:59 and 11:35:54 UTC, coincide with lost-lease records. These interruptions
-are separate from compute timeouts, and the lost checks have not been retried.
+are separate from compute timeouts.
+
+An eight-check continuation reused saved catalogues and preserved the original
+identity, 4 GiB guard and consumed budgets. It confirms **1568** as one further
+recovery, bringing the selected cohort to **eight recovered**, **five completed
+misses** (7, 986, 1285, 1377 and 1475), and **three unresolved reactions**.
+Cases **19 and 1358** have one negative direction and one execution timeout;
+**590** still has no published catalogue. The selected recovery union is now
+**1,843/1,851 (99.57%)**. Five continuation checks completed and two exhausted
+their remaining original budgets. Only 1568 forward remains running; its reverse
+direction already establishes recovery. No fresh retry time was granted.
+This continuation uses the frozen pre-repair verifier, so its cost does not
+measure the repair below. Original failure records remain preserved separately.
 
 All 14,950 seed searches and 1,495 cut combinations completed. Search computation
 used **401.13 CPU seconds**, compared with **39.43 seconds** for the same 32
@@ -340,7 +352,7 @@ rows and reporting dependency errors for unavailable catalogues. This orchestrat
 change passed 30 campaign tests and 26 smoke checks; MAPPA's scientific identity
 and Golden reference verifier are unchanged.
 
-### Verification cost
+### Verification cost before repair
 
 More families alone do not explain the slowdown. The following historical and
 current trials use the same cases, ten seeds, cap 2,000 and discovery tolerance 2,
@@ -398,6 +410,66 @@ reuse of immutable fragment preparation. Both relaxed self-relationships and all
 joint constraints must remain. These counters include diagnostic overhead and
 cover only the selected prefix; they do not attribute the full-run slowdown or
 measure a repaired implementation.
+
+### Repaired verification: original speed baseline
+
+The verifier now checks conservative per-source reachability before preparing
+joint choices, reuses the core's immutable action bounds, and constructs output
+expressions only when a caller needs them. A known-impossible assignment also
+stops before event-query composition. Bounds can reject a reference but cannot
+accept one: the complete discovery relation, both relaxed self-relationships,
+ordered placements and endpoint-equivalence constraints remain unchanged.
+Matching and event decoding were not changed or rerun for this repair.
+
+The original query speed is the acceptance baseline. All four comparable
+directions use ten seeds, cap 2,000 and discovery tolerance 2. The original
+revision `06f7941` retained different scientific families; its timings are a
+speed target, not a controlled estimate of this repair's effect.
+
+| Direction | Original query CPU (s) | Repaired query CPU (s) | Repaired load CPU (s) |
+|---|---:|---:|---:|
+| 1314 forward | 5.910 | 1.974 | 2.271 |
+| 1314 reverse | 10.361 | 3.051 | 6.637 |
+| 1228 forward | 3.489 | 0.899 | 0.973 |
+| 1228 reverse | 18.642 | 7.570 | 11.894 |
+
+All four recover the reference in the same first successful family as the
+pre-repair current verifier. An additional paired comparison uses the exact
+same current saved catalogues and family order, with old and repaired code
+loaded in separate fresh processes. Query CPU falls from **136.679 to 1.974
+seconds for 1314 forward (69.2 times faster)** and from **40.768 to 0.899 seconds
+for 1228 forward (45.3 times faster)**. Each process checks 1314 then 1228;
+catalogue loading is measured separately. These single measurements establish
+the observed improvement on these cases, not a full-dataset speed ratio.
+
+Negative controls also retain their results: **7 forward** checks all **19,218
+families in 2.481 query CPU seconds**, and **1377 reverse** checks all **470,474
+families in 38.200 seconds**. Their separate load CPU is 2.063 and 20.569 seconds.
+These use discovery tolerance 2; the available historical negative controls use
+tolerance 1.5 and are not identical-setting speed baselines.
+
+Across **208 deterministic family checks** from the two paired catalogues,
+the old and repaired verifiers agree on all **205 misses and three recoveries**,
+with zero unknowns. For the two paired forward cases, independent replay validates
+both old and repaired positive witnesses against discovery, both self constraints,
+placements, injectivity, elements and reference equivalence. The solver can return different valid
+symmetry-related witnesses; byte-identical mappings are not required.
+
+Validation passed **92 focused tests** covering reference membership, partial
+and unmatched atoms, ordered actions, two-sided non-transitive relations,
+projection, local/event queries and anchors, plus **26 smoke tests**. New guards
+require rejection before unnecessary relation compilation or output/event
+construction. No full Golden rerun or exhaustive matching suite was performed;
+the matching implementation is unchanged.
+
+Shared preparation retains at most one endpoint-size action index with **1,024
+action-domain entries**, plus 256 endpoint-orbit entries. Keys include complete
+immutable scientific content. This is an entry limit, not a byte or process-RAM
+limit. Measured process peaks include catalogue loading: the paired forward
+process peaked at 0.389 GiB, while fresh reverse/negative processes ranged from
+0.400 to 2.675 GiB. No before/after memory-reduction claim is made.
+Settings, hashes, separate timing scopes and validation evidence are in
+[recovery-evidence.json](recovery-evidence.json).
 
 ## Stopped initial campaign
 

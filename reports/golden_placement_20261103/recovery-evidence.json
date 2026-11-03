@@ -1816,6 +1816,210 @@
         "expression_wall_seconds": 0.46135845803655684,
         "reported_dead_expression_cpu_seconds": 0.4560820000000021
       }
+    },
+    "verification_continuation": {
+      "observed_utc": "2026-11-03T18:41:21.521929+00:00",
+      "implementation": "Frozen pre-repair verifier; these timings do not measure the repaired verifier.",
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
+      "scope": "Eight interrupted reference checks for five unresolved reactions; saved catalogues reused without matching, reduction or event decoding.",
+      "selected_directions": 8,
+      "workers": 6,
+      "memory_guard_bytes": 4294967296,
+      "fresh_budget_seconds": 0,
+      "original_stage_rows_preserved": true,
+      "original_attempts_preserved": true,
+      "budget_policy": "Retain each original 3600-second allowance and its consumed time. A failed process-monitor startup was preserved and conservatively charged before relaunch; no fresh time was granted.",
+      "sleep_prevention": "Idle-sleep inhibition during the continuation; this does not prevent lid sleep.",
+      "counts": {
+        "timeout": 2,
+        "complete": 5,
+        "running": 1
+      },
+      "all_selected_directions_terminal": false,
+      "omitted": {
+        "case": 867,
+        "direction": "forward",
+        "reason": "Reverse already recovered; original interrupted-forward record remains preserved."
+      },
+      "records": [
+        {
+          "case": 19,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1832.1184639930725,
+          "original_remaining_seconds": 1767.8815360069275,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "timeout",
+          "status": "unresolved",
+          "spent_seconds": 3600.132208585739,
+          "remaining_seconds": -0.13220858573913574,
+          "elapsed_seconds": 1766.9289287501015,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": 1758.1777609600001,
+          "peak_rss_bytes": 1739849728,
+          "phase_at_exit": "compute"
+        },
+        {
+          "case": 1358,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1427.054182767868,
+          "original_remaining_seconds": 2172.945817232132,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "timeout",
+          "status": "unresolved",
+          "spent_seconds": 3600.1295812129974,
+          "remaining_seconds": -0.12958121299743652,
+          "elapsed_seconds": 2171.982710374985,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": 2162.72093496,
+          "peak_rss_bytes": 1314439168,
+          "phase_at_exit": "compute"
+        },
+        {
+          "case": 1358,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1422.2217009067535,
+          "original_remaining_seconds": 2177.7782990932465,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 3575.4183762073517,
+          "remaining_seconds": 24.581623792648315,
+          "elapsed_seconds": 2152.14725770778,
+          "cpu_seconds": 2143.080823,
+          "sampled_cpu_seconds": 2142.9265460320003,
+          "peak_rss_bytes": 1050902528,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1377,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1393.574455022812,
+          "original_remaining_seconds": 2206.425544977188,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 2654.715980529785,
+          "remaining_seconds": 945.2840194702148,
+          "elapsed_seconds": 1260.1149241249077,
+          "cpu_seconds": 1253.45083,
+          "sampled_cpu_seconds": 1253.4055705120002,
+          "peak_rss_bytes": 2651799552,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1475,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 484.7032461166382,
+          "original_remaining_seconds": 3115.296753883362,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 618.653550863266,
+          "remaining_seconds": 2981.346449136734,
+          "elapsed_seconds": 132.89903695811518,
+          "cpu_seconds": 132.177521,
+          "sampled_cpu_seconds": 132.07276690400002,
+          "peak_rss_bytes": 255442944,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1475,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 162.17268872261047,
+          "original_remaining_seconds": 3437.8273112773895,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 249.69942331314087,
+          "remaining_seconds": 3350.300576686859,
+          "elapsed_seconds": 86.47562312497757,
+          "cpu_seconds": 85.65084,
+          "sampled_cpu_seconds": 85.582979808,
+          "peak_rss_bytes": 238419968,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1568,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 162.0024402141571,
+          "original_remaining_seconds": 3437.997559785843,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "running",
+          "status": "pending",
+          "elapsed_seconds": 2351.731563091278,
+          "remaining_seconds": 1085.2263281345367
+        },
+        {
+          "case": 1568,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 161.15282797813416,
+          "original_remaining_seconds": 3438.847172021866,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "recovered",
+          "spent_seconds": 278.19417667388916,
+          "remaining_seconds": 3321.805823326111,
+          "elapsed_seconds": 116.0071184579283,
+          "cpu_seconds": 115.36303999999998,
+          "sampled_cpu_seconds": 115.166854368,
+          "peak_rss_bytes": 2349121536,
+          "phase_at_exit": "publication"
+        }
+      ],
+      "cohort_outcomes": {
+        "reactions": 16,
+        "recovered": 8,
+        "both_direction_negative": 5,
+        "unresolved": 3,
+        "recovered_cases": [
+          20,
+          44,
+          867,
+          964,
+          1034,
+          1228,
+          1314,
+          1568
+        ],
+        "both_direction_negative_cases": [
+          7,
+          986,
+          1285,
+          1377,
+          1475
+        ],
+        "timeout_unresolved_cases": [
+          19,
+          1358
+        ],
+        "memory_unresolved_cases": [
+          590
+        ],
+        "successful_direction_checks": 26,
+        "direction_outcomes": {
+          "not_recovered": 12,
+          "execution_unresolved": 3,
+          "recovered": 14,
+          "resource_unresolved": 2,
+          "pending": 1
+        },
+        "note": "One direction remains active for an already recovered reaction. Timeout and memory outcomes are not negative reference checks."
+      },
+      "combined_recovery": {
+        "recovered": 1843,
+        "total": 1851,
+        "percent": 99.56780118854674,
+        "definition": "Union of the full tolerance-1 benchmark and selected tolerance-2 follow-ups. This is a lower bound from mixed settings, not a complete uniform-setting benchmark."
+      }
     }
   },
   "verification_resources": {
@@ -1915,5 +2119,647 @@
       "memory_guard_bytes": 4294967296
     },
     "retried": false
+  },
+  "verifier_repair": {
+    "schema": "mappa.verifier_repair/v1",
+    "observed_utc": "2026-11-03T18:40:40.983960+00:00",
+    "scope": "External reference verification of six unchanged saved Golden catalogues; no rematching, reduction or full benchmark rerun.",
+    "scientific_settings": {
+      "seed_count": 10,
+      "branch_limit": 2000,
+      "iso_tolerance": 2,
+      "self_tolerance": 1,
+      "random_seed": 42,
+      "sweep_cuts": true,
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3
+    },
+    "change": "Check each requested source atom against conservative domains through the complete ordered fragment and placement program before building joint constraints. Surviving requests still use the unchanged exact joint compiler and solver. Construct physical output expressions only when needed.",
+    "source": {
+      "baseline_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+      "baseline_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "baseline_module_sha256": {
+        "src/mappa/mappa_core/core/symmetry/actions.py": "69830388de22a2c770bfdff4ea0661478a10e8e8e597e68c788aa4ea9b2e6099",
+        "src/mappa/mappa_core/core/symmetry/constraints.py": "adf0e2c63ee3d6d56ed20a75235427a786d58131fe4a657cd4cc943e71c5b0f3",
+        "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+        "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+        "src/mappa/mappa_workflow/mapping_analytics/family.py": "f026dfbe0c07ee26585ef6054df38478f6ede447e9dbf05d0f4bb5d9c1a2106e"
+      },
+      "measured_fixed_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "measured_fixed_module_sha256": {
+        "src/mappa/mappa_core/core/symmetry/actions.py": "69830388de22a2c770bfdff4ea0661478a10e8e8e597e68c788aa4ea9b2e6099",
+        "src/mappa/mappa_core/core/symmetry/constraints.py": "adf0e2c63ee3d6d56ed20a75235427a786d58131fe4a657cd4cc943e71c5b0f3",
+        "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+        "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+        "src/mappa/mappa_workflow/mapping_analytics/family.py": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92"
+      },
+      "measurement_state": "Working-tree repair measured before commit; recorded module hashes identify the executed implementation."
+    },
+    "cache": {
+      "reference_action_owners": 1,
+      "action_domain_tables_per_owner": 1024,
+      "endpoint_orbit_lru_entries": 256,
+      "bound_scope": "Entry-count bounds, not a fixed byte allowance. Uses the existing core action-domain cache; no cache of complete mappings."
+    },
+    "methods": {
+      "paired_forward_order": [
+        "01314/forward",
+        "01228/forward"
+      ],
+      "paired_processes": "One fresh process per implementation, the same two-case order and saved catalogues; normal bounded caches may be reused by the second case.",
+      "controls": "One fresh process per remaining case, at most two concurrent diagnostic processes.",
+      "timing": "Uninstrumented CPU and elapsed time. Catalogue loading measured separately from verify_catalogue; publication and proof-audit work excluded.",
+      "rss": "macOS process lifetime peak RSS in bytes. Forward second-case peak includes the previous case; control processes each handle one case. Baseline RSS was not captured, so no memory-reduction claim."
+    },
+    "records": [
+      {
+        "case": 1314,
+        "direction": "forward",
+        "catalogue_families": 38826,
+        "input_sha256": "2ea37be6012ee98e7f126a1fd7ab4793fb5a345123e83194e69e456c0eb2a36f",
+        "catalogue_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+        "reference_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+        "status": "recovered",
+        "winning_family": 13974,
+        "load": {
+          "cpu_seconds": 2.271498,
+          "wall_seconds": 2.2738822500687093
+        },
+        "query": {
+          "cpu_seconds": 1.9738640000000003,
+          "wall_seconds": 2.065789874875918
+        },
+        "peak_process_rss_bytes": 417644544,
+        "rss_scope": "Peak process RSS through this case, including catalogue load and any previous case in this two-case process; no before/after memory claim.",
+        "paired_baseline_load": {
+          "cpu_seconds": 2.6698049999999998,
+          "wall_seconds": 2.6736392078455538
+        },
+        "paired_baseline_query": {
+          "cpu_seconds": 136.67869399999998,
+          "wall_seconds": 137.08123812498525
+        },
+        "paired_query_cpu_speedup": 69.24423060555335,
+        "baseline_semantic_proof_sha256": "1263c4a83864d12683d027b030ea0044a25d87cedfe882f393fbbbdd1ef78f88",
+        "fixed_semantic_proof_sha256": "b5ab094cbf812df63367546a6501d2256bf4f9c4e3b86def70a21e9e18f297f5",
+        "same_first_recovered_family": true,
+        "byte_identical_semantic_proof": false,
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1228,
+        "direction": "forward",
+        "catalogue_families": 28025,
+        "input_sha256": "81904fd760028cd5288672052b9637f6bb54860cbd33d1a88172dcec6c0362d0",
+        "catalogue_sha256": "1c045f5e7d2ee1eb837394289bcb0b677bcc3a549516310108387bdec165109d",
+        "reference_sha256": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567",
+        "status": "recovered",
+        "winning_family": 11598,
+        "load": {
+          "cpu_seconds": 0.9733840000000002,
+          "wall_seconds": 0.9747611668426543
+        },
+        "query": {
+          "cpu_seconds": 0.8992230000000001,
+          "wall_seconds": 0.9001379581168294
+        },
+        "peak_process_rss_bytes": 417644544,
+        "rss_scope": "Peak process RSS through this case, including catalogue load and any previous case in this two-case process; no before/after memory claim.",
+        "paired_baseline_load": {
+          "cpu_seconds": 0.9290710000000217,
+          "wall_seconds": 0.9313894999213517
+        },
+        "paired_baseline_query": {
+          "cpu_seconds": 40.767562999999996,
+          "wall_seconds": 40.97443229192868
+        },
+        "paired_query_cpu_speedup": 45.33643267576562,
+        "baseline_semantic_proof_sha256": "37201863397d174026b54614cc670663c62ebc1768b5506497d081016e62d8b8",
+        "fixed_semantic_proof_sha256": "a9712ccdd2d283fcff6151b5e3ef718757b081030ae7eaf95d3946b5a0da128b",
+        "same_first_recovered_family": true,
+        "byte_identical_semantic_proof": false,
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1314,
+        "direction": "reverse",
+        "catalogue_families": 130351,
+        "input_sha256": "5f45bc88fdd19f04c65d7a3f255b2c0ba12e5a41056e2baf312bdbf9b7996cd3",
+        "catalogue_sha256": "0ad6f2c745e68744ca2d7161f381d59c4c1e687a6490f5ac6d49add4a5f7777e",
+        "reference_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+        "status": "recovered",
+        "winning_family": 27340,
+        "load": {
+          "cpu_seconds": 6.6367210000000005,
+          "wall_seconds": 6.645428165793419
+        },
+        "query": {
+          "cpu_seconds": 3.0507660000000003,
+          "wall_seconds": 3.213359999936074
+        },
+        "peak_process_rss_bytes": 1026572288,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 41.34854300000001,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "5f927318d2222ba7dd66fe5eed6fd8c4c11f24b1648685f768869567923fb425",
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 7,
+        "direction": "forward",
+        "catalogue_families": 19218,
+        "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+        "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c",
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "status": "not_recovered",
+        "winning_family": null,
+        "load": {
+          "cpu_seconds": 2.062742,
+          "wall_seconds": 2.065477500203997
+        },
+        "query": {
+          "cpu_seconds": 2.480888,
+          "wall_seconds": 2.483300207881257
+        },
+        "peak_process_rss_bytes": 429228032,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 402.18735699999996,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "4a579c2460787da96193d39cce8ff7625b6276e664e7d3ac5d6c3b5c45836b36",
+        "both_witnesses_independently_validated": null
+      },
+      {
+        "case": 1228,
+        "direction": "reverse",
+        "catalogue_families": 322957,
+        "input_sha256": "92e0f499c60bd9bfa8db90464c1cf6598b532eeaba4e05c1b524b74cf7d34778",
+        "catalogue_sha256": "760c1d0b8385212a797f197dc7692f82a354e75a8349c665bf14c71135314713",
+        "reference_sha256": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567",
+        "status": "recovered",
+        "winning_family": 107293,
+        "load": {
+          "cpu_seconds": 11.894129,
+          "wall_seconds": 11.910160250030458
+        },
+        "query": {
+          "cpu_seconds": 7.570204999999998,
+          "wall_seconds": 7.728397042024881
+        },
+        "peak_process_rss_bytes": 1537228800,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 16.517998999999975,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "86d2e3eba292b33f8f11399db108388428e90d8517cfb4ce65487b94c424d873",
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1377,
+        "direction": "reverse",
+        "catalogue_families": 470474,
+        "input_sha256": "00f80ecf64242ef8754bbcd85dcc5db30a19fead9120f186f2dbad7df5a9e5d3",
+        "catalogue_sha256": "f43c314076ea3251f0c60fb8eb0489704a39016d97eef6762ca853447099de9b",
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "status": "not_recovered",
+        "winning_family": null,
+        "load": {
+          "cpu_seconds": 20.56913,
+          "wall_seconds": 20.58138137497008
+        },
+        "query": {
+          "cpu_seconds": 38.200435,
+          "wall_seconds": 38.24557499983348
+        },
+        "peak_process_rss_bytes": 2872164352,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 632.810829,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "e8a9cabef762d1adb28941f2d572f24a591597cb5ce8bbd8a70aaa22735230a4",
+        "both_witnesses_independently_validated": null
+      }
+    ],
+    "outcomes": {
+      "catalogue_checks": 6,
+      "unchanged_reference_membership_results": 6,
+      "recovered": 4,
+      "not_recovered": 2,
+      "unknown": 0,
+      "same_first_recovered_family": 4
+    },
+    "verdict_parity": {
+      "equal_verdict_count": 208,
+      "false_negative_count": 0,
+      "new_family_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+      "not_recovered_equal": 205,
+      "old_family_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+      "old_family_sha256": "f026dfbe0c07ee26585ef6054df38478f6ede447e9dbf05d0f4bb5d9c1a2106e",
+      "query_count": 208,
+      "records": [
+        {
+          "all_verdicts_equal": true,
+          "case": 1314,
+          "catalogue_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+          "direction": "forward",
+          "false_negative_count": 0,
+          "not_recovered_equal": 103,
+          "queried_families": [
+            0,
+            141,
+            282,
+            423,
+            565,
+            706,
+            847,
+            988,
+            1129,
+            1270,
+            1412,
+            1553,
+            1694,
+            1835,
+            1976,
+            2117,
+            2258,
+            2400,
+            2541,
+            2682,
+            2823,
+            2964,
+            3105,
+            3246,
+            3388,
+            3529,
+            3670,
+            3811,
+            3952,
+            4093,
+            4235,
+            4376,
+            4517,
+            4658,
+            4799,
+            4940,
+            5081,
+            5223,
+            5364,
+            5505,
+            5646,
+            5787,
+            5928,
+            6070,
+            6211,
+            6352,
+            6493,
+            6634,
+            6775,
+            6916,
+            7058,
+            7199,
+            7340,
+            7481,
+            7622,
+            7763,
+            7904,
+            8046,
+            8187,
+            8328,
+            8469,
+            8610,
+            8751,
+            8893,
+            9034,
+            9175,
+            9316,
+            9457,
+            9598,
+            9739,
+            9881,
+            10022,
+            10163,
+            10304,
+            10445,
+            10586,
+            10728,
+            10869,
+            11010,
+            11151,
+            11292,
+            11433,
+            11574,
+            11716,
+            11857,
+            11998,
+            12139,
+            12280,
+            12421,
+            12562,
+            12704,
+            12845,
+            12986,
+            13127,
+            13268,
+            13409,
+            13551,
+            13692,
+            13833,
+            13972,
+            13973,
+            13974,
+            13975,
+            13976
+          ],
+          "query_count": 104,
+          "recovered_equal": 1,
+          "recovered_families": [
+            13974
+          ],
+          "unknown_count": 0
+        },
+        {
+          "all_verdicts_equal": true,
+          "case": 1228,
+          "catalogue_sha256": "1c045f5e7d2ee1eb837394289bcb0b677bcc3a549516310108387bdec165109d",
+          "direction": "forward",
+          "false_negative_count": 0,
+          "not_recovered_equal": 102,
+          "queried_families": [
+            0,
+            117,
+            234,
+            351,
+            469,
+            586,
+            703,
+            820,
+            937,
+            1054,
+            1172,
+            1289,
+            1406,
+            1523,
+            1640,
+            1757,
+            1874,
+            1992,
+            2109,
+            2226,
+            2343,
+            2460,
+            2577,
+            2694,
+            2812,
+            2929,
+            3046,
+            3163,
+            3280,
+            3397,
+            3515,
+            3632,
+            3749,
+            3866,
+            3983,
+            4100,
+            4217,
+            4335,
+            4452,
+            4569,
+            4686,
+            4803,
+            4920,
+            5038,
+            5155,
+            5272,
+            5389,
+            5506,
+            5623,
+            5740,
+            5858,
+            5975,
+            6092,
+            6209,
+            6326,
+            6443,
+            6560,
+            6678,
+            6795,
+            6912,
+            7029,
+            7146,
+            7263,
+            7381,
+            7498,
+            7615,
+            7732,
+            7849,
+            7966,
+            8083,
+            8201,
+            8318,
+            8435,
+            8552,
+            8669,
+            8786,
+            8904,
+            9021,
+            9138,
+            9255,
+            9372,
+            9489,
+            9606,
+            9724,
+            9841,
+            9958,
+            10075,
+            10192,
+            10309,
+            10426,
+            10544,
+            10661,
+            10778,
+            10895,
+            11012,
+            11129,
+            11247,
+            11364,
+            11481,
+            11596,
+            11597,
+            11598,
+            11599,
+            11600
+          ],
+          "query_count": 104,
+          "recovered_equal": 2,
+          "recovered_families": [
+            11598,
+            11600
+          ],
+          "unknown_count": 0
+        }
+      ],
+      "recovered_equal": 3,
+      "scope": "Only this deterministic sample; old family source loaded in memory with unchanged core. No whole-catalogue equivalence claim.",
+      "selection": "100 evenly spaced family indices through the known first recovery, plus winner +/-2, with duplicate indices removed.",
+      "unknown_count": 0
+    },
+    "witness_validation": {
+      "validated_saved_witnesses": 8,
+      "positive_cases": 4,
+      "scope": "Replay each saved local discovery and both self actions, certify placement group membership, compose exact physical mapping, then separately solve endpoint reference equivalence only. No family search, matching or reduction rerun.",
+      "checks": [
+        "Original discovery domains, anchors and accepted-edge predicates",
+        "Both original-weight relaxed self constraints",
+        "Exact placement group membership",
+        "Ordered composition equals the full physical mapping",
+        "Injectivity and element compatibility",
+        "Complete heavy-atom reference relation, including unmatched atoms, modulo endpoint chemical symmetry"
+      ],
+      "direct_heavy_mapping_comparison": [
+        {
+          "case": 1314,
+          "heavy_mapping_differences": [
+            {
+              "baseline": 26,
+              "fixed": 27,
+              "source": 18
+            },
+            {
+              "baseline": 27,
+              "fixed": 26,
+              "source": 19
+            }
+          ],
+          "heavy_mapping_identical": false,
+          "source_heavy_atoms": 29
+        },
+        {
+          "case": 1228,
+          "heavy_mapping_differences": [
+            {
+              "baseline": 9,
+              "fixed": 8,
+              "source": 12
+            },
+            {
+              "baseline": 8,
+              "fixed": 9,
+              "source": 13
+            }
+          ],
+          "heavy_mapping_identical": false,
+          "source_heavy_atoms": 15
+        }
+      ],
+      "note": "Alternative valid symmetry-equivalent witnesses were selected; complete proof bytes are not identical. Final forward proof hashes equal the independently validated first repair iteration."
+    },
+    "historical_query_baselines": {
+      "records": [
+        {
+          "branch_limit": 2000,
+          "case": 19,
+          "direction": "forward",
+          "families": 108262,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 31.525140000000007,
+          "query_wall_seconds": 31.86962016695179,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1377,
+          "direction": "reverse",
+          "families": 413391,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 71.74964500000002,
+          "query_wall_seconds": 72.06076870812103,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 7,
+          "direction": "forward",
+          "families": 24332,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 17.514378,
+          "query_wall_seconds": 18.941818540915847,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1228,
+          "direction": "forward",
+          "families": 33865,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 3.4886850000000003,
+          "query_wall_seconds": 3.7185969999991357,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 15532
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1228,
+          "direction": "reverse",
+          "families": 293377,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 18.642396000000005,
+          "query_wall_seconds": 19.01642333297059,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 96038
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1314,
+          "direction": "forward",
+          "families": 51525,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 5.910221,
+          "query_wall_seconds": 6.1209147500339895,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 18456
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1314,
+          "direction": "reverse",
+          "families": 167376,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 10.361041999999998,
+          "query_wall_seconds": 10.634635583963245,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 34036
+        }
+      ],
+      "scope": "Historical query-only timings on revision06f7941; different retained scientific relationships, execution order and cache context. Four positive comparisons use the same seed count, cap and iso tolerance. Historical negative controls available here used iso tolerance1.5, whereas current controls use2; their speed is not a matched-tolerance comparison."
+    },
+    "tests": {
+      "focused_tests_passed": 92,
+      "smoke_tests_passed": 26,
+      "scope": "Final repair test results supplied by the implementation owner; counts are separate suites and are not added as unique tests."
+    },
+    "limitations": [
+      "The paired forward speedups apply to these identical saved catalogues and process order; no universal or full-Golden speed guarantee.",
+      "The 208-family comparison is a deterministic sample, not an exhaustive proof over every family.",
+      "Historical scientific implementations retain different mapping relations; historical speed and current same-catalogue speed answer different questions.",
+      "Original campaign task CPU for controls includes catalogue load in a persistent worker. It is not directly comparable to the new isolated query-only timings.",
+      "The known per-family query budget still does not interrupt all preparation; original benchmark task guards remain distinct."
+    ]
   }
 }
