@@ -31,6 +31,8 @@ imports are `mappa._engine` and `mappa._group_ops`.
 - `set_orbit.h` supplies compact target-set transport and pointwise stabilizers.
   It keeps correlated generator supports together without materializing the
   complete permutation group or target-set orbit.
+  Residual point-orbit occupancy counts reject impossible transport early;
+  equal counts still require the exact correlated check.
 - `autgrp.h` shares the binary structural graph solver between native fragment
   preparation and the public bindings in `autgrp.cpp`.
 - `third_party/nauty/` holds the vendored dependency, separate from MAPPA code.

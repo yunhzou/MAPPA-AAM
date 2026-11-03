@@ -4,14 +4,23 @@
 
 [Relaxed fragment integration](relaxed_fragments_20261102/README.md) records the
 current algorithm's full regression suite, independent relation/event checks,
-local speed and publication-memory measurements. It has not rerun the full
-Golden or EnzymeMap datasets below.
+local speed and publication-memory measurements.
+
+[Full Golden with placement compression](golden_placement_20261103/README.md)
+records the stopped diagnostic run and a fresh full rerun submitted on
+scientific revision `1710f69`, with all 1,851 reactions / 3,702 directions,
+one seed and the user-selected cap 2,000. Five repaired point probes complete,
+and a complex saved result has exact decoded-output parity. The fresh run
+requests 141 compute workers; full benchmark results remain pending. The
+implementation and cap differ from the completed
+cap-100 baseline below; these local checks are not full accuracy or throughput
+evidence.
 
 [Latest complete Golden validation](golden_retest_20261101/README.md) records
 **1,830 / 1,851 recovered reactions (98.87%)**, using one seed and the full cut
 sweep at revision `096a010961f53944ddd4ddc433bd8d56f282a2f2`. All 3,702 directions
-completed matching, reduction, decoding and verification. Later history-release
-changes have point validation, not another full Golden rerun.
+completed matching, reduction, decoding and verification. These remain historical
+results for their producing revision while the new full run is evaluated.
 
 [Completed EnzymeMap campaign](enzymemap_history_pruned_20261102/README.md) covers
 47,974 reactions / 95,948 directions, including recovery of all 84 original
