@@ -6,8 +6,6 @@ from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from growth_cases import graph, raw as native_raw
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
@@ -21,33 +19,47 @@ def raw(*args, **kwargs):
 
 def test_reuse_later_fragment_after_independent_locked_mapping_changes():
     source=graph(10,[(0,1),(1,2),(2,3),(4,5),(6,7),(7,8),(8,9)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
+    repair=FragmentRepair(source,source)
     for mapping,islands in (([-1]*4+[4,5]+[-1]*4,[(4,1),(5,1)]),
                             ([-1]*4+[5,4]+[-1]*4,[(4,1),(5,2)])):
-        assert raw(source,source,orbits,0,mapping,(),islands=islands,replay=repair)==raw(
-            source,source,orbits,0,mapping,(),islands=islands)
+        assert raw(source,source,0,mapping,(),islands=islands,replay=repair)==raw(
+            source,source,0,mapping,(),islands=islands)
     assert repair.stats()['history_hits']==1
 
 
 def test_rebase_unrelated_previous_boundaries():
-    source=graph(10,[(0,1),(1,2),(2,3),(4,5),(6,7),(7,8),(8,9)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
-    for deferred in (((4,5),),((6,7),),()):
-        assert raw(source,source,orbits,0,[-1]*10,(),deferred=deferred,replay=repair)==raw(
-            source,source,orbits,0,[-1]*10,(),deferred=deferred)
+    # O cannot extend, while C-N has two distinct placements. A remote prior
+    # boundary changes continuation without changing either completed fragment.
+    source=graph(6,[(0,1),(0,2),(3,4),(4,5)],['C','O','N','F','Cl','Br'])
+    target=graph(7,[(0,1),(2,3),(0,4),(2,5)],['C','N','C','N','F','Cl','Br'])
+    repair=FragmentRepair(source,target)
+    initial=raw(source,target,0,[-1]*6,(),deferred=((3,4),),replay=repair)
+    assert [item['target']['atoms'] for item in initial['fragments']]==[[0,1],[2,3]]
+    assert all(item['source']['atoms']==[0,2] and item['accepted_edges']==[(0,1)]
+               for item in initial['fragments'])
+    assert set(initial['deferred_edges'])=={(0,1),(3,4)}
+    assert initial['fragments'][0]['source'] is initial['fragments'][1]['source']
+    snapshot=repair.dumps()
+    repair=FragmentRepair(source,target)
+    repair.loads(snapshot)
+    for deferred in (((4,5),),()):
+        actual=raw(source,target,0,[-1]*6,(),deferred=deferred,replay=repair)
+        assert actual==raw(source,target,0,[-1]*6,(),deferred=deferred)
+        assert actual['fragments']==initial['fragments']
+        assert actual['fragments'][0]['source'] is actual['fragments'][1]['source']
+        assert set(actual['deferred_edges'])=={(0,1),*deferred}
+    assert set(initial['deferred_edges'])=={(0,1),(3,4)}
+    assert repair.stats()['full_hits']==2
     assert repair.stats()['boundary_rebases']==2
 
 
 def test_changed_occupancy_cannot_hide_new_seed_alternatives():
     source=graph(6,[(0,1),(1,2),(3,4),(4,5)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits)
+    repair=FragmentRepair(source,source)
     expected=[]
     for mapping in ([-1]*3+[3,4,5],[-1]*6):
-        fresh=raw(source,source,orbits,0,mapping,())
-        assert raw(source,source,orbits,0,mapping,(),replay=repair)==fresh
+        fresh=raw(source,source,0,mapping,())
+        assert raw(source,source,0,mapping,(),replay=repair)==fresh
         expected.append(fresh)
     assert expected[0]!=expected[1]
     assert repair.stats()['full_hits']==0
@@ -64,8 +76,7 @@ def test_changed_contexts_and_cuts_match_fresh_results(tol,budget):
         if trial%2:edges.append((0,4,1.))
         source=graph(9,edges,elements)
         target=graph(9,edges[:-1]+[(1,5,.8)],elements)
-        orbits=_nauty_orbits(target,wbo_tol=tol)
-        repair=FragmentRepair(source,target,orbits,cache_bytes=budget)
+        repair=FragmentRepair(source,target,cache_bytes=budget)
         for _ in range(40):
             mapping=[-1]*9
             locked=list(map(int,rng.choice(6,3,replace=False)))
@@ -75,44 +86,39 @@ def test_changed_contexts_and_cuts_match_fresh_results(tol,budget):
             deferred=() if rng.integers(2)==0 else (edges[int(rng.integers(len(edges)))][:2],)
             seed=int(rng.integers(9));cap=int(rng.choice([1,3,100]))
             kw=dict(cap=cap,tol=tol,islands=islands,deferred=deferred)
-            assert raw(source,target,orbits,seed,mapping,cut,replay=repair,**kw)==raw(
-                source,target,orbits,seed,mapping,cut,**kw),(trial,mapping,islands,cut)
+            assert raw(source,target,seed,mapping,cut,replay=repair,**kw)==raw(
+                source,target,seed,mapping,cut,**kw),(trial,mapping,islands,cut)
 
 
 def test_complete_compressed_search_graphs_and_generators():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
-    orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits)
+    repair=FragmentRepair(source,target)
     for order in (list(range(9)),list(reversed(range(9))),[4,2,6,0,1,3,5,7,8]):
         for cut in ((),((2,3),),((0,6),),((0,1),)):
             view=repair.for_cut(cut)
-            options=dict(cuts=cut,max_branches=100,p_orbits=orbits,iso_tol=1.)
+            options=dict(cuts=cut,max_branches=100,iso_tol=1.)
             expected=find_islands(view.source,target,order,**options)
             actual=find_islands(view.source,target,order,fragment_cache=view,**options)
-            assert actual==expected
-            expected,_=finalize_graph_symmetry(expected,target,iso_tolerance=1.)
-            actual,_=finalize_graph_symmetry(actual,target,iso_tolerance=1.)
             assert actual==expected
 
 
 def test_eviction_bounds_retention_without_changing_results():
     source=graph(8,[(i,(i+1)%8) for i in range(8)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    probe=FragmentRepair(source,source,orbits)
-    raw(source,source,orbits,0,[-1]*8,(),replay=probe)
+    probe=FragmentRepair(source,source)
+    raw(source,source,0,[-1]*8,(),replay=probe)
     budget=2*probe.stats()['resident_bytes']
-    repair=FragmentRepair(source,source,orbits,cache_bytes=budget)
+    repair=FragmentRepair(source,source,cache_bytes=budget)
     for _ in range(3):
         for seed in range(8):
-            assert raw(source,source,orbits,seed,[-1]*8,(),replay=repair)==raw(
-                source,source,orbits,seed,[-1]*8,())
+            assert raw(source,source,seed,[-1]*8,(),replay=repair)==raw(
+                source,source,seed,[-1]*8,())
             stats=repair.stats()
             assert 0 < stats['resident_bytes'] <= stats['peak_resident_bytes'] <= budget
     assert repair.stats()['evictions'] > 0
     assert repair.stats()['entries'] <= 2
     before=repair.stats()
-    raw(source,source,orbits,7,[-1]*8,(),replay=repair)
+    raw(source,source,7,[-1]*8,(),replay=repair)
     after=repair.stats()
     assert after['full_hits']==before['full_hits']+1
     assert after['resident_bytes']==before['resident_bytes']
@@ -120,11 +126,10 @@ def test_eviction_bounds_retention_without_changing_results():
 
 def test_oversized_results_are_returned_without_retention():
     source=graph(8,[(i,i+1) for i in range(7)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    repair=FragmentRepair(source,source,orbits,cache_bytes=1)
+    repair=FragmentRepair(source,source,cache_bytes=1)
     for _ in range(3):
-        assert raw(source,source,orbits,0,[-1]*8,(),replay=repair)==raw(
-            source,source,orbits,0,[-1]*8,())
+        assert raw(source,source,0,[-1]*8,(),replay=repair)==raw(
+            source,source,0,[-1]*8,())
     stats=repair.stats()
     assert stats['entries']==stats['resident_bytes']==stats['peak_resident_bytes']==0
     assert stats['oversized_results']==3
@@ -134,8 +139,7 @@ def test_public_fragment_cache_reuses_complete_results():
     from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
     from test_fragment_growth import record
     source=graph(6,[(i,(i+1)%6) for i in range(6)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    cache=FragmentRepair(source,source,orbits)
+    cache=FragmentRepair(source,source)
     view=cache.for_cut(())
     context=FragmentMatchContext(fragment_cache=view)
     config=FragmentMatchConfig(iso_tolerance=1.)
@@ -147,31 +151,30 @@ def test_public_fragment_cache_reuses_complete_results():
 
 def test_snapshot_preserves_results_dependencies_and_caps():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    cache=FragmentRepair(source,source,orbits)
+    cache=FragmentRepair(source,source)
     requests=[(0,[-1]*9,(),dict(cap=cap)) for cap in (1,3,100)]
     requests += [(0,[-1]*6+[6,7,8],((2,3),),dict(cap=3,islands=[(6,1),(7,1),(8,2)])),
                  (2,[-1]*9,((0,1),),dict(cap=100,deferred=((2,3),)))]
     for seed,mapping,cut,options in requests:
-        raw(source,source,orbits,seed,mapping,cut,replay=cache,**options)
-    restored=FragmentRepair(source,source,orbits)
+        raw(source,source,seed,mapping,cut,replay=cache,**options)
+    restored=FragmentRepair(source,source)
     restored.loads(cache.dumps())
     for seed,mapping,cut,options in requests:
-        assert raw(source,source,orbits,seed,mapping,cut,replay=restored,**options)==raw(
-            source,source,orbits,seed,mapping,cut,**options)
+        assert raw(source,source,seed,mapping,cut,replay=restored,**options)==raw(
+            source,source,seed,mapping,cut,**options)
     assert restored.stats()['full_hits']==len(requests)
     # A changed lock must still invalidate a saved entry after transport.
     mapping=[-1]*8+[8]
-    assert raw(source,source,orbits,0,mapping,(),replay=restored)==raw(source,source,orbits,0,mapping,())
+    assert raw(source,source,0,mapping,(),replay=restored)==raw(source,source,0,mapping,())
     assert restored.stats()['full_hits']==len(requests)
     before=restored.stats()['entries']
     with pytest.raises(ValueError,match='Truncated'):
         restored.loads(cache.dumps()[:-1])
     assert restored.stats()['entries']==before
-    changed=FragmentRepair(source,source,orbits,bond_tolerance=BondTolerance(.25))
+    changed=FragmentRepair(source,source,bond_tolerance=BondTolerance(.25))
     with pytest.raises(ValueError,match='context differs'):
         changed.loads(cache.dumps())
-    tiny=FragmentRepair(source,source,orbits,cache_bytes=1)
+    tiny=FragmentRepair(source,source,cache_bytes=1)
     tiny.loads(cache.dumps())
     assert tiny.stats()['resident_bytes']==tiny.stats()['entries']==0
 
@@ -207,34 +210,50 @@ assert stats['full_hits']==stats['calls'] and stats['calls']>0
         env={**os.environ, 'PYTHONPATH': str(Path(__file__).parent) + os.pathsep + os.environ.get('PYTHONPATH', '')})
 
 
+def test_incompatible_snapshot_layout_does_not_replace_resident_results():
+    import sys
+    source=graph(4,[(0,1),(1,2),(2,3)])
+    repair=FragmentRepair(source,source)
+    expected=raw(source,source,0,[-1]*4,(),replay=repair)
+    snapshot=repair.dumps()
+    header_end=8+int.from_bytes(snapshot[:8],sys.byteorder)
+    # Prior snapshots began directly with context identity. Keeping the same
+    # identity must not let an incompatible entry layout reach the parser.
+    previous_layout=snapshot[header_end:]
+    entries=repair.stats()['entries']
+    with pytest.raises(ValueError,match='Unsupported fragment cache schema'):
+        repair.loads(previous_layout)
+    assert repair.stats()['entries']==entries
+    assert raw(source,source,0,[-1]*4,(),replay=repair)==expected
+    assert repair.stats()['full_hits']==1
+
+
 def test_snapshot_import_retains_local_answers_without_duplicate_entries():
     source=graph(8,[(i,i+1) for i in range(7)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    remote=FragmentRepair(source,source,orbits)
-    local=FragmentRepair(source,source,orbits)
-    raw(source,source,orbits,0,[-1]*8,(),replay=remote)
-    raw(source,source,orbits,7,[-1]*8,(),replay=local)
+    remote=FragmentRepair(source,source)
+    local=FragmentRepair(source,source)
+    raw(source,source,0,[-1]*8,(),replay=remote)
+    raw(source,source,7,[-1]*8,(),replay=local)
     assert local.loads(remote.dumps())  # This worker has an unpublished answer.
     entries=local.stats()['entries']
     assert local.loads(remote.dumps())
     assert local.stats()['entries']==entries
     before=local.stats()['full_hits']
     for seed in (0,7):
-        assert raw(source,source,orbits,seed,[-1]*8,(),replay=local)==raw(source,source,orbits,seed,[-1]*8,())
+        assert raw(source,source,seed,[-1]*8,(),replay=local)==raw(source,source,seed,[-1]*8,())
     assert local.stats()['full_hits']==before+2
     assert not remote.loads(local.dumps())  # The union covers all its local answers.
 
 
 def test_recent_cut_hit_does_not_scan_older_cut_results():
     source=graph(20,[(i,i+1) for i in range(19)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    cache=FragmentRepair(source,source,orbits)
+    cache=FragmentRepair(source,source)
     for edge in range(18):
-        raw(source,source,orbits,0,[-1]*20,((edge,edge+1),),replay=cache)
+        raw(source,source,0,[-1]*20,((edge,edge+1),),replay=cache)
     before=cache.stats()
     for _ in range(10):
-        assert raw(source,source,orbits,0,[-1]*20,((17,18),),replay=cache)==raw(
-            source,source,orbits,0,[-1]*20,((17,18),))
+        assert raw(source,source,0,[-1]*20,((17,18),),replay=cache)==raw(
+            source,source,0,[-1]*20,((17,18),))
     after=cache.stats()
     assert after['full_hits']-before['full_hits']==10
     assert after['dependency_checks']-before['dependency_checks']==10
@@ -242,14 +261,41 @@ def test_recent_cut_hit_does_not_scan_older_cut_results():
 
 def test_reused_older_entry_becomes_first_choice_for_next_request():
     source=graph(10,[(i,i+1) for i in (0,1,2,3,5,6,7,8)])
-    orbits=_nauty_orbits(source,wbo_tol=1.)
-    cache=FragmentRepair(source,source,orbits)
+    cache=FragmentRepair(source,source)
     for cut in (((8,9),),((2,3),),((7,8),)):
-        assert raw(source,source,orbits,0,[-1]*10,cut,replay=cache)==raw(source,source,orbits,0,[-1]*10,cut)
+        assert raw(source,source,0,[-1]*10,cut,replay=cache)==raw(source,source,0,[-1]*10,cut)
     before=cache.stats()
     for _ in range(10):
-        assert raw(source,source,orbits,0,[-1]*10,((6,7),),replay=cache)==raw(
-            source,source,orbits,0,[-1]*10,((6,7),))
+        assert raw(source,source,0,[-1]*10,((6,7),),replay=cache)==raw(
+            source,source,0,[-1]*10,((6,7),))
     after=cache.stats()
     assert after['full_hits']-before['full_hits']==10
     assert after['dependency_checks']-before['dependency_checks']==10
+
+
+def test_cache_separates_self_tolerance_without_restricting_discovery():
+    from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
+    from growth_cases import discovery_mappings, represented
+    source = graph(3, [(0, 1, 1.), (0, 2, 2.)], ['O', 'C', 'C'])
+    cache = FragmentRepair(source, source)
+    view = cache.for_cut(())
+    context = FragmentMatchContext(fragment_cache=view)
+    strict = FragmentMatchConfig(iso_tolerance=.1, self_tolerance=.1)
+    relaxed = FragmentMatchConfig(iso_tolerance=.1, self_tolerance=1.5)
+    initial = match_fragment(view.source, source, seed=0, context=context, config=strict)
+    expanded = match_fragment(view.source, source, seed=0, context=context, config=relaxed)
+    assert len(initial.matches) == len(expanded.matches) == 1
+    assert discovery_mappings(initial.matches[0]) == discovery_mappings(expanded.matches[0]) == {
+        ((0, 0), (1, 1), (2, 2))}
+    assert represented(initial.matches) == {((0, 0), (1, 1), (2, 2))}
+    assert represented(expanded.matches) == {
+        ((0, 0), (1, 1), (2, 2)), ((0, 0), (1, 2), (2, 1))}
+    assert cache.stats()['full_hits'] == 0
+    restored = FragmentRepair(source, source)
+    restored.loads(cache.dumps())
+    restored_view = restored.for_cut(())
+    for config, expected in ((strict, initial), (relaxed, expanded)):
+        actual = match_fragment(restored_view.source, source, seed=0,
+            context=FragmentMatchContext(fragment_cache=restored_view), config=config)
+        assert [fragment.key for fragment in actual.matches] == [fragment.key for fragment in expected.matches]
+    assert restored.stats()['full_hits'] == 2

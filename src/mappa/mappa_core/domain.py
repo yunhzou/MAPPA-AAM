@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Mapping
+from typing import Mapping, TYPE_CHECKING
+if TYPE_CHECKING:
+    from mappa.mappa_core.core.matching.representation.records import Fragment
 
 import numpy as np
 
@@ -179,231 +181,33 @@ class PermutationGroup:
 
 
 @dataclass(frozen=True)
-class SymmetryDomain:
-    """One compressed assignment domain carried by an AAM fragment."""
-
-    r_atoms: tuple[int, ...]
-    p_atoms: tuple[int, ...]
-    source: str
-    extendable: bool = False
-
-    def __post_init__(self):
-        object.__setattr__(self, "r_atoms", tuple(sorted(map(int, self.r_atoms))))
-        object.__setattr__(self, "p_atoms", tuple(sorted(map(int, self.p_atoms))))
-
-
-@dataclass(frozen=True)
-class FragmentMatch:
-    fragment_index: int
-    island_index: int
-    r_atoms: tuple[int, ...]
-    deferred_edges: tuple[tuple[int, int], ...] = ()
-    symmetry_domains: tuple[SymmetryDomain, ...] = ()
-    representative_assignments: tuple[tuple[int, int], ...] = ()
-    exact_fixed: tuple[int, ...] = ()
-    multiplicity: int = 1
-    automorph_domains: tuple[SymmetryDomain, ...] = ()
-    target_generators: tuple[AtomPermutation, ...] | None = None
-    compression_version: int = 1
-    preserved_bonds: tuple[tuple[int, int], ...] = ()
-
-    def __post_init__(self):
-        object.__setattr__(self, "r_atoms", tuple(sorted(map(int, self.r_atoms))))
-        object.__setattr__(self, "preserved_bonds", tuple(sorted(tuple(sorted(map(int, edge)))
-                                                              for edge in self.preserved_bonds)))
-        object.__setattr__(self, "deferred_edges", tuple(sorted(
-            tuple(sorted(map(int, edge))) for edge in self.deferred_edges)))
-        object.__setattr__(self, "symmetry_domains", tuple(self.symmetry_domains))
-        object.__setattr__(self, "representative_assignments", tuple(sorted(
-            (int(source), int(target))
-            for source, target in self.representative_assignments)))
-        object.__setattr__(self, "exact_fixed", tuple(sorted(
-            map(int, self.exact_fixed))))
-        object.__setattr__(self, "multiplicity", int(self.multiplicity))
-        object.__setattr__(self, "automorph_domains", tuple(
-            self.automorph_domains))
-        if self.target_generators is not None:
-            object.__setattr__(self, "target_generators", tuple(
-                self.target_generators))
-
-    @property
-    def has_exact_target_group(self):
-        """Whether AAM supplied the exact group (including a trivial one)."""
-        return self.target_generators is not None
-
-    @property
-    def fixed_assignments(self):
-        """Assignments fixed by both saved pools and correlated target actions.
-
-        ``exact_fixed`` locks an assignment inside the local pools. A recorded
-        target action can still transport it together with the whole fragment.
-        This is local to this fragment's recorded frame, not a whole-path lock.
-        """
-        if self.target_generators is None:
-            raise ValueError('Finalize saved fragment symmetry before reading anchors')
-        pools = tuple(d for d in self.symmetry_domains
-                      if d.source != 'exact_automorph_group')
-        pooled = {r for d in pools for r in d.r_atoms}
-        fixed_targets = {p for r, p in self.representative_assignments
-                         if r in self.exact_fixed or r not in pooled}
-        moving = set()
-        for domain in pools:
-            free = set(domain.p_atoms) - fixed_targets
-            if len(free) > 1:
-                moving.update(free)
-        for generator in self.target_generators:
-            moving.update(p for p, q in enumerate(generator.images) if p != q)
-        return tuple((r, p) for r, p in self.representative_assignments
-                     if p not in moving)
-
-
-@dataclass(frozen=True)
 class AAMHierarchy:
-    fragments: tuple[FragmentMatch, ...]
+    """Chronological references to completed fragments in their saved frames."""
+    fragments: tuple[Fragment, ...]
 
     @property
     def segments(self):
-        """Shared base fragments and their correlated coordinate transforms."""
         return ((self, ()),)
 
     def relabel_target(self, action):
-        """Keep a correlated transform as a shared view until inspected."""
-        action = tuple(sorted(dict(action).items()))
+        """Keep a coordinate transform shared until explicitly inspected."""
+        action = tuple(sorted((a, b) for a, b in dict(action).items() if a != b))
         return AAMHierarchyView(self, action) if action else self
 
     def _materialize_target(self, action):
-        """Transport a hierarchy by one correlated target permutation.
-
-        Unmentioned atoms (including augmentation copies) are fixed. Exact
-        generators are conjugated, not copied into the old target frame.
-        """
-        from dataclasses import replace
-        from mappa._group_ops import conjugate_generators
-        action = dict(action)
-        extent = max(max(action, default=-1), max(action.values(), default=-1)) + 1
-        generators = tuple(g for f in self.fragments for g in (f.target_generators or ()))
-        if all(a == b for a, b in action.items()) and all(g.degree >= extent for g in generators):
-            return self
-        unique = {g.images: g for g in generators}
-        transformed = conjugate_generators(tuple(unique), tuple(action.get(a, a) for a in range(extent)))
-        transported = {old: unique[old] if old == moved else AtomPermutation(moved)
-                       for old, moved in zip(unique, transformed, strict=True)}
-        def image(atom):
-            return int(action.get(atom, atom))
-        def domain(item):
-            return replace(item, p_atoms=tuple(image(a) for a in item.p_atoms))
-        def generator(item):
-            return transported[item.images]
-        return AAMHierarchy(tuple(replace(fragment,
-            representative_assignments=tuple((a, image(b)) for a, b in
-                                               fragment.representative_assignments),
-            symmetry_domains=tuple(domain(d) for d in fragment.symmetry_domains),
-            automorph_domains=tuple(domain(d) for d in fragment.automorph_domains),
-            target_generators=(None if fragment.target_generators is None else
-                               tuple(generator(g) for g in fragment.target_generators)))
-            for fragment in self.fragments))
+        transported = {}
+        for fragment in self.fragments:
+            if id(fragment) not in transported:
+                transported[id(fragment)] = fragment.relabel_target(action)
+        return AAMHierarchy(tuple(transported[id(fragment)] for fragment in self.fragments))
 
     @classmethod
-    def from_record(cls, branch_symmetry, *, generator_pool=None):
-        # The owner controls the pool lifetime; never retain graphs globally.
-        generator_pool = {} if generator_pool is None else generator_pool
-        def permutation(raw):
-            images = tuple(map(int, raw))
-            if images not in generator_pool:
-                generator_pool[images] = AtomPermutation(images)
-            return generator_pool[images]
-        fragments = []
-        for position, raw in enumerate(
-                dict(branch_symmetry or {}).get("fragments") or ()):
-            symmetry = raw.get("symmetry") or {}
-            raw_generators = symmetry.get("automorph_generators")
-            domains = []
-            for block in symmetry.get("blocks") or ():
-                domains.append(SymmetryDomain(
-                    tuple(block.get("r_atoms") or ()),
-                    tuple(block.get("p_atoms") or ()),
-                    str(block.get("source") or "sym_block"),
-                    bool(block.get("extendable", False))))
-            automorph_domains = tuple(SymmetryDomain(
-                tuple(block.get("r_atoms") or ()),
-                tuple(block.get("p_atoms") or ()),
-                str(block.get("source") or "exact_automorph_group"),
-                bool(block.get("extendable", False)))
-                for block in symmetry.get("automorph_blocks") or ())
-            fragments.append(FragmentMatch(
-                fragment_index=int(raw.get("fragment_index", position)),
-                island_index=int(raw.get("island_idx", position)),
-                r_atoms=tuple(sorted(map(int, raw.get("fragment") or ()))),
-                preserved_bonds=tuple(map(tuple, raw.get("preserved_bonds", ()))),
-                deferred_edges=tuple(
-                    tuple(sorted(map(int, edge)))
-                    for edge in raw.get("deferred_edges") or ()),
-                symmetry_domains=tuple(domains),
-                representative_assignments=tuple(
-                    (int(source), int(target))
-                    for source, target in dict(
-                        symmetry.get("witness") or {}).items()),
-                exact_fixed=tuple(map(
-                    int, symmetry.get("exact_fixed") or ())),
-                multiplicity=int(symmetry.get("multiplicity", 1)),
-                compression_version=int(symmetry.get("compression_version", 1)),
-                automorph_domains=automorph_domains,
-                target_generators=(
-                    None if raw_generators is None else tuple(
-                        permutation(generator)
-                        for generator in raw_generators))))
-        return cls(tuple(fragments))
-
-    @property
-    def has_complete_exact_target_groups(self):
-        return bool(self.fragments) and all(
-            fragment.has_exact_target_group for fragment in self.fragments)
+    def from_record(cls, record):
+        from mappa.mappa_core.core.matching.representation.records import Fragment
+        return cls(tuple(Fragment.from_record(fragment) for fragment in record['fragments']))
 
     def to_record(self):
-        def domain_record(domain):
-            return {
-                "r_atoms": list(domain.r_atoms),
-                "p_atoms": list(domain.p_atoms),
-                "source": domain.source,
-                "extendable": bool(domain.extendable),
-            }
-
-        fragments = []
-        for fragment in self.fragments:
-            symmetry = {
-                "witness": dict(fragment.representative_assignments),
-                "blocks": [
-                    domain_record(domain)
-                    for domain in fragment.symmetry_domains
-                ],
-                "exact_fixed": list(fragment.exact_fixed),
-                "compression_version": fragment.compression_version,
-            }
-            if fragment.compression_version < 3:
-                symmetry["multiplicity"] = int(fragment.multiplicity)
-                symmetry["automorph_blocks"] = [
-                    domain_record(domain)
-                    for domain in fragment.automorph_domains
-                ]
-            if fragment.target_generators is not None:
-                symmetry["automorph_generators"] = [
-                    list(generator.images)
-                    for generator in fragment.target_generators
-                ]
-            fragments.append({
-                "fragment_index": int(fragment.fragment_index),
-                "island_idx": int(fragment.island_index),
-                "fragment": list(fragment.r_atoms),
-                "preserved_bonds": [list(edge) for edge in fragment.preserved_bonds],
-                "deferred_edges": [
-                    list(edge) for edge in fragment.deferred_edges],
-                "symmetry": symmetry,
-            })
-        return {
-            "rule": "typed_aam_hierarchy",
-            "fragments": fragments,
-            "blocks": [],
-        }
+        return {'fragments': [fragment.to_record() for fragment in self.fragments]}
 
 
 @dataclass(frozen=True)
@@ -425,10 +229,6 @@ class AAMHierarchyView:
     def fragments(self):
         return self.materialized.fragments
 
-    @property
-    def has_complete_exact_target_groups(self):
-        return self.base.has_complete_exact_target_groups
-
     def relabel_target(self, action):
         action, prior = dict(action), dict(self.target_action)
         if not action:
@@ -438,7 +238,7 @@ class AAMHierarchyView:
         return AAMHierarchyView(self.base, combined)
 
     def to_record(self):
-        """Explicitly requested, fully materialized legacy hierarchy record."""
+        """Explicitly requested, fully materialized hierarchy record."""
         return self.materialized.to_record()
 
 
@@ -461,10 +261,6 @@ class AAMHierarchyChain:
     def fragments(self):
         """Materialize only when a consumer explicitly requests full fragments."""
         return tuple(fragment for part in self.parts for fragment in part.fragments)
-
-    @property
-    def has_complete_exact_target_groups(self):
-        return bool(self.parts) and all(part.has_complete_exact_target_groups for part in self.parts)
 
     def relabel_target(self, action):
         return AAMHierarchyChain(tuple(part.relabel_target(action) for part in self.parts))
@@ -583,9 +379,10 @@ class AAMSearchConfig:
     seed_selection: str = 'random'
     random_seed: int = 42
     sweep_cuts: bool = True
+    self_tolerance: float = 1.0
 
     def __post_init__(self):
-        for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):
+        for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'self_tolerance', 'event_threshold'):
             if not math.isfinite(getattr(self, name)):
                 raise ValueError(f'{name} must be finite')
         if self.metal_event_threshold is not None and (
@@ -601,6 +398,8 @@ class AAMSearchConfig:
             raise ValueError("graph and cut floors must be positive")
         if self.iso_tolerance <= 0:
             raise ValueError("isomorphism tolerance must be positive")
+        if self.self_tolerance < 0:
+            raise ValueError('relaxed self tolerance must be nonnegative')
         if self.event_threshold <= 0:
             raise ValueError("event threshold must be positive")
         if self.seed_count < 1 or self.branch_limit < 1:
@@ -625,15 +424,10 @@ class AAMSearchMetrics:
     max_live_branches: int
     max_growth_candidates: int
     subtree_branch_cap_count: int
-    worker_returned_branch_count: int
     parent_merge_seconds: float
-    completed_group_requests: int = 0
-    completed_group_calculations: int = 0
-    completed_group_cache_hits: int = 0
     worker_search_seconds: float | None = None
     checkpoint_seconds: float | None = None
-    symmetry_finalization_seconds: float | None = None
-    checkpoint_restore_and_finalize_seconds: float | None = None
+    checkpoint_restore_seconds: float | None = None
 
     @classmethod
     def from_record(cls, record, elapsed_seconds):
@@ -647,19 +441,10 @@ class AAMSearchMetrics:
             max_growth_candidates=int(record.get("max_growth_candidates", 0)),
             subtree_branch_cap_count=int(
                 record.get("subtree_branch_cap_count", 0)),
-            worker_returned_branch_count=int(
-                record.get("worker_returned_branch_count", 0)),
             parent_merge_seconds=float(record.get("parent_merge_seconds", 0.0)),
-            completed_group_requests=int(record.get(
-                "completed_candidate_group_requests", 0)),
-            completed_group_calculations=int(record.get(
-                "completed_candidate_group_calculations", 0)),
-            completed_group_cache_hits=int(record.get(
-                "completed_candidate_group_cache_hits", 0)),
             worker_search_seconds=record.get('worker_search_seconds'),
             checkpoint_seconds=record.get('checkpoint_seconds'),
-            symmetry_finalization_seconds=record.get('symmetry_finalization_seconds'),
-            checkpoint_restore_and_finalize_seconds=record.get('checkpoint_restore_and_finalize_seconds'),
+            checkpoint_restore_seconds=record.get('checkpoint_restore_seconds'),
         )
 
 

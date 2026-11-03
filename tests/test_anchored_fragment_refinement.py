@@ -12,15 +12,18 @@ from mappa import FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
-from mappa.mappa_core.core.matching.representation.state import candidate_from_record
-from test_growth_compression_exactness import graph, represented
+from growth_cases import graph as make_graph, represented, discovery_mappings
 
 
-def anchored_match(source, target, tolerance):
+def graph(elements, edges):
+    return make_graph(len(elements), edges, elements)
+
+
+def anchored_match(source, target, tolerance, *, self_tolerance=1.):
     return match_fragment(
         source, target, seed=0,
         context=FragmentMatchContext(locked_mapping={0: 0}, islands={0: 0}),
-        config=FragmentMatchConfig(iso_tolerance=tolerance,
+        config=FragmentMatchConfig(iso_tolerance=tolerance, self_tolerance=self_tolerance,
                                    allow_mapped_seed=True, branch_limit=100))
 
 
@@ -42,23 +45,25 @@ def test_anchored_three_atom_rematch(native, monkeypatch):
     identity = ((0, 0), (1, 1), (2, 2))
     swapped = ((0, 0), (1, 2), (2, 1))
     outcomes = []
-    for tolerance, expected in [(1., {identity, swapped}), (.5, {identity})]:
+    for tolerance, self_tolerance, expected in [
+            (1., 1., {identity, swapped}), (.5, 1., {identity, swapped}), (.5, .5, {identity})]:
         cpu = time.process_time()
-        result = anchored_match(source, target, tolerance)
+        result = anchored_match(source, target, tolerance, self_tolerance=self_tolerance)
         elapsed_cpu = time.process_time() - cpu
         assert not result.capped
-        assert all(match.fragment == frozenset(range(3)) for match in result.matches)
-        actual = represented([candidate_from_record(m.symmetry)
-                              for m in result.matches], target, tolerance)
+        assert all(match.source_atoms == (0, 1, 2) for match in result.matches)
+        actual = represented(result.matches)
+        discovery = set().union(*(discovery_mappings(fragment) for fragment in result.matches))
+        assert discovery == ({identity, swapped} if tolerance == 1. else {identity})
         assert actual == expected
         assert all(dict(mapping)[0] == 0 for mapping in actual)
-        outcomes.append(dict(tolerance=tolerance, branches=len(result.matches),
+        outcomes.append(dict(tolerance=tolerance, self_tolerance=self_tolerance, branches=len(result.matches),
                              mappings=sorted(actual),
                              events=sorted(event_count(source, target, dict(m)) for m in actual),
                              wall_seconds=result.elapsed_seconds, cpu_seconds=elapsed_cpu))
-    # The full island scheduler also takes the intact tight match. It does not
-    # automatically preserve the looser swapped alternative as split islands.
-    tight = find_islands(source, target, [0, 1, 2], iso_tol=.5,
+    # Tight discovery and tight self constraints retain only the identity;
+    # loose self constraints above retain both without splitting the fragment.
+    tight = find_islands(source, target, [0, 1, 2], iso_tol=.5, self_tolerance=.5,
                          anchor_map={0: 0}, max_branches=100)
     tight_paths = list(tight.paths())
     assert tight_paths
@@ -66,7 +71,7 @@ def test_anchored_three_atom_rematch(native, monkeypatch):
     assert event_count(source, target, dict(swapped)) == 2
     print(json.dumps(dict(native=native, matches=outcomes,
                           tight_scheduler_paths=len(tight_paths),
-                          conversion_still_needs_split_alternative=swapped)), flush=True)
+                          swapped_bond_events=2)), flush=True)
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
@@ -76,8 +81,8 @@ def test_matching_threshold_equality_is_unchanged(native, monkeypatch):
     target = graph(['C', 'C'], [(0, 1, 1.5)])
     result = anchored_match(source, target, .5)
     assert not result.capped and len(result.matches) == 1
-    assert result.matches[0].fragment == frozenset((0, 1))
-    assert event_count(source, target, result.matches[0].mapping) == 0
+    assert result.matches[0].source_atoms == (0, 1)
+    assert event_count(source, target, dict(result.matches[0].witness)) == 0
     print(json.dumps(dict(native=native, delta=.5,
                           accepted_internal_bond=True, events=0)), flush=True)
 
@@ -94,7 +99,7 @@ def test_ordinary_and_metal_anchored_pair_thresholds(elements, delta, monkeypatc
                                      default_threshold=.5, metal_threshold=.3)
     result = anchored_match(source, target, threshold)
     assert not result.capped
-    intact = any(match.fragment == frozenset((0, 1)) for match in result.matches)
+    intact = any(match.source_atoms == (0, 1) for match in result.matches)
     events = event_count(source, target, {0: 0, 1: 1})
     assert intact == (delta <= threshold)
     assert events == int(delta > threshold)
@@ -108,7 +113,7 @@ def test_mixed_fragment_needs_pair_specific_matching_policy(monkeypatch):
     target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
     result = anchored_match(source, target, .5)
     assert not result.capped and len(result.matches) == 1
-    assert result.matches[0].fragment == frozenset((0, 1, 2))
+    assert result.matches[0].source_atoms == (0, 1, 2)
     broken, formed, _, _ = classify_bonds(
         {0: 0, 1: 1, 2: 2}, source.graph['wbo_matrix'], target.graph['wbo_matrix'],
         dwbo_threshold=.5, metal_dwbo_threshold=.3,

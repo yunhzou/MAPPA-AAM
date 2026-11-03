@@ -18,11 +18,6 @@ def _search_input(problem, config, execution):
     return SearchInput(problem_from_record(problem), config, execution)
 
 
-def _catalogue_result(case, problem, catalogue, scope, stops, search_config, execution):
-    return CatalogueResult(case, FinalBranchCatalogue.from_record(problem_from_record(problem), catalogue),
-                           scope, stops, search_config, execution)
-
-
 @dataclass(frozen=True)
 class SearchInput:
     problem: AAMProblem
@@ -46,7 +41,6 @@ class CutResult:
     cut: int
     seeds: int
     search_counts: tuple[dict, ...]
-    finalization_counts: dict
 
 
 @dataclass(frozen=True)
@@ -58,7 +52,7 @@ class CutScope:
 
 @dataclass(frozen=True)
 class MatchingResult:
-    """All finalized cuts of one declared reaction/direction; graphs stay in store."""
+    """All completed cuts of one declared reaction/direction; graphs stay in store."""
     case: str
     input: ArtifactRef
     scope: tuple[CutScope, ...]
@@ -73,11 +67,6 @@ class CatalogueResult:
     stops: tuple[tuple[str, int], ...]
     search_config: AAMSearchConfig
     execution: str
-
-    def __reduce__(self):
-        return _catalogue_result, (self.case, _problem_record(self.catalogue.problem),
-            self.catalogue.to_record(), self.scope, self.stops, self.search_config, self.execution)
-
 
 @dataclass(frozen=True)
 class DecodingResult:

@@ -95,9 +95,7 @@ def compete_fragments(a, config=None):
     from mappa.mappa_core.core.matching.graphs import build_graph
     from mappa.mappa_core.core.matching.api import match_fragment
     from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
-    from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
     from mappa.mappa_core.core.search.branching.native import find_islands_native
-    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     from mappa.mappa_core.core.matching.growth.native import available
 
@@ -156,11 +154,8 @@ def compete_fragments(a, config=None):
     target = build_graph(
         problem.product.elements, problem.product.wbo, bond_cut=cfg.graph_floor
     )
-    po = _nauty_orbits(target, wbo_tol=cfg.iso_tolerance)
-    from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
     from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
 
-    symmetry_workspace = ConditionedSymmetryWorkspace(target, cfg.iso_tolerance)
     validation_workspace = RepresentativeValidationWorkspace(problem)
     sources = {}
     offers_cache = {}
@@ -260,10 +255,10 @@ def compete_fragments(a, config=None):
                     proposal_source,
                     target,
                     seed=seed,
-                    context=FragmentMatchContext({}, {}, (), target_orbits=po),
+                    context=FragmentMatchContext(),
                     config=FragmentMatchConfig(
                         graph_floor=cfg.graph_floor,
-                        iso_tolerance=cfg.iso_tolerance,
+                        iso_tolerance=cfg.iso_tolerance, self_tolerance=cfg.self_tolerance,
                         branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,
                         allow_mapped_seed=False,
                     ),
@@ -274,10 +269,10 @@ def compete_fragments(a, config=None):
                 continue
             for placement in result.matches:
                 plan = takeover_plan(
-                    old, owners, owner, dict(placement), allow_b_relocation=True
+                    old, owners, owner, dict(placement.witness), allow_b_relocation=True
                 )
                 counts["offers"] += 1
-                if contact not in placement:
+                if contact not in placement.source_atoms:
                     counts["no_contact_reached"] += 1
                     continue
                 if not plan["touched_owners"] or not plan["changed"]:
@@ -360,15 +355,9 @@ def compete_fragments(a, config=None):
                     graph_floor=cfg.graph_floor,
                     iso_tol=cfg.iso_tolerance,
                     max_branches=cfg.branch_limit,
-                    p_orbits=po,
+                    self_tolerance=cfg.self_tolerance,
                     cuts=effective_cuts,
                     anchor_map=anchors,
-                )
-                graph, _ = finalize_graph_symmetry(
-                    graph,
-                    target,
-                    iso_tolerance=cfg.iso_tolerance,
-                    workspace=symmetry_workspace,
                 )
                 # A shared terminal witness can satisfy all ancestor constraints
                 # at once; otherwise the same validator checks each history.
@@ -395,7 +384,7 @@ def compete_fragments(a, config=None):
                     contact=contact,
                     B_atoms=atoms,
                     B_prefix=sorted(base.items()),
-                    B_placement=sorted(dict(placement).items()),
+                    B_placement=sorted(dict(placement.witness).items()),
                     cuts=cuts,
                     released_preservation_edges=released_edges,
                     effective_cuts=effective_cuts,
@@ -444,8 +433,6 @@ def compete_fragments(a, config=None):
                             )
                         )
                 offers.append(dict(proof, full_witnesses=full))
-    for name, value in symmetry_workspace.stats().items():
-        counts[f"symmetry_{name}"] = value
     for name, value in validation_workspace.stats.items():
         counts[f"validation_{name}"] = value
     return CompetitionResult(

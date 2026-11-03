@@ -4,7 +4,7 @@ The permitted shuffles need not form a group. Structural generators describe
 the broad space; shared bond responses constrain their final joint action.
 """
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from functools import cached_property
 import math
 from numbers import Integral
@@ -40,6 +40,50 @@ class RelaxedAutomorphism:
     weights: np.ndarray = field(repr=False)
     edges: tuple[tuple[int, int], ...] = field(repr=False)
     projected_pair_states: int = field(repr=False)
+
+    @cached_property
+    def key(self):
+        return (self.atoms, self.elements, self.anchors, self.bond_threshold,
+                self.tolerance, self.generators, self.weights.tobytes())
+
+    def __reduce__(self):
+        return type(self)._from_binary, tuple(getattr(self, item.name) for item in fields(self))
+
+    @classmethod
+    def _from_binary(cls, *values):
+        result = cls(*values)
+        result.weights.setflags(write=False)
+        return result
+
+    def to_record(self, *, pool=None):
+        if pool is not None and self.key in pool:
+            return pool[self.key]
+        record = dict(atoms=self.atoms, elements=self.elements, anchors=self.anchors,
+                    bond_threshold=self.bond_threshold, tolerance=self.tolerance,
+                    generators=self.generators, weights=self.weights.tolist())
+        if pool is not None:
+            pool[self.key] = record
+        return record
+
+    @classmethod
+    def from_record(cls, record, *, pool=None):
+        """Restore saved structural preparation; never repeat graph matching."""
+        weights = np.asarray(record['weights'], dtype=float)
+        weights.setflags(write=False)
+        generators = tuple(tuple(g) for g in record['generators'])
+        threshold, tolerance = float(record['bond_threshold']), float(record['tolerance'])
+        key = (tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
+               threshold, tolerance, generators, weights.tobytes())
+        if pool is not None and key in pool:
+            return pool[key]
+        edges = tuple((int(a), int(b)) for a, b in
+                      zip(*np.nonzero(np.triu(weights > threshold, 1))))
+        constraints, projected = _constraints(weights, tolerance, generators)
+        result = cls(tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
+                     threshold, tolerance, generators, constraints, weights, edges, projected)
+        if pool is not None:
+            pool[key] = result
+        return result
 
     @cached_property
     def _evaluation(self):

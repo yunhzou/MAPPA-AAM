@@ -9,16 +9,13 @@ from mappa.mappa_core.core.search.branching.construction import _Branch
 from mappa.mappa_core.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import (
     SearchContext,
     SearchGraphBuilder,
     FragmentTransition,
     SearchStop,
 )
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.matching.graphs import build_graph
-from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
 
 
 class _SharedGraphBuilder(SearchGraphBuilder):
@@ -35,17 +32,17 @@ class _SharedGraphBuilder(SearchGraphBuilder):
             self.nodes[key] = super().state(branch)
         return self.nodes[key]
 
-    def commit(self, parent, branch, match, preserved_bonds):
+    def commit(self, parent, branch, match, island):
         node = self.state(branch)
         # Index by endpoints, then compare complete records exactly. Recursively
         # freezing every record duplicated the largest payloads just for hashing.
         # The DAG already owns them; no approximate digest or dropped field is needed.
         siblings = self.edges.setdefault((parent, node), [])
-        if not any(self.transitions[i].match == match and
-                   self.transitions[i].preserved_bonds == preserved_bonds for i in siblings):
+        if not any(self.transitions[i].match.key == match.key and
+                   self.transitions[i].island == island for i in siblings):
             siblings.append(len(self.transitions))
             self.transitions.append(FragmentTransition(len(self.transitions), parent,
-                node, self.seed, self.step, match, preserved_bonds))
+                node, self.seed, self.step, match, island))
         return node
 
     def stop(self, branch, reason, *, stage='', count=0, limit=0):
@@ -78,7 +75,8 @@ unchanged. Identical growth output is never expanded into bijections.
         # Multiple policies use this context; edge.step records policy/pass/position.
         self.builder = _SharedGraphBuilder(SearchContext(tuple(sorted(self.source)),
             tuple(sorted(self.target)), (), cuts=condition.cuts, graph_floor=config.graph_floor,
-            iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit, random_seed=config.random_seed))
+            iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit, random_seed=config.random_seed,
+            self_tolerance=config.self_tolerance))
         self.root = _Branch(self.builder)
         self.branches = {self.root.state_key():self.root}
         self.decisions = {}
@@ -114,11 +112,11 @@ unchanged. Identical growth output is never expanded into bijections.
         self.growth_calls += 1
         result = match_fragment(self.source, self.target, seed=seed,
             context=FragmentMatchContext(branch.mapping, branch.islands_R,
-                tuple(branch.deferred_edges), self.condition.orbits,
+                tuple(branch.deferred_edges),
                 fragment_cache=self.condition.fragment_cache),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
-                random_seed=self.config.random_seed),
+                random_seed=self.config.random_seed, self_tolerance=self.config.self_tolerance),
             profile=self.profile)
         if result.capped:
             self.builder.stop(branch, 'capped', stage='fragment_growth',
@@ -130,7 +128,7 @@ unchanged. Identical growth output is never expanded into bijections.
             children, changed = [], False
             for match in result.matches:
                 child = branch.fork()
-                child.commit(match)
+                child.commit(match, deferred_edges=result.deferred_edges)
                 changed |= child.state_key() != branch.state_key()
                 children.append(self.branches.setdefault(child.state_key(), child))
             children = tuple(children)
@@ -212,8 +210,6 @@ unchanged. Identical growth output is never expanded into bijections.
         if pending:
             graph = replace(graph, stops=graph.stops + tuple(SearchStop(state, 'budget', stage='shared_policy')
                 for state in sorted({p['state'] for p in pending})))
-        graph, _ = finalize_graph_symmetry(graph, self.target, iso_tolerance=self.config.iso_tolerance,
-                                          workspace=self.condition.workspace)
         metrics = AAMSearchMetrics.from_record(dict(cuts=1, raw_result_count=len(graph.terminals),
             retained_branch_count=len(graph.terminals),
             subtree_branch_cap_count=sum(s.occurrences for s in graph.stops
@@ -239,8 +235,6 @@ class AdaptiveSearchCondition:
     source: object
     target: object
     order: tuple
-    orbits: object
-    workspace: object
     cuts: tuple = ()
     fragment_cache: object = None
 
@@ -250,5 +244,4 @@ class AdaptiveSearchCondition:
             bond_cut=config.graph_floor) for endpoint in (problem.reactant, problem.product)]
         order = tuple(_generate_seed_orders(source, 1, rng_seed=config.random_seed,
                                              seed_selection=config.seed_selection)[0])
-        return cls(source, target, order, _nauty_orbits(target, wbo_tol=config.iso_tolerance),
-                   ConditionedSymmetryWorkspace(target, config.iso_tolerance))
+        return cls(source, target, order)

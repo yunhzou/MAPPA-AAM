@@ -5,9 +5,8 @@ import os
 from importlib import import_module
 import time
 from dataclasses import dataclass
-from mappa.mappa_core.core.matching.symmetry.orbits import _OrbitMap
 from mappa.mappa_core.core.matching.policy import ElementNodeMatchPolicy
-from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, _IsoResult
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, FragmentMatchResult, fragment_from_native
 
 
 try:  # pragma: no cover - depends on the build
@@ -77,81 +76,42 @@ def source_graph(g_R, bond_tolerance=None):
     return view
 
 
-def target_graph(g_P, p_orbits):
-    """Native view of the product graph plus its orbit map, cached on the map."""
-    cache = p_orbits.__dict__.setdefault("_native_target", {})
-    key = id(g_P)
-    entry = cache.get(key)
+def target_graph(g_P):
+    """One native target view of the active graph and original WBO matrix."""
+    entry = g_P.graph.get('_native_target')
     if entry is not None and entry[0] is g_P:
         return entry[1]
     nodes = tuple(sorted(map(int, g_P.nodes())))
     index = {atom: position for position, atom in enumerate(nodes)}
     rows = _wbo_rows(g_P, nodes)
-    if rows is None or set(p_orbits) != set(nodes):
+    if rows is None:
         return None
-    elements = [str(g_P.nodes[v].get("element")) for v in nodes]
-    # the bucket table must describe exactly this graph's edges
-    zero = p_orbits.zero_bucket
-    for (a, b), bucket in p_orbits.wbo_buckets.items():
-        if (bucket != zero) != g_P.has_edge(a, b):
-            return None
     native = _engine.TargetGraph(
-        elements, rows, float(g_P.graph.get("bond_cut", 0.2)),
-        _graph_edges(g_P, index),
-        [int(p_orbits[v]) for v in nodes])
+        [str(g_P.nodes[v].get('element')) for v in nodes], rows,
+        float(g_P.graph.get('bond_cut', .2)), _graph_edges(g_P, index))
     view = _NativeGraphView(native, nodes, index)
-    cache[key] = (g_P, view)
+    g_P.graph['_native_target'] = g_P, view
     return view
 
 
-def _translate_block(block, source_nodes, target_nodes):
-    translated = dict(block)
-    translated["r_atoms"] = [source_nodes[int(atom)]
-                             for atom in block.get("r_atoms", ())]
-    translated["p_atoms"] = [target_nodes[int(atom)]
-                             for atom in block.get("p_atoms", ())]
-    return translated
-
-
-def _translate_symmetry(symmetry, source_nodes, target_nodes):
-    symmetry = dict(symmetry)
-    return {
-        **symmetry,
-        "witness": {
-            source_nodes[int(source)]: target_nodes[int(target)]
-            for source, target in dict(symmetry.get("witness", {})).items()
-        },
-        "blocks": [
-            _translate_block(block, source_nodes, target_nodes)
-            for block in symmetry.get("blocks", ())
-        ],
-        "exact_fixed": [
-            source_nodes[int(atom)]
-            for atom in symmetry.get("exact_fixed", ())
-        ],
-    }
-
-
-def validate_inputs(p_orbits, node_policy, events):
+def validate_inputs(node_policy, events):
     """Reject unsupported native requests; never select another implementation."""
     if events is not None:
         raise ValueError('Native growth does not support trace events; explicitly select MAPPA_NATIVE=0')
     if type(node_policy) is not ElementNodeMatchPolicy:
         raise ValueError('Native growth requires the element node policy; explicitly select MAPPA_NATIVE=0 for custom policies')
-    if not isinstance(p_orbits, _OrbitMap) or p_orbits.zero_bucket is None or p_orbits.wbo_tol is None:
-        raise ValueError('Native growth requires exact WBO target orbits; explicitly select MAPPA_NATIVE=0 without them')
 
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
-                max_branches, islands_R, p_orbits, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None):
+                max_branches, islands_R, prior_deferred_edges,
+                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None, self_tolerance=1.0):
     """Run the selected native engine or report unsupported inputs explicitly."""
     if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentRepair):
         raise TypeError('fragment cache must be a completed-fragment cache view')
     if fragment_cache is not None and (fragment_cache.source is not g_R or fragment_cache.target is not g_P):
         raise ValueError("fragment cache view belongs to different source/target graphs")
     source_view = fragment_cache.source_view if fragment_cache is not None else source_graph(g_R, bond_tolerance)
-    target_view = fragment_cache.target_view if fragment_cache is not None else target_graph(g_P, p_orbits)
+    target_view = fragment_cache.target_view if fragment_cache is not None else target_graph(g_P)
     if fragment_cache is not None:
         recorded = source_view.bond_tolerance
         if (recorded is None) != (bond_tolerance is None) or (
@@ -159,7 +119,7 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 any(recorded.limit(a, b) != value for (a, b), value in bond_tolerance.values.items()))):
             raise ValueError("fragment cache bond tolerances differ from its source policy")
     if source_view is None or target_view is None:
-        raise ValueError('Native growth requires WBO graphs and exact target orbits')
+        raise ValueError('Native growth requires original WBO matrices')
     source_index = source_view.index
     target_index = target_view.index
     if seed not in source_index:
@@ -185,9 +145,9 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
     arguments = (source_index[int(seed)], image, float(graph_floor), float(iso_tol),
                  int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed), int(random_seed) & ((1<<64)-1))
     if fragment_cache is None:
-        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments)
+        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments, self_tolerance=self_tolerance)
     else:
-        out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments)
+        out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments, self_tolerance=self_tolerance)
     elapsed = time.perf_counter() - started
     if profile is not None:
         prof = {'seed': int(seed)}
@@ -202,26 +162,10 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
     if out["capped"]:
         raise IslandBranchLimitExceeded(
             out["cap_count"], out["cap_limit"], seed=int(seed))
-    results = []
-    for iso in out["isos"]:
-        translated_mapping = {
-            source_view.nodes[int(source)]: target_view.nodes[int(target)]
-            for source, target in dict(iso["mapping"]).items()
-        }
-        translated_deferred = [
-            (source_view.nodes[int(a)], source_view.nodes[int(b)])
-            for a, b in iso["deferred_edges"]
-        ]
-        translated_fragment = [
-            source_view.nodes[int(atom)] for atom in iso["fragment"]
-        ]
-        results.append(_IsoResult(
-            translated_mapping,
-            preserved_bonds=tuple((source_view.nodes[int(a)], source_view.nodes[int(b)])
-                                  for a, b in iso["preserved_bonds"]),
-            deferred_edges=translated_deferred,
-            fragment=translated_fragment,
-            symmetry=_translate_symmetry(
-                iso["symmetry"], source_view.nodes, target_view.nodes),
-        ))
-    return results
+    self_pool = {}
+    results = tuple(fragment_from_native(record, source_view.nodes, target_view.nodes, self_pool)
+                    for record in out['fragments'])
+    deferred = frozenset(tuple(sorted((source_view.nodes[int(a)], source_view.nodes[int(b)])))
+                         for a, b in out["deferred_edges"])
+    return FragmentMatchResult(tuple(results), False, len(results), max_branches,
+                               elapsed, deferred)

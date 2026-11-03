@@ -14,7 +14,6 @@ from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.policy import BondTolerance
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
 
 @dataclass(frozen=True)
@@ -189,20 +188,6 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
     coupled = ((source.families[fid].policy, pairs, fid)
                for fid, pairs_list in source.coupled_branches.items() for pairs in sorted(pairs_list))
     entries = tuple(chain(entries, coupled))
-    # A saved uniform matching policy already satisfies the requested rule.
-    # Preserve its compressed choices and partitions without another search.
-    if (source.mode == 'lossless_saved_family_union'
-            and all(policy[1] == threshold == (threshold if metal_threshold is None else metal_threshold)
-                    for policy, _, _ in entries)):
-        result.catalogue = source
-        seen = set()
-        for _, pairs, fid in entries:
-            owners = tuple(sorted((r, i) for i, (rs, _) in enumerate(sorted(pairs)) for r in rs))
-            if (fid, owners) not in seen:
-                result.branches.append(ConvertedBranch((fid,), fid, (), owners))
-                seen.add((fid, owners))
-        result.seconds = time.perf_counter() - started
-        return result
     groups = {}
     for policy, pairs, fid in entries:
         pairs = tuple(sorted((tuple(sorted(rs)), tuple(sorted(ps))) for rs, ps in pairs))
@@ -225,7 +210,6 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                 graph = find_islands(reactant, target, sorted(rs), graph_floor=policy[0],
                     iso_tol=threshold, max_branches=branch_limit, anchor_map=dict(fixed),
                     bond_tolerance=rule, random_seed=random_seed)
-                graph, _ = finalize_graph_symmetry(graph, target, iso_tolerance=threshold)
                 paths = tuple(graph.paths())
                 # Flatten each path separately so its compressed choices stay
                 # attached to the corresponding recombined branch.
@@ -233,15 +217,8 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                 for path in paths:
                     local = FinalBranchCatalogue(problem).add_graph(graph, paths=(path,))
                     family = local.families[0]
-                    # Pad local actions once per rematch, then share identical
-                    # immutable factors across recombined branches.
-                    factors = []
-                    for kind, data in family.actions:
-                        if kind == 'group':
-                            data = tuple(tuple(g) + tuple(range(len(g), problem.target_atom_count))
-                                         for g in data)
-                        factors.append(converted._intern(converted._factors, (kind, data)))
-                    family.actions = tuple(factors)
+                    family.actions = tuple(('relation', converted._fragments.setdefault(fragment.key, fragment))
+                                           for _, fragment in family.actions)
                     families.append(family)
                 complete = (not graph.capped and bool(paths)
                             and all(len(path.mapping) == len(rs) for path in paths))

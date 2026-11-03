@@ -1,6 +1,6 @@
 """Signed-event decoding on the mapped region and its boundary.
 
-Search constraints stay at their recorded tolerance. Output identity uses
+Saved fragment relations retain their joint constraints. Output identity uses
 raw-WBO event responses, with no bijection or group-element expansion.
 The existing Golden floor-based scorer and historical pattern IDs are separate.
 """
@@ -281,24 +281,18 @@ class SignedEventIndex(BondResponseIndex):
         return tuple(result)
 
     def invariant_path(self, path):
-        """Sufficient full signed-event certificate, including boundary pairs."""
+        """Certify a fixed path; return None when relation responses are unknown.
+
+        A self generator certificate cannot cover all accepted discovery maps.
+        Conservative domains certify identity only when no atom can move.
+        """
         for edge in path.transitions:
-            placement = path.graph.fragment_placement(edge)
-            if placement is None:
+            fragment = path.graph.transitions[edge].match
+            if fragment is None:
                 continue
-            if placement.target_generators is None:
-                raise ValueError('finalize saved path symmetry first')
-            for generator in placement.target_generators:
-                if not self.preserves_target_action(generator.images):
-                    return False
-            for domain in placement.symmetry_domains:
-                if domain.source == 'exact_automorph_group':
-                    continue
-                for a, b in zip(domain.p_atoms, domain.p_atoms[1:]):
-                    images = list(range(self.m))
-                    images[a], images[b] = images[b], images[a]
-                    if not self.preserves_target_action(images):
-                        return False
+            domains = self.action_domains(('relation', fragment))
+            if any(len(domains[p]) > 1 for p in fragment.target_atoms):
+                return None
         return True
 
     def describe(self, vector):
@@ -384,14 +378,14 @@ EVENT_CATEGORIES = ('breaking', 'forming', 'strengthening', 'weakening')
 class FragmentEventTables:
     """Sparse internal/boundary factors over ORIGINAL ordered family choices.
 
-    Each bond is projected onto jointly reachable endpoint pairs. Constants
-    are accumulated once; variable internal and cut-boundary terms retain their
-    original action IDs. Evaluation checks complete choices before lookup.
+    Endpoint bounds prepare local weight responses without granting independent
+    choices. Constants are accumulated once; internal and cut-boundary terms
+    retain joint fragment IDs. Evaluation checks complete choices before lookup.
     """
     def __init__(self, local, family, fragments, cut_bonds=()):
         index = local.index
         self.index = index
-        self.fragments = tuple(fragment.reactant for fragment in fragments)
+        self.fragments = tuple(piece.source_atoms for piece in fragments)
         self.cut_bonds = frozenset(cut_bonds)
         owners = {a: i for i, atoms in enumerate(self.fragments) for a in atoms}
         mapping = dict(family.mapping)
@@ -472,8 +466,8 @@ class FragmentEventTables:
     def _dependency_components(self, family):
         """Separate contribution groups without separating shared choices.
 
-        Original required-edge constraints join action variables even when
-        their event response is constant. Partial target occupancy retains the
+        One fragment relation is one joint choice even when some local responses
+        are constant. Partial target occupancy retains the
         dependencies of every source atom that can own either endpoint.
         """
         parent = {('fragment', i): ('fragment', i) for i in range(len(self.fragments))}
@@ -493,8 +487,9 @@ class FragmentEventTables:
             for term in terms:
                 if term.response.constant is None:
                     join({int(self.owners[a]) for a in term.atoms}, term.action_ids)
-        for a,b in family.required_edges:
-            join((), set(self.atom_actions[a]) | set(self.atom_actions[b]))
+        for atom, actions in self.atom_actions.items():
+            if actions:
+                join((int(self.owners[atom]),), actions)
         for x,y in self.product_boundary_pairs:
             atoms = [a for a, domain in self.atom_domains.items() if x in domain or y in domain]
             join({int(self.owners[a]) for a in atoms},

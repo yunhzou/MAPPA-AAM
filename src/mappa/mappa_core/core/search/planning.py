@@ -60,21 +60,15 @@ def checkpoint_manifest(problem, config):
     def endpoint(value):
         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),
                     coordinates=value.coordinates.tolist())
-    settings = asdict(config)
-    if config.random_seed == 42:
-        settings.pop('random_seed')
-    if config.sweep_cuts:
-        settings.pop('sweep_cuts')
-    if config.seed_selection == 'random':
-        settings.pop('seed_selection')  # unchanged policy can resume older cuts
-    return json.loads(json.dumps(dict(schema='rxn_core.aam_checkpoints/v6',
-        fragment_growth='witness_then_exact_completion_v1',
-        matching_policy='exact_fragment_target_action_v3',
+    return json.loads(json.dumps(dict(schema='mappa.aam_checkpoints/v7',
+        fragment_growth='witness_then_distinct_images_v1',
+        matching_policy='complete_discovery_two_sided_relaxed_self_v1',
         growth_policy='growth_edge_splitmix64_v2',
         branch_cap_policy='completed_fragment_frontier_v1',
         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
-        reactant=endpoint(problem.reactant),product=endpoint(problem.product),
-        config=settings)))
+        reactant=endpoint(problem.reactant), product=endpoint(problem.product),
+        config=asdict(config))))
+
 
 
 def _ordered_seed_nodes(g_R, rng, common_element_threshold=3):

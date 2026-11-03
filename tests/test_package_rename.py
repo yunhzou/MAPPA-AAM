@@ -1,4 +1,4 @@
-"""Archived graph namespaces remain readable; retired execution options are rejected."""
+"""Namespace relocation preserves values; obsolete scientific schemas are rejected."""
 import json
 import io
 import pickle
@@ -60,24 +60,20 @@ def test_current_decoder_configuration_rejects_obsolete_rematching_fields():
 
 def test_archived_execution_options_are_not_silently_accepted():
     archived = json.loads((FIXTURES / "legacy-aam.json").read_text())
-    with pytest.raises(TypeError, match='symmetry_repair'):
+    with pytest.raises(ValueError, match='checkpoint schema'):
         read_aam_checkpoint(FIXTURES / "legacy-aam.pkl.gz")
-    with pytest.raises(TypeError, match='symmetry_repair'):
+    with pytest.raises(ValueError, match='result schema'):
         aam_from_record(archived)
 
 
-def test_both_old_binary_cut_formats_keep_their_graph():
+def test_old_graph_formats_cannot_reinterpret_retired_fragment_relationships():
     archived = json.loads((FIXTURES / "legacy-aam.json").read_text())
-    expected = mappa.AAMSearchGraph.from_record(archived['graph'])
-    finalized = read_graph_checkpoint(FIXTURES / "legacy-finalized.pkl.gz")
-    raw = read_raw_cut(FIXTURES / "legacy.raw.pkl.gz")
-    assert finalized == raw
-    # JSON arrays and binary tuples encode the same stored graph.
-    assert json.loads(json.dumps(finalized.to_record())) == json.loads(
-        json.dumps(expected.to_record()))
-    assert type(finalized).__module__.startswith('mappa.')
-    assert all(context.growth_policy == 'legacy_wbo_priority'
-               for context in finalized.contexts)
+    with pytest.raises(ValueError, match='graph schema'):
+        mappa.AAMSearchGraph.from_record(archived['graph'])
+    with pytest.raises(ValueError, match='cut checkpoint schema'):
+        read_graph_checkpoint(FIXTURES / "legacy-finalized.pkl.gz")
+    with pytest.raises(ValueError, match='raw cut checkpoint schema'):
+        read_raw_cut(FIXTURES / "legacy.raw.pkl.gz")
 
 
 def test_installed_viewer_assets_are_available_under_mappa():

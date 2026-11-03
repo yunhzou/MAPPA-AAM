@@ -15,6 +15,7 @@ from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_core.core.symmetry.responses import response_bounds
 from reference_event_decoder import extract_path_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
+from growth_cases import saved_fragment
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
 from reference_dense_events import DeltaPatterns
@@ -34,29 +35,25 @@ def raw_record(value):
             for side, ep in (('reactant', value.reactant), ('product', value.product))}
 
 
-def saved_path(value, generators=(), blocks=(), fragments=None):
+def saved_path(value, fragments=None):
     """Construct recorded path evidence directly; never run AAM search here."""
     n = value.source_atom_count
     identity = tuple((i, i) for i in range(n))
-    parts = fragments or (tuple(range(n)),)
+    parts = fragments if fragments is not None else (saved_fragment(value, anchors=identity),)
     states = [SearchState(0, 0, (), (), ())]
     transitions = []
-    assigned = []
+    assigned, owners = {}, {}
     for step, fragment in enumerate(parts):
-        assigned.extend((i, i) for i in fragment)
-        states.append(SearchState(step + 1, 0, tuple(sorted(assigned)), tuple((i, step) for i, _ in assigned), ()))
-        symmetry = dict(witness={i: i for i in fragment}, blocks=list(blocks) if step == 0 else [],
-                        exact_fixed=[], automorph_blocks=[],
-                        automorph_generators=list(generators) if step == 0 else [])
-        transitions.append(FragmentTransition(step, step, step + 1, fragment[0], (step, 0),
-                                              dict(fragment=list(fragment), symmetry=symmetry),
-                                              tuple((a,b) for a in fragment for b in fragment
-                                                    if a < b and value.reactant.wbo[a,b] >= .2)))
-    graph = AAMSearchGraph((SearchContext(tuple(range(n)), tuple(range(n)), tuple(range(n)),
+        assigned.update(fragment.witness)
+        owners.update((i, step) for i in fragment.source_atoms)
+        states.append(SearchState(step + 1, 0, tuple(sorted(assigned.items())), tuple(sorted(owners.items())), ()))
+        transitions.append(FragmentTransition(step, step, step + 1,
+            fragment.source_atoms[0] if fragment.source_atoms else None, (step, 0), fragment, step))
+    graph = AAMSearchGraph((SearchContext(tuple(range(n)), tuple(range(value.target_atom_count)), tuple(range(n)),
                                         iso_tolerance=1.0),), (0,), tuple(states), tuple(transitions),
                           (SearchStop(len(parts), 'objective_met'),))
     path = next(graph.paths())
-    assert tuple(sorted(path.mapping.items())) == identity
+    assert path.mapping == assigned
     return path
 
 
@@ -104,7 +101,7 @@ def test_equivalent_hydrogen_events_merge_but_signs_do_not():
 
 def test_window_retains_nonminimum_events_after_zero_event_seed():
     value = problem('COO', [(0, 1, 1), (0, 2, 1.4)], [(0, 1, 1.4), (0, 2, 1.6)])
-    path = saved_path(value, [(0, 2, 1)])
+    path = saved_path(value, (saved_fragment(value),))
     index = SignedEventIndex(value)
     result = extract_path_events(path, value, index, max_events=1)
     assert result['complete'], result
@@ -115,7 +112,7 @@ def test_window_retains_nonminimum_events_after_zero_event_seed():
 
 def test_threshold_change_reuses_original_search_path():
     value = problem('COO', [(0, 1, 1), (0, 2, 1.4)], [(0, 1, 1.4), (0, 2, 1.6)])
-    path = saved_path(value, [(0, 2, 1)])
+    path = saved_path(value, (saved_fragment(value),))
     strict = extract_path_events(path, value, SignedEventIndex(value, threshold=.5))
     loose = extract_path_events(path, value, SignedEventIndex(value, threshold=.7))
     assert strict['complete'] and loose['complete']
@@ -127,7 +124,7 @@ def test_threshold_change_reuses_original_search_path():
 def test_raw_metal_events_remain_distinct_under_binary_search_constraints():
     raw = problem(('V', 'O', 'O'), [(0, 1, 2.2), (0, 2, .7)], [(0, 1, .8), (0, 2, 2.1)])
     search = problem(('V', 'O', 'O'), [(0, 1, 1), (0, 2, 1)], [(0, 1, 1), (0, 2, 1)])
-    path = saved_path(search, [(0, 2, 1)])
+    path = saved_path(search, (saved_fragment(search),))
     result = extract_path_events(path, search, SignedEventIndex(raw), max_events=2)
     assert result['complete'] and {p['total'] for p in result['patterns']} == {0, 2}
     assert np.array_equal(search.reactant.wbo, [[0, 1, 1], [1, 0, 0], [1, 0, 0]])
@@ -136,15 +133,16 @@ def test_raw_metal_events_remain_distinct_under_binary_search_constraints():
 def test_cross_fragment_events_are_not_dropped():
     edges = [(0, 1, 1), (0, 2, 1.8), (1, 2, 1)]
     value = problem('COO', edges, edges)
-    path = saved_path(value, [(0, 2, 1)], fragments=((1, 2), (0,)))
+    path = saved_path(value, tuple(saved_fragment(value, source_atoms=atoms)
+                                  for atoms in ((1, 2), (0,))))
     result = extract_path_events(path, value, SignedEventIndex(value), max_events=2)
     assert result['complete'] and {p['total'] for p in result['patterns']} == {0, 2}
 
 
-def test_generators_are_checked_on_all_responses_not_one_witness():
+def test_one_zero_event_witness_does_not_certify_the_whole_relation():
     edges = [(0, 1, 1), (0, 2, 1.4), (0, 3, 1.8)]
     value = problem('COOO', edges, edges)
-    path = saved_path(value, [(0, 2, 1, 3), (0, 1, 3, 2)])
+    path = saved_path(value, (saved_fragment(value),))
     index = SignedEventIndex(value)
     assert index.describe([0, 2, 1, 3])['total'] == index.describe([0, 1, 3, 2])['total'] == 0
     assert not index.invariant_path(path)
@@ -152,16 +150,19 @@ def test_generators_are_checked_on_all_responses_not_one_witness():
     assert result['complete'] and any(p['total'] > 0 for p in result['patterns'])
 
 
-def test_large_invariant_pool_never_enters_solver(monkeypatch):
-    # The synthetic compressed pool represents 12! assignments. None are expanded.
+def test_large_invariant_fragment_never_enters_solver(monkeypatch):
+    from mappa import decode_events
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    # The completed fragment represents 12! hydrogen assignments.
     edges = [(0, i, 1) for i in range(1, 13)]
     value = problem(('C',) + ('H',) * 12, edges, edges)
-    path = saved_path(value, blocks=[dict(r_atoms=list(range(1, 13)), p_atoms=list(range(1, 13)))])
+    path = saved_path(value, (saved_fragment(value),))
     def forbidden(*args, **kwargs):
         raise AssertionError('invariant pool must remain compressed')
     monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path', forbidden)
-    result = extract_path_events(path, value, SignedEventIndex(value))
-    assert result['complete'] and result['solver_queries'] == 0 and len(result['patterns']) == 1
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(path.graph))
+    assert decoded.contributions(0)['total'] == 0
+    assert decoded.tables(0).statistics['projected_pair_states'] == 0
 
 
 def test_reject_partial_invalid_and_asymmetric_inputs():
@@ -178,16 +179,17 @@ def test_reject_partial_invalid_and_asymmetric_inputs():
     assert SignedEventIndex(unbalanced).counts([[0, 1, -1]]).shape == (1, 2)
 
 
-def test_correlated_actions_do_not_turn_into_independent_fragment_pools():
-    edges = [(0, 1, 1.), (0, 2, 1.8), (3, 4, 1.), (3, 5, 1.8)]
-    value = problem('COONOO', edges, edges)
-    path = saved_path(value, [(0, 2, 1, 3, 5, 4)])
+def test_correlated_fragment_relation_does_not_allow_independent_atom_swaps():
+    edges = [(0, 1, 1.), (1, 2, 1.8), (2, 3, 1.8)]
+    value = problem('CCCC', edges, edges)
+    path = saved_path(value, (saved_fragment(value,
+        accepted_edges=((0, 1), (1, 2), (2, 3))),))
     result = extract_path_events(path, value, SignedEventIndex(value))
     assert result['complete'], result
-    assert {p['total'] for p in result['patterns']} == {0, 4}
-    # Swapping only one pair would produce two events, but is outside this
-    # recorded two-element group and must never be invented by decoding.
-    assert SignedEventIndex(value).describe([0, 2, 1, 3, 4, 5])['total'] == 2
+    assert {p['total'] for p in result['patterns']} == {0, 2}
+    # Reversal moves both pairs together. Swapping only the outer pair breaks
+    # the path and lies outside the complete saved relationship.
+    assert SignedEventIndex(value).describe([3, 1, 2, 0])['total'] == 4
 
 
 def test_symbolic_orbit_equality_matches_canonical_identity():

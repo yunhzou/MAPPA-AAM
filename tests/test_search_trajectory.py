@@ -128,3 +128,27 @@ def test_event_overlay_keeps_mapped_unmapped_boundary_bonds():
                product=dict(elements=['C', 'O', 'O'], wbo=[[0., 0., .8], [0., 0., 0.], [.8, 0., 0.]]))
     events = bond_events(raw, {0: 0, 1: 1})
     assert events == [dict(kind='formed', r=[0], p=[0, 2], wbo=[None, .8])]
+
+
+def test_display_marginals_use_local_relation_despite_external_asymmetry():
+    from mappa import match_fragment
+    from mappa.mappa_core.core.matching.graphs import build_graph
+    from mappa.presentation.trajectory import with_represented_targets
+
+    source = build_graph(['O', 'C', 'O'], _matrix(3, [(0, 1), (1, 2)]))
+    target = build_graph(['H', 'O', 'C', 'O'], _matrix(4, [(0, 1), (1, 2), (2, 3)]))
+    fragment, = match_fragment(source, target, seed=1).matches
+    assert fragment.target_atoms == (1, 2, 3)
+    candidate = dict(witness=dict(fragment.witness), relation=fragment.to_record())
+    document = dict(runs=[dict(paths=[dict(frames=[dict(candidates=[candidate])])])])
+    projected = with_represented_targets(document)
+    actual = projected['runs'][0]['paths'][0]['frames'][0]['candidates'][0]
+    assert actual['target_options'] == {'0': [1, 3], '1': [2], '2': [1, 3]}
+    assert 'target_options' not in candidate
+
+
+def _matrix(size, bonds):
+    weights = np.zeros((size, size))
+    for a, b in bonds:
+        weights[a, b] = weights[b, a] = 1.
+    return weights

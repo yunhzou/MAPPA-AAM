@@ -99,8 +99,12 @@ class BondResponseIndex(ActionIndex):
         return self._domain_responses[key]
 
     def refine_response(self, weight, tau, pair, actions, response):
-        """Refine a varying domain response through its joint endpoint orbit."""
-        if response.constant is not None:
+        """Refine structural pair orbits; relation responses keep bounded domains.
+
+        Relation domains only prepare weight lookups. Their joint permissions
+        remain in the saved constraints and are checked at choice evaluation.
+        """
+        if response.constant is not None or any(kind == 'relation' for kind, _ in actions):
             return response, 0
         key = float(weight), float(tau), pair, actions
         if key not in self._event_tables:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from mappa.mappa_core.core.search.planning import AAMSearchPlan, checkpoint_manifest, cut_sweep_items
-from mappa.mappa_core.core.scheduler.search import iter_cut_tasks, iter_finalized_tasks
+from mappa.mappa_core.core.scheduler.search import iter_cut_tasks
 from mappa.mappa_core.core.scheduler.archive import CutArchive
 from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
 import json, gc, time
@@ -11,7 +11,6 @@ from pathlib import Path
 from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 
 
 def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
@@ -19,8 +18,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
                archive_format='json', execution='reused_native') -> AAMResult:
     """Return raw matching histories; repair/grouping/ranking are separate calls.
 
-    When supplied, intermediate_dir receives each completed cut graph before
-    group finalization and a final reusable graph record. No path or bijection
+    When supplied, intermediate_dir receives each completed cut graph and a
+    final reusable graph record. No path or bijection
     enumeration is needed to collect worker results.
 
     Intermediate cuts share append-only bundles and one reaction index.
@@ -33,7 +32,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     resulting graph and cut counts still describe the whole search.
 
     The default execution='reused_native' uses the native sequential scheduler,
-    dependency-validated fragment reuse and conditioned symmetry workspace. It
+    dependency-validated fragment reuse. It
     preserves the seed/cut policy and output graph; it requires the native engine
     and never switches to a different search implementation on failure.
 
@@ -76,7 +75,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
             checkpoint_seconds += counts['checkpoint_seconds']
             if 'checkpoint' in counts:
                 reference = counts.pop('checkpoint')
-                archive.record('raw', index, reference)
+                archive.record(index, reference)
                 saved[index] = reference
             if isinstance(graph, AAMSearchGraph):
                 graphs[index] = graph
@@ -84,7 +83,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
                 metrics[key] = max(metrics[key], counts[key])
 
     graphs = [None] * len(cuts)
-    saved = archive.references('raw') if archive else {}
+    saved = archive.references() if archive else {}
     if set(saved) - set(range(len(cuts))):
         raise ValueError('Unexpected cut checkpoint index')
     missing = [index for index in range(len(cuts)) if index not in saved]
@@ -92,40 +91,21 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     # Finish independent missing cuts before rebuilding the large cached DAG.
     # This also prevents forked cut workers from inheriting that archive heap.
     workers = min(max(1, int(workers)), max(1,len(missing)))
-    collect(iter_cut_tasks(problem, config, execution, tasks, workers,
-                           in_process=requested_workers == 1))
-    # These JSON records are acyclic. Repeated cyclic-GC scans while restoring
-    # millions of retained tuples needlessly revisit the entire growing graph.
-    # Restore the caller's GC setting before any new matching begins.
-    restore_started=time.perf_counter()
-    if requested_workers>1:
-        finalized = archive.references('final') if archive else {}
-        payloads=[(index,saved[index] if index in saved else graphs[index],
-                   finalized.get(index, str(directory)) if directory else None)
-                  for index in range(len(cuts))]
-        gc_enabled=gc.isenabled()
-        try:
-            gc.disable()
-            for index, graph, counts in iter_finalized_tasks(
-                    problem, config, execution, payloads, min(requested_workers, len(cuts))):
-                graphs[index] = graph
-                if 'checkpoint' in counts:
-                    archive.record('final', index, counts.pop('checkpoint'))
-                for key, value in counts.items():
-                    metrics[key] = metrics.get(key, 0) + value
-        finally:
-            if gc_enabled:gc.enable()
-        del payloads
-    else:
-        gc_enabled = gc.isenabled()
-        try:
-            gc.disable()
-            for index in sorted(saved):
-                if graphs[index] is None:
-                    graphs[index] = read_blob(saved[index], None)
-        finally:
-            if gc_enabled:gc.enable()
-    metrics['checkpoint_restore_and_finalize_seconds']=time.perf_counter()-restore_started
+    if tasks:
+        collect(iter_cut_tasks(problem, config, execution, tasks, workers,
+                               in_process=requested_workers == 1))
+    # Restore each producer checkpoint once, after cut workers release their heaps.
+    restore_started = time.perf_counter()
+    gc_enabled = gc.isenabled()
+    try:
+        gc.disable()
+        for index in sorted(saved):
+            if graphs[index] is None:
+                graphs[index] = read_blob(saved[index], None)
+    finally:
+        if gc_enabled:
+            gc.enable()
+    metrics['checkpoint_restore_seconds'] = time.perf_counter() - restore_started
     if execution != 'shared_policies':
         for graph in graphs:
             metrics['max_live_branches']=max(metrics['max_live_branches'],
@@ -139,18 +119,8 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
     finally:
         if gc_enabled:gc.enable()
     metrics['parent_merge_seconds'] = time.perf_counter() - merge_started
-    target = build_graph(problem.product.elements, problem.product.wbo,
-                         bond_cut=config.graph_floor)
-    symmetry_started = time.perf_counter()
-    workspace = None
-    if execution in ('reused_native', 'shared_policies'):
-        from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
-        workspace = ConditionedSymmetryWorkspace(target, config.iso_tolerance)
-    graph, groups = finalize_graph_symmetry(graph, target, iso_tolerance=config.iso_tolerance,
-                                          workspace=workspace)
-    metrics.update(symmetry_finalization_seconds=time.perf_counter()-symmetry_started,
-                   worker_search_seconds=worker_search_seconds, checkpoint_seconds=checkpoint_seconds)
-    for key,value in groups.items():metrics[key]=metrics.get(key,0)+value
+    metrics.update(worker_search_seconds=worker_search_seconds,
+                   checkpoint_seconds=checkpoint_seconds)
     metrics.update(cuts=len(cuts), raw_result_count=len(graph.terminals),
         retained_branch_count=len(graph.terminals),
         subtree_branch_cap_count=sum(stop.occurrences for stop in graph.stops if stop.reason == 'capped'))
@@ -172,7 +142,7 @@ def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
 
 @dataclass(frozen=True)
 class AAMCheckpointResult:
-    """Complete raw cut archives; symmetry is finalized when a cut is consumed."""
+    """Complete cut archives with prepared fragment relationships."""
     directory: Path
     cut_refs: tuple[Blob, ...]
     metrics: AAMSearchMetrics
@@ -185,8 +155,8 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     """Persist every cut without materializing the combined search history.
 
     The search and cap semantics match search_aam. Each worker retains only its
-    current cut and bounded native reuse cache. Raw archives retain all history;
-    consumers finalize and release individual cuts. Memory can still grow with
+    current cut and bounded native reuse cache. Cut archives retain all history;
+    consumers reduce and release individual cuts. Memory can still grow with
     one cut's history; this is not a universal memory bound.
     """
     if not isinstance(problem, AAMProblem):
@@ -206,7 +176,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
         manifest['execution'] = execution
     archive = CutArchive(directory, manifest, resume=resume)
     cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
-    saved = archive.references('raw')
+    saved = archive.references()
     if set(saved) - set(range(len(cuts))):
         raise ValueError('Unexpected cut checkpoint index')
     tasks = [(i, cut, str(directory)) for i, cut in enumerate(cuts) if i not in saved]
@@ -216,7 +186,7 @@ def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None =
     def collect(results):
         for i, reference, counts in results:
             saved[i] = reference
-            archive.record('raw', i, counts.pop('checkpoint'))
+            archive.record(i, counts.pop('checkpoint'))
             metrics['worker_search_seconds'] += counts['search_seconds']
             metrics['checkpoint_seconds'] += counts['checkpoint_seconds']
             metrics['max_growth_candidates'] = max(metrics['max_growth_candidates'], counts['max_growth_candidates'])

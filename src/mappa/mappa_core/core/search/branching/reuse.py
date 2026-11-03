@@ -19,15 +19,15 @@ class FragmentCacheView:
 
 class FragmentRepair:
     """Reuse completed fragments when occupancy, locks and topology still agree."""
-    def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,
+    def __init__(self, source, target, *, cache_bytes=64*1024*1024,
                  bond_tolerance=None):
         self.source = source
         self.target = target
         self.source_view = native.source_graph(source,
             None if bond_tolerance is None else bond_tolerance.resolve(source))
-        self.target_view = native.target_graph(target, target_orbits)
+        self.target_view = native.target_graph(target)
         if self.source_view is None or self.target_view is None:
-            raise ValueError('fragment cache requires native WBO graphs and exact target orbits')
+            raise ValueError('fragment cache requires native WBO graphs')
         self.engine = native._engine.FragmentRepair(
             self.source_view.graph, self.target_view.graph, cache_bytes)
 

@@ -7,9 +7,7 @@ import pytest
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.matching.representation.state import candidate_from_record
-from test_growth_compression_exactness import graph, represented, complete
+from test_growth_compression_exactness import graph, discovered, complete
 
 
 def event_threshold(source, a, b):
@@ -47,9 +45,9 @@ def test_mixed_metal_organic_fragment(backend):
     policy = BondTolerance(event_threshold, inclusive=False)
     result = match(source, target, policy, anchor=1)
     assert len(result.matches) == 1
-    assert result.matches[0].fragment == frozenset((1, 2))
-    assert result.matches[0].mapping == {1: 1, 2: 2}
-    assert (0, 1) in result.matches[0].deferred_edges
+    assert result.matches[0].source_atoms == (1, 2)
+    assert dict(result.matches[0].witness) == {1: 1, 2: 2}
+    assert (0, 1) in result.deferred_edges
 
 
 @pytest.mark.parametrize('element,weight,threshold', [('C', 1., .5), ('Co', .3, .3)])
@@ -64,7 +62,7 @@ def test_threshold_boundary(backend, element, weight, threshold, position, inclu
     result = match(source, target, BondTolerance(event_threshold, inclusive=inclusive))
     difference = abs(target_weight - weight)
     expected = difference <= threshold if inclusive else difference < threshold
-    assert any(m.fragment == frozenset((0, 1)) for m in result.matches) == expected
+    assert any(m.source_atoms == (0, 1) for m in result.matches) == expected
 
 
 def test_rule_is_evaluated_once_per_bond_and_uniform_policy_is_identical(backend):
@@ -87,8 +85,8 @@ def test_source_bond_attributes_keep_distinct_assignment_constraints(backend):
         source[0][atom]['precision'] = tolerance
     policy = BondTolerance(lambda g, a, b: g[a][b]['precision'], inclusive=False)
     result = match(source, target, policy)
-    assert all(m.fragment == frozenset(range(4)) for m in result.matches)
-    actual = represented([candidate_from_record(m.symmetry) for m in result.matches], target, .5)
+    assert all(m.source_atoms == tuple(range(4)) for m in result.matches)
+    actual = discovered(result.matches)
     expected = {((0, 0), *zip(range(1, 4), images)) for images in permutations(range(1, 4))
                 if all(abs(1. - target.graph['wbo_matrix'][0, p]) < source[0][r]['precision']
                        for r, p in zip(range(1, 4), images))}
@@ -111,7 +109,7 @@ def test_completed_constraints_match_explicit_conditional_relation():
         expected = {((0, 0), *zip(atoms, images)) for images in permutations(range(1, 4), len(atoms))
                     if all(abs(1. - target.graph['wbo_matrix'][0, p]) < limits[r]
                            for r, p in zip(atoms, images))}
-        assert represented(candidates, target, .5) == expected
+        assert discovered(candidates) == expected
 
 
 def test_noncontiguous_atom_indices(backend):
@@ -119,7 +117,7 @@ def test_noncontiguous_atom_indices(backend):
     target = graph(['C'] * 7, [(2, 4, 1.4), (4, 6, 1.4)]).subgraph([2, 4, 6]).copy()
     policy = BondTolerance(lambda g, a, b: .3 if a == 2 else .5, inclusive=False)
     result = match(source, target, policy, anchor=4)
-    assert {tuple(sorted(m.fragment)) for m in result.matches} == {(4, 6)}
+    assert {m.source_atoms for m in result.matches} == {(4, 6)}
 
 
 def test_fragment_cache_keeps_its_conditional_policy(monkeypatch):
@@ -129,12 +127,11 @@ def test_fragment_cache_keeps_its_conditional_policy(monkeypatch):
     source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])
     target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
     policy = BondTolerance(event_threshold, inclusive=False)
-    po = _nauty_orbits(target, wbo_tol=.5)
-    session = FragmentRepair(source, target, po, bond_tolerance=policy)
+    session = FragmentRepair(source, target, bond_tolerance=policy)
     view = session.for_cut(())
     config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy)
     context = FragmentMatchContext(locked_mapping={1: 1}, islands={1: 0},
-                                   target_orbits=po, fragment_cache=view)
+                                   fragment_cache=view)
     replayed = match_fragment(view.source, target, seed=1, context=context, config=config)
     assert replayed.matches == match(source, target, policy, anchor=1).matches
     with pytest.raises(ValueError, match='bond tolerances differ'):
@@ -148,5 +145,5 @@ def test_trace_uses_conditional_thresholds(monkeypatch):
     target = graph(['Co', 'O'], [(0, 1, 1.4)])
     events = []
     result = match(source, target, BondTolerance(event_threshold, inclusive=False), events=events)
-    assert result.matches[0].fragment == frozenset((0,))
+    assert result.matches[0].source_atoms == (0,)
     assert events

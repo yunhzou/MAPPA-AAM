@@ -42,9 +42,9 @@ selects the existing reference implementation. Seed scheduling does not support
 the indivisible `shared_policies` backend.
 
 `seed_batch` changes task granularity without changing seed count, order or random
-policy. A cut with several batches has an explicit finalization dependency. If
-all its seeds fit in one batch, the worker finalizes it directly and publishes
-once. There is no intermediate scheduling or storage round trip for that cut.
+policy. A cut with several batches has one dependent task that combines them
+in their original seed order. If all its seeds fit in one batch, the worker
+publishes the completed cut directly. There is no intermediate scheduling or storage round trip for that cut.
 Workers prefer their current reaction/direction, then an unassigned one. If only
 already assigned reactions have ready tasks, workers take those tasks too, so a
 single reaction or a long tail can still use the full pool. This is a scheduling
@@ -54,7 +54,7 @@ The typed handoffs are exported from `mappa.execution`:
 
 | Result | Contents |
 |---|---|
-| `MatchingResult` | Input/configuration reference, planned cut/seed scope, finalized cut references. |
+| `MatchingResult` | Input/configuration reference, planned cut/seed scope, completed cut references. |
 | `CatalogueResult` | One reaction/direction catalogue deduplicated across the declared cuts/seeds, search configuration, scope and stop counts. |
 | `DecodingResult` | Original-space decoded record, event/search configurations, scope and stop counts. |
 

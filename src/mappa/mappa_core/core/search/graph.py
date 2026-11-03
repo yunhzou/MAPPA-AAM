@@ -1,10 +1,13 @@
 """Persistent fragment-decision search graph."""
 
 from __future__ import annotations
-import copy, gc, json
+import gc, json
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from functools import cached_property
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from mappa.mappa_core.core.matching.representation.records import Fragment
 from .pairs import SharedPairs
 
 
@@ -16,35 +19,6 @@ def frozen_value(value):
     if isinstance(value, (set, frozenset)):
         return tuple(sorted((frozen_value(item) for item in value), key=repr))
     return value
-
-
-class _BondRecords:
-    """Exact-value sharing of DAG-owned read-only bond lists."""
-    def __init__(self):
-        self.records = {}
-        self.rows = {}
-
-    def record(self, edges):
-        key = tuple(map(tuple, edges))
-        record = self.records.get(key)
-        if record is None:
-            record = []
-            for edge in key:
-                row = self.rows.get(edge)
-                if row is None:
-                    row = list(map(int, edge))
-                    self.rows[edge] = row
-                record.append(row)
-            self.records[key] = record
-        return record
-
-    def retain(self, records):
-        self.records, self.rows = {}, {}
-        for record in records:
-            key = tuple(map(tuple, record))
-            self.records.setdefault(key, record)
-            for edge, row in zip(key, record):
-                self.rows.setdefault(edge, row)
 
 
 @dataclass(frozen=True)
@@ -61,15 +35,8 @@ class SearchContext:
     objective: str = 'full_source'
     random_seed: int = 42
     growth_policy: str = 'growth_edge_splitmix64_v2'
+    self_tolerance: float = 1.0
 
-    def __setstate__(self, state):
-        # Identify historical pickles accurately; this does not enable legacy growth.
-        for key, value in state.items():
-            object.__setattr__(self, key, value)
-        if 'random_seed' not in state:
-            object.__setattr__(self, 'random_seed', 42)
-        if 'growth_policy' not in state:
-            object.__setattr__(self, 'growth_policy', 'legacy_wbo_priority')
 
 
 @dataclass(frozen=True)
@@ -88,17 +55,8 @@ class FragmentTransition:
     target: int
     seed: int | None
     step: tuple
-    match: dict | None
-    preserved_bonds: tuple = ()
-
-    @cached_property
-    def placement(self):
-        """Typed fragment view; a join has no fragment placement."""
-        if self.match is None:
-            return None
-        from mappa.mappa_core.domain import AAMHierarchy
-        return replace(AAMHierarchy.from_record({'fragments': (self.match,)}).fragments[0],
-                       preserved_bonds=self.preserved_bonds)
+    match: Fragment | None
+    island: int = 0
 
 
 @dataclass(frozen=True)
@@ -145,17 +103,7 @@ class SearchPath:
     @cached_property
     def hierarchy(self):
         from mappa.mappa_core.domain import AAMHierarchy
-        fragments = []
-        for edge_id in self.transitions:
-            edge = self.graph.transitions[edge_id]
-            if edge.match is None:
-                continue
-            fragment = self.graph.fragment_placement(edge_id)
-            position = len(fragments)
-            fragments.append(replace(fragment,
-                fragment_index=int(edge.match.get('fragment_index', position)),
-                island_index=int(edge.match.get('island_idx', position))))
-        return AAMHierarchy(tuple(fragments))
+        return AAMHierarchy(self.fragments)
 
     @property
     def context(self):
@@ -169,43 +117,31 @@ class SearchPath:
     def from_reference(cls, record, graphs):
         return cls(graphs[record['graph']], record['terminal'], tuple(record['transitions']))
 
-    def realize(self, generator_words):
-        """Apply recorded correlated choices, transporting later decisions.
+    def realize(self, fragment_choices=None):
+        """Apply validated local relation choices in chronological target frames.
 
-        generator_words maps transition IDs to sequences of generator indices.
-        For chronological local actions h1,h2,... the full target action is
-        h1 composed with h2 composed with ... . Later groups fix the original
-        locked prefix; reversing that order would mix incompatible frames.
+        Each transition choice supplies discovery and either signed self words
+        or checked local permutations. The resulting target permutation moves
+        later decisions together, preserving their original anchor correlations.
         """
-        atoms = self.context.target_atoms
-        action = {atom: atom for atom in atoms}
-        if set(generator_words) - set(self.transitions):
-            raise ValueError('generator choice is not on this path')
+        from mappa.mappa_core.core.symmetry.actions import apply_action
+        choices = {} if fragment_choices is None else dict(fragment_choices)
+        if set(choices) - set(self.transitions):
+            raise ValueError('fragment choice is not on this path')
+        action = {atom: atom for atom in self.context.target_atoms}
         for edge_id in self.transitions:
-            for index in generator_words.get(edge_id, ()):
-                placement = self.graph.fragment_placement(edge_id)
-                if placement is None or placement.target_generators is None:
-                    raise ValueError('transition has no finalized exact group')
-                generator = placement.target_generators[index].images
-                action = {atom: action[generator[atom]] for atom in atoms}
+            if edge_id not in choices:
+                continue
+            fragment = self.graph.transitions[edge_id].match
+            if fragment is None:
+                raise ValueError('join transition has no fragment relation')
+            degree = max(self.context.target_atoms, default=-1) + 1
+            selected = apply_action(fragment.target_atoms, ('relation', fragment), choices[edge_id], degree)
+            delta = dict(zip(fragment.target_atoms, map(int, selected)))
+            action = {atom: action[delta.get(atom, atom)] for atom in action}
         return PathRealization(self,
             tuple(sorted((atom, action[image]) for atom, image in self.mapping.items())),
-            tuple(sorted(action.items())),
-            tuple((edge, tuple(word)) for edge, word in generator_words.items()))
-
-    def sample(self, rng, *, steps_per_fragment=1):
-        """Nonuniform random walk in conditioned groups; no orbit expansion."""
-        choices = {}
-        for edge_id in self.transitions:
-            placement = self.graph.fragment_placement(edge_id)
-            if placement is None:
-                continue
-            if placement.target_generators is None:
-                raise ValueError('finalize exact groups before sampling a path')
-            if placement.target_generators:
-                choices[edge_id] = tuple(rng.randrange(len(placement.target_generators))
-                                         for _ in range(steps_per_fragment))
-        return self.realize(choices)
+            tuple(sorted(action.items())), tuple(sorted(choices.items())))
 
 
 @dataclass(frozen=True)
@@ -213,7 +149,7 @@ class PathRealization:
     path: SearchPath
     mapping: tuple
     target_action: tuple
-    generator_words: tuple
+    fragment_choices: tuple
 
     @property
     def hierarchy(self):
@@ -289,27 +225,6 @@ class AAMSearchGraph:
                 pending.append(edge.source)
         return frozenset(edges)
 
-    @cached_property
-    def _typed_fragments(self):
-        return {}
-
-    @cached_property
-    def _typed_generators(self):
-        return {}
-
-    def fragment_placement(self, edge_id):
-        """Parse each decision once; exact permutations are shared per graph."""
-        from mappa.mappa_core.domain import AAMHierarchy
-        edge = self.transitions[edge_id]
-        if edge.match is None:
-            return None
-        if edge_id not in self._typed_fragments:
-            self._typed_fragments[edge_id] = replace(AAMHierarchy.from_record(
-                {'fragments': (edge.match,)},
-                generator_pool=self._typed_generators).fragments[0],
-                preserved_bonds=edge.preserved_bonds)
-        return self._typed_fragments[edge_id]
-
     def paths(self, terminal=None):
         """Lazily unfold recorded decision paths, never atom permutations."""
         incoming = [[] for _state in self.states]
@@ -341,20 +256,14 @@ class AAMSearchGraph:
         return tuple(SearchBranch(tuple(paths)) for paths in groups.values())
 
     def literal_branches(self):
-        """Legacy ordered relation grouping for consumers of one hierarchy."""
+        """Group exactly equal ordered relations without merging different histories."""
         relations = {}
         for path in self.paths():
-            fragments = []
-            for edge_id in path.transitions:
-                edge = self.transitions[edge_id]
-                if edge.match is None:
-                    continue
-                symmetry = {key: value for key, value in edge.match['symmetry'].items()
-                            if key not in {'multiplicity', 'automorph_group_source'}}
-                fragments.append((tuple(edge.match['fragment']),
-                                  edge.preserved_bonds, frozen_value(symmetry),
-                                  frozen_value(edge.match.get('deferred_edges', ()))))
-            key = (tuple(sorted(path.mapping.items())), tuple(fragments))
+            fragments = tuple((self.transitions[index].match.key,
+                               self.states[self.transitions[index].target].deferred_edges)
+                              for index in path.transitions
+                              if self.transitions[index].match is not None)
+            key = (tuple(sorted(path.mapping.items())), fragments)
             relations.setdefault(key, []).append(path)
         return tuple(SearchBranch(tuple(paths)) for paths in relations.values())
 
@@ -369,12 +278,15 @@ class AAMSearchGraph:
         def rows(items):
             return tuple({field.name: getattr(item, field.name)
                           for field in fields(item)} for item in items)
-        record = dict(schema='rxn_core.aam_search_graph/v1',
+        record = dict(schema='mappa.aam_search_graph/2',
                       contexts=rows(self.contexts), roots=self.roots,
                       states=rows(self.states), transitions=rows(self.transitions),
                       stops=rows(self.stops))
         # Expansion is explicit at the JSON/export boundary, never during search
         # or binary checkpoint publication. Binary storage preserves block sharing.
+        for edge in record['transitions']:
+            if edge['match'] is not None:
+                edge['match'] = edge['match'].to_record()
         for state in record['states']:
             state['mapping'] = tuple(state['mapping'])
             state['islands'] = tuple(state['islands'])
@@ -395,19 +307,17 @@ class AAMSearchGraph:
         context = SearchContext(tuple(sorted(source)), tuple(sorted(target)),
             (int(seed),), graph_floor=config.graph_floor,
             iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit,
+            self_tolerance=config.self_tolerance,
             objective='seeded_fragment')
         states = [SearchState(0, 0, (), (), ())]
         edges, stops = [], []
         for placement in result.matches:
             node = len(states)
-            states.append(SearchState(node, 0, tuple(sorted(placement.items())),
-                tuple((atom, 1) for atom in sorted(placement.fragment)),
-                tuple(sorted(placement.deferred_edges))))
-            record = {'island_idx': 1, 'fragment': sorted(placement.fragment),
-                      'symmetry': copy.deepcopy(placement.symmetry),
-                      'deferred_edges': sorted(placement.deferred_edges)}
+            states.append(SearchState(node, 0, placement.witness,
+                tuple((atom, 1) for atom in placement.source_atoms),
+                tuple(sorted(result.deferred_edges))))
             edges.append(FragmentTransition(len(edges), 0, node, seed, (1, 0),
-                                            record, placement.preserved_bonds))
+                                            placement, 1))
             stops.append(SearchStop(node, 'objective_met', seed, 'seeded_fragment'))
         if result.capped:
             stops.append(SearchStop(None, 'capped', seed, 'fragment_growth',
@@ -418,8 +328,8 @@ class AAMSearchGraph:
 
     @classmethod
     def from_record(cls, record, *, copy=True, tuple_pool=None):
-        from copy import deepcopy
-        if record["schema"] != "rxn_core.aam_search_graph/v1":
+        from mappa.mappa_core.core.matching.representation.records import Fragment
+        if record["schema"] != "mappa.aam_search_graph/2":
             raise ValueError("unsupported AAM search graph schema")
         tuple_pool = {} if tuple_pool is None else tuple_pool
         def pairs(items):
@@ -432,7 +342,7 @@ class AAMSearchGraph:
             values = tuple(tuple_pool.setdefault(pair,pair) for pair in values)
             return tuple_pool.setdefault(values,values)
         contexts = tuple(SearchContext(
-            **{**item, "growth_policy": item.get("growth_policy", "legacy_wbo_priority"),
+            **{**item,
                "source_atoms": tuple(item["source_atoms"]),
                "target_atoms": tuple(item["target_atoms"]),
                "seed_order": tuple(item["seed_order"]), "cuts": pairs(item["cuts"]),
@@ -441,20 +351,10 @@ class AAMSearchGraph:
         states = tuple(SearchState(**{**item, "mapping": pairs(item["mapping"]),
             "islands": pairs(item["islands"]), "deferred_edges": pairs(item["deferred_edges"])})
             for item in record["states"])
-        transitions = []
-        bonds = _BondRecords()
-        for item in record["transitions"]:
-            # Owned JSON input may transfer its nested storage to the graph.
-            # The default remains detached for callers retaining the record.
-            match = deepcopy(item["match"]) if copy else item["match"]
-            if match is not None:
-                match = dict(match)
-                match['deferred_edges'] = bonds.record(match['deferred_edges'])
-                symmetry = dict(match["symmetry"])
-                match['symmetry'] = symmetry
-                symmetry["witness"] = {int(a): int(b) for a, b in symmetry["witness"].items()}
-            transitions.append(FragmentTransition(**{**item, "match": match,
-                "step": tuple(item["step"]), "preserved_bonds": pairs(item["preserved_bonds"])}))
+        self_pool = {}
+        transitions = tuple(FragmentTransition(**{**item,
+            'match': None if item['match'] is None else Fragment.from_record(item['match'], self_pool=self_pool),
+            'step': tuple(item['step'])}) for item in record['transitions'])
         return cls(contexts, tuple(record["roots"]), states, tuple(transitions),
                    tuple(SearchStop(**{**item, 'step': tuple(item.get('step', ()))})
                          for item in record["stops"]))
@@ -469,7 +369,7 @@ class AAMSearchGraph:
             states.extend(SearchState(state.id+s, state.context+c, state.mapping,
                 state.islands, state.deferred_edges) for state in graph.states)
             transitions.extend(FragmentTransition(edge.id+t, edge.source+s, edge.target+s,
-                edge.seed, edge.step, edge.match, edge.preserved_bonds) for edge in graph.transitions)
+                edge.seed, edge.step, edge.match, edge.island) for edge in graph.transitions)
             stops.extend(replace(stop,
                 state=None if stop.state is None else stop.state+s,
                 context=graph.stop_context(stop)+c
@@ -488,16 +388,7 @@ class SearchGraphBuilder:
         self.step = (0, 0)
         self.seed = None
         self._partitions = {}
-        self._bond_records = _BondRecords()
         self._cap_stops = {}
-
-    def bond_record(self, edges):
-        """DAG-owned read-only bond lists, shared by exact value.
-
-        Keep the public record shape; sharing storage does not merge paths or
-        change their assignment domains. Public to_record() still detaches.
-        """
-        return self._bond_records.record(sorted(edges))
 
     def merged_partition(self, previous, atoms):
         """Merge touched source islands once for all sibling target placements."""
@@ -532,17 +423,11 @@ class SearchGraphBuilder:
         self.roots.append(node)
         return node
 
-    def commit(self, parent, branch, match, preserved_bonds):
-        """Take ownership of a freshly committed record, never mutate it.
-
-        Growth produces each symmetry payload afresh. The scheduler transfers
-        it here; subsequent branches reference this transition, not copies of
-        its payload. Public conversion of caller-owned placements still copies
-        at that boundary (initial_fragment_search).
-        """
+    def commit(self, parent, branch, match, island):
+        """Reference the immutable completed fragment directly."""
         node = self.state(branch)
         self.transitions.append(FragmentTransition(len(self.transitions), parent,
-            node, self.seed, self.step, match, preserved_bonds))
+            node, self.seed, self.step, match, island))
         return node
 
     def join(self, kept, other):
@@ -576,7 +461,7 @@ class SearchGraphBuilder:
         """Release discarded history while preserving every live incoming path.
 
         Matching supplies all branch objects whose node IDs it will reuse.
-        Loading, inspecting and finalizing historical graphs never prunes them.
+        Loading and inspecting saved graphs never prunes them.
         """
         branches = tuple({id(branch): branch for branch in branches}.values())
         required = set(self.roots)
@@ -617,8 +502,6 @@ class SearchGraphBuilder:
         for branch in branches:
             branch.node = indices[branch.node]
         self._partitions.clear()
-        self._bond_records.retain(edge.match['deferred_edges'] for edge in transitions
-                                  if edge.match is not None)
 
     def finish(self):
         return AAMSearchGraph((self.context,), tuple(self.roots), tuple(self.states),

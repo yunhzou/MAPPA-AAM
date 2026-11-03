@@ -15,25 +15,26 @@ from mappa.mappa_core.utils.io.checkpoints import read_aam_checkpoint
 from mappa.mappa_core.utils.io.records import aam_from_record
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 growth = importlib.import_module('mappa.mappa_core.core.matching.growth.engine')
 
 
-def replay(source, target, state, edge, po, context):
+def replay(source, target, state, after, edge, context):
     if context.growth_policy != 'growth_edge_splitmix64_v2':
         raise ValueError('Growth policy differs from archive; use its producing engine')
     events = []
-    isos = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
+    result = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
         graph_floor=context.graph_floor, iso_tol=context.iso_tolerance,
         max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
-        islands_R=dict(state.islands), p_orbits=po,
+        islands_R=dict(state.islands), self_tolerance=context.self_tolerance,
         prior_deferred_edges=state.deferred_edges)
-    expected = dict(edge.match['symmetry']['witness'])
-    matching = [i for i in isos if dict(i)==expected and sorted(i.fragment)==sorted(edge.match['fragment'])]
-    if not matching or sorted(matching[0].deferred_edges)!=sorted(map(tuple,edge.match['deferred_edges'])):
+    expected = dict(edge.match.witness)
+    isos = result.matches
+    matching = [fragment for fragment in isos if fragment.key == edge.match.key]
+    if not matching or sorted(result.deferred_edges) != sorted(after.deferred_edges):
         raise ValueError(f'Replay differs from archived transition {edge.id}; use its producing engine')
-    return dict(events=events, isos=[dict(i) for i in isos],
-                iso_candidates=[{**i.symmetry, 'symmetry_complete': True} for i in isos], verified=True)
+    return dict(events=events, isos=[dict(fragment.witness) for fragment in isos],
+                iso_candidates=[dict(witness=dict(fragment.witness), blocks=[],
+                    relation=fragment.to_record()) for fragment in isos], verified=True)
 
 
 def bond_events(raw, mapping, floor=.2, tolerance=.5, metal_tolerance=.3):
@@ -68,7 +69,7 @@ def frames_for(graph, terminal, traces):
             continue
         trace=traces[eid]
         locked=dict(state.mapping);deferred=list(map(list,state.deferred_edges))
-        expected=dict(edge.match['symmetry']['witness'])
+        expected=dict(edge.match.witness)
         patterns=[]
         for event in trace['events']:
             kind=event['type']
@@ -159,13 +160,13 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         source,target=[build_graph(raw[k]['elements'],np.array(raw[k]['wbo']),bond_cut=c.graph_floor)
                        for k in ('reactant','product')]
         source.remove_edges_from(c.cuts)
-        po=_nauty_orbits(target,wbo_tol=c.iso_tolerance)
         terminals=selection.get('terminals',[t for t in g.terminals if g.states[t].context==context_id])
         if not terminals:raise ValueError(f'Context {context_id} has no selected terminal paths')
         if any(g.states[t].context!=context_id or t not in g.terminals for t in terminals):
             raise ValueError('Selected terminal does not belong to the selected context')
         ids={eid for t in terminals for eid in next(g.paths(t)).transitions}
-        traces={eid:replay(source,target,g.states[g.transitions[eid].source],g.transitions[eid],po,c)
+        traces={eid:replay(source,target,g.states[g.transitions[eid].source],
+                          g.states[g.transitions[eid].target],g.transitions[eid],c)
                 for eid in sorted(ids) if g.transitions[eid].match is not None}
         paths=[]
         for t in terminals:
@@ -187,12 +188,13 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
             context=context_id,seed_order=list(c.seed_order),cuts=list(c.cuts),paths=paths,
             default_terminal=selection.get('default_terminal',terminals[0]),focus=selection.get('focus'),
             config=dict(graph_floor=c.graph_floor,iso_tolerance=c.iso_tolerance,branch_limit=c.branch_limit,
+                        self_tolerance=c.self_tolerance,
                         growth_policy=getattr(c,"growth_policy","legacy_wbo_priority"),
                         random_seed=getattr(c,"random_seed",42),
                         event_tolerance=event_tolerance,metal_event_tolerance=metal_event_tolerance),
             graph=dict(states=[dict(id=s.id,assigned=len(s.mapping)) for s in nodes],
                 transitions=[dict(id=eid,source=g.transitions[eid].source,target=g.transitions[eid].target,
-                    seed=g.transitions[eid].seed,size=len(g.transitions[eid].match['fragment']) if g.transitions[eid].match else 0)
+                    seed=g.transitions[eid].seed,size=len(g.transitions[eid].match.source_atoms) if g.transitions[eid].match else 0)
                     for eid in sorted(ids)]),
             provenance=provenance,traces=traces))
     if raw is None:raise ValueError('At least one archive selection is required')
@@ -208,68 +210,46 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
               'The endpoint coordinates stay fixed throughout playback.',checks=checks)
 
 
-from copy import deepcopy
-
-
-import json
-
-
-from mappa.mappa_core.core.matching.graphs import build_graph
-
-
-from mappa.mappa_core.core.matching.representation.state import candidate_from_record
-
-
-from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
-
-
 def with_represented_targets(document):
-    """Annotate per-atom marginal domains without enumerating full mappings.
+    """Project exact per-atom choices while retaining the full local correlation.
 
-    Local pools act first, then the conditioned candidate group, as in the
-    family decoder. Marginal domains must never be shown as independently
-    selectable assignments. Raw automorph-block unions are not target domains.
+    The viewer displays marginals only. They are never independent atom choices
+    and are computed from the same complete relation used by decoding.
     """
-    import numpy as np
-    doc = deepcopy(document)
-    ep = doc['input']['product']
-    cache = {}
+    from copy import deepcopy
+    import z3
+    from mappa.mappa_core.core.matching.representation.records import Fragment
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
+
+    doc, cache = deepcopy(document), {}
     for run in doc['runs']:
-        cfg = run['config']
-        target = build_graph(ep['elements'], np.asarray(ep['wbo']), bond_cut=cfg['graph_floor'])
-        workspace = SymmetryWorkspace(target, cfg['iso_tolerance'])
         for path in run['paths']:
             for frame in path['frames']:
                 for record in frame['candidates']:
-                    if ((record.get('automorph_domains', 0) and 'automorph_blocks' not in record)
-                            or (frame['kind'] == 'seed_end' and not record.get('symmetry_complete'))):
-                        record['target_options'] = None
+                    if 'relation' not in record:
+                        record['target_options'] = {str(r): [p] for r, p in record['witness'].items()}
                         continue
-                    key = json.dumps([cfg['graph_floor'], cfg['iso_tolerance'], frame['locked'], record], sort_keys=True)
-                    if key not in cache:
-                        cand = candidate_from_record(record)
-                        locked = tuple(sorted((int(r), int(p)) for r, p in frame['locked'].items()))
-                        generators = workspace.conditioned_generators(cand, locked)
-                        block_r = {r for b in cand.blocks for r in b.r_atoms}
-                        fixed = {p for _, p in locked} | {
-                            p for r, p in cand.mapping.items() if r not in block_r or r in cand.exact_fixed}
+                    fragment = Fragment.from_record(record['relation'])
+                    if fragment.key not in cache:
+                        system = FiniteConstraints()
+                        compiled = compile_relaxed_relation(system, fragment.relation, 'viewer')
+                        system.propagate()
+                        solver = z3.Solver()
+                        system.emit(solver)
                         options = {}
-                        for r, p in cand.mapping.items():
-                            domain = {p}
-                            for block in cand.blocks:
-                                free = set(block.p_atoms) - fixed
-                                if domain & free:
-                                    domain |= free
-                            queue = list(domain)
-                            while queue:
-                                atom = queue.pop()
-                                for gen in generators:
-                                    image = gen[atom]
-                                    if image not in domain:
-                                        domain.add(image)
-                                        queue.append(image)
-                            options[str(r)] = sorted(domain)
-                        cache[key] = options
-                    record['target_options'] = cache[key]
+                        for atom, (value, _) in compiled.images.items():
+                            expression = system.expression(value)
+                            allowed = []
+                            for target in sorted(system.domain(value)):
+                                solver.push()
+                                solver.add(expression == target)
+                                status = solver.check()
+                                if status == z3.unknown:
+                                    raise RuntimeError('fragment target projection is unknown')
+                                if status == z3.sat:
+                                    allowed.append(target)
+                                solver.pop()
+                            options[str(atom)] = allowed
+                        cache[fragment.key] = options
+                    record['target_options'] = cache[fragment.key]
     return doc
-

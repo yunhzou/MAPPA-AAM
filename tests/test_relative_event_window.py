@@ -1,6 +1,4 @@
 """Event windows filter converted branches; they do not invoke minimization."""
-from dataclasses import replace
-
 import pytest
 
 from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
@@ -10,8 +8,9 @@ from test_fragment_conversion import endpoint, saved
 
 def catalogue():
     ep=endpoint('OCC',[(0,1,1.),(0,2,2.)])
-    result=saved(ep,ep,{0:0,1:2,2:1},actions=(('pool',(1,2)),))
-    result.families.append(replace(result.families[0],actions=()))
+    mapping={0:0,1:2,2:1}
+    result=saved(ep,ep,mapping,anchors=((0,0),))
+    result.families.append(saved(ep,ep,mapping).families[0])
     next(iter(result.branches.values())).add(1)
     return result
 

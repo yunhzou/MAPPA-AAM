@@ -5,7 +5,6 @@ from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_order
 import gc, time
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.graphs import build_graph
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
 
 
@@ -34,18 +33,17 @@ class SearchSession:
         self.execution = execution
         target = build_graph(problem.product.elements, problem.product.wbo,
                              bond_cut=config.graph_floor)
-        self.context = (problem, config, target,
-                        _nauty_orbits(target, wbo_tol=config.iso_tolerance))
+        self.context = (problem, config, target)
         self.repair = None
         if execution in ('reused_native', 'shared_policies'):
             from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
             source = build_graph(problem.reactant.elements, problem.reactant.wbo,
                                  bond_cut=config.graph_floor)
-            self.repair = FragmentRepair(source, target, self.context[3])
+            self.repair = FragmentRepair(source, target)
 
     def search_cut(self, cut, *, seed_indices=None):
         started = time.perf_counter()
-        problem, config, target, target_orbits = self.context
+        problem, config, target = self.context
         view = (self.repair.for_cut(tuple(edge for edge in cut if self.repair.source.has_edge(*edge)))
                 if self.repair is not None else None)
         if view is None:
@@ -62,7 +60,7 @@ class SearchSession:
                 raise ValueError('Shared-policy search is an indivisible cut task')
             from mappa.mappa_core.core.search.branching.shared import AdaptiveSearchCondition
             from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
-            condition = AdaptiveSearchCondition(source, target, (), target_orbits, None, cut, view)
+            condition = AdaptiveSearchCondition(source, target, (), cut, view)
             gc_enabled = gc.isenabled()
             try:
                 # These DAG/cache records are acyclic; avoid repeatedly scanning
@@ -89,7 +87,7 @@ class SearchSession:
             order = orders[index]
             graphs.append(matcher(source, target, order,
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
-                max_branches=config.branch_limit, p_orbits=target_orbits,
+                max_branches=config.branch_limit, self_tolerance=config.self_tolerance,
                 anchor_map=dict(config.anchors),
                 profile=profile, cuts=cut, fragment_cache=view, random_seed=config.random_seed))
         graph = AAMSearchGraph.combine(graphs)

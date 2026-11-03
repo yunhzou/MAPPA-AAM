@@ -1,85 +1,94 @@
-"""Saved anchors constrain rematching; a stored witness does not."""
+"""Declared fragment anchors constrain rematching; a stored witness does not."""
 from dataclasses import replace
 
+import numpy as np
 import pytest
 
 from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, match_fragment
-from mappa.mappa_core.domain import AAMHierarchy, AtomPermutation, FragmentMatch, SymmetryDomain
+from mappa.mappa_core.domain import AAMHierarchy
 from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.representation.records import Fragment
+from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
+from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism, DiscoveryEdge
 from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.mappa_core.core.search.branching.construction import find_islands
-from mappa.mappa_core.core.matching.representation.state import candidate_from_record
-from test_bond_tolerance import event_threshold
-from test_growth_compression_exactness import graph, represented
+from mappa.mappa_core.utils.bonds import bond_event_threshold
+from growth_cases import graph as make_graph, represented, discovery_mappings
 
 
-def saved_fragment(mapping, *, pools=(), fixed=(), generators=(), cuts=()):
-    return FragmentMatch(0, 0, tuple(mapping),
-        representative_assignments=tuple(mapping.items()),
-        symmetry_domains=tuple(SymmetryDomain(rs, ps, 'sym_block') for rs, ps in pools),
-        exact_fixed=fixed, target_generators=tuple(AtomPermutation(g) for g in generators),
-        deferred_edges=cuts)
+def graph(elements, edges):
+    return make_graph(len(elements), edges, elements)
 
 
-def test_unpooled_assignments_are_fixed_without_explicit_flags():
-    fragment = saved_fragment({2: 8, 4: 6}, cuts=((2, 4),))
+def event_threshold(source, a, b):
+    return bond_event_threshold({n: source.nodes[n]['element'] for n in (a, b)}, a, b,
+                               default_threshold=.5, metal_threshold=.3)
+
+
+def saved_fragment(mapping, *, anchors=(), source=None, target=None):
+    """Construct a complete saved relation; anchors are explicit scientific data."""
+    atoms, images = tuple(sorted(mapping)), tuple(sorted(mapping.values()))
+    anchors = tuple((r, mapping[r]) for r in anchors)
+    def prepare(graph, selected, fixed):
+        weights = (np.zeros((len(selected), len(selected))) if graph is None else
+                   graph.graph['wbo_matrix'][np.ix_(selected, selected)])
+        elements = tuple('C' if graph is None else graph.nodes[a]['element'] for a in selected)
+        value = relaxed_automorphism(elements, weights, tolerance=1.5,
+            anchors=tuple(selected.index(atom) for atom in fixed))
+        return replace(value, atoms=selected, anchors=tuple(fixed))
+    left = prepare(source, atoms, tuple(r for r, _ in anchors))
+    right = prepare(target, images, tuple(p for _, p in anchors))
+    domains = tuple((r, tuple(p for p in images if left.elements[atoms.index(r)] ==
+                             right.elements[images.index(p)] and
+                             (r not in dict(anchors) or dict(anchors)[r] == p))) for r in atoms)
+    edges = (() if source is None else tuple(DiscoveryEdge((a,b),
+             float(source.graph['wbo_matrix'][a,b]), 2.) for a,b in source.edges))
+    target_edges = () if target is None else tuple(target.edges)
+    return Fragment(RelaxedIsomorphism(left, right, tuple(mapping.items()), anchors,
+                                      domains, edges, target_edges, .2))
+
+
+def test_saved_witness_does_not_create_undeclared_anchors():
+    fragment = saved_fragment({2: 8, 4: 6})
     context = FragmentMatchContext.from_saved_fragment(fragment)
+    assert context.locked_mapping == context.islands == {}
+    assert fragment.fixed_assignments == ()
+    assert len(represented((fragment,))) == 2
+
+
+def test_explicit_sparse_anchors_and_deferred_continuation_are_preserved():
+    fragment = saved_fragment({2: 8, 4: 6}, anchors=(2, 4))
+    context = FragmentMatchContext.from_saved_fragment(fragment, deferred_edges=((2, 4),))
     assert context.locked_mapping == {2: 8, 4: 6}
     assert context.islands == {2: 2, 4: 4}
     assert context.deferred_edges == ((2, 4),)
+    assert FragmentMatchContext.from_saved_fragment(fragment).deferred_edges == ()
+    assert represented((fragment,)) == {((2, 8), (4, 6))}
 
 
-def test_explicit_pool_lock_leaves_other_pool_members_free():
-    fragment = saved_fragment({0: 0, 1: 1, 2: 2},
-        pools=(((0, 1, 2), (0, 1, 2)),), fixed=(0,))
+def test_anchor_keeps_other_assignments_free():
+    fragment = saved_fragment({0: 0, 1: 1, 2: 2}, anchors=(0,))
     assert fragment.fixed_assignments == ((0, 0),)
-
-
-def test_only_remaining_pool_assignment_is_fixed():
-    fragment = saved_fragment({0: 0, 1: 1},
-        pools=(((0, 1), (0, 1)),), fixed=(0,))
-    assert fragment.fixed_assignments == ((0, 0), (1, 1))
-
-
-def test_open_pool_with_one_source_atom_is_still_free():
-    fragment = saved_fragment({0: 0, 1: 1}, pools=(((1,), (1, 2)),))
-    assert fragment.fixed_assignments == ((0, 0),)
-
-
-def test_jointly_moving_atoms_are_not_anchors_even_with_local_pool_lock():
-    fragment = saved_fragment(dict(enumerate(range(5))), fixed=(0, 4),
-        generators=((1, 0, 3, 2, 4),))
-    assert fragment.fixed_assignments == ((4, 4),)
-    assert FragmentMatchContext.from_saved_fragment(fragment).locked_mapping == {4: 4}
-    assert fragment.target_generators == (AtomPermutation((1, 0, 3, 2, 4)),)
-
-
-def test_ring_rotation_has_no_fixed_atom():
-    # All six C atoms and their six attached H atoms rotate together.
-    rotation = tuple((i + 1) % 6 for i in range(6)) + tuple(6 + (i + 1) % 6 for i in range(6))
-    fragment = saved_fragment(dict(enumerate(range(12))), generators=(rotation,))
-    assert fragment.fixed_assignments == ()
+    assert represented((fragment,)) == {
+        ((0, 0), (1, 1), (2, 2)), ((0, 0), (1, 2), (2, 1))}
 
 
 def test_anchors_survive_serialization_and_target_transport():
-    fragment = saved_fragment({0: 0, 1: 1, 2: 2},
-        pools=(((1, 2), (1, 2)),), generators=((0, 2, 1),))
+    fragment = saved_fragment({0: 0, 1: 1, 2: 2}, anchors=(0,))
     hierarchy = AAMHierarchy((fragment,))
     restored = AAMHierarchy.from_record(hierarchy.to_record())
     assert restored.fragments[0].fixed_assignments == ((0, 0),)
     transported = hierarchy.relabel_target({0: 2, 1: 0, 2: 1})
     assert transported.fragments[0].fixed_assignments == ((0, 2),)
+    assert represented(transported.fragments) == {
+        ((0, 2), (1, 0), (2, 1)), ((0, 2), (1, 1), (2, 0))}
 
 
-def test_unfinalized_symmetry_is_not_assumed_fixed():
-    fragment = replace(saved_fragment({0: 0}), target_generators=None)
-    with pytest.raises(ValueError, match='Finalize saved fragment symmetry'):
-        FragmentMatchContext.from_saved_fragment(fragment)
-
-
-def test_final_family_uses_saved_actions_without_freezing_the_witness():
+def test_final_family_uses_saved_relations_without_freezing_the_witness():
+    first = saved_fragment({1: 1, 2: 2})
+    second = saved_fragment({3: 3, 4: 4})
     family = FinalFamily(tuple(enumerate(range(6))), (),
-        (('pool', (1, 2)), ('group', ((0, 1, 2, 4, 3, 5),))), (.2, 1.))
+        (('relation', first), ('relation', second)), (.2, 1.))
     assert family.fixed_assignments == ((0, 0), (5, 5))
 
 
@@ -107,8 +116,7 @@ def test_tight_rematch_rediscover_mapping_instead_of_pinning_saved_witness(backe
         assert native.built()
     source = graph(['O', 'C', 'C'], [(0, 1, 1.), (0, 2, 2.)])
     target = graph(['O', 'C', 'C'], [(0, 1, 1.), (0, 2, 2.)])
-    fragment = saved_fragment({0: 0, 1: 2, 2: 1},
-        pools=(((1, 2), (1, 2)),), fixed=(0,))
+    fragment = saved_fragment({0: 0, 1: 2, 2: 1}, anchors=(0,), source=source, target=target)
     context = FragmentMatchContext.from_saved_fragment(fragment)
     assert context.locked_mapping == {0: 0}
     result = match_fragment(source, target, seed=0, context=context,
@@ -116,9 +124,9 @@ def test_tight_rematch_rediscover_mapping_instead_of_pinning_saved_witness(backe
                                   bond_tolerance=BondTolerance(event_threshold, inclusive=False)))
     assert not result.capped
     assert len(result.matches) == 1
-    assert result.matches[0].mapping == {0: 0, 1: 1, 2: 2}
-    assert result.matches[0].fragment == frozenset((0, 1, 2))
-    assert fragment.representative_assignments == ((0, 0), (1, 2), (2, 1))
+    assert dict(result.matches[0].witness) == {0: 0, 1: 1, 2: 2}
+    assert result.matches[0].source_atoms == (0, 1, 2)
+    assert fragment.witness == ((0, 0), (1, 2), (2, 1))
 
 
 @pytest.mark.parametrize('backend', ['0', '1'])
@@ -128,11 +136,10 @@ def test_rematch_rediscovers_compressed_symmetry(backend, monkeypatch):
         assert native.built()
     source = graph(['C', 'H', 'H', 'H'], [(0, h, 1.) for h in (1, 2, 3)])
     target = graph(['C', 'H', 'H', 'H'], [(0, h, 1.) for h in (1, 2, 3)])
-    fragment = saved_fragment({0: 0, 1: 2, 2: 3, 3: 1},
-        pools=(((1, 2, 3), (1, 2, 3)),), fixed=(0,))
+    fragment = saved_fragment({0: 0, 1: 2, 2: 3, 3: 1}, anchors=(0,), source=source, target=target)
     result = match_fragment(source, target, seed=0,
         context=FragmentMatchContext.from_saved_fragment(fragment),
         config=FragmentMatchConfig(allow_mapped_seed=True,
                                   bond_tolerance=BondTolerance(event_threshold, inclusive=False)))
     assert not result.capped and len(result.matches) == 1
-    assert len(represented([candidate_from_record(result.matches[0].symmetry)], target, .5)) == 6
+    assert len(represented(result.matches)) == 6

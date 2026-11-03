@@ -14,16 +14,18 @@ from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from mappa.mappa_core.utils.bonds import is_metal_element
 from reference_event_model import _event_model as reference_event_model
 from test_event_patterns import problem
+from growth_cases import saved_fragment
 
 
-def test_permutation_composition_implies_injectivity_with_overlapping_pools():
+def test_composed_local_relations_preserve_injectivity():
     value = problem('OOOOO', [], [])
+    first = saved_fragment(value, source_atoms=(0,1,2), target_atoms=(0,1,2))
+    last = saved_fragment(value, source_atoms=(2,3,4), target_atoms=(2,3,4), anchors=((2,2),))
     family = FinalFamily(tuple(enumerate(range(5))), (),
-                         (('pool', (0, 1, 2)), ('group', ((1, 0, 3, 2, 4),)),
-                          ('pool', (2, 3, 4))), (.5, 1.))
+                         (('relation',last), ('relation',first)), (.5,1.))
     compiled = compile_path(family.as_path(value), value, {}, source_atoms=(), complete_reference=False)
     images = [v[0] for v in compiled.values]
-    # No global Distinct premise: prove it from the correlated local actions.
+    # No global Distinct premise: injectivity follows from local joint choices.
     assert not any(z3.is_distinct(a) and a.num_args() == 5 for a in compiled.solver.assertions())
     compiled.solver.add(z3.Not(z3.Distinct(*images)))
     compiled.solver.set(timeout=2000)

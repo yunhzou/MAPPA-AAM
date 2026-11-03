@@ -128,8 +128,8 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == ('mappa.decoded_events/v6' if arm == 'binary_iso1'
-                                         else 'mappa.decoded_events/v5')
+            assert record['schema'] == ('mappa.decoded_events/v8' if arm == 'binary_iso1'
+                                         else 'mappa.decoded_events/v7')
             event_record = record['event_problem'] if arm == 'binary_iso1' else record['problem']
             assert np.array_equal(event_record['reactant']['wbo'], original.reactant.wbo)
             assert np.array_equal(event_record['product']['wbo'], original.product.wbo)

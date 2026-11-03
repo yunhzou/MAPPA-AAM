@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import numpy as np
 import pytest
+from growth_cases import saved_fragment
 
 from mappa import AAMProblem, MolecularEndpoint, convert_fragments
 from mappa.mappa_core.utils.io.records import refined_mapping_record
@@ -19,10 +20,14 @@ def endpoint(elements, edges):
     return MolecularEndpoint(tuple(elements), np.zeros((len(elements), 3)), matrix)
 
 
-def saved(reactant, product, mapping, *, actions=(), pairs=None):
+def saved(reactant, product, mapping, *, anchors=None, pairs=None):
     catalogue = FinalBranchCatalogue(AAMProblem(reactant, product))
     mapping = tuple(sorted(mapping.items()))
-    catalogue.families.append(FinalFamily(mapping, (), actions, (.2, 1.)))
+    anchors = mapping if anchors is None else tuple(anchors)
+    fragment = saved_fragment(catalogue.problem,
+        source_atoms=tuple(r for r, _ in mapping), target_atoms=tuple(sorted(p for _, p in mapping)),
+        witness=mapping, anchors=anchors)
+    catalogue.families.append(FinalFamily(mapping, (), (('relation', fragment),), (.2, 1.)))
     pairs = pairs if pairs is not None else ((tuple(r for r, _ in mapping),
                                             tuple(sorted(p for _, p in mapping))),)
     catalogue.branches[((.2, 1.), pairs)] = {0}
@@ -38,7 +43,7 @@ def backend(request, monkeypatch):
 @pytest.mark.smoke
 def test_free_mapping_is_rediscovered_and_input_untouched(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
-    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
+    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, anchors=((0, 0),))
     before = catalogue.to_record()
     decoded = refine_mapping(catalogue)
     assert decoded.complete and decoded.observed_minimum == 0
@@ -72,7 +77,7 @@ def test_native_conditional_metal_rule_is_used(backend):
 def test_free_hydrogens_stay_compressed_and_queryable(backend):
     ep = endpoint('CHHH', [(0, h, 1.) for h in (1, 2, 3)])
     decoded = refine_mapping(saved(ep, ep, {0: 0, 1: 2, 2: 3, 3: 1},
-                                  actions=(('pool', (1, 2, 3)),)))
+                                  anchors=((0, 0),)))
     assert decoded.complete and len(decoded.conversion.branches) == 1
     assert decoded.catalogue.families[0].actions
     candidate = decoded.candidates[0]
@@ -83,14 +88,14 @@ def test_free_hydrogens_stay_compressed_and_queryable(backend):
 def test_jointly_moving_atoms_are_not_fixed(backend):
     ep = endpoint('CCC', [(0, 1, 1.), (1, 2, 1.), (2, 0, 1.)])
     decoded = refine_mapping(saved(ep, ep, dict(enumerate(range(3))),
-        actions=(('group', ((1, 2, 0),)),)))
+        anchors=()))
     assert decoded.complete
     assert decoded.conversion.rematches[0].anchors == ()
 
 
 def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
-    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
+    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, anchors=((0, 0),))
     first = catalogue.families[0]
     catalogue.families += [replace(first, mapping=((0, 0), (1, 1), (2, 2))), replace(first, actions=())]
     next(iter(catalogue.branches.values())).update((1, 2))
@@ -116,7 +121,7 @@ def test_rematching_stays_inside_original_pairs_and_recombines(backend):
     ep = endpoint('HHHH', [])
     pairs = (((0, 1), (2, 3)), ((2, 3), (0, 1)))
     source = saved(ep, ep, {0: 2, 1: 3, 2: 0, 3: 1}, pairs=pairs,
-        actions=(('pool', (0, 1)), ('pool', (2, 3))))
+        anchors=())
     result = convert_fragments(source)
     assert result.complete
     for family in result.catalogue.families:
@@ -128,7 +133,7 @@ def test_rematching_stays_inside_original_pairs_and_recombines(backend):
 
 def test_filtered_minimum_is_over_converted_branches(backend):
     ep = endpoint('OCC', [(0, 1, 1.), (0, 2, 2.)])
-    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
+    catalogue = saved(ep, ep, {0: 0, 1: 2, 2: 1}, anchors=((0, 0),))
     catalogue.families.append(replace(catalogue.families[0], actions=()))
     next(iter(catalogue.branches.values())).add(1)
     decoded = refine_mapping(catalogue, RefinementConfig(event_slack=0))
@@ -162,7 +167,7 @@ def test_no_decoder_solver_or_old_budget_option(backend, monkeypatch):
 
 def test_artifact_preserves_converted_compression_and_scope(backend):
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
-    decoded = refine_mapping(saved(ep, ep, dict(enumerate(range(3))), actions=(('pool', (1, 2)),)))
+    decoded = refine_mapping(saved(ep, ep, dict(enumerate(range(3))), anchors=((0, 0),)))
     record = refined_mapping_record(decoded)
     assert record['schema'] == 'mappa.decoded_events/v2'
     assert record['scope'] == 'Direct counts across retained converted branches'
@@ -189,7 +194,7 @@ def test_incomplete_rematch_does_not_prove_the_minimum(backend, monkeypatch):
 def test_grouping_precedes_recombination_and_result_return(backend, monkeypatch):
     import mappa.mappa_core.post_processing.hierarchical_mapping as module
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
-    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
+    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, anchors=((0, 0),))
     baseline = refine_mapping(catalogue)
     catalogue.families.extend(replace(catalogue.families[0]) for _ in range(99))
     next(iter(catalogue.branches.values())).update(range(100))
@@ -214,7 +219,7 @@ def test_fragment_order_is_irrelevant_but_atom_pools_and_policy_are_not(backend)
     ep = endpoint('HHHH', [])
     pairs = (((0, 1), (0, 1)), ((2, 3), (2, 3)))
     catalogue = saved(ep, ep, dict(enumerate(range(4))), pairs=pairs,
-                      actions=(('pool', (0, 1, 2, 3)),))
+                      anchors=())
     catalogue.families.append(replace(catalogue.families[0]))
     catalogue.branches[((.2, 1.), tuple(reversed(pairs)))] = {1}
     catalogue.families.append(replace(catalogue.families[0]))
@@ -228,7 +233,7 @@ def test_fragment_order_is_irrelevant_but_atom_pools_and_policy_are_not(backend)
 
 def test_same_pairs_in_coupled_and_regular_inputs_share_conversion(backend):
     ep = endpoint('CHH', [(0, 1, 1.), (0, 2, 1.)])
-    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, actions=(('pool', (1, 2)),))
+    catalogue = saved(ep, ep, {0: 0, 1: 1, 2: 2}, anchors=((0, 0),))
     pairs = next(iter(catalogue.branches))[1]
     catalogue.families.append(replace(catalogue.families[0]))
     catalogue.coupled_branches[1] = {pairs}
@@ -237,28 +242,15 @@ def test_same_pairs_in_coupled_and_regular_inputs_share_conversion(backend):
     assert result.branches[0].source_family_ids == (0, 1)
 
 
-@pytest.mark.parametrize('metal_threshold', [1., None])
-@pytest.mark.parametrize('coupled', [False, True])
-def test_equal_tolerances_reuse_saved_choices_without_rematching(monkeypatch, metal_threshold, coupled):
-    import mappa.mappa_core.post_processing.hierarchical_mapping as module
-    ep = endpoint(('Co', 'C', 'C'), [(0, 1, 1.), (0, 2, 2.)])
-    source = saved(ep, ep, {0: 0, 1: 2, 2: 1}, actions=(('pool', (1, 2)),))
-    if coupled:
-        source.coupled_branches[0] = {next(iter(source.branches))[1]}
-        source.branches.clear()
+def test_equal_discovery_tolerance_does_not_prove_relaxed_choices_need_no_rematch():
+    # D and the two self relationships have separate meanings. Matching a
+    # numerical tolerance cannot justify reusing this larger retained relation.
+    ep = endpoint('CCC', [(0, 1, 1.)])
+    source = saved(ep, ep, dict(enumerate(range(3))), anchors=())
     before = source.to_record()
-    def forbidden(*args, **kwargs):
-        pytest.fail('identical tolerances must not rematch or recombine')
-    for name in ('find_islands', 'build_graph', 'product', 'canonical_actions'):
-        monkeypatch.setattr(module, name, forbidden)
-    result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=metal_threshold))
-    assert result.catalogue is source and not result.conversion.rematches
-    assert result.candidates[0].mapping == {0: 0, 1: 2, 2: 1}
-    assert result.complete and result.observed_minimum == 0
+    result = convert_fragments(source, threshold=1., metal_threshold=1.)
+    assert result.rematches and result.catalogue is not source
     assert source.to_record() == before
-    assert result.conversion.branches[0].source_family_ids == (0,)
-    source.incomplete_paths = 1
-    assert not refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=metal_threshold)).complete
 
 
 @pytest.mark.parametrize('threshold,metal_threshold', [(1., .3), (.5, 1.)])
@@ -287,12 +279,14 @@ def test_inclusive_conversion_boundary(backend, elements, limit, offset):
     assert result.index.policy['event_comparison'] == 'absolute difference > threshold'
 
 
-def test_reused_family_keeps_distinct_partitions_without_duplicate_candidate_support():
+def test_alternative_partitions_remain_distinct_under_explicit_rematching():
     ep = endpoint('HH', [])
-    source = saved(ep, ep, {0: 0, 1: 1}, actions=(('pool', (0, 1)),))
+    source = saved(ep, ep, {0: 0, 1: 1}, anchors=())
     source.coupled_branches[0] = {(((0,), (0,)), ((1,), (1,)))}
     result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=1.))
-    assert len(result.conversion.branches) == len(result.family_reports) == 2
-    assert result.candidates[0].family_ids == [0]
-    assert result.catalogue is source
+    # The two-atom rematch has two labelled singleton placements. The separate
+    # singleton partition contributes its own fixed placement.
+    assert len(result.conversion.branches) == len(result.family_reports) == 3
+    assert result.candidates[0].family_ids == [0, 1, 2]
+    assert result.catalogue is not source
     assert len({branch.islands for branch in result.conversion.branches}) == 2

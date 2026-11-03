@@ -2,8 +2,12 @@
 #include <type_traits>
 
 namespace fragment_cache_io {
+inline const std::string schema="mappa.fragment-cache/7";
+
 struct Writer {
     std::string data;
+    std::unordered_map<const PreparedSelf*,uint64_t> prepared;
+    void write(const std::shared_ptr<const PreparedSelf>& value);
     template<class... Values> void operator()(const Values&... values) { (write(values), ...); }
     template<class Value> void write(const Value& value) {
         if constexpr (std::is_arithmetic_v<Value>)
@@ -25,6 +29,8 @@ struct Writer {
 struct Reader {
     const std::string& data;
     size_t position=0;
+    std::vector<std::shared_ptr<const PreparedSelf>> prepared;
+    void read(std::shared_ptr<const PreparedSelf>& value);
     explicit Reader(const std::string& bytes): data(bytes) {}
     void require(size_t size) const {
         if (size>data.size()-position) throw std::invalid_argument("Truncated fragment cache");
@@ -59,21 +65,35 @@ struct Reader {
     }
 };
 
-template<class IO, class T> void block(IO& io, T& v) { io(v.r,v.p,v.extendable); }
-template<class IO> void fields(IO& io, Block& v) { block(io,v); }
-template<class IO> void fields(IO& io, const Block& v) { block(io,v); }
-template<class IO, class T> void candidate(IO& io, T& v) {
-    io(v.img,v.mapped,v.blocks,v.exact_fixed);
+template<class IO, class T> void self(IO& io,T& v) {
+    io(v.atoms,v.anchors,v.elements,v.bond_threshold,v.tolerance,v.weights,v.generators);
 }
-template<class IO> void fields(IO& io, Cand& v) { candidate(io,v); }
-template<class IO> void fields(IO& io, const Cand& v) { candidate(io,v); }
-template<class IO, class T> void iso(IO& io, T& v) { io(v.mapping,v.deferred_edges,v.fragment,v.preserved_bonds,v.cand); }
-template<class IO> void fields(IO& io, IsoOut& v) { iso(io,v); }
-template<class IO> void fields(IO& io, const IsoOut& v) { iso(io,v); }
+template<class IO> void fields(IO& io,PreparedSelf& v) { self(io,v); }
+template<class IO> void fields(IO& io,const PreparedSelf& v) { self(io,v); }
+inline void Writer::write(const std::shared_ptr<const PreparedSelf>& value) {
+    auto [entry,added]=prepared.emplace(value.get(),prepared.size());
+    write(entry->second);
+    if (added) write(*value);
+}
+inline void Reader::read(std::shared_ptr<const PreparedSelf>& value) {
+    uint64_t index;read(index);
+    if (index>prepared.size()) throw std::invalid_argument("Invalid shared fragment self reference");
+    if (index==prepared.size()) {
+        auto item=std::make_shared<PreparedSelf>();read(*item);prepared.push_back(std::move(item));
+    }
+    value=prepared[index];
+}
+template<class IO, class T> void fragment(IO& io,T& v) {
+    io(v.source,v.target,v.domains,v.witness,v.anchors,v.accepted_edges,v.target_edges,
+       v.edge_tolerances,v.inclusive,v.target_bond_floor);
+}
+template<class IO> void fields(IO& io,Fragment& v) { fragment(io,v); }
+template<class IO> void fields(IO& io,const Fragment& v) { fragment(io,v); }
 template<class IO, class T> void profile(IO& io, T& v) {
     io(v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
        v.completion_queries,v.completion_pruned,v.completion_seconds,
        v.completion_generated,v.completion_peak_candidates,
+       v.completion_global_generators,v.completion_global_images,v.completion_global_pruned,
        v.seed_targets,v.init_cands,v.initial_heap,v.heap_pops,v.stale_pops,
        v.fragment_skip_pops,v.extend_calls,v.max_cands_before,v.max_cands_after,
        v.max_fragment_size,v.max_heap_len,v.commits,v.deferred,v.merge_calls,
@@ -81,7 +101,7 @@ template<class IO, class T> void profile(IO& io, T& v) {
 }
 template<class IO> void fields(IO& io, GrowProfile& v) { profile(io,v); }
 template<class IO> void fields(IO& io, const GrowProfile& v) { profile(io,v); }
-template<class IO, class T> void result(IO& io, T& v) { io(v.isos,v.profile,v.capped,v.cap.count,v.cap.limit); }
+template<class IO, class T> void result(IO& io, T& v) { io(v.fragments,v.deferred_edges,v.profile,v.capped,v.cap.count,v.cap.limit); }
 template<class IO> void fields(IO& io, GrowResult& v) { result(io,v); }
 template<class IO> void fields(IO& io, const GrowResult& v) { result(io,v); }
 template<class IO, class T> void dependencies(IO& io, T& v) { io(v.mapping_reads,v.boundary_atoms,v.island_reads,v.local_deferred); }

@@ -1,76 +1,23 @@
 """Fragment matching and growth with compressed symmetry."""
 from __future__ import annotations
 
-from collections import Counter, defaultdict
-from mappa.mappa_core.core.matching.representation.state import _SymCand, _cand_map, _sym_block_assignment_expr
+from collections import defaultdict
 
 
-def cands_sample(cands, k=10):
-    return [{int(a): int(b) for a, b in _cand_map(c).items()}
-            for c in cands[:k]]
+def cands_sample(witnesses, k=10):
+    return [dict(witness) for witness in witnesses[:k]]
 
 
-def cand_possible_values(cand, r):
-    if isinstance(cand, _SymCand):
-        for block in cand.blocks:
-            if r in block.r_atoms:
-                return set(block.p_atoms)
-    cm = _cand_map(cand)
-    return {cm[r]} if r in cm else set()
+def cand_possible_values(witness, atom):
+    return {witness[atom]} if atom in witness else set()
 
 
-def cand_assignment_expr(cand):
-    if not isinstance(cand, _SymCand):
-        return '1'
-    factors = []
-    if cand.multiplicity != 1:
-        factors.append(str(cand.multiplicity))
-    for block in cand.blocks:
-        expr = _sym_block_assignment_expr(block)
-        if expr != '1':
-            factors.append(expr)
-    return ' * '.join(factors) if factors else '1'
+def represented_assignment_expr(witnesses, max_terms=6):
+    return str(len(witnesses))
 
 
-def represented_assignment_expr(cands, max_terms=6):
-    counts = Counter(cand_assignment_expr(c) for c in cands)
-    if not counts:
-        return '0'
-    terms = []
-    for expr, count in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:max_terms]:
-        if expr == '1':
-            terms.append(str(count))
-        elif count == 1:
-            terms.append(expr)
-        else:
-            terms.append(f'{count}*({expr})')
-    remaining = max(0, len(counts) - max_terms)
-    if remaining:
-        terms.append(f'... + {remaining} expression groups')
-    return ' + '.join(terms)
-
-
-def cands_pattern_sample(cands, k=5):
-    out = []
-    for cand in cands[:k]:
-        item = {
-            'witness': {int(a): int(b) for a, b in _cand_map(cand).items()},
-            'blocks': [],
-        }
-        if isinstance(cand, _SymCand):
-            item['compression_version'] = cand.compression_version
-            if cand.compression_version < 3:
-                item['multiplicity'] = int(cand.multiplicity)
-                item['automorph_domains'] = len(cand.automorph_blocks)
-            for block in cand.blocks:
-                item['blocks'].append({
-                    'r_atoms': [int(x) for x in block.r_atoms],
-                    'p_atoms': [int(x) for x in block.p_atoms],
-                    'extendable': bool(block.extendable),
-                    'assignments': _sym_block_assignment_expr(block),
-                })
-        out.append(item)
-    return out
+def cands_pattern_sample(witnesses, k=5):
+    return [dict(witness=dict(witness)) for witness in witnesses[:k]]
 
 
 def heap_snapshot(heap, used_edges, fragment, mapping, k=None):

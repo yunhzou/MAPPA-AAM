@@ -37,7 +37,7 @@ class RepresentativeValidationWorkspace:
     def _edge_mask(self, edge, context):
         if edge.match is None:
             return 0
-        key = edge.preserved_bonds
+        key = edge.match.accepted_edges
         if key in self.fragment_masks:
             self.stats["fragment_mask_hits"] += 1
             return self.fragment_masks[key]

@@ -1,6 +1,5 @@
 """Exact experiment minima retain matching constraints and count only heavy bonds."""
-from dataclasses import replace
-from itertools import permutations, product
+from itertools import product
 from pathlib import Path
 import sys
 
@@ -12,7 +11,8 @@ import analytics
 from analytics import heavy_event_index, minimum_events, saved_response_bounds
 from mappa import AAMProblem, decode_events
 from mappa.mappa_core.utils.io.records import decoded_events_record
-from test_fragment_conversion import endpoint, saved
+from growth_cases import saved_fragment
+from test_event_interpretation import endpoint, saved, swap
 
 
 def analyze(catalogue, reference, **kwargs):
@@ -22,12 +22,12 @@ def analyze(catalogue, reference, **kwargs):
 def rearrangement(*, hydrogen_constraint=False):
     reactant = endpoint('CCCH', [(0, 1, 1.), (1, 3, 1.)])
     product = endpoint('CCCH', [(0, 2, 1.), (1, 3, 1.)])
-    catalogue = saved(reactant, product, dict(enumerate(range(4))),
-                      actions=(('pool', (1, 2)),))
-    if hydrogen_constraint:
-        catalogue.families[0] = replace(catalogue.families[0], required_edges=((1, 3),),
-                                         policy=(.2, .1))
-    return catalogue
+    problem = AAMProblem(reactant, product)
+    fragment = saved_fragment(problem, source_atoms=(1, 2, 3) if hydrogen_constraint else (1, 2),
+        anchors=((3, 3),) if hydrogen_constraint else (),
+        accepted_edges=((1, 3),) if hydrogen_constraint else (),
+        iso_tolerance=.1, self_tolerance=.1)
+    return saved(reactant, product, dict(enumerate(range(4))), fragments=(fragment,))
 
 
 def test_minimum_is_over_correlated_choices_not_only_the_saved_witness():
@@ -89,7 +89,7 @@ def test_unfinished_proof_does_not_become_an_exact_minimum_or_zero_bin():
 def test_symmetry_invariance_certifies_positive_minimum_without_solver(monkeypatch):
     reactant = endpoint('C', [])
     target = endpoint('CCC', [(0, 1, 1.), (0, 2, 1.)])
-    catalogue = saved(reactant, target, {0: 0}, actions=(('pool', (1, 2)),))
+    catalogue = saved(reactant, target, {0: 0})
     def unexpected(*args, **kwargs):
         pytest.fail('invariant event response needs no constraint model')
     monkeypatch.setattr(analytics, 'compile_path', unexpected)
@@ -102,7 +102,9 @@ def test_symmetry_invariance_certifies_positive_minimum_without_solver(monkeypat
 def test_good_witness_does_not_hide_an_unresolved_competing_family(monkeypatch):
     catalogue = rearrangement()
     variable = catalogue.families[0]
-    catalogue.families[:] = [replace(variable, actions=()), variable]
+    fixed = saved(catalogue.problem.reactant, catalogue.problem.product,
+                  dict(variable.mapping)).families[0]
+    catalogue.families[:] = [fixed, variable]
     next(iter(catalogue.branches.values())).add(1)
     original = analytics._event_model
     def exhausted(*args, **kwargs):
@@ -135,34 +137,35 @@ def test_saved_bounds_do_not_add_alternative_partitions_or_hydrogen_events():
 
 @pytest.mark.parametrize('partial', [False, True])
 def test_saved_bounds_are_admissible_for_ordered_correlated_choices(partial):
-    reactant = endpoint('CCCCH', [(0, 1, 1.), (1, 2, 2.), (0, 4, 1.)])
-    target = endpoint('CCCCH', [(0, 2, 1.), (1, 3, 2.), (0, 4, 2.)])
-    mapping = {0: 0, 1: 1, 2: 2} if partial else dict(enumerate(range(5)))
-    catalogue = saved(reactant, target, mapping,
-                      actions=(('pool', (1, 2)), ('pool', (2, 3))))
+    reactant = endpoint('CCCCCH', [(0, 1, 1.), (1, 2, 2.), (0, 5, 1.)])
+    target = endpoint('CCCCCH', [(0, 2, 1.), (1, 3, 2.), (0, 5, 2.), (3, 4, .8)])
+    mapping = dict(enumerate(range(4 if partial else 6)))
+    problem = AAMProblem(reactant, target)
+    fragments = tuple(saved_fragment(problem, source_atoms=atoms) for atoms in ((1, 2), (2, 3)))
+    catalogue = saved(reactant, target, mapping, fragments=fragments)
     interpretation = decode_events(catalogue)
     record = decoded_events_record(interpretation)
     index = heavy_event_index(catalogue.problem)
     counts = []
-    for choices in product(permutations((1, 2)), permutations((2, 3))):
+    for choices in product(*((None, swap(fragment)) for fragment in fragments)):
         mapping = interpretation.realize(0, choices)
         # Independent dense oracle, including exactly-one-mapped target boundaries.
         r, p = catalogue.problem.reactant, catalogue.problem.product
         total = 0
-        for a in range(4):
-            for b in range(a + 1, 4):
+        for a in range(5):
+            for b in range(a + 1, 5):
                 if a not in mapping and b not in mapping:
                     continue
                 target_weight = p.wbo[mapping[a], mapping[b]] if a in mapping and b in mapping else 0.
                 total += abs(r.wbo[a, b] - target_weight) > .5
         occupied = set(mapping.values())
-        total += sum(p.wbo[a, b] > .5 for a in range(4) for b in range(a + 1, 4)
+        total += sum(p.wbo[a, b] > .5 for a in range(5) for b in range(a + 1, 5)
                      if (a in occupied) != (b in occupied))
         assert int(index.counts([index.vector(mapping)])[0].sum()) == total
         counts.append(int(total))
     bounds, _ = saved_response_bounds(record, catalogue.problem, float('inf'))
     assert bounds[0] <= min(counts)
-    result = minimum_events(record, {a: a for a in range(4)}, seconds=5)
+    result = minimum_events(record, {a: a for a in range(4 if partial else 5)}, seconds=5)
     assert result['status'] == 'exact' and result['minimum_events'] == min(counts)
 
 
@@ -176,8 +179,8 @@ def test_minimum_rejects_rematched_outputs():
 
 def test_saved_binary_constraints_keep_original_weighted_minimum():
     binary = endpoint('CO', [(0, 1, 1.)])
-    catalogue = saved(binary, binary, {0: 0, 1: 1})
-    catalogue.families[0] = replace(catalogue.families[0], required_edges=((0, 1),))
+    fragment = saved_fragment(AAMProblem(binary, binary), accepted_edges=((0, 1),))
+    catalogue = saved(binary, binary, {0: 0, 1: 1}, fragments=(fragment,))
     original = AAMProblem(endpoint('CO', [(0, 1, 3.)]), binary)
     record = decoded_events_record(decode_events(catalogue, event_problem=original))
     result = minimum_events(record, {0: 0, 1: 1})

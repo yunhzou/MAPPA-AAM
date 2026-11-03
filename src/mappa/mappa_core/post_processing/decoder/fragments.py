@@ -7,24 +7,30 @@ from .records import BondEventTerm
 
 
 @dataclass(frozen=True, slots=True)
-class Fragment:
-    reactant: tuple[int, ...]
-    product: tuple[int, ...]
+class PartitionPiece:
+    """Disjoint bond ownership in one final branch, not a matching record."""
+    source_atoms: tuple[int, ...]
+    target_atoms: tuple[int, ...]
 
 
 class FragmentInventory:
-    """Complete structural inventory and references from every saved partition.
+    """Collect actual completed fragments before preparing event responses.
 
-    Atom-set identity shares structure, not permissions: mappings, ordered actions
-    and required edges remain attached to the original catalogue families.
+    Historical fragments can overlap. Final partition pieces give each bond
+    one owner; the original fragment relations retain all joint permissions.
     """
     def __init__(self, catalogue):
-        fragments, partitions = {}, [set() for _ in catalogue.families]
+        fragments = {}
+        for family in catalogue.families:
+            for fragment in family.fragments:
+                fragments.setdefault(fragment.key, fragment)
+        self.fragments = tuple(fragments.values())
+        pieces, partitions = {}, [set() for _ in catalogue.families]
 
         def intern(key):
-            if key not in fragments:
-                fragments[key] = Fragment(*key)
-            return fragments[key]
+            if key not in pieces:
+                pieces[key] = PartitionPiece(*key)
+            return pieces[key]
 
         def collect(pairs, family_ids):
             source = tuple(sorted(tuple(sorted(rs)) for rs, _ in pairs))
@@ -52,12 +58,12 @@ class FragmentInventory:
                 uses.append(tuple(refs))
             self.uses.append(tuple(uses))
         self.uses = tuple(self.uses)
-        self.fragments = tuple(fragments[key] for key in sorted(fragments))
+        self.pieces = tuple(pieces[key] for key in sorted(pieces))
 
 
 @dataclass(frozen=True, slots=True)
 class FragmentResponse:
-    fragment: Fragment
+    piece: PartitionPiece
     atom_domains: dict
     atom_actions: dict
     terms: tuple[BondEventTerm, ...]
@@ -96,18 +102,18 @@ class FragmentDecoder:
                 actions, self.index, ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
         return self.terms[term_key], projected
 
-    def fragment(self, fragment, mapping, actions, domains, dependencies, cut_bonds):
-        """Reuse a fragment when its local mapping and action program agree.
+    def fragment(self, piece, mapping, actions, domains, dependencies, cut_bonds):
+        """Reuse a partition's local mapping and conditional event responses.
 
         Local action positions are bound back to each family's original positions;
         a shared action affecting two fragments therefore remains one choice.
         """
-        atoms = fragment.reactant
+        atoms = piece.source_atoms
         binding = tuple(sorted({i for a in atoms for i in dependencies[a]}))
         local_actions = self.programs.select(self.programs.program(actions), binding)
         pairs = tuple((a, mapping[a]) for a in atoms)
         cuts = tuple(sorted((a, b) for a, b in cut_bonds if a in atoms and b in atoms))
-        key = fragment, pairs, local_actions, cuts
+        key = piece, pairs, local_actions, cuts
         if key not in self.fragments:
             positions = {aid: i for i, aid in enumerate(binding)}
             local_domains = {a: domains[a] for a in atoms}
@@ -126,7 +132,7 @@ class FragmentDecoder:
                 projected += count
                 if term is not None:
                     terms.append(term)
-            self.fragments[key] = FragmentResponse(fragment, local_domains,
+            self.fragments[key] = FragmentResponse(piece, local_domains,
                 local_dependencies, tuple(terms), projected)
         return self.fragments[key], binding
 

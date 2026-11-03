@@ -248,7 +248,7 @@ zero; it preserves the native algorithm, dependency tracking and other caches.
 The enabled control uses the existing 64 MiB completed-fragment cache. These
 controls do not compare different search algorithms or shared-file cache I/O.
 
-The runner performs matching, symmetry finalization, family reduction and the
+The runner performs matching, family reduction and the
 existing Golden reference-membership query; it does not decode events. CPU and
 wall time are reported separately for each stage, preparation and parity audits.
 Task totals also include progress/result publication, while process startup is
@@ -301,7 +301,7 @@ memory guard applies to each worker; leave room for the coordinator and other
 applications. The default admission window is twice the worker count.
 
 One persistent local pool processes reaction/directions. Each matching task owns
-its cache, finalizes each cut and immediately adds its compressed families to the
+its cache and immediately adds each completed cut’s compressed families to the
 direction catalogue. Individual cut graphs are released rather than published.
 All matching/reduction tasks in both arms become terminal before decoding starts.
 The next pass decodes completed catalogues; the final pass independently verifies
@@ -313,7 +313,7 @@ completed nonrecoveries remain distinct.
 Typed catalogues and decoded results go into aggregated bundles. Workers return
 small descriptors with their blob references and measurements, so the coordinator
 never loads molecular catalogues. Large-artifact publication is timed explicitly
-inside the supervised stage budget. Matching, finalization, reduction, decoding,
+inside the supervised stage budget. Matching, reduction, decoding,
 verification and publication CPU/wall are separate; process-tree memory samples
 and archived attempts retain resource failures. No whole-reaction mapping
 enumeration or per-cut/per-seed files are introduced.
@@ -369,7 +369,7 @@ Use a new output directory for each explicit run. Begin with a bounded pilot
 before selecting a complete benchmark cohort.
 
 `cache_pilot.py` compares worker-only and shared reaction caches on a small input
-set, checks exact finalized graph equality, then runs reduction, decoding and
+set, checks exact completed graph equality, then runs reduction, decoding and
 verification. Run it once inside an existing allocation using the same private
 environment and single-thread BLAS settings; it creates its own persistent pool:
 

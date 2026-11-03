@@ -96,7 +96,7 @@ def run(indices, output, *, count=10, workers=8, local=False):
                 raise AssertionError(f'Cut/seed scope differs: {name}')
             for a,b in zip(previous.cuts,current.cuts,strict=True):
                 if store.load(a).graph != store.load(b).graph:
-                    raise AssertionError(f'Full finalized search graph differs: {name}')
+                    raise AssertionError(f'Full completed search graph differs: {name}')
                 equal += 1
         report['exact_graph_comparisons'] = equal
         save()

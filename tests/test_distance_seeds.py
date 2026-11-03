@@ -47,7 +47,7 @@ def test_invalid_policy_is_rejected():
         orders(nx.path_graph(4), policy='wrong')
 
 
-def test_checkpoint_identity_distinguishes_policy_without_breaking_random():
+def test_checkpoint_identity_records_seed_policy_explicitly():
     from dataclasses import replace
     from mappa.mappa_core.core.search.planning import checkpoint_manifest
     from mappa import AAMProblem
@@ -56,6 +56,6 @@ def test_checkpoint_identity_distinguishes_policy_without_breaking_random():
     config = AAMSearchConfig()
     random = checkpoint_manifest(problem, config)
     distance = checkpoint_manifest(problem, replace(config, seed_selection='distance'))
-    assert 'seed_selection' not in random['config']
+    assert random['config']['seed_selection'] == 'random'
     assert distance['config']['seed_selection'] == 'distance'
     assert random != distance

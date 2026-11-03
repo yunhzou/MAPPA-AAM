@@ -5,7 +5,6 @@ from mappa.mappa_core.core.matching.representation.records import FragmentMatchC
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.search.graph import SearchContext, SearchGraphBuilder
 from mappa.mappa_core.core.matching.policy import as_node_match_policy
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 class _StateKey(tuple):
@@ -97,36 +96,32 @@ class _Branch:
                                               tuple(sorted(self.deferred_edges))))
         return self._signature_cache
 
-    def commit(self, iso, events=None):
-        """Consume a fragment placement; its symmetry record is now DAG-owned."""
+    def commit(self, fragment, events=None, *, deferred_edges=()):
+        """Commit one witness and retain its complete fragment relationship."""
+        atoms = frozenset(fragment.source_atoms)
         before = self.state_key()
         if events is not None:
-            touched = {self.islands_R[r] for r in iso if r in self.islands_R}
+            touched = {self.islands_R[r] for r in atoms if r in self.islands_R}
             iid = min(touched) if touched else self.next_iid
-            relabeled = [(int(r), int(self.islands_R[r])) for r in iso
+            relabeled = [(int(r), int(self.islands_R[r])) for r in atoms
                          if r in self.islands_R and self.islands_R[r] != iid]
             relabeled.extend((int(r), int(k)) for r, k in self.islands_R.items()
-                             if r not in iso and k in touched and k != iid)
+                             if r not in atoms and k in touched and k != iid)
         committed_new = []
-        for r, p in iso.items():
+        for r, p in fragment.witness:
             if r not in self.mapping:
                 self.mapping[r] = p
                 committed_new.append((int(r), int(p)))
-        self.deferred_edges.update(iso.deferred_edges)
-        ordered, islands, self.next_iid = self.graph.merged_partition(before[1], frozenset(iso))
+        self.deferred_edges.update(deferred_edges)
+        ordered, islands, self.next_iid = self.graph.merged_partition(before[1], atoms)
         self.islands_R = dict(ordered)
         # A commit only extends the witness. Reuse the parent's immutable atom
         # pairs instead of allocating a complete copy for every history node.
         mapping = tuple(sorted(before[0] + tuple(committed_new))) if committed_new else before[0]
         self._signature_cache = _StateKey((mapping, islands, tuple(sorted(self.deferred_edges))))
         if before != self.state_key():
-            record = {
-                'island_idx': self.islands_R[next(iter(iso))],
-                'fragment': sorted(int(r) for r in iso.fragment),
-                'deferred_edges': self.graph.bond_record(iso.deferred_edges),
-                'symmetry': iso.symmetry,
-            }
-            self.node = self.graph.commit(self.node, self, record, iso.preserved_bonds)
+            island = self.islands_R[fragment.source_atoms[0]]
+            self.node = self.graph.commit(self.node, self, fragment, island)
         if events is not None:
             events.append({
                 'type': 'island_locked',
@@ -170,20 +165,15 @@ def find_islands(g_R, g_P, seed_order,
                  max_branches=1_000_000, events=None,
                  core_R=None,
                  stop_when_core_mapped=False,
-                 p_orbits=None,
                  node_policy=None,
                  anchor_map=None,
                  profile=None, cuts=(), fragment_cache=None, random_seed=42,
-                 bond_tolerance=None):
+                 bond_tolerance=None, self_tolerance=1.0):
     """Run growth over a single seed ordering, branching on
     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
 
     Optional `events` only records the FIRST (best-mapped) branch's
     trajectory — multi-branch traces would be confusing on a slider.
-
-    Callers that run many seed orders against the same graph can pass
-    precomputed `p_orbits`; a missing map is computed here.
-    Completion uses the exact global target symmetry in every search.
 
     core_R: optional R atoms that define the scoring-relevant alignment.
     With stop_when_core_mapped=True the search
@@ -205,20 +195,11 @@ def find_islands(g_R, g_P, seed_order,
         tuple(cuts), tuple(sorted(core_R or ())), tuple(sorted(anchor_map.items())),
         float(graph_floor), float(iso_tol), int(max_branches),
         objective='requested_core' if stop_when_core_mapped and core_R else 'full_source',
-        random_seed=random_seed))
+        random_seed=random_seed, self_tolerance=self_tolerance))
     if not _anchor_nodes_compatible(anchor_map, g_R, g_P, node_policy):
         branch = _Branch.from_anchor_map({}, graph)
         graph.stop(branch, 'incompatible_anchors')
         return graph.finish()
-    if p_orbits is None:
-        p_orbits = _nauty_orbits(
-            g_P, wbo_tol=iso_tol, node_policy=node_policy)
-    # Completed hierarchy/coset equivalence is richer than the live
-    # mapping/island state.  Do not quotient distinct concrete live states by
-    # endpoint automorphism here: two such states can carry different exact
-    # fragment-assignment domains and therefore lead to different mechanisms.
-    # Exact semantic family dedupe is performed after AAM has the complete
-    # hierarchy available.
     core_R = tuple(sorted(set(core_R or ())))
     branches = [_Branch.from_anchor_map(anchor_map, graph)]
     progressed = True
@@ -330,14 +311,14 @@ def find_islands(g_R, g_P, seed_order,
                 result = match_fragment(
                         g_R, g_P, seed=seed,
                         context=FragmentMatchContext(
-                            b.mapping, b.islands_R, tuple(b.deferred_edges), p_orbits,
-                            fragment_cache),
+                            b.mapping, b.islands_R, tuple(b.deferred_edges),
+                            fragment_cache=fragment_cache),
                         config=FragmentMatchConfig(
                             graph_floor=graph_floor, iso_tolerance=iso_tol,
                             branch_limit=max_branches, node_policy=node_policy,
                             random_seed=random_seed,
                             allow_mapped_seed=seed_is_mapped_anchor,
-                            bond_tolerance=bond_tolerance),
+                            bond_tolerance=bond_tolerance, self_tolerance=self_tolerance),
                         events=ev_arg,
                         profile=profile,
                         profile_context={
@@ -364,7 +345,8 @@ def find_islands(g_R, g_P, seed_order,
                     before_state = _branch_signature(b)
                     b2 = b.fork()
                     b2.commit(iso,
-                              events=events if (bi == 0 and ii == 0) else None)
+                              events=events if (bi == 0 and ii == 0) else None,
+                              deferred_edges=result.deferred_edges)
                     after_state = _branch_signature(b2)
                     if after_state == before_state:
                         subtree.append(b)

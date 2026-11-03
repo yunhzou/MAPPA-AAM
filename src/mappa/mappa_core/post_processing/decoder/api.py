@@ -11,10 +11,9 @@ def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
                   event_problem=None):
     """Attach tolerance-dependent responses to original compressed families.
 
-    Unique saved actions share checks. Pool generating swaps and group
-    generators are checked directly; no group elements, fragment rematches,
-    complete mappings or Cartesian combinations are enumerated. Invariant
-    actions remain in place because later actions may depend on their motion.
+    Unique fragments share preparation. Their joint discovery and self
+    constraints remain attached; no fragment rematches, complete mappings or
+    Cartesian combinations are enumerated.
     event_problem may supply different scoring weights for the same indexed
     atoms; the catalogue's matching constraints remain unchanged.
     """
@@ -61,19 +60,11 @@ class EventDecodeSession:
             responses = []
             for original, action in zip(family.actions, local.programs.program(family.actions)):
                 if action not in self.actions:
-                    kind, data = action
-                    if kind == 'group':
-                        generators = data
-                    elif kind == 'pool':
-                        generators = []
-                        for a, b in zip(data, data[1:]):
-                            images = list(range(self.index.m))
-                            images[a], images[b] = images[b], images[a]
-                            generators.append(tuple(images))
-                    else:
-                        raise ValueError(f'unknown saved action: {kind}')
-                    self.actions[action] = SymmetryEventResponse(
-                        original, self.index.target_action_responses(generators))
+                    if action[0] != 'relation':
+                        raise ValueError('decoding requires completed fragment relations')
+                    # Self generators do not describe all D alternatives and
+                    # therefore cannot certify the entire relation invariant.
+                    self.actions[action] = SymmetryEventResponse(original, None)
                     if len(self.actions) > 1024:
                         self.actions.popitem(last=False)
                 self.actions.move_to_end(action)

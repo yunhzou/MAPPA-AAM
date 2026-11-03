@@ -1,9 +1,7 @@
 from dataclasses import replace
 
 from mappa import AAMSearchConfig, search_aam
-from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from native_cases import chain_problem as problem
 
 
@@ -28,49 +26,20 @@ def test_direct_offset_construction_preserves_every_field():
         assert AAMSearchGraph.combine(values) == old_combine(values)
 
 
-def test_pre_finalized_immutable_group_is_only_interned_once():
-    class ObservedTuple(tuple):
-        iterations = 0
-        def __iter__(self):
-            self.iterations += 1
-            return super().__iter__()
-    p = problem(4)
-    graph = search_aam(p, AAMSearchConfig(seed_count=1,cut_floor=10,iso_tolerance=1.)).graph
-    edge = next(e for e in graph.transitions if e.match is not None)
-    raw = ObservedTuple(edge.match['symmetry']['automorph_generators'])
-    match = {**edge.match,'symmetry':{**edge.match['symmetry'],'automorph_generators':raw}}
-    repeated = replace(graph, transitions=tuple(replace(edge,id=i,match=match) for i in range(100)))
-    target = build_graph(p.product.elements,p.product.wbo,bond_cut=.2)
-    finalized,_ = finalize_graph_symmetry(repeated,target,iso_tolerance=1.)
-    assert raw.iterations == 1
-    assert repeated == finalized
-    assert repeated.transitions[0].match['symmetry']['automorph_generators'] is raw
-def test_finalization_scoped_gc_preserves_records_and_restores_caller_state():
-    import gc
-    import pytest
-    from mappa import AAMSearchConfig, search_aam
-    from mappa.mappa_core.core.matching.graphs import build_graph
-    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
-    from mappa.mappa_core.core.matching.symmetry.workspace import SymmetryWorkspace
-    from native_cases import chain_problem as problem
-    sample=problem(6)
-    aam=search_aam(sample,AAMSearchConfig(seed_count=3,iso_tolerance=1.))
-    target=build_graph(sample.product.elements,sample.product.wbo)
-    initial=gc.isenabled()
-    try:
-        gc.enable()
-        enabled=finalize_graph_symmetry(aam.graph,target,iso_tolerance=1.)
-        assert gc.isenabled()
-        gc.disable()
-        disabled=finalize_graph_symmetry(aam.graph,target,iso_tolerance=1.)
-        assert not gc.isenabled()
-        assert enabled==disabled
-        gc.enable()
-        with pytest.raises(ValueError,match='another target'):
-            finalize_graph_symmetry(aam.graph,target,iso_tolerance=1.,
-                                    workspace=SymmetryWorkspace(target.copy(),1.))
-        assert gc.isenabled()
-    finally:
-        if initial:gc.enable()
-        else:gc.disable()
-
+def test_collection_references_prepared_fragments_without_reconstruction(monkeypatch):
+    import pickle
+    from mappa.mappa_core.core.matching.representation.records import Fragment
+    graph = search_aam(problem(4), AAMSearchConfig(seed_count=1, sweep_cuts=False)).graph
+    edge = next(edge for edge in graph.transitions if edge.match is not None)
+    def reconstruct(*args, **kwargs):
+        raise AssertionError('collection must reference completed fragments directly')
+    monkeypatch.setattr(Fragment, 'from_record', reconstruct)
+    combined = AAMSearchGraph.combine((graph,) * 100)
+    references = [combined.transitions[i * len(graph.transitions) + edge.id].match
+                  for i in range(100)]
+    assert all(fragment is edge.match for fragment in references)
+    restored = pickle.loads(pickle.dumps(combined))
+    references = [restored.transitions[i * len(graph.transitions) + edge.id].match
+                  for i in range(100)]
+    assert all(fragment is references[0] for fragment in references)
+    assert restored == combined

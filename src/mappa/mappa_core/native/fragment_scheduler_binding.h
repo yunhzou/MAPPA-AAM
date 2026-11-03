@@ -4,7 +4,6 @@ class SharedStatePairs {
     std::unordered_map<uint64_t,py::tuple> rows;
     std::unordered_map<std::string,py::tuple> blocks;
     std::unordered_map<std::string,py::object> sequences;
-    std::unordered_map<PyObject*,py::list> bond_rows,bond_records;
     py::object sequence_type=py::module_::import("mappa.mappa_core.core.search.pairs").attr("SharedPairs");
 public:
     py::tuple pairs(const std::vector<Pair>& values) {
@@ -25,19 +24,6 @@ public:
             result[i]=row->second;
         }
         blocks.emplace(std::move(key),result);
-        return result;
-    }
-    py::list bond_record(const py::tuple& values) {
-        auto previous=bond_records.find(values.ptr());
-        if (previous!=bond_records.end()) return previous->second;
-        py::list result;
-        for (auto pair:values) {
-            auto row=bond_rows.find(pair.ptr());
-            if (row==bond_rows.end())
-                row=bond_rows.emplace(pair.ptr(),py::list(py::reinterpret_borrow<py::tuple>(pair))).first;
-            result.append(row->second);
-        }
-        bond_records.emplace(values.ptr(),result);
         return result;
     }
     py::object state(const std::vector<int>& values,const std::vector<int>& source_ids,
@@ -79,22 +65,10 @@ py::tuple scheduled_graph_result(const ScheduledGraph& graph,const std::vector<i
         for (auto [a,b]:pairs) out.push_back({r_ids[a],r_ids[b]});
         return shared.pairs(out);
     };
-    auto translated_symmetry=[&](const Cand& candidate) {
-        auto translate=[&](const Block& old) {
-            Block b=old;
-            for (int& r:b.r) r=r_ids[r];for (int& p:b.p) p=p_ids[p];return b;
-        };
-        py::dict out;
-        py::dict witness;
-        for (int r:candidate.mapped) witness[py::int_(r_ids[r])]=p_ids[candidate.img[r]];
-        out["witness"]=witness;
-        py::list fixed,blocks;
-        for (int r:candidate.exact_fixed) fixed.append(r_ids[r]);
-        for (const auto& b:candidate.blocks) blocks.append(block_dict(translate(b)));
-        out["exact_fixed"]=fixed;out["blocks"]=blocks;
-        out["compression_version"]=3;
-        return out;
-    };
+    FragmentExport exported;
+    py::dict self_pool;
+    auto fragment_type=py::module_::import("mappa.mappa_core.core.matching.representation.records").attr("fragment_from_native");
+    std::unordered_map<const Fragment*,py::object> fragments;
     py::tuple states(graph.states.size()),transitions(graph.transitions.size()),stops(graph.stops.size());
     for (size_t i=0;i<graph.states.size();++i) {
         const auto& state=graph.states[i];
@@ -103,18 +77,16 @@ py::tuple scheduled_graph_result(const ScheduledGraph& graph,const std::vector<i
     }
     for (size_t i=0;i<graph.transitions.size();++i) {
         const auto& edge=graph.transitions[i];
-        py::object match_record=py::none();
-        if (edge.match) {
-            py::dict match;py::list fragment;
-            for (int r:edge.match->fragment) fragment.append(r_ids[r]);
-            match["island_idx"]=edge.island;match["fragment"]=fragment;
-            match["deferred_edges"]=shared.bond_record(r_pairs(edge.match->deferred_edges));
-            match["symmetry"]=translated_symmetry(edge.match->cand);
-            match_record=match;
+        py::object fragment=py::none();
+        if (edge.fragment) {
+            auto found=fragments.find(edge.fragment.get());
+            if (found==fragments.end()) found=fragments.emplace(edge.fragment.get(),
+                fragment_type(exported.relation(*edge.fragment),r_ids,p_ids,self_pool)).first;
+            fragment=found->second;
         }
         transitions[i]=transition_type(i,edge.source,edge.target,
             edge.seed<0 ? py::object(py::none()) : py::object(py::int_(r_ids[edge.seed])),
-            py::make_tuple(edge.pass,edge.position),match_record,r_pairs(edge.preserved));
+            py::make_tuple(edge.pass,edge.position),fragment,edge.island);
     }
     for (size_t i=0;i<graph.stops.size();++i) {
         const auto& stop=graph.stops[i];
@@ -132,15 +104,15 @@ void register_fragment_scheduler(py::module_& mod) {
                                   double floor,double tol,long cap,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
                                   const std::vector<int>& r_ids,const std::vector<int>& p_ids,const py::object& context,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,double self_tolerance) {
         ScheduledGraph graph;
         {
             py::gil_scoped_release release;
-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);
+            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed,self_tolerance);
         }
         return scheduled_graph_result(graph,r_ids,p_ids,context);
     },py::arg("source"),py::arg("target"),py::arg("seed_order"),py::arg("graph_floor"),
        py::arg("iso_tolerance"),py::arg("branch_cap"),py::arg("anchors"),py::arg("core_atoms"),
        py::arg("stop_at_core"),py::arg("source_ids"),py::arg("target_ids"),py::arg("context"),
-       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42);
+       py::arg("repair")=nullptr,py::arg("cuts")=std::vector<Pair>{},py::arg("random_seed")=42,py::arg("self_tolerance")=1.0);
 }

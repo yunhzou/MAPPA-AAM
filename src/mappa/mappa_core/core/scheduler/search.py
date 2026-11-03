@@ -1,6 +1,5 @@
 """Deterministic cut/seed tasks calling the same prepared search as public APIs."""
 from __future__ import annotations
-import gc
 import multiprocessing as mp
 from pathlib import Path
 import time
@@ -12,7 +11,6 @@ from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.core.search.planning import cut_sweep_items
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from .results import SearchInput, SeedBatchResult, CutResult
 
 def _session(payload, workspace):
@@ -36,7 +34,7 @@ def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=360
         raise ValueError('Seed scheduling requires reference or reused_native execution')
     reference = writer.put(SearchInput(problem, config, execution))
     cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
-    tasks, final_keys = [], []
+    tasks, cut_keys = [], []
     original = build_graph(problem.reactant.elements, problem.reactant.wbo, bond_cut=config.graph_floor)
     for number, cut in enumerate(cuts):
         source = original.copy()
@@ -46,12 +44,12 @@ def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=360
         if not orders:
             raise ValueError('Search plan has no seed orders')
         if len(orders) <= seed_batch:
-            key = f'{case}/cut/{number:05d}/finalize'
+            key = f'{case}/cut/{number:05d}/complete'
             tasks.append(Task(key, 'mappa.mappa_core.core.scheduler.search:search_complete_cut',
                 dict(input=reference, cut=cut, number=number, seeds=len(orders),
                      indices=tuple(range(len(orders))), orders=orders),
                 case=case, case_seconds=case_seconds, memory_bytes=memory_bytes))
-            final_keys.append(key)
+            cut_keys.append(key)
             continue
         dependencies = []
         for first in range(0, len(orders), seed_batch):
@@ -61,11 +59,11 @@ def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=360
                 dict(input=reference, cut=cut, indices=indices, orders=orders[first:first+seed_batch]),
                 case=case, case_seconds=case_seconds, memory_bytes=memory_bytes))
             dependencies.append(key)
-        key = f'{case}/cut/{number:05d}/finalize'
-        tasks.append(Task(key, 'mappa.mappa_core.core.scheduler.search:finalize_cut',
+        key = f'{case}/cut/{number:05d}/complete'
+        tasks.append(Task(key, 'mappa.mappa_core.core.scheduler.search:combine_cut',
             dict(input=reference, cut=cut, number=number, seeds=len(orders), batches=tuple(dependencies)),
             dependencies=tuple(dependencies), case=case, case_seconds=case_seconds, memory_bytes=memory_bytes))
-        final_keys.append(key)
+        cut_keys.append(key)
     if shared_cache and execution == 'reused_native':
         from mappa.execution.identity import code_identity
         from .cache import cache_identity
@@ -73,7 +71,7 @@ def plan_search(case, problem, config, writer, *, seed_batch=1, case_seconds=360
         for task in tasks:
             if task.operation.endswith((':search_batch', ':search_complete_cut')):
                 task.payload['cache'] = identity
-    return tasks, tuple(final_keys)
+    return tasks, tuple(cut_keys)
 
 
 def search_batch(payload, workspace):
@@ -94,7 +92,7 @@ def search_batch(payload, workspace):
     return SeedBatchResult(graph, payload['indices'], counts)
 
 
-def finalize_cut(payload, workspace):
+def combine_cut(payload, workspace):
     graphs, indices, metrics = [], [], []
     for key in payload['batches']:
         result = workspace.dependency(key)
@@ -103,28 +101,17 @@ def finalize_cut(payload, workspace):
         metrics.append(result.counts)
     if indices != list(range(payload['seeds'])):
         raise ValueError('Missing, repeated or reordered seed batches')
-    raw = AAMSearchGraph.combine(graphs)
+    graph = AAMSearchGraph.combine(graphs)
     del graphs
-    if any(tuple(context.cuts) != tuple(payload['cut']) for context in raw.contexts):
+    if any(tuple(context.cuts) != tuple(payload['cut']) for context in graph.contexts):
         raise ValueError('Seed batch belongs to a different cut')
-    return _finalize(raw, metrics, payload, workspace)
+    return CutResult(graph, payload['number'], payload['seeds'], tuple(metrics))
 
 
 def search_complete_cut(payload, workspace):
     """No intermediate transport when one task already owns every seed of a cut."""
     batch = search_batch(payload, workspace)
-    return _finalize(batch.graph, [batch.counts], payload, workspace)
-
-
-def _finalize(raw, metrics, payload, workspace):
-    from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
-    session = _session(payload, workspace)
-    _problem, config, target, _orbits = session.context
-    symmetry = workspace.resource('finalization', config.iso_tolerance,
-        lambda: ConditionedSymmetryWorkspace(target, config.iso_tolerance))
-    graph, statistics = finalize_graph_symmetry(raw, target, iso_tolerance=config.iso_tolerance,
-        workspace=symmetry)
-    return CutResult(graph, payload['number'], payload['seeds'], tuple(metrics), statistics)
+    return CutResult(batch.graph, payload['number'], payload['seeds'], (batch.counts,))
 
 
 def iter_cuts(queue, keys, scratch):
@@ -139,11 +126,10 @@ def iter_cuts(queue, keys, scratch):
 
 
 def _initialize_search(problem, config, execution='reused_native'):
-    global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_REPAIR, _FINALIZATION_WORKSPACE, _CHECKPOINT_STORE
+    global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_REPAIR, _CHECKPOINT_STORE
     _SEARCH_SESSION = SearchSession(problem, config, execution)
     # Profiling tools inspect these views; computation is owned by the session.
     _SEARCH_CONTEXT, _SEARCH_REPAIR = _SEARCH_SESSION.context, _SEARCH_SESSION.repair
-    _FINALIZATION_WORKSPACE = None
     _CHECKPOINT_STORE = None
 
 
@@ -166,42 +152,9 @@ def _search_cut_task(payload, *, in_process=False):
     return index, graph, counts
 
 
-def _initialize_finalization(problem,config,execution='reused_native'):
-    global _FINALIZATION_WORKSPACE
-    # Workers own acyclic archive data. Do not scan/copy a fork-inherited heap.
-    gc.disable()
-    _initialize_search(problem,config)
-    if execution in ('reused_native', 'shared_policies'):
-        from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
-        _FINALIZATION_WORKSPACE = ConditionedSymmetryWorkspace(_SEARCH_CONTEXT[2], config.iso_tolerance)
-
-
-def _restore_finalized_cut(payload):
-    from .bundles import Blob, read_blob
-    index,data,checkpoint=payload
-    if isinstance(checkpoint, Blob):
-        return index,read_blob(checkpoint, None),{}
-    graph=(data if isinstance(data,AAMSearchGraph) else
-           read_blob(data, None))
-    _problem,config,target,_orbits=_SEARCH_CONTEXT
-    graph,counts=finalize_graph_symmetry(graph,target,iso_tolerance=config.iso_tolerance,
-                                       workspace=_FINALIZATION_WORKSPACE)
-    if checkpoint is not None:
-        counts['checkpoint'] = _checkpoint_store(checkpoint).put(graph)
-    return index,graph,counts
-
-
 _SEARCH_CONTEXT = None
-
-
 _SEARCH_REPAIR = None
-
-
-_FINALIZATION_WORKSPACE = None
-
-
 _SEARCH_SESSION = None
-
 _CHECKPOINT_STORE = None
 
 
@@ -225,11 +178,3 @@ def iter_cut_tasks(problem, config, execution, tasks, workers, *, in_process=Fal
                 initargs=(problem, config, execution)) as pool:
             yield from pool.imap_unordered(_search_cut_task, tasks,
                                            chunksize=config.task_chunksize)
-
-
-def iter_finalized_tasks(problem, config, execution, payloads, workers):
-    """Restore and finalize saved cuts using the existing worker lifecycle."""
-    with mp.get_context('fork').Pool(workers, initializer=_initialize_finalization,
-            initargs=(problem, config, execution)) as pool:
-        yield from pool.imap_unordered(_restore_finalized_cut, payloads, chunksize=1)
-

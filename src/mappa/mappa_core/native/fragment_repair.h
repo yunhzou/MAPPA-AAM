@@ -46,20 +46,27 @@ class FragmentRepair {
         // list/hash-index overhead. The budget does not include caller outputs.
         size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)
             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();
-        out+=e.result.isos.capacity()*sizeof(IsoOut)
+        out+=e.result.fragments.capacity()*sizeof(Fragment)
+            +e.result.deferred_edges.capacity()*sizeof(Pair)
             +e.result.profile.result.capacity()+1
             +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);
         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})
             out+=v->capacity()*sizeof(Pair);
         for (const auto& [r,members]:e.dependencies.island_reads)
             out+=members.capacity()*sizeof(int);
-        for (const auto& iso:e.result.isos) {
-            out+=(iso.mapping.capacity()+iso.deferred_edges.capacity()+iso.preserved_bonds.capacity())*sizeof(Pair)
-                +iso.fragment.capacity()*sizeof(int);
-            const auto& c=iso.cand;
-            out+=(c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);
-            out+=c.blocks.capacity()*sizeof(Block);
-            for (const auto& b:c.blocks) out+=(b.r.capacity()+b.p.capacity())*sizeof(int);
+        std::unordered_set<const PreparedSelf*> counted;
+        for (const auto& fragment:e.result.fragments) {
+            out+=(fragment.anchors.capacity()+fragment.accepted_edges.capacity()+fragment.target_edges.capacity())*sizeof(Pair)
+                +fragment.witness.capacity()*sizeof(int)+fragment.edge_tolerances.capacity()*sizeof(double)
+                +fragment.domains.capacity()*sizeof(std::vector<int>);
+            for (const auto& domain:fragment.domains) out+=domain.capacity()*sizeof(int);
+            for (const auto* value:{fragment.source.get(),fragment.target.get()}) if (counted.insert(value).second) {
+                out+=sizeof(PreparedSelf)+(value->atoms.capacity()+value->anchors.capacity())*sizeof(int)
+                    +value->weights.capacity()*sizeof(double)+value->elements.capacity()*sizeof(std::string)
+                    +value->generators.capacity()*sizeof(std::vector<int>);
+                for (const auto& element:value->elements) out+=element.capacity()+1;
+                for (const auto& generator:value->generators) out+=generator.capacity()*sizeof(int);
+            }
         }
         return out;
     }
@@ -107,22 +114,23 @@ class FragmentRepair {
 public:
     py::bytes snapshot_context() const {
         fragment_cache_io::Writer out;
-        out(std::string("mappa.fragment-cache/4"),uint64_t(sizeof(long)));
+        out(fragment_cache_io::schema,uint64_t(sizeof(long)));
         for (const Graph* g:{static_cast<const Graph*>(&base),static_cast<const Graph*>(&target)})
             // Element codes are process-local interned IDs; names are portable.
             out(g->n,g->elem,g->adj,g->edge,g->w,g->bond_cut,g->bond_tolerances,g->tolerance_inclusive);
-        out(target.orbit);
         return py::bytes(out.data);
     }
     py::bytes dump(const std::string& identity) const {
         fragment_cache_io::Writer out;
-        out(identity,uint64_t(lru.size()));
+        out(fragment_cache_io::schema,identity,uint64_t(lru.size()));
         for (const auto& e:lru)
             out(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
         return py::bytes(out.data);
     }
     bool load(const std::string& data,const std::string& identity) {
         fragment_cache_io::Reader in(data);
+        std::string schema; in(schema);
+        if (schema!=fragment_cache_io::schema) throw std::invalid_argument("Unsupported fragment cache schema");
         std::string observed; in(observed);
         if (observed!=identity) throw std::invalid_argument("Fragment cache context differs");
         auto count=in.size();
@@ -158,7 +166,7 @@ public:
     }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
+                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0) {
         const std::vector<Pair> empty_islands;
         const auto& islands=islands_ptr ? *islands_ptr : empty_islands;
         GrowResult result;
@@ -181,7 +189,7 @@ public:
             }
             std::string key;
             append(key,random_seed);append(key,seed);append(key,graph_floor);append(key,iso_tol);
-            append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
+            append(key,self_tolerance);append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
             std::vector<uint8_t> occupied(target.n,0);
             for (int p:mapping) if (p>=0) occupied[p]=1;
             key.append(reinterpret_cast<const char*>(occupied.data()),occupied.size());
@@ -203,10 +211,11 @@ public:
                 result=chosen->result;
                 if (chosen->deferred!=deferred) {
                     ++boundary_rebases;
-                    auto rebased=deferred;
-                    rebased.insert(rebased.end(),chosen->dependencies.local_deferred.begin(),chosen->dependencies.local_deferred.end());
-                    rebased=normalized(std::move(rebased));
-                    for (auto& iso:result.isos) iso.deferred_edges=rebased;
+                    if (!result.fragments.empty()) {
+                        auto rebased=deferred;
+                        rebased.insert(rebased.end(),chosen->dependencies.local_deferred.begin(),chosen->dependencies.local_deferred.end());
+                        result.deferred_edges=normalized(std::move(rebased));
+                    }
                 }
                 saved_extensions=result.profile.extend_calls;
                 reused_extensions+=saved_extensions;
@@ -218,7 +227,7 @@ public:
                 SourceReads reads(base.n);
                 entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
                     max_branches,islands_ptr,prior_deferred,allow_mapped_seed,random_seed,
-                    nullptr,&entry.dependencies,&reads);
+                    nullptr,&entry.dependencies,&reads,self_tolerance);
                 entry.key=std::move(key);entry.mapping=mapping;
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);
@@ -241,7 +250,7 @@ public:
     }
     py::object grow(const std::vector<Pair>& cuts,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42) {
+                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0) {
         std::vector<Pair> islands;
         const std::vector<Pair>* islands_ptr=nullptr;
         if (!islands_obj.is_none()) {islands=islands_obj.cast<std::vector<Pair>>();islands_ptr=&islands;}
@@ -249,7 +258,7 @@ public:
         {
             py::gil_scoped_release release;
             computed=compute(cuts,seed,mapping,graph_floor,iso_tol,min_lock_size,max_branches,
-                             islands_ptr,deferred,allow_mapped_seed,random_seed);
+                             islands_ptr,deferred,allow_mapped_seed,random_seed,self_tolerance);
         }
         auto out=grow_result_dict(computed.first).cast<py::dict>();
         out["reused_extensions"]=computed.second;
@@ -278,6 +287,6 @@ void register_fragment_repair(py::module_& mod) {
         .def("load",&FragmentRepair::load)
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
-             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42)
+             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42,py::arg("self_tolerance")=1.0)
         .def("stats",&FragmentRepair::stats);
 }

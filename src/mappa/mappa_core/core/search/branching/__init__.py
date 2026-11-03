@@ -1,1 +1,1 @@
-"""Branch construction, locking, reuse and finalization."""
+"""Branch construction, locking and reuse."""

@@ -33,11 +33,11 @@ class EventDecodeConfig:
 class SymmetryEventResponse:
     """One original action, annotated without expanding or removing it."""
     action: tuple
-    generators: tuple  # (response-preserving certificate, changed pair count)
+    generators: tuple | None  # None means no response-invariance certificate.
 
     @property
     def response_invariant(self):
-        return all(preserves for preserves, _ in self.generators)
+        return self.generators is not None and all(preserves for preserves, _ in self.generators)
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,7 +53,7 @@ class BondEventTerm:
 
     @property
     def target_pairs(self):
-        """Materialize only this endpoint relation when explicitly inspected."""
+        """Inspect pair bounds lazily for relations; joint choices remain required."""
         return self.index.endpoint_pairs(self.initial_pair, self.projected_actions)
 
 
@@ -91,7 +91,7 @@ class EventInterpretation:
         cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
                                   for pair in origin.get('cuts', ())}))
         actions = self.local.programs.program(family.actions)
-        return family.mapping, actions, family.required_edges, fragments, cut_bonds
+        return family.mapping, actions, fragments, cut_bonds
 
     def _prepare_table(self, family_id, partition, key):
         from .events import FragmentEventTables
@@ -131,12 +131,11 @@ class EventInterpretation:
         return self.tables(family_id, partition).evaluate(vector, include_events=include_events)
 
     def realize(self, family_id, choices=None):
-        """Apply explicitly requested choices and enforce original constraints.
+        """Apply explicit fragment choices with their original joint constraints.
 
-        One choice per saved action, in saved order: a pool choice lists the
-        images of its stored atoms; a group choice is a word of signed 1-based
-        generator numbers (negative means inverse). None selects identity.
-        No group closure or Cartesian product is constructed.
+        Each choice names discovery and source/target self rearrangements.
+        None retains that fragment's witness. Discovery predicates constrain D;
+        they are not reapplied to the two-sided relaxed alternative.
         """
         family = self.catalogue.families[family_id]
         choices = (None,) * len(family.actions) if choices is None else tuple(choices)
@@ -149,16 +148,6 @@ class EventInterpretation:
         mapping = {int(r): int(p) for r, p in zip(atoms, images)}
         vector = self.index.vector(mapping)
         self.index._vectors([vector])
-        # Actions preserve correlation; required edges additionally restrict
-        # their allowed compositions at the ORIGINAL matching tolerance.
-        if family.required_edges:
-            a, b = np.asarray(family.required_edges, dtype=int).T
-            vector = np.asarray(vector)
-            problem = self.catalogue.problem
-            weights = problem.product.wbo[vector[a], vector[b]]
-            floor, iso = family.policy
-            if np.any(weights < floor) or np.any(np.abs(problem.reactant.wbo[a, b] - weights) > iso + 1e-9):
-                raise ValueError('choices violate original fragment constraints')
         return mapping
 
     def evaluate(self, family_id, choices=None):

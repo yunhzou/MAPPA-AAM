@@ -45,10 +45,11 @@ _CHECKPOINT_MODULES = {
     ('mappa.event_patterns', '_EventTerms'): 'mappa.mappa_workflow.mapping_analytics.event_query',
     ('mappa.final_branches', 'FinalFamily'): 'mappa.mappa_core.post_processing.final_branches',
     ('mappa.final_branches', 'FinalBranchCatalogue'): 'mappa.mappa_core.post_processing.final_branches',
-    ('mappa.family_query', 'SymbolicActions'): 'mappa.mappa_workflow.mapping_analytics.family',
+    ('mappa.family_query', 'SymbolicActions'): 'mappa.mappa_core.core.symmetry.constraints',
+    ('mappa.mappa_workflow.mapping_analytics.family', 'SymbolicActions'): 'mappa.mappa_core.core.symmetry.constraints',
     ('mappa.family_query', 'CompiledFamily'): 'mappa.mappa_workflow.mapping_analytics.family',
-    ('mappa.reference_constraints', 'Choice'): 'mappa.mappa_workflow.mapping_analytics.constraints',
-    ('mappa.reference_constraints', 'ReferenceConstraints'): 'mappa.mappa_workflow.mapping_analytics.constraints',
+    ('mappa.reference_constraints', 'Choice'): 'mappa.mappa_core.core.symmetry.constraints',
+    ('mappa.mappa_workflow.mapping_analytics.constraints', 'Choice'): 'mappa.mappa_core.core.symmetry.constraints',
 
     ('mappa.execution.queue', 'Task'): 'mappa.mappa_core.core.scheduler.queue',
     ('mappa.execution.queue', 'TaskQueue'): 'mappa.mappa_core.core.scheduler.queue',
@@ -72,51 +73,31 @@ _CHECKPOINT_MODULES = {
     ('mappa.mappa_core.core.search.subgraph', 'SubgraphSearchResult'): 'mappa.mappa_core.core.search.queries.subgraph',
     ('mappa.mappa_core.core.search.planning', 'DirectedAAMResult'): 'mappa.mappa_core.core.search.api',
 
-    ('mappa.mappa_core.core.matching.state', '_SymBlock'): 'mappa.mappa_core.core.matching.representation.state',
-    ('mappa.mappa_core.core.matching.state', '_SymCand'): 'mappa.mappa_core.core.matching.representation.state',
-    ('mappa.mappa_core.core.matching.records', '_IsoResult'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.mappa_core.core.matching.records', 'IslandBranchLimitExceeded'): 'mappa.mappa_core.core.matching.representation.records',
-    ('mappa.mappa_core.core.matching.records', 'FragmentPlacement'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.mappa_core.core.matching.records', 'FragmentMatchContext'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.mappa_core.core.matching.records', 'FragmentMatchConfig'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.mappa_core.core.matching.records', 'FragmentMatchResult'): 'mappa.mappa_core.core.matching.representation.records',
-    ('mappa.mappa_core.core.matching.canonical', '_PartialMappingCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
-    ('mappa.mappa_core.core.matching.canonical', '_CandidateAutomorphismCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
-    ('mappa.mappa_core.core.matching.orbits', '_OrbitMap'): 'mappa.mappa_core.core.matching.symmetry.orbits',
-    ('mappa.mappa_core.core.matching.symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
-    ('mappa.mappa_core.core.matching.symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
     ('mappa.mappa_core.core.matching.frontier', 'GrowthRandom'): 'mappa.mappa_core.core.matching.growth.frontier',
     ('mappa.mappa_core.core.matching.native', '_NativeGraphView'): 'mappa.mappa_core.core.matching.growth.native',
 
     ('mappa.alignment.post_aam', 'AtomPermutation'): 'mappa.mappa_core.domain',
     ('mappa.alignment.post_aam', 'AtomBijection'): 'mappa.mappa_core.domain',
     ('mappa.alignment.post_aam', 'PermutationGroup'): 'mappa.mappa_core.domain',
-    ('mappa.alignment.post_aam', 'SymmetryDomain'): 'mappa.mappa_core.domain',
-    ('mappa.alignment.post_aam', 'FragmentMatch'): 'mappa.mappa_core.domain',
     ('mappa.alignment.post_aam', 'AAMHierarchy'): 'mappa.mappa_core.domain',
     ('mappa.alignment.post_aam', 'AAMHierarchyView'): 'mappa.mappa_core.domain',
     ('mappa.alignment.post_aam', 'AAMHierarchyChain'): 'mappa.mappa_core.domain',
 
-    ('mappa.search_symmetry', 'SymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
-    ('mappa.conditioned_symmetry', 'ConditionedSymmetryWorkspace'): 'mappa.mappa_core.core.matching.symmetry.workspace',
     ('mappa.fragment', 'FragmentMatchConfig'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.fragment', 'FragmentMatchContext'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.fragment', 'FragmentMatchResult'): 'mappa.mappa_core.core.matching.representation.records',
-    ('mappa.fragment', 'FragmentPlacement'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.growth.frontier', 'GrowthRandom'): 'mappa.mappa_core.core.matching.growth.frontier',
     ('mappa.growth.native', '_NativeGraphView'): 'mappa.mappa_core.core.matching.growth.native',
     ('mappa.growth.result', 'IslandBranchLimitExceeded'): 'mappa.mappa_core.core.matching.representation.records',
-    ('mappa.growth.result', '_IsoResult'): 'mappa.mappa_core.core.matching.representation.records',
     ('mappa.matcher.bond_policy', 'BondTolerance'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.bond_policy', 'ResolvedBondTolerance'): 'mappa.mappa_core.core.matching.policy',
-    ('mappa.matcher.canonical', '_CandidateAutomorphismCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
-    ('mappa.matcher.canonical', '_PartialMappingCanonicalizer'): 'mappa.mappa_core.core.matching.symmetry.canonical',
-    ('mappa.matcher.orbits', '_OrbitMap'): 'mappa.mappa_core.core.matching.symmetry.orbits',
     ('mappa.matcher.policy', 'AttributeNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.policy', 'CallableNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
     ('mappa.matcher.policy', 'ElementNodeMatchPolicy'): 'mappa.mappa_core.core.matching.policy',
-    ('mappa.matcher.state', '_SymBlock'): 'mappa.mappa_core.core.matching.representation.state',
-    ('mappa.matcher.state', '_SymCand'): 'mappa.mappa_core.core.matching.representation.state',
 
     ('mappa.aam', '_GrowthCounts'): 'mappa.mappa_core.core.search.session',
     ('mappa.aam', 'SearchSession'): 'mappa.mappa_core.core.search.session',
@@ -169,6 +150,9 @@ class _CheckpointUnpickler(pickle.Unpickler):
             module = 'mappa.mappa_core.post_processing.hierarchical_mapping'
         if module == 'mappa.mappa_core.post_processing.decoder.records' and name == 'BondEventResponse':
             module, name = 'mappa.mappa_core.core.symmetry.responses', 'BondResponse'
+        if name == 'ReferenceConstraints' and module in (
+                'mappa.reference_constraints', 'mappa.mappa_workflow.mapping_analytics.constraints'):
+            module, name = 'mappa.mappa_core.core.symmetry.constraints', 'FiniteConstraints'
         # Explicit class-path relocation for checkpoints saved before ownership consolidation.
         module = _CHECKPOINT_MODULES.get((module, name), module)
         return super().find_class(module, name)
@@ -189,7 +173,7 @@ def write_aam_checkpoint(result,path):
     format; this pickle-based checkpoint must never be loaded from strangers.
     """
     path=Path(path);temporary=path.with_suffix(path.suffix+'.tmp')
-    record={**_aam_header(result),'schema':'rxn_core.aam_checkpoint/v1','graph':result.graph}
+    record={**_aam_header(result),'schema':'mappa.aam_checkpoint/v2','graph':result.graph}
     enabled=gc.isenabled()
     try:
         gc.disable()
@@ -206,7 +190,7 @@ def read_aam_checkpoint(path):
     try:
         gc.disable()
         with gzip.open(path,'rb') as stream:record=_load_checkpoint(stream)
-        if record['schema']!='rxn_core.aam_checkpoint/v1':
+        if record['schema']!='mappa.aam_checkpoint/v2':
             raise ValueError('Unsupported AAM checkpoint schema')
         return _aam_result(record,record['graph'])
     finally:
@@ -214,8 +198,8 @@ def read_aam_checkpoint(path):
 
 
 def write_graph_checkpoint(graph,path):
-    """Save a trusted, finalized cut graph without expanding shared values."""
-    _write_graph_checkpoint(graph,path,'rxn_core.finalized_cut/v1')
+    """Save a trusted completed cut graph without expanding shared values."""
+    _write_graph_checkpoint(graph,path,'mappa.cut_checkpoint/v2')
 
 
 def _write_graph_checkpoint(graph,path,schema):
@@ -226,9 +210,9 @@ def _write_graph_checkpoint(graph,path,schema):
 
 
 def read_graph_checkpoint(path):
-    """Load only internally produced finalized-cut checkpoints."""
+    """Load only internally produced completed-cut checkpoints."""
     with gzip.open(path,'rb') as stream:schema,graph=_load_checkpoint(stream)
-    if schema!='rxn_core.finalized_cut/v1':raise ValueError('Unsupported cut checkpoint schema')
+    if schema!='mappa.cut_checkpoint/v2':raise ValueError('Unsupported cut checkpoint schema')
     return graph
 
 
@@ -256,7 +240,7 @@ def write_raw_cut(graph,path):
     """Persist the requested raw-cut format atomically; binary is trusted-only."""
     path=Path(path)
     if path.name.endswith('.raw.pkl.gz'):
-        _write_graph_checkpoint(graph,path,'rxn_core.raw_cut/v1')
+        _write_graph_checkpoint(graph,path,'mappa.raw_cut/v2')
     elif path.suffix=='.json':
         temporary=path.with_suffix('.json.tmp')
         # Interchange JSON uses the fast C encoder. Large persistent searches
@@ -271,7 +255,7 @@ def read_raw_cut(path, *, tuple_pool=None):
     path=Path(path)
     if path.name.endswith('.raw.pkl.gz'):
         with gzip.open(path,'rb') as stream:schema,graph=_load_checkpoint(stream)
-        if schema!='rxn_core.raw_cut/v1':raise ValueError('Unsupported raw cut checkpoint schema')
+        if schema!='mappa.raw_cut/v2':raise ValueError('Unsupported raw cut checkpoint schema')
         return graph
     if path.suffix=='.json':
         return AAMSearchGraph.from_record(json.loads(path.read_bytes()),copy=False,tuple_pool=tuple_pool)

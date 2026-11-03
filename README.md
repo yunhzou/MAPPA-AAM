@@ -54,8 +54,12 @@ MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines s
 
 ## EnzymeMap benchmark status
 
-The fresh full EnzymeMap campaign using the current algorithm is in progress.
-Its final coverage and throughput have not yet been established.
+The [completed November campaign](reports/enzymemap_history_pruned_20261102/README.md)
+recovered **47,500 / 47,974 references (99.01%)** under its recorded scientific
+revision. All directions completed decoding after the documented memory repair;
+four directional reference checks remain unknown. These measurements predate
+the current relaxed-fragment implementation, which requires its own full-dataset
+validation.
 
 The [historical October report](reports/enzymemap_20261008/README.md) recorded
 **47,974 / 47,974 reactions completed (100%)** and **47,335 strict reference matches
@@ -389,7 +393,7 @@ snapshot for recovery, as specified in its storage design.
 <details>
 <summary>Upgrading from the former rxn_core package</summary>
 
-The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.mappa_core.post_processing.decoder import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
+The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.mappa_core.post_processing.decoder import decode_events`. Earlier fragment schemas require their producing revision: current readers reject incompatible scientific records rather than reinterpret their allowed mappings. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
 
 </details>
 

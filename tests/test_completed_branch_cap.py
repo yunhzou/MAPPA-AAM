@@ -7,7 +7,6 @@ from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.growth.engine import grow_island
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 def graph(elements, edges):
@@ -36,23 +35,24 @@ def test_temporary_ambiguity_can_resolve_below_cap(engine, initial_ambiguity):
     source = (graph(['N', 'O'], [(0, 1)]) if initial_ambiguity else
               graph(['Si', 'N', 'O'], [(0, 1), (1, 2)]))
     dest = target()
-    kwargs = dict(iso_tol=.1, p_orbits=_nauty_orbits(dest, wbo_tol=.1))
+    kwargs = dict(iso_tol=.1)
     profile = []
     result = grow_island(source, dest, 0, {}, max_branches=1, profile=profile, **kwargs)
     unrestricted = grow_island(source, dest, 0, {}, max_branches=100, **kwargs)
-    assert [dict(r) for r in result] == [dict(r) for r in unrestricted]
-    assert len(result) == 1
-    assert result[0].fragment == frozenset(source)
+    assert [r.key for r in result.matches] == [r.key for r in unrestricted.matches]
+    assert result.deferred_edges == unrestricted.deferred_edges
+    assert len(result.matches) == 1
+    assert result.matches[0].source_atoms == tuple(source)
     candidates = max(p['max_cands_before'] for p in profile)
     assert candidates == 1
-    assert dict(result[0]) == ({0: 1, 1: 5} if initial_ambiguity else {0: 0, 1: 1, 2: 5})
+    assert dict(result.matches[0].witness) == ({0: 1, 1: 5} if initial_ambiguity else {0: 0, 1: 1, 2: 5})
 
 
 def test_completed_fragment_still_obeys_cap(engine):
     source = graph(['Si', 'N'], [(0, 1)])
     dest = target()
-    kwargs = dict(iso_tol=.1, p_orbits=_nauty_orbits(dest, wbo_tol=.1))
-    assert len(grow_island(source, dest, 0, {}, max_branches=4, **kwargs)) == 4
+    kwargs = dict(iso_tol=.1)
+    assert len(grow_island(source, dest, 0, {}, max_branches=4, **kwargs).matches) == 4
     with pytest.raises(IslandBranchLimitExceeded) as exc:
         grow_island(source, dest, 0, {}, max_branches=3, **kwargs)
     assert (exc.value.count, exc.value.limit) == (4, 3)
@@ -70,7 +70,7 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
         search = find_islands_native
     else:
         search = find_islands
-    kwargs = dict(iso_tol=.1, p_orbits=_nauty_orbits(dest, wbo_tol=.1))
+    kwargs = dict(iso_tol=.1)
     full = search(source, dest, [0, 1], max_branches=4, **kwargs)
     capped = search(source, dest, [0, 1], max_branches=3, **kwargs)
     assert len(full.terminals) == 4

@@ -56,7 +56,11 @@ def test_weighted_subgraph_can_match_by_custom_node_feature(monkeypatch):
         iso_tol=0.3,
     )
 
-    assert [m.mapping for m in matches] == [{0: 0, 1: 1}, {0: 1, 1: 0}]
+    assert len(matches) == 1
+    fragment, = matches[0].symmetry_fragments
+    assert fragment.target_atoms == (0, 1)
+    assert fragment.relation.allows_discovery({0: 0, 1: 1})
+    assert fragment.relation.allows_discovery({0: 1, 1: 0})
 
 
 def test_weighted_subgraph_respects_wbo_iso_after_custom_node_match(monkeypatch):

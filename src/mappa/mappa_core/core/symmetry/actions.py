@@ -1,5 +1,6 @@
 """Shared ordered structural actions and joint endpoint-pair projection."""
 from collections import defaultdict, OrderedDict
+from collections.abc import Mapping
 import sys
 from numbers import Integral
 
@@ -7,15 +8,29 @@ import numpy as np
 
 
 def apply_action(images, action, choice, degree):
-    """Apply one pool permutation or signed generator word to atom images.
+    """Apply one checked joint action to atom images.
 
     The full permutation acts jointly on all supplied images. None selects
-    identity; a group word uses signed 1-based generator numbers.
+    the saved witness; structural group words use signed generator numbers.
+    A fragment choice specifies discovery plus its two self rearrangements.
     """
     images = np.asarray(images, dtype=int)
     if choice is None:
         return images
     kind, data = action
+    if kind == 'relation':
+        if not isinstance(choice, Mapping):
+            raise ValueError('fragment choice must name discovery and self rearrangements')
+        words = {'source_word', 'target_word'}.intersection(choice)
+        permutations = {'source_permutation', 'target_permutation'}.intersection(choice)
+        if words and permutations:
+            raise ValueError('use either self words or self permutations for one fragment choice')
+        realize = data.relation.realize_permutations if permutations else data.relation.realize
+        mapping = realize(**choice)
+        permutation = np.arange(degree)
+        for source, target in data.witness:
+            permutation[target] = mapping[source]
+        return permutation[images]
     if kind == 'pool':
         selected = tuple(choice)
         if (any(not isinstance(p, Integral) for p in selected)
@@ -87,10 +102,10 @@ class _ActionSequence(tuple):
     def _prepare_atom(self, image):
         domain, dependencies = frozenset((image,)), []
         for position, action in enumerate(self):
-            moved = domain.intersection(action.orbits)
+            moved = domain.intersection(action.domains)
             if moved:
                 dependencies.append(position)
-                reached = {action.orbits[p] for p in moved}
+                reached = {action.domains[p] for p in moved}
                 domain = domain.union(*reached)
         return tuple(sorted(domain)), tuple(dependencies)
 
@@ -108,8 +123,8 @@ class PreparedActionPrograms:
         if reference is None:
             prepared = _PreparedAction(action)
             if prepared not in self.actions:
-                prepared.orbits = {image: orbit for image, orbit in
-                    enumerate(self.index.action_orbits(prepared)) if len(orbit) > 1}
+                prepared.domains = {image: domain for image, domain in
+                    enumerate(self.index.action_domains(prepared)) if len(domain) > 1}
                 self.actions[prepared] = prepared
             reference = self.action_references[id(action)] = action, self.actions[prepared]
         return reference[1]
@@ -164,33 +179,69 @@ def _action_orbits(action, degree):
     return tuple(result)
 
 
+def _relation_domains(fragment, degree):
+    """Conservative endpoint bounds; they do not permit independent choices.
+
+    A source atom can move under alpha inverse, then D, then beta. Structural
+    self orbits bound those motions without closing the relaxed relationship.
+    All joint predicates remain on the saved relation and its compiler.
+    """
+    relation = fragment.relation
+    source, target = relation.source, relation.target
+    source_orbits = _action_orbits(('group', source.generators), len(source.atoms))
+    target_orbits = _action_orbits(('group', target.generators), len(target.atoms))
+    target_positions = {atom: i for i, atom in enumerate(target.atoms)}
+    discovery = dict(relation.domains)
+    discovery.update((r, (p,)) for r, p in relation.anchors)
+    bounds = {}
+    for orbit in set(source_orbits):
+        images = {p for i in orbit for p in discovery[source.atoms[i]]}
+        bounds[orbit] = frozenset(target.atoms[j] for p in images
+                                 for j in target_orbits[target_positions[p]])
+    result = [frozenset((i,)) for i in range(degree)]
+    source_positions = {atom: i for i, atom in enumerate(source.atoms)}
+    for r, p in relation.witness:
+        result[p] = bounds[source_orbits[source_positions[r]]]
+    return tuple(result)
+
+
 class ActionIndex:
     """Prepared actions and bounded projections in one atom-index frame."""
     def __init__(self, degree):
         self.m = degree
-        self._orbit_tables = OrderedDict()
+        self._domain_tables = OrderedDict()
         self._prepared_atoms = _AtomRows()
         self._endpoint_pairs = OrderedDict()
         self._compiled_pair_actions = OrderedDict()
         self._pair_programs = OrderedDict()
 
-    def action_orbits(self, action):
-        if action not in self._orbit_tables:
-            self._orbit_tables[action] = _action_orbits(action, self.m)
-            if len(self._orbit_tables) > 1024:
-                self._orbit_tables.popitem(last=False)
-        return self._orbit_tables[action]
+    def action_domains(self, action):
+        """Endpoint bounds: exact structural orbits, conservative relation domains."""
+        if action not in self._domain_tables:
+            self._domain_tables[action] = (_relation_domains(action[1], self.m)
+                if action[0] == 'relation' else _action_orbits(action, self.m))
+            if len(self._domain_tables) > 1024:
+                self._domain_tables.popitem(last=False)
+        return self._domain_tables[action]
 
     def endpoint_pairs(self, pair, actions):
-        """Project the ordered action program onto two endpoints, never mappings.
+        """Inspect endpoint bounds without expanding complete mappings.
 
-        Each group closes only its pair orbit before the next action starts.
-        A pool contributes at most k*(k-1) pairs, not k! permutations. These
-        projections retain correlation between endpoints; constraints involving
-        other atoms are still enforced when a complete choice is realized.
+        Structural actions have exact pair projections. A program containing a
+        relaxed relation yields conservative pairs lazily, because separate
+        endpoint bounds cannot express its joint constraints. Membership always
+        requires a checked complete choice or the finite relation compiler.
         """
         if not actions:
             return (pair,)
+        if any(kind == 'relation' for kind, _ in actions):
+            domains = [frozenset((p,)) for p in pair]
+            for action in actions:
+                bounds = self.action_domains(action)
+                domains = [frozenset(q for p in domain
+                    for q in (bounds[p] if p >= 0 else (-1,))) for domain in domains]
+            return ((x, y) for x in sorted(domains[0]) for y in sorted(domains[1])
+                    if x != y or x == -1)
         key = pair, actions
         if key not in self._endpoint_pairs:
             from mappa._group_ops import PairAction, EndpointPairProgram

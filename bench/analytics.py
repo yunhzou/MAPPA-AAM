@@ -15,7 +15,7 @@ from mappa.execution.identity import code_identity
 from mappa.mappa_core.core.scheduler import Task
 from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
 from mappa.mappa_core.core.scheduler.results import DecodingResult
-from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_core.post_processing.decoder.api import _validate_atom_identity
 from mappa.mappa_core.utils.io.records import problem_from_record
@@ -81,19 +81,18 @@ def minimum_events(decoded, reference, *, seconds=30.):
 
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
-    if decoded['schema'] not in ('mappa.decoded_events/v3', 'mappa.decoded_events/v4',
-                                  'mappa.decoded_events/v5', 'mappa.decoded_events/v6'):
+    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8'):
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds
     problem = problem_from_record(decoded['problem'])
     catalogue = decoded['catalogue']
-    families = catalogue['families']
+    families = FinalBranchCatalogue.from_record(problem, catalogue).families
     if (FinalBranchCatalogue(problem).problem_sha256 != catalogue['problem_sha256'] or
             len(decoded['families']) != len(families)):
         raise ValueError('Decoded responses and catalogue must belong to the same problem')
     event_problem = problem
-    if decoded['schema'] == 'mappa.decoded_events/v6':
+    if decoded['schema'] == 'mappa.decoded_events/v8':
         event_problem = problem_from_record(decoded['event_problem'])
         _validate_atom_identity(problem, event_problem)
         if (decoded['matching_problem_sha256'] != catalogue['problem_sha256'] or
@@ -139,22 +138,21 @@ def minimum_events(decoded, reference, *, seconds=30.):
             incomplete_paths=catalogue['incomplete_paths'],
             problem_sha256=catalogue['problem_sha256'], catalogue_schema=catalogue['schema'],
             event_problem_sha256=(decoded['event_problem_sha256']
-                if decoded['schema'] == 'mappa.decoded_events/v6' else catalogue['problem_sha256']),
+                if decoded['schema'] == 'mappa.decoded_events/v8' else catalogue['problem_sha256']),
             decoded_schema=decoded['schema'],
             cpu_seconds=time.process_time()-cpu, wall_seconds=time.perf_counter()-started,
             event_policy=dict(threshold=threshold, metal_threshold=metal_threshold,
                               atom_scope='heavy-heavy', comparison='absolute difference > threshold'),
             scope='Minimum over this saved direction catalogue; no claim of exhaustive search coverage')
 
-    for fid, raw in enumerate(families):
+    for fid, family in enumerate(families):
         if time.perf_counter() >= deadline:
             return finish()
-        value = count(dict(raw['mapping']))
+        value = count(dict(family.mapping))
         scores.append((value, fid))
         if lower[fid] > value:
             raise AssertionError('Saved response bound exceeds a valid witness count')
         if upper is None or value < upper:
-            family = FinalFamily.from_record(raw)
             family.validate_representative(problem)
             upper, witness, witness_family = value, dict(family.mapping), fid
         if value == 0 or initial_global_lower >= upper:
@@ -168,7 +166,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
             break
         if lower[fid] >= upper:
             continue
-        family = FinalFamily.from_record(families[fid])
+        family = families[fid]
         if not family.actions:
             lower[fid] = score
             proofs['fixed_mapping'] += 1

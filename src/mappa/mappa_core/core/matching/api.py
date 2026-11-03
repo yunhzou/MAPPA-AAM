@@ -1,11 +1,11 @@
 """Reusable fragment growth interface."""
 from __future__ import annotations
 
-from mappa.mappa_core.core.matching.representation.records import FragmentPlacement, FragmentMatchContext, FragmentMatchConfig, FragmentMatchResult
+from dataclasses import replace
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchContext, FragmentMatchConfig, FragmentMatchResult
 import time
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
 from mappa.mappa_core.core.matching.growth.engine import grow_island
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
 
 def match_fragment(source, target, *, seed, context=None, config=None,
@@ -22,25 +22,18 @@ def match_fragment(source, target, *, seed, context=None, config=None,
     from mappa.mappa_core.core.matching.graphs import _coerce_graph
     source = _coerce_graph(source, config.graph_floor)
     target = _coerce_graph(target, config.graph_floor)
-    target_orbits = context.target_orbits
-    if target_orbits is None:
-        target_orbits = _nauty_orbits(target, wbo_tol=config.iso_tolerance,
-                                    node_policy=config.node_policy)
     try:
-        matches = grow_island(
+        result = grow_island(
             source, target, seed, context.locked_mapping,
             graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
             min_lock_size=config.minimum_size, max_branches=config.branch_limit,
             node_policy=config.node_policy, islands_R=context.islands,
-            p_orbits=target_orbits,
             prior_deferred_edges=context.deferred_edges,
             allow_mapped_seed=config.allow_mapped_seed,
             fragment_cache=context.fragment_cache, random_seed=config.random_seed,
             events=events, profile=profile, profile_context=profile_context,
-            bond_tolerance=config.bond_tolerance)
+            bond_tolerance=config.bond_tolerance, self_tolerance=config.self_tolerance)
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,
                                    time.perf_counter() - started)
-    placements = tuple(FragmentPlacement.from_match(match) for match in matches)
-    return FragmentMatchResult(placements, False, len(matches),
-                               config.branch_limit, time.perf_counter() - started)
+    return replace(result, elapsed_seconds=time.perf_counter() - started)

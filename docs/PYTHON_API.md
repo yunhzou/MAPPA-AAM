@@ -80,9 +80,9 @@ for run in runs:
 
 Keep compressed results in their search direction. Invert only concrete witnesses. Event IDs are direction-local: merging already reduced forward/reverse event classes is **not** an exact common-frame bidirectional decoder. That joint event quotient is not implemented; use the two directed results for audit. `plan_aam_search` remains the lightweight smaller-first planning API.
 
-## Conditional fragment and fixed-query isomorphism
+## Conditional fragment and fixed-query relaxed matching
 
-`match_fragment(source_graph, target_graph, seed=..., context=FragmentMatchContext(locked_mapping=...), config=FragmentMatchConfig(...))` grows a seeded saturated fragment subject to existing assignments. Each extension constrains only the selected growth edge. Returned placements expose those accepted edges as `preserved_bonds`; other bonds between included atoms remain available in the original molecular graphs for event interpretation. Its result includes compressed placements and an explicit cap flag. It does not promise a globally largest common subgraph.
+`match_fragment(source_graph, target_graph, seed=..., context=FragmentMatchContext(locked_mapping=...), config=FragmentMatchConfig(...))` grows a seeded saturated fragment subject to existing assignments. Each extension constrains only the selected growth edge. Returned `Fragment` records expose those edges as `accepted_edges`; other bonds between included atoms remain available in the original molecular graphs for event interpretation. Its result includes compressed placements and an explicit cap flag. It does not promise a globally largest common subgraph.
 
 ```python
 from mappa import FragmentMatchConfig, match_fragment
@@ -94,10 +94,11 @@ result = match_fragment(source_graph, target_graph, seed=0,
 Fragment growth finds one valid placement per extension, allowing assignments
 inside the growing fragment to change while earlier fragment locks stay fixed.
 It first tries extending the witness, then searches the accepted fragment if
-reassignment is needed. At saturation it constructs the exact compressed results.
-Each distinct placement is constructed once from the accepted constraints and
-exact global target symmetry. Pools retain all allowed assignments; the branch
-cap applies to distinct placements at every hierarchy level. Python and native
+reassignment is needed. At saturation it returns one `Fragment` per distinct target atom set. Each
+fragment retains all discovery assignments as joint constraints, plus its
+anchor-aware source and target relaxed self relationships. Internal assignments
+remain compressed. The branch cap counts distinct atom-set placements at every
+hierarchy level. Python and native
 execution use this same algorithm. There is no growth mode to select.
 Completed-fragment results have bounded reuse; intermediate growth candidates
 are not cached.
@@ -114,8 +115,7 @@ session uses a 64 MiB fragment-result retention budget, evicts old entries, and
 returns oversized results without caching them. This is a cache budget, not a
 bound on total search memory. The `reference` execution backend runs the same
 growth algorithm without fragment-result caching. Native fragment requests
-reject unsupported trace events, custom node policies and absent exact target
-orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are needed.
+reject unsupported trace events and custom node policies. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are needed.
 
 `match_weighted_subgraph(query, target, anchor_map=..., iso_tol=..., graph_floor=..., max_branches=..., node_policy=...)` matches a fixed query, with complete validated query placements and unsuccessful/capped search evidence. These two operations serve different purposes. Both accept `WeightedGraph` or prepared graphs from `build_graph`.
 
@@ -123,15 +123,19 @@ orbits. Select `MAPPA_NATIVE=0` explicitly when these Python capabilities are ne
 
 | API/configuration | Controls |
 |---|---|
-| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
+| `AAMSearchConfig` | `iso_tolerance=1.0`; `self_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
-| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `target_orbits`, `fragment_cache` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `self_tolerance=1.0`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
+| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `fragment_cache` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 
-The library and this notebook use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
+Discovery tolerance constrains matching between endpoints. `self_tolerance`
+independently constrains rearrangements within each original fragment; it is not
+the event threshold.
+
+The library and this guide use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
 The returned search graph retains the complete fragment paths leading to its
 results. Discarded paths release their payloads. Their cap evidence remains in
@@ -140,7 +144,7 @@ results. Discarded paths release their payloads. Their cap evidence remains in
 decision. Use `graph.stop_context(stop)` for either a summary or a stop attached
 to a retained state. Historical checkpoints keep their original attached stops.
 
-Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Saved raw/finalized graph-only checkpoints remain readable.
+Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Earlier fragment schemas require their producing revision; current readers reject them instead of reinterpreting their allowed mappings.
 
 ## Experimental fragment competition (optional; default off)
 
@@ -223,7 +227,7 @@ Old internal search module paths are removed. Local workers use
 `mappa.mappa_core.core.scheduler.search`; the shared task queue retains its current API.
 
 `search_core_assignments` projects the requested atoms through the saved ordered
-fragment pools and exact symmetry actions. It uses the optional symbolic-query
+fragment discovery constraints and both-sided relaxed self relationships. It uses the optional symbolic-query
 dependency from `.[postprocessing]`, enumerates only distinct requested tuples,
 and enforces `assignment_limit` without expanding complete atom mappings.
 
@@ -247,11 +251,17 @@ choices. Each action has a `response_invariant` certificate and per-generator
 changed-pair counts. An uncertified action remains compressed; it is not rejected
 or enumerated. This API does not list all patterns or assert a minimum.
 
-To request a realization, provide one choice per original action to
-`events.realize(family_id, choices)`. `None` selects the identity. For a pool,
-list the images of its saved atoms; for a group, provide a word of signed 1-based
-generator numbers (negative numbers apply the inverse). The original matching
-constraints still apply. `events.counts(family_id, choices_iterable)` streams
+To request a realization, provide one choice per saved fragment action to
+`events.realize(family_id, choices)`. `None` keeps its discovery witness with
+identity self rearrangements. A choice dictionary can supply `discovery`
+(original source-to-target indices), `source_word` and `target_word` (signed
+1-based generator numbers). Alternatively, supply `source_permutation` and
+`target_permutation` in the respective fragment-local index frames.
+
+The decoder validates discovery constraints and checks each self rearrangement
+against its own original fragment. It applies target rearrangement composed with
+discovery composed with inverse source rearrangement, once. The resulting mapping
+may exceed discovery tolerance; its bond events are counted using original WBOs. `events.counts(family_id, choices_iterable)` streams
 counts in bounded vector batches for explicitly supplied choices only.
 
 Internal and boundary contributions are available without expanding combinations:
@@ -274,7 +284,7 @@ An event additionally needs absolute change > threshold. Equality produces no
 event. The four categories are exclusive; their sum equals the historical total.
 Without `categories=True`, `counts` retains decrease/increase counts.
 
-Saved event records use `mappa.decoded_events/v5`. They retain the catalogue,
+Saved event records use `mappa.decoded_events/v7`. They retain the catalogue,
 ordered actions, local responses and branch references. The derived
 `atom_domains` and `atom_actions` maps remain available on runtime tables;
 they are omitted from saved records because the catalogue determines them.
@@ -283,7 +293,7 @@ If matching used transformed weights, pass the original endpoint problem as
 `decode_events(catalogue, event_problem=original_problem)`. Elements, atom order
 and coordinates must agree. Matching constraints still use `catalogue.problem`;
 event responses use `events.event_problem`. `EventDecodeSession` accepts the same
-keyword. When the weights differ, records use `mappa.decoded_events/v6`, retaining
+keyword. When the weights differ, records use `mappa.decoded_events/v8`, retaining
 `problem` as the matching endpoints and adding `event_problem`,
 `matching_problem_sha256` and `event_problem_sha256`. Ordinary decoding keeps v5.
 

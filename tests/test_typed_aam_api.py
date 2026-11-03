@@ -88,7 +88,7 @@ def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, mon
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
     import sqlite3
     with sqlite3.connect(tmp_path/'archive.sqlite') as index:
-        index.execute("DELETE FROM cuts WHERE stage='raw' AND number=0")
+        index.execute("DELETE FROM cuts WHERE number=0")
     resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
     assert len(calls)==1
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
@@ -97,7 +97,7 @@ def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, mon
 
 
 @pytest.mark.parametrize('molecule', ['hydrogen', 'ethane'])
-def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,molecule):
+def test_parallel_search_publishes_each_cut_once_and_resumes_without_workers(tmp_path,molecule,monkeypatch):
     import json
     if molecule=='hydrogen':
         problem=AAMProblem(_endpoint('R'),_endpoint('P'))
@@ -112,17 +112,29 @@ def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,m
                               wbo[np.ix_(order,order)]))
     config=AAMSearchConfig(seed_count=3)
     serial=search_aam(problem,config)
+    from mappa.mappa_core.core.scheduler import search as scheduler
+    from types import SimpleNamespace
+    context = scheduler.mp.get_context('fork')
+    pool_starts = []
+    def pool(*args, **kwargs):
+        pool_starts.append((args, kwargs))
+        return context.Pool(*args, **kwargs)
+    monkeypatch.setattr(scheduler.mp, 'get_context', lambda method: SimpleNamespace(Pool=pool))
     parallel=search_aam(problem,config,workers=2,intermediate_dir=tmp_path)
+    assert len(pool_starts) == 1
     normalize=lambda result:json.dumps(result.graph.to_record(),sort_keys=True)
     assert normalize(parallel)==normalize(serial)
     import sqlite3
     with sqlite3.connect(tmp_path/'archive.sqlite') as index:
-        assert index.execute("SELECT count(*) FROM cuts WHERE stage='final'").fetchone()[0] == len(parallel.graph.contexts)//config.seed_count
+        assert index.execute("SELECT count(*) FROM cuts").fetchone()[0] == len(parallel.graph.contexts)//config.seed_count
     checkpoints=list(tmp_path.glob('*.bundle'))
     stamps={p:p.stat().st_mtime_ns for p in checkpoints}
     resumed=search_aam(problem,config,workers=2,intermediate_dir=tmp_path,resume=True)
     assert normalize(resumed)==normalize(serial)
     assert stamps=={p:p.stat().st_mtime_ns for p in checkpoints}
+    assert len(pool_starts) == 1
+    assert resumed.metrics.worker_search_seconds == 0
+    assert resumed.metrics.checkpoint_seconds == 0
 
 
 def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
@@ -133,7 +145,7 @@ def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
         intermediate_dir=tmp_path,archive_format='checkpoint')
     restored=read_aam_checkpoint(tmp_path/'aam.pkl.gz')
     assert json.dumps(aam_record(restored),sort_keys=True)==json.dumps(aam_record(result),sort_keys=True)
-    assert restored.graph.fragment_placement(0)==result.graph.fragment_placement(0)
+    assert restored.graph.transitions[0].match == result.graph.transitions[0].match
     assert not list(tmp_path.glob('*.tmp'))
     assert list(tmp_path.glob('*.bundle'))
     assert (tmp_path/'archive.sqlite').exists()
@@ -168,12 +180,11 @@ def test_search_aam_returns_complete_typed_hierarchy():
     branch = result.branches[0]
     assert branch.hierarchy.fragments
     fragment = branch.hierarchy.fragments[0]
-    assert fragment.representative_assignments
-    assert fragment.multiplicity >= 1
-    assert branch.hierarchy.has_complete_exact_target_groups
-    assert result.metrics.completed_group_requests >= 1
-    assert result.metrics.completed_group_calculations >= 1
-    assert result.metrics.retained_branch_count == len(result.branches)
+    from growth_cases import represented
+    assert fragment.witness
+    assert fragment.source_atoms == fragment.target_atoms == (0, 1)
+    assert represented((fragment,)) == {((0,0),(1,1)), ((0,1),(1,0))}
+    assert result.metrics.retained_branch_count == len(result.graph.terminals)
 
 
 @pytest.mark.smoke

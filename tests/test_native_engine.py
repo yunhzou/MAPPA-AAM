@@ -5,7 +5,6 @@ tetraphenylmethane benchmark is executed by both engines and the results
 (mappings, deferred edges, fragments, symmetry states, cap behaviour) must be
 identical; the typed search results of the two modes must agree as well.
 """
-import json
 import os
 import sys
 from pathlib import Path
@@ -22,15 +21,10 @@ pytestmark = pytest.mark.skipif(
     not native.built(), reason="native growth engine not built")
 
 
-def _iso_key(isos):
-    return [
-        (tuple(sorted((int(k), int(v)) for k, v in dict(iso).items())),
-         tuple(sorted(tuple(e) for e in iso.deferred_edges)),
-         tuple(sorted(iso.fragment)),
-         tuple(iso.preserved_bonds),
-         json.dumps(iso.symmetry, sort_keys=True, default=list))
-        for iso in isos
-    ]
+def _result_key(result):
+    matches = [fragment.to_record() for fragment in result.matches]
+    return (matches, tuple(sorted(result.deferred_edges)), result.capped,
+            result.branch_count, result.branch_limit)
 
 
 def _search(case, workers=1):
@@ -57,14 +51,14 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
         monkeypatch.setenv("MAPPA_NATIVE", "0")
         try:
             try:
-                expected = ("ok", _iso_key(original(g_R, g_P, seed, dict(mapping), **kw)))
+                expected = ("ok", _result_key(original(g_R, g_P, seed, dict(mapping), **kw)))
             except IslandBranchLimitExceeded as exc:
                 expected = ("raised", (exc.count, exc.limit))
         finally:
             monkeypatch.setenv("MAPPA_NATIVE", "1")
         policy = as_node_match_policy(kw.get("node_policy"))
         if native.available():
-            native.validate_inputs(kw.get("p_orbits"), policy, kw.get("events"))
+            native.validate_inputs(policy, kw.get("events"))
             stats["native"] += 1
             try:
                 out = native.grow_island(
@@ -73,11 +67,12 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
                     iso_tol=kw.get("iso_tol", 0.5),
                     min_lock_size=kw.get("min_lock_size", 1),
                     max_branches=kw.get("max_branches", 1_000_000),
-                    islands_R=kw.get("islands_R"), p_orbits=kw.get("p_orbits"),
+                    islands_R=kw.get("islands_R"),
                     prior_deferred_edges=kw.get("prior_deferred_edges"),
                     allow_mapped_seed=kw.get("allow_mapped_seed", False),
-                    profile=None, profile_context=None)
-                got = ("ok", _iso_key(out)) if out is not None else None
+                    profile=None, profile_context=None,
+                    self_tolerance=kw.get("self_tolerance", 1.0))
+                got = ("ok", _result_key(out))
             except IslandBranchLimitExceeded as exc:
                 got = ("raised", (exc.count, exc.limit))
             assert got == expected, (seed, len(mapping))
@@ -109,7 +104,6 @@ def test_reused_target_rejects_source_elements_introduced_later():
         [[0.0, 1.0], [1.0, 0.0]],
         0.2,
         [(0, 1)],
-        [0, 1],
     )
     for index in range(8):
         source = _engine.SourceGraph(
@@ -123,7 +117,7 @@ def test_reused_target_rejects_source_elements_introduced_later():
             None, [], False,
         )
         assert result["capped"] is False
-        assert result["isos"]
+        assert result["fragments"]
 
 
 def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
@@ -131,7 +125,6 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
     import networkx as nx
     import numpy as np
 
-    from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
 
     source = nx.Graph()
     source.add_nodes_from(((10, {"element": "C"}),
@@ -153,14 +146,12 @@ def test_sparse_atom_ids_use_native_engine_and_restore_original_ids():
     result = native.grow_island(
         source, target, 10, {}, graph_floor=0.2, iso_tol=0.5,
         min_lock_size=1, max_branches=100, islands_R=None,
-        p_orbits=_nauty_orbits(target, wbo_tol=0.5),
         prior_deferred_edges=None, allow_mapped_seed=False,
         profile=None, profile_context=None,
     )
 
-    assert result is not None
-    assert [dict(match) for match in result] == [{10: 100, 20: 110}]
-    assert result[0].fragment == frozenset({10, 20})
+    assert [dict(match.witness) for match in result.matches] == [{10: 100, 20: 110}]
+    assert result.matches[0].source_atoms == (10, 20)
 
 
 @pytest.mark.parametrize('selection', [None, '1'])

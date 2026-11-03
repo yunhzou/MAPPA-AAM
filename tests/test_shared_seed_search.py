@@ -16,7 +16,7 @@ from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
 
 def cut_sessions(problem, config):
     condition = AdaptiveSearchCondition.uncut(problem, config)
-    repair = FragmentRepair(condition.source, condition.target, condition.orbits)
+    repair = FragmentRepair(condition.source, condition.target)
     for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
         view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
         yield SharedSeedSearch(problem, config, condition=replace(condition,
@@ -32,7 +32,7 @@ def contents(graph):
     # Retain exact correlated fragment records, constraints and stop reasons.
     states = {state_key(s) for s in graph.states}
     edges = {(state_key(graph.states[e.source]), state_key(graph.states[e.target]),
-              frozen_value(e.match), e.preserved_bonds) for e in graph.transitions if e.match is not None}
+              e.match.key, e.island) for e in graph.transitions if e.match is not None}
     stops = {(None if s.state is None else state_key(graph.states[s.state]),
               s.reason, s.stage, s.count, s.limit) for s in graph.stops}
     return states, edges, stops
@@ -77,7 +77,6 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
         for order in child.orders:
             graph = find_islands_native(child.source, child.target, order,
                 graph_floor=config.graph_floor, iso_tol=tol, max_branches=cap,
-                p_orbits=child.condition.orbits,
                 cuts=child.condition.cuts)
             for target, values in zip(reference, contents(graph)):
                 target.update(values)
@@ -136,11 +135,11 @@ def test_cut_worker_backend_preserves_full_fragment_content_and_checkpoint_ident
     directory = tmp_path/'cuts'
     shared = search_aam(problem(6), config, workers=workers, execution='shared_policies',
                         intermediate_dir=directory, archive_format='checkpoint')
-    # Conditioned symmetry is finalized too: compare complete records, not only scores.
+    # Compare every completed relation and its constraints, not only witnesses.
     assert contents(shared.graph) == contents(original.graph)
     import sqlite3
     with sqlite3.connect(directory/'archive.sqlite') as index:
-        assert index.execute("SELECT count(*) FROM cuts WHERE stage='raw'").fetchone()[0] == shared.metrics.cut_count
+        assert index.execute("SELECT count(*) FROM cuts").fetchone()[0] == shared.metrics.cut_count
     assert not list(directory.glob('cut_*'))
     resumed = search_aam(problem(6), config, workers=workers, execution='shared_policies',
                          intermediate_dir=directory, archive_format='checkpoint', resume=True)

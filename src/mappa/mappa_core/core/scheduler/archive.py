@@ -23,16 +23,16 @@ class CutArchive:
                 raise ValueError('Existing checkpoints require explicit resume=True')
             path.write_text(json.dumps(manifest)+'\n')
         self.db = sqlite3.connect(index)
-        self.db.execute('CREATE TABLE IF NOT EXISTS cuts (stage TEXT, number INTEGER, reference TEXT, PRIMARY KEY(stage,number))')
+        self.db.execute('CREATE TABLE IF NOT EXISTS cuts (number INTEGER PRIMARY KEY, reference TEXT)')
         self.db.commit()
 
-    def references(self, stage):
+    def references(self):
         return {number: Blob(**json.loads(raw)) for number, raw in
-                self.db.execute('SELECT number,reference FROM cuts WHERE stage=? ORDER BY number', (stage,))}
+                self.db.execute('SELECT number,reference FROM cuts ORDER BY number')}
 
-    def record(self, stage, number, reference):
+    def record(self, number, reference):
         with self.db:
-            self.db.execute('INSERT INTO cuts VALUES (?,?,?)', (stage, number, json.dumps(asdict(reference))))
+            self.db.execute('INSERT INTO cuts VALUES (?,?)', (number, json.dumps(asdict(reference))))
 
     def close(self):
         self.db.close()

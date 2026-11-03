@@ -12,9 +12,8 @@ from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_workflow.mapping_analytics.family import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
-from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, Fragment
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from mappa.mappa_core.core.search.queries.partial import search_core_assignments
 from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint, ReactionContext, ResolvedMechanism, VibrationalModes
 from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
@@ -24,7 +23,7 @@ from mappa.presentation.viewers import write_aam_bundle
 from mappa.mappa_workflow.ts_analytics.serialization import ts_record, write_ts_record
 from .mappa_core.domain import (
     AAMHierarchy, AtomBijection, AtomPermutation,
-    FragmentMatch, PermutationGroup, SymmetryDomain,
+    PermutationGroup,
 )
 
 # Stable graph and chemistry primitives are reusable public components.
@@ -38,10 +37,10 @@ __all__ = [
     "query_path", "convert_fragments", "FragmentConversion", "decode_events",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
-    "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",
+    "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "Fragment",
     "AAMSearchGraph", "SearchState", "FragmentTransition", "SearchPath", "SearchBranch",
     "SearchContext", "SearchStop",
-    "PathRealization", "finalize_graph_symmetry", "SubgraphSearchResult",
+    "PathRealization", "SubgraphSearchResult",
     "AAMProblem", "AAMResult", "AAMSearchConfig",
     "AAMSearchMetrics",
     "AtomAssignment", "CoreAAMBranch",
@@ -50,7 +49,7 @@ __all__ = [
     "TSMechanismResult", "TSResult", "TSScore", "TSScoringConfig",
     "TransitionStateTarget", "VibrationalModes",
     "AAMHierarchy", "AtomBijection", "AtomPermutation",
-    "FragmentMatch", "PermutationGroup", "SymmetryDomain",
+    "PermutationGroup",
     "search_aam_checkpoints", "AAMCheckpointResult",
     "search_aam", "search_core_assignments",
     "analyze_transition_state",

@@ -3,7 +3,9 @@ import numpy as np
 
 from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
 from mappa.mappa_core.domain import MolecularEndpoint
-from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
+from mappa.mappa_core.core.matching.representation.records import Fragment
+from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism
+from mappa.mappa_core.post_processing.final_branches import FinalFamily
 
 
 def endpoint(elements,edges):
@@ -12,13 +14,22 @@ def endpoint(elements,edges):
     return MolecularEndpoint(tuple(elements),np.zeros((len(elements),3)),w)
 
 
-def synthetic_path(blocks,automorph_blocks=(),preserved_bonds=()):
-    graph=AAMSearchGraph((SearchContext((0,1),(0,1,2),(0,1)),),(0,),
-        (SearchState(0,0,(),(),()),SearchState(1,0,((0,0),(1,1)),((0,1),(1,1)),())),
-        (FragmentTransition(0,0,1,0,(1,0),dict(fragment=[0,1],symmetry=dict(
-            witness={0:0,1:1},blocks=blocks,exact_fixed=[],automorph_blocks=automorph_blocks,
-            automorph_generators=[])),preserved_bonds),),(SearchStop(1,'objective_met'),))
-    return next(graph.paths())
+def fragment_path(problem, *, atoms=None, targets=None, anchors=(), accepted=()):
+    atoms = tuple(range(problem.source_atom_count)) if atoms is None else atoms
+    targets = atoms if targets is None else targets
+    source = relaxed_automorphism(problem.reactant.elements, problem.reactant.wbo,
+        atoms=atoms, anchors=tuple(r for r, _ in anchors), tolerance=0.)
+    target = relaxed_automorphism(problem.product.elements, problem.product.wbo,
+        atoms=targets, anchors=tuple(p for _, p in anchors), tolerance=0.)
+    witness = tuple(zip(atoms, targets))
+    domains = tuple((r, tuple(p for p in targets
+        if problem.reactant.elements[r] == problem.product.elements[p])) for r in atoms)
+    edges = tuple(DiscoveryEdge((a, b), problem.reactant.wbo[a, b], 0.) for a, b in accepted)
+    target_edges = tuple((p, q) for p in targets for q in targets
+                         if p < q and problem.product.wbo[p, q] >= .2)
+    fragment = Fragment(RelaxedIsomorphism(source, target, witness, anchors,
+        domains, edges, target_edges, .2))
+    return FinalFamily(witness, accepted, (('relation', fragment),), (.2, 0.)).as_path(problem)
 
 
 def test_open_pools_keep_same_pair_and_different_pair_assignments():
@@ -73,30 +84,31 @@ def test_one_target_cannot_supply_two_reference_atoms():
     assert query_path(path,problem,{0:0,1:0},source_atoms=(0,1),timeout_ms=2000)[0]=='not_recovered'
 
 
-def test_pool_choices_do_not_move_fixed_fragment_slots():
-    problem=AAMProblem(endpoint('OO',[]),endpoint('OOO',[]))
-    path=synthetic_path([dict(r_atoms=[1],p_atoms=[0,1,2])])
+def test_fragment_choices_do_not_move_anchors():
+    problem=AAMProblem(endpoint('OOO',[]),endpoint('OOO',[]))
+    path=fragment_path(problem, anchors=((0, 0),))
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='recovered'
     assert query_path(path,problem,{0:2,1:0},source_atoms=(0,1))[0]=='not_recovered'
 
 
-def test_automorphism_summary_is_not_an_independent_domain():
+def test_fixed_fragment_image_cannot_reach_an_extra_target_atom():
     problem=AAMProblem(endpoint('OO',[]),endpoint('OOO',[]))
-    path=synthetic_path([],automorph_blocks=[dict(r_atoms=[0,1],p_atoms=[0,1,2])])
+    path=fragment_path(problem)
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
 
 
 def test_reference_heavy_assignment_still_requires_feasible_hydrogens():
-    problem=AAMProblem(endpoint('OH',[(0,1)]),endpoint('OHO',[(0,1)]))
-    path=synthetic_path([dict(r_atoms=[0],p_atoms=[0,2])], preserved_bonds=((0,1),))
-    assert query_path(path,problem,{0:2},source_atoms=(0,))[0]=='not_recovered'
+    problem=AAMProblem(endpoint('OOH',[(0,2)]),endpoint('OOH',[(0,2)]))
+    path=fragment_path(problem, accepted=((0, 2),))
+    assert query_path(path,problem,{0:0},source_atoms=(0,))[0]=='recovered'
+    assert query_path(path,problem,{0:1},source_atoms=(0,))[0]=='not_recovered'
 
 
 def test_reference_propagation_keeps_correlated_permutation_choices():
     import z3
-    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
     for target in permutations(range(3)):
-        constraints=ReferenceConstraints()
+        constraints=FiniteConstraints()
         values=constraints.act([constraints.constant(i) for i in range(3)],[(1,2,0)],'ring')
         for value,wanted in zip(values,target):constraints.restrict(value[0],{wanted})
         solver=z3.Solver();constraints.emit(solver)
@@ -107,12 +119,12 @@ def test_reference_propagation_keeps_correlated_permutation_choices():
 
 def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
     import z3
-    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
     # The reference fixes the output, not a freely chosen input slot.
     for selector in (0,1):
         for left in (2,3):
             for right in (2,3):
-                constraints=ReferenceConstraints()
+                constraints=FiniteConstraints()
                 choice=constraints.symbol((0,1))
                 a=constraints.symbol((2,3));b=constraints.symbol((2,3))
                 output=constraints.lookup(choice,{0:a,1:b})
@@ -125,7 +137,7 @@ def test_reference_propagation_dynamic_lookup_preserves_all_solutions():
 
 def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
     import z3
-    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
     # Two correlated permutations on overlapping target pools, with one slot
     # fixed in the second operation. Compare every output, including negatives.
     expected=set()
@@ -135,7 +147,7 @@ def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
             if table[3]!=3:continue
             expected.add(tuple(table.get(v,v) for v in (*first,3)))
     for target in permutations(range(4)):
-        constraints=ReferenceConstraints()
+        constraints=FiniteConstraints()
         values=[constraints.constant(i) for i in range(4)]
         for pool,fixed in (((0,1,2),()),((1,2,3),(3,))):
             table={p:constraints.symbol(pool) for p in pool}
@@ -149,29 +161,30 @@ def test_reference_propagation_overlapping_pools_matches_exhaustive_oracle():
 
 
 def test_reference_atom_set_rejects_before_action_construction(monkeypatch):
-    from mappa.mappa_core.post_processing.final_branches import FinalFamily
     problem=AAMProblem(endpoint('CCC',[]),endpoint('CCC',[]))
-    path=FinalFamily(((0,0),(1,1)),(),(('group',((1,0,2),)),),(.2,1.)).as_path(problem)
+    path=fragment_path(problem, atoms=(0, 1))
     def forbidden(*args):raise AssertionError('Atom-set mismatch needs no group query')
-    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.group_factors',forbidden)
+    monkeypatch.setattr('mappa.mappa_core.core.symmetry.constraints.group_factors',forbidden)
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
 
 
-def test_exact_ground_truth_settles_correlated_fragment_without_solver():
-    from mappa.mappa_core.post_processing.final_branches import FinalFamily
-    problem=AAMProblem(endpoint('CCCC',[]),endpoint('CCCC',[]))
-    path=FinalFamily(tuple(enumerate(range(4))),(),(('group',((1,2,3,0),)),),(.2,1.)).as_path(problem)
+def test_reference_respects_complete_fragment_ring_correlation():
+    edges=((0, 1), (1, 2), (2, 3), (0, 3))
+    problem=AAMProblem(endpoint('CCCC',edges),endpoint('CCCC',edges))
+    path=fragment_path(problem, accepted=edges)
     for expected,reference in [('recovered',{0:1,1:2,2:3,3:0}),
                                ('not_recovered',{0:1,1:0,2:2,3:3})]:
         status,result=query_path(path,problem,reference,source_atoms=tuple(range(4)))
-        assert status==expected and result['checks']['solver_calls']==0
+        assert status==expected
+        if status=='recovered':
+            assert dict(result['mapping'])==reference
 
 
 def test_independent_fragment_constraint_cache_and_joint_conflict():
     import z3
-    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints, _component_cache
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, _component_cache
     _component_cache.clear()
-    constraints=ReferenceConstraints()
+    constraints=FiniteConstraints()
     for _ in range(2):
         values=[constraints.symbol(range(3))[0] for _ in range(3)]
         for a,b in ((0,1),(1,2),(2,0)):
@@ -180,11 +193,30 @@ def test_independent_fragment_constraint_cache_and_joint_conflict():
     assert status==z3.sat
     assert stats['components']==2 and stats['cache_hits']==1 and stats['solver_calls']==1
     # Sharing a choice means these constraints must not be accepted separately.
-    joint=ReferenceConstraints();a,b,c=[joint.symbol((0,1))[0] for _ in range(3)]
+    joint=FiniteConstraints();a,b,c=[joint.symbol((0,1))[0] for _ in range(3)]
     joint.relation((a,b),((0,0),(1,1)))
     joint.relation((b,c),((0,0),(1,1)))
     joint.relation((a,c),((0,1),(1,0)))
     assert joint.solve(2000)[0]==z3.unsat
+
+
+def test_constraint_checkpoints_relocate_to_the_shared_core():
+    import io
+    import pickle
+    import z3
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
+    from mappa.mappa_core.utils.io.checkpoints import _load_checkpoint
+    system = FiniteConstraints()
+    first, second = system.symbol((0, 1)), system.symbol((0, 1))
+    system.distinct((first[0], second[0]))
+    saved = pickle.dumps(system, protocol=0).replace(
+        b'cmappa.mappa_core.core.symmetry.constraints\nFiniteConstraints\n',
+        b'cmappa.mappa_workflow.mapping_analytics.constraints\nReferenceConstraints\n').replace(
+        b'cmappa.mappa_core.core.symmetry.constraints\nChoice\n',
+        b'cmappa.mappa_workflow.mapping_analytics.constraints\nChoice\n')
+    restored = _load_checkpoint(io.BytesIO(saved))
+    assert isinstance(restored, FiniteConstraints)
+    assert restored.solve(2000)[0] == z3.sat
 
 
 def test_tolerant_symmetry_retains_all_small_query_mappings():

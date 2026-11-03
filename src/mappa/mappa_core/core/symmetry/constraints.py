@@ -1,14 +1,63 @@
-"""Finite reference constraints, reduced before constructing the exact solver query.
+"""Finite correlated constraints, reduced before constructing the exact solver query.
 
 Each permutation factor has one shared choice variable. Local propagation only
 removes values without support; the solver retains all correlations afterward.
 """
 from collections import deque, OrderedDict
 from dataclasses import dataclass
+from functools import lru_cache
 import time
 
 
-# Keys contain the complete reduced constraints, including the reference.
+@lru_cache(maxsize=512)
+def group_factors(generators):
+    from sympy.combinatorics import Permutation,PermutationGroup
+    if not generators:return ()
+    group=PermutationGroup([Permutation(list(g)) for g in generators])
+    return tuple(tuple(tuple(p(i) for i in range(group.degree)) for p in level.values())
+                 for level in reversed(group.basic_transversals) if len(level)>1)
+
+
+class SymbolicActions:
+    """Shared compact permutation-action encoder for feasibility and quotient queries."""
+    def __init__(self,solver,*,fresh=False):
+        self.solver=solver;self.fresh=fresh;self.variables=[];self.program=[]
+
+    @staticmethod
+    def constant(v):return (int(v),frozenset((int(v),)))
+
+    def symbol(self,domain):
+        import z3
+        domain=tuple(sorted(set(domain)))
+        if len(domain)==1:return self.constant(domain[0])
+        value=z3.FreshInt('orbit') if self.fresh else z3.Int(f'q{len(self.variables)}')
+        self.variables.append(value)
+        self.solver.add(z3.Or(*(value==p for p in domain)))
+        return value,frozenset(domain)
+
+    def lookup(self,value,table):
+        import z3
+        expression,support=value
+        if isinstance(expression,int):return table.get(expression,value)
+        images=[(p,table.get(p,self.constant(p))) for p in sorted(support)]
+        if all(isinstance(v[0],int) and v[0]==p for p,v in images):return value
+        out=images[-1][1][0]
+        for p,v in reversed(images[:-1]):out=z3.If(expression==p,v[0],out)
+        return out,frozenset().union(*(v[1] for _,v in images))
+
+    def act(self,values,generators,label):
+        for factor in group_factors(tuple(tuple(g) for g in generators)):
+            active=set().union(*(v[1] for v in values))
+            moved={p for p in active if p<len(factor[0]) and any(g[p]!=p for g in factor)}
+            if not moved:continue
+            choice=self.symbol(range(len(factor)))
+            table={p:self.lookup(choice,{i:self.constant(g[p]) for i,g in enumerate(factor)}) for p in moved}
+            values=[self.lookup(v,table) for v in values]
+            self.program.append(('group',label,choice[0],factor))
+        return values
+
+
+# Keys contain the complete reduced constraints, including the requested output.
 # Only conclusive answers are reused; bounded to keep worker memory predictable.
 _component_cache = OrderedDict()
 
@@ -18,7 +67,7 @@ class Choice:
     index: int
 
 
-class ReferenceConstraints:
+class FiniteConstraints:
     def __init__(self):
         self.domains=[]
         self.constraints=[]
@@ -63,24 +112,26 @@ class ReferenceConstraints:
         return output
 
     def act(self, values, generators, label):
-        from mappa.mappa_workflow.mapping_analytics.family import group_factors
         for factor in group_factors(tuple(tuple(g) for g in generators)):
             active=set().union(*(v[1] for v in values))
             if not any(p<len(factor[0]) and any(g[p]!=p for g in factor) for p in active):continue
             choice=self.symbol(range(len(factor)))
-            transformed=[]
-            for value in values:
-                images={g[p] if p<len(g) else p for p in value[1] for g in factor}
-                if all(all(p>=len(g) or g[p]==p for g in factor) for p in value[1]):
-                    transformed.append(value);continue
-                output=self.symbol(images)
-                # Store the action itself. Ground truth will restrict its input,
-                # output and shared choice before any relation rows are built.
-                self.constraints.append(('action',(value[0],choice[0],output[0]),factor))
-                transformed.append(output)
-            values=transformed
+            values=self.apply_factor(values,factor,choice[0])
             self.program.append(('group',label,choice[0],factor))
         return values
+
+    def apply_factor(self, values, factor, choice):
+        """Apply one shared factor choice, also reused for its inverse."""
+        transformed=[]
+        for value in values:
+            images={g[p] if p<len(g) else p for p in value[1] for g in factor}
+            if all(all(p>=len(g) or g[p]==p for g in factor) for p in value[1]):
+                transformed.append(value);continue
+            output=self.symbol(images)
+            # Restrict input, output and shared choice before constructing rows.
+            self.constraints.append(('action',(value[0],choice,output[0]),factor))
+            transformed.append(output)
+        return transformed
 
     def action_rows(self, values, factor):
         source,choice,target=values
@@ -197,7 +248,7 @@ class ReferenceConstraints:
             ids.update(active);rows.append(record)
         for ids,records in groups.values():
             ids=tuple(sorted(ids));indices={old:new for new,old in enumerate(ids)}
-            local=ReferenceConstraints()
+            local=FiniteConstraints()
             local.domains=[set(self.domains[i]) for i in ids]
             def translate(value):
                 domain=self.domain(value)
@@ -249,3 +300,97 @@ class ReferenceConstraints:
             for value in domain:
                 model.update_value(z3.Bool(f'q{i}_{value}'),z3.BoolVal(value==assignments[i]))
         return z3.sat,model,stats
+
+
+@dataclass
+class CompiledRelation:
+    """Temporary symbols and factor provenance for one stored core relation."""
+    system: FiniteConstraints
+    relation: object
+    images: dict
+    discovery: dict
+    source_action: tuple
+    target_action: tuple
+    program: tuple
+
+    def _number(self, value, model):
+        expression = self.system.expression(value[0])
+        return expression if isinstance(expression, int) else model.eval(
+            expression, model_completion=True).as_long()
+
+    def choices(self, model):
+        """Recover one discovery and both original-frame self permutations."""
+        return dict(discovery={r: self._number(value, model)
+                               for r, value in self.discovery.items()},
+                    source_permutation=tuple(self._number(value, model) for value in self.source_action),
+                    target_permutation=tuple(self._number(value, model) for value in self.target_action))
+
+    def realize(self, model):
+        mapping = self.relation.realize_permutations(**self.choices(model))
+        images = {r: self._number(value, model) for r, value in self.images.items()}
+        if mapping != images:
+            raise ValueError('solver model disagrees with its relaxed relation choices')
+        return mapping
+
+
+def _compile_self(system, relation, label):
+    """One structural action, constrained jointly against original weights."""
+    start = len(system.program)
+    action = tuple(system.act([system.constant(i) for i in range(len(relation.atoms))],
+                              relation.generators, label))
+    tables = {}
+    for constraint in relation.constraints:
+        weight, tolerance = constraint.response.source_weight, constraint.response.threshold
+        for a, b in constraint.pairs:
+            left, right = action[a], action[b]
+            key = weight, tolerance, left[1], right[1]
+            if key not in tables:
+                # Cartesian domains can contain pairs outside this pair orbit.
+                # Compare their original weights directly; group choices retain
+                # the joint structural restriction and forbid impossible pairs.
+                tables[key] = tuple((p, q) for p in sorted(left[1]) for q in sorted(right[1])
+                    if p != q and abs(float(relation.weights[p, q]) - weight) <= tolerance)
+            system.relation((left[0], right[0]), tables[key])
+    return action, tuple(system.program[start:])
+
+
+def _inverse_action(system, program, degree):
+    """Invert the same selected factors, never introduce independent choices."""
+    values = [system.constant(i) for i in range(degree)]
+    for _, _, choice, factor in reversed(program):
+        inverses = []
+        for permutation in factor:
+            inverse = [0] * len(permutation)
+            for atom, image in enumerate(permutation):
+                inverse[image] = atom
+            inverses.append(tuple(inverse))
+        values = system.apply_factor(values, tuple(inverses), choice)
+    return values
+
+
+def compile_relaxed_relation(system, relation, label):
+    """Compile beta o D o alpha^-1 without expanding discovery maps or groups.
+
+    Returned images use original endpoint indices. Both self actions use their
+    compact structural factors and their own joint original-weight constraints.
+    Only local edge tables are materialized; injectivity remains one shared
+    constraint over the discovery choices.
+    """
+    discovery = {r: system.symbol(domain) for r, domain in relation.domains}
+    system.distinct(value[0] for value in discovery.values())
+    for r, p in relation.anchors:
+        system.restrict(discovery[r][0], {p})
+    for edge in relation.accepted_edges:
+        system.relation(tuple(discovery[r][0] for r in edge.atoms),
+                        relation.discovery_pairs(edge))
+    source_action, source_program = _compile_self(system, relation.source, (label, 'source'))
+    target_action, target_program = _compile_self(system, relation.target, (label, 'target'))
+    inverse = _inverse_action(system, source_program, len(relation.source_atoms))
+    original_targets = {i: system.constant(atom) for i, atom in enumerate(relation.target_atoms)}
+    target_images = {atom: system.lookup(value, original_targets)
+                     for atom, value in zip(relation.target_atoms, target_action)}
+    discovery_table = {i: discovery[atom] for i, atom in enumerate(relation.source_atoms)}
+    images = {atom: system.lookup(system.lookup(value, discovery_table), target_images)
+              for atom, value in zip(relation.source_atoms, inverse)}
+    return CompiledRelation(system, relation, images, discovery, source_action,
+                            target_action, source_program + target_program)

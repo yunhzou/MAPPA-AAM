@@ -102,7 +102,7 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
         reaction, replace(cfg, random_seed=10)
     )
     original = checkpoint_manifest(reaction, AAMSearchConfig())["config"]
-    assert "random_seed" not in original and "sweep_cuts" not in original
+    assert original["random_seed"] == 42 and original["sweep_cuts"] is True
 
 
 def test_competition_retains_baseline_and_hard_anchors(reaction):

@@ -240,7 +240,7 @@ class WorkPool:
             raise ValueError('Exhausted case budget requires explicit retry_seconds')
         tasks = [_loads_checkpoint(row[1]) for row in record['tasks']]
         prefix = 'mappa.mappa_core.core.scheduler.search:'
-        if any(task.operation not in (prefix+'search_batch', prefix+'finalize_cut', prefix+'search_complete_cut') for task in tasks):
+        if any(task.operation not in (prefix+'search_batch', prefix+'combine_cut', prefix+'search_complete_cut') for task in tasks):
             raise ValueError('Matching recovery requires a matching task audit')
         finals = sorted((task for task in tasks if task.operation != prefix+'search_batch'),
                         key=lambda task: task.payload['number'])

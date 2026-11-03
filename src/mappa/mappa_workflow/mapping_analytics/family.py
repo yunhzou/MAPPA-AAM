@@ -1,22 +1,8 @@
-"""Symbolic realization of compressed AAM paths: domains plus correlated groups.
-
-Automorph-domain summaries are not independent assignment pools. Only native
-symmetry_domains provide local pool permutations; exact group factors retain
-their correlations. No group elements or complete bijections are enumerated.
-"""
+"""Reference membership in the complete saved fragment relationships."""
 from functools import lru_cache, cached_property
 from dataclasses import dataclass
 from itertools import combinations
 import time
-
-
-@lru_cache(maxsize=512)
-def group_factors(generators):
-    from sympy.combinatorics import Permutation,PermutationGroup
-    if not generators:return ()
-    group=PermutationGroup([Permutation(list(g)) for g in generators])
-    return tuple(tuple(tuple(p(i) for i in range(group.degree)) for p in level.values())
-                 for level in reversed(group.basic_transversals) if len(level)>1)
 
 
 @lru_cache(maxsize=256)
@@ -36,143 +22,54 @@ def atom_sets(degree, generators, pools=()):
     return tuple(frozenset(groups[root(a)]) for a in range(degree))
 
 
-def compatible_atom_sets(representative, placements, reference, source_atoms,
-                         source_generators, target_generators, complete_reference, nr, np_):
-    """Reject impossible reference regions before constructing fragment choices."""
-    generators=tuple(target_generators)+tuple(g.images for _,p in placements for g in p.target_generators)
-    pools=tuple(d.p_atoms for _,p in placements for d in p.symmetry_domains
-                if d.source!='exact_automorph_group')
-    source=atom_sets(nr,tuple(source_generators))
-    target=atom_sets(np_,generators,pools)
-    for atom in source_atoms:
-        if not complete_reference and atom not in reference:continue
-        wanted=reference.get(atom,np_)
-        images={representative.get(r,np_) for r in source[atom]}
-        if not any(wanted==np_ if p==np_ else wanted in target[p] for p in images):
-            return False
-    return True
-
-
-class SymbolicActions:
-    """Shared compact permutation-action encoder for feasibility and quotient queries."""
-    def __init__(self,solver,*,fresh=False):
-        self.solver=solver;self.fresh=fresh;self.variables=[];self.program=[]
-
-    @staticmethod
-    def constant(v):return (int(v),frozenset((int(v),)))
-
-    def symbol(self,domain):
-        import z3
-        domain=tuple(sorted(set(domain)))
-        if len(domain)==1:return self.constant(domain[0])
-        value=z3.FreshInt('orbit') if self.fresh else z3.Int(f'q{len(self.variables)}')
-        self.variables.append(value)
-        self.solver.add(z3.Or(*(value==p for p in domain)))
-        return value,frozenset(domain)
-
-    def lookup(self,value,table):
-        import z3
-        expression,support=value
-        if isinstance(expression,int):return table.get(expression,value)
-        images=[(p,table.get(p,self.constant(p))) for p in sorted(support)]
-        if all(isinstance(v[0],int) and v[0]==p for p,v in images):return value
-        out=images[-1][1][0]
-        for p,v in reversed(images[:-1]):out=z3.If(expression==p,v[0],out)
-        return out,frozenset().union(*(v[1] for _,v in images))
-
-    def act(self,values,generators,label):
-        for factor in group_factors(tuple(tuple(g) for g in generators)):
-            active=set().union(*(v[1] for v in values))
-            moved={p for p in active if p<len(factor[0]) and any(g[p]!=p for g in factor)}
-            if not moved:continue
-            choice=self.symbol(range(len(factor)))
-            table={p:self.lookup(choice,{i:self.constant(g[p]) for i,g in enumerate(factor)}) for p in moved}
-            values=[self.lookup(v,table) for v in values]
-            self.program.append(('group',label,choice[0],factor))
-        return values
-
-
 def compile_path(path, problem, reference, *, source_atoms, source_generators=(),
-               target_generators=(), complete_reference=True):
-    """Compile the shared correlated path constraints, without solving.
+                 target_generators=(), complete_reference=True):
+    """Compile the complete saved local relations and the requested reference.
 
-    Endpoint generators normalize reference identity only. They do not change
-    the returned physical mapping. ``source_atoms`` is the reference-scored
-    atom set (e.g. heavy atoms); all mapped hydrogens still enter the path model.
+    Every local discovery and both self rearrangements remain joint choices.
+    Endpoint equivalence normalizes reference identity only, never the returned
+    physical mapping. Decoding does not call this reference query.
     """
-    import z3
-    from mappa.mappa_workflow.mapping_analytics.constraints import ReferenceConstraints
-    start=time.perf_counter();encoder=ReferenceConstraints();program=encoder.program
-    nr,np_=problem.source_atom_count,problem.target_atom_count
-    representative=path.mapping
-    constant,symbol,lookup,act=encoder.constant,encoder.symbol,encoder.lookup,encoder.act
-    values=[constant(representative.get(r,np_)) for r in range(nr)]
-    placements=[]
-    for edge in path.transitions:
-        placement=path.graph.fragment_placement(edge)
-        if placement is not None:
-            if placement.target_generators is None:
-                raise ValueError('Finalize path symmetry before querying its family')
-            placements.append((edge,placement))
-    if not compatible_atom_sets(representative,placements,reference,source_atoms,
-                                source_generators,target_generators,complete_reference,nr,np_):
-        encoder.failed=True
-        return CompiledFamily(encoder,values,representative,program,{},path,problem,
-                              time.perf_counter()-start)
-    # Later decisions are in the coordinate frame fixed by earlier witnesses.
-    for edge,placement in reversed(placements):
-        for domain in placement.symmetry_domains:
-            if domain.source=='exact_automorph_group':continue
-            pool=domain.p_atoms
-            if len(pool)<2:continue
-            if not set(pool).intersection(set().union(*(v[1] for v in values))):continue
-            table={p:symbol(pool) for p in pool}
-            encoder.distinct(v[0] for v in table.values())
-            locked=dict(path.graph.states[path.graph.transitions[edge].source].mapping)
-            block_atoms={r for block in placement.symmetry_domains for r in block.r_atoms
-                         if block.source!='exact_automorph_group'}
-            fixed=set(locked.values())|{dict(placement.representative_assignments)[r]
-                for r in placement.exact_fixed}|{p for r,p in placement.representative_assignments
-                                                if r not in block_atoms}
-            for p in fixed.intersection(pool):encoder.restrict(table[p][0],{p})
-            values=[lookup(v,table) for v in values]
-            program.append(('domain',edge,{p:v[0] for p,v in table.items()},pool))
-        values=act(values,[g.images for g in placement.target_generators],edge)
-    mapped=tuple(representative)
-    # Every action is a permutation: local pool Distinct constraints and
-    # correlated group factors already preserve injectivity under composition.
-    # A global Distinct over the nested image expressions is redundant and
-    # forces the solver to rediscover that group-theoretic fact for each family.
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
+    started = time.perf_counter()
+    encoder = FiniteConstraints()
+    nr, np_ = problem.source_atom_count, problem.target_atom_count
+    representative = path.mapping
+    values = [encoder.constant(representative.get(r, np_)) for r in range(nr)]
+    relations = []
+    target_sets = atom_sets(np_, tuple(target_generators))
+    reachable = {q for p in representative.values() for q in target_sets[p]}
+    if any(atom in reference and reference[atom] != np_ and reference[atom] not in reachable
+           for atom in source_atoms):
+        encoder.failed = True
+        return CompiledFamily(encoder, values, representative, relations, path, problem,
+                              time.perf_counter() - started)
+    for edge_id in reversed(path.transitions):
+        fragment = path.graph.transitions[edge_id].match
+        if fragment is None:
+            continue
+        relation = compile_relaxed_relation(encoder, fragment.relation, edge_id)
+        transport = {p: relation.images[r] for r, p in fragment.witness}
+        values = [encoder.lookup(value, transport) for value in values]
+        relations.append((edge_id, relation))
     if len(set(representative.values())) != len(representative):
-        encoder.failed=True
-    for r in mapped:
-        encoder.restrict(values[r][0],{p for p in values[r][1]
-                          if p<np_ and problem.reactant.elements[r]==problem.product.elements[p]})
-    raw_values=values
-    # Ground truth constrains the physical atom choices before fragment bond
-    # compatibility is constructed. Endpoint equivalence remains correlated.
-    source_choices=act([constant(r) for r in source_atoms],source_generators,'source_equivalence')
-    normalized=[lookup(v,dict(enumerate(raw_values))) for v in source_choices]
-    normalized=act(normalized,target_generators,'target_equivalence')
-    for atom,value in zip(source_atoms,normalized):
-        if complete_reference or atom in reference:encoder.restrict(value[0],{reference.get(atom,np_)})
+        encoder.failed = True
+    for r in representative:
+        encoder.restrict(values[r][0], {p for p in values[r][1]
+            if p < np_ and problem.reactant.elements[r] == problem.product.elements[p]})
+    physical_values = values
+    source_choices = encoder.act([encoder.constant(r) for r in source_atoms],
+                                 source_generators, 'source_equivalence')
+    normalized = [encoder.lookup(value, dict(enumerate(physical_values))) for value in source_choices]
+    normalized = encoder.act(normalized, target_generators, 'target_equivalence')
+    for atom, value in zip(source_atoms, normalized):
+        if complete_reference or atom in reference:
+            encoder.restrict(value[0], {reference.get(atom, np_)})
     encoder.propagate()
-    required = {(a,b): float(problem.reactant.wbo[a,b])
-                for edge,_ in placements
-                for a,b in path.graph.transitions[edge].preserved_bonds}
-    for (a,b),w in required.items():
-        if encoder.failed:break
-        va,vb=values[a],values[b]
-        allowed=[(x,y) for x in encoder.domain(va[0]) for y in encoder.domain(vb[0])
-            if x!=y and x<np_ and y<np_ and problem.product.wbo[x,y]>=path.context.graph_floor
-            and abs(w-problem.product.wbo[x,y])<=path.context.iso_tolerance+1e-9]
-        encoder.relation((va[0],vb[0]),allowed)
-    encoder.propagate()
-    raw_values=[(encoder.expression(v),frozenset(encoder.domain(v))) for v,_ in raw_values]
-    program=[(kind,edge,{p:encoder.expression(v) for p,v in choice.items()} if kind=='domain'
-              else encoder.expression(choice),data) for kind,edge,choice,data in program]
-    return CompiledFamily(encoder,raw_values,representative,program,required,path,problem,
-                          time.perf_counter()-start)
+    expressions = [(encoder.expression(value), frozenset(encoder.domain(value)))
+                   for value, _ in physical_values]
+    return CompiledFamily(encoder, expressions, representative, relations, path, problem,
+                          time.perf_counter() - started)
 
 
 @dataclass
@@ -180,8 +77,7 @@ class CompiledFamily:
     constraints: object
     values: list
     representative: dict
-    program: list
-    required: dict
+    relations: list
     path: object
     problem: object
     encoding_seconds: float
@@ -258,23 +154,23 @@ def query_path(path, problem, reference, *, source_atoms, source_generators=(),
     return 'recovered',result
 
 
-def _realize(compiled,model):
-    raw_values=compiled.values;representative=compiled.representative
-    program=compiled.program;required=compiled.required
-    path=compiled.path;problem=compiled.problem;mapped=tuple(representative)
-    def number(v):return v if isinstance(v,int) else model.eval(v,model_completion=True).as_long()
-    actual=dict(representative);actions=[]
-    for kind,edge,choice,data in program:
-        if edge in ('source_equivalence','target_equivalence'):continue
-        permutation={p:number(v) for p,v in choice.items()} if kind=='domain' else dict(enumerate(data[number(choice)]))
-        actual={r:permutation.get(p,p) for r,p in actual.items()}
-        actions.append(dict(kind=kind,transition=edge,permutation=sorted(permutation.items())))
-    assert actual=={r:number(raw_values[r][0]) for r in mapped}
-    assert len(set(actual.values()))==len(actual)
-    assert all(problem.reactant.elements[r]==problem.product.elements[p] for r,p in actual.items())
-    assert all(problem.product.wbo[actual[a],actual[b]]>=path.context.graph_floor and
-        abs(w-problem.product.wbo[actual[a],actual[b]])<=path.context.iso_tolerance+1e-9
-        for (a,b),w in required.items())
-    return dict(mapping=sorted(actual.items()),actions=actions,
-        checked_fragment_edges=len(required),
-        scope='full_explicit')
+def _realize(compiled, model):
+    def number(value):
+        return value if isinstance(value, int) else model.eval(value, model_completion=True).as_long()
+
+    actual = dict(compiled.representative)
+    actions = []
+    checked_edges = 0
+    for edge_id, relation in compiled.relations:
+        selected = relation.realize(model)
+        transport = {p: selected[r] for r, p in relation.relation.witness}
+        actual = {r: transport.get(p, p) for r, p in actual.items()}
+        actions.append(dict(kind='relation', transition=edge_id,
+                            permutation=sorted(transport.items()), **relation.choices(model)))
+        checked_edges += len(relation.relation.accepted_edges)
+    assert actual == {r: number(compiled.values[r][0]) for r in actual}
+    assert len(set(actual.values())) == len(actual)
+    assert all(compiled.problem.reactant.elements[r] == compiled.problem.product.elements[p]
+               for r, p in actual.items())
+    return dict(mapping=sorted(actual.items()), actions=actions,
+                checked_fragment_edges=checked_edges, scope='full_explicit')

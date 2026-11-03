@@ -4,7 +4,7 @@ import pytest
 from mappa import AAMProblem, MolecularEndpoint
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
-from itertools import combinations
+from growth_cases import saved_fragment
 
 
 def validate_representative(path,problem):
@@ -12,7 +12,8 @@ def validate_representative(path,problem):
     assert len(set(mapping.values()))==len(mapping)
     assert all(problem.reactant.elements[r]==problem.product.elements[p] for r,p in mapping.items())
     for edge_id in path.transitions:
-        for a,b in path.graph.transitions[edge_id].preserved_bonds:
+        fragment = path.graph.transitions[edge_id].match
+        for a,b in (() if fragment is None else fragment.accepted_edges):
             if a not in mapping or b not in mapping:continue
             w=problem.reactant.wbo[a,b]
             assert problem.product.wbo[mapping[a],mapping[b]]>=path.context.graph_floor
@@ -32,21 +33,21 @@ def example(target_weight=1.0, cuts=(), deferred=()):
     mapping = ((0, 0), (1, 1))
     states = (
         SearchState(0, 0, (), (), ()),
-        *(SearchState(i, 0, mapping, ((0, 1), (1, 1)), ()) for i in range(1, 4)),
+        *(SearchState(i, 0, mapping, ((0, 1), (1, 1)), deferred) for i in range(1, 4)),
     )
 
-    def match(atoms):
-        return dict(
-            fragment=atoms,
-            deferred_edges=deferred,
-            symmetry=dict(witness=dict(mapping), blocks=[], exact_fixed=[0, 1]),
-        )
-
+    # The validator must catch a graph reused against incompatible endpoint
+    # weights; the saved fragment itself was valid when originally constructed.
+    original = AAMProblem(ep(1.0), ep(1.0))
+    accepted = () if cuts or deferred else ((0, 1),)
+    full = saved_fragment(original, anchors=mapping, accepted_edges=accepted,
+                          iso_tolerance=.5)
+    single = saved_fragment(original, source_atoms=(0,), target_atoms=(0,), anchors=((0,0),))
     edges = (
-        FragmentTransition(0, 0, 1, 0, (1, 0), match([0, 1]), () if cuts or deferred else ((0, 1),)),
-        FragmentTransition(1, 0, 2, 0, (1, 0), match([0]), ()),
-        FragmentTransition(2, 1, 3, 0, (1, 1), None, ()),
-        FragmentTransition(3, 2, 3, 0, (1, 1), None, ()),
+        FragmentTransition(0, 0, 1, 0, (1, 0), full, 1),
+        FragmentTransition(1, 0, 2, 0, (1, 0), single, 1),
+        FragmentTransition(2, 1, 3, 0, (1, 1), None),
+        FragmentTransition(3, 2, 3, 0, (1, 1), None),
     )
     return problem, AAMSearchGraph(
         (context,), (0,), states, edges, (SearchStop(3, "objective_met"),)

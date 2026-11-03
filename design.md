@@ -11,8 +11,7 @@ usage details belong in `docs/`.
 ```mermaid
 flowchart LR
     Input[Endpoint graphs and policies] --> Matching[Matching across seeds and cuts]
-    Matching --> Finalize[Finalize saved symmetry]
-    Finalize --> Reduce[Group branches and deduplicate families across seeds and cuts]
+    Matching --> Reduce[Group branches and deduplicate families across seeds and cuts]
     Reduce --> Catalogue[Catalogue for one reaction and direction]
     Catalogue --> Inventory[Collect all unique fragments and branch references]
     Inventory --> Local[Decode local fragment and boundary responses]
@@ -40,7 +39,7 @@ families and event identities retain their search-frame meaning.
 Growth chooses a boundary atom uniformly, then an incident frontier edge
 uniformly, without WBO ranking. Only the selected growth edge adds a matching
 constraint. Other molecular bonds between included atoms are not implicitly
-required. Accepted edges are saved as `preserved_bonds`; complete original
+required. Accepted edges are saved in each fragment relation; complete original
 endpoint bonds remain available for event interpretation. Joining a completed
 fragment retains its locked assignments and earlier constraints.
 
@@ -100,8 +99,9 @@ construct the complete compressed placements when growth saturates.
 ### Fragment records and ownership
 
 `FragmentGrowth` owns the changing search state. `Fragment` is the completed
-source-to-target piece consumed directly by branches and decoding. There is no
-additional `FragmentMatch` wrapper or separate one-sided fragment record.
+source-to-target piece consumed directly by branches and decoding: the fragment
+itself is one candidate placement. There is no additional candidate or
+`FragmentMatch` wrapper, or separate one-sided fragment record.
 
 | Record | Logical fields |
 |---|---|
@@ -131,8 +131,15 @@ discarded growth histories.
 
 Original atom lists, anchors and prepared self-relationships are stored once and
 referenced where shared; the table describes logical access, not duplicate
-payloads. Relaxed global automorph belongs to prepared reaction search state.
+payloads. Global relationships used to accelerate placement discovery belong to prepared
+reaction search state.
 Scheduling, cache transport and storage policy remain outside these records.
+
+One matching-operation result carries the fragment collection, shared deferred
+continuation and completion/cap status. Each child transition references its
+chosen fragment directly in the existing hierarchy. Final reduction and decoding
+retain those scientific records rather than reconstructing a second fragment
+representation from dictionaries.
 
 ```mermaid
 flowchart LR
@@ -166,6 +173,13 @@ placements must differ in at least one target atom; overlapping sets remain
 eligible. Constraints excluding an already discovered set participate in search,
 with pruning conditioned on those constraints.
 
+Global acceleration uses only rearrangements proven to preserve the current
+discovery constraints and original self tolerance under composition. Discovering
+one placement then supplies its distinct target-set orbit. Excluding that whole
+orbit permits pruning interchangeable search choices without hiding another
+target set. General non-transitive relaxed relationships are not assumed to
+satisfy this stronger condition.
+
 Each candidate retains its complete compressed internal mapping relationship,
 using anchor-aware relaxed fragment self-automorph information. Global symmetry
 does not substitute for the fragment's own relationship. Free pools are a special
@@ -179,8 +193,17 @@ alternatives retain their own declared constraints and may exceed that discovery
 tolerance; original-WBO decoding evaluates their events. Records must distinguish
 discovery evidence from constraints on the retained relationship.
 
-A compressed match preserves the allowed injective mapping relation through its
-witness, pools, fixed roles and ordered correlated actions. Equal atom sets,
+For one fixed source/target atom-set pair, let D contain every mapping satisfying
+the accepted discovery constraints. Retain both source and target permitted
+self-rearrangements: each final mapping is beta composed with d composed with
+alpha inverse, where d belongs to D and alpha/beta each satisfy their own original
+fragment's self constraints. This is one two-sided expansion, not repeated
+closure of a non-transitive relationship. An accepted discovery bond can become
+an event after rearrangement. Decoding counts and classifies those changes under
+the original endpoint WBOs; it does not rank or select mappings.
+
+A completed fragment preserves its allowed injective mapping relation through
+complete discovery constraints and both anchor-aware self relationships. Equal atom sets,
 equal orbit labels or equal witnesses alone do not prove that two relations are
 identical. Independent atom choices must not introduce forbidden combinations.
 
@@ -284,8 +307,8 @@ before transport or publication. Cap evidence records the context, seed, step,
 stage, attempted count, limit and occurrence count without retaining rejected
 child states. A cap summary is not a returned mapping. Shared-policy searches
 also retain decisions still reusable by their active policies, and release that
-working state when those policies finish. Historical archives keep their original
-recorded contents when loaded.
+working state when those policies finish. Incompatible historical fragment schemas are rejected; use their producing
+revision to inspect them without changing their scientific meaning.
 
 Graph combination concatenates and reindexes histories; it does not deduplicate
 final families. Public branch grouping retains every path. Seed order, growth
@@ -294,15 +317,16 @@ different labelled atom sets or fragment pairings do. Live continuation contexts
 cannot be discarded merely because their final atom-set groups coincide.
 
 One catalogue per endpoint problem and direction reduces all supplied seeds and
-cuts. Its family key includes matching policies, representative mapping, required
-preserved edges and the canonical ordered pool/group action program. Only proven
+cuts. Its family key includes matching policies, the representative mapping and the
+ordered complete fragment relationships, including their discovery and self
+constraints. Only proven
 commuting actions may be reordered. Distinct constraints or correlations remain
 distinct even when witnesses coincide. This is conservative representation-based
 reduction, not a general semantic normal form for all equivalent mapping sets.
 
 The catalogue preserves source histories, cut provenance and alternative fragment
 partitions. Raw paths, public atom-set branches and catalogue families are separate
-counts. Finalized search graphs may be ingested one at a time; the accumulated
+counts. Completed search graphs may be ingested one at a time; the accumulated
 catalogue and provenance still consume memory.
 Restoring a catalogue shares equal immutable mapping, constraint and action
 records while preserving every family's values, action order and provenance.
@@ -330,8 +354,9 @@ flowchart LR
 replace choices, enumerate complete bijections or select a minimum-event mapping.
 Local responses are shared only when their fragment, witness, relevant ordered
 actions and cut/boundary context agree. A shared action remains one joint choice
-across all affected fragments. Required edges, target occupancy and action
-dependencies remain attached to their original families.
+across all affected fragments. Discovery predicates constrain the discovery
+assignment; both self rearrangements satisfy their own original-fragment
+constraints. Target occupancy and action dependencies remain joint.
 
 Preparation is shared with the responses: repeated fragment occurrences reuse
 their prepared symmetry and reachable atom sets, rather than deriving them again
@@ -357,9 +382,9 @@ mapped/unmapped boundaries, and omit bonds wholly inside unmatched material.
 No correspondence is invented for unmatched atoms.
 
 When matching uses transformed bond weights, `event_problem` supplies the
-original scoring endpoints to decoding. Both problems must retain the same
-indexed atoms and coordinates. Required edges remain constraints on the matching
-problem; event responses use the scoring problem. Saved results identify and
+original endpoints for event counting. Both problems must retain the same
+indexed atoms and coordinates. Discovery and self constraints remain tied to the matching
+problem; event responses use the original event problem. Saved results identify and
 retain both endpoint problems when their weights differ.
 
 `EventDecodeSession` owns reusable endpoint preparation and bounded caches.
@@ -459,7 +484,7 @@ branch and cap checks, and Python/native agreement. Critical cases include C6
 into C6 producing one compressed match, C6 into two separate C6 rings producing
 two, and a proven impossible query returning zero without unnecessary search.
 Broader validation covers locks, tolerances, accepted/deferred edges, symmetry
-correlations, finalization, reduction, decoding and reference membership.
+correlations, transport, reduction, decoding and reference membership.
 
 Performance is an acceptance condition alongside accuracy. Compare identical
 scientific scope, measuring matching, completion, publication, scheduling and

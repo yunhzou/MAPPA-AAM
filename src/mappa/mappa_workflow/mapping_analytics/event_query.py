@@ -135,7 +135,7 @@ def _same_event_orbit(terms, objective, pattern, index):
     no extra assumptions about invariance of the original search family.
     """
     import z3
-    from mappa.mappa_workflow.mapping_analytics.family import SymbolicActions
+    from mappa.mappa_core.core.symmetry.constraints import SymbolicActions
     extras = sorted({a for pairs in pattern['events'].values() for pair in pairs
                      for a in pair if a >= index.n})
     if pattern['total'] == 0 or (not index.source_generators and not extras):

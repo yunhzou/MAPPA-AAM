@@ -1,5 +1,5 @@
-from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 """One event rule for partial and full maps; exhaustive tiny graphs are the oracle."""
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 from itertools import combinations, permutations
 import random
 
@@ -13,8 +13,8 @@ from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
 from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
 from mappa.mappa_workflow.mapping_analytics.family import compile_path
-from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from reference_event_decoder import extract_path_events
+from growth_cases import saved_fragment, represented
 
 
 def endpoint(elements, edges):
@@ -39,12 +39,20 @@ def oracle(problem, mapping, threshold=.5):
     return tuple(result)
 
 
-def catalogue(problem, mapping, pool=()):
+def catalogue(problem, mapping, targets=None):
+    """Represent each selected target set by its own completed relation."""
     cat = FinalBranchCatalogue(problem)
-    cat.families = [FinalFamily(tuple(sorted(mapping.items())), (),
-        (('pool', tuple(pool)),) if pool else (), (.2, 1.))]
-    pairs = ((tuple(sorted(mapping)), tuple(sorted(mapping.values()))),) if mapping else ()
-    cat.branches[((.2, 1.), pairs)] = {0}
+    source_atoms = tuple(sorted(mapping))
+    target_sets = (tuple(sorted(mapping.values())),) if targets is None else combinations(targets, len(mapping))
+    for target_atoms in target_sets:
+        witness = mapping if targets is None else dict(zip(source_atoms, target_atoms))
+        fragments = () if not mapping else (saved_fragment(problem,
+            source_atoms=source_atoms, target_atoms=target_atoms, witness=witness,
+            anchors=tuple(mapping.items()) if targets is None else ()),)
+        cat.families.append(FinalFamily(tuple(sorted(witness.items())), (),
+            tuple(('relation', fragment) for fragment in fragments), (.2, 1.)))
+        pairs = ((source_atoms, tuple(target_atoms)),) if mapping else ()
+        cat.branches[((.2, 1.), pairs)] = {len(cat.families) - 1}
     return cat
 
 
@@ -86,24 +94,32 @@ def test_partial_symbolic_events_and_classes_match_all_injections(nr, np_, mappe
         patterns = [index.describe(index.vector(m)) for m in maps]
         assert [tuple(index.counts([index.vector(m)])[0]) for m in maps] == [oracle(problem,m) for m in maps]
         cat = catalogue(problem, maps[0], range(np_))
-        path = cat.families[0].as_path(problem)
-        compiled = compile_path(path,problem,{},source_atoms=(),complete_reference=False)
-        terms,total,_ = _event_model(compiled,index,time.perf_counter()+30)
-        equalities = [_same_event_orbit(terms,total,p,index) for p in patterns[:3]]
-        for mapping, pattern in zip(maps,patterns):
-            compiled.solver.push()
-            compiled.solver.add(*(compiled.values[a][0]==p for a,p in mapping.items()))
-            assert compiled.solver.check()==z3.sat
-            assert compiled.solver.model().eval(total).as_long()==sum(oracle(problem,mapping))
-            for expected,equality in zip(patterns[:3],equalities):
+        observed = set()
+        for family in cat.families:
+            path = family.as_path(problem)
+            compiled = compile_path(path,problem,{},source_atoms=(),complete_reference=False)
+            terms,total,_ = _event_model(compiled,index,time.perf_counter()+30)
+            equalities = [_same_event_orbit(terms,total,p,index) for p in patterns[:3]]
+            target_set = set(dict(family.mapping).values())
+            for mapping, pattern in zip(maps,patterns):
                 compiled.solver.push()
-                compiled.solver.add(equality)
-                assert (compiled.solver.check()==z3.sat)==(expected['id']==pattern['id'])
+                compiled.solver.add(*(compiled.values[a][0]==p for a,p in mapping.items()))
+                if set(mapping.values()) != target_set:
+                    assert compiled.solver.check() == z3.unsat
+                    compiled.solver.pop()
+                    continue
+                assert compiled.solver.check()==z3.sat
+                assert compiled.solver.model().eval(total).as_long()==sum(oracle(problem,mapping))
+                for expected,equality in zip(patterns[:3],equalities):
+                    compiled.solver.push()
+                    compiled.solver.add(equality)
+                    assert (compiled.solver.check()==z3.sat)==(expected['id']==pattern['id'])
+                    compiled.solver.pop()
                 compiled.solver.pop()
-            compiled.solver.pop()
-        result = extract_path_events(path, problem, index, seconds=30, max_patterns=None)
-        assert result['complete']
-        assert {p['id'] for p in result['patterns']} == {p['id'] for p in patterns}
+            result = extract_path_events(path, problem, index, seconds=30, max_patterns=None)
+            assert result['complete']
+            observed.update(p['id'] for p in result['patterns'])
+        assert observed == {p['id'] for p in patterns}
 
 
 def test_partial_target_symmetry_needs_no_solver(monkeypatch):
@@ -115,7 +131,8 @@ def test_partial_target_symmetry_needs_no_solver(monkeypatch):
     monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path',forbidden)
     result=refine_mapping(cat,RefinementConfig(event_slack=0))
     assert result.minimum_proven and result.observed_minimum==2
-    assert len(result.candidates)==1 and result.family_reports[0]['solver_queries']==0
+    assert len(result.candidates)==1
+    assert all(report['solver_queries'] == 0 for report in result.family_reports)
 
 
 def test_saved_partial_graph_survives_catalogue_and_artifact():
@@ -139,40 +156,34 @@ def test_empty_mapping_has_no_events_and_creates_no_atoms():
     assert decoded.candidates[0].mapping=={}
 
 
-@pytest.mark.parametrize('actions', [
-    (('group', ((1,2,3,0),)),),
-    (('pool', (0,1,2)), ('pool', (1,2,3))),
-    (('group', ((1,2,3,0),)), ('pool', (0,1))),
-])
-def test_correlated_and_overlapping_actions_preserve_partial_event_union(actions):
-    problem=AAMProblem(endpoint('CCC',[(0,1,1),(1,2,1)]),
-                       endpoint('CCCC',[(0,1,1),(1,2,.6),(2,3,1.8),(0,3,.4)]))
-    mapping={0:0,2:1}
-    cat=catalogue(problem,mapping)
-    cat.families[0].actions=actions
-    vectors={tuple(mapping[a] for a in sorted(mapping))}
-    for kind,data in actions:
-        if kind=='pool':
-            permutations_=[]
-            for order in permutations(data):
-                g=list(range(4))
-                for a,b in zip(data,order):g[a]=b
-                permutations_.append(g)
-        else:
-            group={tuple(range(4))}
-            pending=list(group)
-            while pending:
-                old=pending.pop()
-                for generator in data:
-                    new=tuple(generator[p] for p in old)
-                    if new not in group:group.add(new);pending.append(new)
-            permutations_=group
-        vectors={tuple(g[p] for p in v) for v in vectors for g in permutations_}
-    index=SignedEventIndex(problem)
-    expected={index.describe(index.vector(dict(zip(sorted(mapping),v))))['id'] for v in vectors}
-    decoded=extract_path_events(cat.families[0].as_path(problem), problem, index, seconds=30, max_patterns=None)
+@pytest.mark.parametrize('joined', [False, True])
+def test_correlated_local_choices_preserve_partial_event_union(joined):
+    problem = AAMProblem(endpoint('CCCC', [(0,1,1), (1,2,1), (2,3,1)]),
+                         endpoint('CCCCC', [(0,1,1), (1,2,.6), (2,3,1.8), (0,3,.4)]))
+    first = saved_fragment(problem, source_atoms=(0,1), target_atoms=(0,1))
+    continuation_atoms = (0,1,2) if joined else (1,2)
+    anchors = ((0,0), (1,1)) if joined else ((1,1),)
+    last = saved_fragment(problem, source_atoms=continuation_atoms,
+                          target_atoms=continuation_atoms, anchors=anchors)
+    mapping = {0:0, 1:1, 2:2}
+    family = FinalFamily(tuple(mapping.items()), (),
+                         (('relation',last), ('relation',first)), (.2,1.))
+    # Independently compose each complete local relation in recorded order.
+    mappings = {tuple(mapping.items())}
+    for fragment in (last, first):
+        expanded = set()
+        for pairs in represented((fragment,)):
+            chosen = dict(pairs)
+            transport = {p:chosen[r] for r,p in fragment.witness}
+            expanded.update(tuple((r, transport.get(p,p)) for r,p in old) for old in mappings)
+        mappings = expanded
+    assert len(mappings) == 2
+    index = SignedEventIndex(problem)
+    expected = {index.describe(index.vector(dict(pairs)))['id'] for pairs in mappings}
+    decoded = extract_path_events(family.as_path(problem), problem, index,
+                                  seconds=30, max_patterns=None)
     assert decoded['complete']
-    assert {c['id'] for c in decoded['patterns']}==expected
+    assert {pattern['id'] for pattern in decoded['patterns']} == expected
 
 
 def test_distinct_fixed_boundary_elements_match_exhaustive_events():
@@ -183,10 +194,8 @@ def test_distinct_fixed_boundary_elements_match_exhaustive_events():
     index = SignedEventIndex(problem)
     expected = {index.describe(index.vector({0: p}))['id'] for p in (0, 1)}
     result = refine_mapping(cat)
-    # Conversion keeps this saved singleton target set; it does not enumerate
-    # the old pool's alternative target regions.
-    assert result.complete and result.minimum_proven and result.observed_minimum == 2
-    assert {candidate.id for candidate in result.candidates} <= expected
-    assert [candidate.total for candidate in result.candidates] == [2]
+    assert result.complete and result.minimum_proven and result.observed_minimum == 1
+    assert {candidate.id for candidate in result.candidates} == expected
+    assert sorted(candidate.total for candidate in result.candidates) == [1, 2]
     for candidate in result.candidates:
         assert candidate.total == sum(oracle(problem, candidate.mapping))

@@ -11,7 +11,6 @@ from mappa.mappa_core.core.search.session import SearchSession
 from mappa import AAMSearchConfig, AAMResult
 from mappa.mappa_core.domain import AAMSearchMetrics
 from mappa.mappa_core.core.search.graph import AAMSearchGraph
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from test_reused_aam_api import problem
 
 
@@ -284,8 +283,7 @@ def test_multicase_tasks_equal_original_search_and_complete_decoding(tmp_path, w
     for case, config, keys in expected:
         session = SearchSession(case, config)
         for cut, observed in zip(cut_sweep_items(case.reactant.wbo, config.cut_floor), iter_cuts(queue, keys, tmp_path)):
-            raw, _ = session.search_cut(cut)
-            original, _ = finalize_graph_symmetry(raw, session.context[2], iso_tolerance=config.iso_tolerance)
+            original, _ = session.search_cut(cut)
             assert observed.graph == original
             if not cut and case.balanced:
                 def decode(graph):

@@ -18,7 +18,7 @@ def problem_from_record(record):
 
 def _aam_header(result):
     from dataclasses import asdict
-    return {'schema': 'rxn_core.aam/v1', 'name': result.problem.name,
+    return {'schema': 'mappa.aam/v2', 'name': result.problem.name,
             'reactant': endpoint_record(result.problem.reactant, array_lists=True),
             'product': endpoint_record(result.problem.product, array_lists=True),
             'config': asdict(result.config), 'metrics': asdict(result.metrics)}
@@ -30,7 +30,7 @@ def aam_record(result: AAMResult, *, copy_graph=True):
 
 
 def aam_from_record(record, *, copy_graph=True):
-    if record['schema'] != 'rxn_core.aam/v1':
+    if record['schema'] != 'mappa.aam/v2':
         raise ValueError('unsupported AAM result schema')
     return _aam_result(record,AAMSearchGraph.from_record(record['graph'],copy=copy_graph))
 
@@ -148,7 +148,7 @@ def decoded_events_record(result):
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    record = dict(schema='mappa.decoded_events/v5', method='compressed_event_interpretation',
+    record = dict(schema='mappa.decoded_events/v7', method='compressed_event_interpretation',
         scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
@@ -159,7 +159,7 @@ def decoded_events_record(result):
         incomplete_paths=result.catalogue.incomplete_paths,
         exhaustive_event_patterns=False, global_minimum_proven=False)
     if result.event_problem_sha256 != result.matching_problem_sha256:
-        record.update(schema='mappa.decoded_events/v6',
+        record.update(schema='mappa.decoded_events/v8',
             matching_problem_sha256=result.matching_problem_sha256,
             event_problem_sha256=result.event_problem_sha256,
             event_problem=dict(name=result.event_problem.name,

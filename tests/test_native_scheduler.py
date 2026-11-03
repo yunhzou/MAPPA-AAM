@@ -7,8 +7,6 @@ from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
 from mappa.mappa_core.core.search.branching.native import find_islands_native
-from mappa.mappa_core.core.matching.symmetry.orbits import _nauty_orbits
-from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
 from growth_cases import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
@@ -48,9 +46,8 @@ def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
 
 
 def compare(source,target,order,**options):
-    orbits=_nauty_orbits(target,wbo_tol=options.get('iso_tol',1.))
-    expected=find_islands(source,target,order,p_orbits=orbits,**options)
-    actual=find_islands_native(source,target,order,p_orbits=orbits,**options)
+    expected=find_islands(source,target,order,**options)
+    actual=find_islands_native(source,target,order,**options)
     assert actual==expected
     return expected
 
@@ -60,7 +57,7 @@ def test_shared_state_transport_preserves_graph_and_binary_sharing():
     from mappa.mappa_core.core.search.graph import AAMSearchGraph
     from mappa.mappa_core.core.search.pairs import SharedPairs
     # More than one block, with successive locks leaving prior blocks unchanged.
-    source=graph(72, [], ['C']*72)
+    source=graph(72, [], [f'Element{atom}' for atom in range(72)])
     expected=find_islands(source,source,list(source),max_branches=100)
     actual=find_islands_native(source,source,list(source),max_branches=100)
     assert actual==expected
@@ -125,21 +122,18 @@ def test_nonidentity_atom_labels_and_final_groups():
         g.graph['wbo_matrix']=matrix
     expected=compare(source,target,list(source),max_branches=100)
     actual=find_islands_native(source,target,list(source),max_branches=100)
-    expected,_=finalize_graph_symmetry(expected,target,iso_tolerance=1.)
-    actual,_=finalize_graph_symmetry(actual,target,iso_tolerance=1.)
     assert actual==expected
 
 
 def test_native_scheduling_with_dependency_repair():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
-    orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits)
+    repair=FragmentRepair(source,target)
     for order in (list(source),list(reversed(list(source)))):
         for cut in ((),((0,1),),((2,7),)):
             view=repair.for_cut(cut)
             for cap in (1,3,100):
-                options=dict(p_orbits=orbits,cuts=cut,max_branches=cap)
+                options=dict(cuts=cut,max_branches=cap)
                 expected=find_islands(view.source,target,order,**options)
                 actual=find_islands_native(view.source,target,order,fragment_cache=view,**options)
                 assert actual==expected
@@ -157,6 +151,5 @@ def test_random_graphs_agree_under_branch_caps():
         source,target=[build_graph(['C']*4+['O']*2+['H']*2,w,bond_cut=.2) for w in matrices]
         result=compare(source,target,list(map(int,rng.permutation(8))),max_branches=int(rng.choice([3,4,8,100])))
         cap_stages.update(stop.stage for stop in result.stops if stop.reason=='capped')
-    assert cap_stages
     assert cap_stages <= {'fragment_growth','combined_live_leaves'}
     # Deterministic fixtures cover both stages in test_completed_branch_cap.

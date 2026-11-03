@@ -133,21 +133,21 @@ def _digest(value):
 
 def _catalogue_signature(catalogue):
     """Compare saved scientific records without expanding shared search histories."""
-    families = [_digest((f.policy, f.mapping, f.required_edges, f.actions)) for f in catalogue.families]
+    families = [_digest((f.policy, f.mapping,
+                         tuple(fragment.to_record() for fragment in f.fragments)))
+                for f in catalogue.families]
     branches = [_digest((key, sorted(families[i] for i in ids)))
                 for key, ids in catalogue.branches.items()]
     coupled = [_digest((families[i], sorted(partitions)))
                for i, partitions in catalogue.coupled_branches.items()]
-    return _digest(('catalogue-signature/v2', sorted(families),
+    return _digest(('catalogue-signature/v3', sorted(families),
                     sorted(branches), sorted(coupled)))
 
 
 def _match_direction(problem, config, *, key, cache=True, progress=None,
                      audit_catalogue=False, metrics=None):
-    """One direction owns its cache and reduces finalized cuts as they finish."""
-    from mappa.mappa_core.core.matching.symmetry.workspace import ConditionedSymmetryWorkspace
+    """One direction owns its cache and reduces completed cuts as they finish."""
     from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
-    from mappa.mappa_core.core.search.branching.symmetry import finalize_graph_symmetry
     from mappa.mappa_core.core.search.planning import cut_sweep_items
     from mappa.mappa_core.core.search.session import SearchSession
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
@@ -157,9 +157,8 @@ def _match_direction(problem, config, *, key, cache=True, progress=None,
         session = SearchSession(problem, config)
         if not cache:
             repair = session.repair
-            session.repair = FragmentRepair(repair.source, repair.target, session.context[3], cache_bytes=0)
+            session.repair = FragmentRepair(repair.source, repair.target, cache_bytes=0)
             del repair
-        symmetry = ConditionedSymmetryWorkspace(session.context[2], config.iso_tolerance)
         cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
         catalogue = FinalBranchCatalogue(problem)
     result = dict(key=key, atoms=[problem.source_atom_count, problem.target_atom_count],
@@ -178,10 +177,6 @@ def _match_direction(problem, config, *, key, cache=True, progress=None,
         checkpoint('matching')
         with _measure(metrics, 'matching'):
             graph, counts = session.search_cut(cut)
-        checkpoint('finalization')
-        with _measure(metrics, 'finalization'):
-            graph, _ = finalize_graph_symmetry(graph, session.context[2],
-                iso_tolerance=config.iso_tolerance, workspace=symmetry)
         checkpoint('reduction')
         with _measure(metrics, 'reduction'):
             catalogue.add_graph(graph, archive=f'cut/{number}')
@@ -279,7 +274,7 @@ def diagnose(indices, output, *, cases, seeds, cache, branch_limit, direction_se
         input_indexes_sha256=[hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in indices],
         input_sha256=[dict(case=r['case'], reversed=r['reversed'], input=r['input']['sha256'],
                            reference=r['reference']['sha256']) for r in rows],
-        timing_scope='Separate preparation, matching, symmetry finalization, family reduction, '
+        timing_scope='Separate preparation, matching, family reduction, '
                      'reference verification and audit CPU/wall; no decoding. Worker totals include publication; '
                      'process startup is separate. Cache off disables completed-fragment retention only.')
     started, stop = time.monotonic(), False

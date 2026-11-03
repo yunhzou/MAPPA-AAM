@@ -34,8 +34,7 @@ struct ScheduledState {
 };
 struct ScheduledTransition {
     int source,target,seed,pass,position,island=0;
-    std::shared_ptr<IsoOut> match;
-    std::vector<Pair> preserved;
+    std::shared_ptr<const Fragment> fragment;
 };
 struct ScheduledStop {
     int state,seed,pass,position;
@@ -59,8 +58,8 @@ struct ScheduledGraph {
     void join(ScheduledBranch& kept,const ScheduledBranch& other) {
         if (kept.node==other.node) return;
         int node=state(kept);
-        transitions.push_back({kept.node,node,seed,pass,position,0,nullptr,{}});
-        transitions.push_back({other.node,node,seed,pass,position,0,nullptr,{}});
+        transitions.push_back({kept.node,node,seed,pass,position,0,nullptr});
+        transitions.push_back({other.node,node,seed,pass,position,0,nullptr});
         kept.node=node;
     }
     void stop(const ScheduledBranch& b,std::string reason,std::string stage="",long count=0,long limit=0) {
@@ -111,18 +110,18 @@ struct ScheduledGraph {
 
 using ScheduledFrontier=std::unordered_map<const ScheduledBranch*,BranchPtr,ScheduledKeyHash,ScheduledKeyEqual>;
 
-BranchPtr commit_scheduled_fragment(const BranchPtr& parent,IsoOut iso,
+BranchPtr commit_scheduled_fragment(const BranchPtr& parent,Fragment fragment,
+                                    const std::vector<Pair>& deferred,
                                     const Source& source,ScheduledGraph& graph) {
     auto child=std::make_shared<ScheduledBranch>(*parent);
-    for (auto [r,p]:iso.mapping) if (child->mapping[r]<0) {
-        child->mapping[r]=p;++child->mapped;
+    for (size_t i=0;i<fragment.witness.size();++i) {
+        int r=fragment.source->atoms[i],p=fragment.target->atoms[fragment.witness[i]];
+        if (child->mapping[r]<0) {child->mapping[r]=p;++child->mapped;}
     }
-    child->deferred.insert(child->deferred.end(),iso.deferred_edges.begin(),iso.deferred_edges.end());
-    std::sort(child->deferred.begin(),child->deferred.end());
-    child->deferred.erase(std::unique(child->deferred.begin(),child->deferred.end()),child->deferred.end());
+    child->deferred=deferred;
     std::vector<uint8_t> in_merge(source.n,0);
     std::unordered_set<int> touched;
-    for (auto [r,p]:iso.mapping) {
+    for (int r:fragment.source->atoms) {
         in_merge[r]=1;
         if (parent->labels[r]>=0) touched.insert(parent->labels[r]);
     }
@@ -143,11 +142,10 @@ BranchPtr commit_scheduled_fragment(const BranchPtr& parent,IsoOut iso,
     }
     child->snapshot_key();
     if (child->key==parent->key) return parent;
-    auto preserved = iso.preserved_bonds;
-    int island=child->labels[iso.mapping.front().first];
+    int island=child->labels[fragment.source->atoms.front()];
     child->node=graph.state(*child);
     graph.transitions.push_back({parent->node,child->node,graph.seed,graph.pass,graph.position,island,
-        std::make_shared<IsoOut>(std::move(iso)),std::move(preserved)});
+        std::make_shared<Fragment>(std::move(fragment))});
     return child;
 }
 
@@ -155,7 +153,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                                   const std::vector<int>& order,double graph_floor,double iso_tol,
                                   long max_branches,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,double self_tolerance) {
     ScheduledGraph graph;
     auto root=std::make_shared<ScheduledBranch>();
     root->mapping.assign(source.n,-1);root->labels.assign(source.n,-1);
@@ -239,19 +237,19 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                 ++graph.growth_calls;
                 auto result=repair
                     ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                      &branch->islands,branch->deferred,anchor,random_seed).first
+                                      &branch->islands,branch->deferred,anchor,random_seed,self_tolerance).first
                     : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                  &branch->islands,branch->deferred,anchor,random_seed);
+                                  &branch->islands,branch->deferred,anchor,random_seed,nullptr,nullptr,nullptr,self_tolerance);
                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);
                 if (result.capped) {
                     graph.stop(*branch,"capped","fragment_growth",result.cap.count,result.cap.limit);
                     continue;
                 }
-                if (result.isos.empty()) {carry(branch);continue;}
+                if (result.fragments.empty()) {carry(branch);continue;}
                 std::vector<BranchPtr> subtree;
                 bool changed=false;
-                for (auto& iso:result.isos) {
-                    auto child=commit_scheduled_fragment(branch,std::move(iso),source,graph);
+                for (auto& fragment:result.fragments) {
+                    auto child=commit_scheduled_fragment(branch,std::move(fragment),result.deferred_edges,source,graph);
                     changed|=(child->key!=branch->key);subtree.push_back(std::move(child));
                 }
                 admit(subtree,changed);
