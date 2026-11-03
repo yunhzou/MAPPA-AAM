@@ -1619,6 +1619,203 @@
       },
       "schema": "mappa.verification_prefix_profile/v1",
       "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af"
+    },
+    "verification_preparation_counters": {
+      "act_labels": {
+        "local_source": 1147,
+        "local_target": 1147,
+        "placement": 862,
+        "source_equivalence": 100,
+        "target_equivalence": 100
+      },
+      "after_failure_expression_families": 100,
+      "case": 1314,
+      "catalogue_blob_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+      "catalogue_families": 38826,
+      "catalogue_load": {
+        "cpu_seconds": 2.909624,
+        "wall_seconds": 2.915197958936915
+      },
+      "contradiction_examples": [
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 257,
+          "constraint_count": 243,
+          "domain_before": [
+            23
+          ],
+          "family": 0,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 18,
+            "act_input_values": 344,
+            "apply_factor_calls": 43,
+            "apply_factor_input_values": 1393,
+            "compile_relaxed_relation": 6,
+            "compile_self": 12
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        },
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 257,
+          "constraint_count": 243,
+          "domain_before": [
+            23
+          ],
+          "family": 1,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 36,
+            "act_input_values": 688,
+            "apply_factor_calls": 86,
+            "apply_factor_input_values": 2786,
+            "compile_relaxed_relation": 12,
+            "compile_self": 24,
+            "expression_calls": 48,
+            "expression_calls_after_failure": 48,
+            "nonconstant_expression_calls_after_failure": 27,
+            "propagate_calls": 2,
+            "propagate_returned_failed": 2,
+            "solve_entered_failed": 1,
+            "solver_calls": 0
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        },
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 253,
+          "constraint_count": 236,
+          "domain_before": [
+            23
+          ],
+          "family": 2,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 54,
+            "act_input_values": 1032,
+            "apply_factor_calls": 132,
+            "apply_factor_input_values": 4323,
+            "compile_relaxed_relation": 18,
+            "compile_self": 36,
+            "expression_calls": 96,
+            "expression_calls_after_failure": 96,
+            "nonconstant_expression_calls_after_failure": 54,
+            "propagate_calls": 4,
+            "propagate_returned_failed": 4,
+            "solve_entered_failed": 2,
+            "solver_calls": 0
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        }
+      ],
+      "counts": {
+        "act_calls": 3356,
+        "act_input_values": 56576,
+        "apply_factor_calls": 5852,
+        "apply_factor_input_values": 197611,
+        "compile_relaxed_relation": 1147,
+        "compile_self": 2294,
+        "expression_calls": 4800,
+        "expression_calls_after_failure": 4800,
+        "nonconstant_expression_calls_after_failure": 2932,
+        "propagate_calls": 200,
+        "propagate_returned_failed": 200,
+        "solve_entered_failed": 100,
+        "solver_calls": 0
+      },
+      "direction": "forward",
+      "exact_relation_keys": 109,
+      "exact_self_keys": 83,
+      "failed_before_solve_families": 100,
+      "first_family_counts": {
+        "act_calls": 18,
+        "act_input_values": 344,
+        "apply_factor_calls": 43,
+        "apply_factor_input_values": 1393,
+        "compile_relaxed_relation": 6,
+        "compile_self": 12,
+        "expression_calls": 48,
+        "expression_calls_after_failure": 48,
+        "nonconstant_expression_calls_after_failure": 27,
+        "propagate_calls": 2,
+        "propagate_returned_failed": 2,
+        "solve_entered_failed": 1
+      },
+      "immutable_key_scope": {
+        "derived_self_constraints": "Self constraint tables are deterministically constructed from this self definition and were not separately compared by the diagnostic.",
+        "relation": [
+          "source.key",
+          "target.key",
+          "witness",
+          "anchors",
+          "domains",
+          "accepted_edges including weight, tolerance and inclusive",
+          "target_edges",
+          "graph_floor"
+        ],
+        "self": [
+          "atoms",
+          "elements",
+          "anchors",
+          "bond_threshold",
+          "tolerance",
+          "generators",
+          "original_weights_bytes"
+        ]
+      },
+      "limitations": [
+        "First100 saved families only, not the complete catalogue or a historical comparison.",
+        "Counters and timings use in-process diagnostic wrappers; source and saved results are unchanged.",
+        "Exact immutable keys include the complete relation definition, endpoint atom identities, anchors and original weights. Self constraint tables are derived from this definition, not separately compared. Repeated keys do not mean family-specific solver variables can be shared.",
+        "Expression timings include diagnostic call overhead and are nested within preparation; no solver or semantic shortcut was applied.",
+        "All expression calls observed the failed flag on entry. Use expression_cpu_seconds for their dead-work time; the separate after-failure timer also includes intervening diagnostic counter updates."
+      ],
+      "loop_cpu_seconds": 1.3495239999999997,
+      "loop_wall_seconds": 1.5375015421304852,
+      "normalized_reference_contradiction_scope": "Restriction is applied to the final normalized value after source and target endpoint-equivalence actions; indices are original endpoint indices.",
+      "observed_utc": "2026-11-03T18:14:06.957236+00:00",
+      "outcomes": {
+        "not_recovered": 100
+      },
+      "queried_families": 100,
+      "query_phase_cpu_seconds": {
+        "encoding": 1.2966790000000015,
+        "solving": 0.016486999999996144
+      },
+      "relation_object_count": 109,
+      "requested_limits": {
+        "loop_budget_seconds": 15,
+        "maximum_families": 100,
+        "outer_process_guard_seconds": 60,
+        "per_query_timeout_ms": 10000
+      },
+      "schema": "mappa.verification_preparation_counters/v1",
+      "self_object_count": 151,
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "timings": {
+        "expression_after_failure_cpu_seconds": 0.46135599999998567,
+        "expression_after_failure_wall_seconds": 0.4652779959142208,
+        "expression_cpu_fraction_of_encoding": 0.351730844719473,
+        "expression_cpu_seconds": 0.4560820000000021,
+        "expression_wall_seconds": 0.46135845803655684,
+        "reported_dead_expression_cpu_seconds": 0.4560820000000021
+      }
     }
   },
   "verification_resources": {

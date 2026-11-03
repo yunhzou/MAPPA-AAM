@@ -377,6 +377,28 @@ and cold imports, covers only this prefix and is not a historical speed ratio.
 It locates the measured cost in preparation; it does not establish that all of
 that preparation is avoidable.
 
+A second instrumented probe examined the first **100 families**, all rejected.
+It found **4,800 expression-building calls after rejection was already known**,
+including 2,932 nonconstant expressions. These calls used **0.456 CPU seconds,
+35.2% of measured preparation CPU**; no SMT solver was called. In the first
+family, source atom 15 could reach only target 23 after both endpoint-equivalence
+actions, while the reference required target 24. This contradiction was checked
+after six fragment relations and twelve self-relationships had been compiled;
+another 48 expression-building calls followed the known failure.
+
+The same probe compiled fragment relations 1,147 times for 109 distinct complete
+definitions, and self-relationships 2,294 times for 83 definitions. Discovery-pair
+tables, self-compatibility tables and inverse factors are reconstructed by the
+current compiler. Immutable preparation can be shared; family-specific variables
+and joint choices cannot be shared blindly. The historical compiler also built
+expressions after some failures, but its per-source early rejection could return
+before constructing choices or expressions. The repair targets are early per-source reference bounds over
+the complete ordered relation, immediate termination of known failures, and
+reuse of immutable fragment preparation. Both relaxed self-relationships and all
+joint constraints must remain. These counters include diagnostic overhead and
+cover only the selected prefix; they do not attribute the full-run slowdown or
+measure a repaired implementation.
+
 ## Stopped initial campaign
 
 The initial campaign used revision
