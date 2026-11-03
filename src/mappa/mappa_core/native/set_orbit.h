@@ -55,18 +55,39 @@ struct Transversal {
 
 struct StabilizerChain {
     int fixed=-1;
+    std::vector<Permutation> orbits;
     std::unique_ptr<Transversal> transversal;
     std::unique_ptr<StabilizerChain> next;
     StabilizerChain(int degree,const Generators& generators) {
         for (int p=0;p<degree && fixed<0;++p)
             for (const auto& action:generators) if (action[p]!=p) {fixed=p;break;}
         if (fixed<0) return;
+        auto parent=identity(degree);
+        auto root=[&](int p) {
+            while (parent[p]!=p) {parent[p]=parent[parent[p]];p=parent[p];}
+            return p;
+        };
+        for (const auto& action:generators)
+            for (int p=0;p<degree;++p) parent[root(p)]=root(action[p]);
+        std::map<int,size_t> indices;
+        for (int p=0;p<degree;++p) {
+            auto [entry,added]=indices.emplace(root(p),orbits.size());
+            if (added) orbits.emplace_back();
+            orbits[entry->second].push_back(p);
+        }
         transversal=std::make_unique<Transversal>(degree,generators,fixed);
         next=std::make_unique<StabilizerChain>(degree,transversal->stabilizer(generators));
     }
     bool contains(const std::vector<uint8_t>& first,const std::vector<uint8_t>& second) const {
         if (first==second) return true;
         if (fixed<0) return false;
+        // Every remaining action preserves occupancy in each point orbit,
+        // including fixed points. Equal counts still require joint transport.
+        for (const auto& orbit:orbits) {
+            int difference=0;
+            for (int p:orbit) difference+=int(first[p])-int(second[p]);
+            if (difference) return false;
+        }
         for (int p:transversal->points) if (first[fixed]==second[p]) {
             std::vector<uint8_t> moved(second.size());
             const auto& action=transversal->actions[p];

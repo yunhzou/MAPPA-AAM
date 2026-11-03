@@ -1,6 +1,8 @@
 """Differential oracles for native bookkeeping, independent of chemistry cases."""
 from itertools import permutations
 import random
+import subprocess
+import sys
 
 import pytest
 
@@ -152,3 +154,36 @@ def test_point_lock_releases_independent_factors_from_a_correlated_exchange():
         expected = {action for action in original if all(action[p] == p for p in fixed)}
         actual = set(group_actions(group.stabilizer(fixed), degree))
         assert actual == expected and len(actual) == count
+
+
+def _check_correlated_set_transport(case):
+    # A column permutation moves both rows together. Row counts and the number
+    # of columns occupied in both rows are independent invariants of this group.
+    width = 24
+    generators = []
+    for column in range(width - 1):
+        action = list(range(2 * width))
+        for row in (0, width):
+            action[row + column], action[row + column + 1] = row + column + 1, row + column
+        generators.append(action)
+    group = SetOrbit(2 * width, generators)
+    first = tuple(range(12)) + tuple(range(width, width + 12))
+    if case == 'different_row_counts':
+        second = tuple(range(11)) + tuple(range(width, width + 13))
+        expected = False
+    elif case == 'different_overlap':
+        second = tuple(range(12)) + tuple(range(width + 12, 2 * width))
+        expected = False
+    else:
+        second = tuple(range(12, width)) + tuple(range(width + 12, 2 * width))
+        expected = True
+    assert group.contains(first, second) is expected
+
+
+@pytest.mark.parametrize('case', ['different_row_counts', 'different_overlap', 'joint_move'])
+def test_correlated_set_transport_does_not_expand_equivalent_permutations(case):
+    # A process deadline catches factorial recursion inside C++, where a Python
+    # signal handler cannot interrupt the call. This is not a microbenchmark.
+    subprocess.run([sys.executable, '-c',
+        "import runpy,sys; runpy.run_path(sys.argv[1])['_check_correlated_set_transport'](sys.argv[2])",
+        __file__, case], check=True, timeout=10)

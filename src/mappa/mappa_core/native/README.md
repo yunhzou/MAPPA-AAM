@@ -7,14 +7,17 @@ imports are `mappa._engine` and `mappa._group_ops`.
   growth, fragment-local relaxed relationships and reusable search work. Python calls these
   through `mappa_core/core/matching/growth/native.py` and the native search adapters.
 - `fragment_query.h` owns first-witness matching and witness extension.
-  `fragment_query.h` also discovers each target atom set once through joint
-  image exclusions. `fragment_completion.h` retains the complete discovery
-  constraints and prepares anchored relaxed self-relationships for each side.
-  Global structural preparation is shared per target reaction. Only subgroups
-  certified to preserve the whole query and original self tolerance prune the
-  search; each discovered target-set orbit is emitted before it is excluded.
-  Exact-size eligible components need no global preparation. This prepared
-  endpoint record is separate from the bounded completed-result cache.
+  At saturation it discovers one representative per certified target-set orbit,
+  using compact orbit exclusions without expanding equivalent sets first.
+  `fragment_completion.h` retains the complete discovery constraints and
+  prepares anchored relaxed self-relationships for each side. Global placement
+  preparation is shared per target reaction. Its certified exchanges preserve
+  the full target WBO matrix, active topology and source-node compatibility,
+  while fixing prior locks and explicitly fixed target labels. Each result
+  retains this placement relationship separately from its fragment-local
+  relationships; saved hierarchy transitions transport the entire later
+  continuation jointly. This prepared endpoint record is separate from the
+  bounded completed-result cache.
   Frontier selection stays in `engine.cpp`; neither module owns hierarchy caps
   or work-pool scheduling.
 - `find_fragment_witness` binds `FragmentQuery.find` directly for a supplied
@@ -25,6 +28,9 @@ imports are `mappa._engine` and `mappa._group_ops`.
   the shared matcher and hierarchy types. It also compiles shared decoder actions
   and projects ordered two-endpoint orbits without Python traversal or complete
   permutation enumeration.
+- `set_orbit.h` supplies compact target-set transport and pointwise stabilizers.
+  It keeps correlated generator supports together without materializing the
+  complete permutation group or target-set orbit.
 - `autgrp.h` shares the binary structural graph solver between native fragment
   preparation and the public bindings in `autgrp.cpp`.
 - `third_party/nauty/` holds the vendored dependency, separate from MAPPA code.
