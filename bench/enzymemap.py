@@ -14,7 +14,7 @@ import tempfile
 import time
 import uuid
 
-from mappa import AAMSearchConfig, query_path
+from mappa import AAMSearchConfig, EventDecodeConfig, query_path
 from mappa.execution import BundleStore, StageResults, WorkPool
 from mappa.execution.identity import code_identity
 from mappa.mappa_core.core.scheduler import Task
@@ -302,7 +302,10 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
-        retry_memory_limits=False, verify_only=False, recover_decoding=False):
+        retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False):
+    if decode_only and (verify_only or recover_decoding or retry_memory_limits
+                        or stop_after not in (None, 'decoding')):
+        raise ValueError('Fresh decoding cannot select another pass or retry policy')
     if recover_decoding and (verify_only or retry_memory_limits or limit is not None or stop_after is not None):
         raise ValueError('Decoding recovery cannot select another pass, limit or retry policy')
     if verify_only and not resume:
@@ -327,6 +330,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         else:
             raw = Path(index_path).read_bytes()
             index = json.loads(raw)
+            if 'decoding_source' in index and not decode_only:
+                raise ValueError('A saved catalogue index requires --decode-only')
             config = AAMSearchConfig(**index['config'])
             verification = index.get('verification', 'enzymemap:verify')
             reference_policy = index.get('reference_policy',
@@ -335,6 +340,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             requested = dict(input_index=str(Path(index_path).resolve()), input_index_sha256=hashlib.sha256(raw).hexdigest(),
                 config=asdict(config), cases=len({r['case'] for r in rows}), directions=len(rows),
                 reference_policy=reference_policy)
+            if decode_only:
+                if not rows or not isinstance(index.get('decoding_source'), dict) or not index['decoding_source']:
+                    raise ValueError('Fresh decoding requires saved catalogue provenance and nonempty scope')
+                decoding_config = EventDecodeConfig(**index.get('decode_config', dict(
+                    threshold=config.event_threshold, metal_threshold=config.metal_event_threshold)))
+                catalogues = [dict(case=row['case'], reversed=row['reversed'],
+                                   catalogue=asdict(Blob(**row['catalogue']))) for row in rows]
+                requested.update(mode='decode_only', decoding_source=index['decoding_source'],
+                    decoder_source=code_identity(), decode_config=asdict(decoding_config),
+                    directions_to_decode=catalogues, memory_bytes=memory_bytes, case_seconds=case_seconds)
         identities = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}" for row in rows}
         if len(identities) != len(rows):
             raise ValueError('Duplicate reaction/direction inputs')
@@ -347,6 +362,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
             if saved_plan != requested:
                 raise ValueError('Resume input/configuration differs')
+            if decode_only:
+                require_drained(output)
         else:
             if plan.exists():
                 raise ValueError('Existing run requires --resume')
@@ -370,12 +387,14 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                       expected_cases=requested['cases'], expected_directions=len(rows))
         if recover_decoding:
             status['decoding_recovery'] = True
+        if decode_only:
+            status['decoding_only'] = True
         if verify_only:
             if json.loads((output/'progress.json').read_text())['source'] != status['source']:
                 raise ValueError('MAPPA source or compiled engine differs from the saved campaign')
             require_drained(output)
             status['verification_only'] = True
-        stages = ([('decoding', None)] if recover_decoding else
+        stages = ([('decoding', None)] if recover_decoding or decode_only else
                   [('verification', 'deduplication')] if verify_only else
                   [('matching', None), ('deduplication', 'matching'),
                    ('decoding', 'deduplication'), ('verification', 'deduplication')])
@@ -439,6 +458,10 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                 if recover_decoding:
                                     result = pool.retry_decoding(name, Blob(**row['audit']),
                                                                  catalogue=Blob(**row['catalogue']))
+                                elif decode_only:
+                                    saved = StageResults('deduplication', store,
+                                        references={name: Blob(**row['catalogue'])})
+                                    result = pool.decode(saved, decoding_config)
                                 elif stage == 'matching':
                                     result = pool.search({name: prepared_problem(row)}, config, seed_batch=1)
                                 else:
@@ -488,7 +511,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                     if failed:
                         status.setdefault('failed_stages', []).append(stage)
                     checkpoint(stage,active)
-                    if failed and (stage != 'decoding' or stop_after == 'decoding' or recover_decoding):
+                    if failed and (stage != 'decoding' or stop_after == 'decoding' or recover_decoding or decode_only):
                         raise RuntimeError(f'{stage} contains failed directions; next pass was not started')
                     if stage == 'verification' and not verify_only and status.get('failed_stages'):
                         raise RuntimeError('decoding contains failed directions; external verification completed')
@@ -496,7 +519,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                         status['pass_finished'] = stage
                         checkpoint(stage,{})
                         return status
-                if verify_only or recover_decoding:
+                if verify_only or recover_decoding or decode_only:
                     stage = 'verification' if verify_only else 'decoding'
                     status['pass_finished'] = stage
                     checkpoint(stage,{})
@@ -520,14 +543,19 @@ def main():
                         help='Verify completed catalogues without requiring decoding; requires --resume')
     parser.add_argument('--recover-decoding',action='store_true',
                         help='Read an original campaign or its latest terminal recovery and retry decoding memory failures into separate output, preserving guards and remaining budgets')
+    parser.add_argument('--decode-only',action='store_true',
+                        help='Decode every saved catalogue in a prepared index into fresh output, with fresh recorded budgets')
     parser.add_argument('--retry-memory-limits',action='store_true',
                         help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
     parser.add_argument('--run-seconds',type=float,default=12600.)
+    parser.add_argument('--case-seconds',type=float,default=3600.,
+                        help='Compute budget per fresh direction task; archived recovery retains its original remaining budget')
     args=parser.parse_args()
     status = run(args.index,args.output,workers=args.workers,memory_bytes=int(args.memory_gib*2**30),window=args.window,limit=args.limit,
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
-        retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding)
+        retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding,
+        decode_only=args.decode_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):
         raise SystemExit(75)
 

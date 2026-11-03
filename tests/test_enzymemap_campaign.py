@@ -417,6 +417,113 @@ def failed_decode_campaign(tmp_path, *, bad_catalogue=False):
     return source, selected
 
 
+def fresh_decoding_index(source, destination):
+    """Reference all saved catalogues, regardless of the previous decode outcome."""
+    import hashlib
+
+    manifest = source/'manifest.json'
+    data = json.loads(manifest.read_text())
+    rows = []
+    for batch in data['batches']:
+        with sqlite3.connect(source/str(batch['batch'])/'result/ledger.sqlite') as ledger:
+            for name, reference in ledger.execute("SELECT case_name,reference FROM results WHERE stage='deduplication'"):
+                case, direction = name.split('/')
+                rows.append(dict(case=int(case), reversed=direction == 'reverse', catalogue=json.loads(reference)))
+    destination.write_text(json.dumps(dict(config=data['config'], directions=rows,
+        decoding_source=dict(source_commit='original-revision', source_identity='original-code',
+                             manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest()))))
+    return destination
+
+
+def test_fresh_decoding_uses_all_catalogues_with_new_budgets_and_preserves_source(tmp_path, monkeypatch):
+    import enzymemap
+    from mappa import EventDecodeConfig
+    from mappa.execution import WorkPool
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    source, _ = failed_decode_campaign(tmp_path)
+    index = fresh_decoding_index(source, tmp_path/'decode-index.json')
+    data = json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.75, metal_threshold=None)
+    index.write_text(json.dumps(data))
+    source_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
+    def forbidden(*args, **kwargs):
+        raise AssertionError('A fresh decoding pass cannot run other stages or restore an old attempt')
+    for method in ('search', 'deduplicate', 'retry_decoding'):
+        monkeypatch.setattr(WorkPool, method, forbidden)
+    monkeypatch.setattr(enzymemap, 'prepared_problem', forbidden)
+    monkeypatch.setattr(enzymemap, 'read_blob', forbidden)
+    output = tmp_path/'new-decoding'
+    options = dict(local=True, workers=2, window=2, decode_only=True,
+                   memory_bytes=2**30, case_seconds=123.)
+    status = run(index, output, **options)
+    assert status['pass_finished'] == 'decoding' and status['decoding_only']
+    assert not status.get('finished', False)
+    plan = json.loads((output/'plan.json').read_text())
+    assert plan['mode'] == 'decode_only'
+    assert plan['decoding_source'] == data['decoding_source']
+    assert plan['decoder_source'] == enzymemap.code_identity()
+    assert plan['directions_to_decode'] == data['directions']
+    assert plan['decode_config'] == data['decode_config']
+    assert plan['case_seconds'] == 123. and plan['memory_bytes'] == 2**30
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        records = ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall()
+        assert ledger.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+    assert len(records) == 4
+    store = BundleStore(output/'bundles')
+    for name, stage, state, reference, audit, error in records:
+        assert (stage, state, error) == ('decoding', 'complete', None)
+        result = store.load(Blob(**json.loads(reference)))
+        assert result.config == EventDecodeConfig(**data['decode_config'])
+        history = store.load(Blob(**json.loads(audit)))
+        assert len(history['attempts']) == len(history['tasks']) == 1
+        assert history['case'][1] == 123. and history['case'][3] < 123.
+        task = _loads_checkpoint(history['tasks'][0][1])
+        assert task.operation == 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue'
+        assert task.case_seconds == 123. and task.memory_bytes == 2**30
+    bundles = sorted((output/'bundles').glob('*.bundle'))
+    assert run(index, output, resume=True, **options)['pass_finished'] == 'decoding'
+    assert sorted((output/'bundles').glob('*.bundle')) == bundles
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        assert ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall() == records
+    assert {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()} == source_files
+    for changed in (dict(case_seconds=124.), dict(memory_bytes=2*2**30)):
+        with pytest.raises(ValueError, match='Resume input/configuration differs'):
+            run(index, output, resume=True, **dict(options, **changed))
+    monkeypatch.setattr(enzymemap, 'code_identity', lambda: 'changed-decoder')
+    with pytest.raises(ValueError, match='Resume input/configuration differs'):
+        run(index, output, resume=True, **options)
+
+
+def test_fresh_decoding_preserves_new_failures_without_retry_or_other_stages(tmp_path):
+    source, _ = failed_decode_campaign(tmp_path, bad_catalogue=True)
+    index = fresh_decoding_index(source, tmp_path/'decode-index.json')
+    output = tmp_path/'new-decoding'
+    options = dict(local=True, workers=1, window=1, decode_only=True, case_seconds=123.)
+    with pytest.raises(RuntimeError, match='decoding contains failed directions'):
+        run(index, output, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        records = ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall()
+    assert len(records) == 4
+    assert sorted(row[2] for row in records) == ['complete', 'complete', 'complete', 'error']
+    assert {row[1] for row in records} == {'decoding'}
+    plan = json.loads((output/'plan.json').read_text())
+    assert plan['decode_config'] == dict(threshold=.5, metal_threshold=.3)
+    with pytest.raises(RuntimeError, match='decoding contains failed directions'):
+        run(index, output, resume=True, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        assert ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall() == records
+
+
+@pytest.mark.parametrize('options', [dict(verify_only=True), dict(recover_decoding=True),
+    dict(retry_memory_limits=True), dict(stop_after='matching'), dict(stop_after='verification')])
+def test_fresh_decoding_rejects_competing_stage_modes(tmp_path, options):
+    with pytest.raises(ValueError, match='Fresh decoding cannot select another pass'):
+        run(tmp_path/'unused', tmp_path/'output', decode_only=True, **options)
+    assert not (tmp_path/'output').exists()
+
+
 def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypatch):
     import enzymemap
     from mappa.execution import WorkPool

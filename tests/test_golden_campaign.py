@@ -18,6 +18,156 @@ from mappa.execution import BundleStore
 from test_enzymemap_campaign import prepared_index
 
 
+def decoding_campaign(tmp_path):
+    """Archived stage metadata; catalogue files deliberately do not exist."""
+    from prepare_batches import prepare_fresh
+    from mappa import AAMSearchConfig
+
+    config = asdict(AAMSearchConfig(seed_count=1, branch_limit=2000))
+    rows = [dict(case=case, reversed=reverse,
+                 input=dict(path=str(tmp_path/'unopened-input.bundle'), offset=case*20,
+                            size=10, sha256='a'*64),
+                 reference=dict(path=str(tmp_path/'unopened-reference.bundle'), offset=0,
+                                size=10, sha256='b'*64))
+            for case in range(3) for reverse in (False, True)]
+    index = tmp_path/'original-index.json'
+    index.write_text(json.dumps(dict(config=config, directions=rows)))
+    source = tmp_path/'source'
+    prepare_fresh([index], source, workers=[1, 1])
+    (source/'launch.json').write_text(json.dumps(dict(source_commit='a'*40, source_identity='c'*64)))
+    for batch in range(2):
+        folder = source/str(batch)
+        data = json.loads((folder/'index.json').read_text())
+        output = folder/'result'; output.mkdir()
+        store = BundleStore(output/'bundles')
+        (output/'bundles/cache').mkdir()
+        (output/'bundles/cache/.owner.lock').touch()
+        with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+            queue.execute('CREATE TABLE tasks (key TEXT)')
+            queue.execute('CREATE TABLE attempts (key TEXT)')
+        plan = dict(input_index=str(folder/'index.json'),
+            input_index_sha256=hashlib.sha256((folder/'index.json').read_bytes()).hexdigest(),
+            config=config, cases=len({r['case'] for r in data['directions']}),
+            directions=len(data['directions']))
+        (output/'plan.json').write_text(json.dumps(plan))
+        (output/'progress.json').write_text(json.dumps(dict(source='c'*64)))
+        with sqlite3.connect(output/'ledger.sqlite') as ledger:
+            ledger.execute('CREATE TABLE results (case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT,PRIMARY KEY(case_name,stage))')
+            ledger.execute('CREATE TABLE retries (utc REAL,reason TEXT,case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT)')
+            for row in data['directions']:
+                name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+                catalogue = dict(path=str(tmp_path/'unopened-catalogue.bundle'),
+                    offset=100*row['case']+int(row['reversed']), size=100+row['case'], sha256='d'*64)
+                for stage in ('matching', 'deduplication'):
+                    ledger.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                                   (name, stage, 'complete', json.dumps(catalogue), None, None))
+                state = 'memory_limit' if name == '00000/forward' else 'complete'
+                attempts = [(None, None, None, None, None, state)]
+                if name == '00002/reverse':
+                    attempts.insert(0, (None, None, None, None, None, 'memory_limit'))
+                audit = store.put(dict(tasks=[(name, None, None, None, state)], attempts=attempts))
+                ledger.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                    (name, 'decoding', 'error' if state == 'memory_limit' else 'complete',
+                     None if state == 'memory_limit' else json.dumps(catalogue),
+                     json.dumps(asdict(audit)), json.dumps({name: state}) if state == 'memory_limit' else None))
+                if name == '00001/reverse':
+                    previous = store.put(dict(tasks=[(name, None, None, None, 'memory_limit')], attempts=[]))
+                    ledger.execute('INSERT INTO retries VALUES (?,?,?,?,?,?,?,?)',
+                        (1., 'resource retry', name, 'decoding', 'error', None,
+                         json.dumps(asdict(previous)), json.dumps({name: 'memory_limit'})))
+    return source
+
+
+def test_fresh_decoding_batches_preserve_full_scope_and_prior_memory_failures(tmp_path):
+    from prepare_batches import prepare_decoding
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    source = decoding_campaign(tmp_path)
+    before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in source.rglob('*') if p.is_file()}
+    output = tmp_path/'decoded'
+    manifest = prepare_decoding(source, output, [2, 1], memory_failures_workers=[1],
+                                decode_config=EventDecodeConfig(.7, .4))
+    assert manifest['cases'] == 3 and manifest['directions'] == 6
+    assert manifest['imported_stage_results'] == 0 and manifest['reused_catalogues'] == 6
+    assert manifest['prior_memory_failure_directions'] == ['00000/forward', '00001/reverse', '00002/reverse']
+    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4)
+    assert manifest['decoding_source']['source_commit'] == 'a'*40
+    assert manifest['decoding_source']['source_identity'] == 'c'*64
+    batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(3)]
+    rows = [row for batch in batches for row in batch['directions']]
+    assert {(r['case'], r['reversed']) for r in rows} == {(i, r) for i in range(3) for r in (False, True)}
+    assert len(rows) == 6
+    assert {(r['case'], r['reversed']) for r in batches[2]['directions']} == {(0, False), (1, True), (2, True)}
+    assert [r['resource_group'] for r in manifest['batches']] == ['ordinary', 'ordinary', 'memory_failures']
+    original = { (r['case'],r['reversed']):r for r in json.loads((tmp_path/'original-index.json').read_text())['directions'] }
+    for row in rows:
+        assert {key: value for key, value in row.items() if key != 'catalogue'} == original[row['case'],row['reversed']]
+        assert row['catalogue']['sha256'] == 'd'*64
+    for batch in manifest['batches']:
+        raw = (output/str(batch['batch'])/'index.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == batch['index_sha256']
+    assert not list(output.rglob('*.sqlite')) and not list(output.rglob('*.bundle'))
+    assert {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in source.rglob('*') if p.is_file()} == before
+    with pytest.raises(FileExistsError):
+        prepare_decoding(source, output, [1])
+    with pytest.raises(ValueError, match='separate output'):
+        prepare_decoding(source, source/'nested', [1])
+
+
+@pytest.mark.parametrize('corruption', ['matching', 'deduplication', 'source_index', 'batch_index',
+                                        'config', 'identity', 'missing_batch', 'retry_scope'])
+def test_fresh_decoding_rejects_changed_or_incomplete_source_before_output(tmp_path, corruption):
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    result = source/'0/result'
+    if corruption in ('matching', 'deduplication'):
+        with sqlite3.connect(result/'ledger.sqlite') as db:
+            db.execute("UPDATE results SET state='error' WHERE stage=?", (corruption,))
+    elif corruption == 'source_index':
+        with (tmp_path/'original-index.json').open('a') as stream:
+            stream.write(' ')
+    elif corruption == 'batch_index':
+        with (source/'0/index.json').open('a') as stream:
+            stream.write(' ')
+    elif corruption == 'config':
+        path = result/'plan.json'; value = json.loads(path.read_text())
+        value['config']['seed_count'] = 10; path.write_text(json.dumps(value))
+    elif corruption == 'identity':
+        (result/'progress.json').write_text(json.dumps(dict(source='wrong')))
+    elif corruption == 'missing_batch':
+        path = source/'manifest.json'; value = json.loads(path.read_text())
+        value['batches'].pop(); path.write_text(json.dumps(value))
+    elif corruption == 'retry_scope':
+        with sqlite3.connect(result/'ledger.sqlite') as db:
+            db.execute('INSERT INTO retries VALUES (?,?,?,?,?,?,?,?)',
+                       (1., 'invalid', '99999/forward', 'decoding', 'error', None, None, None))
+    output = tmp_path/'decoded'
+    with pytest.raises(ValueError):
+        prepare_decoding(source, output, [1])
+    assert not output.exists()
+
+
+@pytest.mark.parametrize('ownership', ['lock', 'tasks', 'attempts'])
+def test_fresh_decoding_rejects_active_or_unarchived_source(tmp_path, ownership):
+    import fcntl
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    result = source/'0/result/bundles'
+    with (result/'cache/.owner.lock').open('rb') as owner:
+        if ownership == 'lock':
+            fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        else:
+            with sqlite3.connect(result/'queue.sqlite') as queue:
+                queue.execute(f'INSERT INTO {ownership} VALUES (?)', ('unarchived',))
+        with pytest.raises((RuntimeError, ValueError), match='active coordinator|drained saved queue'):
+            prepare_decoding(source, tmp_path/'decoded', [1])
+    assert not (tmp_path/'decoded').exists()
+
+
 def comparison_index(tmp_path):
     from mappa.mappa_core.utils.io.records import endpoint_record
     from test_fragment_conversion import endpoint

@@ -157,8 +157,8 @@ reaction/directions per allocation. Requested workers are not proof of execution
 check `progress.json`, task overlap and worker CPU usage for actual utilization.
 
 `--run-seconds` or the advance Slurm signal stops admission and drains accepted
-work. Allow time for draining within the allocation; each case has a one-hour
-compute budget. A drained allocation exits **75**, so `afterok` keeps downstream
+work. Allow time for draining within the allocation; `--case-seconds` sets the
+compute budget per fresh direction (default 3,600 seconds). A drained allocation exits **75**, so `afterok` keeps downstream
 work blocked. Resume the same unfinished output explicitly with `--resume`, then
 update downstream dependencies to the successful continuation jobs. Never run two
 allocations against the same batch output at once. There are no automatic retries
@@ -200,6 +200,34 @@ left untouched: this option grants no retry or fresh budget to them. Decode
 failures, consumed budgets and attempt audits remain recorded. A successful
 verification-only pass reports `pass_finished: verification`; it does not claim
 that decoding or the full benchmark finished. No decoding is retried.
+
+## Measure decoding again from saved catalogues
+
+Use a fresh decoding-only campaign to measure a new decoder on every saved
+catalogue, including directions whose previous decoding succeeded. Matching,
+reduction and reference verification do not run again.
+
+```bash
+python bench/prepare_batches.py decoding /path/to/original-campaign /path/to/new-decoding \
+  --workers 16 16 --memory-failures-workers 8
+python bench/enzymemap.py /path/to/new-decoding/0/index.json /path/to/new-decoding/0/result \
+  --decode-only --local --workers 16 --memory-gib 4 --case-seconds 1800
+```
+
+Preparation requires complete matching and reduction, drained source queues and
+consistent scope/configuration. It records the original campaign identities and
+catalogue references without importing old decoding results. The optional memory
+failure worker list creates separate batches for directions with previous
+decoding memory failures; it does not choose or increase memory automatically.
+Set each allocation's memory explicitly. The portable Slurm launcher accepts
+`--decode-only` with the same arguments.
+
+The new plan records decoder identity, event thresholds and fresh time/memory
+allowances. `--resume --decode-only` continues that unchanged measurement and
+preserves its completed outputs and errors. Original results and consumed budgets
+remain in the source campaign. Compare operation CPU on identical successful
+directions, report publication separately, and keep failed or missing results in
+the full denominator.
 
 ## Recover decoding after a repair
 
