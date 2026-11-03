@@ -11,7 +11,8 @@ import pytest
 from sympy.combinatorics import Permutation, PermutationGroup
 
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex, _response_bounds
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_core.core.symmetry.responses import response_bounds
 from reference_event_decoder import extract_path_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 
@@ -64,7 +65,7 @@ def test_response_bounds_match_dense_float_comparisons(tau):
     values = np.array(sorted({x for v in (0., .1, .3, .5, .7, 1., 1.4, 1.8)
                              for x in (math.nextafter(v, -math.inf), v, math.nextafter(v, math.inf))}))
     for weight in values:
-        a, b = _response_bounds(values, weight, tau)
+        a, b = response_bounds(values, weight, tau)
         dense = np.where(values - weight < -tau, -1, np.where(values - weight > tau, 1, 0))
         assert np.array_equal(dense, [-1] * a + [0] * (b - a) + [1] * (len(values) - b))
 

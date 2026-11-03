@@ -48,6 +48,50 @@ fragment retains its locked assignments and earlier constraints.
 indices, seed order, random settings and the full search scope. An indivisible
 cut backend cannot be split into independently reseeded searches.
 
+## Relaxed relationships and shared symmetry core
+
+A **relaxed global automorph** describes permitted rearrangements of one whole
+endpoint. An **anchor-aware relaxed fragment self-automorph** describes permitted
+rearrangements inside a selected fragment, with its anchors fixed. A **relaxed
+isomorph** describes a source-to-target mapping. Discovery tolerance, relaxed-self
+tolerance and event thresholds have distinct responsibilities.
+
+Construct a relaxed self-relationship from a hyper-relaxed binary graph: bonds
+above the declared presence threshold share one structural label, elements are
+preserved, and each anchor is fixed. Nauty supplies compact correlated structural
+generators. Retain those broad generators together with joint original-WBO
+constraints; every internal pair must remain within the declared self tolerance.
+Compare a final rearrangement against the original structure. The relaxed
+relationship is symmetric but need not be transitive, so individually permitted
+operations cannot be composed without checking the resulting arrangement.
+
+Global construction uses the whole endpoint; fragment construction uses the
+selected fragment's internal graph. External attachments do not become local
+constraints. The binary graph preserves connectivity at its declared threshold;
+weight comparisons also retain internal subthreshold contacts. Accepted growth
+edges remain separate discovery constraints. Neither the binary graph nor its
+generators alone establish the complete relaxed source-to-target relation.
+
+`core/symmetry/` owns ordered shuffle programs, joint endpoint-pair projection,
+original-weight bond responses and relaxed self-relationship construction.
+It has no dependency on matching, catalogue records or postprocessing. Global
+and fragment-local construction use this same owner. Decoder-specific inventory,
+boundary bookkeeping and branch-event assembly consume its shared responses.
+Pair projections are local response domains; choices across different pairs
+remain correlated through the original joint action. No complete permutation
+group is materialized.
+
+```mermaid
+flowchart TD
+    Structural[Binary structure, elements and anchors] --> Relaxed[Relaxed self-relationship]
+    Weights[Original WBOs and declared tolerance] --> Relaxed
+    Core[Core correlated shuffles and bond responses] --> Relaxed
+    Relaxed --> Global[Global placement acceleration]
+    Relaxed --> Local[Fragment-local compressed relationships]
+    Core --> Decoder[Local and boundary event decoding]
+    Local --> Decoder
+```
+
 ## Fragment growth and completion
 
 Fragment matching has two operations: find one witness during growth, then
@@ -68,17 +112,26 @@ are deferred while the remaining frontier is explored.
 
 ### Direct compressed completion
 
-At saturation, completion uses the full accepted constraints and the exact global
-target automorphism action, conditioned on locks and matching context. It
-constructs each distinct compressed fragment match once. Symmetric bijections
-remain represented by pools and correlated actions, rather than being enumerated
-and merged. Global symmetry can move atoms outside the fragment together.
+At saturation, completion uses the full accepted constraints and the current
+witness to discover each distinct target atom set once within its fixed source
+fragment, parent and anchor context. Relaxed global automorph information can
+share discovery work but must not collapse distinct target sets. Subsequent
+placements must differ in at least one target atom; overlapping sets remain
+eligible. Constraints excluding an already discovered set participate in search,
+with pruning conditioned on those constraints.
 
-Completion is defined by the finished constraints, not the history of temporary
-candidate growth. A pool is valid only when every represented injective assignment
-satisfies those constraints and the matching context. Component labels alone do
-not split an interchangeable free-atom pool. Different pool allocations
-are represented together only when the exact global symmetry action relates them.
+Each candidate retains its complete compressed internal mapping relationship,
+using anchor-aware relaxed fragment self-automorph information. Global symmetry
+does not substitute for the fragment's own relationship. Free pools are a special
+case derived from that relationship, not an independent compression rule.
+One witness and one structural action are not assumed to cover every permitted
+mapping on a target set. The representation must establish complete coverage
+while preserving correlations and avoiding full-bijection expansion.
+
+The discovery witness satisfies the source-to-target `iso_tol`. Saved relaxed
+alternatives retain their own declared constraints and may exceed that discovery
+tolerance; original-WBO decoding evaluates their events. Records must distinguish
+discovery evidence from constraints on the retained relationship.
 
 A compressed match preserves the allowed injective mapping relation through its
 witness, pools, fixed roles and ordered correlated actions. Equal atom sets,
@@ -113,7 +166,7 @@ flowchart TD
 | `growth/engine.py` and native growth loop | Select proposals and record accepted/deferred constraints. |
 | `growth/existence.py` and native `fragment_query.h` | Find one witness or prove absence, reusing the current witness where possible. |
 | `growth/completion.py` and native `fragment_completion.h` | Construct distinct compressed matches from the completed constraints. |
-| Symmetry and representation modules | Supply exact global actions and compact result records. |
+| Shared symmetry core and matching representation | Supply relaxed global and fragment-local relationships and compact result records. |
 | Reaction search | Lock completed placements, form child branches and enforce hierarchy caps. |
 
 There is one growth algorithm, with no legacy mode or error-triggered fallback.
@@ -378,6 +431,7 @@ Paths below are relative to `src/mappa/`.
 |---|---|
 | Shared endpoint, configuration and result records | `mappa_core/domain.py` |
 | Fragment growth, existence and completion | `mappa_core/core/matching/` |
+| Relaxed relationships, correlated shuffles and bond responses | `mappa_core/core/symmetry/` |
 | Seed/cut planning, locking and hierarchy branching | `mappa_core/core/search/` |
 | Branch grouping and family reduction | `mappa_core/post_processing/final_branches.py` |
 | Unique-fragment inventory and event decoding | `mappa_core/post_processing/decoder/` |

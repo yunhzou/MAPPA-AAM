@@ -10,9 +10,10 @@ import pytest
 
 from mappa import decode_events
 from mappa.mappa_core.post_processing.decoder.events import (
-    FragmentEventTables, SignedEventIndex, _ActionSequence,
+    FragmentEventTables, SignedEventIndex,
 )
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentInventory
+from mappa.mappa_core.core.symmetry.actions import _ActionSequence
 from mappa.mappa_core.core.scheduler.storage import BundleStore
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_event_interpretation import dense_categories

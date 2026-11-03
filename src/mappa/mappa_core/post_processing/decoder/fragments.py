@@ -2,7 +2,7 @@
 from dataclasses import dataclass, replace
 
 from mappa.mappa_core.utils.bonds import bond_event_threshold
-from .events import PreparedActionPrograms
+from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
 from .records import BondEventTerm
 
 
@@ -83,8 +83,8 @@ class FragmentDecoder:
             tau = bond_event_threshold(self.index.elements, a, b,
                 default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
             weight = self.index.r[a, b]
-            response = self.index._domain_response(weight, tau, xs, ys)
-            response, projected = self.index._refine_event_response(weight, tau, pair, actions, response)
+            response = self.index.domain_response(weight, tau, xs, ys)
+            response, projected = self.index.refine_response(weight, tau, pair, actions, response)
             self.bonds[key] = response, projected
         response, projected = self.bonds[key]
         if response.constant == 0 and not manual_cut:

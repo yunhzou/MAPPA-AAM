@@ -21,6 +21,22 @@ def test_previous_package_checkpoint_global_resolves_to_mappa():
     assert _CheckpointUnpickler(stream).load() is mappa.AAMResult
 
 
+def test_archived_bond_response_keeps_values_and_sharing_after_core_move():
+    import numpy as np
+    from mappa.mappa_core.core.symmetry.responses import BondResponse
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    response = BondResponse(1., .5, np.array([.4, 1., 1.8]), np.array([1, 0, 3]))
+    payload = pickle.dumps((response, response), protocol=0)
+    current = b'cmappa.mappa_core.core.symmetry.responses\nBondResponse\n'
+    archived = b'cmappa.mappa_core.post_processing.decoder.records\nBondEventResponse\n'
+    assert payload.count(current) == 1
+    first, second = _loads_checkpoint(payload.replace(current, archived))
+    assert type(first) is BondResponse and first is second
+    assert (first.source_weight, first.threshold) == (1., .5)
+    assert first.lookup(np.array([1.8, 1.])).tolist() == [3, 0]
+    assert first.constant is None
+
+
 def test_current_decoder_configuration_keeps_its_type_through_bundle_storage(tmp_path):
     from mappa.execution import BundleStore
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig

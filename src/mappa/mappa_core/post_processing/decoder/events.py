@@ -9,142 +9,15 @@ from functools import cached_property
 import hashlib
 import json
 import math
-import sys
 
 import numpy as np
 import pynauty
 
 from mappa.mappa_core.utils.bonds import is_metal_element, bond_event_threshold
+from mappa.mappa_core.core.symmetry.responses import BondResponseIndex, response_bounds
 
 
-def _response_bounds(values, weight, threshold):
-    """Encode (-, zero, +) responses of sorted opposite weights with two cuts.
-
-    Keep the original subtraction/comparisons, including floating boundaries.
-    Algebraically moving the threshold to the other operand need not agree.
-    """
-    values, weight = np.asarray(values), np.asarray(weight)
-    bounds = []
-    # Search all distinct weights together, without a weights-by-weights table.
-    for negative in (True, False):
-        lo = np.zeros(weight.shape, dtype=int)
-        hi = np.full(weight.shape, len(values), dtype=int)
-        while np.any(lo < hi):
-            mid = (lo + hi) // 2
-            delta = values[np.minimum(mid, len(values) - 1)] - weight
-            left = delta < -threshold if negative else delta <= threshold
-            active = lo < hi
-            lo = np.where(active & left, mid + 1, lo)
-            hi = np.where(active & ~left, mid, hi)
-        bounds.append(lo)
-    return tuple(int(bound) if bound.ndim == 0 else bound for bound in bounds)
-
-
-class _PreparedAction(tuple):
-    """An unchanged saved action whose potentially large hash is computed once."""
-    def __new__(cls, action):
-        value = super().__new__(cls, action)
-        value._hash = tuple.__hash__(value)
-        return value
-
-    def __hash__(self):
-        return self._hash
-
-
-class _AtomRows:
-    """Bounded final atom rows; numeric keys do not retain their programs."""
-    def __init__(self):
-        self.rows = OrderedDict()
-        self.bytes = 0
-        self.next_program = 0
-
-    def atom(self, program, image):
-        key = program._number, image
-        entry = self.rows.get(key)
-        if entry is not None:
-            self.rows.move_to_end(key)
-            return entry[0]
-        row = program._prepare_atom(image)
-        size = sys.getsizeof(key) + sys.getsizeof(row) + sum(map(sys.getsizeof, row))
-        self.rows[key] = row, size
-        self.bytes += size
-        while len(self.rows) > 4096 or self.bytes > 16 * 2**20:
-            _, (_, removed) = self.rows.popitem(last=False)
-            self.bytes -= removed
-        return row
-
-
-class _ActionSequence(tuple):
-    """Exact ordered action values with bounded final atom preparation."""
-    def __new__(cls, actions, rows):
-        value = super().__new__(cls, actions)
-        value._hash = tuple.__hash__(value)
-        value._rows = rows
-        value._number = rows.next_program
-        rows.next_program += 1
-        return value
-
-    def __hash__(self):
-        return self._hash
-
-    def atom(self, image):
-        return self._rows.atom(self, image)
-
-    def _prepare_atom(self, image):
-        domain, dependencies = frozenset((image,)), []
-        for position, action in enumerate(self):
-            moved = domain.intersection(action.orbits)
-            if moved:
-                dependencies.append(position)
-                reached = {action.orbits[p] for p in moved}
-                domain = domain.union(*reached)
-        return tuple(sorted(domain)), tuple(dependencies)
-
-
-class PreparedActionPrograms:
-    """Reaction-owned exact programs; input references make identity lookup safe."""
-    def __init__(self, index):
-        self.index = index
-        self.actions, self.programs = {}, {}
-        self.action_references, self.program_references = {}, {}
-        self.sequences = {}
-
-    def _action(self, action):
-        reference = self.action_references.get(id(action))
-        if reference is None:
-            prepared = _PreparedAction(action)
-            if prepared not in self.actions:
-                prepared.orbits = {image: orbit for image, orbit in
-                    enumerate(self.index._event_orbits(prepared)) if len(orbit) > 1}
-                self.actions[prepared] = prepared
-            reference = self.action_references[id(action)] = action, self.actions[prepared]
-        return reference[1]
-
-    def program(self, actions):
-        if isinstance(actions, _ActionSequence) and actions._rows is self.index._prepared_atoms:
-            return actions
-        reference = self.program_references.get(id(actions))
-        if reference is None:
-            prepared = tuple(self._action(action) for action in actions)
-            if prepared not in self.programs:
-                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
-            reference = self.program_references[id(actions)] = actions, self.programs[prepared]
-        return reference[1]
-
-    def select(self, program, positions):
-        positions = tuple(positions)
-        if positions == tuple(range(len(program))):
-            return program
-        key = program._number, positions
-        if key not in self.sequences:
-            prepared = tuple(program[i] for i in positions)
-            if prepared not in self.programs:
-                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
-            self.sequences[key] = self.programs[prepared]
-        return self.sequences[key]
-
-
-class SignedEventIndex:
+class SignedEventIndex(BondResponseIndex):
     """Reaction-local event identity; IDs are versioned separately from legacy.
 
     Endpoints have nonnegative, exactly symmetric WBOs. Mappings are injective
@@ -162,11 +35,10 @@ class SignedEventIndex:
         self.problem = raw_problem
         self.elements = raw_problem.reactant.elements
         self.n = len(self.elements)
-        self.m = len(raw_problem.product.elements)
-        self.r, self.p = raw_problem.reactant.wbo, raw_problem.product.wbo
-        for matrix in (self.r, self.p):
-            if not np.array_equal(matrix, matrix.T) or np.any(matrix < 0):
-                raise ValueError('raw WBOs must be nonnegative and exactly symmetric')
+        super().__init__(raw_problem.product.wbo)
+        self.r = raw_problem.reactant.wbo
+        if not np.array_equal(self.r, self.r.T) or np.any(self.r < 0):
+            raise ValueError('raw WBOs must be nonnegative and exactly symmetric')
         self.threshold = float(threshold)
         self.metal_threshold = None if metal_threshold is None else float(metal_threshold)
         self.a, self.b = np.triu_indices(self.n, 1)
@@ -183,18 +55,9 @@ class SignedEventIndex:
             self.r[self.a, self.b] > self.tau]
         self.product_bonds = np.column_stack((self.pa, self.pb))[
             self.p[self.pa, self.pb] > self.ptau]
-        self.padded_product = np.pad(self.p, ((0, 1), (0, 1)))
         self.cache = OrderedDict()
         self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
-        self._event_tables = OrderedDict()
-        self._endpoint_pairs = OrderedDict()
-        self._compiled_pair_actions = OrderedDict()
-        self._pair_programs = OrderedDict()
-        self._domain_responses = OrderedDict()
-        self._response_values = OrderedDict()
-        self._orbit_tables = OrderedDict()
-        self._prepared_atoms = _AtomRows()
 
     def pair_table(self, weight, tau, xs, ys):
         """Reuse exact local responses across pairs/families, never mappings.
@@ -229,13 +92,6 @@ class SignedEventIndex:
             self._pair_tables.popitem(last=False)
         return result
 
-    def _event_orbits(self, action):
-        if action not in self._orbit_tables:
-            self._orbit_tables[action] = _action_orbits(action, self.m)
-            if len(self._orbit_tables) > 1024:
-                self._orbit_tables.popitem(last=False)
-        return self._orbit_tables[action]
-
     def neighboring_pairs(self, domains):
         """Source bonds plus source pairs that can reach a product bond.
 
@@ -256,83 +112,6 @@ class SignedEventIndex:
                     if a != b:
                         pairs.add((min(a, b), max(a, b)))
         return pairs
-
-    def endpoint_pairs(self, pair, actions):
-        """Project the ordered action program onto two endpoints, never mappings.
-
-        Each group closes only its pair orbit before the next action starts.
-        A pool contributes at most k*(k-1) pairs, not k! permutations. These
-        projections retain correlation between endpoints; constraints involving
-        other atoms are still enforced when a complete choice is realized.
-        """
-        if not actions:
-            return (pair,)
-        key = pair, actions
-        if key not in self._endpoint_pairs:
-            from mappa._group_ops import PairAction, EndpointPairProgram
-            if actions not in self._pair_programs:
-                compiled = []
-                for action in actions:
-                    if action not in self._compiled_pair_actions:
-                        kind, data = action
-                        factory = {'pool': PairAction.pool, 'group': PairAction.group}[kind]
-                        self._compiled_pair_actions[action] = factory(self.m, data)
-                        if len(self._compiled_pair_actions) > 1024:
-                            self._compiled_pair_actions.popitem(last=False)
-                    self._compiled_pair_actions.move_to_end(action)
-                    compiled.append(self._compiled_pair_actions[action])
-                self._pair_programs[actions] = EndpointPairProgram(self.m, compiled)
-                if len(self._pair_programs) > 1024:
-                    self._pair_programs.popitem(last=False)
-            self._pair_programs.move_to_end(actions)
-            self._endpoint_pairs[key] = self._pair_programs[actions].project(pair)
-            if len(self._endpoint_pairs) > 1024:
-                self._endpoint_pairs.popitem(last=False)
-        self._endpoint_pairs.move_to_end(key)
-        return self._endpoint_pairs[key]
-
-    def _response_from_weights(self, weight, tau, weights):
-        from .records import BondEventResponse
-        key = float(weight), float(tau), tuple(weights)
-        if key not in self._response_values:
-            codes = _event_categories(weight, weights, tau)
-            weights.setflags(write=False)
-            codes.setflags(write=False)
-            self._response_values[key] = BondEventResponse(float(weight), float(tau), weights, codes)
-            if len(self._response_values) > 4096:
-                self._response_values.popitem(last=False)
-        return self._response_values[key]
-
-    def _domain_response(self, weight, tau, xs, ys):
-        """Certify constants on a superset before exploring any pair orbit."""
-        xs, ys = sorted((xs, ys))
-        key = float(weight), float(tau), xs, ys
-        if key not in self._domain_responses:
-            values = set()
-            x, y = np.asarray(xs), np.asarray(ys)
-            block = max(1, 65536 // len(y))
-            for start in range(0, len(x), block):
-                xx = x[start:start+block]
-                valid = (xx[:,None] != y[None,:]) | (xx[:,None] == -1) | (y[None,:] == -1)
-                values.update(np.unique(self.padded_product[np.ix_(xx,y)][valid]).tolist())
-            self._domain_responses[key] = self._response_from_weights(weight, tau, np.array(sorted(values)))
-            if len(self._domain_responses) > 4096:
-                self._domain_responses.popitem(last=False)
-        return self._domain_responses[key]
-
-    def _refine_event_response(self, weight, tau, pair, actions, response):
-        """Refine a varying domain response through its joint endpoint orbit."""
-        if response.constant is not None:
-            return response, 0
-        key = float(weight), float(tau), pair, actions
-        if key not in self._event_tables:
-            pairs = self.endpoint_pairs(pair, actions)
-            endpoints = np.asarray(pairs, dtype=int)
-            weights = np.unique(self.padded_product[endpoints[:,0], endpoints[:,1]])
-            self._event_tables[key] = self._response_from_weights(weight, tau, weights), len(pairs)
-            if len(self._event_tables) > 16384:
-                self._event_tables.popitem(last=False)
-        return self._event_tables[key]
 
     @property
     def policy(self):
@@ -410,7 +189,7 @@ class SignedEventIndex:
                 values = sorted(values)
                 tau = (self.metal_threshold if self.metal_threshold is not None
                        and any(is_metal_element(e) for e in pair) else self.threshold)
-                bounds = _response_bounds(opposite_values.get(pair, (0.,)), values, tau)
+                bounds = response_bounds(opposite_values.get(pair, (0.,)), values, tau)
                 memo.update(((pair, weight), (int(lo), int(hi)))
                             for weight, lo, hi in zip(values, *bounds))
             pairs, counts = [], defaultdict(Counter)
@@ -600,40 +379,6 @@ class SignedEventIndex:
                     counts=counts, total=sum(counts.values()), policy=self.policy)
 
 EVENT_CATEGORIES = ('breaking', 'forming', 'strengthening', 'weakening')
-
-
-def _event_categories(source, target, threshold):
-    """0 unchanged; 1..4 are exclusive categories using the existing bond cutoff."""
-    source, target = np.asarray(source), np.asarray(target)
-    decrease, increase = source - target > threshold, target - source > threshold
-    return np.where(decrease, np.where(target > threshold, 4, 1),
-                    np.where(increase, np.where(source > threshold, 3, 2), 0)).astype(np.uint8)
-
-
-def _action_orbits(action, degree):
-    """Atom orbits from generator edges; never construct permutation elements."""
-    kind, data = action
-    parent = list(range(degree))
-
-    def root(a):
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-
-    edges = zip(data, data[1:]) if kind == 'pool' else (
-        (a, b) for generator in data for a, b in enumerate(generator) if a != b)
-    for a, b in edges:
-        parent[root(a)] = root(b)
-    cells = defaultdict(list)
-    for a in range(degree):
-        cells[root(a)].append(a)
-    result = [None] * degree
-    for cell in cells.values():
-        orbit = frozenset(cell)
-        for a in cell:
-            result[a] = orbit
-    return tuple(result)
 
 
 class FragmentEventTables:

@@ -2,9 +2,9 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
-from numbers import Integral
-from functools import cached_property
 import numpy as np
+from mappa.mappa_core.core.symmetry.responses import BondResponse
+from mappa.mappa_core.core.symmetry.actions import apply_action
 if TYPE_CHECKING:
     from .events import SignedEventIndex
     from .fragments import FragmentInventory, FragmentDecoder
@@ -40,27 +40,11 @@ class SymmetryEventResponse:
         return all(preserves for preserves, _ in self.generators)
 
 
-@dataclass(frozen=True, eq=False)
-class BondEventResponse:
-    """Shared responses to reachable bond weights, not independent choices."""
-    source_weight: float
-    threshold: float
-    target_weights: np.ndarray
-    categories: np.ndarray
-
-    @cached_property
-    def constant(self):
-        return int(self.categories[0]) if np.all(self.categories == self.categories[0]) else None
-
-    def lookup(self, weights):
-        return self.categories[np.searchsorted(self.target_weights, weights)]
-
-
 @dataclass(frozen=True, slots=True)
 class BondEventTerm:
     atoms: tuple[int, int]
     action_ids: tuple[int, ...]
-    response: BondEventResponse
+    response: BondResponse
     initial_pair: tuple[int, int]
     projected_actions: tuple
     index: SignedEventIndex = field(repr=False, compare=False)
@@ -160,25 +144,8 @@ class EventInterpretation:
             raise ValueError('provide one choice per saved action')
         atoms = np.asarray([r for r, _ in family.mapping], dtype=int)
         images = np.asarray([p for _, p in family.mapping], dtype=int)
-        for (kind, data), choice in zip(family.actions, choices):
-            if choice is None:
-                continue
-            if kind == 'pool':
-                selected = tuple(choice)
-                if (any(not isinstance(p, Integral) for p in selected)
-                        or sorted(selected) != sorted(data)):
-                    raise ValueError('pool choice must permute exactly its saved atoms')
-                permutation = np.arange(self.index.m)
-                permutation[list(data)] = selected
-                images = permutation[images]
-            elif kind == 'group':
-                for number in choice:
-                    if not isinstance(number, Integral) or not 1 <= abs(number) <= len(data):
-                        raise ValueError('group word must use signed 1-based generator numbers')
-                    permutation = np.asarray(data[abs(number) - 1], dtype=int)
-                    images = (permutation if number > 0 else np.argsort(permutation))[images]
-            else:
-                raise ValueError(f'unknown saved action: {kind}')
+        for action, choice in zip(family.actions, choices):
+            images = apply_action(images, action, choice, self.index.m)
         mapping = {int(r): int(p) for r, p in zip(atoms, images)}
         vector = self.index.vector(mapping)
         self.index._vectors([vector])

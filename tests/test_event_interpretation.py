@@ -11,7 +11,8 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, decode_events
-from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex, _response_bounds
+from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+from mappa.mappa_core.core.symmetry.responses import response_bounds
 from mappa.mappa_core.utils.bonds import is_metal_element
 from test_fragment_conversion import endpoint, saved
 
@@ -90,7 +91,7 @@ def test_original_correlations_and_event_effects(elements, edges, generators, wo
 def test_vector_response_bounds_preserve_float_edges(tau):
     weights = np.unique([x for v in (0.,.3,.5,1.,1.3,1.5,1.8)
                          for x in (np.nextafter(v,-np.inf),v,np.nextafter(v,np.inf))])
-    lows, highs = _response_bounds(weights, weights, tau)
+    lows, highs = response_bounds(weights, weights, tau)
     for weight, low, high in zip(weights, lows, highs):
         signs = np.where(weights-weight < -tau,-1,np.where(weights-weight > tau,1,0))
         assert np.array_equal(signs, [-1]*low + [0]*(high-low) + [1]*(len(weights)-high))
@@ -689,12 +690,12 @@ def test_preparation_visits_only_bond_neighbors_and_recorded_cut(monkeypatch):
         pairs=tuple(((a,),(a,)) for a in range(n)))
     source.families[0].provenance.append(dict(cuts=((0,79),)))
     result = decode_events(source)
-    original = result.index._domain_response
+    original = result.index.domain_response
     visits = []
     def record(weight, tau, xs, ys):
         visits.append((xs, ys))
         return original(weight, tau, xs, ys)
-    monkeypatch.setattr(result.index, '_domain_response', record)
+    monkeypatch.setattr(result.index, 'domain_response', record)
     table = result.tables(0)
     assert len(visits) == table.statistics['neighboring_pairs'] == 81
     assert table.statistics['cut_terms'] == 1
