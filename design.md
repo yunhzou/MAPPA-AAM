@@ -97,6 +97,52 @@ flowchart TD
 Fragment matching has two operations: find one witness during growth, then
 construct the complete compressed placements when growth saturates.
 
+### Fragment records and ownership
+
+`FragmentGrowth` owns the changing search state. `Fragment` is the completed
+source-to-target piece consumed directly by branches and decoding. There is no
+additional `FragmentMatch` wrapper or separate one-sided fragment record.
+
+| Record | Logical fields |
+|---|---|
+| `FragmentGrowth` | `source_atoms`, `accepted_edges`, `deferred_edges`, `frontier`, `witness` |
+| `Fragment` | `source_atoms`, `target_atoms`, `accepted_edges`, `source_self_automorph`, `target_self_automorph`, `relation` |
+
+The growth subgraph is exactly `source_atoms` with `accepted_edges`; no duplicate
+subgraph representation is retained. Deferred edges are rejected extension
+proposals, and the frontier contains remaining proposals. The current witness
+may change its target atom set during growth. The parent branch supplies fixed
+assignments and the anchor/lock context. Original molecular bonds remain in the
+reaction data, separate from the accepted growth subgraph.
+
+At saturation, source self-automorph preparation is shared across placements.
+Each distinct target atom set produces one completed `Fragment`, with its
+anchor-aware relaxed target self-automorph and complete compressed relaxed
+source-to-target relation. That relation owns its witness, anchor pairs and joint
+mapping constraints. Accepted edges retain the discovery evidence separately
+from the constraints governing retained relaxed alternatives.
+
+When a fragment locks, deferred edges needed for further search remain with the
+branch continuation. They neither constrain fragment self-automorphs nor imply
+bond events. Branch state also owns cut provenance and inter-fragment boundary
+context. Sharing a completed fragment does not merge these continuation states.
+Cache identity and checkpoints preserve their relevant context without retaining
+discarded growth histories.
+
+Original atom lists, anchors and prepared self-relationships are stored once and
+referenced where shared; the table describes logical access, not duplicate
+payloads. Relaxed global automorph belongs to prepared reaction search state.
+Scheduling, cache transport and storage policy remain outside these records.
+
+```mermaid
+flowchart LR
+    Parent[Parent branch locks and anchors] --> Growth[FragmentGrowth]
+    Growth -->|Saturation: distinct target sets| Fragment[Completed Fragment]
+    Growth -->|Deferred edges| Continuation[Branch continuation]
+    Fragment -->|Shared reference| Continuation
+    Fragment -->|Final aggregation and inventory| Decoder[Fragment and boundary decoding]
+```
+
 ### One-witness existence
 
 Each proposal asks whether the enlarged fragment has an injective,
