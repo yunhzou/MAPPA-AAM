@@ -384,9 +384,11 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             if verify_only:
                 for name in identities:
                     prior = ledger.get(name, 'deduplication')
-                    if prior is None or prior[0] != 'complete' or prior[1] is None:
+                    if (prior is None or prior[0] not in ('complete', 'error') or
+                            (prior[0] == 'complete' and prior[1] is None)):
                         ledger.db.close()
-                        raise ValueError('Verification requires completed reduction for every direction')
+                        raise ValueError('Verification requires terminal reduction for every direction '
+                                         'and a reference for each completed catalogue')
             store = BundleStore(output/'bundles', scratch=scratch)
             factory = WorkPool.local if local else WorkPool.slurm
             with factory(workers=workers, store=store, memory_bytes=memory_bytes,

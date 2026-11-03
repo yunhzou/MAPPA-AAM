@@ -152,7 +152,64 @@ def test_verification_preserves_decode_failures_and_existing_results(
             if verification_failed else ['decoding'])
 
 
-def test_verify_only_requires_original_campaign_and_completed_reduction(tmp_path):
+def test_verify_only_preserves_failed_reduction_and_verifies_available_catalogue(tmp_path):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    index = prepared_index(tmp_path)
+    output = tmp_path/'result'
+    memory = 2*2**30
+    run(index, output, local=True, workers=1, memory_bytes=memory, stop_after='deduplication')
+    store = BundleStore(output/'bundles')
+    failed, available = '00000/forward', '00000/reverse'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        raw, = db.execute("SELECT audit FROM results WHERE case_name=? AND stage='deduplication'",
+                          (failed,)).fetchone()
+        audit = store.load(Blob(**json.loads(raw)))
+        audit['tasks'] = [tuple('memory_limit' if i == 4 else value for i, value in enumerate(task))
+                          for task in audit['tasks']]
+        audit['attempts'] = [tuple('memory_limit' if i == 5 else value for i, value in enumerate(attempt))
+                             for attempt in audit['attempts']]
+        audit['case'] = tuple(37. if i == 3 else value for i, value in enumerate(audit['case']))
+        saved_audit = store.put(audit)
+        db.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? "
+                   "WHERE case_name=? AND stage='deduplication'",
+                   (json.dumps(asdict(saved_audit)), json.dumps('memory_limit'), failed))
+        before = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+
+    options = dict(local=True, workers=1, memory_bytes=memory, resume=True, verify_only=True)
+    with pytest.raises(RuntimeError, match='verification contains failed directions'):
+        run(index, output, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        after = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+    assert {key: after[key] for key in before} == before
+    assert store.load(saved_audit) == audit
+    assert set(after)-set(before) == {(failed, 'verification'), (available, 'verification')}
+    missing = after[failed, 'verification']
+    assert missing[2:5] == ('error', None, None)
+    assert 'Previous pass did not complete' in json.loads(missing[5])
+    completed = after[available, 'verification']
+    assert completed[2] == 'complete'
+    assert store.load(Blob(**json.loads(completed[3])))['status'] == 'recovered'
+    verification_audit = store.load(Blob(**json.loads(completed[4])))
+    task, = verification_audit['tasks']
+    specification = _loads_checkpoint(task[1])
+    assert specification.operation == 'enzymemap:verify'
+    assert specification.memory_bytes == memory
+    assert specification.case_seconds == 3600.
+    progress = json.loads((output/'progress.json').read_text())
+    assert progress['verification_only'] and progress['failed_stages'] == ['verification']
+    assert not progress.get('finished', False)
+
+    with pytest.raises(RuntimeError, match='verification contains failed directions'):
+        run(index, output, **options)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')} == after
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+
+
+def test_verify_only_requires_original_campaign_and_terminal_reduction(tmp_path):
     with pytest.raises(ValueError, match='requires --resume'):
         run(tmp_path/'missing.json', tmp_path/'unused', verify_only=True)
     assert not (tmp_path/'unused').exists()
@@ -160,17 +217,23 @@ def test_verify_only_requires_original_campaign_and_completed_reduction(tmp_path
     index = prepared_index(tmp_path)
     output = tmp_path/'result'
     run(index, output, local=True, workers=1, stop_after='matching')
-    ledger = (output/'ledger.sqlite').read_bytes()
     progress_path = output/'progress.json'
     progress = json.loads(progress_path.read_text())
     progress_path.write_text(json.dumps(dict(progress, source='another-engine')))
     with pytest.raises(ValueError, match='source or compiled engine differs'):
         run(index, output, local=True, resume=True, verify_only=True)
     progress_path.write_text(json.dumps(progress))
-    with pytest.raises(ValueError, match='completed reduction for every direction'):
-        run(index, output, local=True, resume=True, verify_only=True)
-    assert (output/'ledger.sqlite').read_bytes() == ledger
-    assert json.loads(progress_path.read_text()) == progress
+    for state in (None, 'pending', 'running', 'complete'):
+        if state is not None:
+            with sqlite3.connect(output/'ledger.sqlite') as db:
+                db.executemany('INSERT OR REPLACE INTO results VALUES (?,?,?,?,?,?)',
+                               [(f'00000/{direction}', 'deduplication', state, None, None, None)
+                                for direction in ('forward', 'reverse')])
+        ledger = (output/'ledger.sqlite').read_bytes()
+        with pytest.raises(ValueError, match='terminal reduction for every direction'):
+            run(index, output, local=True, resume=True, verify_only=True)
+        assert (output/'ledger.sqlite').read_bytes() == ledger
+        assert json.loads(progress_path.read_text()) == progress
 
 
 @pytest.mark.parametrize('unarchived', ['tasks', 'attempts'])
