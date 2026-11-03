@@ -97,6 +97,45 @@ distribution excludes the 47 directions still carrying decode errors. Successful
 worker CPU totalled 93,345.92 seconds; the 64 failed attempts had consumed another
 24,806.21 sampled CPU seconds. Successful full-benchmark completion remains outstanding.
 
+### Per-reaction CPU distribution of the frozen run
+
+These measurements belong to the full `1710f69` campaign above, **before the
+later decoder preparation repair**. They do not measure the latest decoder.
+No search or decoding was rerun to construct this distribution.
+
+![Golden per-reaction timing distributions](timing-distribution.png)
+
+Each reaction sums both directions and every cut. Mapping includes search and
+final family aggregation/deduplication. Values are successful-operation CPU
+seconds, including input loading and decoder assembly/export preparation;
+they exclude result publication, external verification and failed attempts.
+They measure computational effort, not parallel elapsed time.
+
+| Stage | Reactions | Median (s) | 90th percentile (s) | 95th percentile (s) | 99th percentile (s) | Maximum (s) |
+|---|---:|---:|---:|---:|---:|---:|
+| Mapping + deduplication | 1,851 | 3.63 | 32.80 | 63.27 | 151.41 | 297.00 |
+| Decoding, both directions successful | 1,812 | 13.90 | 124.26 | 223.67 | 454.85 | 697.84 |
+
+Decoding excludes **39 reactions with at least one failed direction**: together
+they contain the 47 failures and 31 successful opposite directions. Their partial
+times are not substituted for completed reaction timings. The slowest 10% of
+reactions account for **60.9% of mapping CPU** and **55.6% of successful paired
+decoding CPU**, within each plotted scope.
+
+Successful mapping operations used 24,458.175 CPU seconds. The two failed
+reduction attempts add 229.258 exact compute CPU seconds, reconciling with the
+earlier all-attempt total of 24,687.433 seconds. Failed decoding attempts retain
+their exact or sampled measurements separately; sampled CPU is never added to
+an exact measurement of the same attempt.
+
+The read-only audit checked all 11,106 relevant terminal stage rows and 184,975
+unique attempts across ten unchanged ledgers, verifying each archived audit's
+checksum and deduplicating repeated attempt records across retries. Per-reaction
+values, coverage, failed-attempt measurements and provenance are in
+[timing-distribution.json](timing-distribution.json); the figure is also
+available as [SVG](timing-distribution.svg). Percentiles use empirical nearest
+ranks; the median averages the two middle values for an even sample.
+
 ## Matching repair and local validation
 
 The original full run exposed a bottleneck in checking whether two selected
