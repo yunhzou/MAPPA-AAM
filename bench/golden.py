@@ -134,13 +134,14 @@ def _digest(value):
 def _catalogue_signature(catalogue):
     """Compare saved scientific records without expanding shared search histories."""
     families = [_digest((f.policy, f.mapping,
-                         tuple(fragment.to_record() for fragment in f.fragments)))
+                         tuple((kind, data.to_record() if kind == 'relation' else data)
+                               for kind, data in f.actions)))
                 for f in catalogue.families]
     branches = [_digest((key, sorted(families[i] for i in ids)))
                 for key, ids in catalogue.branches.items()]
     coupled = [_digest((families[i], sorted(partitions)))
                for i, partitions in catalogue.coupled_branches.items()]
-    return _digest(('catalogue-signature/v3', sorted(families),
+    return _digest(('catalogue-signature/v4', sorted(families),
                     sorted(branches), sorted(coupled)))
 
 

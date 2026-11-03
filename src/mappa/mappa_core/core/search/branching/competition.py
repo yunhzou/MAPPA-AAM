@@ -255,7 +255,10 @@ def compete_fragments(a, config=None):
                     proposal_source,
                     target,
                     seed=seed,
-                    context=FragmentMatchContext(),
+                    # Takeover planning observes labelled owners and does not
+                    # retain a placement action for the proposal. Preserve each
+                    # target set while still compressing its internal relation.
+                    context=FragmentMatchContext(placement_fixed_targets=tuple(sorted(target))),
                     config=FragmentMatchConfig(
                         graph_floor=cfg.graph_floor,
                         iso_tolerance=cfg.iso_tolerance, self_tolerance=cfg.self_tolerance,

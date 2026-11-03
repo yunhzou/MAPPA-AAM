@@ -32,17 +32,19 @@ class _SharedGraphBuilder(SearchGraphBuilder):
             self.nodes[key] = super().state(branch)
         return self.nodes[key]
 
-    def commit(self, parent, branch, match, island):
+    def commit(self, parent, branch, match, island, placement_generators=()):
         node = self.state(branch)
         # Index by endpoints, then compare complete records exactly. Recursively
         # freezing every record duplicated the largest payloads just for hashing.
         # The DAG already owns them; no approximate digest or dropped field is needed.
         siblings = self.edges.setdefault((parent, node), [])
         if not any(self.transitions[i].match.key == match.key and
-                   self.transitions[i].island == island for i in siblings):
+                   self.transitions[i].island == island and
+                   self.transitions[i].placement_generators == placement_generators
+                   for i in siblings):
             siblings.append(len(self.transitions))
             self.transitions.append(FragmentTransition(len(self.transitions), parent,
-                node, self.seed, self.step, match, island))
+                node, self.seed, self.step, match, island, placement_generators))
         return node
 
     def stop(self, branch, reason, *, stage='', count=0, limit=0):
@@ -128,7 +130,8 @@ unchanged. Identical growth output is never expanded into bijections.
             children, changed = [], False
             for match in result.matches:
                 child = branch.fork()
-                child.commit(match, deferred_edges=result.deferred_edges)
+                child.commit(match, deferred_edges=result.deferred_edges,
+                             placement_generators=result.placement_generators)
                 changed |= child.state_key() != branch.state_key()
                 children.append(self.branches.setdefault(child.state_key(), child))
             children = tuple(children)

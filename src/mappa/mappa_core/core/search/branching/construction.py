@@ -96,7 +96,7 @@ class _Branch:
                                               tuple(sorted(self.deferred_edges))))
         return self._signature_cache
 
-    def commit(self, fragment, events=None, *, deferred_edges=()):
+    def commit(self, fragment, events=None, *, deferred_edges=(), placement_generators=()):
         """Commit one witness and retain its complete fragment relationship."""
         atoms = frozenset(fragment.source_atoms)
         before = self.state_key()
@@ -121,7 +121,7 @@ class _Branch:
         self._signature_cache = _StateKey((mapping, islands, tuple(sorted(self.deferred_edges))))
         if before != self.state_key():
             island = self.islands_R[fragment.source_atoms[0]]
-            self.node = self.graph.commit(self.node, self, fragment, island)
+            self.node = self.graph.commit(self.node, self, fragment, island, placement_generators)
         if events is not None:
             events.append({
                 'type': 'island_locked',
@@ -346,7 +346,8 @@ def find_islands(g_R, g_P, seed_order,
                     b2 = b.fork()
                     b2.commit(iso,
                               events=events if (bi == 0 and ii == 0) else None,
-                              deferred_edges=result.deferred_edges)
+                              deferred_edges=result.deferred_edges,
+                              placement_generators=result.placement_generators)
                     after_state = _branch_signature(b2)
                     if after_state == before_state:
                         subtree.append(b)

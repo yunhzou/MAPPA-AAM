@@ -14,15 +14,22 @@ class FragmentRepair {
     };
     std::unordered_map<std::string,SharedPreparation> preparations;
     size_t preparation_bytes=0;
+    struct SharedPlacement {
+        PlacementGroup value;
+        size_t owners=0, bytes=0;
+    };
+    std::unordered_multimap<size_t,SharedPlacement> placements;
+    size_t placement_bytes=0;
     struct Entry {
         std::string key;
         GrowResult result;
         GrowthDependencies dependencies;
-        std::vector<int> mapping;
+        std::vector<int> mapping, placement_fixed_targets;
         std::vector<Pair> islands, cuts, deferred, pair_reads;
         std::vector<uint8_t> row_reads;
         std::vector<std::pair<std::string,std::shared_ptr<const PreparedSelf>>> preparations;
         size_t bytes=0;
+        size_t placement_hash=0;
         bool in_snapshot=false;
         Entry(int n) : dependencies(n) {}
     };
@@ -67,7 +74,20 @@ class FragmentRepair {
         for (const auto& generator:value.generators) out+=generator.capacity()*sizeof(int);
         return out;
     }
-    void share_preparations(Entry& entry) {
+    static size_t group_bytes(const PlacementGenerators& value) {
+        size_t out=sizeof(SharedPlacement)+sizeof(PlacementGenerators)+256
+            +value.capacity()*sizeof(std::vector<int>);
+        for (const auto& generator:value) out+=generator.capacity()*sizeof(int);
+        return out;
+    }
+    auto shared_placement(const Entry& entry) {
+        auto range=placements.equal_range(entry.placement_hash);
+        for (auto item=range.first;item!=range.second;++item)
+            if (item->second.value==entry.result.placement_generators ||
+                *item->second.value==*entry.result.placement_generators) return item;
+        return placements.end();
+    }
+    void share_results(Entry& entry) {
         std::unordered_map<std::string,size_t> positions;
         auto share=[&](const std::shared_ptr<const PreparedSelf>& value,bool target_side) {
             auto key=self_key(*value,target_side);
@@ -87,11 +107,20 @@ class FragmentRepair {
                 saved=std::move(fragment);
             }
         }
+        size_t hash=1469598103934665603ULL;
+        for (const auto& generator:*entry.result.placement_generators) {
+            hash=(hash^generator.size())*1099511628211ULL;
+            for (int atom:generator) hash=(hash^size_t(atom))*1099511628211ULL;
+        }
+        entry.placement_hash=hash;
+        auto saved=shared_placement(entry);
+        if (saved!=placements.end()) entry.result.placement_generators=saved->second.value;
     }
     static size_t entry_bytes(const Entry& e) {
         // Charge owned vector capacity, both key copies, and conservative
         // list/hash-index overhead. The budget does not include caller outputs.
         size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)
+            +e.placement_fixed_targets.capacity()*sizeof(int)
             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();
         out+=e.result.fragments.capacity()*sizeof(std::shared_ptr<const Fragment>)
             +e.result.deferred_edges.capacity()*sizeof(Pair)
@@ -114,7 +143,7 @@ class FragmentRepair {
         return out;
     }
     static size_t standalone_bytes(const Entry& entry) {
-        size_t out=entry.bytes;
+        size_t out=entry.bytes+group_bytes(*entry.result.placement_generators);
         for (const auto& [key,value]:entry.preparations) out+=self_bytes(key,*value);
         return out;
     }
@@ -124,6 +153,14 @@ class FragmentRepair {
             if (added) {resident+=saved->second.bytes;preparation_bytes+=saved->second.bytes;}
             ++saved->second.owners;
         }
+        auto placement=shared_placement(entry);
+        if (placement==placements.end()) {
+            size_t bytes=group_bytes(*entry.result.placement_generators);
+            placement=placements.emplace(entry.placement_hash,
+                SharedPlacement{entry.result.placement_generators,0,bytes});
+            resident+=bytes;placement_bytes+=bytes;
+        }
+        ++placement->second.owners;
         resident+=entry.bytes;
         while (!lru.empty() && resident>budget) {
             auto old=lru.begin();
@@ -138,6 +175,11 @@ class FragmentRepair {
                     resident-=saved->second.bytes;preparation_bytes-=saved->second.bytes;
                     preparations.erase(saved);
                 }
+            }
+            auto placement=shared_placement(*old);
+            if (!--placement->second.owners) {
+                resident-=placement->second.bytes;placement_bytes-=placement->second.bytes;
+                placements.erase(placement);
             }
             lru.erase(old);++evictions;
         }
@@ -185,7 +227,7 @@ public:
         fragment_cache_io::Writer out;
         out(fragment_cache_io::schema,identity,uint64_t(lru.size()));
         for (const auto& e:lru)
-            out(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
+            out(e.key,e.result,e.dependencies,e.mapping,e.placement_fixed_targets,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
         return py::bytes(out.data);
     }
     bool load(const std::string& data,const std::string& identity) {
@@ -198,13 +240,36 @@ public:
         Entries parsed;
         for (uint64_t i=0;i<count;++i) {
             Entry e(base.n);
-            in(e.key,e.result,e.dependencies,e.mapping,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
+            in(e.key,e.result,e.dependencies,e.mapping,e.placement_fixed_targets,e.islands,e.cuts,e.deferred,e.pair_reads,e.row_reads);
             if (e.mapping.size()!=size_t(base.n) || e.row_reads.size()!=size_t(base.n)
                 || e.dependencies.mapping_reads.size()!=size_t(base.n) || e.dependencies.boundary_atoms.size()!=size_t(base.n))
                 throw std::invalid_argument("Fragment cache dependency size differs");
             parsed.push_back(std::move(e));
         }
         in.finish(); // Failed reads must leave the existing cache usable.
+        std::unordered_set<const PlacementGenerators*> validated;
+        for (const auto& e:parsed) {
+            const auto& generators=*e.result.placement_generators;
+            if (validated.insert(&generators).second) {
+                permutation_native::SetOrbit shape(target.n,generators);
+                for (const auto& action:generators) for (int a=0;a<target.n;++a) {
+                    if (target.elem[a]!=target.elem[action[a]])
+                        throw std::invalid_argument("Cached placement group changes elements");
+                    for (int b=a+1;b<target.n;++b)
+                        if (target.wbo(a,b)!=target.wbo(action[a],action[b]) ||
+                            target.has_edge(a,b)!=target.has_edge(action[a],action[b]))
+                            throw std::invalid_argument("Cached placement group changes target bonds");
+                }
+            }
+            for (int p:e.mapping) if (p>=0)
+                for (const auto& action:generators) if (action[p]!=p)
+                    throw std::invalid_argument("Cached placement group moves a parent lock");
+            for (int p:e.placement_fixed_targets) {
+                if (p<0 || p>=target.n) throw std::invalid_argument("Cached placement fixed target is outside the target graph");
+                for (const auto& action:generators) if (action[p]!=p)
+                    throw std::invalid_argument("Cached placement group moves an external fixed target");
+            }
+        }
         // Import knowledge without discarding this worker's unpublished results.
         // Identical requests share an entry; compressed answers are never merged.
         for (auto& e:lru) e.in_snapshot=false;
@@ -212,12 +277,12 @@ public:
             auto bucket=cache.find(e.key);
             bool present=false;
             if (bucket!=cache.end()) for (auto previous:bucket->second)
-                if (previous->mapping==e.mapping && previous->islands==e.islands
+                if (previous->mapping==e.mapping && previous->placement_fixed_targets==e.placement_fixed_targets && previous->islands==e.islands
                     && previous->cuts==e.cuts && previous->deferred==e.deferred) {
                     previous->in_snapshot=true;present=true;break;
                 }
             if (!present) {
-                share_preparations(e);e.bytes=entry_bytes(e);
+                share_results(e);e.bytes=entry_bytes(e);
                 if (standalone_bytes(e)<=budget) {e.in_snapshot=true;insert(std::move(e));}
             }
         }
@@ -229,7 +294,8 @@ public:
     }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0) {
+                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0,
+                    const std::vector<int>& placement_fixed_targets={}) {
         const std::vector<Pair> empty_islands;
         const auto& islands=islands_ptr ? *islands_ptr : empty_islands;
         GrowResult result;
@@ -237,6 +303,11 @@ public:
         {
             ++calls;
             auto cuts=normalized(cuts_in),deferred=normalized(prior_deferred);
+            auto fixed_targets=placement_fixed_targets;
+            std::sort(fixed_targets.begin(),fixed_targets.end());
+            fixed_targets.erase(std::unique(fixed_targets.begin(),fixed_targets.end()),fixed_targets.end());
+            for (int p:fixed_targets) if (p<0 || p>=target.n)
+                throw std::invalid_argument("Placement fixed target is outside the target graph");
             if (cuts!=active_cuts) {
                 for (auto [a,b]:cuts)
                     if (a<0 || b<0 || a>=base.n || b>=base.n || !base.has_edge(a,b))
@@ -253,6 +324,8 @@ public:
             std::string key;
             append(key,random_seed);append(key,seed);append(key,graph_floor);append(key,iso_tol);
             append(key,self_tolerance);append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
+            append(key,fixed_targets.size());
+            for (int p:fixed_targets) append(key,p);
             std::vector<uint8_t> occupied(target.n,0);
             for (int p:mapping) if (p>=0) occupied[p]=1;
             key.append(reinterpret_cast<const char*>(occupied.data()),occupied.size());
@@ -290,15 +363,16 @@ public:
                 SourceReads reads(base.n);
                 entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
                     max_branches,islands_ptr,prior_deferred,allow_mapped_seed,random_seed,
-                    nullptr,&entry.dependencies,&reads,self_tolerance);
+                    nullptr,&entry.dependencies,&reads,self_tolerance,fixed_targets);
                 entry.key=std::move(key);entry.mapping=mapping;
+                entry.placement_fixed_targets=std::move(fixed_targets);
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
                 entry.row_reads.resize(base.n);
                 for (int r=0;r<base.n;++r) entry.row_reads[r]=reads.rows[r];
                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)
                     if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b])
                         entry.pair_reads.push_back({a,b});
-                share_preparations(entry);entry.bytes=entry_bytes(entry);
+                share_results(entry);entry.bytes=entry_bytes(entry);
                 if (standalone_bytes(entry)>budget) {
                     ++oversized;
                     result=std::move(entry.result);
@@ -313,7 +387,8 @@ public:
     }
     py::object grow(const std::vector<Pair>& cuts,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0) {
+                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0,
+                    const std::vector<int>& placement_fixed_targets={}) {
         std::vector<Pair> islands;
         const std::vector<Pair>* islands_ptr=nullptr;
         if (!islands_obj.is_none()) {islands=islands_obj.cast<std::vector<Pair>>();islands_ptr=&islands;}
@@ -321,7 +396,7 @@ public:
         {
             py::gil_scoped_release release;
             computed=compute(cuts,seed,mapping,graph_floor,iso_tol,min_lock_size,max_branches,
-                             islands_ptr,deferred,allow_mapped_seed,random_seed,self_tolerance);
+                             islands_ptr,deferred,allow_mapped_seed,random_seed,self_tolerance,placement_fixed_targets);
         }
         auto out=grow_result_dict(computed.first).cast<py::dict>();
         out["reused_extensions"]=computed.second;
@@ -337,6 +412,7 @@ public:
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
         out["shared_self_records"]=preparations.size();out["shared_self_bytes"]=preparation_bytes;
+        out["shared_placement_groups"]=placements.size();out["shared_placement_bytes"]=placement_bytes;
         out["revision"]=revision;
         return out;
     }
@@ -351,6 +427,7 @@ void register_fragment_repair(py::module_& mod) {
         .def("load",&FragmentRepair::load)
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
-             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42,py::arg("self_tolerance")=1.0)
+             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42,py::arg("self_tolerance")=1.0,
+             py::arg("placement_fixed_targets")=std::vector<int>{})
         .def("stats",&FragmentRepair::stats);
 }

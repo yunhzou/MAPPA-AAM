@@ -35,6 +35,7 @@ struct ScheduledState {
 struct ScheduledTransition {
     int source,target,seed,pass,position,island=0;
     std::shared_ptr<const Fragment> fragment;
+    PlacementGroup placement_generators;
 };
 struct ScheduledStop {
     int state,seed,pass,position;
@@ -111,7 +112,7 @@ struct ScheduledGraph {
 using ScheduledFrontier=std::unordered_map<const ScheduledBranch*,BranchPtr,ScheduledKeyHash,ScheduledKeyEqual>;
 
 BranchPtr commit_scheduled_fragment(const BranchPtr& parent,const std::shared_ptr<const Fragment>& saved,
-                                    const std::vector<Pair>& deferred,
+                                    const std::vector<Pair>& deferred,const PlacementGroup& placement_generators,
                                     const Source& source,ScheduledGraph& graph) {
     const auto& fragment=*saved;
     auto child=std::make_shared<ScheduledBranch>(*parent);
@@ -146,7 +147,7 @@ BranchPtr commit_scheduled_fragment(const BranchPtr& parent,const std::shared_pt
     int island=child->labels[fragment.source->atoms.front()];
     child->node=graph.state(*child);
     graph.transitions.push_back({parent->node,child->node,graph.seed,graph.pass,graph.position,island,
-        saved});
+        saved,placement_generators});
     return child;
 }
 
@@ -250,7 +251,8 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                 std::vector<BranchPtr> subtree;
                 bool changed=false;
                 for (const auto& fragment:result.fragments) {
-                    auto child=commit_scheduled_fragment(branch,fragment,result.deferred_edges,source,graph);
+                    auto child=commit_scheduled_fragment(branch,fragment,result.deferred_edges,
+                        result.placement_generators,source,graph);
                     changed|=(child->key!=branch->key);subtree.push_back(std::move(child));
                 }
                 admit(subtree,changed);

@@ -88,7 +88,25 @@ def self_actions(value):
     return actions
 
 
-def represented(fragments):
+def group_actions(generators, degree):
+    """Enumerate only the small test oracle, never production group elements."""
+    from sympy.combinatorics import Permutation, PermutationGroup
+    group = PermutationGroup([Permutation(list(g), size=degree) for g in generators]
+        or [Permutation(list(range(degree)))])
+    return tuple(tuple(action(i) for i in range(degree))
+                 for action in group.generate_schreier_sims())
+
+
+def placed(mappings, generators):
+    """Move a whole mapping jointly under one saved placement group."""
+    if not generators:
+        return set(mappings)
+    return {tuple((r, action[p]) for r, p in mapping)
+            for action in group_actions(generators, len(generators[0]))
+            for mapping in mappings}
+
+
+def represented_local(fragments):
     """Expand tiny relations by independent discovery and two-sided self oracles."""
     result = set()
     for fragment in fragments:
@@ -102,6 +120,36 @@ def represented(fragments):
                     result.add(tuple((atom, beta[discovery[inverse[atom]]])
                                      for atom in fragment.source_atoms))
     return result
+
+
+def represented(value):
+    """Expand the complete operation or path without losing global placement."""
+    from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchPath
+    if isinstance(value, FragmentMatchResult):
+        return placed(represented_local(value.matches), value.placement_generators)
+    if isinstance(value, (AAMSearchGraph, SearchPath)):
+        result = set()
+        paths = value.paths() if isinstance(value, AAMSearchGraph) else (value,)
+        for path in paths:
+            mappings = {tuple(sorted(path.mapping.items()))}
+            for index in reversed(path.transitions):
+                edge = path.graph.transitions[index]
+                if edge.match is None:
+                    mappings = placed(mappings, edge.placement_generators)
+                    continue
+                fragment = edge.match
+                choices = represented_local((fragment,))
+                moved = set()
+                for choice in choices:
+                    images = dict(choice)
+                    action = {p: images[r] for r, p in fragment.witness}
+                    moved.update(tuple((r, action.get(p, p)) for r, p in mapping)
+                                 for mapping in mappings)
+                mappings = placed(moved, edge.placement_generators)
+            result.update(mappings)
+        return result
+    return represented_local(value)
 
 
 def raw(source,target,seed,mapping,cut,*,replay=None,cap=100,tol=1.,islands=None,deferred=()):

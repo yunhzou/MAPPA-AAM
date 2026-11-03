@@ -182,7 +182,11 @@ class PermutationGroup:
 
 @dataclass(frozen=True)
 class AAMHierarchy:
-    """Chronological references to completed fragments in their saved frames."""
+    """Canonical fragment-local inspection in chronological saved frames.
+
+    This view omits shared placement actions. Persist complete mapping families
+    through the search graph or final catalogue, not this fragment-only view.
+    """
     fragments: tuple[Fragment, ...]
 
     @property
@@ -207,6 +211,7 @@ class AAMHierarchy:
         return cls(tuple(Fragment.from_record(fragment) for fragment in record['fragments']))
 
     def to_record(self):
+        """Export canonical fragment records, not a complete mapping family."""
         return {'fragments': [fragment.to_record() for fragment in self.fragments]}
 
 

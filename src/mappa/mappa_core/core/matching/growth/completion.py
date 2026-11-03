@@ -6,7 +6,7 @@ import numpy as np
 
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
 from mappa.mappa_core.core.matching.policy import _edge_wbo, ElementNodeMatchPolicy
-from mappa.mappa_core.core.matching.representation.records import Fragment, IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.representation.records import Fragment, FragmentMatchResult, IslandBranchLimitExceeded
 from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
 from mappa.mappa_core.core.symmetry.relations import DiscoveryEdge, RelaxedIsomorphism
 
@@ -67,20 +67,60 @@ def _global_self(target, labels, tolerance):
     return prepared
 
 
+def _placement_generators(target, prepared, locked, fixed_targets=()):
+    """Certify exchanges for every later matching constraint, then fix locks.
+
+    The broad preparation's labels preserve all source-node compatibility.
+    Whole-matrix equality, including subthreshold contacts, makes composition
+    safe independently of both discovery and relaxed-self tolerances.
+    """
+    from mappa._group_ops import SetOrbit
+    edges = frozenset(tuple(sorted(edge)) for edge in target.edges)
+    cached = target.graph.get('_placement_group')
+    if cached is None or cached[0] is not prepared or cached[1] != edges:
+        degree = max(target, default=-1) + 1
+        generators = []
+        for generator in prepared.generators:
+            if not np.array_equal(prepared.weights,
+                                  prepared.weights[np.ix_(generator, generator)]):
+                continue
+            moved = {atom: prepared.atoms[index]
+                     for atom, index in zip(prepared.atoms, generator)}
+            if any(tuple(sorted((moved[a], moved[b]))) not in edges for a, b in edges):
+                continue
+            generators.append(tuple(moved.get(atom, atom) for atom in range(degree)))
+        group = SetOrbit(degree, generators)
+        generators = tuple(map(tuple, group.stabilizer(())))
+        target.graph['_placement_group'] = prepared, edges, group, generators
+    else:
+        _, _, group, generators = cached
+    fixed = set(locked.values()) | set(fixed_targets)
+    if not fixed.issubset(target):
+        raise ValueError('fixed placement target is outside the target graph')
+    if not fixed:
+        return tuple(generators)
+    return tuple(map(tuple, group.stabilizer(sorted(fixed))))
+
+
 def complete_fragment(growth, source, target, locked, *, tolerance, self_tolerance,
-                      node_policy, branch_limit, bond_tolerance=None, profile=None):
-    """One Fragment per image; internal mappings remain a joint constraint set."""
+                      node_policy, branch_limit, bond_tolerance=None, profile=None,
+                      placement_fixed_targets=()):
+    """One Fragment per placement orbit; retain its joint continuation transport."""
     started = perf_counter()
     query = FragmentQuery(source, target, growth.source_atoms, growth.accepted_edges,
                           locked, node_policy, tolerance, bond_tolerance)
     source_labels, target_labels = _self_labels(source, target, node_policy)
-    global_self = _global_self(target, target_labels, self_tolerance) if query.needs_global_symmetry() else None
-    witnesses = query.images(branch_limit + 1, preferred=growth.witness, global_self=global_self)
+    fixed = set(locked.values()) | set(placement_fixed_targets)
+    global_self = (_global_self(target, target_labels, self_tolerance)
+                   if not set(target).issubset(fixed) and query.needs_global_symmetry() else None)
+    generators = (() if global_self is None else
+                  _placement_generators(target, global_self, locked, placement_fixed_targets))
+    witnesses = query.images(branch_limit + 1, preferred=growth.witness,
+                             placement_generators=generators)
     if profile is not None:
         profile.update(completion_seconds=perf_counter() - started,
                        completion_queries=query.nodes, completion_pruned=query.rejected,
                        completion_global_generators=query.global_generators,
-                       completion_global_images=query.global_images,
                        completion_global_pruned=query.global_pruned,
                        completion_generated=len(witnesses), completion_peak_candidates=len(witnesses))
     if not witnesses:
@@ -109,4 +149,5 @@ def complete_fragment(growth, source, target, locked, *, tolerance, self_toleran
         fragments.append(Fragment(relation))
     if profile is not None:
         profile['completion_seconds'] = perf_counter() - started
-    return tuple(fragments)
+    return FragmentMatchResult(tuple(fragments), False, len(fragments), branch_limit,
+        perf_counter() - started, frozenset(growth.deferred_edges), generators)

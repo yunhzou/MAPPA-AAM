@@ -86,7 +86,8 @@ py::tuple scheduled_graph_result(const ScheduledGraph& graph,const std::vector<i
         }
         transitions[i]=transition_type(i,edge.source,edge.target,
             edge.seed<0 ? py::object(py::none()) : py::object(py::int_(r_ids[edge.seed])),
-            py::make_tuple(edge.pass,edge.position),fragment,edge.island);
+            py::make_tuple(edge.pass,edge.position),fragment,edge.island,
+            exported.placement(edge.placement_generators,p_ids));
     }
     for (size_t i=0;i<graph.stops.size();++i) {
         const auto& stop=graph.stops[i];

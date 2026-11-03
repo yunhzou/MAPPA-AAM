@@ -10,7 +10,7 @@ from mappa import FragmentMatchConfig, match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchContext
 from mappa.mappa_core.core.matching.policy import BondTolerance, DEFAULT_NODE_POLICY
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
-from growth_cases import graph as make_graph, represented, discovery_mappings, rings, ring_mappings
+from growth_cases import graph as make_graph, represented, discovery_mappings, placed, group_actions, rings, ring_mappings
 
 
 def graph(elements, edges):
@@ -19,7 +19,9 @@ def graph(elements, edges):
 
 def record(result):
     return (result.capped, result.branch_count, result.branch_limit,
-            [fragment.to_record() for fragment in result.matches], result.deferred_edges)
+            [fragment.to_record() for fragment in result.matches], result.deferred_edges,
+            set(group_actions(result.placement_generators, len(result.placement_generators[0])))
+            if result.placement_generators else set())
 
 
 def explicit(source, target, atoms, tolerance, edges):
@@ -65,7 +67,7 @@ def test_ring_growth_preserves_all_placements(native,size,monkeypatch):
     expected={tuple((r,(shift+direction*r)%size) for r in range(size))
               for shift in range(size) for direction in (-1,1)}
     assert len(result.matches)==1
-    assert represented(result.matches)==expected
+    assert represented(result)==expected
     assert profile[0]['feasibility_calls']==size-1
     assert profile[0]['feasibility_searches'] == 0
     assert profile[0]['completion_generated'] == len(result.matches)
@@ -88,16 +90,19 @@ def test_completion_returns_each_ring_atom_set_once(native, different_environmen
     result=match_fragment(source,target,seed=0,
         config=FragmentMatchConfig(branch_limit=2,iso_tolerance=.5))
     assert not result.capped
-    assert len(result.matches)==2
-    assert {tuple(fragment.target_atoms) for fragment in result.matches}=={
-        tuple(range(6)),tuple(range(6,12))}
+    assert len(result.matches) == (2 if different_environments else 1)
+    assert {tuple(sorted(p for _, p in m)) for m in represented(result)} == {
+        tuple(range(6)), tuple(range(6,12))}
     for fragment in result.matches:
         assert tuple(fragment.source_atoms)==tuple(range(6))
         assert len(fragment.accepted_edges)==5
-    assert result.matches[0].source_self_automorph is result.matches[1].source_self_automorph
+    if different_environments:
+        assert result.matches[0].source_self_automorph is result.matches[1].source_self_automorph
     capped=match_fragment(source,target,seed=0,
         config=FragmentMatchConfig(branch_limit=1,iso_tolerance=.5))
-    assert capped.capped and capped.branch_count==2 and not capped.matches
+    assert capped.capped == different_environments
+    assert capped.branch_count == (2 if different_environments else 1)
+    assert bool(capped.matches) != different_environments
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
@@ -107,9 +112,9 @@ def test_completion_preserves_overlapping_images_and_locked_target_occupancy(nat
     target=graph(['C']*4,[(0,1,1.),(1,2,1.),(2,3,1.)])
     config=FragmentMatchConfig(branch_limit=2,iso_tolerance=.5)
     result=match_fragment(source,target,seed=0,config=config)
-    assert len(result.matches)==2
-    assert {tuple(fragment.target_atoms) for fragment in result.matches}=={
-        (0,1,2),(1,2,3)}
+    assert len(result.matches) == 1
+    assert {tuple(sorted(p for _, p in m)) for m in represented(result)} == {
+        (0,1,2), (1,2,3)}
     for fragment in result.matches:
         assert tuple(fragment.source_atoms)==(0,1,2)
         assert tuple(fragment.accepted_edges)==((0,1),(1,2))
@@ -124,9 +129,9 @@ def test_ring_hydrogens_stay_compressed(native,monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE',native)
     source,target=rings()
     result,_=compare(source,target,config=FragmentMatchConfig(iso_tolerance=1))
-    assert len(result.matches)==64
-    assert len({fragment.target_atoms for fragment in result.matches})==64
-    assert represented(result.matches)==ring_mappings()
+    assert len(result.matches) == 1
+    assert len({frozenset(p for _, p in m) for m in represented(result)}) == 64
+    assert represented(result)==ring_mappings()
 
 
 @pytest.mark.parametrize('native',['0','1'])
@@ -136,11 +141,12 @@ def test_locks_tolerance_atom_sets_components_and_caps(native,monkeypatch):
     target=graph(['X','C','C','C'],[(0,1,1),(0,2,1.1),(0,3,1.2)])
     result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=3))
     assert not result.capped and len(result.matches)==3
-    assert len(represented(result.matches))==6
+    assert len(represented(result))==6
     source=graph(['O','H','C'],[(0,1,1),(0,2,1)])
     target=graph(['O','H','C']*2,[(0,1,1),(0,2,1),(3,4,1),(3,5,1)])
     result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=1))
-    assert result.capped and result.branch_count==2
+    assert not result.capped and result.branch_count == 1
+    assert len(represented(result)) == 2
     compare(source,target,config=FragmentMatchConfig(branch_limit=2))
     compare(graph(['X','C','O','N'],[(0,1,1),(1,2,1),(2,3,1),(1,3,1)]),
             graph(['X','C','C','O','N'],[(0,1,1),(0,2,1),(1,3,1),(2,3,1),(3,4,1),(2,4,1)]),
@@ -160,8 +166,9 @@ def test_locks_tolerance_atom_sets_components_and_caps(native,monkeypatch):
 def test_completed_choices_obey_the_branch_limit(native, limit, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
     source = graph(['O', 'H', 'C'], [(0, 1, 1), (0, 2, 1)])
-    target = graph(['O', 'H', 'C'] * 2,
-                   [(0, 1, 1), (0, 2, 1), (3, 4, 1), (3, 5, 1)])
+    target = graph(['O', 'H', 'C'] * 2 + ['F', 'Cl'],
+                   [(0, 1, 1), (0, 2, 1), (3, 4, 1), (3, 5, 1),
+                    (2, 6, 1), (5, 7, 1)])
     result, _ = compare(source, target, config=FragmentMatchConfig(branch_limit=limit))
     assert result.branch_count == 2
     assert result.capped == (limit < 2)
@@ -197,8 +204,8 @@ def test_completion_uses_constraints_beyond_the_prefix(native,monkeypatch):
     source=graph(['C','C','O'],[(0,1,1),(1,2,1)])
     target=graph(['C']*6+['O'],[(i,(i+1)%6,1) for i in range(6)]+[(0,6,1)])
     result,profile=compare(source,target)
-    assert len(result.matches) == profile[0]['completion_generated'] == 2
-    assert represented(result.matches) == {
+    assert len(result.matches) == profile[0]['completion_generated'] == 1
+    assert represented(result) == {
         ((0, neighbor), (1, 0), (2, 6)) for neighbor in (1, 5)}
 
 
@@ -257,7 +264,7 @@ def test_distinct_per_bond_tolerances(native, monkeypatch):
     tolerance = BondTolerance(lambda g, a, b: limits[max(a, b)], inclusive=False)
     result, _ = compare(source, target, config=FragmentMatchConfig(bond_tolerance=tolerance))
     assert len(set().union(*(discovery_mappings(fragment) for fragment in result.matches))) == 2
-    assert len(represented(result.matches)) == 6
+    assert len(represented(result)) == 6
 
 
 def test_custom_node_attributes(monkeypatch):
@@ -285,7 +292,7 @@ def test_all_alternatives_are_constructed_only_after_growth(monkeypatch):
     monkeypatch.setattr(engine, 'complete_fragment', complete)
     result = match_fragment(ring, ring, seed=0, events=events,
         config=FragmentMatchConfig())
-    assert len(represented(result.matches)) == 12
+    assert len(represented(result)) == 12
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
@@ -307,9 +314,10 @@ def test_random_locked_queries_preserve_the_complete_relation(native, monkeypatc
             expected = explicit(source, target, fragment.source_atoms, .5, fragment.accepted_edges)
             expected = {m for m in expected if all(p != 4 or r == 3 for r, p in m)
                         and (3 not in dict(m) or dict(m)[3] == 4)}
-            discovered = set().union(*(discovery_mappings(match) for match in result.matches))
+            discovered = placed(set().union(*(discovery_mappings(match) for match in result.matches)),
+                                result.placement_generators)
             assert discovered == expected
-            expanded = represented(result.matches)
+            expanded = represented(result)
             assert discovered <= expanded
             assert all(p != 4 or r == 3 for mapping in expanded for r, p in mapping)
 
@@ -357,7 +365,8 @@ def test_saved_growth_constraints_and_mapping_coverage(native, monkeypatch):
             assert list(match.source_atoms) == fragment
             assert normalized(match.accepted_edges) == bonds
         allowed = explicit(source, target, fragment, .5, bonds)
-        assert set().union(*(discovery_mappings(match) for match in result.matches)) == allowed
+        assert placed(set().union(*(discovery_mappings(match) for match in result.matches)),
+                      result.placement_generators) == allowed
 
 
 def test_completed_relation_propagates_fixed_image_domains_before_saving(monkeypatch):

@@ -1,6 +1,7 @@
 """Shared ordered structural actions and joint endpoint-pair projection."""
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
+from functools import cached_property
 import sys
 from numbers import Integral
 
@@ -58,6 +59,21 @@ class _PreparedAction(tuple):
 
     def __hash__(self):
         return self._hash
+
+    @cached_property
+    def support(self):
+        kind, value = self
+        if kind == 'relation':
+            return frozenset(value.target_atoms) - {p for _, p in value.relation.anchors}
+        if kind == 'pool':
+            return frozenset(value)
+        if kind == 'group':
+            return frozenset(a for generator in value for a, b in enumerate(generator) if a != b)
+        raise ValueError(f'unsupported action: {kind}')
+
+    def __reduce__(self):
+        """Publish scientific tuples; owners rebuild derived preparation."""
+        return tuple, (tuple(self),)
 
 
 class _AtomRows:

@@ -94,11 +94,16 @@ result = match_fragment(source_graph, target_graph, seed=0,
 Fragment growth finds one valid placement per extension, allowing assignments
 inside the growing fragment to change while earlier fragment locks stay fixed.
 It first tries extending the witness, then searches the accepted fragment if
-reassignment is needed. At saturation it returns one `Fragment` per distinct target atom set. Each
-fragment retains all discovery assignments as joint constraints, plus its
-anchor-aware source and target relaxed self relationships. Internal assignments
-remain compressed. The branch cap counts distinct atom-set placements at every
-hierarchy level. Python and native
+reassignment is needed. At saturation, target atom sets related by a lossless
+global placement group share one canonical `Fragment` and continuation. The
+group preserves the full target WBO matrix and earlier locks; its generators
+are saved in `result.placement_generators`. Other target sets remain separate.
+Each fragment retains all discovery assignments as joint constraints, plus its
+anchor-aware source and target relaxed self relationships. The placement group
+moves the complete later continuation together and does not replace either
+fragment-local relationship. The branch cap counts canonical placement
+continuations at every hierarchy level, not represented atom sets or internal
+permutations. Python and native
 execution use this same algorithm. There is no growth mode to select.
 Completed-fragment results have bounded reuse; intermediate growth candidates
 are not cached.
@@ -128,14 +133,20 @@ reject unsupported trace events and custom node policies. Select `MAPPA_NATIVE=0
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `self_tolerance=1.0`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
-| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `fragment_cache` |
+| `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `fragment_cache`; `placement_fixed_targets=()` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 
 Discovery tolerance constrains matching between endpoints. `self_tolerance`
 independently constrains rearrangements within each original fragment; it is not
 the event threshold.
 
-The library and this guide use the branch-limit default of 100. The cap bounds completed fragment placements and combined live branches at each hierarchy level; it does not count symmetry permutations. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
+`placement_fixed_targets` is an expert context constraint for callers whose
+later operation distinguishes particular target labels. Those labels are fixed
+only by global placement compression: they remain available for matching and
+are not occupied or anchored. Fragment competition fixes every target label
+because its takeover plan distinguishes the owners displaced by each offer.
+
+The library and this guide use the branch-limit default of 100. The cap bounds canonical placement continuations and combined live branches at each hierarchy level; it does not count represented symmetry alternatives. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
 The returned search graph retains the complete fragment paths leading to its
 results. Discarded paths release their payloads. Their cap evidence remains in
@@ -251,12 +262,25 @@ choices. Each action has a `response_invariant` certificate and per-generator
 changed-pair counts. An uncertified action remains compressed; it is not rejected
 or enumerated. This API does not list all patterns or assert a minimum.
 
-To request a realization, provide one choice per saved fragment action to
-`events.realize(family_id, choices)`. `None` keeps its discovery witness with
-identity self rearrangements. A choice dictionary can supply `discovery`
+To request a realization, provide one choice per ordered saved action to
+`events.realize(family_id, choices)`. For a fragment relation, `None` keeps its
+discovery witness with identity self rearrangements. A choice dictionary can supply `discovery`
 (original source-to-target indices), `source_word` and `target_word` (signed
 1-based generator numbers). Alternatively, supply `source_permutation` and
 `target_permutation` in the respective fragment-local index frames.
+
+For a global placement action, supply a word of signed 1-based generator
+numbers; `None` or `()` selects identity. The family program applies each local
+relation before its placement action, with later fragment decisions applied
+first. This moves later assignments and their shared anchors together. A saved
+path exposes the same choices by transition ID:
+
+```python
+realized = path.realize(
+    fragment_choices={transition_id: fragment_choice},
+    placement_choices={transition_id: (1,)},
+)
+```
 
 The decoder validates discovery constraints and checks each self rearrangement
 against its own original fragment. It applies target rearrangement composed with
@@ -288,6 +312,8 @@ Saved event records use `mappa.decoded_events/v7`. They retain the catalogue,
 ordered actions, local responses and branch references. The derived
 `atom_domains` and `atom_actions` maps remain available on runtime tables;
 they are omitted from saved records because the catalogue determines them.
+The embedded `mappa.final_fragment_branches/v3` catalogue stores shared fragment
+and placement-group tables with explicit ordered action references.
 
 If matching used transformed weights, pass the original endpoint problem as
 `decode_events(catalogue, event_problem=original_problem)`. Elements, atom order
@@ -295,7 +321,7 @@ and coordinates must agree. Matching constraints still use `catalogue.problem`;
 event responses use `events.event_problem`. `EventDecodeSession` accepts the same
 keyword. When the weights differ, records use `mappa.decoded_events/v8`, retaining
 `problem` as the matching endpoints and adding `event_problem`,
-`matching_problem_sha256` and `event_problem_sha256`. Ordinary decoding keeps v5.
+`matching_problem_sha256` and `event_problem_sha256`. Ordinary decoding keeps v7.
 
 Terms retain the IDs of original actions affecting their endpoints; these are
 not new independent choices. Atom domains and table entries can overapproximate

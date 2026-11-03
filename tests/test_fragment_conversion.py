@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from growth_cases import saved_fragment
 
-from mappa import AAMProblem, MolecularEndpoint, convert_fragments
+from mappa import AAMProblem, MolecularEndpoint, convert_fragments, decode_events
 from mappa.mappa_core.utils.io.records import refined_mapping_record
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
@@ -104,6 +104,31 @@ def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
     assert len(result.branches) == 2
     assert [b.source_family_ids for b in result.branches] == [(0, 1), (2,)]
     assert result.catalogue.families[0].provenance[0]['source_family_ids'] == (0, 1)
+
+
+def test_conversion_retains_global_placement_coverage_and_program_identity(backend):
+    from itertools import permutations
+    from test_final_branches import placed_fragment_path
+    from mappa.mappa_workflow.mapping_analytics.family import query_path
+    value, path = placed_fragment_path()
+    catalogue = FinalBranchCatalogue(value).add_graph(path.graph)
+    first = catalogue.families[0]
+    catalogue.families.append(replace(first, actions=first.actions[:1]))
+    next(iter(catalogue.branches.values())).add(1)
+    converted = convert_fragments(catalogue)
+    assert len(converted.catalogue.families) == 2
+    assert [branch.source_family_ids for branch in converted.branches] == [(0,), (1,)]
+    images = []
+    for family in converted.catalogue.families:
+        restored = family.as_path(value)
+        images.append({image for image in permutations(range(4), 2)
+            if query_path(restored, value, dict(zip((0, 1), image)),
+                          source_atoms=(0, 1))[0] == 'recovered'})
+        assert all(len(generator) == 4 for kind, group in family.actions if kind == 'group'
+                   for generator in group)
+    assert images == [{(0, 1), (1, 0), (2, 3), (3, 2)}, {(0, 1), (1, 0)}]
+    assert all(decode_events(converted.catalogue).contributions(i)['total'] == 0
+               for i in range(2))
 
 
 @pytest.mark.smoke
@@ -284,9 +309,14 @@ def test_alternative_partitions_remain_distinct_under_explicit_rematching():
     source = saved(ep, ep, {0: 0, 1: 1}, anchors=())
     source.coupled_branches[0] = {(((0,), (0,)), ((1,), (1,)))}
     result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=1.))
-    # The two-atom rematch has two labelled singleton placements. The separate
-    # singleton partition contributes its own fixed placement.
-    assert len(result.conversion.branches) == len(result.family_reports) == 3
-    assert result.candidates[0].family_ids == [0, 1, 2]
+    # The two-atom rematch keeps both placements in one global orbit. The
+    # separate singleton partition contributes its own fixed placement.
+    assert len(result.conversion.branches) == len(result.family_reports) == 2
+    assert result.candidates[0].family_ids == [0, 1]
     assert result.catalogue is not source
     assert len({branch.islands for branch in result.conversion.branches}) == 2
+    from mappa.mappa_workflow.mapping_analytics.family import query_path
+    represented = [{image for image in ((0, 1), (1, 0)) if query_path(
+        family.as_path(source.problem), source.problem, dict(enumerate(image)),
+        source_atoms=(0, 1))[0] == 'recovered'} for family in result.catalogue.families]
+    assert represented == [{(0, 1), (1, 0)}, {(0, 1)}]

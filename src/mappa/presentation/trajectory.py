@@ -18,6 +18,18 @@ from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 growth = importlib.import_module('mappa.mappa_core.core.matching.growth.engine')
 
 
+def _same_placement_group(left, right, degree):
+    if left == right:
+        return True
+    from sympy.combinatorics import Permutation, PermutationGroup
+    identity = Permutation(list(range(degree)))
+    groups = [PermutationGroup([Permutation(list(g)) for g in generators] or [identity])
+              for generators in (left, right)]
+    return all(group.contains(generator) for group, other in
+               ((groups[0], groups[1]), (groups[1], groups[0]))
+               for generator in other.generators)
+
+
 def replay(source, target, state, after, edge, context):
     if context.growth_policy != 'growth_edge_splitmix64_v2':
         raise ValueError('Growth policy differs from archive; use its producing engine')
@@ -27,12 +39,14 @@ def replay(source, target, state, after, edge, context):
         max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
         islands_R=dict(state.islands), self_tolerance=context.self_tolerance,
         prior_deferred_edges=state.deferred_edges)
-    expected = dict(edge.match.witness)
     isos = result.matches
     matching = [fragment for fragment in isos if fragment.key == edge.match.key]
-    if not matching or sorted(result.deferred_edges) != sorted(after.deferred_edges):
+    if (not matching or sorted(result.deferred_edges) != sorted(after.deferred_edges)
+            or not _same_placement_group(result.placement_generators,
+                                         edge.placement_generators, len(target))):
         raise ValueError(f'Replay differs from archived transition {edge.id}; use its producing engine')
     return dict(events=events, isos=[dict(fragment.witness) for fragment in isos],
+                placement_generators=result.placement_generators,
                 iso_candidates=[dict(witness=dict(fragment.witness), blocks=[],
                     relation=fragment.to_record()) for fragment in isos], verified=True)
 
@@ -94,11 +108,12 @@ def frames_for(graph, terminal, traces):
                     deferred=[*deferred])
             elif kind=='seed_end':
                 patterns=trace['iso_candidates']
-                data.update(title=f'Fragment {stage} saturated · {len(patterns)} retained placement(s)',
-                    active=event['fragment'],candidates=patterns)
+                data.update(title=f'Fragment {stage} saturated · {len(patterns)} canonical placement(s)',
+                    active=event['fragment'],candidates=patterns,
+                    placement_generators=trace['placement_generators'])
             else:continue
             data['candidate_kind']='compressed_match' if kind=='seed_end' else 'witness'
-            # Growth frames show one witness; saturation shows every retained placement.
+            # Saturation retains local relations and their shared placement action.
             data['preferred']=max(range(len(patterns)),key=lambda i:sum(expected.get(a)==b for a,b in patterns[i]['witness'].items())) if patterns else 0
             frames.append(data)
         after=graph.states[edge.target]
@@ -205,13 +220,14 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         capture_source={str(p.relative_to(Path(__file__).parents[2])):hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(Path(__file__).parents[1].rglob('*.py'))},
         scope='Diagnostic replay of selected saved fragment calls; one recorded history per terminal. '
-              'Growth frames show one feasible witness; saturation shows all completed compressed placements. '
-              'Every fragment placement is checked against its archive. '
+              'Growth frames show one feasible witness; saturation shows canonical placements with '
+              'their local relations and shared global placement choices. '
+              'Every fragment and placement relationship is checked against its archive. '
               'The endpoint coordinates stay fixed throughout playback.',checks=checks)
 
 
 def with_represented_targets(document):
-    """Project exact per-atom choices while retaining the full local correlation.
+    """Project exact per-atom choices from local and shared placement relations.
 
     The viewer displays marginals only. They are never independent atom choices
     and are computed from the same complete relation used by decoding.
@@ -225,19 +241,23 @@ def with_represented_targets(document):
     for run in doc['runs']:
         for path in run['paths']:
             for frame in path['frames']:
+                generators = tuple(tuple(g) for g in frame.get('placement_generators', ()))
                 for record in frame['candidates']:
                     if 'relation' not in record:
                         record['target_options'] = {str(r): [p] for r, p in record['witness'].items()}
                         continue
                     fragment = Fragment.from_record(record['relation'])
-                    if fragment.key not in cache:
+                    key = fragment.key, generators
+                    if key not in cache:
                         system = FiniteConstraints()
                         compiled = compile_relaxed_relation(system, fragment.relation, 'viewer')
+                        images = dict(zip(compiled.images, system.act(
+                            list(compiled.images.values()), generators, 'viewer_placement')))
                         system.propagate()
                         solver = z3.Solver()
                         system.emit(solver)
                         options = {}
-                        for atom, (value, _) in compiled.images.items():
+                        for atom, (value, _) in images.items():
                             expression = system.expression(value)
                             allowed = []
                             for target in sorted(system.domain(value)):
@@ -250,6 +270,6 @@ def with_represented_targets(document):
                                     allowed.append(target)
                                 solver.pop()
                             options[str(atom)] = allowed
-                        cache[fragment.key] = options
-                    record['target_options'] = cache[fragment.key]
+                        cache[key] = options
+                    record['target_options'] = cache[key]
     return doc

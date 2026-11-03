@@ -322,8 +322,8 @@ def test_cache_separates_self_tolerance_without_restricting_discovery():
     assert len(initial.matches) == len(expanded.matches) == 1
     assert discovery_mappings(initial.matches[0]) == discovery_mappings(expanded.matches[0]) == {
         ((0, 0), (1, 1), (2, 2))}
-    assert represented(initial.matches) == {((0, 0), (1, 1), (2, 2))}
-    assert represented(expanded.matches) == {
+    assert represented(initial) == {((0, 0), (1, 1), (2, 2))}
+    assert represented(expanded) == {
         ((0, 0), (1, 1), (2, 2)), ((0, 0), (1, 2), (2, 1))}
     assert cache.stats()['full_hits'] == 0
     restored = FragmentRepair(source, source)
@@ -333,4 +333,32 @@ def test_cache_separates_self_tolerance_without_restricting_discovery():
         actual = match_fragment(restored_view.source, source, seed=0,
             context=FragmentMatchContext(fragment_cache=restored_view), config=config)
         assert [fragment.key for fragment in actual.matches] == [fragment.key for fragment in expected.matches]
+    assert restored.stats()['full_hits'] == 2
+
+
+def test_external_placement_context_survives_cache_reuse_and_transport():
+    from mappa import FragmentMatchConfig, FragmentMatchContext, match_fragment
+    from growth_cases import represented
+    from test_fragment_growth import record
+    source = graph(1, [], ['H'])
+    target = graph(4, [(0, p) for p in (1, 2, 3)], ['C', 'H', 'H', 'H'])
+    config = FragmentMatchConfig(branch_limit=3)
+    expected = {}
+    cache = FragmentRepair(source, target)
+    view = cache.for_cut(())
+    for fixed, count in (((), 1), (tuple(target), 3)):
+        expected[fixed] = match_fragment(source, target, seed=0, config=config,
+            context=FragmentMatchContext(placement_fixed_targets=fixed))
+        actual = match_fragment(view.source, target, seed=0, config=config,
+            context=FragmentMatchContext(fragment_cache=view, placement_fixed_targets=fixed))
+        assert len(actual.matches) == count
+        assert record(actual) == record(expected[fixed])
+        assert represented(actual) == {((0, p),) for p in (1, 2, 3)}
+    restored = FragmentRepair(source, target)
+    restored.loads(cache.dumps())
+    restored_view = restored.for_cut(())
+    for fixed in ((), tuple(target)):
+        actual = match_fragment(restored_view.source, target, seed=0, config=config,
+            context=FragmentMatchContext(fragment_cache=restored_view, placement_fixed_targets=fixed))
+        assert record(actual) == record(expected[fixed])
     assert restored.stats()['full_hits'] == 2

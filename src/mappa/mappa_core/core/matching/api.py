@@ -22,6 +22,8 @@ def match_fragment(source, target, *, seed, context=None, config=None,
     from mappa.mappa_core.core.matching.graphs import _coerce_graph
     source = _coerce_graph(source, config.graph_floor)
     target = _coerce_graph(target, config.graph_floor)
+    if not set(context.placement_fixed_targets).issubset(target):
+        raise ValueError('fixed placement target is outside the target graph')
     try:
         result = grow_island(
             source, target, seed, context.locked_mapping,
@@ -32,7 +34,8 @@ def match_fragment(source, target, *, seed, context=None, config=None,
             allow_mapped_seed=config.allow_mapped_seed,
             fragment_cache=context.fragment_cache, random_seed=config.random_seed,
             events=events, profile=profile, profile_context=profile_context,
-            bond_tolerance=config.bond_tolerance, self_tolerance=config.self_tolerance)
+            bond_tolerance=config.bond_tolerance, self_tolerance=config.self_tolerance,
+            placement_fixed_targets=context.placement_fixed_targets)
     except IslandBranchLimitExceeded as exc:
         return FragmentMatchResult((), True, exc.count, exc.limit,
                                    time.perf_counter() - started)

@@ -83,6 +83,56 @@ def assert_counts(decoded, selection, *, partition=0):
     return tuple(mapping[r] for r in sorted(mapping))
 
 
+def test_global_placement_composes_local_choices_and_scores_original_boundaries():
+    from test_final_branches import placed_fragment_path
+    endpoints, path = placed_fragment_path()
+    saved = FinalBranchCatalogue(endpoints).add_graph(path.graph)
+    # Matching uses equivalent components; scoring can distinguish their WBOs.
+    scoring = problem(endpoints.reactant.wbo,
+        weights(4, [(0, 1, 1.), (2, 3, 1.8), (1, 2, .7)]))
+    decoded = decode_events(saved, event_problem=scoring)
+    assert len(decoded.inventory.fragments) == 1
+    assert decoded.family_actions[0][0].generators is None
+    assert not decoded.family_actions[0][1].response_invariant
+    seen = set()
+    for image, word in product(((0, 1), (1, 0)), ((), (1,))):
+        choice = dict(discovery=dict(zip((0, 1), image)))
+        seen.add(assert_counts(decoded, (choice, word)))
+    assert seen == {(0, 1), (1, 0), (2, 3), (3, 2)}
+    ordinary = decode_events(saved)
+    assert ordinary.family_actions[0][1].response_invariant
+    assert all(ordinary.contributions(0, (None, word))['total'] == 0 for word in ((), (1,)))
+
+
+def test_earlier_global_placement_moves_later_anchor_continuation_jointly():
+    from growth_cases import saved_fragment
+    from test_event_patterns import saved_path
+    triangle = [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)]
+    matrix = weights(6, triangle + [(a + 3, b + 3, w) for a, b, w in triangle])
+    endpoints = problem(matrix, matrix)
+    first = saved_fragment(endpoints, source_atoms=(0, 1), accepted_edges=((0, 1),),
+                           iso_tolerance=0., self_tolerance=0.)
+    later = saved_fragment(endpoints, source_atoms=(1, 2), anchors=((1, 1),),
+                           accepted_edges=((1, 2),), iso_tolerance=0., self_tolerance=0.)
+    path = saved_path(endpoints, (first, later))
+    graph = replace(path.graph, transitions=(replace(path.graph.transitions[0],
+                    placement_generators=((3, 4, 5, 0, 1, 2),)), path.graph.transitions[1]))
+    path = next(graph.paths())
+    decoded = decode_events(FinalBranchCatalogue(endpoints).add_graph(graph))
+    assert tuple(kind for kind, _ in decoded.catalogue.families[0].actions) == (
+        'relation', 'relation', 'group')
+    observed = set()
+    for image, word in product(((0, 1), (1, 0)), ((), (1,))):
+        selection = (None, dict(discovery=dict(zip((0, 1), image))), word)
+        result = assert_counts(decoded, selection)
+        expected = tuple(atom + (3 if word else 0) for atom in (*image, 2))
+        assert result == expected
+        realized = dict(path.realize({0: selection[1]}, {0: word}).mapping)
+        assert tuple(realized[r] for r in range(3)) == expected
+        observed.add(result)
+    assert len(observed) == 4
+
+
 def test_all_six_relaxed_triangle_tail_choices_decode_without_discovery_refilter(monkeypatch):
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
     value = relation(matrix, matrix, ((0, 1), (1, 2), (0, 3)))

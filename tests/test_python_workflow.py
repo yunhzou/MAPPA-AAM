@@ -105,15 +105,25 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
     assert original["random_seed"] == 42 and original["sweep_cuts"] is True
 
 
-def test_competition_retains_baseline_and_hard_anchors(reaction):
+def test_competition_retains_baseline_and_hard_anchors(reaction, monkeypatch):
     from mappa.mappa_core.core.search.branching.competition import compete_fragments, CompetitionConfig
     from mappa.mappa_core.core.matching.growth.native import available
+    import mappa.mappa_core.core.matching.api as matching
 
     if not available():
         pytest.skip("optional native engine not installed")
     cfg = AAMSearchConfig(branch_limit=2000, anchors=((0, 0),))
     aam = search_aam(reaction, cfg)
+    match_fragment, observed = matching.match_fragment, []
+    def labelled_offer(source, target, **options):
+        result = match_fragment(source, target, **options)
+        observed.append(result)
+        assert set(options['context'].placement_fixed_targets) == set(target)
+        assert not result.placement_generators
+        return result
+    monkeypatch.setattr(matching, 'match_fragment', labelled_offer)
     result = compete_fragments(aam, CompetitionConfig(operation_budget=4, seconds=5))
+    assert observed
     assert result.repairs  # exercise an accepted repair, not just an empty union
     assert result.baseline is aam
     assert result.counts.get("growth_calls", 0) <= 4

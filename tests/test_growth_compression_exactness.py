@@ -7,7 +7,7 @@ import pytest
 
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY
-from growth_cases import represented, discovery_mappings
+from growth_cases import represented, discovery_mappings, placed, group_actions
 
 
 def graph(elements, edges):
@@ -39,19 +39,22 @@ def complete(source, target, fragment, bonds, tolerance=.2, *, locked=None,
     """Complete a proven explicit accepted graph; impossible queries return no result."""
     from mappa.mappa_core.core.matching.growth.completion import complete_fragment
     from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
-    from mappa.mappa_core.core.matching.representation.records import FragmentGrowth
+    from mappa.mappa_core.core.matching.representation.records import FragmentGrowth, FragmentMatchResult
     query = FragmentQuery(source, target, fragment, bonds, locked or {},
                           DEFAULT_NODE_POLICY, tolerance, bond_tolerance)
     witness = query.find()
     if witness is None:
-        return []
+        return FragmentMatchResult((), False, 0, 1000000, 0.)
     return complete_fragment(FragmentGrowth(set(fragment), witness, set(bonds)), source, target,
         locked or {}, tolerance=tolerance, self_tolerance=self_tolerance,
         node_policy=DEFAULT_NODE_POLICY, branch_limit=1000000, bond_tolerance=bond_tolerance)
 
 
-def discovered(fragments):
-    return set().union(*(discovery_mappings(fragment) for fragment in fragments))
+def discovered(value):
+    from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
+    if isinstance(value, FragmentMatchResult):
+        return placed(discovered(value.matches), value.placement_generators)
+    return set().union(*(discovery_mappings(fragment) for fragment in value))
 
 
 def assert_completed_constraints(source, target, order, tolerance=.2):
@@ -64,7 +67,8 @@ def assert_completed_constraints(source, target, order, tolerance=.2):
         edges.append((anchor, atom))
         fragment.add(atom)
         candidates = complete(source, target, fragment, edges, tolerance)
-        relations = [discovered([candidate]) for candidate in candidates]
+        relations = [placed(discovered([candidate]), candidates.placement_generators)
+                     for candidate in candidates.matches]
         expected = explicit(source, target, fragment, tolerance, edges)
         assert (set().union(*relations)) == expected, (order, atom)
         assert sum(map(len, relations)) == len(expected), (order, atom)
@@ -76,7 +80,7 @@ def test_growth_retains_both_identical_components():
     target = graph(['O', 'H', 'C'] * 2,
                    [(0, 1, 1), (0, 2, 1), (3, 4, 1), (3, 5, 1)])
     final = assert_completed_constraints(source, target, [0, 1, 2])
-    assert len(final) == 2
+    assert len(final.matches) == 1
 
 
 SMALL_GRAPHS = [g for g in nx.graph_atlas_g() if 1 <= len(g) <= 5 and nx.is_connected(g)]
@@ -93,7 +97,7 @@ def test_each_completed_constraint_set_matches_explicit_isomorphism(topology):
 def test_methyl_permutations_stay_compressed():
     methane = graph(['C', 'H', 'H', 'H', 'H'], [(0, p, 1) for p in range(1, 5)])
     final = assert_completed_constraints(methane, methane, [0, 1, 2, 3, 4])
-    assert len(final) == 1
+    assert len(final.matches) == 1
     assert len(represented(final)) == 24
 
 
@@ -156,7 +160,8 @@ def test_standalone_fragment_matcher_returns_both_component_placements(monkeypat
     result = match_fragment(source, target, seed=0,
                             config=FragmentMatchConfig(iso_tolerance=.2), events=[])
     assert not result.capped
-    assert {match.witness for match in result.matches} == {
+    assert len(result.matches) == 1
+    assert represented(result) == {
         ((0, 0), (1, 1), (2, 2)), ((0, 3), (1, 4), (2, 5))}
 
 
@@ -164,7 +169,7 @@ def test_compression_contract_survives_typed_hierarchy_roundtrip():
     from mappa.mappa_core.domain import AAMHierarchy
     source = graph(['C', 'C'], [(0, 1, 1)])
     fragments = complete(source, source, {0, 1}, [(0, 1)])
-    hierarchy = AAMHierarchy(tuple(fragments))
+    hierarchy = AAMHierarchy(fragments.matches)
     restored = AAMHierarchy.from_record(hierarchy.to_record())
     assert restored == hierarchy
     assert represented(restored.fragments) == {((0, 0), (1, 1)), ((0, 1), (1, 0))}
@@ -337,18 +342,31 @@ def repeated_arms():
     return source, target
 
 
+def certified_group(target, prepared, locked=None):
+    from mappa.mappa_core.core.matching.growth.completion import _placement_generators
+    return _placement_generators(target, prepared, locked or {})
+
+
+def image_orbits(images, generators, degree):
+    actions = group_actions(generators, degree)
+    return {min(tuple(sorted(action[p] for p in image)) for action in actions)
+            for image in images}
+
+
 def test_global_image_orbits_share_discovery_without_losing_distinct_arms():
     from mappa.mappa_core.core.symmetry import relaxed_automorphism
     source, target = repeated_arms()
     prepared = relaxed_automorphism(['O'] + ['C'] * 8, target.graph['wbo_matrix'], tolerance=1.)
     query = image_query(source, target, tuple(source), tuple(source.edges))
-    witnesses = query.images(5, global_self=prepared)
-    assert {frozenset(w.values()) for w in witnesses} == {
-        frozenset((0,1+2*i,2+2*i)) for i in range(4)}
-    assert query.global_generators > 0
-    assert query.global_images == query.global_pruned == 3
+    generators = certified_group(target, prepared)
+    witnesses = query.images(5, placement_generators=generators)
+    assert len(witnesses) == 1
+    images = {frozenset(p for _, p in mapping) for mapping in placed(
+        {tuple(sorted(w.items())) for w in witnesses}, generators)}
+    assert images == {frozenset((0,1+2*i,2+2*i)) for i in range(4)}
+    assert generators
     plain = image_query(source, target, tuple(source), tuple(source.edges))
-    assert {frozenset(w.values()) for w in plain.images(5)} == {frozenset(w.values()) for w in witnesses}
+    assert {frozenset(w.values()) for w in plain.images(5)} == images
     assert query.nodes < plain.nodes
 
 
@@ -358,9 +376,11 @@ def test_global_image_orbits_stop_at_cap_evidence():
     target = graph(['C'] * 10, [(a,b,1.) for a in range(10) for b in range(a+1,10)])
     prepared = relaxed_automorphism(['C'] * 10, target.graph['wbo_matrix'], tolerance=1.)
     query = image_query(source, target, tuple(source), tuple(source.edges))
-    witnesses = query.images(3, preferred={0:0,1:1,2:2}, global_self=prepared)
-    assert len({frozenset(w.values()) for w in witnesses}) == len(witnesses) == 3
-    assert query.nodes == 1 and query.global_images == 2
+    witnesses = query.images(2, preferred={0:0,1:1,2:2},
+                             placement_generators=certified_group(target, prepared))
+    # All 120 labelled three-atom sets share one continuation, below cap=1.
+    assert len(witnesses) == 1
+    assert query.nodes < 10
 
 
 def weighted_star_self(tolerance):
@@ -377,9 +397,10 @@ def test_global_pruning_preserves_the_actual_discovery_support_predicate():
     target, prepared = weighted_star_self(1.)
     source = graph(['O','C'], [(0,1,1.)])
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=.5)
-    witnesses = query.images(4, global_self=prepared)
+    generators = certified_group(target, prepared)
+    witnesses = query.images(4, placement_generators=generators)
     assert {frozenset(w.values()) for w in witnesses} == {frozenset((0,1)), frozenset((0,2))}
-    assert query.global_generators == 1 and query.global_images == 1
+    assert not generators
 
 
 def test_nontransitive_self_choices_cannot_be_used_as_an_unrestricted_group():
@@ -388,9 +409,10 @@ def test_nontransitive_self_choices_cannot_be_used_as_an_unrestricted_group():
     assert not prepared.contains((0,3,2,1))
     source = graph(['O','C'], [(0,1,1.4)])
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=1.)
-    witnesses = query.images(4, global_self=prepared)
+    generators = certified_group(target, prepared)
+    witnesses = query.images(4, placement_generators=generators)
     assert {frozenset(w.values()) for w in witnesses} == {frozenset((0,i)) for i in (1,2,3)}
-    assert query.global_generators == query.global_images == query.global_pruned == 0
+    assert not generators
 
 
 def test_global_pruning_matches_independent_weighted_locked_image_oracle():
@@ -398,7 +420,6 @@ def test_global_pruning_matches_independent_weighted_locked_image_oracle():
     from itertools import combinations
     from mappa.mappa_core.core.symmetry import relaxed_automorphism
     rng = random.Random(82351)
-    transported = pruned = 0
     for trial in range(80):
         n, k = rng.choice((4,5,6)), rng.choice((2,3))
         source = graph(['C']*k, [(a,a+1,rng.choice((1.,1.3,1.6))) for a in range(k-1)])
@@ -411,17 +432,16 @@ def test_global_pruning_matches_independent_weighted_locked_image_oracle():
         prepared = relaxed_automorphism(['C']*n,target.graph['wbo_matrix'],tolerance=self_tolerance)
         query = image_query(source,target,range(k),tuple(source.edges),locked=locked,tolerance=tolerance)
         preferred = dict(min(valid)) if valid and trial % 2 else None
-        witnesses = query.images(100,preferred=preferred,global_self=prepared)
+        generators = certified_group(target, prepared, locked)
+        witnesses = query.images(100, preferred=preferred, placement_generators=generators)
         actual = [frozenset(w.values()) for w in witnesses]
-        assert len(actual) == len(set(actual))
-        assert set(actual) == {frozenset(p for _,p in pairs) for pairs in valid}
+        expected = {frozenset(p for _, p in pairs) for pairs in valid}
+        assert len(actual) == len(image_orbits(actual, generators, n))
+        assert image_orbits(actual, generators, n) == image_orbits(expected, generators, n)
         assert all(tuple(sorted(w.items())) in valid for w in witnesses)
-        transported += query.global_images
-        pruned += query.global_pruned
-    assert transported > 0 and pruned > 0
 
 
-def test_global_preparation_reuses_one_record_and_skips_complete_components(monkeypatch):
+def test_global_preparation_reuses_one_record_including_complete_components(monkeypatch):
     from mappa import match_fragment, FragmentMatchConfig
     from mappa.mappa_core.core.matching.growth import completion
     monkeypatch.setenv('MAPPA_NATIVE','0')
@@ -437,12 +457,12 @@ def test_global_preparation_reuses_one_record_and_skips_complete_components(monk
     for tolerance in (1.,1.,.2):
         result = match_fragment(source,target,seed=0,
             config=FragmentMatchConfig(iso_tolerance=.2,self_tolerance=tolerance))
-        assert len(result.matches) == 4
+        assert len(result.matches) == 1
     assert len(preparations) == 2
     ring = graph(['C']*6, [(a,(a+1)%6,1.) for a in range(6)])
     copies = graph(['C']*12, [(6*c+a,6*c+(a+1)%6,1.) for c in range(2) for a in range(6)])
     result = match_fragment(ring,copies,seed=0,config=FragmentMatchConfig(iso_tolerance=.2))
-    assert len(result.matches) == 2 and '_relaxed_global' not in copies.graph
+    assert len(result.matches) == 1 and '_relaxed_global' in copies.graph
 
 
 def test_public_completion_global_pruning_has_native_python_relation_parity(monkeypatch):
@@ -454,9 +474,10 @@ def test_public_completion_global_pruning_has_native_python_relation_parity(monk
         profile = []
         result = match_fragment(source,target,seed=0,
             config=FragmentMatchConfig(iso_tolerance=.2),profile=profile)
-        assert len(result.matches) == 4
-        assert profile[0]['completion_global_images'] == 3
-        records.append([fragment.to_record() for fragment in result.matches])
+        assert len(result.matches) == 1
+        assert result.placement_generators
+        records.append(([fragment.to_record() for fragment in result.matches],
+                        set(group_actions(result.placement_generators, len(target)))))
     assert records[0] == records[1]
 
 
@@ -465,17 +486,23 @@ def test_global_preparation_rechecks_copied_and_mutable_endpoint_weights(monkeyp
     monkeypatch.setenv('MAPPA_NATIVE','0')
     source,target = repeated_arms()
     config = FragmentMatchConfig(iso_tolerance=.2)
-    assert len(match_fragment(source,target,seed=0,config=config).matches) == 4
+    original_result = match_fragment(source,target,seed=0,config=config)
+    assert len(original_result.matches) == 1
+    assert len({frozenset(p for _, p in m) for m in discovered(original_result)}) == 4
     original = target.graph['_relaxed_global'][3]
     copied = target.copy()
     copied.graph['wbo_matrix'] = target.graph['wbo_matrix'].copy()
     copied.graph['wbo_matrix'][0,1] = copied.graph['wbo_matrix'][1,0] = 1.9
-    assert len(match_fragment(source,copied,seed=0,config=config).matches) == 3
+    changed_result = match_fragment(source,copied,seed=0,config=config)
+    assert len(changed_result.matches) == 1
+    assert len({frozenset(p for _, p in m) for m in discovered(changed_result)}) == 3
     changed = copied.graph['_relaxed_global'][3]
     assert changed is not original and changed.weights[0,1] == 1.9
     assert target.graph['_relaxed_global'][3] is original
     copied.graph['wbo_matrix'][0,1] = copied.graph['wbo_matrix'][1,0] = 1.
-    assert len(match_fragment(source,copied,seed=0,config=config).matches) == 4
+    restored_result = match_fragment(source,copied,seed=0,config=config)
+    assert len(restored_result.matches) == 1
+    assert len({frozenset(p for _, p in m) for m in discovered(restored_result)}) == 4
     restored = copied.graph['_relaxed_global'][3]
     assert restored is not changed and restored.weights[0,1] == 1.
 
@@ -517,7 +544,9 @@ def test_attached_rings_keep_all_eighteen_target_sets_and_complete_discovery(bac
     result = match_fragment(source, target, seed=0,
         config=FragmentMatchConfig(iso_tolerance=.2, branch_limit=18), profile=profile)
     assert profile[0]['completion_global_generators'] > 0
-    assert not result.capped and result.branch_count == len(result.matches) == 18
+    assert not result.capped
+    assert result.branch_count == len(result.matches) == len(image_orbits(
+        expected, result.placement_generators, len(target)))
     actual = {}
     for fragment in result.matches:
         image = frozenset(fragment.target_atoms)
@@ -525,7 +554,8 @@ def test_attached_rings_keep_all_eighteen_target_sets_and_complete_discovery(bac
         assert fragment.source_atoms == tuple(range(6))
         assert set(fragment.accepted_edges) == set(source.edges)
         actual[image] = discovery_mappings(fragment)
-    assert actual == expected
+    assert all(mappings == expected[image] for image, mappings in actual.items())
+    assert discovered(result) == set().union(*expected.values())
 
 
 @pytest.mark.parametrize('backend', ['0', '1'], ids=['python', 'native'])
@@ -554,7 +584,8 @@ def test_binary_global_generators_keep_continuous_discovery_predicates(backend, 
     assert len(expected) == image_count
     result = match_fragment(source, target, seed=0,
         config=FragmentMatchConfig(iso_tolerance=tolerance, branch_limit=image_count))
-    assert not result.capped and len(result.matches) == image_count
+    assert not result.capped
+    assert len(result.matches) == len(image_orbits(expected, result.placement_generators, len(target)))
     actual = {}
     for fragment in result.matches:
         image = frozenset(fragment.target_atoms)
@@ -562,7 +593,8 @@ def test_binary_global_generators_keep_continuous_discovery_predicates(backend, 
         assert fragment.source_atoms == tuple(range(5))
         assert set(fragment.accepted_edges) == set(source.edges)
         actual[image] = discovery_mappings(fragment)
-    assert actual == expected
+    assert all(mappings == expected[image] for image, mappings in actual.items())
+    assert discovered(result) == set().union(*expected.values())
     if backend == '1':
         monkeypatch.setenv('MAPPA_NATIVE', '0')
         reference = match_fragment(source, target, seed=0,

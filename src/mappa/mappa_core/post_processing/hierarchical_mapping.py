@@ -192,8 +192,9 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
     for policy, pairs, fid in entries:
         pairs = tuple(sorted((tuple(sorted(rs)), tuple(sorted(ps))) for rs, ps in pairs))
         fixed = tuple(sorted(source.families[fid].fixed_assignments))
-        groups.setdefault((policy, pairs, fixed), set()).add(fid)
-    for (policy, pairs, fixed), ids in groups.items():
+        placements = tuple(action for action in source.families[fid].actions if action[0] == 'group')
+        groups.setdefault((policy, pairs, fixed, placements), set()).add(fid)
+    for (policy, pairs, fixed, placements), ids in groups.items():
         source_ids = tuple(sorted(ids))
         anchors = dict(fixed)
         if policy[0] not in graphs:
@@ -217,8 +218,7 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                 for path in paths:
                     local = FinalBranchCatalogue(problem).add_graph(graph, paths=(path,))
                     family = local.families[0]
-                    family.actions = tuple(('relation', converted._fragments.setdefault(fragment.key, fragment))
-                                           for _, fragment in family.actions)
+                    family.actions = converted.intern_actions(family.actions)
                     families.append(family)
                 complete = (not graph.capped and bool(paths)
                             and all(len(path.mapping) == len(rs) for path in paths))
@@ -241,9 +241,12 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
                                   for r, island in state.islands))
             required = converted._intern(converted._required,
                 tuple(sorted({edge for family in families for edge in family.required_edges})))
-            program = tuple(action for family in families for action in family.actions)
+            # Exact target-weight symmetries transport the canonical rematches
+            # and all their boundary events. Retain the original factor order;
+            # their product is not replaced by a larger generated group.
+            program = tuple(action for family in families for action in family.actions) + placements
             if program not in programs:
-                programs[program] = converted._intern(converted._programs, canonical_actions(program))
+                programs[program] = converted.intern_actions(canonical_actions(program))
             actions = programs[program]
             family_id = len(converted.families)
             refs = tuple(zip(pair_ids, selected))

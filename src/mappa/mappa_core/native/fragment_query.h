@@ -1,29 +1,3 @@
-// Certify the whole structural subgroup against the original weights. Testing
-// generators separately would be invalid for a non-transitive tolerance.
-bool group_within_tolerance(const PreparedSelf& self,
-                           const std::vector<std::vector<int>>& generators) {
-    if (generators.empty() || self.weights.empty()) return true;
-    auto [low,high]=std::minmax_element(self.weights.begin(),self.weights.end());
-    if (*high-*low<=self.tolerance) return true;
-    const size_t n=self.atoms.size();
-    std::vector<uint8_t> seen(n*n,0);
-    for (size_t a=0;a<n;++a) for (size_t b=a+1;b<n;++b) if (!seen[a*n+b]) {
-        std::vector<Pair> pending{{(int)a,(int)b}};
-        seen[a*n+b]=1;
-        double minimum=self.weights[a*n+b],maximum=minimum;
-        for (size_t i=0;i<pending.size();++i) for (const auto& generator:generators) {
-            int p=generator[pending[i].first],q=generator[pending[i].second];
-            if (p>q) std::swap(p,q);
-            if (seen[p*n+q]) continue;
-            seen[p*n+q]=1;pending.push_back({p,q});
-            minimum=std::min(minimum,self.weights[p*n+q]);
-            maximum=std::max(maximum,self.weights[p*n+q]);
-            if (maximum-minimum>self.tolerance) return false;
-        }
-    }
-    return true;
-}
-
 // Exact first-solution matching of accepted growth constraints.
 class FragmentQuery {
 public:
@@ -69,56 +43,13 @@ public:
     }
 
     bool needs_global_symmetry() {
-        const auto& components=image_components();
-        if (components.eligible<=atoms.size()) return false;
-        return !components.connected || std::any_of(components.sizes.begin(),components.sizes.end(),
-            [&](int size){return size>(int)atoms.size();});
+        return image_components().eligible>atoms.size();
     }
 
     bool preserves_domains(const std::vector<int>& generator,const Domains& allowed) const {
         for (int r:atoms) for (int p:allowed[r])
             if (!contains(allowed[r],generator[p])) return false;
         return true;
-    }
-
-    std::vector<std::vector<int>> image_generators(const PreparedSelf* global,bool whole_group_allowed) const {
-        std::vector<std::vector<int>> generators;
-        if (!global) return generators;
-        // Repeated source bonds often impose exactly the same predicate over
-        // the same two domains. Their preservation proof is identical.
-        std::map<std::vector<int>,int> domain_ids;
-        std::vector<int> ids(source.n,-1);
-        for (int r:atoms) ids[r]=domain_ids.emplace(domains[r],domain_ids.size()).first->second;
-        std::set<std::tuple<double,double,int,int>> predicates;
-        std::vector<const Edge*> distinct_edges;
-        for (const auto& edge:edges) {
-            int a=ids[edge.a],b=ids[edge.b];
-            if (a>b) std::swap(a,b);
-            if (predicates.emplace(edge.weight,edge.tolerance,a,b).second) distinct_edges.push_back(&edge);
-        }
-        for (size_t index=0;index<global->generators.size();++index) {
-            const auto& generator=global->generators[index];
-            bool domains_preserved=true;
-            for (const auto& [values,id]:domain_ids) {
-                if (std::any_of(values.begin(),values.end(),
-                    [&](int p){return !contains(values,generator[p]);})) {domains_preserved=false;break;}
-            }
-            if (!domains_preserved) continue;
-            bool valid=true;
-            // Exact active-edge preservation implies preservation of every
-            // tolerance predicate. This certificate is prepared once per target.
-            bool exact=global==target.global_self.get() && target.global_exact_edges[index];
-            if (!exact) for (const auto* saved:distinct_edges) {
-                const auto& edge=*saved;
-                for (int p:domains[edge.a]) for (int q:target.adj[p])
-                    if (contains(domains[edge.b],q) && supports(edge,p,q) &&
-                        !supports(edge,generator[p],generator[q])) {valid=false;break;}
-                if (!valid) break;
-            }
-            if (valid) generators.push_back(generator);
-        }
-        if (!whole_group_allowed && !group_within_tolerance(*global,generators)) generators.clear();
-        return generators;
     }
 
     bool supports(const Edge& edge,int p,int q) const {
@@ -234,7 +165,7 @@ public:
 
 public:
     long calls=0,nodes=0,rejected=0;
-    long global_generators=0,global_images=0,global_pruned=0;
+    long global_generators=0,global_pruned=0;
     FragmentQuery(const Source& R,const Target& P,const std::vector<uint8_t>& fragment,
                   const std::vector<Pair>& bonds,const std::vector<int>& mapping,double tolerance)
         :source(R),target(P),domains(R.n),incident(R.n) {
@@ -287,14 +218,16 @@ public:
         ++rejected;return {};
     }
 
-    // One witness per target atom set. Callers request cap+1 witnesses to
-    // distinguish a complete result from a capped subtree.
+    // One representative per target-set orbit. Exclusions act on sets before
+    // witness construction; internal assignment permutations are never emitted.
     std::vector<std::vector<int>> images(long limit,const std::vector<int>* preferred=nullptr,
-            const PreparedSelf* global=nullptr,bool whole_group_allowed=false) {
+            const PlacementGenerators& generators={}) {
         if (limit<1) throw std::invalid_argument("image witness limit must be positive");
         ++calls;
         std::vector<std::vector<int>> results;
         std::vector<std::vector<uint64_t>> excluded;
+        std::vector<std::vector<int>> representative_sets;
+        permutation_native::SetOrbit placement_orbits(target.n,generators);
         const auto& prepared=image_components();
         const auto& component=prepared.component;
         const auto& component_sizes=prepared.sizes;
@@ -305,10 +238,12 @@ public:
             bool too_small=size<(int)atoms.size();
             forbidden_components.push_back(too_small);forbidden_count+=too_small;
         }
-        const auto generators=image_generators(global,whole_group_allowed);
         global_generators=(long)generators.size();
-        std::set<std::vector<int>> emitted_images;
-        auto emit_one=[&](std::vector<int> witness) {
+        auto emit=[&](std::vector<int> witness) {
+            std::vector<int> selected;
+            for (int r:atoms) selected.push_back(witness[r]);
+            std::sort(selected.begin(),selected.end());
+            representative_sets.push_back(std::move(selected));
             // A connected placement filling an eligible target component has
             // no different atom set inside that component. Exclude it at once.
             int index=connected ? component[witness[atoms.front()]] : -1;
@@ -324,28 +259,6 @@ public:
             }
             results.push_back(std::move(witness));
             return results.size()<static_cast<size_t>(limit);
-        };
-        auto emit=[&](std::vector<int> witness) {
-            if (generators.empty()) return emit_one(std::move(witness));
-            std::vector<int> image;
-            for (int r:atoms) image.push_back(witness[r]);
-            std::sort(image.begin(),image.end());
-            if (!emitted_images.insert(image).second) return true;
-            std::vector<size_t> pending{results.size()};
-            if (!emit_one(std::move(witness))) return false;
-            for (size_t i=0;i<pending.size();++i) for (const auto& generator:generators) {
-                image.clear();
-                for (int r:atoms) image.push_back(generator[results[pending[i]][r]]);
-                std::sort(image.begin(),image.end());
-                if (!emitted_images.insert(image).second) continue;
-                // The set is new before a witness is transformed. No orbit of
-                // internal bijections is ever constructed.
-                auto moved=results[pending[i]];
-                for (int r:atoms) moved[r]=generator[moved[r]];
-                pending.push_back(results.size());++global_images;
-                if (!emit_one(std::move(moved))) return false;
-            }
-            return true;
         };
         auto constrain=[&](Domains& allowed) {
             if (excluded.empty() && !forbidden_count) return reduce(allowed);
@@ -379,8 +292,19 @@ public:
                 if (!reduce(allowed)) return false;
                 size_t after=0;
                 for (int r:atoms) after+=allowed[r].size();
-                if (before==after) return true;
+                if (before==after) break;
             }
+            if (!generators.empty() && !representative_sets.empty()) {
+                std::vector<uint8_t> used(target.n,0);
+                for (int r:atoms) for (int p:allowed[r]) used[p]=1;
+                if ((size_t)std::count(used.begin(),used.end(),1)==atoms.size()) {
+                    std::vector<int> forced;
+                    for (int p=0;p<target.n;++p) if (used[p]) forced.push_back(p);
+                    for (const auto& image:representative_sets)
+                        if (placement_orbits.contains(image,forced)) {++global_pruned;return false;}
+                }
+            }
+            return true;
         };
         if (preferred) {
             auto witness=preferred_extension(*preferred,domains);

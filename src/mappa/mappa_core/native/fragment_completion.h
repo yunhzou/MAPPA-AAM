@@ -28,33 +28,41 @@ std::shared_ptr<const PreparedSelf> prepare_self(const Graph& graph,
 
 void complete_fragment(const Source& source,const Target& target,const std::vector<int>& locked,
         FragmentGrowth& growth,double threshold,double tolerance,double self_tolerance,
-        int min_lock_size,long max_branches,GrowResult& result,GrowthObservation* observation) {
+        int min_lock_size,long max_branches,GrowResult& result,GrowthObservation* observation,
+        const std::vector<int>& placement_fixed_targets) {
     auto started=std::chrono::steady_clock::now();
     auto& profile=result.profile;
     FragmentQuery query(source,target,growth.source_atoms,growth.accepted_edges,locked,tolerance);
-    const PreparedSelf* global=nullptr;
-    if (query.needs_global_symmetry()) {
+    std::vector<int> occupied=placement_fixed_targets;
+    for (int p:locked) if (p>=0) occupied.push_back(p);
+    std::sort(occupied.begin(),occupied.end());
+    occupied.erase(std::unique(occupied.begin(),occupied.end()),occupied.end());
+    if (occupied.size()!=size_t(target.n) && query.needs_global_symmetry()) {
         if (!target.global_self || target.global_self->bond_threshold!=threshold ||
             target.global_self->tolerance!=self_tolerance) {
             std::vector<int> atoms(target.n);std::iota(atoms.begin(),atoms.end(),0);
             target.global_self=prepare_self(target,std::move(atoms),{},threshold,self_tolerance);
-            target.global_group_allowed=group_within_tolerance(*target.global_self,target.global_self->generators);
-            target.global_exact_edges.clear();
+            PlacementGenerators exact_generators;
             for (const auto& generator:target.global_self->generators) {
                 bool exact=true;
-                for (int a=0;a<target.n && exact;++a) for (int b:target.adj[a]) if (a<b &&
-                    (!target.has_edge(generator[a],generator[b]) ||
-                     target.wbo(a,b)!=target.wbo(generator[a],generator[b]))) {exact=false;break;}
-                target.global_exact_edges.push_back(exact);
+                for (int a=0;a<target.n && exact;++a) for (int b=a+1;b<target.n;++b)
+                    if (target.has_edge(a,b)!=target.has_edge(generator[a],generator[b]) ||
+                        target.wbo(a,b)!=target.wbo(generator[a],generator[b])) {exact=false;break;}
+                if (exact) exact_generators.push_back(generator);
             }
+            target.placement_generators=std::make_shared<const PlacementGenerators>(
+                permutation_native::SetOrbit(target.n,exact_generators).stabilizer({}));
+            target.placement_orbits=std::make_unique<permutation_native::SetOrbit>(
+                target.n,*target.placement_generators);
         }
-        global=target.global_self.get();
+        result.placement_generators=occupied.empty() ? target.placement_generators
+            : std::make_shared<const PlacementGenerators>(
+                target.placement_orbits->stabilizer(occupied));
     }
-    auto witnesses=query.images(max_branches+1,&growth.witness.assignment(),global,target.global_group_allowed);
+    auto witnesses=query.images(max_branches+1,&growth.witness.assignment(),*result.placement_generators);
     if (witnesses.empty()) throw std::runtime_error("completed fragment lost its proven matching witness");
     profile.completion_queries=query.nodes;profile.completion_pruned=query.rejected;
     profile.completion_global_generators=query.global_generators;
-    profile.completion_global_images=query.global_images;
     profile.completion_global_pruned=query.global_pruned;
     profile.completion_generated=(long)witnesses.size();
     profile.completion_peak_candidates=(long)witnesses.size();

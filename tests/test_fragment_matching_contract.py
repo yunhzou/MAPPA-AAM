@@ -1,4 +1,4 @@
-"""Release gates for one-witness existence and distinct-atom-set completion."""
+"""Release gates for one-witness existence and lossless compressed completion."""
 import json
 import math
 import multiprocessing as mp
@@ -13,7 +13,7 @@ from unittest.mock import patch
 import networkx as nx
 import pytest
 
-from growth_cases import graph, represented
+from growth_cases import graph, represented, placed
 from mappa import BondTolerance, FragmentMatchConfig, match_fragment
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
@@ -262,17 +262,20 @@ def complete_once(engine, source, target, config):
 
 @pytest.mark.parametrize('engine', ['0', '1'], ids=['python', 'native'])
 @pytest.mark.parametrize('copies', [1, 2])
-def test_full_matching_constructs_one_fragment_per_ring(engine, copies):
+def test_full_matching_constructs_one_fragment_per_placement_orbit(engine, copies):
     source, target = rings(), rings(copies)
     result = complete_once(engine, source, target,
-        FragmentMatchConfig(iso_tolerance=.2, branch_limit=copies))
-    assert len(result.matches) == copies
-    for component, fragment in enumerate(result.matches):
-        assert fragment.source_atoms == tuple(range(6))
-        assert fragment.target_atoms == tuple(range(6 * component, 6 * component + 6))
-        expected = {tuple((r, 6 * component + (offset + direction * r) % 6) for r in range(6))
-                    for offset in range(6) for direction in (-1, 1)}
-        assert represented([fragment]) == expected
+        FragmentMatchConfig(iso_tolerance=.2, branch_limit=1))
+    assert len(result.matches) == 1
+    fragment, = result.matches
+    assert fragment.source_atoms == tuple(range(6))
+    expected = {tuple((r, 6 * component + (offset + direction * r) % 6) for r in range(6))
+                for component in range(copies)
+                for offset in range(6) for direction in (-1, 1)}
+    assert represented(result) == expected
+    assert represented([fragment]) == {
+        mapping for mapping in expected
+        if {p for _, p in mapping} == set(fragment.target_atoms)}
 
 
 @pytest.mark.parametrize('engine', ['0', '1'], ids=['python', 'native'])
@@ -280,11 +283,14 @@ def test_free_hydrogen_keeps_every_target_atom_set(engine):
     source = graph(1, [], ['H'])
     target = graph(10, [(p, p + 5) for p in range(5)],
                    ['H'] * 5 + ['C', 'C', 'O', 'O', 'N'])
-    # External attachments do not merge different labelled target atom sets.
-    result = complete_once(engine, source, target, FragmentMatchConfig(branch_limit=5))
-    assert [fragment.target_atoms for fragment in result.matches] == [(p,) for p in range(5)]
-    assert [represented([fragment]) for fragment in result.matches] == [
-        {((0, p),)} for p in range(5)]
+    # The two C-H copies and the two O-H copies each share a continuation;
+    # their different external elements keep three placement classes distinct.
+    result = complete_once(engine, source, target, FragmentMatchConfig(branch_limit=3))
+    assert len(result.matches) == 3
+    assert represented(result) == {((0, p),) for p in range(5)}
+    classes = {frozenset(mapping[0][1] for mapping in placed(
+        represented([fragment]), result.placement_generators)) for fragment in result.matches}
+    assert classes == {frozenset((0, 1)), frozenset((2, 3)), frozenset((4,))}
 
 
 def asymmetric_pool():
@@ -344,6 +350,7 @@ def test_large_tolerance_relation_needs_no_bijection_enumeration(engine):
 def test_custom_policy_survives_completed_relations_and_records(policy_kind, monkeypatch):
     from mappa.mappa_core.core.matching.policy import ElementNodeMatchPolicy
     from mappa.mappa_core.domain import AAMHierarchy
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
     from mappa.mappa_core.core.search.branching.construction import find_islands
 
     monkeypatch.setenv('MAPPA_NATIVE', '0')
@@ -367,18 +374,20 @@ def test_custom_policy_survives_completed_relations_and_records(policy_kind, mon
     expected = {((0, 0), (1, image)) for image in images}
 
     result = match_fragment(source, target, seed=0,
-        config=FragmentMatchConfig(node_policy=policy, branch_limit=len(images)))
-    assert not result.capped and len(result.matches) == len(images)
-    assert represented(result.matches) == expected
+        config=FragmentMatchConfig(node_policy=policy, branch_limit=1))
+    assert not result.capped and len(result.matches) == 1
+    assert represented(result) == expected
     assert all(fragment.target_self_automorph.generators == () for fragment in result.matches)
 
     search = find_islands(source, target, [0], iso_tol=.5, node_policy=policy,
-                          max_branches=len(images))
+                          max_branches=1)
     paths = list(search.paths())
-    assert len(paths) == len(images)
-    restored = [AAMHierarchy.from_record(json.loads(json.dumps(path.hierarchy.to_record())))
-                for path in paths]
-    assert set().union(*(represented(hierarchy.fragments) for hierarchy in restored)) == expected
+    assert len(paths) == 1 and not search.capped
+    restored = AAMSearchGraph.from_record(json.loads(json.dumps(search.to_record())))
+    assert represented(restored) == expected
+    for path in paths:
+        hierarchy = AAMHierarchy.from_record(json.loads(json.dumps(path.hierarchy.to_record())))
+        assert represented(hierarchy.fragments) == represented(path.hierarchy.fragments)
     monkeypatch.setenv('MAPPA_NATIVE', '1')
     with pytest.raises(ValueError, match='requires the element node policy'):
         match_fragment(source, target, seed=0,

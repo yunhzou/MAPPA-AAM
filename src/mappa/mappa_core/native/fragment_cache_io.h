@@ -2,14 +2,16 @@
 #include <type_traits>
 
 namespace fragment_cache_io {
-inline const std::string schema="mappa.fragment-cache/8";
+inline const std::string schema="mappa.fragment-cache/11";
 
 struct Writer {
     std::string data;
     std::unordered_map<const PreparedSelf*,uint64_t> prepared;
     std::unordered_map<const Fragment*,uint64_t> fragments;
+    std::unordered_map<const PlacementGenerators*,uint64_t> placements;
     void write(const std::shared_ptr<const PreparedSelf>& value);
     void write(const std::shared_ptr<const Fragment>& value);
+    void write(const PlacementGroup& value);
     template<class... Values> void operator()(const Values&... values) { (write(values), ...); }
     template<class Value> void write(const Value& value) {
         if constexpr (std::is_arithmetic_v<Value>)
@@ -33,8 +35,10 @@ struct Reader {
     size_t position=0;
     std::vector<std::shared_ptr<const PreparedSelf>> prepared;
     std::vector<std::shared_ptr<const Fragment>> fragments;
+    std::vector<PlacementGroup> placements;
     void read(std::shared_ptr<const PreparedSelf>& value);
     void read(std::shared_ptr<const Fragment>& value);
+    void read(PlacementGroup& value);
     explicit Reader(const std::string& bytes): data(bytes) {}
     void require(size_t size) const {
         if (size>data.size()-position) throw std::invalid_argument("Truncated fragment cache");
@@ -106,11 +110,24 @@ inline void Reader::read(std::shared_ptr<const Fragment>& value) {
     }
     value=fragments[index];
 }
+inline void Writer::write(const PlacementGroup& value) {
+    auto [entry,added]=placements.emplace(value.get(),placements.size());
+    write(entry->second);
+    if (added) write(*value);
+}
+inline void Reader::read(PlacementGroup& value) {
+    uint64_t index;read(index);
+    if (index>placements.size()) throw std::invalid_argument("Invalid shared placement group reference");
+    if (index==placements.size()) {
+        auto item=std::make_shared<PlacementGenerators>();read(*item);placements.push_back(std::move(item));
+    }
+    value=placements[index];
+}
 template<class IO, class T> void profile(IO& io, T& v) {
     io(v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
        v.completion_queries,v.completion_pruned,v.completion_seconds,
        v.completion_generated,v.completion_peak_candidates,
-       v.completion_global_generators,v.completion_global_images,v.completion_global_pruned,
+       v.completion_global_generators,v.completion_global_pruned,
        v.seed_targets,v.init_cands,v.initial_heap,v.heap_pops,v.stale_pops,
        v.fragment_skip_pops,v.extend_calls,v.max_cands_before,v.max_cands_after,
        v.max_fragment_size,v.max_heap_len,v.commits,v.deferred,v.merge_calls,
@@ -118,7 +135,9 @@ template<class IO, class T> void profile(IO& io, T& v) {
 }
 template<class IO> void fields(IO& io, GrowProfile& v) { profile(io,v); }
 template<class IO> void fields(IO& io, const GrowProfile& v) { profile(io,v); }
-template<class IO, class T> void result(IO& io, T& v) { io(v.fragments,v.deferred_edges,v.profile,v.capped,v.cap.count,v.cap.limit); }
+template<class IO, class T> void result(IO& io, T& v) {
+    io(v.fragments,v.placement_generators,v.deferred_edges,v.profile,v.capped,v.cap.count,v.cap.limit);
+}
 template<class IO> void fields(IO& io, GrowResult& v) { result(io,v); }
 template<class IO> void fields(IO& io, const GrowResult& v) { result(io,v); }
 template<class IO, class T> void dependencies(IO& io, T& v) { io(v.mapping_reads,v.boundary_atoms,v.island_reads,v.local_deferred); }

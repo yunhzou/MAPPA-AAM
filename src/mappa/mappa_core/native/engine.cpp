@@ -24,6 +24,7 @@
 #include <chrono>
 
 #include "autgrp.h"
+#include "set_orbit.h"
 #include <numeric>
 
 namespace py = pybind11;
@@ -31,6 +32,8 @@ namespace py = pybind11;
 namespace {
 
 using Pair = std::pair<int, int>;
+using PlacementGenerators=permutation_native::Generators;
+using PlacementGroup=std::shared_ptr<const PlacementGenerators>;
 
 // ---------------------------------------------------------------------------
 // graphs
@@ -74,8 +77,8 @@ struct PreparedSelf {
 struct Target : Graph {
     std::vector<std::vector<int>> same_element;
     mutable std::shared_ptr<const PreparedSelf> global_self;
-    mutable bool global_group_allowed=false;
-    mutable std::vector<uint8_t> global_exact_edges;
+    mutable PlacementGroup placement_generators;
+    mutable std::unique_ptr<permutation_native::SetOrbit> placement_orbits;
 };
 
 // Source topology dependencies for completed-fragment cache validation.
@@ -192,7 +195,7 @@ private:
 struct GrowProfile {
     long feasibility_calls=0,feasibility_nodes=0,feasibility_searches=0,completion_queries=0,completion_pruned=0;
     long completion_generated=0,completion_peak_candidates=0;
-    long completion_global_generators=0,completion_global_images=0,completion_global_pruned=0;
+    long completion_global_generators=0,completion_global_pruned=0;
     double completion_seconds=0;
     long seed_targets = 0, init_cands = 0, initial_heap = 0, heap_pops = 0,
          stale_pops = 0, fragment_skip_pops = 0, extend_calls = 0, max_cands_before = 0,
@@ -218,6 +221,7 @@ struct Fragment {
 
 struct GrowResult {
     std::vector<std::shared_ptr<const Fragment>> fragments;
+    PlacementGroup placement_generators=std::make_shared<const PlacementGenerators>();
     std::vector<Pair> deferred_edges;
     GrowProfile profile;
     bool capped=false;
@@ -234,11 +238,14 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        bool allow_mapped_seed, uint64_t random_seed = 42,
                        GrowthObservation* observation = nullptr,
                        GrowthDependencies* dependencies = nullptr,
-                       SourceReads* source_reads = nullptr, double self_tolerance = 1.0) {
+                       SourceReads* source_reads = nullptr, double self_tolerance = 1.0,
+                       const std::vector<int>& placement_fixed_targets = {}) {
     SourceReadScope dependency_scope(R, source_reads);
     GrowResult result;
     GrowProfile& prof = result.profile;
     const int NR = R.n, NP = P.n;
+    for (int p:placement_fixed_targets) if (p<0 || p>=NP)
+        throw std::invalid_argument("Placement fixed target is outside the target graph");
     std::vector<uint8_t> locked_p(NP, 0);
     for (int r = 0; r < NR; ++r)
         if (mapping[r] >= 0) locked_p[mapping[r]] = 1;
@@ -332,7 +339,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     prof.feasibility_searches=growth.witness.searches;
     if (dependencies) dependencies->boundary(growth.source_atoms);
     complete_fragment(R,P,mapping,growth,graph_floor,iso_tol,self_tolerance,
-                      min_lock_size,max_branches,result,observation);
+                      min_lock_size,max_branches,result,observation,placement_fixed_targets);
     return result;
 }
 
@@ -408,7 +415,27 @@ struct PyTarget {
 
 class FragmentExport {
     std::unordered_map<const PreparedSelf*,py::dict> prepared;
+    std::unordered_map<const PlacementGenerators*,py::tuple> placements;
+    std::map<std::vector<int>,py::tuple> generator_rows;
 public:
+    py::tuple placement(const PlacementGroup& value,const std::vector<int>& target_ids={}) {
+        if (!value) return py::tuple();
+        auto found=placements.find(value.get());
+        if (found!=placements.end()) return found->second;
+        py::tuple result(value->size());
+        for (size_t i=0;i<value->size();++i) {
+            auto translated=(*value)[i];
+            if (!target_ids.empty()) {
+                translated=permutation_native::identity(*std::max_element(target_ids.begin(),target_ids.end())+1);
+                for (size_t p=0;p<target_ids.size();++p) translated[target_ids[p]]=target_ids[(*value)[i][p]];
+            }
+            auto row=generator_rows.find(translated);
+            if (row==generator_rows.end()) row=generator_rows.emplace(translated,py::tuple(py::cast(translated))).first;
+            result[i]=row->second;
+        }
+        placements.emplace(value.get(),result);
+        return result;
+    }
     py::dict self(const std::shared_ptr<const PreparedSelf>& value) {
         auto found=prepared.find(value.get());
         if (found!=prepared.end()) return found->second;
@@ -443,6 +470,7 @@ py::object grow_result_dict(const GrowResult& res) {
     py::list fragments;
     for (const auto& fragment:res.fragments) fragments.append(exported.relation(*fragment));
     out["fragments"]=fragments;
+    out["placement_generators"]=exported.placement(res.placement_generators);
     out["deferred_edges"] = res.deferred_edges;
     out["capped"] = res.capped;
     out["cap_count"] = res.cap.count;
@@ -455,7 +483,6 @@ py::object grow_result_dict(const GrowResult& res) {
     prof["completion_queries"]=p.completion_queries;prof["completion_pruned"]=p.completion_pruned;
     prof["completion_generated"]=p.completion_generated;
     prof["completion_global_generators"]=p.completion_global_generators;
-    prof["completion_global_images"]=p.completion_global_images;
     prof["completion_global_pruned"]=p.completion_global_pruned;
     prof["completion_peak_candidates"]=p.completion_peak_candidates;
     prof["seed_targets"] = p.seed_targets;
@@ -484,7 +511,8 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe, double self_tolerance) {
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe, double self_tolerance,
+                          const std::vector<int>& placement_fixed_targets) {
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
     if (!islands_obj.is_none()) {
@@ -497,7 +525,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          random_seed,observe ? &observation : nullptr,nullptr,nullptr,self_tolerance);
+                          random_seed,observe ? &observation : nullptr,nullptr,nullptr,self_tolerance,placement_fixed_targets);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -581,7 +609,8 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("self_tolerance")=1.0);
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("self_tolerance")=1.0,
+            py::arg("placement_fixed_targets")=std::vector<int>{});
     mod.def("find_fragment_witness", &py_find_fragment_witness,
             py::arg("source"), py::arg("target"), py::arg("atoms"), py::arg("bonds"),
             py::arg("locked"), py::arg("tolerance"));

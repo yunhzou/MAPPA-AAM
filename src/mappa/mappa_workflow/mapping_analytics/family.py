@@ -24,7 +24,7 @@ def atom_sets(degree, generators, pools=()):
 
 def compile_path(path, problem, reference, *, source_atoms, source_generators=(),
                  target_generators=(), complete_reference=True):
-    """Compile the complete saved local relations and the requested reference.
+    """Compile saved local relations, placement actions and the reference.
 
     Every local discovery and both self rearrangements remain joint choices.
     Endpoint equivalence normalizes reference identity only, never the returned
@@ -36,22 +36,30 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     nr, np_ = problem.source_atom_count, problem.target_atom_count
     representative = path.mapping
     values = [encoder.constant(representative.get(r, np_)) for r in range(nr)]
-    relations = []
-    target_sets = atom_sets(np_, tuple(target_generators))
+    actions = []
+    placements = tuple(generator for edge_id in path.transitions
+                       for generator in path.graph.transitions[edge_id].placement_generators)
+    # The union orbit bounds the ordered placement program; it only rejects
+    # unreachable references. The exact correlated order is compiled below.
+    target_sets = atom_sets(np_, placements + tuple(target_generators))
     reachable = {q for p in representative.values() for q in target_sets[p]}
     if any(atom in reference and reference[atom] != np_ and reference[atom] not in reachable
            for atom in source_atoms):
         encoder.failed = True
-        return CompiledFamily(encoder, values, representative, relations, path, problem,
+        return CompiledFamily(encoder, values, representative, actions, path, problem,
                               time.perf_counter() - started)
     for edge_id in reversed(path.transitions):
-        fragment = path.graph.transitions[edge_id].match
-        if fragment is None:
-            continue
-        relation = compile_relaxed_relation(encoder, fragment.relation, edge_id)
-        transport = {p: relation.images[r] for r, p in fragment.witness}
-        values = [encoder.lookup(value, transport) for value in values]
-        relations.append((edge_id, relation))
+        edge = path.graph.transitions[edge_id]
+        fragment = edge.match
+        if fragment is not None:
+            relation = compile_relaxed_relation(encoder, fragment.relation, edge_id)
+            transport = {p: relation.images[r] for r, p in fragment.witness}
+            values = [encoder.lookup(value, transport) for value in values]
+            actions.append(('relation', edge_id, relation))
+        if edge.placement_generators:
+            start = len(encoder.program)
+            values = encoder.act(values, edge.placement_generators, ('placement', edge_id))
+            actions.append(('group', edge_id, tuple(encoder.program[start:])))
     if len(set(representative.values())) != len(representative):
         encoder.failed = True
     for r in representative:
@@ -68,7 +76,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     encoder.propagate()
     expressions = [(encoder.expression(value), frozenset(encoder.domain(value)))
                    for value, _ in physical_values]
-    return CompiledFamily(encoder, expressions, representative, relations, path, problem,
+    return CompiledFamily(encoder, expressions, representative, actions, path, problem,
                           time.perf_counter() - started)
 
 
@@ -77,7 +85,7 @@ class CompiledFamily:
     constraints: object
     values: list
     representative: dict
-    relations: list
+    actions: list
     path: object
     problem: object
     encoding_seconds: float
@@ -161,13 +169,22 @@ def _realize(compiled, model):
     actual = dict(compiled.representative)
     actions = []
     checked_edges = 0
-    for edge_id, relation in compiled.relations:
-        selected = relation.realize(model)
-        transport = {p: selected[r] for r, p in relation.relation.witness}
+    for kind, edge_id, action in compiled.actions:
+        if kind == 'relation':
+            selected = action.realize(model)
+            transport = {p: selected[r] for r, p in action.relation.witness}
+            actions.append(dict(kind=kind, transition=edge_id,
+                permutation=sorted(transport.items()), **action.choices(model)))
+            checked_edges += len(action.relation.accepted_edges)
+        else:
+            permutation = tuple(range(compiled.problem.target_atom_count))
+            for _, _, choice, factor in action:
+                selected = factor[number(compiled.constraints.expression(choice))]
+                permutation = tuple(selected[p] if p < len(selected) else p for p in permutation)
+            transport = dict(enumerate(permutation))
+            actions.append(dict(kind=kind, transition=edge_id,
+                                permutation=sorted(transport.items())))
         actual = {r: transport.get(p, p) for r, p in actual.items()}
-        actions.append(dict(kind='relation', transition=edge_id,
-                            permutation=sorted(transport.items()), **relation.choices(model)))
-        checked_edges += len(relation.relation.accepted_edges)
     assert actual == {r: number(compiled.values[r][0]) for r in actual}
     assert len(set(actual.values())) == len(actual)
     assert all(compiled.problem.reactant.elements[r] == compiled.problem.product.elements[p]

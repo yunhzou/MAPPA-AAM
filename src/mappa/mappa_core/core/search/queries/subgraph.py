@@ -109,7 +109,9 @@ def match_weighted_subgraph(query, target, *,
             continue
         if not _query_edges_supported(g_q, g_t, mapping, iso_tol):
             continue
-        key = (tuple(sorted(mapping.items())), tuple(fragment.key for fragment in branch.fragments))
+        key = (tuple(sorted(mapping.items())), tuple(
+            (None if edge.match is None else edge.match.key, edge.placement_generators)
+            for index in branch.transitions for edge in (search_graph.transitions[index],)))
         if key in seen:
             continue
         seen.add(key)

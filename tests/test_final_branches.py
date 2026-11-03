@@ -228,6 +228,73 @@ def test_decoded_record_and_bundle_share_self_payloads_across_distinct_fragments
     assert restored == record
 
 
+def placed_fragment_path():
+    value = problem('CCCC', [(0, 1, 1.)], [(0, 1, 1.), (2, 3, 1.)])
+    fragment = saved_fragment(value, source_atoms=(0, 1), accepted_edges=((0, 1),),
+                              iso_tolerance=0., self_tolerance=0.)
+    path = saved_path(value, (fragment,))
+    graph = replace(path.graph, transitions=(replace(path.graph.transitions[0],
+                    placement_generators=((2, 3, 0, 1),)),))
+    return value, next(graph.paths())
+
+
+@pytest.mark.parametrize('transport', ['json', 'bundle'])
+def test_placement_groups_preserve_distinct_images_and_shared_transport(tmp_path, transport):
+    from mappa.execution import BundleStore
+    value, path = placed_fragment_path()
+    saved = FinalBranchCatalogue(value).add_graph(path.graph)
+    family = saved.families[0]
+    assert saved.branch_count == 1 and len(family.fragments) == 1
+    assert tuple(kind for kind, _ in family.actions) == ('relation', 'group')
+    assert family.fixed_assignments == ()
+    expected = {(0, 1), (1, 0), (2, 3), (3, 2)}
+    assert recovered(path, value) == expected
+    assert recovered(family.as_path(value), value) == expected
+    saved.families.append(replace(family, provenance=[dict(cuts=((0, 2),))]))
+    next(iter(saved.branches.values())).add(1)
+    record = json.loads(json.dumps(saved.to_record()))
+    assert len(record['fragments']) == len(record['placements']) == 1
+    if transport == 'json':
+        restored = FinalBranchCatalogue.from_record(value, record)
+    else:
+        store = BundleStore(tmp_path / 'placement-bundle', scratch=tmp_path)
+        restored = store.load(store.put(saved))
+    assert json.loads(json.dumps(restored.to_record())) == record
+    assert restored.families[0].actions is restored.families[1].actions
+    assert restored.families[0].actions[1][1] is restored.families[1].actions[1][1]
+    assert restored.families[0].actions[1].support == frozenset(range(4))
+    assert recovered(restored.families[0].as_path(value), value) == expected
+
+
+def test_placement_only_saved_transition_preserves_order_without_a_fragment():
+    value, path = placed_fragment_path()
+    saved = FinalBranchCatalogue(value).add_graph(path.graph)
+    family = saved.families[0]
+    second_group = ((0, 1, 3, 2),)
+    family.actions += (('group', second_group),)
+    restored_path = family.as_path(value)
+    assert any(edge.match is None and edge.placement_generators
+               for edge in restored_path.graph.transitions)
+    roundtrip = FinalBranchCatalogue(value).add_graph(restored_path.graph)
+    assert roundtrip.families[0].actions == family.actions
+    assert recovered(restored_path, value) == {(0, 1), (1, 0), (2, 3), (3, 2)}
+    assert dict(restored_path.realize(placement_choices={0: (1,), 1: (1,)}).mapping) == {0: 3, 1: 2}
+
+
+def test_placement_graph_transport_combine_and_realization_preserve_the_program():
+    value, path = placed_fragment_path()
+    restored = AAMSearchGraph.from_record(json.loads(json.dumps(path.graph.to_record())))
+    combined = AAMSearchGraph.combine((path.graph, restored))
+    for current in combined.paths():
+        edge_id, = current.transitions
+        for image in ((0, 1), (1, 0)):
+            for word in ((), (1,)):
+                mapping = dict(current.realize({edge_id: dict(discovery=dict(zip((0, 1), image)))},
+                                               {edge_id: word}).mapping)
+                assert mapping == dict(zip((0, 1), tuple(p + (2 if word else 0) for p in image)))
+        assert recovered(current, value) == {(0, 1), (1, 0), (2, 3), (3, 2)}
+
+
 @pytest.mark.smoke
 def test_public_grouping_is_eager_and_preserves_distinct_witnesses(monkeypatch):
     from mappa import AAMResult, AAMSearchConfig, AAMSearchMetrics

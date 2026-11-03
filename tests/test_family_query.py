@@ -1,4 +1,5 @@
-from itertools import permutations
+from dataclasses import replace
+from itertools import permutations, product
 import numpy as np
 
 from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
@@ -36,8 +37,8 @@ def test_open_pools_keep_same_pair_and_different_pair_assignments():
     problem=AAMProblem(endpoint('OO',[]),endpoint('OOOO',[(0,1),(2,3)]))
     result=search_aam(problem,AAMSearchConfig(seed_count=1))
     paths=list(result.graph.paths())
-    # Target molecules are separate placements; their paths jointly cover
-    # both atoms in one pair and atoms in different pairs.
+    # Compressed placements jointly cover both atoms in one pair and atoms
+    # in different pairs, retaining their shared component choices.
     # Exhaustive oracle only for this tiny unit test, never production search.
     for image in permutations(range(4),2):
         reference=dict(enumerate(image))
@@ -65,8 +66,8 @@ def test_full_hydrogen_mapping_is_returned_and_one_to_one():
     molecule=endpoint('OHOH',[(0,1),(2,3)])
     problem=AAMProblem(molecule,molecule)
     result=search_aam(problem,AAMSearchConfig(seed_count=1,cut_floor=10))
-    # Different target molecules are separate branches. Check their union,
-    # without assuming the first branch is the swapped-component placement.
+    # Check the complete compressed union without assuming which witness
+    # supplies the swapped-component placement.
     answers=[query_path(path,problem,{0:2,2:0},source_atoms=(0,2),timeout_ms=3000)
              for path in result.graph.paths()]
     assert all(status in ('recovered','not_recovered') for status,_ in answers)
@@ -95,6 +96,107 @@ def test_fixed_fragment_image_cannot_reach_an_extra_target_atom():
     problem=AAMProblem(endpoint('OO',[]),endpoint('OOO',[]))
     path=fragment_path(problem)
     assert query_path(path,problem,{0:0,1:2},source_atoms=(0,1))[0]=='not_recovered'
+
+
+def test_placement_group_reaches_other_atom_set_without_mixing_its_atoms():
+    problem = AAMProblem(endpoint('CC', [(0, 1)]),
+                         endpoint('CCCC', [(0, 1), (2, 3)]))
+    path = fragment_path(problem, atoms=(0, 1), targets=(0, 1), accepted=((0, 1),))
+    edge = replace(path.graph.transitions[0], placement_generators=((2, 3, 0, 1),))
+    path = replace(path, graph=replace(path.graph, transitions=(edge,)))
+    expected = {(0, 1), (1, 0), (2, 3), (3, 2)}
+    for images in permutations(range(4), 2):
+        status, result = query_path(path, problem, dict(enumerate(images)), source_atoms=(0, 1))
+        assert status == ('recovered' if images in expected else 'not_recovered')
+        if status == 'recovered':
+            assert dict(result['mapping']) == dict(enumerate(images))
+            assert [action['kind'] for action in result['actions']] == ['relation', 'group']
+
+
+def test_group_only_transition_preserves_its_joint_placement_choice():
+    problem = AAMProblem(endpoint('CC', [(0, 1)]),
+                         endpoint('CCCC', [(0, 1), (2, 3)]))
+    path = fragment_path(problem, atoms=(0, 1), targets=(0, 1), accepted=((0, 1),))
+    edge = replace(path.graph.transitions[0], match=None,
+                   placement_generators=((2, 3, 0, 1),))
+    path = replace(path, graph=replace(path.graph, transitions=(edge,)))
+    reference = {0: 2, 1: 3}
+    status, result = query_path(path, problem, reference, source_atoms=(0, 1))
+    assert status == 'recovered' and dict(result['mapping']) == reference
+    assert [action['kind'] for action in result['actions']] == ['group']
+    assert result['checked_fragment_edges'] == 0
+    assert query_path(path, problem, {0: 3, 1: 2}, source_atoms=(0, 1))[0] == 'not_recovered'
+
+
+def test_subgraph_placement_replay_extends_by_identity_in_enclosing_problem():
+    from mappa import decode_events
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    problem = AAMProblem(endpoint('CCC', [(0, 1), (1, 2)]),
+                         endpoint('CCCO', [(0, 1), (1, 2)]))
+    path = fragment_path(problem, atoms=(0, 1, 2), targets=(0, 1, 2),
+                         anchors=((0, 0), (1, 1), (2, 2)), accepted=((0, 1), (1, 2)))
+    edge = replace(path.graph.transitions[0], placement_generators=((2, 1, 0),))
+    context = replace(path.context, target_atoms=(0, 1, 2))
+    path = replace(path, graph=replace(path.graph, transitions=(edge,), contexts=(context,)))
+    reference = {0: 2, 1: 1, 2: 0}
+    status, witness = query_path(path, problem, reference, source_atoms=(0, 1, 2))
+    assert status == 'recovered' and dict(witness['mapping']) == reference
+    assert dict(witness['actions'][-1]['permutation'])[3] == 3
+
+    catalogue = FinalBranchCatalogue(problem).add_graph(path.graph)
+    family = catalogue.families[0]
+    assert family.actions[-1] == ('group', ((2, 1, 0, 3),))
+    decoded = decode_events(catalogue)
+    assert decoded.realize(0, (None, (1,))) == reference
+    assert dict(family.as_path(problem).realize(placement_choices={0: (1,)}).mapping) == reference
+
+
+def test_placement_program_keeps_later_choices_correlated_with_earlier_moves():
+    from mappa.mappa_core.core.search.graph import (
+        AAMSearchGraph, FragmentTransition, SearchContext, SearchState, SearchStop,
+    )
+    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    source = endpoint('CCCC', [(0, 1), (2, 3)])
+    target = endpoint('CCCCCC', [(0, 1), (2, 3), (4, 5)])
+    problem = AAMProblem(source, target)
+    first = fragment_path(problem, atoms=(0, 1), targets=(0, 1),
+                          accepted=((0, 1),)).fragments[0]
+    second = fragment_path(problem, atoms=(2, 3), targets=(2, 3),
+                           accepted=((2, 3),)).fragments[0]
+    rotation = (2, 3, 4, 5, 0, 1)
+    exchange = (0, 1, 4, 5, 2, 3)  # The second placement fixes earlier locks.
+    graph = AAMSearchGraph(
+        (SearchContext(tuple(range(4)), tuple(range(6)), (0, 2)),), (0,),
+        (SearchState(0, 0, (), (), ()),
+         SearchState(1, 0, ((0, 0), (1, 1)), ((0, 0), (1, 0)), ()),
+         SearchState(2, 0, tuple(enumerate(range(4))),
+                     ((0, 0), (1, 0), (2, 1), (3, 1)), ())),
+        (FragmentTransition(0, 0, 1, 0, (0,), first, 0, (rotation,)),
+         FragmentTransition(1, 1, 2, 2, (1,), second, 1, (exchange,))),
+        (SearchStop(2, 'objective_met'),))
+    path = next(graph.paths())
+    # Independent tiny oracle: orient each pair, then place the two distinct
+    # pairs into any two of the three components. There are 6 * 2 * 2 choices.
+    expected = {
+        left + right
+        for a, b in permutations(range(3), 2)
+        for left, right in product(permutations((2*a, 2*a+1)),
+                                   permutations((2*b, 2*b+1)))
+    }
+    projected = project_path_assignments(path, problem, range(4), assignment_limit=24)
+    assert {tuple(mapping[r] for r in range(4)) for mapping in projected} == expected
+    reference = {0: 5, 1: 4, 2: 0, 3: 1}
+    status, witness = query_path(path, problem, reference, source_atoms=tuple(range(4)))
+    assert status == 'recovered' and dict(witness['mapping']) == reference
+    assert [action['kind'] for action in witness['actions']] == ['relation', 'group'] * 2
+    actual = path.mapping
+    for action in witness['actions']:
+        transport = dict(action['permutation'])
+        actual = {r: transport.get(p, p) for r, p in actual.items()}
+    assert actual == reference
+    assert query_path(path, problem, {0: 0, 1: 2, 2: 1, 3: 3},
+                      source_atoms=tuple(range(4)))[0] == 'not_recovered'
 
 
 def test_reference_heavy_assignment_still_requires_feasible_hydrogens():

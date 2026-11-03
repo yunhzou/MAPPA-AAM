@@ -5,7 +5,7 @@ import random
 import pytest
 
 from mappa._group_ops import (occupation_orbit, project_generators,
-                                 conjugate_generators, OccupationLimitExceeded)
+                                 conjugate_generators, OccupationLimitExceeded, SetOrbit)
 
 
 def reference(witness, degree, stages, attachments, fragments, bonds, limit=-1):
@@ -132,3 +132,23 @@ def test_conjugation_preserves_padded_frames_exhaustively():
             for i in range(4):
                 expected[action[i]] = action[generator[i] if i < 3 else i]
             assert conjugate_generators([generator], action) == (tuple(expected),)
+
+
+def test_point_lock_releases_independent_factors_from_a_correlated_exchange():
+    from growth_cases import group_actions
+
+    # Exchanging two central atoms carries both pairs attached to each center.
+    # Fixing one center removes that coupled exchange but retains all four
+    # independent pair swaps, including those on the other center's side.
+    degree = 10
+    generators = [(1, 0, 6, 7, 8, 9, 2, 3, 4, 5)]
+    for a, b in ((2, 3), (4, 5), (6, 7), (8, 9)):
+        action = list(range(degree))
+        action[a], action[b] = b, a
+        generators.append(tuple(action))
+    original = group_actions(generators, degree)
+    group = SetOrbit(degree, generators)
+    for fixed, count in (((0,), 16), ((0, 2), 8), ((0, 2, 6), 4)):
+        expected = {action for action in original if all(action[p] == p for p in fixed)}
+        actual = set(group_actions(group.stabilizer(fixed), degree))
+        assert actual == expected and len(actual) == count

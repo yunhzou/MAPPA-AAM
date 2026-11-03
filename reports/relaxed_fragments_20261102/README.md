@@ -13,13 +13,111 @@ closure. Decoding uses unique fragments, correlated choices and original WBOs,
 including cut, inter-fragment and mapped/unmapped boundaries. Every bond is
 counted once. No discovery-tolerance filter removes the expanded event choices.
 
-Global acceleration uses a certified subgroup that preserves current discovery
-constraints and self tolerance under composition. One witness supplies an orbit
-of distinct target atom sets. The search excludes that complete orbit before
-pruning interchangeable assignments. It neither merges different atom sets nor
-enumerates their internal bijections.
+The user subsequently approved lossless compression across equivalent target
+placements. A representative continuation retains a shared global relationship
+that moves its entire continuation jointly. Certification preserves the complete
+target WBO matrix, active topology, source-node compatibility and every prior
+lock. Fragment-local two-sided relaxed relationships remain separate. Compact
+set-orbit exclusions avoid expanding all equivalent target sets before merging;
+caps count representative continuations. Uncertified relaxed exchanges cannot
+discard branches. This replaces the explicit target-set branch contract of the
+historical comparison below.
 
-## Validation
+On the final measured source, EnzymeMap 37270's first fragment retains all 288
+previously established target sets through two representatives, each covering
+144 sets. The 132 source atoms
+and 131 accepted edges are unchanged. Each old set belongs to exactly one saved
+orbit; cap 100 no longer truncates this first fragment. This check is not a
+full-cut or reference-recovery result.
+
+## Placement-compression validation
+
+The final integrated source passed **880/880 tests in 110.21 seconds** on the
+local Apple Silicon Mac with `python -m pytest -q --tb=short`. This includes
+independent Python/native mapping oracles, correlated occupancy after later
+fragments, original-WBO local/boundary event checks, external reference queries,
+RAM/bundle worker pools, cache exchange and saved-result roundtrips.
+
+The C6/H example retains all 768 mappings in one continuation instead of 64
+explicit atom-set records. A multi-fragment ring/H example retains all 144
+independently enumerated mappings in three continuations; a ring plus isolated
+carbon retains all 24 mappings and their original bond events. Prior locks,
+non-transitive relaxed relationships, custom compatibility, active cut topology,
+unequal continuous WBOs and subthreshold contacts have separate checks.
+Mutable graph inputs invalidate prepared native views and placement certification;
+prepared reaction sessions keep their direct reuse path.
+
+Placement relationships survive hierarchy transitions, catalogue reduction,
+conversion, decoding, reference queries, checkpoints and replay. Catalogue schema
+is `mappa.final_fragment_branches/v3`, search-graph record schema is `/3`, and
+cache snapshots use `mappa.fragment-cache/11`; incompatible records are rejected.
+The existing bounded cache and baseline/latest snapshot publication remain.
+The obsolete expanded-orbit discovery and its image counter are removed.
+
+## Current placement-compression performance
+
+This comparison uses **`9cd89b0f`**, the immediate pre-compression implementation,
+as its baseline. It is distinct from the historical `2e99e989` comparison below.
+The [sanitized measurements](placement-performance.json) retain both complete
+source/engine identities, input hashes, settings and all individual results.
+
+The study ran 60 isolated processes serially on the same Apple Silicon Mac:
+three repetitions of ten cases and two revisions. Each process performed one
+cold run and one warm repeat, giving 120 timed pipeline runs. All processes
+finished without execution errors. No builds or tests overlapped the timings.
+Each point used one seed, random seed 42, discovery/self tolerance 1, presence
+threshold 0.2 and event thresholds 0.5/0.3. The branch cap was 2,000 for
+synthetic/Golden points and 100 for EnzymeMap points. These are single-cut
+forward runs, not full sweeps. The two-ring targets retain their distinguishing
+external attachments.
+
+The table gives median total CPU seconds from preparation through matching,
+reduction, decoding, export and binary roundtrip; cold runs also include
+planning. Imports and input loading are excluded. Warm runs reuse matching
+preparation and cache, then repeat the remaining stages.
+
+| Case | Baseline cold | Placement cold | Baseline warm | Placement warm | Families: baseline → placement |
+|---|---:|---:|---:|---:|---:|
+| C6 → C6 | 0.00443 | 0.00383 | 0.00087 | 0.00077 | 1 → 1 |
+| C6 → two C6 rings | 0.00438 | 0.00435 | 0.00105 | 0.00120 | 2 → 2 |
+| C24 → two C24 rings | 0.00862 | 0.00834 | 0.00433 | 0.00451 | 2 → 2 |
+| P6 → attached C6 rings | 0.00838 | 0.00531 | 0.00481 | 0.00162 | 18 → 4 |
+| Shared root, 32 arms | 0.03249 | 0.01893 | 0.02024 | 0.01013 | 32 → 1 |
+| Golden 1001 | 0.00459 | 0.00425 | 0.00098 | 0.00102 | 1 → 1 |
+| Golden 785 | 0.01517 | 0.00901 | 0.01078 | 0.00471 | 18 → 3 |
+| Golden 1518 | 1.26478 | 0.09664 | 1.24574 | 0.08905 | 2,000 → 94 |
+| EnzymeMap 10383, cut (131,132) | 1.87397 | 3.39598 | 0.68567 | 2.06830 | 100 → 100 |
+| EnzymeMap 37270, cut (65,66) | 0.25017 | 4.41074 | 0.07222 | 4.36885 | 0 → 100 |
+
+Golden 1518 is 13.1 times faster cold and no longer hits its hierarchy cap.
+Its uncut reference query still returns `not_recovered`, with no unknown outcome,
+as at both earlier revisions; this speedup is not a new reference recovery.
+The attached-ring and shared-root points improve by 1.58 and 1.72 times cold,
+respectively. Smaller warm-run increases remain on three points; these are
+0.036–0.188 ms in this study.
+
+**10383 remains slower: 1.81 times cold and 3.02 times warm.** Both runs reach
+cap 100, but the saved placement relationships retain wider mapping scope in
+the new run. Equal representative counts do not mean equal retained mappings.
+Its decoder prepares broader endpoint domains and boundary responses; it does
+not enumerate complete group elements or bijections. Largest observed cold RSS
+increases from 175.1 to 227.7 MiB. This is a real total-time increase, not a
+universal no-regression result.
+
+**37270 is not an equal-output speed comparison:** the baseline stops with zero
+families, whereas placement compression returns 100 families and preserves later
+cap evidence. The largest observed RSS across this study is 475.5 MiB on its
+warm run. RSS includes the complete process lifetime and earlier repeats; it is
+not a memory bound for other reactions.
+
+The final support-sharing and decoder-preparation optimizations preserve the
+complete 10383 decoded-record SHA exactly
+(`e9d2f120db5a306dc4c5e941a30bdd233871d66fda09740264dbc584095ab5ac`).
+Independent relation and event oracles validate compression separately from
+timing. These point measurements establish neither full-dataset reference
+recovery nor cluster throughput, and do not support a universal speedup claim.
+
+## Historical validation before placement compression
 
 The final performance revision passed **833/833 repository tests** in 113.09
 seconds with `python -m pytest -q --tb=short`. New checks cover independent
@@ -98,12 +196,34 @@ reduction and decoding are performed again.
 | EnzymeMap 10383, cut (131,132) | 2.92197 | 1.88792 | 0.75202 | 0.68608 | 100 → 100 |
 
 Six of these nine points are faster; three are slower. All three slower cases
-retain more families under the corrected target-set definition. Golden 1518
-performs about eight times as many cache requests and hierarchy transitions;
-its returned families are stalled terminal outputs, and the current run also
-has cap evidence. Its 4.97-fold cold and 6.15-fold warm total-time increases
-remain real absolute slowdowns. Equal caps do not imply equal work, and these results do not
-support a universal no-regression claim.
+retain more families. Golden 1518 exposes a change in branch representation:
+under the same parent locks, the old fragment represents source H90 mapping to
+any of target H29, H30 or H31 in one record. All three target hydrogens are free
+and bonded only to C0 with WBO 1, so their exchanges preserve the original
+endpoint and every lock. The current matcher emits three separate fragments and
+child branches. These are three different labelled target atom sets, so the
+separate branches follow the approved design. The user reaffirmed this rule
+after inspecting the example. Global symmetry can share discovery work without
+combining their branch identities. The old grouping across target sets explains
+part of the count difference; that difference alone establishes neither a
+matcher defect nor improved reference coverage.
+
+The previous 262-family run has no cap records. The current run reaches the
+2,000 combined-live-branch cap and performs about eight times as many cache
+requests and hierarchy transitions. Both fill all 46 target atoms; their
+terminal `stalled` status reflects the 104-atom source, not a failure to fill the
+target. The current 4.97-fold cold and 6.15-fold warm total-time increases remain
+real measured slowdowns. They do not by themselves justify changing branch
+identity. The 2,000 families reuse 76 unique fragments; process memory also
+includes the retained hierarchy, catalogue and exported records. The live-branch
+cap is not a byte limit on all those structures.
+
+Own-revision reference verification of this exact uncut point returns
+`not_recovered` for both versions, with no timeout or unknown outcome. The
+historical full cut sweep recovered Golden 1518 in both directions, but is a
+different search scope. This diagnosis does not establish a new
+reference-recovery loss on this point. These results
+do not support a universal no-regression claim.
 
 For 10383, cold matching is about 1.24 CPU s and warm matching 0.08 s. Its cache
 retains 30.28 MiB with zero evictions, versus repeated eviction before this
@@ -117,6 +237,27 @@ the previous version returned 100 families in 9.90 CPU s, whereas the current
 version returns none after its explicit 101 > 100 fragment cap (0.254 CPU s).
 That is neither recovery nor a decoding speedup. Its cap/output behavior is
 unchanged by these optimizations.
+
+A focused diagnosis of 37270's first fragment, on the same cut and seed order,
+establishes its complete placement count: **288 distinct target atom sets** for
+one 132-atom source fragment (49 C, 11 N, 13 O, 59 H), within 661-atom endpoints.
+Four independent target hydrogen pairs and two triples each contribute one
+selected hydrogen, giving `2^4 × 3^2 = 144` images for a fixed heavy-atom set.
+Every hydrogen group has identical complete original-WBO rows, so these choices
+preserve all discovery constraints. Two heavy-atom sets differ only in which
+oxygen receives source O248: target O169 has a double bond to C168, whereas
+O170 has a single bond to that carbon. Both satisfy discovery tolerance 1,
+giving `144 × 2 = 288` placements. These are alternative placements of one
+fragment, not 288 fragments composing a reaction.
+
+Explicit Python discovery exhausts at 288 unique images; native completion at
+diagnostic cap 300 returns exactly the same images, source atoms and 131
+accepted edges. Each witness was checked for injectivity, elements and accepted
+bond constraints. The native first-fragment call took 0.145 CPU s in this single
+diagnostic, with 206.56 MiB process-lifetime peak RSS including imports and raw
+record export. This was not a complete-reaction run or a new reference-recovery
+measurement. Production settings and source were unchanged. The original
+101 count was the cap-plus-one stopping point, not the complete candidate count.
 
 [Paired measurements](paired-performance.json) contain every timed phase,
 repetition, output count, cap summary, cache counter, RSS observation, input hash

@@ -131,11 +131,12 @@ class EventInterpretation:
         return self.tables(family_id, partition).evaluate(vector, include_events=include_events)
 
     def realize(self, family_id, choices=None):
-        """Apply explicit fragment choices with their original joint constraints.
+        """Apply ordered local choices and joint global placement words.
 
-        Each choice names discovery and source/target self rearrangements.
-        None retains that fragment's witness. Discovery predicates constrain D;
-        they are not reapplied to the two-sided relaxed alternative.
+        A relation choice names discovery and source/target self rearrangements;
+        a placement choice names signed generator numbers. None retains the
+        witness. Discovery predicates constrain D; they are not reapplied to the
+        two-sided relaxed alternative.
         """
         family = self.catalogue.families[family_id]
         choices = (None,) * len(family.actions) if choices is None else tuple(choices)

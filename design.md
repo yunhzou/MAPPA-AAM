@@ -116,7 +116,7 @@ assignments and the anchor/lock context. Original molecular bonds remain in the
 reaction data, separate from the accepted growth subgraph.
 
 At saturation, source self-automorph preparation is shared across placements.
-Each distinct target atom set produces one completed `Fragment`, with its
+Each retained representative target atom set produces one completed `Fragment`, with its
 anchor-aware relaxed target self-automorph and complete compressed relaxed
 source-to-target relation. That relation owns its witness, anchor pairs and joint
 mapping constraints. Accepted edges retain the discovery evidence separately
@@ -132,7 +132,9 @@ discarded growth histories.
 Original atom lists, anchors and prepared self-relationships are stored once and
 referenced where shared; the table describes logical access, not duplicate
 payloads. Global relationships used to accelerate placement discovery belong to prepared
-reaction search state.
+reaction search state. A completed matching operation also supplies a shared
+placement relationship to its branch transitions. This relationship connects
+equivalent target atom sets; it is separate from each fragment's local relation.
 Scheduling, cache transport and storage policy remain outside these records.
 
 One matching-operation result carries the fragment collection, shared deferred
@@ -144,9 +146,10 @@ representation from dictionaries.
 ```mermaid
 flowchart LR
     Parent[Parent branch locks and anchors] --> Growth[FragmentGrowth]
-    Growth -->|Saturation: distinct target sets| Fragment[Completed Fragment]
+    Growth -->|Saturation: representative target sets| Fragment[Completed Fragment]
     Growth -->|Deferred edges| Continuation[Branch continuation]
     Fragment -->|Shared reference| Continuation
+    Global[Certified global placement relationship] --> Continuation
     Fragment -->|Final aggregation and inventory| Decoder[Fragment and boundary decoding]
 ```
 
@@ -166,19 +169,34 @@ are deferred while the remaining frontier is explored.
 ### Direct compressed completion
 
 At saturation, completion uses the full accepted constraints and the current
-witness to discover each distinct target atom set once within its fixed source
-fragment, parent and anchor context. Relaxed global automorph information can
-share discovery work but must not collapse distinct target sets. Subsequent
-placements must differ in at least one target atom; overlapping sets remain
-eligible. Constraints excluding an already discovered set participate in search,
-with pruning conditioned on those constraints.
+witness to discover representative target atom sets within its fixed source
+fragment, parent and anchor context. Distinct sets may share one continuation
+only when a saved global relationship proves their remaining search problems
+equivalent. Every represented placement remains recoverable through that
+relationship. Overlapping sets remain eligible.
 
-Global acceleration uses only rearrangements proven to preserve the current
-discovery constraints and original self tolerance under composition. Discovering
-one placement then supplies its distinct target-set orbit. Excluding that whole
-orbit permits pruning interchangeable search choices without hiding another
-target set. General non-transitive relaxed relationships are not assumed to
-satisfy this stronger condition.
+Placement compression uses a certified subgroup of the relaxed global
+relationship. It preserves the full target WBO matrix, active connectivity and
+all source-to-target node compatibility, and fixes every prior locked target
+pointwise. Thus every later matching constraint is preserved under composition.
+Callers whose continuation depends on additional target labels declare those
+labels fixed for placement compression; this does not occupy them for matching.
+General non-transitive relaxed relationships do not establish this stronger
+condition. Uncertified rearrangements never justify dropping a continuation.
+
+Discover one representative per target-set orbit. Compact orbit exclusions and
+conditioned symmetry pruning participate in search; do not enumerate all orbit
+images or internal bijections and then merge them. The branch cap counts these
+representative continuations at every hierarchy level. A representative count
+is not the number of labelled target placements it represents.
+
+Search continues with one representative assignment and ordinary occupancy. The
+saved placement relationship subsequently acts on the entire continuation,
+moving later fragments together. It never independently moves one fragment into
+another's occupied target. Each decision applies its local relation, then its
+placement action; complete programs apply decisions in reverse chronological
+order. Retain that order through caches, checkpoints, reduction, mapping queries
+and decoding, including unmatched and cut-boundary events.
 
 Each candidate retains its complete compressed internal mapping relationship,
 using anchor-aware relaxed fragment self-automorph information. Global symmetry
@@ -209,11 +227,13 @@ identical. Independent atom choices must not introduce forbidden combinations.
 
 The replacement preserves valid mappings, accepted/deferred bonds, locks and
 legitimate compressed branch choices. Duplicate records and intermediate merge
-history are not scientific requirements. Arbitrarily regrouping distinct choices
-is also unacceptable: it can change which searches encounter a branch cap.
+history are not scientific requirements. Regrouping choices requires the
+placement-equivalence proof above; similar events, witnesses or atom labels
+alone do not suffice.
 
-For each parent branch, each retained completed-fragment match produces one child
-continuation. Symmetric bijections inside that match are not separate branches.
+For each parent branch, each retained representative completed-fragment match
+produces one child continuation with its saved placement relationship. Symmetric
+bijections inside that match are not separate branches.
 The existing cap applies at every hierarchy level, including the combined live
 leaves across parents. Completion, stalls and caps remain explicit; capped search
 is not an exhaustive absence proof.
@@ -316,13 +336,15 @@ revision to inspect them without changing their scientific meaning.
 Graph combination concatenates and reindexes histories; it does not deduplicate
 final families. Public branch grouping retains every path. Seed order, growth
 history, island labels, anchors and witnesses do not split an atom-set branch;
-different labelled atom sets or fragment pairings do. Live continuation contexts
+different representative atom sets or fragment pairings do. Saved placement
+relationships retain the additional labelled sets without expanding branch
+records. Live continuation contexts
 cannot be discarded merely because their final atom-set groups coincide.
 
 One catalogue per endpoint problem and direction reduces all supplied seeds and
 cuts. Its family key includes matching policies, the representative mapping and the
-ordered complete fragment relationships, including their discovery and self
-constraints. Only proven
+ordered complete fragment and placement relationships, including their discovery
+and self constraints. Only proven
 commuting actions may be reordered. Distinct constraints or correlations remain
 distinct even when witnesses coincide. This is conservative representation-based
 reduction, not a general semantic normal form for all equivalent mapping sets.
@@ -357,7 +379,9 @@ flowchart LR
 replace choices, enumerate complete bijections or select a minimum-event mapping.
 Local responses are shared only when their fragment, witness, relevant ordered
 actions and cut/boundary context agree. A shared action remains one joint choice
-across all affected fragments. Discovery predicates constrain the discovery
+across all affected fragments. Placement actions move the complete continuation,
+including mapped/unmatched boundaries, and do not replace local fragment
+relationships. Discovery predicates constrain the discovery
 assignment; both self rearrangements satisfy their own original-fragment
 constraints. Target occupancy and action dependencies remain joint.
 
@@ -484,8 +508,10 @@ search and missing work remain distinct from proven absence.
 
 Matcher acceptance requires independent mapping-relation checks, meaningful
 branch and cap checks, and Python/native agreement. Critical cases include C6
-into C6 producing one compressed match, C6 into two separate C6 rings producing
-two, and a proven impossible query returning zero without unnecessary search.
+into C6 producing one compressed match, and C6 into two rings retaining both
+placements: two representatives when attachments distinguish them, or one with a
+certified relationship when the whole target permits their exchange. A proven
+impossible query must return zero without unnecessary search.
 Broader validation covers locks, tolerances, accepted/deferred edges, symmetry
 correlations, transport, reduction, decoding and reference membership.
 

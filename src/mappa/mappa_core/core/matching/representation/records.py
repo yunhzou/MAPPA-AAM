@@ -159,6 +159,7 @@ class FragmentMatchContext:
     islands: dict | None = None
     deferred_edges: tuple = ()
     fragment_cache: object = None
+    placement_fixed_targets: tuple = ()
 
     @classmethod
     def from_saved_fragment(cls, fragment, *, deferred_edges=()):
@@ -177,7 +178,7 @@ class FragmentMatchConfig:
     graph_floor: float = 0.2
     iso_tolerance: float = 0.5
     minimum_size: int = 1
-    branch_limit: int = 100  # Distinct compressed placements after completion.
+    branch_limit: int = 100  # Representative placement continuations after completion.
     node_policy: object = None
     allow_mapped_seed: bool = False
     random_seed: int = 42
@@ -193,3 +194,4 @@ class FragmentMatchResult:
     branch_limit: int
     elapsed_seconds: float
     deferred_edges: frozenset = frozenset()
+    placement_generators: tuple = ()

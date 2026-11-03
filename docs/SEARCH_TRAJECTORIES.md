@@ -16,8 +16,10 @@ The stages are independent:
 
 No cut sweep is run. One recorded history is followed per selected terminal.
 Growth frames show one feasible witness. Saturation frames include every
-retained compressed placement and its symmetry blocks, without enumerating atom
-permutations. A growth witness can change when an extension needs reassignment. The selected saved branch determines
+canonical placement, its local relation and the shared global placement action,
+without enumerating atom permutations. Displayed target options include the
+other components represented by that action; these are correlated alternatives,
+not independent atom choices. A growth witness can change when an extension needs reassignment. The selected saved branch determines
 which placement is committed before the next fragment starts.
 
 ## Build any saved case
@@ -62,7 +64,7 @@ Optional manifest fields:
 
 Capture runs in a separate process and reads the matcher's own trace events.
 The actual matching functions decide compatibility; a replay
-that differs from the saved placement fails. The bundle records archive hashes,
+that differs from the saved fragment or shared placement relationship fails. The bundle records archive hashes,
 runtime source hashes, and validation results. Native archives use the matching
 Python trace implementation and must pass the same placement verification.
 

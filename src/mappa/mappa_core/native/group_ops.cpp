@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <vector>
+#include "set_orbit.h"
 
 namespace py = pybind11;
 using Images = std::vector<int>;
@@ -316,6 +317,10 @@ public:
 };
 
 PYBIND11_MODULE(_group_ops, m) {
+    py::class_<permutation_native::SetOrbit>(m, "SetOrbit")
+        .def(py::init<int, const permutation_native::Generators&>())
+        .def("contains", &permutation_native::SetOrbit::contains)
+        .def("stabilizer", &permutation_native::SetOrbit::stabilizer);
     py::class_<PairAction, std::shared_ptr<PairAction>>(m, "PairAction")
         .def_static("pool", &PairAction::from_pool)
         .def_static("group", &PairAction::from_group);

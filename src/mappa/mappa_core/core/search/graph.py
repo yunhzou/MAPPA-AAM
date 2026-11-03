@@ -57,6 +57,7 @@ class FragmentTransition:
     step: tuple
     match: Fragment | None
     island: int = 0
+    placement_generators: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,7 @@ class SearchPath:
     def from_reference(cls, record, graphs):
         return cls(graphs[record['graph']], record['terminal'], tuple(record['transitions']))
 
-    def realize(self, fragment_choices=None):
+    def realize(self, fragment_choices=None, placement_choices=None):
         """Apply validated local relation choices in chronological target frames.
 
         Each transition choice supplies discovery and either signed self words
@@ -126,22 +127,28 @@ class SearchPath:
         """
         from mappa.mappa_core.core.symmetry.actions import apply_action
         choices = {} if fragment_choices is None else dict(fragment_choices)
-        if set(choices) - set(self.transitions):
+        placements = {} if placement_choices is None else dict(placement_choices)
+        if (set(choices) | set(placements)) - set(self.transitions):
             raise ValueError('fragment choice is not on this path')
         action = {atom: atom for atom in self.context.target_atoms}
+        degree = max(self.context.target_atoms, default=-1) + 1
         for edge_id in self.transitions:
-            if edge_id not in choices:
+            if edge_id not in choices and edge_id not in placements:
                 continue
-            fragment = self.graph.transitions[edge_id].match
-            if fragment is None:
-                raise ValueError('join transition has no fragment relation')
-            degree = max(self.context.target_atoms, default=-1) + 1
-            selected = apply_action(fragment.target_atoms, ('relation', fragment), choices[edge_id], degree)
-            delta = dict(zip(fragment.target_atoms, map(int, selected)))
-            action = {atom: action[delta.get(atom, atom)] for atom in action}
+            transition = self.graph.transitions[edge_id]
+            delta = list(range(degree))
+            if edge_id in choices:
+                if transition.match is None:
+                    raise ValueError('transition has no fragment relation')
+                delta = apply_action(delta, ('relation', transition.match), choices[edge_id], degree)
+            if edge_id in placements:
+                delta = apply_action(delta, ('group', transition.placement_generators),
+                                     placements[edge_id], degree)
+            action = {atom: action[int(delta[atom])] for atom in action}
         return PathRealization(self,
             tuple(sorted((atom, action[image]) for atom, image in self.mapping.items())),
-            tuple(sorted(action.items())), tuple(sorted(choices.items())))
+            tuple(sorted(action.items())), tuple(sorted(choices.items())),
+            tuple(sorted(placements.items())))
 
 
 @dataclass(frozen=True)
@@ -150,6 +157,7 @@ class PathRealization:
     mapping: tuple
     target_action: tuple
     fragment_choices: tuple
+    placement_choices: tuple = ()
 
     @property
     def hierarchy(self):
@@ -259,10 +267,12 @@ class AAMSearchGraph:
         """Group exactly equal ordered relations without merging different histories."""
         relations = {}
         for path in self.paths():
-            fragments = tuple((self.transitions[index].match.key,
-                               self.states[self.transitions[index].target].deferred_edges)
+            fragments = tuple((None if edge.match is None else edge.match.key,
+                               edge.placement_generators,
+                               self.states[edge.target].deferred_edges)
                               for index in path.transitions
-                              if self.transitions[index].match is not None)
+                              if (edge := self.transitions[index]).match is not None
+                              or edge.placement_generators)
             key = (tuple(sorted(path.mapping.items())), fragments)
             relations.setdefault(key, []).append(path)
         return tuple(SearchBranch(tuple(paths)) for paths in relations.values())
@@ -278,7 +288,7 @@ class AAMSearchGraph:
         def rows(items):
             return tuple({field.name: getattr(item, field.name)
                           for field in fields(item)} for item in items)
-        record = dict(schema='mappa.aam_search_graph/2',
+        record = dict(schema='mappa.aam_search_graph/3',
                       contexts=rows(self.contexts), roots=self.roots,
                       states=rows(self.states), transitions=rows(self.transitions),
                       stops=rows(self.stops))
@@ -317,7 +327,7 @@ class AAMSearchGraph:
                 tuple((atom, 1) for atom in placement.source_atoms),
                 tuple(sorted(result.deferred_edges))))
             edges.append(FragmentTransition(len(edges), 0, node, seed, (1, 0),
-                                            placement, 1))
+                                            placement, 1, result.placement_generators))
             stops.append(SearchStop(node, 'objective_met', seed, 'seeded_fragment'))
         if result.capped:
             stops.append(SearchStop(None, 'capped', seed, 'fragment_growth',
@@ -329,7 +339,7 @@ class AAMSearchGraph:
     @classmethod
     def from_record(cls, record, *, copy=True, tuple_pool=None):
         from mappa.mappa_core.core.matching.representation.records import Fragment
-        if record["schema"] != "mappa.aam_search_graph/2":
+        if record["schema"] != "mappa.aam_search_graph/3":
             raise ValueError("unsupported AAM search graph schema")
         tuple_pool = {} if tuple_pool is None else tuple_pool
         def pairs(items):
@@ -354,6 +364,7 @@ class AAMSearchGraph:
         self_pool = {}
         transitions = tuple(FragmentTransition(**{**item,
             'match': None if item['match'] is None else Fragment.from_record(item['match'], self_pool=self_pool),
+            'placement_generators': pairs(item['placement_generators']),
             'step': tuple(item['step'])}) for item in record['transitions'])
         return cls(contexts, tuple(record["roots"]), states, tuple(transitions),
                    tuple(SearchStop(**{**item, 'step': tuple(item.get('step', ()))})
@@ -369,7 +380,8 @@ class AAMSearchGraph:
             states.extend(SearchState(state.id+s, state.context+c, state.mapping,
                 state.islands, state.deferred_edges) for state in graph.states)
             transitions.extend(FragmentTransition(edge.id+t, edge.source+s, edge.target+s,
-                edge.seed, edge.step, edge.match, edge.island) for edge in graph.transitions)
+                edge.seed, edge.step, edge.match, edge.island, edge.placement_generators)
+                for edge in graph.transitions)
             stops.extend(replace(stop,
                 state=None if stop.state is None else stop.state+s,
                 context=graph.stop_context(stop)+c
@@ -423,11 +435,11 @@ class SearchGraphBuilder:
         self.roots.append(node)
         return node
 
-    def commit(self, parent, branch, match, island):
+    def commit(self, parent, branch, match, island, placement_generators=()):
         """Reference the immutable completed fragment directly."""
         node = self.state(branch)
         self.transitions.append(FragmentTransition(len(self.transitions), parent,
-            node, self.seed, self.step, match, island))
+            node, self.seed, self.step, match, island, placement_generators))
         return node
 
     def join(self, kept, other):

@@ -60,11 +60,15 @@ class EventDecodeSession:
             responses = []
             for original, action in zip(family.actions, local.programs.program(family.actions)):
                 if action not in self.actions:
-                    if action[0] != 'relation':
-                        raise ValueError('decoding requires completed fragment relations')
                     # Self generators do not describe all D alternatives and
                     # therefore cannot certify the entire relation invariant.
-                    self.actions[action] = SymmetryEventResponse(original, None)
+                    if action[0] == 'relation':
+                        responses_for_action = None
+                    elif action[0] == 'group':
+                        responses_for_action = self.index.target_action_responses(action[1])
+                    else:
+                        raise ValueError('decoding requires fragment relations or placement groups')
+                    self.actions[action] = SymmetryEventResponse(original, responses_for_action)
                     if len(self.actions) > 1024:
                         self.actions.popitem(last=False)
                 self.actions.move_to_end(action)

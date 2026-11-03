@@ -130,6 +130,20 @@ def test_batched_generator_checks_equal_dense_response_signatures():
         assert SignedEventIndex(problem).target_action_responses(generators, batch_entries=size) == tuple(expected)
 
 
+def test_exact_weight_placements_do_not_prepare_opposite_response_labels():
+    source = endpoint('COCO', [(0, 1, 1.4), (2, 3, 2.1)])
+    target = endpoint('COCO', [(0, 1, 1.2), (2, 3, 1.2)])
+    problem = AAMProblem(source, target)
+    index = SignedEventIndex(problem)
+    exchange = (2, 3, 0, 1)
+    assert index.target_action_responses((exchange,), batch_entries=1) == ((True, 0),)
+    assert 'response_data' not in index.__dict__
+    for images in permutations(range(4)):
+        mapping = dict(enumerate(images))
+        moved = {r: exchange[p] for r, p in mapping.items()}
+        assert dense_counts(problem, mapping) == dense_counts(problem, moved)
+
+
 
 def test_count_batches_bound_pair_scratch(monkeypatch):
     ep = endpoint('C'*300,[(0,1,1.)])
@@ -501,6 +515,9 @@ def test_partition_views_do_not_duplicate_counts_or_split_shared_choices():
         pairs=(((0, 1, 2), (0, 1, 2)), ((3, 4, 5), (3, 4, 5))))
     source.coupled_branches[0] = {tuple(((a,), (a,)) for a in range(6))}
     decoded = decode_events(source)
+    separate = next(decoded.tables(0, i) for i, parts in enumerate(decoded.fragment_partitions[0])
+                    if len(parts) == 2)
+    assert separate.components == (((0,), (0,)), ((1,), (1,)))
     for selections in product(*[(None, swap(fragment)) for fragment in fragments]):
         totals = [decoded.contributions(0, selections, partition=i)['counts'] for i in range(2)]
         assert totals[0] == totals[1]

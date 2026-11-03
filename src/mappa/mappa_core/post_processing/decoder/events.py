@@ -273,9 +273,21 @@ class SignedEventIndex(BondResponseIndex):
         if batch_entries < 1:
             raise ValueError('batch_entries must be positive')
         generators = tuple(tuple(g) for g in generators)
-        labels = self.response_data[1]['labels']
         elements = np.asarray(self.problem.product.elements)
         result = []
+
+        def changed_pairs(matrix, images):
+            changed = np.zeros(len(images), dtype=int)
+            moved = np.any(images != np.arange(self.m), axis=0)
+            relevant = np.flatnonzero(moved[self.pa] | moved[self.pb])
+            pair_batch = max(1, batch_entries // len(images))
+            for offset in range(0, len(relevant), pair_batch):
+                pairs = relevant[offset:offset + pair_batch]
+                a, b = self.pa[pairs], self.pb[pairs]
+                changed += np.count_nonzero(
+                    matrix[images[:, a], images[:, b]] != matrix[a, b], axis=1)
+            return changed
+
         # Bound both the generator matrix and the generator-by-pair scratch.
         batch_size = max(1, min(64, batch_entries // max(1, self.m)))
         for start in range(0, len(generators), batch_size):
@@ -287,16 +299,13 @@ class SignedEventIndex(BondResponseIndex):
                         or not np.all(np.sort(images, axis=1) == np.arange(self.m))):
                     raise ValueError('invalid saved target permutation')
                 images = images.astype(int, copy=False)
-                changed = np.zeros(len(missing), dtype=int)
-                moved = np.any(images != np.arange(self.m), axis=0)
-                relevant = np.flatnonzero(moved[self.pa] | moved[self.pb])
-                pair_batch = max(1, batch_entries // len(missing))
-                for offset in range(0, len(relevant), pair_batch):
-                    pairs = relevant[offset:offset + pair_batch]
-                    a, b = self.pa[pairs], self.pb[pairs]
-                    changed += np.count_nonzero(
-                        labels[images[:, a], images[:, b]] != labels[a, b], axis=1)
+                # Exact original weights certify every event response directly;
+                # build response labels only for actions that change a weight.
                 same_elements = np.all(elements[images] == elements, axis=1)
+                varying = np.flatnonzero((changed_pairs(self.p, images) > 0) | ~same_elements)
+                changed = np.zeros(len(missing), dtype=int)
+                if len(varying):
+                    changed[varying] = changed_pairs(self.response_data[1]['labels'], images[varying])
                 for g, count, same in zip(missing, changed, same_elements):
                     self._actions[g] = (bool(same and count == 0), int(count))
             result.extend(self._actions[g] for g in batch)
@@ -311,11 +320,14 @@ class SignedEventIndex(BondResponseIndex):
         Conservative domains certify identity only when no atom can move.
         """
         for edge in path.transitions:
-            fragment = path.graph.transitions[edge].match
-            if fragment is None:
-                continue
-            domains = self.action_domains(('relation', fragment))
-            if any(len(domains[p]) > 1 for p in fragment.target_atoms):
+            transition = path.graph.transitions[edge]
+            fragment = transition.match
+            if fragment is not None:
+                domains = self.action_domains(('relation', fragment))
+                if any(len(domains[p]) > 1 for p in fragment.target_atoms):
+                    return None
+            if any(not preserves for preserves, _ in
+                   self.target_action_responses(transition.placement_generators)):
                 return None
         return True
 
@@ -507,12 +519,11 @@ class FragmentEventTables:
                 first = root(nodes[0])
                 for node in nodes[1:]:
                     parent[root(node)] = first
-        # Each atom below already joins its owner to every affecting action.
-        # Internal terms add no connection; only boundary terms can join owners.
-        for terms in self.boundary.values():
-            for term in terms:
-                if term.response.constant is None:
-                    join({int(self.owners[a]) for a in term.atoms}, term.action_ids)
+        # Atom rows join every owner to its actions. Boundary terms only add
+        # the connection between their two owners, once per variable region.
+        for owners, terms in self.boundary.items():
+            if any(term.response.constant is None for term in terms):
+                join(owners, ())
         for atom, actions in self.atom_actions.items():
             if actions:
                 join((int(self.owners[atom]),), actions)

@@ -147,6 +147,48 @@ def test_display_marginals_use_local_relation_despite_external_asymmetry():
     assert 'target_options' not in candidate
 
 
+def test_saturation_shows_other_components_and_rejects_lost_placement_actions(monkeypatch):
+    from dataclasses import replace
+    from mappa.presentation.trajectory import with_represented_targets
+
+    source = MolecularEndpoint(elements=['C', 'O'], coordinates=np.zeros((2, 3)),
+                               wbo=_matrix(2, [(0, 1)]))
+    target = MolecularEndpoint(elements=['C', 'O', 'C', 'O'], coordinates=np.zeros((4, 3)),
+                               wbo=_matrix(4, [(0, 1), (2, 3)]))
+    result = search_aam(AAMProblem(source, target),
+                       AAMSearchConfig(seed_count=1, branch_limit=32), workers=1)
+    document = build_trajectory([dict(aam=result)])
+    projected = with_represented_targets(document)
+    saturation = [frame for frame in projected['runs'][0]['paths'][0]['frames']
+                  if frame['kind'] == 'seed_end']
+    assert len(saturation) == 1 and len(saturation[0]['candidates']) == 1
+    assert saturation[0]['placement_generators']
+    assert saturation[0]['candidates'][0]['target_options'] == {'0': [0, 2], '1': [1, 3]}
+
+    # The same local fragment has narrower marginals without its shared action.
+    canonical_frame = dict(saturation[0], placement_generators=())
+    document['runs'][0]['paths'][0]['frames'].append(canonical_frame)
+    projected = with_represented_targets(document)
+    canonical = projected['runs'][0]['paths'][0]['frames'][-1]['candidates'][0]
+    assert canonical['target_options'] == {str(a): [b] for a, b in canonical['witness'].items()}
+
+    original = growth.grow_island_python
+    monkeypatch.setattr(growth, 'grow_island_python',
+                        lambda *a, **k: replace(original(*a, **k), placement_generators=()))
+    with pytest.raises(ValueError, match='Replay differs'):
+        build_trajectory([dict(aam=result)])
+
+
+def test_replay_compares_placement_groups_instead_of_generator_lists():
+    from mappa.presentation.trajectory import _same_placement_group
+
+    rotation = (1, 2, 0)
+    inverse = (2, 0, 1)
+    assert _same_placement_group((rotation,), (inverse,), 3)
+    assert _same_placement_group((), ((0, 1, 2),), 3)
+    assert not _same_placement_group((rotation,), (), 3)
+
+
 def _matrix(size, bonds):
     weights = np.zeros((size, size))
     for a, b in bonds:

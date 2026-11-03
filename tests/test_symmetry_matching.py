@@ -12,7 +12,7 @@ from mappa.mappa_core.core.matching.representation.records import IslandBranchLi
 from mappa.mappa_core.core.matching.growth.engine import grow_island
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
 from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY
-from test_growth_compression_exactness import complete, explicit, represented, discovered
+from test_growth_compression_exactness import complete, explicit, represented
 
 
 def _tetramethyl_metal_graph():
@@ -137,8 +137,9 @@ def test_completion_retains_placements_on_different_atom_sets():
     weights[0, 2] = weights[2, 0] = weights[1, 3] = weights[3, 1] = 1.
     target = build_graph(['C'] * 4, weights, bond_cut=.2)
     candidates = complete(source, target, {0, 1}, [(0, 1)], .1)
-    assert len(candidates) == 2
-    assert {frozenset(candidate.target_atoms) for candidate in candidates} == {
+    # Exchanging the two identical components preserves the entire target.
+    assert len(candidates.matches) == 1
+    assert {frozenset(p for _, p in mapping) for mapping in represented(candidates)} == {
         frozenset({0, 2}), frozenset({1, 3})}
     assert represented(candidates) == {
         ((0, a), (1, b)) for a, b in ((0, 2), (2, 0), (1, 3), (3, 1))}
@@ -153,7 +154,7 @@ def test_completion_ignores_unaccepted_source_pairs():
     target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
     result = complete(source, target, {0, 1, 2}, [(1, 2)], .1,
                       locked={0: 0, 1: 1})
-    assert len(result) == 1 and dict(result[0].witness) == {0: 0, 1: 1, 2: 2}
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 0, 1: 1, 2: 2}
 
 
 def test_completion_rejects_an_accepted_edge_mismatch():
@@ -164,15 +165,15 @@ def test_completion_rejects_an_accepted_edge_mismatch():
     weights[0, 2] = weights[2, 0] = 0.
     target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
     assert complete(source, target, {0, 1, 2}, [(0, 2)], .1,
-                    locked={0: 0, 1: 1}) == []
+                    locked={0: 0, 1: 1}).matches == ()
 
 
-def test_unique_center_has_one_compressed_hydrogen_pool():
+def test_unique_center_compresses_equivalent_hydrogen_placements():
     source = build_graph(['C', 'H'], np.array([[0., 1.], [1., 0.]]), bond_cut=.2)
     weights = np.array([[0., 1., 1.], [1., 0., 0.], [1., 0., 0.]])
     target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], .1)
-    assert len(result) == 2
+    assert len(result.matches) == 1
     assert represented(result) == {((0, 0), (1, p)) for p in (1, 2)}
 
 
@@ -181,7 +182,8 @@ def test_planar_metal_tetramethyl_metal_carbon_branch_is_fourfold():
     source = build_graph(elements, weights, bond_cut=.2)
     target = build_graph(elements, weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], .5)
-    assert len(result) == 4
+    # All four complete methyl arms are exactly interchangeable.
+    assert len(result.matches) == 1
     assert represented(result) == {((0, 0), (1, p)) for p in (1, 5, 9, 13)}
 
 
@@ -219,7 +221,7 @@ def test_core_projection_does_not_invent_global_orbit_swaps():
     assert variants == [{0: 0, 1: 1}]
 
 
-def test_core_projection_includes_tolerance_pool_without_exact_automorphism():
+def test_core_projection_includes_tolerated_local_rearrangement_without_exact_symmetry():
     from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_core_assignments
 
     weights = np.array([[0., 1., 1.1], [1., 0., 0.], [1.1, 0., 0.]])
@@ -255,12 +257,13 @@ def test_core_alignment_does_not_filter_nonmatching_core_edges():
     assert {assignment.pairs for assignment in result.assignments} == {((0, 0), (1, 1), (2, 2))}
 
 
-def test_tolerance_orbits_supply_a_completed_hydrogen_pool():
+def test_tolerance_compatible_unequal_bonds_remain_separate_placements():
     weights = np.array([[0., 1., 1.1], [1., 0., 0.], [1.1, 0., 0.]])
     source = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], .2)
-    assert len(result) == 2
+    # Discovery accepts both bonds; exact whole-target symmetry cannot swap them.
+    assert len(result.matches) == 2
     assert represented(result) == {((0, 0), (1, p)) for p in (1, 2)}
 
 
@@ -269,7 +272,8 @@ def test_planar_metal_tetramethyl_child_h_keeps_parent_degeneracy():
     source = build_graph(elements, weights, bond_cut=.2)
     target = build_graph(elements, weights, bond_cut=.2)
     result = complete(source, target, {0, 1, 2}, [(0, 1), (1, 2)], .5)
-    assert len(result) == 12
+    # Methyl-arm exchanges and within-arm H exchanges share one continuation.
+    assert len(result.matches) == 1
     expected = {((0, 0), (1, c), (2, h))
                 for c in (1, 5, 9, 13) for h in (c + 1, c + 2, c + 3)}
     assert len(expected) == 12 and represented(result) == expected
@@ -280,7 +284,9 @@ def test_planar_metal_tetramethyl_two_metal_carbon_edges_are_correlated():
     source = build_graph(elements, weights, bond_cut=.2)
     target = build_graph(elements, weights, bond_cut=.2)
     result = complete(source, target, {0, 1, 5}, [(0, 1), (0, 5)], .5)
-    assert len(result) == 6
+    # The six pairs of methyl arms form one target-set orbit, while the
+    # fragment relation retains both assignments within each selected pair.
+    assert len(result.matches) == 1
     expected = {((0, 0), (1, a), (5, b))
                 for a in (1, 5, 9, 13) for b in (1, 5, 9, 13) if a != b}
     assert len(expected) == 12 and represented(result) == expected
@@ -294,11 +300,11 @@ def test_completion_uses_later_constraints_to_select_the_valid_assignment():
     weights[1, 2] = weights[2, 1] = 1.
     target = build_graph(['C', 'C', 'O'], weights, bond_cut=.2)
     unconstrained = complete(source, target, {0, 1}, [], .5)
-    assert len(unconstrained) == 1
+    assert len(unconstrained.matches) == 1
     assert represented(unconstrained) == {
         ((0, 0), (1, 1)), ((0, 1), (1, 0))}
     result = complete(source, target, {0, 1, 2}, [(0, 2)], .5)
-    assert len(result) == 1 and dict(result[0].witness) == {0: 1, 1: 0, 2: 2}
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 1, 1: 0, 2: 2}
 
 
 def test_completion_preserves_pair_relations_within_one_vertex_orbit():
@@ -312,7 +318,8 @@ def test_completion_preserves_pair_relations_within_one_vertex_orbit():
     opposite = {((0, a), (1, (a + 2) % 4)) for a in target}
     assert adjacent.isdisjoint(opposite)
     result = complete(source, target, {0, 1}, [(0, 1)], .2)
-    assert len(result) == 4 and represented(result) == adjacent
+    # Ring edges form one placement orbit; opposite pairs remain forbidden.
+    assert len(result.matches) == 1 and represented(result) == adjacent
 
 
 def test_completion_preserves_correlated_carbon_and_hydrogen_motion():
@@ -323,7 +330,7 @@ def test_completion_preserves_correlated_carbon_and_hydrogen_motion():
         weights[a, b] = weights[b, a] = 1.
     graph = build_graph(elements, weights, bond_cut=.2)
     result = complete(graph, graph, set(graph), bonds, .5)
-    assert len(result) == 1
+    assert len(result.matches) == 1
     assert represented(result) == {
         ((0, 0), (1, 1), (2, 2), (3, 3), (4, 4)),
         ((0, 0), (1, 2), (2, 1), (3, 4), (4, 3))}
@@ -350,8 +357,8 @@ def test_locked_anchor_restricts_its_terminal_atom_to_the_same_component():
     weights[0, 1] = weights[1, 0] = weights[2, 3] = weights[3, 2] = 1.
     target = build_graph(['C', 'H', 'C', 'H'], weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], .5, locked={0: 0})
-    assert len(result) == 1 and dict(result[0].witness) == {0: 0, 1: 1}
-    assert result[0].target_atoms == (0, 1)
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 0, 1: 1}
+    assert result.matches[0].target_atoms == (0, 1)
 
 
 def test_active_source_edge_requires_active_target_edge_even_with_loose_tolerance():
@@ -360,7 +367,7 @@ def test_active_source_edge_requires_active_target_edge_even_with_loose_toleranc
     weights[0, 1] = weights[1, 0] = .963
     target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], 1.)
-    assert len(result) == 1
+    assert len(result.matches) == 1
     assert represented(result) == {((0, 0), (1, 1))}
 
 
@@ -371,7 +378,7 @@ def test_external_subfloor_bonds_do_not_restrict_local_self_relationship():
     source = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
     target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
     result = complete(source, target, {0, 1}, [(0, 1)], .5)
-    relations = [represented([candidate]) for candidate in result]
+    relations = [represented([candidate]) for candidate in result.matches]
     assert set.union(*relations) == {((0, 0), (1, 1)), ((0, 1), (1, 0))}
     assert sum(map(len, relations)) == 2
 

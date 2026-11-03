@@ -50,7 +50,7 @@ class FragmentQuery:
         self.atoms = tuple(sorted(atoms))
         self.target = target
         self.calls = self.nodes = self.rejected = 0
-        self.global_generators = self.global_images = self.global_pruned = 0
+        self.global_generators = self.global_pruned = 0
         occupied = set(locked.values())
         self.domains = {
             r: tuple(p for p in target if
@@ -207,63 +207,15 @@ class FragmentQuery:
         return connected, components, frozenset(forbidden)
 
     def needs_global_symmetry(self):
-        """Skip preparation when ordinary image exclusions already close the search."""
-        if len(set().union(*self.domains.values())) <= len(self.atoms):
-            return False
-        connected, components, _ = self._image_components
-        return not connected or any(len(component) > len(self.atoms)
-                                    for component in components.values())
+        """A fixed image needs only its local relationship; other images may share work."""
+        return len(set().union(*self.domains.values())) > len(self.atoms)
 
-    def _global_actions(self, prepared):
-        """Certify a subgroup preserving discovery and original self tolerance.
+    def images(self, limit, *, preferred=None, placement_generators=()):
+        """Return representatives of target-set orbits under a certified group.
 
-        Preserving true support pairs suffices because each generator bijects
-        both domains. Self tolerance needs a whole pair-orbit proof: checking
-        generators separately would incorrectly assume transitivity.
-        """
-        domains = {r: frozenset(values) for r, values in self.domains.items()}
-        actions, generators = [], []
-        for generator in prepared.generators:
-            action = {atom: prepared.atoms[image]
-                      for atom, image in zip(prepared.atoms, generator)}
-            if any({action[p] for p in values} != values for values in domains.values()):
-                continue
-            if any(action[q] not in allowed[action[p]]
-                   for (a, b), allowed in self.supports.items() if a < b
-                   for p in domains[a] for q in allowed[p] if q in domains[b]):
-                continue
-            generators.append(generator)
-            actions.append(action)
-        if not actions or not prepared.constraints:
-            return tuple(actions)
-        weights, tolerance = prepared.weights, prepared.tolerance
-        active = {(a, b) for a in range(len(prepared.atoms))
-                  for b in range(a + 1, len(prepared.atoms)) if weights[a, b] > tolerance}
-        for first in sorted(active):
-            if first not in active:
-                continue
-            orbit, pending = {first}, [first]
-            low = high = weights[first]
-            for a, b in pending:
-                for generator in generators:
-                    pair = tuple(sorted((generator[a], generator[b])))
-                    if pair in orbit:
-                        continue
-                    orbit.add(pair)
-                    pending.append(pair)
-                    weight = weights[pair]
-                    low, high = min(low, weight), max(high, weight)
-                    if high - low > tolerance:
-                        return ()
-            active.difference_update(orbit)
-        return tuple(actions)
-
-    def images(self, limit, *, preferred=None, global_self=None):
-        """Return one witness per distinct target atom set, up to ``limit``.
-
-        Emitted images become search exclusions. A certified global subgroup
-        shares discovery across their complete set orbit, so exclusions remain
-        invariant while internal assignment choices are pruned.
+        The caller certifies full target preservation and prior locks. Orbit
+        exclusions reject a forced target set before constructing its witness;
+        neither permutations nor all equivalent image sets are materialized.
         """
         if limit < 1:
             raise ValueError('image witness limit must be positive')
@@ -271,38 +223,17 @@ class FragmentQuery:
         results, excluded = [], []
         connected, components, initially_forbidden = self._image_components
         forbidden = set(initially_forbidden)
-        actions = () if global_self is None else self._global_actions(global_self)
+        from mappa._group_ops import SetOrbit
+        actions = placement_generators
+        orbit = SetOrbit(max(self.target, default=-1) + 1, actions) if actions else None
         self.global_generators = len(actions)
 
-        def emit_one(witness):
+        def emit(witness):
             if connected and len(components[witness[self.atoms[0]]]) == len(self.atoms):
                 forbidden.update(components[witness[self.atoms[0]]])
-            else:
-                excluded.append(frozenset(witness.values()))
+            excluded.append(frozenset(witness.values()))
             results.append(witness)
             return len(results) < limit
-
-        def emit(witness):
-            first = len(results)
-            if not emit_one(witness):
-                return False
-            if not actions:
-                return True
-            reached = {frozenset(witness.values())}
-            index = first
-            while index < len(results):
-                current = results[index]
-                image = frozenset(current.values())
-                for action in actions:
-                    moved = frozenset(action[p] for p in image)
-                    if moved in reached:
-                        continue
-                    reached.add(moved)
-                    self.global_images += 1
-                    if not emit_one({r: action[p] for r, p in current.items()}):
-                        return False
-                index += 1
-            return True
 
         def choices(domains, atom):
             if not actions:
@@ -346,6 +277,12 @@ class FragmentQuery:
                         domains[r] = tuple(p for p in domains[r] if p not in image)
                 if not self._reduce(domains):
                     return False
+                if orbit is not None and excluded:
+                    image = set().union(*domains.values())
+                    if len(image) == len(self.atoms) and any(
+                            orbit.contains(tuple(saved), tuple(image)) for saved in excluded):
+                        self.global_pruned += 1
+                        return False
                 if before == sum(map(len, domains.values())):
                     return True
 

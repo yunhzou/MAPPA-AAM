@@ -5,6 +5,7 @@ import os
 from importlib import import_module
 import time
 from dataclasses import dataclass
+import numpy as np
 from mappa.mappa_core.core.matching.policy import ElementNodeMatchPolicy
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded, FragmentMatchResult, fragment_from_native
 
@@ -48,49 +49,53 @@ def _graph_edges(g, index):
     )
 
 
-def _wbo_rows(g, nodes):
-    matrix = g.graph.get("wbo_matrix")
+def _graph_inputs(graph):
+    matrix = graph.graph.get('wbo_matrix')
     if matrix is None:
         return None
-    return [[float(matrix[a][b]) for b in nodes] for a in nodes]
+    nodes = tuple(sorted(map(int, graph)))
+    index = {atom: position for position, atom in enumerate(nodes)}
+    rows = np.asarray(matrix, dtype=float)
+    if nodes != tuple(range(len(nodes))) or rows.shape != (len(nodes), len(nodes)):
+        rows = rows[np.ix_(nodes, nodes)]
+    signature = (nodes, tuple(str(graph.nodes[v].get('element')) for v in nodes),
+                 tuple(_graph_edges(graph, index)), float(graph.graph.get('bond_cut', .2)),
+                 rows.tobytes())
+    return signature, index, rows
 
 
 def source_graph(g_R, bond_tolerance=None):
     """Native view of the (possibly cut) reactant graph, cached on the graph."""
-    cached = g_R.graph.get("_native_source")
-    if cached is not None and cached[0] is g_R and cached[1].bond_tolerance == bond_tolerance:
-        return cached[1]
-    nodes = tuple(sorted(map(int, g_R.nodes())))
-    index = {atom: position for position, atom in enumerate(nodes)}
-    edges = tuple(_graph_edges(g_R, index))
-    rows = _wbo_rows(g_R, nodes)
-    if rows is None:
+    inputs = _graph_inputs(g_R)
+    if inputs is None:
         return None
-    elements = [str(g_R.nodes[v].get("element")) for v in nodes]
-    native = _engine.SourceGraph(elements, rows, float(g_R.graph.get("bond_cut", 0.2)),
-                                 edges,
-                                 [] if bond_tolerance is None else bond_tolerance.native_values(nodes),
-                                 True if bond_tolerance is None else bond_tolerance.inclusive)
+    signature, index, rows = inputs
+    nodes, elements, edges, bond_cut, _ = signature
+    tolerances = () if bond_tolerance is None else tuple(bond_tolerance.native_values(nodes))
+    inclusive = True if bond_tolerance is None else bond_tolerance.inclusive
+    signature = signature, tolerances, inclusive
+    cached = g_R.graph.get("_native_source")
+    if cached is not None and cached[0] is g_R and cached[1] == signature:
+        return cached[2]
+    native = _engine.SourceGraph(elements, rows.tolist(), bond_cut, edges, tolerances, inclusive)
     view = _NativeGraphView(native, nodes, index, bond_tolerance)
-    g_R.graph["_native_source"] = (g_R, view)
+    g_R.graph["_native_source"] = g_R, signature, view
     return view
 
 
 def target_graph(g_P):
     """One native target view of the active graph and original WBO matrix."""
-    entry = g_P.graph.get('_native_target')
-    if entry is not None and entry[0] is g_P:
-        return entry[1]
-    nodes = tuple(sorted(map(int, g_P.nodes())))
-    index = {atom: position for position, atom in enumerate(nodes)}
-    rows = _wbo_rows(g_P, nodes)
-    if rows is None:
+    inputs = _graph_inputs(g_P)
+    if inputs is None:
         return None
-    native = _engine.TargetGraph(
-        [str(g_P.nodes[v].get('element')) for v in nodes], rows,
-        float(g_P.graph.get('bond_cut', .2)), _graph_edges(g_P, index))
+    signature, index, rows = inputs
+    entry = g_P.graph.get('_native_target')
+    if entry is not None and entry[0] is g_P and entry[1] == signature:
+        return entry[2]
+    nodes, elements, edges, bond_cut, _ = signature
+    native = _engine.TargetGraph(elements, rows.tolist(), bond_cut, edges)
     view = _NativeGraphView(native, nodes, index)
-    g_P.graph['_native_target'] = g_P, view
+    g_P.graph['_native_target'] = g_P, signature, view
     return view
 
 
@@ -104,7 +109,8 @@ def validate_inputs(node_policy, events):
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None, self_tolerance=1.0):
+                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None, self_tolerance=1.0,
+                placement_fixed_targets=()):
     """Run the selected native engine or report unsupported inputs explicitly."""
     if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentRepair):
         raise TypeError('fragment cache must be a completed-fragment cache view')
@@ -122,6 +128,9 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
         raise ValueError('Native growth requires original WBO matrices')
     source_index = source_view.index
     target_index = target_view.index
+    if any(p not in target_index for p in placement_fixed_targets):
+        raise ValueError('Placement fixed targets contain atoms outside the target graph')
+    fixed_targets = sorted({target_index[int(p)] for p in placement_fixed_targets})
     if seed not in source_index:
         raise ValueError('Growth seed is not in the source graph')
     n_r = len(source_view.nodes)
@@ -145,9 +154,11 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
     arguments = (source_index[int(seed)], image, float(graph_floor), float(iso_tol),
                  int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed), int(random_seed) & ((1<<64)-1))
     if fragment_cache is None:
-        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments, self_tolerance=self_tolerance)
+        out = _engine.grow_island(source_view.graph, target_view.graph, *arguments,
+                                 self_tolerance=self_tolerance, placement_fixed_targets=fixed_targets)
     else:
-        out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments, self_tolerance=self_tolerance)
+        out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments,
+                                       self_tolerance=self_tolerance, placement_fixed_targets=fixed_targets)
     elapsed = time.perf_counter() - started
     if profile is not None:
         prof = {'seed': int(seed)}
@@ -167,5 +178,14 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                     for record in out['fragments'])
     deferred = frozenset(tuple(sorted((source_view.nodes[int(a)], source_view.nodes[int(b)])))
                          for a, b in out["deferred_edges"])
+    generators = out['placement_generators']
+    if target_view.nodes != tuple(range(len(target_view.nodes))):
+        translated = []
+        for generator in generators:
+            values = list(range(max(target_view.nodes) + 1))
+            for atom, image in zip(target_view.nodes, generator):
+                values[atom] = target_view.nodes[image]
+            translated.append(tuple(values))
+        generators = tuple(translated)
     return FragmentMatchResult(tuple(results), False, len(results), max_branches,
-                               elapsed, deferred)
+                               elapsed, deferred, generators)
