@@ -262,10 +262,14 @@ a previous timeout. The combined recovery is **1,835/1,851 (99.14%)**. This is t
 union of the baseline and a selected follow-up, not the accuracy of a full run
 at tolerance 2. A capped miss does not establish mapping absence.
 
-The [saved evidence](recovery-evidence.json) currently contains 39 completed
-reference checks, without errors or unknown verdicts. The remaining check is
-1799 forward; its completed reverse check already establishes reaction recovery.
-Whole-pass verification timing remains pending. No event decoding was run.
+The [saved evidence](recovery-evidence.json) now contains all 40 terminal
+reference records: **six recovered, 33 not recovered and one execution timeout**.
+Case 1799 forward exhausted its original 3,600-second budget; its completed
+reverse check establishes reaction recovery. The 39 completed checks used
+4,230.08 compute CPU seconds; the timeout retained 3,430.32 sampled CPU seconds.
+The verification runner elapsed time was 3,906.22 seconds, including its long
+tail; all 20 reaction outcomes were known after 1,204.59 seconds of verification.
+No event decoding or verification retry was run.
 
 The Mac study used six workers with a 4 GiB guard and fresh results and caches.
 All **2,033 matching cuts and 40 reductions** completed without failures or retries.
@@ -281,6 +285,88 @@ This is separate from the historical
 That study recovered eight cases at tolerance 1, one additional case at 1.5 and
 four at 2. Its seed count and cohort differ from the current one-seed follow-up.
 The proposed cap-100 speed comparison has not been started.
+
+### Ten-seed follow-up
+
+The 16 remaining misses were tested with **ten seeds, cap 2,000 and
+matching tolerance 2**, retaining self tolerance 1, random seed 42, both
+directions and the full cut sweep. Only seed count changes from the preceding
+one-seed study. The four recovered reactions are excluded from this follow-up.
+The study uses the same scientific source identity, six local workers, a 4 GiB
+worker guard and fresh shared reaction caches. Matching and reduction precede
+external reference verification; event decoding is not part of this recovery
+test. The one-seed verification tail overlapped this launch, so elapsed time is
+not an isolated machine benchmark.
+
+The follow-up confirmed **seven additional recoveries**: **20, 44, 867, 964,
+1034, 1228 and 1314**. Cases **7, 986 and 1285** had two completed negative checks.
+Cases **19, 1358, 1377, 1475 and 1568** remain unresolved after interrupted
+verification; **590** remains unresolved after memory failures. The union with
+the baseline and one-seed follow-up is **1,842/1,851 (99.51%)**. This is a selected
+recovery union, not a completed full benchmark at one setting.
+
+All 32 verification records are terminal: **13 recovered, eight not recovered,
+nine lost task leases and two dependency errors** for unavailable catalogues.
+The 21 completed checks used 2,403.48 compute CPU seconds. Lost attempts returned
+no CPU or memory measurements, so this is not the total verification cost.
+Power logs record sleep intervals of 5,286 and 910 seconds; the wake times,
+11:19:59 and 11:35:54 UTC, coincide with lost-lease records. These interruptions
+are separate from compute timeouts, and the lost checks have not been retried.
+
+All 14,950 seed searches and 1,495 cut combinations completed. Search computation
+used **401.13 CPU seconds**, compared with **39.43 seconds** for the same 32
+directions with one seed; combining seed results added **179.61 seconds**.
+The fragment cache was active: **47,619,130 of 50,647,079 requests (94.02%)**
+reused a saved result, with zero cache errors, 459 successful snapshot publications
+and 75 snapshot loads. These are per-task counter differences, not accumulated
+worker totals counted repeatedly. Recorded publications and loads demonstrate
+reuse between workers. The 16 reactions retain 32 snapshot files, one baseline
+and one latest file per reaction, totalling 52.87 MB.
+
+The corresponding one-seed searches already had a **92.42%** hit rate.
+Ten seeds generated 10.24 times as many requests and 8.07 times as many misses.
+Cache reuse is established, but this execution strategy did not demonstrate
+sublinear search CPU scaling. No cache-disabled timing control was run here.
+
+Thirty catalogues completed at 4 GiB. Both directions of case 590 exceeded that
+guard during catalogue construction. An isolated one-worker 8 GiB continuation
+reused all matching and preserved consumed reduction time. Both computations
+finished, but publication exceeded the guard: sampled compute/publication peaks
+were **5.44/9.32 GiB forward** and **5.07/8.77 GiB reverse**. Neither catalogue was
+published, so neither reference check ran. No further memory retry was attempted.
+These failures remain distinct from negative reference checks. The runner verifies
+available catalogues after all reductions have terminal outcomes, preserving failed
+rows and reporting dependency errors for unavailable catalogues. This orchestration
+change passed 30 campaign tests and 26 smoke checks; MAPPA's scientific identity
+and Golden reference verifier are unchanged.
+
+### Verification cost
+
+More families alone do not explain the slowdown. The following historical and
+current trials use the same cases, ten seeds, cap 2,000 and discovery tolerance 2,
+but retain different mapping relationships. Historical CPU measures the query
+only; current task CPU includes catalogue loading. The separate current load
+measurement was warm and cannot be subtracted to reconstruct an exact query time.
+
+| Direction | Historical → current families | Historical query CPU (s) | Current task CPU (s) | Separate current load CPU (s) |
+|---|---:|---:|---:|---:|
+| 1228 forward | 33,865 → 28,025 | 3.489 | 27.052 | 0.793 |
+| 1228 reverse | 293,377 → 322,957 | 18.642 | 16.518 | 11.268 |
+| 1314 forward | 51,525 → 38,826 | 5.910 | 89.328 | 2.161 |
+| 1314 reverse | 167,376 → 130,351 | 10.361 | 41.349 | 6.198 |
+
+The family loop and query wrapper are unchanged from revision `06f7941`.
+The old compiler rejected impossible source–target assignments earlier and
+applied the reference before preparing remaining bond constraints. The current
+compiler first builds the local discovery and both relaxed self-relationships,
+then applies the reference; its early rejection uses a broader target union.
+This exposes avoidable preparation work. The two-sided joint constraints also
+represent required additional coverage and must be preserved. The downstream
+component cache cannot remove preparation already performed. These source
+findings identify optimization targets; they do not quantify each target's share
+of the measured cost. Saved catalogue counts and measurement scopes are in the
+[recovery evidence](recovery-evidence.json); no verification repair or rerun was
+performed for this comparison.
 
 ## Stopped initial campaign
 
