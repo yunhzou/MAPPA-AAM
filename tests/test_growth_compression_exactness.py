@@ -513,8 +513,10 @@ def test_attached_rings_keep_all_eighteen_target_sets_and_complete_discovery(bac
     assert len(expected) == 18 and whole_rings <= set(expected) and len(crossing) == 16
     assert all(image.intersection(range(6)) and image.intersection(range(6, 12)) for image in crossing)
 
+    profile = []
     result = match_fragment(source, target, seed=0,
-        config=FragmentMatchConfig(iso_tolerance=.2, branch_limit=18))
+        config=FragmentMatchConfig(iso_tolerance=.2, branch_limit=18), profile=profile)
+    assert profile[0]['completion_global_generators'] > 0
     assert not result.capped and result.branch_count == len(result.matches) == 18
     actual = {}
     for fragment in result.matches:
@@ -524,3 +526,46 @@ def test_attached_rings_keep_all_eighteen_target_sets_and_complete_discovery(bac
         assert set(fragment.accepted_edges) == set(source.edges)
         actual[image] = discovery_mappings(fragment)
     assert actual == expected
+
+
+@pytest.mark.parametrize('backend', ['0', '1'], ids=['python', 'native'])
+@pytest.mark.parametrize('tolerance, image_count', [(.2, 2), (1., 12)])
+def test_binary_global_generators_keep_continuous_discovery_predicates(backend, tolerance, image_count, monkeypatch):
+    from collections import defaultdict
+    from mappa import FragmentMatchConfig, match_fragment
+    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+
+    monkeypatch.setenv('MAPPA_NATIVE', backend)
+    source = graph(['C'] * 5, [(a, a+1, 1.) for a in range(4)])
+    target = graph(['C'] * 12, [(a, (a+1) % 12, 1. if a % 6 < 4 else 1.8)
+                              for a in range(12)])
+    weights = target.graph['wbo_matrix']
+    global_self = relaxed_automorphism(['C'] * 12, weights, tolerance=1.)
+    assert any(not np.array_equal(weights[np.ix_(g, g)], weights)
+               for g in global_self.generators)
+    # The same four accepted-edge predicates recur, but a broad structural
+    # shuffle may change whether those predicates hold on the original WBOs.
+    oracle = nx.isomorphism.GraphMatcher(target, source,
+        node_match=lambda left, right: left['element'] == right['element'],
+        edge_match=lambda left, right: abs(left['wbo'] - right['wbo']) <= tolerance)
+    expected = defaultdict(set)
+    for assignment in oracle.subgraph_monomorphisms_iter():
+        expected[frozenset(assignment)].add(tuple(sorted((r, p) for p, r in assignment.items())))
+    assert len(expected) == image_count
+    result = match_fragment(source, target, seed=0,
+        config=FragmentMatchConfig(iso_tolerance=tolerance, branch_limit=image_count))
+    assert not result.capped and len(result.matches) == image_count
+    actual = {}
+    for fragment in result.matches:
+        image = frozenset(fragment.target_atoms)
+        assert image not in actual
+        assert fragment.source_atoms == tuple(range(5))
+        assert set(fragment.accepted_edges) == set(source.edges)
+        actual[image] = discovery_mappings(fragment)
+    assert actual == expected
+    if backend == '1':
+        monkeypatch.setenv('MAPPA_NATIVE', '0')
+        reference = match_fragment(source, target, seed=0,
+            config=FragmentMatchConfig(iso_tolerance=tolerance, branch_limit=image_count))
+        assert [fragment.to_record() for fragment in result.matches] == [
+            fragment.to_record() for fragment in reference.matches]

@@ -61,7 +61,7 @@ def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
             actual.pop('reused_extensions')
             actual['profile'].pop('completion_seconds')
             expected['profile'].pop('completion_seconds', None)
-            assert actual==expected
+            np.testing.assert_equal(actual, expected)
         def result(mode):
             monkeypatch.setenv('MAPPA_NATIVE',mode)
             grown = grow_island(source,source,0,{},iso_tol=.1,random_seed=seed)

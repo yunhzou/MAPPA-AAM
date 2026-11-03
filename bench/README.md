@@ -1,5 +1,45 @@
 # Benchmark campaigns
 
+## Compare revisions locally
+
+`performance.py` runs identical single-cut cases serially in separately built
+source trees. Each process starts cold, then repeats with its own prepared
+session and cache. The manifest is `{"cases": [{"name": "case-name", "input":
+{"path": "/path/to/inputs.bundle", "offset": 0, "size": 123, "sha256": "..."},
+"config": {...}, "cut": [[0, 1]]}]}`. Each verified input blob contains a plain
+problem record accepted by `problem_from_record`, not a saved search object.
+Use common configuration fields only; omit `self_tolerance`. An empty cut is `[]`.
+
+```bash
+python bench/performance.py --baseline /path/to/baseline --candidate /path/to/candidate \
+  --cases /path/to/cases.json --output /path/to/new-comparison.json \
+  --repetitions 3 --warm-repeats 1 --timeout 120
+```
+
+Use the same interpreter and separately built engines for both revisions.
+`--case NAME` selects a case and can be repeated. Optional
+`--baseline-revision` and `--candidate-revision` record commit provenance for
+exported trees; actual source/engine hashes and loaded module paths are checked
+independently. Worker environments select only that tree's `src` and use one
+BLAS/OpenMP thread. Revision order alternates between repetitions.
+
+The atomic JSON report retains raw timings and timeout/error output. CPU and
+wall time cover planning, session preparation, complete cut matching (including
+the revision's finalization), catalogue reduction, decoding, record export,
+binary serialization and restoration. Input loading and imports are excluded.
+Export materializes local response tables. RSS is the process lifetime peak,
+including imports and inputs; it does not reset for warm repeats. Caps, terminal
+counts, output sizes and cache counters remain explicit. A capped search with no
+outputs is not a successful decoding benchmark, and equal settings alone do not
+establish equal scientific work between revisions.
+
+For diagnosis, `--profile-directory /path/to/profiles` writes one cProfile file
+per worker. Profiled timings include profiling overhead and must be reported
+separately. `--audit-output` hashes the complete decoded record outside the timed
+stages to check exact output preservation. Run this audit separately from memory
+measurements because hashing expands the record temporarily. Keep input paths
+and raw reports in a private area when necessary.
+
 `enzymemap.py` runs matching, per-reaction/direction deduplication, original-space
 decoding and reference verification as separate passes through the public MAPPA
 work pool. It contains no matching or decoding algorithm. Matching or reduction

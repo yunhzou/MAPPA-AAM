@@ -2,12 +2,14 @@
 #include <type_traits>
 
 namespace fragment_cache_io {
-inline const std::string schema="mappa.fragment-cache/7";
+inline const std::string schema="mappa.fragment-cache/8";
 
 struct Writer {
     std::string data;
     std::unordered_map<const PreparedSelf*,uint64_t> prepared;
+    std::unordered_map<const Fragment*,uint64_t> fragments;
     void write(const std::shared_ptr<const PreparedSelf>& value);
+    void write(const std::shared_ptr<const Fragment>& value);
     template<class... Values> void operator()(const Values&... values) { (write(values), ...); }
     template<class Value> void write(const Value& value) {
         if constexpr (std::is_arithmetic_v<Value>)
@@ -30,7 +32,9 @@ struct Reader {
     const std::string& data;
     size_t position=0;
     std::vector<std::shared_ptr<const PreparedSelf>> prepared;
+    std::vector<std::shared_ptr<const Fragment>> fragments;
     void read(std::shared_ptr<const PreparedSelf>& value);
+    void read(std::shared_ptr<const Fragment>& value);
     explicit Reader(const std::string& bytes): data(bytes) {}
     void require(size_t size) const {
         if (size>data.size()-position) throw std::invalid_argument("Truncated fragment cache");
@@ -89,6 +93,19 @@ template<class IO, class T> void fragment(IO& io,T& v) {
 }
 template<class IO> void fields(IO& io,Fragment& v) { fragment(io,v); }
 template<class IO> void fields(IO& io,const Fragment& v) { fragment(io,v); }
+inline void Writer::write(const std::shared_ptr<const Fragment>& value) {
+    auto [entry,added]=fragments.emplace(value.get(),fragments.size());
+    write(entry->second);
+    if (added) write(*value);
+}
+inline void Reader::read(std::shared_ptr<const Fragment>& value) {
+    uint64_t index;read(index);
+    if (index>fragments.size()) throw std::invalid_argument("Invalid shared fragment reference");
+    if (index==fragments.size()) {
+        auto item=std::make_shared<Fragment>();read(*item);fragments.push_back(std::move(item));
+    }
+    value=fragments[index];
+}
 template<class IO, class T> void profile(IO& io, T& v) {
     io(v.feasibility_calls,v.feasibility_nodes,v.feasibility_searches,
        v.completion_queries,v.completion_pruned,v.completion_seconds,

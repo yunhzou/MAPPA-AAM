@@ -216,6 +216,30 @@ def test_preparation_scales_with_unique_programs_and_images(monkeypatch):
     assert prepared == Counter({key: 1 for key in expected})
 
 
+def test_branch_assembly_requests_only_boundaries_after_unique_internal_preparation(monkeypatch):
+    source = correlated_branches()
+    observed = Counter()
+    neighboring_pairs = SignedEventIndex.neighboring_pairs
+    def inspect(index, domains, *, owners=None):
+        observed['internal' if owners is None else 'boundary'] += 1
+        pairs = neighboring_pairs(index, domains, owners=owners)
+        if owners is not None:
+            assert all(owners[a] != owners[b] for a, b in pairs)
+        return pairs
+    monkeypatch.setattr(SignedEventIndex, 'neighboring_pairs', inspect)
+    decoded = decode_events(source)
+    record = decoded_events_record(decoded)
+    assert observed['internal'] == len(decoded.local.fragments)
+    assert observed['boundary'] == len(record['tables'])
+    for fid, partitions in enumerate(decoded.fragment_partitions):
+        for partition in range(len(partitions)):
+            table = decoded.tables(fid, partition)
+            pairs = neighboring_pairs(decoded.index, table.atom_domains)
+            pairs.update((a, b) for a, b in table.cut_bonds
+                         if a in table.atom_domains or b in table.atom_domains)
+            assert table.statistics['neighboring_pairs'] == len(pairs)
+
+
 def test_preparation_eviction_bounds_retention_without_changing_rows(monkeypatch):
     ep = endpoint('C' * 128, [])
     source = saved(ep, ep, dict(enumerate(range(128))),

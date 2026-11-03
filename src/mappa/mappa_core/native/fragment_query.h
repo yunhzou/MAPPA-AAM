@@ -84,10 +84,32 @@ public:
     std::vector<std::vector<int>> image_generators(const PreparedSelf* global,bool whole_group_allowed) const {
         std::vector<std::vector<int>> generators;
         if (!global) return generators;
-        for (const auto& generator:global->generators) {
-            if (!preserves_domains(generator,domains)) continue;
+        // Repeated source bonds often impose exactly the same predicate over
+        // the same two domains. Their preservation proof is identical.
+        std::map<std::vector<int>,int> domain_ids;
+        std::vector<int> ids(source.n,-1);
+        for (int r:atoms) ids[r]=domain_ids.emplace(domains[r],domain_ids.size()).first->second;
+        std::set<std::tuple<double,double,int,int>> predicates;
+        std::vector<const Edge*> distinct_edges;
+        for (const auto& edge:edges) {
+            int a=ids[edge.a],b=ids[edge.b];
+            if (a>b) std::swap(a,b);
+            if (predicates.emplace(edge.weight,edge.tolerance,a,b).second) distinct_edges.push_back(&edge);
+        }
+        for (size_t index=0;index<global->generators.size();++index) {
+            const auto& generator=global->generators[index];
+            bool domains_preserved=true;
+            for (const auto& [values,id]:domain_ids) {
+                if (std::any_of(values.begin(),values.end(),
+                    [&](int p){return !contains(values,generator[p]);})) {domains_preserved=false;break;}
+            }
+            if (!domains_preserved) continue;
             bool valid=true;
-            for (const auto& edge:edges) {
+            // Exact active-edge preservation implies preservation of every
+            // tolerance predicate. This certificate is prepared once per target.
+            bool exact=global==target.global_self.get() && target.global_exact_edges[index];
+            if (!exact) for (const auto* saved:distinct_edges) {
+                const auto& edge=*saved;
                 for (int p:domains[edge.a]) for (int q:target.adj[p])
                     if (contains(domains[edge.b],q) && supports(edge,p,q) &&
                         !supports(edge,generator[p],generator[q])) {valid=false;break;}
@@ -398,10 +420,11 @@ public:
                 if (!contains(allowed[r],p)) continue;
                 auto child=allowed;
                 child[r]={p};
+                size_t before=results.size();
                 if (!search(std::move(child))) return false;
                 // A descendant's new image exclusion also constrains every
                 // unexplored sibling. Continue this DFS instead of restarting.
-                if (!constrain(allowed)) return true;
+                if (results.size()!=before && !constrain(allowed)) return true;
             }
             return true;
         };

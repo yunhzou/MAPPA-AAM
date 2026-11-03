@@ -116,12 +116,47 @@ def test_eviction_bounds_retention_without_changing_results():
             stats=repair.stats()
             assert 0 < stats['resident_bytes'] <= stats['peak_resident_bytes'] <= budget
     assert repair.stats()['evictions'] > 0
-    assert repair.stats()['entries'] <= 2
     before=repair.stats()
     raw(source,source,7,[-1]*8,(),replay=repair)
     after=repair.stats()
     assert after['full_hits']==before['full_hits']+1
     assert after['resident_bytes']==before['resident_bytes']
+
+
+def test_shared_self_preparation_survives_transport_and_releases_on_eviction():
+    from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
+    source=graph(21,[(i,(i+1)%20) for i in range(20)],['C']*20+['O'])
+    cache=FragmentRepair(source,source)
+    raw(source,source,0,[-1]*21,(),replay=cache)
+    first=cache.stats()
+    for seed in range(1,6):
+        assert raw(source,source,seed,[-1]*21,(),replay=cache)==raw(source,source,seed,[-1]*21,())
+    shared=cache.stats()
+    assert shared['entries']==6 and shared['shared_self_records']==2
+    assert shared['shared_self_bytes']==first['shared_self_bytes']
+    assert shared['resident_bytes'] < 6*first['resident_bytes']
+    restored=FragmentRepair(source,source)
+    restored.loads(cache.dumps())
+    assert restored.stats()['shared_self_records']==2
+    for seed in range(6):
+        assert raw(source,source,seed,[-1]*21,(),replay=restored)==raw(source,source,seed,[-1]*21,())
+    assert restored.stats()['full_hits']==6
+
+    # Small oxygen-only entries eventually evict every ring entry. The ring's
+    # shared matrices and registry records must leave with their last owner.
+    bounded=FragmentRepair(source,source,cache_bytes=first['resident_bytes'])
+    raw(source,source,0,[-1]*21,(),replay=bounded)
+    view=bounded.for_cut(())
+    context=FragmentMatchContext(fragment_cache=view)
+    expected=match_fragment(source,source,seed=20).matches[0].to_record()
+    for random_seed in range(30):
+        result=match_fragment(view.source,source,seed=20,context=context,
+                             config=FragmentMatchConfig(random_seed=random_seed))
+        assert result.matches[0].to_record()==expected
+        assert bounded.stats()['resident_bytes']<=first['resident_bytes']
+    released=bounded.stats()
+    assert released['evictions']>0 and released['shared_self_records']==2
+    assert released['shared_self_bytes']<first['shared_self_bytes']
 
 
 def test_oversized_results_are_returned_without_retention():

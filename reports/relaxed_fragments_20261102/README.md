@@ -21,7 +21,13 @@ enumerates their internal bijections.
 
 ## Validation
 
-The frozen implementation passed **824/824 repository tests** in 109.20 seconds
+The final performance revision passed **833/833 repository tests** in 113.09
+seconds with `python -m pytest -q --tb=short`. New checks cover independent
+weighted placement oracles, shared-cache ownership and eviction, dense bond
+neighborhood equivalence, and once-only internal fragment preparation. All ten
+complete graph and decoded-record audits also match the initial integration.
+
+The initial integration passed **824/824 repository tests** in 109.20 seconds
 on an Apple Silicon Mac, using `python -m pytest -q --tb=short`. This includes
 native/Python comparisons, independent mapping and event oracles, hierarchy caps,
 cache persistence/exchange, RAM and bundle work pools, checkpoint recovery and
@@ -43,7 +49,81 @@ independent scalar original-WBO event check: **100/100 families, 100/100
 partitions**. All observed witnesses have 59 events; this is not a minimum-event
 proof or a reference-recovery measurement.
 
-## Local performance
+## Paired comparison with the previous implementation
+
+The correct previous-implementation baseline is `2e99e989`, the parent of the
+integration commit `64ee9bb5`. The initial measurements below compared two stages
+of the new implementation; they did **not** compare against that previous release.
+
+The paired comparison found avoidable regressions and removed them: repeated
+global domain/predicate checks, unchanged parent propagation, copied fragment
+records, duplicated cache preparations, and repeated internal decoder work.
+Shared preparations remain inside the unchanged **64 MiB** retention budget;
+last-owner eviction releases their index entries. Cache snapshots now use schema
+`mappa.fragment-cache/8`. No mapping rule, hierarchy cap or tolerance changed.
+
+Ten complete search graphs and ten complete decoded-record hashes match the
+unoptimized `64ee9bb5` results exactly. This checks the optimizations against the
+approved new algorithm; it does not claim identical scientific outputs between
+the old and new algorithms.
+
+The final comparison used 92 isolated worker processes, run serially, and 184
+timed pipeline runs on the same Apple Silicon Mac. Each process performed a cold run and one
+warm repeat. Revision order alternated, with five repetitions for the eight
+smaller cases and three for the two large cases. No tests or builds ran alongside
+these timings. All 92 processes completed successfully.
+
+Both revisions used one seed, random seed 42, `iso_tol=1`, presence thresholds
+0.2, ordinary/metal event thresholds 0.5/0.3, and the same cut and input bytes.
+Branch cap was 2,000 for synthetic/Golden points and 100 for the EnzymeMap points.
+The new fragment self tolerance remained 1. These are single-cut forward points,
+not full sweeps. Two-ring targets have different external F/Cl attachments;
+the attached-ring example is a six-atom path on two C6 rings joined by a bridge.
+
+Median CPU seconds cover planning, preparation, complete matching, reduction,
+decoding, record export, binary serialization and restoration. Imports and input
+loading are excluded. Warm repeats reuse matching preparation and its cache;
+reduction and decoding are performed again.
+
+| Case | Previous cold | Current cold | Previous warm | Current warm | Families: previous → current |
+|---|---:|---:|---:|---:|---:|
+| C6 → C6 | 0.00464 | 0.00387 | 0.00100 | 0.00072 | 1 → 1 |
+| C6 → two C6 rings | 0.00634 | 0.00465 | 0.00238 | 0.00114 | 12 → 2 |
+| C24 → two C24 rings | 0.02717 | 0.00876 | 0.01955 | 0.00444 | 48 → 2 |
+| P6 → attached C6 rings | 0.00713 | 0.00869 | 0.00262 | 0.00506 | 11 → 18 |
+| Shared root, 32 arms | 0.08827 | 0.03274 | 0.04054 | 0.01965 | 1 → 32 |
+| Golden 1001 | 0.00512 | 0.00428 | 0.00141 | 0.00092 | 1 → 1 |
+| Golden 785 | 0.01122 | 0.01545 | 0.00518 | 0.01083 | 3 → 18 |
+| Golden 1518 | 0.25378 | 1.26174 | 0.20254 | 1.24537 | 262 → 2,000 |
+| EnzymeMap 10383, cut (131,132) | 2.92197 | 1.88792 | 0.75202 | 0.68608 | 100 → 100 |
+
+Six of these nine points are faster; three are slower. All three slower cases
+retain more families under the corrected target-set definition. Golden 1518
+performs about eight times as many cache requests and hierarchy transitions;
+its returned families are stalled terminal outputs, and the current run also
+has cap evidence. Its 4.97-fold cold and 6.15-fold warm total-time increases
+remain real absolute slowdowns. Equal caps do not imply equal work, and these results do not
+support a universal no-regression claim.
+
+For 10383, cold matching is about 1.24 CPU s and warm matching 0.08 s. Its cache
+retains 30.28 MiB with zero evictions, versus repeated eviction before this
+optimization. Median cold peak RSS is 174.38 MiB, compared with 174.73 MiB for
+the previous release. Golden 1518's larger output raises cold peak RSS from
+81.91 to 175.41 MiB. RSS is the complete process lifetime high-water mark,
+including imports and inputs; cache retention is a separate measurement.
+
+The tenth point, **37270**, is excluded from returned-output speed comparisons:
+the previous version returned 100 families in 9.90 CPU s, whereas the current
+version returns none after its explicit 101 > 100 fragment cap (0.254 CPU s).
+That is neither recovery nor a decoding speedup. Its cap/output behavior is
+unchanged by these optimizations.
+
+[Paired measurements](paired-performance.json) contain every timed phase,
+repetition, output count, cap summary, cache counter, RSS observation, input hash
+and source/engine identity, without private operational paths. This study makes
+no full-dataset accuracy or cluster-throughput claim.
+
+## Initial integration diagnostics
 
 These are single-cut diagnostics with one seed, cap 100, discovery/self tolerance
 1 and random seed 42. The comparison isolates the missing global pruning within

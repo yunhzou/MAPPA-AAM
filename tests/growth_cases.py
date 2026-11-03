@@ -115,6 +115,9 @@ def raw(source,target,seed,mapping,cut,*,replay=None,cap=100,tol=1.,islands=None
         result = replay.engine.grow(cut,seed,mapping,.2,tol,1,cap,islands,deferred,False)
         result.pop('reused_extensions')
     result['profile'].pop('completion_seconds')  # Wall time is not a scientific result.
+    for fragment in result['fragments']:
+        for side in ('source', 'target'):
+            fragment[side]['weights'] = np.asarray(fragment[side]['weights']).tolist()
     return result
 
 

@@ -8,6 +8,12 @@ class FragmentRepair {
     const Target& target;
     std::vector<Pair> active_cuts;
     size_t budget, resident=0, peak_resident=0;
+    struct SharedPreparation {
+        std::shared_ptr<const PreparedSelf> value;
+        size_t owners=0, bytes=0;
+    };
+    std::unordered_map<std::string,SharedPreparation> preparations;
+    size_t preparation_bytes=0;
     struct Entry {
         std::string key;
         GrowResult result;
@@ -15,6 +21,7 @@ class FragmentRepair {
         std::vector<int> mapping;
         std::vector<Pair> islands, cuts, deferred, pair_reads;
         std::vector<uint8_t> row_reads;
+        std::vector<std::pair<std::string,std::shared_ptr<const PreparedSelf>>> preparations;
         size_t bytes=0;
         bool in_snapshot=false;
         Entry(int n) : dependencies(n) {}
@@ -41,45 +48,99 @@ class FragmentRepair {
     template<class Value> static void append(std::string& key,const Value& value) {
         key.append(reinterpret_cast<const char*>(&value),sizeof(value));
     }
+    static std::string self_key(const PreparedSelf& value,bool target_side) {
+        // Endpoint weights and elements belong to this immutable reaction.
+        // Cuts alter discovery topology, never these original self weights.
+        std::string key;
+        append(key,target_side);append(key,value.bond_threshold);append(key,value.tolerance);
+        append(key,value.atoms.size());append(key,value.anchors.size());
+        for (int atom:value.atoms) append(key,atom);
+        for (int atom:value.anchors) append(key,atom);
+        return key;
+    }
+    static size_t self_bytes(const std::string& key,const PreparedSelf& value) {
+        size_t out=sizeof(SharedPreparation)+sizeof(std::string)+key.capacity()+1+256
+            +sizeof(PreparedSelf)+(value.atoms.capacity()+value.anchors.capacity())*sizeof(int)
+            +value.weights.capacity()*sizeof(double)+value.elements.capacity()*sizeof(std::string)
+            +value.generators.capacity()*sizeof(std::vector<int>)+32;
+        for (const auto& element:value.elements) out+=element.capacity()+1;
+        for (const auto& generator:value.generators) out+=generator.capacity()*sizeof(int);
+        return out;
+    }
+    void share_preparations(Entry& entry) {
+        std::unordered_map<std::string,size_t> positions;
+        auto share=[&](const std::shared_ptr<const PreparedSelf>& value,bool target_side) {
+            auto key=self_key(*value,target_side);
+            auto [position,added]=positions.emplace(key,entry.preparations.size());
+            if (added) {
+                auto saved=preparations.find(key);
+                entry.preparations.emplace_back(std::move(key),
+                    saved==preparations.end() ? value : saved->second.value);
+            }
+            return entry.preparations[position->second].second;
+        };
+        for (auto& saved:entry.result.fragments) {
+            auto source_self=share(saved->source,false),target_self=share(saved->target,true);
+            if (source_self!=saved->source || target_self!=saved->target) {
+                auto fragment=std::make_shared<Fragment>(*saved);
+                fragment->source=std::move(source_self);fragment->target=std::move(target_self);
+                saved=std::move(fragment);
+            }
+        }
+    }
     static size_t entry_bytes(const Entry& e) {
         // Charge owned vector capacity, both key copies, and conservative
         // list/hash-index overhead. The budget does not include caller outputs.
         size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)
             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();
-        out+=e.result.fragments.capacity()*sizeof(Fragment)
+        out+=e.result.fragments.capacity()*sizeof(std::shared_ptr<const Fragment>)
             +e.result.deferred_edges.capacity()*sizeof(Pair)
             +e.result.profile.result.capacity()+1
-            +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);
+            +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type)
+            +e.preparations.capacity()*sizeof(decltype(e.preparations)::value_type);
+        for (const auto& item:e.preparations) out+=item.first.capacity()+1;
         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})
             out+=v->capacity()*sizeof(Pair);
         for (const auto& [r,members]:e.dependencies.island_reads)
             out+=members.capacity()*sizeof(int);
-        std::unordered_set<const PreparedSelf*> counted;
-        for (const auto& fragment:e.result.fragments) {
-            out+=(fragment.anchors.capacity()+fragment.accepted_edges.capacity()+fragment.target_edges.capacity())*sizeof(Pair)
+        for (const auto& saved:e.result.fragments) {
+            const auto& fragment=*saved;
+            out+=sizeof(Fragment)+32
+                +(fragment.anchors.capacity()+fragment.accepted_edges.capacity()+fragment.target_edges.capacity())*sizeof(Pair)
                 +fragment.witness.capacity()*sizeof(int)+fragment.edge_tolerances.capacity()*sizeof(double)
                 +fragment.domains.capacity()*sizeof(std::vector<int>);
             for (const auto& domain:fragment.domains) out+=domain.capacity()*sizeof(int);
-            for (const auto* value:{fragment.source.get(),fragment.target.get()}) if (counted.insert(value).second) {
-                out+=sizeof(PreparedSelf)+(value->atoms.capacity()+value->anchors.capacity())*sizeof(int)
-                    +value->weights.capacity()*sizeof(double)+value->elements.capacity()*sizeof(std::string)
-                    +value->generators.capacity()*sizeof(std::vector<int>);
-                for (const auto& element:value->elements) out+=element.capacity()+1;
-                for (const auto& generator:value->generators) out+=generator.capacity()*sizeof(int);
-            }
         }
         return out;
     }
+    static size_t standalone_bytes(const Entry& entry) {
+        size_t out=entry.bytes;
+        for (const auto& [key,value]:entry.preparations) out+=self_bytes(key,*value);
+        return out;
+    }
     void insert(Entry entry) {
-        while (!lru.empty() && resident+entry.bytes>budget) {
+        for (const auto& [key,value]:entry.preparations) {
+            auto [saved,added]=preparations.emplace(key,SharedPreparation{value,0,self_bytes(key,*value)});
+            if (added) {resident+=saved->second.bytes;preparation_bytes+=saved->second.bytes;}
+            ++saved->second.owners;
+        }
+        resident+=entry.bytes;
+        while (!lru.empty() && resident>budget) {
             auto old=lru.begin();
             auto bucket=cache.find(old->key);
             auto& entries=bucket->second;
             entries.erase(std::remove(entries.begin(),entries.end(),old),entries.end());
             if (entries.empty()) cache.erase(bucket);
-            resident-=old->bytes;lru.erase(old);++evictions;
+            resident-=old->bytes;
+            for (const auto& [key,value]:old->preparations) {
+                auto saved=preparations.find(key);
+                if (!--saved->second.owners) {
+                    resident-=saved->second.bytes;preparation_bytes-=saved->second.bytes;
+                    preparations.erase(saved);
+                }
+            }
+            lru.erase(old);++evictions;
         }
-        resident+=entry.bytes;
         peak_resident=std::max(peak_resident,resident);
         lru.push_back(std::move(entry));
         auto added=std::prev(lru.end());cache[added->key].push_back(added);
@@ -141,7 +202,6 @@ public:
             if (e.mapping.size()!=size_t(base.n) || e.row_reads.size()!=size_t(base.n)
                 || e.dependencies.mapping_reads.size()!=size_t(base.n) || e.dependencies.boundary_atoms.size()!=size_t(base.n))
                 throw std::invalid_argument("Fragment cache dependency size differs");
-            e.bytes=entry_bytes(e);
             parsed.push_back(std::move(e));
         }
         in.finish(); // Failed reads must leave the existing cache usable.
@@ -156,7 +216,10 @@ public:
                     && previous->cuts==e.cuts && previous->deferred==e.deferred) {
                     previous->in_snapshot=true;present=true;break;
                 }
-            if (!present && e.bytes<=budget) {e.in_snapshot=true;insert(std::move(e));}
+            if (!present) {
+                share_preparations(e);e.bytes=entry_bytes(e);
+                if (standalone_bytes(e)<=budget) {e.in_snapshot=true;insert(std::move(e));}
+            }
         }
         return std::any_of(lru.begin(),lru.end(),[](const Entry& e){return !e.in_snapshot;});
     }
@@ -235,8 +298,8 @@ public:
                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)
                     if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b])
                         entry.pair_reads.push_back({a,b});
-                entry.bytes=entry_bytes(entry);
-                if (entry.bytes>budget) {
+                share_preparations(entry);entry.bytes=entry_bytes(entry);
+                if (standalone_bytes(entry)>budget) {
                     ++oversized;
                     result=std::move(entry.result);
                 } else {
@@ -273,6 +336,7 @@ public:
         out["logical_extensions"]=logical_extensions;out["reused_extensions"]=reused_extensions;
         out["entries"]=lru.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak_resident;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
+        out["shared_self_records"]=preparations.size();out["shared_self_bytes"]=preparation_bytes;
         out["revision"]=revision;
         return out;
     }

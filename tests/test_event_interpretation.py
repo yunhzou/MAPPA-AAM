@@ -61,6 +61,40 @@ def dense_counts(problem, mapping, threshold=.5, metal_threshold=.3):
     return result
 
 
+def test_neighbor_domains_and_boundary_filter_match_independent_dense_pairs():
+    from itertools import combinations
+    rng = np.random.default_rng(73514)
+    elements = ('C', 'O', 'Fe', 'C', 'H', 'C', 'O')
+    for _ in range(32):
+        endpoints = [endpoint(elements, [(a, b, float(rng.choice((0., .1, .3, .5, .8, 1.4))))
+                     for a, b in combinations(range(7), 2)]) for _ in range(2)]
+        value = AAMProblem(*endpoints)
+        index = SignedEventIndex(value)
+        domains = {a: tuple(p for p in range(7) if rng.random() < .5)
+                   for a in range(7) if rng.random() < .7}
+        owners = [int(rng.integers(3)) if a in domains else -1 for a in range(7)]
+        def threshold(a, b):
+            return .3 if any(is_metal_element(elements[i]) for i in (a, b)) else .5
+        expected = set()
+        for a, b in combinations(range(7), 2):
+            if a not in domains and b not in domains:
+                continue
+            old = value.reactant.wbo[a, b] > threshold(a, b)
+            reachable = any(p != q and value.product.wbo[p, q] > threshold(p, q)
+                            for p in domains.get(a, ()) for q in domains.get(b, ()))
+            if old or reachable:
+                expected.add((a, b))
+        assert index.neighboring_pairs(domains) == expected
+        assert index.neighboring_pairs(domains, owners=owners) == {
+            pair for pair in expected if owners[pair[0]] != owners[pair[1]]}
+
+    # Atom masks retain sparse NumPy indices beyond a machine integer's width.
+    ep = endpoint('C' * 131, [(0, 1, 1.)])
+    index = SignedEventIndex(AAMProblem(ep, ep))
+    domains = {np.int64(65): (0, 1), np.int64(130): (0, 1)}
+    assert index.neighboring_pairs(domains) == {(65, 130)}
+
+
 
 @pytest.mark.parametrize('tau', [.3,.5,1.])
 def test_vector_response_bounds_preserve_float_edges(tau):

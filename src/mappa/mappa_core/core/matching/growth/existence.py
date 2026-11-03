@@ -366,11 +366,12 @@ class FragmentQuery:
             for p in choices(domains, r):
                 if p not in domains[r]:
                     continue
+                before = len(results)
                 if not search({**domains, r: (p,)}):
                     return False
                 # A descendant's image exclusion constrains the remaining
                 # siblings without restarting the search from its root.
-                if not constrain(domains):
+                if len(results) != before and not constrain(domains):
                     return True
             return True
 

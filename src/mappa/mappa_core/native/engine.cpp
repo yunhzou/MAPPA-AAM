@@ -2,6 +2,7 @@
 // independent scientific oracle. Element matching uses this backend by default;
 // custom node policies and diagnostic traces use the Python implementation.
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
 #include <algorithm>
@@ -74,6 +75,7 @@ struct Target : Graph {
     std::vector<std::vector<int>> same_element;
     mutable std::shared_ptr<const PreparedSelf> global_self;
     mutable bool global_group_allowed=false;
+    mutable std::vector<uint8_t> global_exact_edges;
 };
 
 // Source topology dependencies for completed-fragment cache validation.
@@ -215,7 +217,7 @@ struct Fragment {
 };
 
 struct GrowResult {
-    std::vector<Fragment> fragments;
+    std::vector<std::shared_ptr<const Fragment>> fragments;
     std::vector<Pair> deferred_edges;
     GrowProfile profile;
     bool capped=false;
@@ -416,10 +418,10 @@ public:
         out["elements"]=value->elements;
         out["bond_threshold"]=value->bond_threshold;out["tolerance"]=value->tolerance;
         out["generators"]=value->generators;
-        py::list weights;
         const size_t n=value->atoms.size();
-        for (size_t i=0;i<n;++i)
-            weights.append(std::vector<double>(value->weights.begin()+i*n,value->weights.begin()+(i+1)*n));
+        py::array_t<double> weights({(py::ssize_t)n,(py::ssize_t)n});
+        std::copy(value->weights.begin(),value->weights.end(),weights.mutable_data());
+        weights.attr("setflags")(false);
         out["weights"]=weights;
         prepared.emplace(value.get(),out);
         return out;
@@ -439,7 +441,7 @@ py::object grow_result_dict(const GrowResult& res) {
     py::dict out;
     FragmentExport exported;
     py::list fragments;
-    for (const auto& fragment:res.fragments) fragments.append(exported.relation(fragment));
+    for (const auto& fragment:res.fragments) fragments.append(exported.relation(*fragment));
     out["fragments"]=fragments;
     out["deferred_edges"] = res.deferred_edges;
     out["capped"] = res.capped;

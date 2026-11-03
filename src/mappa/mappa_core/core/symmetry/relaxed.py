@@ -72,10 +72,11 @@ class RelaxedAutomorphism:
         weights.setflags(write=False)
         generators = tuple(tuple(g) for g in record['generators'])
         threshold, tolerance = float(record['bond_threshold']), float(record['tolerance'])
-        key = (tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
-               threshold, tolerance, generators, weights.tobytes())
-        if pool is not None and key in pool:
-            return pool[key]
+        if pool is not None:
+            key = (tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
+                   threshold, tolerance, generators, weights.tobytes())
+            if key in pool:
+                return pool[key]
         edges = tuple((int(a), int(b)) for a, b in
                       zip(*np.nonzero(np.triu(weights > threshold, 1))))
         constraints, projected = _constraints(weights, tolerance, generators)

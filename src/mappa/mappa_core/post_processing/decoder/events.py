@@ -92,25 +92,49 @@ class SignedEventIndex(BondResponseIndex):
             self._pair_tables.popitem(last=False)
         return result
 
-    def neighboring_pairs(self, domains):
+    def neighboring_pairs(self, domains, *, owners=None):
         """Source bonds plus source pairs that can reach a product bond.
 
         Nonnegative weights can differ by more than the event threshold only
         if at least one endpoint bond exceeds it. Inverse atom domains retain
         possible forming bonds without visiting unrelated source nonbonds.
-        Joint action constraints are still applied to each retained response.
+        Bitset unions visit each reachable source pair once. When owners are
+        supplied, only cross-fragment pairs are assembled; unique fragment
+        preparation already owns the internal pairs. Joint action constraints
+        remain attached to every retained response.
         """
         pairs = {(int(a), int(b)) for a, b in self.reactant_bonds
-                 if a in domains or b in domains}
-        sources = defaultdict(set)
+                 if (a in domains or b in domains)
+                 and (owners is None or owners[a] != owners[b])}
+        sources = [0] * self.m
         for atom, images in domains.items():
             for image in images:
-                sources[image].add(atom)
+                sources[image] |= 1 << int(atom)
+        neighbors = [0] * self.m
         for x, y in self.product_bonds:
-            for a in sources[x]:
-                for b in sources[y]:
-                    if a != b:
-                        pairs.add((min(a, b), max(a, b)))
+            neighbors[x] |= sources[y]
+            neighbors[y] |= sources[x]
+        owner_masks = {}
+        if owners is not None:
+            for atom in domains:
+                owner = owners[atom]
+                owner_masks[owner] = owner_masks.get(owner, 0) | (1 << int(atom))
+        domain_neighbors = {}
+        for a, images in domains.items():
+            a = int(a)
+            images = tuple(images)
+            if images not in domain_neighbors:
+                reached = 0
+                for image in images:
+                    reached |= neighbors[image]
+                domain_neighbors[images] = reached
+            reached = domain_neighbors[images] & ~((1 << (a + 1)) - 1)
+            if owners is not None:
+                reached &= ~owner_masks[owners[a]]
+            while reached:
+                bit = reached & -reached
+                pairs.add((a, bit.bit_length() - 1))
+                reached ^= bit
         return pairs
 
     @property
@@ -404,18 +428,18 @@ class FragmentEventTables:
         for owner, (response, binding) in enumerate(self.fragment_responses):
             self.atom_domains.update(response.atom_domains)
             if response.terms:
-                self.internal[owner] = tuple(local.bind(term, binding) for term in response.terms)
+                self.internal[owner] = local.bind(response.terms, binding)
         self.projected_pair_states = sum(response.projected_pair_states
                                          for response, _ in self.fragment_responses)
-        # Internal and boundary work follows original bond neighborhoods.
-        # A manual cut adds only its own endpoints, even for a zero-event cut.
-        pairs = index.neighboring_pairs(self.atom_domains)
-        pairs.update((a, b) for a, b in self.cut_bonds if a in mapping or b in mapping)
-        self.neighboring_pair_count = len(pairs)
+        # Internal neighborhoods are already prepared once per shared fragment.
+        # Assemble only cross-owner pairs and their explicit cut boundaries.
+        pairs = index.neighboring_pairs(self.atom_domains, owners=self.owners)
+        pairs.update((a, b) for a, b in self.cut_bonds
+                     if (a in mapping or b in mapping) and self.owners[a] != self.owners[b])
+        self.neighboring_pair_count = len(pairs) + sum(
+            response.neighboring_pair_count for response, _ in self.fragment_responses)
         for a, b in sorted(pairs):
             left, right = int(self.owners[a]), int(self.owners[b])
-            if left == right:
-                continue
             pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
             action_ids = tuple(sorted(set(self.atom_actions.get(a, ())) | set(self.atom_actions.get(b, ()))))
             actions = local.programs.select(program, action_ids)
@@ -483,7 +507,9 @@ class FragmentEventTables:
                 first = root(nodes[0])
                 for node in nodes[1:]:
                     parent[root(node)] = first
-        for terms in (*self.internal.values(), *self.boundary.values()):
+        # Each atom below already joins its owner to every affecting action.
+        # Internal terms add no connection; only boundary terms can join owners.
+        for terms in self.boundary.values():
             for term in terms:
                 if term.response.constant is None:
                     join({int(self.owners[a]) for a in term.atoms}, term.action_ids)

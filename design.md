@@ -260,6 +260,9 @@ entry may increase computation but cannot change matching or caps.
 The cache contains completed compressed results and their dependency evidence.
 It does not retain expanded bijections, candidate prefixes or symmetry
 certificates. Its budget bounds retained entries, not total process memory.
+Entries share equal immutable fragment self-preparations within one reaction.
+The budget counts each shared preparation once, including its ownership index;
+evicting its last entry also releases that index record.
 Switching reactions releases prepared reaction-specific state.
 
 ### Shared reaction cache snapshots

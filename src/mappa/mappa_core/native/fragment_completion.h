@@ -39,6 +39,14 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
             std::vector<int> atoms(target.n);std::iota(atoms.begin(),atoms.end(),0);
             target.global_self=prepare_self(target,std::move(atoms),{},threshold,self_tolerance);
             target.global_group_allowed=group_within_tolerance(*target.global_self,target.global_self->generators);
+            target.global_exact_edges.clear();
+            for (const auto& generator:target.global_self->generators) {
+                bool exact=true;
+                for (int a=0;a<target.n && exact;++a) for (int b:target.adj[a]) if (a<b &&
+                    (!target.has_edge(generator[a],generator[b]) ||
+                     target.wbo(a,b)!=target.wbo(generator[a],generator[b]))) {exact=false;break;}
+                target.global_exact_edges.push_back(exact);
+            }
         }
         global=target.global_self.get();
     }
@@ -99,7 +107,7 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
             const auto& values=fragment.target->atoms;
             for (size_t i=0;i<values.size();++i) for (size_t j=i+1;j<values.size();++j)
                 if (target.has_edge(values[i],values[j])) fragment.target_edges.push_back({(int)i,(int)j});
-            result.fragments.push_back(std::move(fragment));
+            result.fragments.push_back(std::make_shared<Fragment>(std::move(fragment)));
         }
         result.deferred_edges=std::move(growth.deferred_edges);
         profile.branches=(long)result.fragments.size();

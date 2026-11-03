@@ -68,6 +68,7 @@ class FragmentResponse:
     atom_actions: dict
     terms: tuple[BondEventTerm, ...]
     projected_pair_states: int
+    neighboring_pair_count: int
 
 
 class FragmentDecoder:
@@ -133,14 +134,20 @@ class FragmentDecoder:
                 if term is not None:
                     terms.append(term)
             self.fragments[key] = FragmentResponse(piece, local_domains,
-                local_dependencies, tuple(terms), projected)
+                local_dependencies, tuple(terms), projected, len(neighbors))
         return self.fragments[key], binding
 
-    def bind(self, term, binding):
-        ids = tuple(binding[i] for i in term.action_ids)
-        if ids == term.action_ids:
-            return term
-        key = term, ids
-        if key not in self.bindings:
-            self.bindings[key] = replace(term, action_ids=ids)
-        return self.bindings[key]
+    def bind(self, terms, binding):
+        if binding == tuple(range(len(binding))):
+            return terms
+        bound = []
+        for term in terms:
+            ids = tuple(binding[i] for i in term.action_ids)
+            if ids == term.action_ids:
+                bound.append(term)
+                continue
+            key = term, ids
+            if key not in self.bindings:
+                self.bindings[key] = replace(term, action_ids=ids)
+            bound.append(self.bindings[key])
+        return tuple(bound)
