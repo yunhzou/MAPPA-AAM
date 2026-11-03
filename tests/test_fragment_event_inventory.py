@@ -13,7 +13,7 @@ from mappa.mappa_core.post_processing.decoder.events import (
     FragmentEventTables, SignedEventIndex,
 )
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentInventory
-from mappa.mappa_core.core.symmetry.actions import _ActionSequence
+from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
 from mappa.mappa_core.core.scheduler.storage import BundleStore
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from mappa import AAMProblem
@@ -192,28 +192,128 @@ def test_shared_preparation_keeps_joint_choices_cuts_and_constraints():
     assert source.to_record() == before
 
 
-def test_preparation_scales_with_unique_programs_and_images(monkeypatch):
-    source = correlated_branches()
+def test_independent_fragments_reuse_preparation_across_distinct_family_orders(monkeypatch):
+    count = 12
+    pairs = tuple((2*i, 2*i + 1) for i in range(count))
+    ep = endpoint('C' * (2*count), [(a, b, 1.) for a, b in pairs] +
+                  [(2*i + 1, 2*i + 2, 1.) for i in range(count - 1)])
+    problem = AAMProblem(ep, ep)
+    fragments = tuple(saved_fragment(problem, source_atoms=atoms, accepted_edges=(atoms,))
+                      for atoms in pairs)
+    mapping = dict(enumerate(range(2*count)))
+    source = saved(ep, ep, mapping, fragments=fragments,
+                   pairs=tuple((atoms, atoms) for atoms in pairs))
+    first = source.families[0]
+    source.families.extend(replace(first, actions=first.actions[i:] + first.actions[:i],
+                                   provenance=[]) for i in range(1, count))
+    next(iter(source.branches.values())).update(range(count))
+    before = source.to_record()
     prepared = Counter()
-    prepare = _ActionSequence._prepare_atom
+    action_domains = SignedEventIndex.action_domains
 
-    def observed(self, image):
-        prepared[tuple(self), image] += 1
-        return prepare(self, image)
+    def observed(index, action):
+        prepared[action] += 1
+        return action_domains(index, action)
 
-    monkeypatch.setattr(_ActionSequence, '_prepare_atom', observed)
+    def unnecessary_union(*args):
+        pytest.fail('independent singleton rows repeated domain composition')
+
+    monkeypatch.setattr(SignedEventIndex, 'action_domains', observed)
+    monkeypatch.setattr(PreparedActionPrograms, '_combine_domain', unnecessary_union)
     decoded = decode_events(source)
     record = decoded_events_record(decoded)
-    expected = {(family.actions, image) for family in source.families
-                for _, image in family.mapping}
-    assert len(expected) == 16  # Four actual programs, four initial images each.
-    assert prepared == Counter({key: 1 for key in expected})
-    assert len(record['tables']) == 6  # Distinct relations, cuts and partitions remain.
-    assert not decoded._tables
-    for fid, partitions in enumerate(decoded.fragment_partitions):
-        for partition in range(len(partitions)):
-            decoded.tables(fid, partition)
-    assert prepared == Counter({key: 1 for key in expected})
+    assert prepared == Counter({action: 1 for action in first.actions})
+    assert len(decoded.local.fragments) == count
+    assert len(record['tables']) == count and not decoded._tables
+    shared = decoded.tables(0).fragment_responses
+    for fid, family in enumerate(source.families):
+        table = decoded.tables(fid)
+        for piece, (response, binding) in enumerate(table.fragment_responses):
+            assert response is shared[piece][0]
+            assert binding == (family.actions.index(('relation', fragments[piece])),)
+        for selected in (None, *range(count)):
+            choices = [None] * count
+            expected_mapping = dict(mapping)
+            if selected is not None:
+                a, b = pairs[selected]
+                expected_mapping[a], expected_mapping[b] = b, a
+                position = family.actions.index(('relation', fragments[selected]))
+                choices[position] = swap(fragments[selected])
+            assert decoded.realize(fid, choices) == expected_mapping
+            expected = dense_categories(problem, expected_mapping)
+            actual = decoded.contributions(fid, choices, include_events=True)
+            events = [(e['category'], e['reactant_pair'], e['product_pair'])
+                      for e in actual['events']]
+            assert sorted(events, key=repr) == expected
+            assert actual['total'] == len(expected)
+    assert prepared == Counter({action: 1 for action in first.actions})
+    assert source.to_record() == before
+
+
+def test_ordered_joint_placements_preserve_cut_and_unmatched_boundary_events():
+    matching = endpoint('CCCCCC', [])
+    fragment = saved_fragment(AAMProblem(matching, matching), source_atoms=(0, 1))
+    source = saved(matching, matching, dict(enumerate(range(4))), fragments=(fragment,),
+                   pairs=(((0, 1), (0, 1)), ((2, 3), (2, 3))))
+    exchange_first = (2, 3, 0, 1, 4, 5)
+    exchange_last = (0, 1, 4, 5, 2, 3)
+    orders = ((exchange_first, exchange_last), (exchange_last, exchange_first))
+    original = source.families[0]
+    source.families = [replace(original, actions=(('relation', fragment),
+        ('group', (first,)), ('group', (second,))), provenance=[dict(cuts=((0, 2),))])
+                      for first, second in orders]
+    next(iter(source.branches.values())).add(1)
+    before = source.to_record()
+    # Both placements preserve matching weights. Original event weights make
+    # their order and changing target occupancy observable.
+    event_problem = AAMProblem(
+        endpoint('CCCCCC', [(0, 2, 1.), (1, 3, 1.8), (0, 4, 1.)]),
+        endpoint('CCCCCC', [(0, 2, 1.), (1, 3, 1.8), (2, 4, .9),
+                            (3, 5, 1.6), (4, 5, .7)]))
+    decoded = decode_events(source, event_problem=event_problem)
+    totals = []
+    for fid, (first, second) in enumerate(orders):
+        outcomes = {}
+        for local, move_first, move_second in product((False, True), repeat=3):
+            choices = (swap(fragment) if local else None,
+                       (1,) if move_first else (), (1,) if move_second else ())
+            images = [1, 0, 2, 3] if local else [0, 1, 2, 3]
+            if move_first:
+                images = [first[p] for p in images]
+            if move_second:
+                images = [second[p] for p in images]
+            mapping = dict(enumerate(images))
+            assert decoded.realize(fid, choices) == mapping
+            expected = dense_categories(event_problem, mapping)
+            actual = decoded.contributions(fid, choices, include_events=True)
+            events = [(e['category'], e['reactant_pair'], e['product_pair'])
+                      for e in actual['events']]
+            assert sorted(events, key=repr) == expected
+            assert actual['total'] == len(expected)
+            outcomes[local, move_first, move_second] = actual['total']
+        table = decoded.tables(fid)
+        cut = next(term for term in table.boundary[0, 1] if term.atoms == (0, 2))
+        assert cut.manual_cut and cut.action_ids == (0, 1, 2)
+        assert table.components == (((0, 1), (0, 1, 2)),)
+        assert len(table.product_boundary_pairs) == 5
+        totals.append(outcomes[False, True, True])
+    assert totals == [8, 4]
+    record = decoded_events_record(decoded)
+    assert record['catalogue'] == before == source.to_record()
+    assert pickle.loads(pickle.dumps(record, protocol=5)) == record
+
+
+def test_sparse_binding_does_not_close_a_relaxed_action_with_itself():
+    ep = endpoint('CCCC', [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.)])
+    fragment = saved_fragment(AAMProblem(ep, ep), anchors=((0, 0),),
+        domains=((0, (0,)), (1, (1, 2)), (2, (2, 3)), (3, (3,))))
+    programs = PreparedActionPrograms(SignedEventIndex(AAMProblem(ep, ep)))
+    action = ('relation', fragment)
+    mapping = ((1, 1),)
+    domains, positions = programs.bind((action,), mapping)
+    assert domains == {1: (1, 2)} and positions == {1: (0,)}
+    domains, positions = programs.bind((action, action), mapping)
+    assert domains == {1: (1, 2, 3)} and positions == {1: (0, 1)}
 
 
 def test_branch_assembly_requests_only_boundaries_after_unique_internal_preparation(monkeypatch):
@@ -240,35 +340,35 @@ def test_branch_assembly_requests_only_boundaries_after_unique_internal_preparat
             assert table.statistics['neighboring_pairs'] == len(pairs)
 
 
-def test_preparation_eviction_bounds_retention_without_changing_rows(monkeypatch):
-    ep = endpoint('C' * 128, [])
-    source = saved(ep, ep, dict(enumerate(range(128))),
-        fragments=(saved_fragment(AAMProblem(ep, ep), source_atoms=(0, 1)),))
-    source.families.extend(replace(source.families[0],
-        actions=(('relation', saved_fragment(source.problem, source_atoms=(0, atom))),))
-                           for atom in range(2, 34))
-    next(iter(source.branches.values())).update(range(33))
+def test_domain_preparation_eviction_preserves_results_and_bounds_retention(monkeypatch):
+    ep = endpoint('C' * 15, [])
+    problem = AAMProblem(ep, ep)
+    programs = PreparedActionPrograms(SignedEventIndex(problem))
+    fragment = saved_fragment(problem, source_atoms=(0, 1))
+    action = programs.program((('relation', fragment),))[0]
     prepared = Counter()
-    prepare = _ActionSequence._prepare_atom
+    combine = PreparedActionPrograms._combine_domain
 
-    def observed(self, image):
-        prepared[tuple(self), image] += 1
-        return prepare(self, image)
+    def observed(action, domain):
+        prepared[domain] += 1
+        return combine(action, domain)
 
-    monkeypatch.setattr(_ActionSequence, '_prepare_atom', observed)
-    decoded = decode_events(source)
-    first = decoded.tables(0)
-    expected = first.atom_domains[0], first.atom_actions[0]
-    assert expected == ((0, 1), (0,))
-    decoded_events_record(decoded)
-    # 33 genuine programs over 128 images exceed the retained-row allowance.
-    assert sum(prepared.values()) == 4224
-    rows = decoded.index._prepared_atoms
-    assert len(rows.rows) <= 4096 and 0 < rows.bytes <= 16 * 2**20
-    program = decoded.local.programs.program(source.families[0].actions)
-    assert program.atom(0) == expected
-    assert prepared[source.families[0].actions, 0] == 2
-    assert len(rows.rows) <= 4096 and 0 < rows.bytes <= 16 * 2**20
+    monkeypatch.setattr(PreparedActionPrograms, '_combine_domain', staticmethod(observed))
+    first = (0, 2)
+    assert programs._advance(action, first) == (0, 1, 2)
+    assert programs._advance(action, first) == (0, 1, 2)
+    assert prepared[first] == 1
+    # The same local swap sees distinct upstream bounds; their identity must
+    # not depend on complete branch histories, and retention remains bounded.
+    for mask in range(2, 4098):
+        domain = (0,) + tuple(atom + 2 for atom in range(13) if mask & (1 << atom))
+        assert programs._advance(action, domain) == (0, 1) + domain[1:]
+    assert (action, first) not in programs._domains
+    assert programs._advance(action, first) == (0, 1, 2)
+    assert prepared[first] == 2
+    assert len(programs._domains) <= 4096
+    assert 0 < programs._domain_bytes <= 16 * 2**20
+    assert programs._domain_bytes == sum(size for _, size in programs._domains.values())
 
 
 def test_session_does_not_retain_released_preparation():

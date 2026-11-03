@@ -39,7 +39,6 @@ _CHECKPOINT_MODULES = {
     ('mappa.fragment_conversion', 'FragmentConversion'): 'mappa.mappa_core.post_processing.hierarchical_mapping',
     ('mappa.event_patterns', 'SignedEventIndex'): 'mappa.mappa_core.post_processing.decoder.events',
     ('mappa.mappa_core.post_processing.decoder.events', '_PreparedAction'): 'mappa.mappa_core.core.symmetry.actions',
-    ('mappa.mappa_core.post_processing.decoder.events', '_AtomRows'): 'mappa.mappa_core.core.symmetry.actions',
     ('mappa.mappa_core.post_processing.decoder.events', '_ActionSequence'): 'mappa.mappa_core.core.symmetry.actions',
     ('mappa.mappa_core.post_processing.decoder.events', 'PreparedActionPrograms'): 'mappa.mappa_core.core.symmetry.actions',
     ('mappa.event_patterns', '_EventTerms'): 'mappa.mappa_workflow.mapping_analytics.event_query',

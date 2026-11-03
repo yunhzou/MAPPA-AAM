@@ -387,7 +387,10 @@ constraints. Target occupancy and action dependencies remain joint.
 
 Preparation is shared with the responses: repeated fragment occurrences reuse
 their prepared symmetry and reachable atom sets, rather than deriving them again
-before each lookup. Branches bind shared local choices to their original action
+before each lookup. Branch assembly must not replay the whole symmetry sequence
+separately for every mapped atom. It binds shared preparation only where a local
+or placement choice affects the participating fragment endpoints.
+Branches bind shared local choices to their original action
 positions and retain their own boundary and constraint relationships. Shared
 preparation must preserve action order and remain bounded; it does not retain
 intermediate symmetry histories or complete working tables for every branch.

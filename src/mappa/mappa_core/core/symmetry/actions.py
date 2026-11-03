@@ -76,54 +76,16 @@ class _PreparedAction(tuple):
         return tuple, (tuple(self),)
 
 
-class _AtomRows:
-    """Bounded final atom rows; numeric keys do not retain their programs."""
-    def __init__(self):
-        self.rows = OrderedDict()
-        self.bytes = 0
-        self.next_program = 0
-
-    def atom(self, program, image):
-        key = program._number, image
-        entry = self.rows.get(key)
-        if entry is not None:
-            self.rows.move_to_end(key)
-            return entry[0]
-        row = program._prepare_atom(image)
-        size = sys.getsizeof(key) + sys.getsizeof(row) + sum(map(sys.getsizeof, row))
-        self.rows[key] = row, size
-        self.bytes += size
-        while len(self.rows) > 4096 or self.bytes > 16 * 2**20:
-            _, (_, removed) = self.rows.popitem(last=False)
-            self.bytes -= removed
-        return row
-
-
 class _ActionSequence(tuple):
-    """Exact ordered action values with bounded final atom preparation."""
-    def __new__(cls, actions, rows):
+    """Shared ordered actions; branch bindings remain separate from preparation."""
+    def __new__(cls, actions, owner, number):
         value = super().__new__(cls, actions)
         value._hash = tuple.__hash__(value)
-        value._rows = rows
-        value._number = rows.next_program
-        rows.next_program += 1
+        value._owner, value._number = owner, number
         return value
 
     def __hash__(self):
         return self._hash
-
-    def atom(self, image):
-        return self._rows.atom(self, image)
-
-    def _prepare_atom(self, image):
-        domain, dependencies = frozenset((image,)), []
-        for position, action in enumerate(self):
-            moved = domain.intersection(action.domains)
-            if moved:
-                dependencies.append(position)
-                reached = {action.domains[p] for p in moved}
-                domain = domain.union(*reached)
-        return tuple(sorted(domain)), tuple(dependencies)
 
 
 class PreparedActionPrograms:
@@ -133,26 +95,30 @@ class PreparedActionPrograms:
         self.actions, self.programs = {}, {}
         self.action_references, self.program_references = {}, {}
         self.sequences = {}
+        self._owner = object()
+        self._fixed_domains = tuple((image,) for image in range(index.m))
+        self._domains = OrderedDict()
+        self._domain_bytes = 0
 
     def _action(self, action):
         reference = self.action_references.get(id(action))
         if reference is None:
             prepared = _PreparedAction(action)
             if prepared not in self.actions:
-                prepared.domains = {image: domain for image, domain in
+                prepared.domains = {image: tuple(sorted(domain | {image})) for image, domain in
                     enumerate(self.index.action_domains(prepared)) if len(domain) > 1}
                 self.actions[prepared] = prepared
             reference = self.action_references[id(action)] = action, self.actions[prepared]
         return reference[1]
 
     def program(self, actions):
-        if isinstance(actions, _ActionSequence) and actions._rows is self.index._prepared_atoms:
+        if isinstance(actions, _ActionSequence) and actions._owner is self._owner:
             return actions
         reference = self.program_references.get(id(actions))
         if reference is None:
             prepared = tuple(self._action(action) for action in actions)
             if prepared not in self.programs:
-                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
+                self.programs[prepared] = _ActionSequence(prepared, self._owner, len(self.programs))
             reference = self.program_references[id(actions)] = actions, self.programs[prepared]
         return reference[1]
 
@@ -164,9 +130,58 @@ class PreparedActionPrograms:
         if key not in self.sequences:
             prepared = tuple(program[i] for i in positions)
             if prepared not in self.programs:
-                self.programs[prepared] = _ActionSequence(prepared, self.index._prepared_atoms)
+                self.programs[prepared] = _ActionSequence(prepared, self._owner, len(self.programs))
             self.sequences[key] = self.programs[prepared]
         return self.sequences[key]
+
+    @staticmethod
+    def _combine_domain(action, domain):
+        """Apply one relationship to the incoming bounds, without taking closure."""
+        reached = set(domain)
+        for image in domain:
+            reached.update(action.domains.get(image, ()))
+        return tuple(sorted(reached))
+
+    def _advance(self, action, domain):
+        if len(domain) == 1:
+            return action.domains[domain[0]]
+        key = action, domain
+        if key not in self._domains:
+            result = self._combine_domain(action, domain)
+            size = sys.getsizeof(key) + sys.getsizeof(domain) + sys.getsizeof(result)
+            self._domains[key] = result, size
+            self._domain_bytes += size
+            while len(self._domains) > 4096 or self._domain_bytes > 16 * 2**20:
+                _, (_, removed) = self._domains.popitem(last=False)
+                self._domain_bytes -= removed
+            return result
+        self._domains.move_to_end(key)
+        return self._domains[key][0]
+
+    def bind(self, actions, mapping):
+        """Bind shared local bounds to one branch's original joint choices.
+
+        Only rows touching an action participate. Independent fragments reuse
+        their prepared rows directly; overlapping relationships share their
+        combined bounds without retaining branch histories or assignments.
+        """
+        domains, dependencies, reaching = {}, {}, {}
+        for atom, image in mapping:
+            domains[atom] = self._fixed_domains[image]
+            dependencies[atom] = []
+            reaching.setdefault(image, set()).add(atom)
+        for position, action in enumerate(self.program(actions)):
+            affected = {atom for image in action.domains for atom in reaching.get(image, ())}
+            # Freeze affected rows before updating incidence: this action is
+            # applied once, even if its relaxed relationship is non-transitive.
+            for atom in affected:
+                previous = domains[atom]
+                domains[atom] = self._advance(action, previous)
+                dependencies[atom].append(position)
+                if domains[atom] != previous:
+                    for image in set(domains[atom]).difference(previous):
+                        reaching.setdefault(image, set()).add(atom)
+        return domains, {atom: tuple(positions) for atom, positions in dependencies.items()}
 
 
 def _action_orbits(action, degree):
@@ -226,7 +241,6 @@ class ActionIndex:
     def __init__(self, degree):
         self.m = degree
         self._domain_tables = OrderedDict()
-        self._prepared_atoms = _AtomRows()
         self._endpoint_pairs = OrderedDict()
         self._compiled_pair_actions = OrderedDict()
         self._pair_programs = OrderedDict()

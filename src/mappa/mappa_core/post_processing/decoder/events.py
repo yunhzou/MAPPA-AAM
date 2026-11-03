@@ -429,9 +429,7 @@ class FragmentEventTables:
             raise ValueError('saved fragments must partition the mapped source atoms')
         self.owners = np.array([owners.get(a, -1) for a in range(index.n)], dtype=int)
         program = local.programs.program(family.actions)
-        self.atom_domains, self.atom_actions = {}, {}
-        for atom, image in family.mapping:
-            self.atom_domains[atom], self.atom_actions[atom] = program.atom(image)
+        self.atom_domains, self.atom_actions = local.programs.bind(program, family.mapping)
         self.internal, self.boundary = {}, {}
         self.fragment_responses = tuple(local.fragment(fragment, mapping, program,
             self.atom_domains, self.atom_actions, self.cut_bonds) for fragment in fragments)

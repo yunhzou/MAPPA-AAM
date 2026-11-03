@@ -10,8 +10,12 @@ local speed and publication-memory measurements.
 records the stopped diagnostic run and a fresh full rerun submitted on
 scientific revision `1710f69`, with all 1,851 reactions / 3,702 directions,
 one seed and the user-selected cap 2,000. Five repaired point probes complete,
-and a complex saved result has exact decoded-output parity. The fresh run
-requests 141 compute workers; full benchmark results remain pending. The
+and a complex saved result has exact decoded-output parity. All 141 matching
+workers registered; all 3,702 matching and reduction directions are complete,
+including two reduction publication failures recovered with preserved budgets.
+The frozen pass has ended with 3,655 successful decodes and 47 memory errors.
+Reference verification has 3,696 results and six timeouts. These unresolved
+failures prevent successful full-benchmark completion. The
 implementation and cap differ from the completed
 cap-100 baseline below; these local checks are not full accuracy or throughput
 evidence.
