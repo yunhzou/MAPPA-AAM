@@ -16,6 +16,12 @@ terminal, with no active task attempts or original finish allocations remaining.
 The pass has ended with unresolved failures; it is not a successfully completed
 benchmark. Final audited resource and reference comparisons remain pending.
 
+The separate reference-recovery investigation is complete: tolerance 2 recovers
+four of the 20 unresolved reactions with one seed and another nine with ten
+seeds, all at cap 2,000. The selected recovery union is **1,844/1,851 (99.62%)**;
+seven reactions remain unrecovered. All 32 ten-seed direction checks now have
+conclusive outcomes. This does not resolve the frozen full run's decoding errors.
+
 ## Scope and settings
 
 The full benchmark covers **1,851 reactions, 3,702 directions and 177,552 matching
@@ -314,16 +320,18 @@ Power logs record sleep intervals of 5,286 and 910 seconds; the wake times,
 are separate from compute timeouts.
 
 An eight-check continuation reused saved catalogues and preserved the original
-identity, 4 GiB guard and consumed budgets. It confirms **1568** as one further
-recovery, bringing the selected cohort to **eight recovered**, **five completed
+identity, 4 GiB guard and consumed budgets. It confirmed **1568** as one further
+recovery, bringing that intermediate cohort to **eight recovered**, **five completed
 misses** (7, 986, 1285, 1377 and 1475), and **three unresolved reactions**.
 Cases **19 and 1358** have one negative direction and one execution timeout;
-**590** still has no published catalogue. The selected recovery union is now
+**590** had no published catalogue. The intermediate selected recovery union was
 **1,843/1,851 (99.57%)**. Five continuation checks completed and two exhausted
-their remaining original budgets. Only 1568 forward remains running; its reverse
-direction already establishes recovery. No fresh retry time was granted.
-This continuation uses the frozen pre-repair verifier, so its cost does not
-measure the repair below. Original failure records remain preserved separately.
+their remaining original budgets. The last check, 1568 forward, was deliberately
+stopped before the repaired validation below. Its continuation consumed
+3,189.352 seconds, leaving 247.606 seconds of its original allowance; the
+supervisor archived the interruption and the pool drained. No fresh retry time
+was granted to that continuation. It used the frozen pre-repair verifier, so its
+cost does not measure the repair below. Original failure records remain preserved.
 
 All 14,950 seed searches and 1,495 cut combinations completed. Search computation
 used **401.13 CPU seconds**, compared with **39.43 seconds** for the same 32
@@ -470,6 +478,81 @@ process peaked at 0.389 GiB, while fresh reverse/negative processes ranged from
 0.400 to 2.675 GiB. No before/after memory-reduction claim is made.
 Settings, hashes, separate timing scopes and validation evidence are in
 [recovery-evidence.json](recovery-evidence.json).
+
+### Completed remaining reference checks
+
+The six missing checks were completed with repaired revision `a597111`, with
+limits tied to the original speed. The separate validation keeps the saved matching at ten
+seeds, cap 2,000, discovery tolerance 2 and self tolerance 1. It preserves the
+original failed attempts and consumed budgets instead of resetting them.
+All original matching and reference input hashes remain unchanged.
+
+Four checks reuse complete saved catalogues. Each query has a hard wall-time
+limit of **five times its original measured query wall time**, with loading
+timed separately and a 4 GiB process-tree memory guard. Those historical trials
+used tolerance 1 and the older scientific representation: they are explicit
+speed targets, not identical-input comparisons of the algorithm. No new
+one-hour verification task was launched.
+
+| Direction | Original query wall (s) | Query limit (s) | Repaired query wall (s) | Load wall (s) | Result |
+|---|---:|---:|---:|---:|---|
+| 19 reverse | 44.262 | 221.312 | 18.529 | 12.118 | Not recovered |
+| 1358 forward | 55.527 | 277.636 | 13.721 | 11.123 | Not recovered |
+| 867 forward | 38.884 | 194.423 | 19.729 | 10.013 | Recovered |
+| 1568 forward | 78.330 | 391.650 | 34.515 | 18.814 | Not recovered |
+
+All four finished faster than their original query targets, with no timeout,
+memory failure or unknown verdict. Independent replay validates 867's positive
+witness, including both local self-relationships, ordered placements and endpoint
+reference equivalence. Its reverse direction already established reaction
+recovery, so this forward result does not increase the reaction-level score.
+Cases 19 and 1358 now have completed negative checks in both directions.
+
+Case 590 required catalogue construction from its completed matching: **58 cuts
+and 580 seed searches forward**, **56 cuts and 560 seed searches reverse**.
+The maintained reduction adapter can pass its complete catalogue directly to
+the verifier in memory. This avoids serializing the large intermediate catalogue;
+only the reference result, proof, scope and measurements are saved. The prior
+publication failures remain recorded and this validation does not establish
+successful catalogue publication or event decoding.
+
+The two directions ran sequentially with the existing 8 GiB guard. The original
+successful reverse-direction reduction and query took 222.296 and 186.839 wall
+seconds respectively. Five-times limits are therefore **1,111.479 seconds for
+reduction** and **934.195 seconds for verification**. Forward had no successful
+original query, so it explicitly uses reverse as its budget proxy. No automatic
+budget extension is permitted. Results are recorded separately in
+[recovery-evidence.json](recovery-evidence.json).
+
+| 590 direction | Families | Construction elapsed / CPU (s) | Query elapsed / CPU (s) | Peak RSS (GiB) | Result |
+|---|---:|---:|---:|---:|---|
+| Forward | 1,071,522 | 271.606 / 271.401 | 118.114 / 116.980 | 6.193 | Not recovered |
+| Reverse | 1,014,562 | 293.514 / 277.646 | 352.155 / 329.720 | 5.296 | Recovered |
+
+Construction includes loading saved cuts, which took 81.677 seconds forward
+and 102.291 seconds reverse. Forward checked every retained family; reverse
+recovered at zero-based family 649,600 after 649,601 checks. Independent replay
+validated all 13 local relationships, 11 placement actions and 42 accepted
+edges in the reverse witness, including both self constraints and complete
+heavy-atom reference equivalence. All expected cuts and seed searches were
+consumed, with no incomplete retained paths.
+
+Elapsed times and guards use the host's monotonic clock, which pauses during
+Mac sleep. Power logs confirm suspension during reverse: its construction and
+query UTC spans were 4,304.400 and 2,984.033 seconds. Those calendar spans are
+not compute durations. Both directions stayed within the declared five-times
+stage limits and memory guard; there was no budget extension. After each complete
+result was saved, the supervisor terminated the child during interpreter cleanup.
+Those cleanup exits occurred after the scientific checks, not during them.
+
+The completed ten-seed cohort has **nine recovered reactions** (20, 44, 590,
+867, 964, 1034, 1228, 1314 and 1568) and **seven with two negative directions**
+(7, 19, 986, 1285, 1358, 1377 and 1475). All **32 direction checks** are conclusive:
+16 recovered and 16 negative, with zero unknowns or outstanding checks. The
+baseline plus selected recovery studies now recover **1,844/1,851 reactions
+(99.62%)**. This is a union across settings, not a full benchmark at one setting.
+Original execution failures and consumed budgets remain unchanged; a negative
+result describes the retained capped catalogue, not all possible mappings.
 
 ## Stopped initial campaign
 

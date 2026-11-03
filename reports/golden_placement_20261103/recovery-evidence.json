@@ -1818,7 +1818,7 @@
       }
     },
     "verification_continuation": {
-      "observed_utc": "2026-11-03T18:41:21.521929+00:00",
+      "observed_utc": "2026-11-03T19:09:30.789565+00:00",
       "implementation": "Frozen pre-repair verifier; these timings do not measure the repaired verifier.",
       "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
       "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
@@ -1832,11 +1832,11 @@
       "budget_policy": "Retain each original 3600-second allowance and its consumed time. A failed process-monitor startup was preserved and conservatively charged before relaunch; no fresh time was granted.",
       "sleep_prevention": "Idle-sleep inhibition during the continuation; this does not prevent lid sleep.",
       "counts": {
-        "timeout": 2,
         "complete": 5,
-        "running": 1
+        "timeout": 2,
+        "deliberate_interruption": 1
       },
-      "all_selected_directions_terminal": false,
+      "all_selected_directions_terminal": true,
       "omitted": {
         "case": 867,
         "direction": "forward",
@@ -1952,10 +1952,19 @@
           "original_spent_seconds": 162.0024402141571,
           "original_remaining_seconds": 3437.997559785843,
           "conservative_startup_charge_seconds": 1.0396685600280762,
-          "state": "running",
-          "status": "pending",
-          "elapsed_seconds": 2351.731563091278,
-          "remaining_seconds": 1085.2263281345367
+          "state": "error",
+          "status": "unresolved",
+          "elapsed_seconds": null,
+          "remaining_seconds": 247.60560631752014,
+          "spent_seconds": 3352.39439368248,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": null,
+          "peak_rss_bytes": null,
+          "phase_at_exit": null,
+          "classification": "deliberate_interruption",
+          "exit_code": -15,
+          "additional_budget_spent_seconds": 3189.3522849082947,
+          "note": "Stopped by explicit instruction to replace the slow frozen verifier with separate bounded validation. Supervisor final CPU/RSS metrics are unavailable; consumed case time is retained."
         },
         {
           "case": 1568,
@@ -2007,18 +2016,60 @@
         "successful_direction_checks": 26,
         "direction_outcomes": {
           "not_recovered": 12,
-          "execution_unresolved": 3,
+          "execution_unresolved": 4,
           "recovered": 14,
-          "resource_unresolved": 2,
-          "pending": 1
+          "resource_unresolved": 2
         },
-        "note": "One direction remains active for an already recovered reaction. Timeout and memory outcomes are not negative reference checks."
+        "note": "The frozen continuation is terminal. Timeouts, deliberate interruption and memory failures are not negative reference checks. Reaction 1568 already recovered in reverse; its forward interruption does not change that reaction verdict."
       },
       "combined_recovery": {
         "recovered": 1843,
         "total": 1851,
         "percent": 99.56780118854674,
-        "definition": "Union of the full tolerance-1 benchmark and selected tolerance-2 follow-ups. This is a lower bound from mixed settings, not a complete uniform-setting benchmark."
+        "definition": "Union of the full tolerance-1 benchmark and selected tolerance-2 follow-ups through the frozen continuation. This is a lower bound from mixed settings, not a complete uniform-setting benchmark."
+      },
+      "archived_stage_counts": {
+        "complete": 5,
+        "error": 3
+      },
+      "active_owners": 0,
+      "saved_queue_tasks": 0,
+      "original_ledger_unchanged": true,
+      "runner_elapsed_seconds": 3277.0577738750726,
+      "resources": {
+        "attempts": 8,
+        "states": {
+          "complete": 5,
+          "timeout": 2,
+          "error": 1
+        },
+        "exact_compute_cpu_seconds": 3729.7230539999996,
+        "exact_compute_cpu_records": 5,
+        "observed_worker_cpu_seconds": 7650.62683292,
+        "missing_cpu_records": 1,
+        "peak_rss_bytes": 2651799552,
+        "guard_records": {
+          "4294967296": 7
+        },
+        "measurement_scope": "Archived continuation attempts; process-exit CPU may be absent and is counted as missing. Excludes original lost work and separately recorded startup allowance.",
+        "note": "Exact completed-task CPU and sampled timeout CPU are separate measurements. One interrupted attempt has no final supervisor CPU/RSS values; aggregate measured CPU excludes that attempt."
+      },
+      "deliberate_stop": {
+        "case": 1568,
+        "direction": "forward",
+        "reason": "Explicitly stop the old verifier and use separate bounded validation of the repaired verifier.",
+        "elapsed_seconds_before_stop": 3189.290437936783,
+        "additional_budget_spent_seconds": 3189.3522849082947,
+        "total_case_spent_seconds": 3352.39439368248,
+        "remaining_original_budget_seconds": 247.60560631752014,
+        "pre_stop_sample": {
+          "rss_bytes": 2309406720,
+          "process_lifetime_cpu_seconds": 3265.68108032,
+          "scope": "The pre-stop RSS is an instantaneous sample. CPU is compute-process lifetime and includes the earlier completed 1475/reverse task, not an exact 1568/forward task measurement. Supervisor final CPU and peak-RSS metrics are absent after process exit; they are not replaced with this sample."
+        },
+        "pool_drained": true,
+        "owner_lock_released": true,
+        "no_new_old_run_tasks": true
       }
     }
   },
@@ -2761,5 +2812,800 @@
       "Original campaign task CPU for controls includes catalogue load in a persistent worker. It is not directly comparable to the new isolated query-only timings.",
       "The known per-family query budget still does not interrupt all preparation; original benchmark task guards remain distinct."
     ]
+  },
+  "remaining_validation": {
+    "saved_catalogues": {
+      "schema": "mappa.remaining_saved_catalogue_validation/v1",
+      "observed_utc": "2026-11-03T19:00:05.724246+00:00",
+      "scope": "Four separate reference-verification point checks on existing seed-10 catalogues; no matching or family reduction rerun.",
+      "complete": true,
+      "scientific_config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 10,
+        "seed_selection": "random",
+        "self_tolerance": 1.0,
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "resources": {
+        "maximum_parallel_workers": 2,
+        "memory_guard_bytes": 4294967296,
+        "query_wall_limit_rule": "Five times original measured query wall time, rounded to four decimal places. The external guard interrupts verification at that deadline, including preparation.",
+        "loading_scope": "Catalogue and reference loading are timed separately and finish before the query clock starts; separate 120-second loading guard.",
+        "budget_scope": "New validation allowances only. Original task budgets and failures were preserved; no retry extension.",
+        "memory_scope": "Process-tree RSS sampled every 0.1 seconds; process lifetime peak also checked. Peaks include catalogue loading."
+      },
+      "historical_speed_target": {
+        "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+        "iso_tolerance": 1,
+        "seed_count": 10,
+        "branch_limit": 2000,
+        "caveat": "The original iso-tolerance 1 timings define the requested speed targets. Current catalogues use iso-tolerance 2, so this is not a matched-tolerance scientific comparison."
+      },
+      "records": [
+        {
+          "case": "00019/reverse",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 227157,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "cb44a7ae6220fb1d2e4d7d50741413c2481bf2a384d95d469012162a8b8b8e13",
+          "input_sha256": "3b6c0e8bddae83874ef7bd12472b773c153f22771441da680c8a4d0fb478095a",
+          "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+          "semantic_proof_sha256": "e2b072ddd65c2211aa61c2f25329c07987b65d1698daacb98b5ef96b8230296e",
+          "historical_original_query": {
+            "cpu_seconds": 44.15159,
+            "wall_seconds": 44.26247591711581
+          },
+          "query_wall_limit_seconds": 221.3124,
+          "loading": {
+            "cpu_seconds": 12.071973,
+            "wall_seconds": 12.117897209012881
+          },
+          "query": {
+            "cpu_seconds": 18.518604000000003,
+            "wall_seconds": 18.529389374889433
+          },
+          "sampled_peak_tree_rss_bytes": 1728806912,
+          "process_lifetime_peak_rss_bytes": 1728806912,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "00867/forward",
+          "state": "complete",
+          "reference_status": "recovered",
+          "winning_family": 187714,
+          "catalogue_families": 189749,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "2e0919d45f54797a90c80f1a5539bd5958634b66cfac7722b86f3fede6228633",
+          "input_sha256": "b7753d1bba5e2f60e768e259cff1877341bbf8c7339232e7d737cfecd3b3dbe3",
+          "reference_sha256": "f018f1bb63e5c8517517dfa1ec5b68587344cea35afc91915872c986a1d45e17",
+          "semantic_proof_sha256": "2ab001b3ccee8abe6eb590d4d920da064fdebe975bb70668929b329fa2873fa3",
+          "historical_original_query": {
+            "cpu_seconds": 38.752486,
+            "wall_seconds": 38.8844940001145
+          },
+          "query_wall_limit_seconds": 194.4225,
+          "loading": {
+            "cpu_seconds": 9.997933,
+            "wall_seconds": 10.012522749835625
+          },
+          "query": {
+            "cpu_seconds": 18.978005,
+            "wall_seconds": 19.728753166040406
+          },
+          "sampled_peak_tree_rss_bytes": 1399308288,
+          "process_lifetime_peak_rss_bytes": 1399308288,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "01358/forward",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 122090,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "9c4a94b6e65d1d2a0f3a19bb8340dbcf6ebec49c32ac1baf80c14abf6d987cdc",
+          "input_sha256": "835b893c9bd4cd3e4b3ec7a6bdecfba350d1a53b7e9fc2c26079ca7d8dcaef31",
+          "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+          "semantic_proof_sha256": "87e0659c2139c76c3dec2dbc39cb3d186af6398419a83ae64313a00aa43b1a8d",
+          "historical_original_query": {
+            "cpu_seconds": 55.407793999999996,
+            "wall_seconds": 55.52713962481357
+          },
+          "query_wall_limit_seconds": 277.6357,
+          "loading": {
+            "cpu_seconds": 11.084323999999999,
+            "wall_seconds": 11.122652749996632
+          },
+          "query": {
+            "cpu_seconds": 13.605663999999999,
+            "wall_seconds": 13.72119962493889
+          },
+          "sampled_peak_tree_rss_bytes": 1325432832,
+          "process_lifetime_peak_rss_bytes": 1326792704,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "01568/forward",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 316614,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "65f30cd647e895639b22e8fa2d1a0cb37ade705195f1bf026bed7062854f383e",
+          "input_sha256": "c581115a3716af4b0467c84abfc514c9a1934ef051d76095a2cb538c8a598223",
+          "reference_sha256": "c0c05df5489e4838786d90278be977a2b97e83821c08b7935f71cfbbe4e7002e",
+          "semantic_proof_sha256": "e2b072ddd65c2211aa61c2f25329c07987b65d1698daacb98b5ef96b8230296e",
+          "historical_original_query": {
+            "cpu_seconds": 78.071113,
+            "wall_seconds": 78.33002683403902
+          },
+          "query_wall_limit_seconds": 391.6501,
+          "loading": {
+            "cpu_seconds": 18.802187999999997,
+            "wall_seconds": 18.813838667003438
+          },
+          "query": {
+            "cpu_seconds": 34.505047999999995,
+            "wall_seconds": 34.51544566708617
+          },
+          "sampled_peak_tree_rss_bytes": 2323365888,
+          "process_lifetime_peak_rss_bytes": 2323365888,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        }
+      ],
+      "outcomes": {
+        "recovered": 1,
+        "not_recovered": 3,
+        "unknown": 0,
+        "timeout": 0,
+        "memory_limit": 0
+      },
+      "positive_witness_validation": {
+        "audit_wall_seconds": 11.155959792202339,
+        "case": "00867/forward",
+        "checked_fragment_edges": 32,
+        "complete_heavy_atom_reference_equivalence": true,
+        "endpoint_reference_check": {
+          "cache_hits": 0,
+          "components": 1,
+          "fixed_choices": 4,
+          "solver_calls": 1
+        },
+        "exact_composed_mapping": true,
+        "family": 187714,
+        "injectivity_and_element_compatibility": true,
+        "local_discovery_and_both_self_constraints": true,
+        "memory_guard_bytes": 4294967296,
+        "passed": true,
+        "placement_group_membership": true,
+        "placements": 7,
+        "process_lifetime_peak_rss_bytes": 1419837440,
+        "relations": 8,
+        "sampled_peak_tree_rss_bytes": 1419853824
+      },
+      "original_ledgers_unchanged": true,
+      "original_ledger_checksums": [
+        "5d89a8f816c00d3bca01ce6659c5e9c09d258989724fa5e746df0179985691c1",
+        "33b1355257f4c95fdfb8261e2917adf4da0f85ec1a1d9396190f919fab2e8b51"
+      ],
+      "limitations": [
+        "These reference checks do not rerun or retime matching, reduction or decoding.",
+        "A not-recovered result describes reference membership in this saved catalogue and is not a claim that no chemical mapping exists.",
+        "Each check has one measured execution; no full-dataset performance claim."
+      ]
+    },
+    "final_outcomes": {
+      "observed_utc": "2026-11-03T21:10:46.238209+00:00",
+      "expected_reactions": 16,
+      "expected_directions": 32,
+      "completed_reference_checks": 32,
+      "direction_outcomes": {
+        "not_recovered": 16,
+        "recovered": 16
+      },
+      "unknown_reference_checks": 0,
+      "reaction_outcomes": {
+        "not_recovered": 7,
+        "recovered": 9
+      },
+      "recovered_cases": [
+        20,
+        44,
+        590,
+        867,
+        964,
+        1034,
+        1228,
+        1314,
+        1568
+      ],
+      "both_direction_negative_cases": [
+        7,
+        19,
+        986,
+        1285,
+        1358,
+        1377,
+        1475
+      ],
+      "unresolved_cases": [],
+      "checks_by_evidence_source": {
+        "original_pass": 21,
+        "frozen_continuation": 5,
+        "repaired_saved_catalogue_validation": 4,
+        "repaired_in_memory_catalogue_validation": 2
+      },
+      "records": [
+        {
+          "case": 7,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 7,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 19,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 19,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 20,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 20,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 44,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 44,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 590,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_in_memory_catalogue_validation"
+        },
+        {
+          "case": 590,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "repaired_in_memory_catalogue_validation"
+        },
+        {
+          "case": 867,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 867,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 964,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 964,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 986,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 986,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1034,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1034,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1228,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1228,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1285,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1285,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1314,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1314,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1358,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 1358,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1377,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1377,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1475,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1475,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1568,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 1568,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "frozen_continuation"
+        }
+      ],
+      "reactions": [
+        {
+          "case": 7,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 19,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 20,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 44,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 590,
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 867,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 964,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 986,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1034,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1228,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1285,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1314,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1358,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1377,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1475,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1568,
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        }
+      ],
+      "input_index_sha256": "de768201723fa54ab862bd9bb4d0943a86b489ec5f04c99581a92b7ce9146b65",
+      "original_matching_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "repaired_verifier_source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "original_failures_preserved": true,
+      "matching_rerun": false,
+      "event_decoding_performed": false,
+      "catalogue_storage": {
+        "published_directions": 30,
+        "in_memory_only_directions": 2,
+        "in_memory_cases": [
+          590
+        ],
+        "note": "Both 590 catalogues were fully constructed from every saved cut and verified in RAM; only proof, scope and metrics were saved. Original catalogue-publication failures remain recorded."
+      },
+      "combined_recovery": {
+        "baseline_recovered": 1831,
+        "additional_one_seed_tolerance2_recovered": 4,
+        "additional_ten_seed_tolerance2_recovered": 9,
+        "recovered": 1844,
+        "total": 1851,
+        "percent": 99.62182603997839,
+        "definition": "Union of the full tolerance-1 run and selected tolerance-2 recovery studies, not a uniform-settings full benchmark."
+      },
+      "interpretation": "Reference membership is resolved for every direction in this 16-reaction recovery cohort. Negative answers describe the retained capped-search relation; historical execution failures remain separate immutable evidence."
+    },
+    "in_memory_590": {
+      "status": "complete",
+      "reaction": "00590",
+      "reaction_outcome": "recovered",
+      "scientific_revision": "a59711120948022c666e24f684d18a22dcb0632a",
+      "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "method": "Maintained reduce_matching over every saved cut, followed directly by verify_catalogue in the same process; directions sequential. No rematching, event decoding, or full-catalogue publication.",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 2000,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "self_tolerance": 1.0
+      },
+      "memory_guard_bytes": 8589934592,
+      "memory_sample_interval_seconds": 0.2,
+      "phase_limits_seconds": {
+        "reduction": 1111.478505,
+        "verification": 934.194811
+      },
+      "budget_basis": {
+        "multiplier": 5,
+        "reference_case": "00590/reverse",
+        "reference_settings": {
+          "seed_count": 10,
+          "branch_limit": 2000,
+          "iso_tolerance": 1
+        },
+        "reduction_wall_seconds": 222.29570120829158,
+        "verification_wall_seconds": 186.83896220801398,
+        "scope": "Historical successful reverse stage times provide an explicit runtime proxy for both current directions; current saved matching uses iso_tolerance=2 and is not identical scientific scope.",
+        "clock": "Monotonic elapsed; no extensions or resets of original attempts."
+      },
+      "original_stage_rows_unchanged": {
+        "result": true,
+        "reduction-recovery": true
+      },
+      "original_failure_history_preserved": true,
+      "original_ledger_statuses_not_rewritten": true,
+      "directions": [
+        {
+          "case": "00590/forward",
+          "status": "not_recovered",
+          "matching_cuts": 58,
+          "seed_searches": 580,
+          "matching_tasks_complete": 638,
+          "all_expected_matching_cuts_consumed": true,
+          "scope_sha256": "c19ce36b66181952a5d28cbb18e0ec8056c77335582fa052d3bd7dbd41a11294",
+          "counts": {
+            "families": 1071522,
+            "atom_set_branches": 990949,
+            "retained_paths": 1101562,
+            "incomplete_paths": 0
+          },
+          "checked_families": 1071522,
+          "winning_family": null,
+          "peak_tree_rss_bytes": 6649102336,
+          "reduction": {
+            "monotonic_elapsed_seconds": 271.60623675002716,
+            "cpu_seconds": 271.400803,
+            "utc_elapsed_seconds": 271.606013
+          },
+          "verification": {
+            "monotonic_elapsed_seconds": 118.11401804117486,
+            "cpu_seconds": 116.97975600000001,
+            "utc_elapsed_seconds": 118.113513
+          },
+          "cut_loading_included_in_reduction": {
+            "monotonic_elapsed_seconds": 81.67678616428748,
+            "cpu_seconds": 81.57352799999995,
+            "cuts": 58,
+            "compressed_bytes": 78696192
+          },
+          "limits_satisfied": true,
+          "full_catalogue_published": false,
+          "verdict_and_winning_family_sha256": "a77a6e5045345cf8090741b2e398d82a30b576d90a1c0bb69b285b4c3df9f154",
+          "digest_verified": true,
+          "process_cleanup": {
+            "scientific_result_and_small_artifact_complete": true,
+            "child_exit_code": -15,
+            "explanation": "Supervisor terminated the child only after receiving its complete scientific result and allowing five seconds for interpreter cleanup."
+          },
+          "phase_clock_intervals": {
+            "reduction": {
+              "utc_start": "2026-11-03T19:00:49.528714+00:00",
+              "utc_end": "2026-11-03T19:05:21.134727+00:00",
+              "utc_elapsed_seconds": 271.606013,
+              "monotonic_elapsed_seconds": 271.60722754197195,
+              "utc_minus_monotonic_seconds": -0.0012145419719331585
+            },
+            "verification": {
+              "utc_start": "2026-11-03T19:05:21.134727+00:00",
+              "utc_end": "2026-11-03T19:07:19.248240+00:00",
+              "utc_elapsed_seconds": 118.113513,
+              "monotonic_elapsed_seconds": 118.11404133308679,
+              "utc_minus_monotonic_seconds": -0.0005283330867911218
+            }
+          },
+          "negative_scope": "Every retained family conclusively checked; final not_recovered excludes unknown outcomes."
+        },
+        {
+          "case": "00590/reverse",
+          "status": "recovered",
+          "matching_cuts": 56,
+          "seed_searches": 560,
+          "matching_tasks_complete": 616,
+          "all_expected_matching_cuts_consumed": true,
+          "scope_sha256": "b126fd8bdb9e0b5701edf1a517eb85efd1ffc643f14e2f1ff11c198c8c1afd61",
+          "counts": {
+            "families": 1014562,
+            "atom_set_branches": 800453,
+            "retained_paths": 1075282,
+            "incomplete_paths": 0
+          },
+          "checked_families": 649601,
+          "winning_family": 649600,
+          "peak_tree_rss_bytes": 5686624256,
+          "reduction": {
+            "monotonic_elapsed_seconds": 293.5141529170796,
+            "cpu_seconds": 277.645581,
+            "utc_elapsed_seconds": 4304.400042
+          },
+          "verification": {
+            "monotonic_elapsed_seconds": 352.15514100017026,
+            "cpu_seconds": 329.71998599999995,
+            "utc_elapsed_seconds": 2984.032957
+          },
+          "cut_loading_included_in_reduction": {
+            "monotonic_elapsed_seconds": 102.29104854189791,
+            "cpu_seconds": 95.735965,
+            "cuts": 56,
+            "compressed_bytes": 76632534
+          },
+          "limits_satisfied": true,
+          "full_catalogue_published": false,
+          "verdict_and_winning_family_sha256": "52948e9c5dee40bcfd8a1f1405a4cc27dbbd4519df9593e6b025aab2cbf2861e",
+          "digest_verified": true,
+          "process_cleanup": {
+            "scientific_result_and_small_artifact_complete": true,
+            "child_exit_code": -15,
+            "explanation": "Supervisor terminated the child only after receiving its complete scientific result and allowing five seconds for interpreter cleanup."
+          },
+          "phase_clock_intervals": {
+            "reduction": {
+              "utc_start": "2026-11-03T19:07:25.982308+00:00",
+              "utc_end": "2026-11-03T20:19:10.382350+00:00",
+              "utc_elapsed_seconds": 4304.400042,
+              "monotonic_elapsed_seconds": 293.5166210839525,
+              "utc_minus_monotonic_seconds": 4010.8834209160477
+            },
+            "verification": {
+              "utc_start": "2026-11-03T20:19:10.382350+00:00",
+              "utc_end": "2026-11-03T21:08:54.415307+00:00",
+              "utc_elapsed_seconds": 2984.032957,
+              "monotonic_elapsed_seconds": 352.1551745000761,
+              "utc_minus_monotonic_seconds": 2631.877782499924
+            }
+          }
+        }
+      ],
+      "timing_caveat": "Recorded phase elapsed durations use perf_counter/monotonic, which excluded system suspension on this Mac. Reverse execution crossed confirmed clamshell sleep and maintenance dark wakes. UTC/calendar elapsed is separately retained and is much longer; CPU seconds are the computational measurement.",
+      "sleep_confirmed_from_system_power_log": true,
+      "independent_witness_audit": {
+        "case": "00590/reverse",
+        "family": 649600,
+        "passed": true,
+        "relations": 13,
+        "placements": 11,
+        "checked_fragment_edges": 42,
+        "original_representative_valid": true,
+        "exact_composed_mapping": true,
+        "local_discovery_and_both_self_constraints": true,
+        "placement_group_membership": true,
+        "injectivity_and_element_compatibility": true,
+        "complete_heavy_atom_reference_equivalence": true,
+        "endpoint_reference_check": {
+          "components": 0,
+          "cache_hits": 0,
+          "solver_calls": 0,
+          "fixed_choices": 76
+        },
+        "input_sha256": "8e363c9cef3c857bb2b4c5b43a9648c5782d2645d5b001e5ed27f73ca5b62012",
+        "reference_sha256": "456497631f800570e0145e8eb2d3fb51bedb585c8b50aaa9cf704cda78646aac",
+        "winning_family_sha256": "ef2b7245627cfb4795e558fc0b12b27453beea48ca07aac21f73542a8d124987",
+        "proof_sha256": "4a79178af89edb1a528328454e0f369b1e612e9b2e0f81dfb44e8288da17351b",
+        "scope": "one saved winning family only; no catalogue reconstruction or full reference query",
+        "audit_wall_seconds": 0.08485883404500782,
+        "audit_cpu_seconds": 0.017869999999999997,
+        "process_lifetime_peak_rss_bytes": 116867072
+      },
+      "completion_scope": "The retained, branch-capped catalogues were validated. Forward absence is conclusive within its complete retained catalogue, not a claim of exhaustive uncapped matching. Reverse recovery has an independently replayed witness."
+    }
   }
 }
