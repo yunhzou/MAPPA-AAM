@@ -92,7 +92,7 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     assert len(combined.literal_branches()) == 2
 
 
-def test_rejected_subtree_keeps_histories_already_joined_to_a_survivor(monkeypatch):
+def test_rejected_subtree_removes_its_history_without_losing_shared_survivor(monkeypatch):
     import mappa.mappa_core.core.search.branching.construction as construction
     from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
 
@@ -108,16 +108,16 @@ def test_rejected_subtree_keeps_histories_already_joined_to_a_survivor(monkeypat
     target = network(['C', 'O', 'O', 'O', 'O'])
     result = find_islands(source, target, [0, 1], max_branches=3)
     paths = list(result.paths())
-    assert [path.mapping for path in paths] == [{0: 0, 1: 1}] * 2 + [{0: 0, 1: 2}]
+    assert [path.mapping for path in paths] == [{0: 0, 1: 1}, {0: 0, 1: 2}]
     assert [[list(edge.match.source_atoms) for edge in
              (result.transitions[index] for index in path.transitions) if edge.match]
-            for path in paths] == [[[0, 1]], [[0], [0, 1]], [[0, 1]]]
-    assert all(state.mapping in ((), ((0, 0),), ((0, 0), (1, 1)), ((0, 0), (1, 2)))
+            for path in paths] == [[[0, 1]], [[0, 1]]]
+    assert all(state.mapping in ((), ((0, 0), (1, 1)), ((0, 0), (1, 2)))
                for state in result.states)
     cap, = [stop for stop in result.stops if stop.reason == 'capped']
     assert (cap.state, result.stop_context(cap), cap.seed, cap.step, cap.stage,
             cap.count, cap.limit, cap.occurrences) == (
-                None, 0, 1, (1, 1), 'combined_live_leaves', 4, 3, 2)
+                None, 0, 1, (1, 1), 'combined_live_leaves', 4, 3, 1)
 
 
 def test_retention_releases_discarded_payloads_and_aggregates_stop_evidence():
@@ -285,22 +285,34 @@ def test_graph_hierarchy_references_prepared_fragments_without_reconstruction():
     assert next(restored.paths()).hierarchy == path.hierarchy
 
 
-@pytest.mark.parametrize('stage', ['fragment_growth', 'combined_live_leaves'])
-def test_cap_is_recorded_without_claiming_a_match(monkeypatch, stage):
+def test_completed_fragment_cap_is_recorded_without_claiming_a_match(monkeypatch):
     import mappa.mappa_core.core.matching.api as fragment_module
     def grow(source, target, seed, mapping, **kwargs):
-        if stage == 'fragment_growth':
-            raise IslandBranchLimitExceeded(2, 1, seed=seed)
-        return growth_result(iso({0: 0}), iso({0: 1}))
+        raise IslandBranchLimitExceeded(2, 1, seed=seed)
     monkeypatch.setattr(fragment_module, 'grow_island', grow)
     graph = network(['C', 'C'])
     result = find_islands(graph, graph, [0], max_branches=1)
     assert not result.terminals
     assert result.capped
-    assert all(s.stage == stage and s.count == 2 and s.limit == 1 for s in result.stops)
+    assert all(s.stage == 'fragment_growth' and s.count == 2 and s.limit == 1
+               for s in result.stops)
     assert len(result.states) == 1 and not result.transitions
     assert all(s.state is None and result.stop_context(s) == 0 for s in result.stops)
-    assert sum(s.occurrences for s in result.stops) == (1 if stage == 'fragment_growth' else 2)
+    assert sum(s.occurrences for s in result.stops) == 1
+
+
+def test_combined_cap_preserves_partial_matches_and_stall_status():
+    source = network(['C', 'O', 'H'])
+    target = network(['C', 'C', 'O', 'O', 'N', 'F', 'Cl', 'Br'],
+                     [(0, 4), (1, 5), (2, 6), (3, 7)])
+    result = find_islands(source, target, [0, 1, 2], iso_tol=.1, max_branches=3)
+    assert [path.mapping for path in result.paths()] == [
+        {0: 0, 1: 2}, {0: 0, 1: 3}]
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.stage, cap.count, cap.limit, cap.occurrences) == (
+        'combined_live_leaves', 4, 3, 1)
+    assert [stop.reason for stop in result.stops if stop.state is not None] == [
+        'stalled', 'stalled']
 
 
 def test_partial_fragment_api_and_sparse_original_atom_indices():

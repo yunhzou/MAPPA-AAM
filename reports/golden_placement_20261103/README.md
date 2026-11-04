@@ -843,12 +843,50 @@ runs with the required process access.
 The cap counts surviving representative continuations, never a cumulative total
 of discarded descendants. Rejecting an oversized child preserves its smaller
 sibling and their shared ancestor. Completion can establish overflow at cap+1;
-it need not enumerate all 990 choices to reject that child at cap 100. Admission
-is sequential: with two 60-child subtrees and cap 100, the first is admitted and
+it need not enumerate all 990 choices to reject that child at cap 100. In that measured revision, admission
+was sequential: with two 60-child subtrees and cap 100, the first is admitted and
 the later subtree is rejected as a whole.
 
 A real-graph regression gives one sibling two placements and another four, with
 cap 3. Both child orders retain exactly the two surviving mappings in both Python
-and native execution. All **14 completed-branch-cap tests passed**. The production
-algorithm was unchanged; the approved surviving-count rule is now explicit in
-`design.md`.
+and native execution. All **14 completed-branch-cap tests passed**. That study did not change the production
+algorithm. Its sequential admission rule is superseded by the recursive pruning
+validated below.
+
+## Recursive pruning after each completed step
+
+The preceding point study used the former sequential admission rule. The current
+rule prunes the existing hierarchy bottom-up after each completed seed step:
+remove the largest child subtree repeatedly until the node fits, then check its
+parent using the reduced count. Equal-size ties retain earlier decisions. Shared
+continuations survive through retained parents; rejected decision paths are
+removed. Fragment completion, scientific matching settings, caching and decoding
+are unchanged. Checkpoint identity distinguishes the new cap policy.
+
+All **240 focused tests and 26 smoke checks passed**, including Python/native
+agreement, independent shared seed policies, exact compressed matching and
+weighted constraints. New explicit tests cover multiple pruning levels, repeated
+removal, updated ancestor counts, shared leaves and a three-fragment molecular
+example that distinguishes recursive pruning from flat frontier trimming.
+
+Case 1654 was rerun locally with the same settings and four workers, fresh caches,
+both directions and all 320 cuts. These are single-run point measurements.
+
+| Both directions | Cap 100: previous → recursive | Cap 2,000: previous → recursive |
+|---|---:|---:|
+| Matching compute CPU seconds |9.69 → 9.56|49.45 → 53.38|
+| Reduction compute CPU seconds |3.33 → 2.10|30.91 → 24.25|
+| Matching + reduction elapsed seconds |6.56 → 5.55|34.83 → 31.54|
+| Retained families |6,362 → 4,777|96,587 → 72,323|
+
+External verification recovered the 62-heavy-atom reference in both directions
+at both caps. Decoding was not rerun. Total elapsed time improved in both point
+tests; cap 2,000 matching CPU increased about 8%, so this is not evidence of a
+universal matching speedup. The changed pruning intentionally changes retained
+coverage; the complete Golden benchmark was not repeated.
+
+The [measurement record](case-1654-recursive-pruning.json) retains separate stage
+times, memory sampling coverage and source identity. Descendant sets stay
+compressed across shared histories. The completed step can still temporarily
+contain up to the square of the cap in immediate children before pruning; this
+rule is not a bound on total working memory.

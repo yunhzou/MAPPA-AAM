@@ -64,7 +64,7 @@ def checkpoint_manifest(problem, config):
         fragment_growth='witness_then_distinct_images_v1',
         matching_policy='complete_discovery_two_sided_relaxed_self_v1',
         growth_policy='growth_edge_splitmix64_v2',
-        branch_cap_policy='completed_fragment_frontier_v1',
+        branch_cap_policy='completed_fragment_bottom_up_v2',
         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
         reactant=endpoint(problem.reactant), product=endpoint(problem.product),
         config=asdict(config))))

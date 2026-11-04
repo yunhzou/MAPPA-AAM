@@ -146,13 +146,14 @@ only by global placement compression: they remain available for matching and
 are not occupied or anchored. Fragment competition fixes every target label
 because its takeover plan distinguishes the owners displaced by each offer.
 
-The library and this guide use the branch-limit default of 100. The cap bounds canonical placement continuations and combined live branches at each hierarchy level; it does not count represented symmetry alternatives. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
+The library and this guide use the branch-limit default of 100. The cap bounds canonical placement continuations and combined live branches at each hierarchy level; it does not count represented symmetry alternatives. After each completed seed step, pruning proceeds bottom-up: remove the largest child subtree until each node fits, and use its reduced count when checking its parent. Equal-size ties preserve earlier decisions. The completed-fragment limit still rejects an oversized placement result. The default pipeline uses one seed and cut sweep; no-sweep is an explicit ablation (`sweep_cuts=False`). The random seed controls reproducible, independent per-cut streams and is separate from the number of seed orderings.
 
 The returned search graph retains the complete fragment paths leading to its
 results. Discarded paths release their payloads. Their cap evidence remains in
 `graph.stops`: a cap summary has `state=None`, an explicit `context`, and an
-`occurrences` count. Its `count` and `limit` describe the original admission
-decision. Use `graph.stop_context(stop)` for either a summary or a stop attached
+`occurrences` count. Its `count` and `limit` describe the pruning decision;
+for combined hierarchy pruning, each occurrence removes one child subtree.
+Use `graph.stop_context(stop)` for either a summary or a stop attached
 to a retained state. Historical checkpoints keep their original attached stops.
 
 Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Earlier fragment schemas require their producing revision; current readers reject them instead of reinterpreting their allowed mappings.

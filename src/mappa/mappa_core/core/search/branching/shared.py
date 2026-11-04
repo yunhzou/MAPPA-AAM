@@ -14,6 +14,7 @@ from mappa.mappa_core.core.search.graph import (
     SearchGraphBuilder,
     FragmentTransition,
     SearchStop,
+    prune_frontier,
 )
 from mappa.mappa_core.core.matching.graphs import build_graph
 
@@ -25,6 +26,7 @@ class _SharedGraphBuilder(SearchGraphBuilder):
         self.nodes = {}
         self.edges = {}
         self.stop_keys = set()
+        self.last_transition = None
 
     def state(self, branch):
         key = branch.state_key()
@@ -38,13 +40,16 @@ class _SharedGraphBuilder(SearchGraphBuilder):
         # freezing every record duplicated the largest payloads just for hashing.
         # The DAG already owns them; no approximate digest or dropped field is needed.
         siblings = self.edges.setdefault((parent, node), [])
-        if not any(self.transitions[i].match.key == match.key and
-                   self.transitions[i].island == island and
-                   self.transitions[i].placement_generators == placement_generators
-                   for i in siblings):
-            siblings.append(len(self.transitions))
+        edge = next((i for i in siblings
+                     if self.transitions[i].match.key == match.key
+                     and self.transitions[i].island == island
+                     and self.transitions[i].placement_generators == placement_generators), None)
+        if edge is None:
+            edge = len(self.transitions)
+            siblings.append(edge)
             self.transitions.append(FragmentTransition(len(self.transitions), parent,
                 node, self.seed, self.step, match, island, placement_generators))
+        self.last_transition = edge
         return node
 
     def stop(self, branch, reason, *, stage='', count=0, limit=0):
@@ -59,8 +64,8 @@ class SharedSeedSearch:
 
 The future of a seed decision depends on mapping, island partition, deferred
 edges and the cut condition, not the history or which policy reached it.
-Policy cursors/frontier admission remain separate: their cap decisions are
-unchanged. Identical growth output is never expanded into bijections.
+Each policy retains its own decision edges and prunes its hierarchy independently.
+Identical growth output is never expanded into bijections.
 """
     def __init__(self, problem, config, *, condition, profile=None):
         if config.anchors:
@@ -86,6 +91,7 @@ unchanged. Identical growth output is never expanded into bijections.
         self.max_live_branches = 0
         self.elapsed = 0.
         self.frontiers = {}
+        self.policy_edges = {}
         self.agenda = deque()
         for index, order in enumerate(self.orders):
             policy = self._policy(index, order)
@@ -98,6 +104,9 @@ unchanged. Identical growth output is never expanded into bijections.
     def _finish_policies(self):
         # Memoized decisions may serve another active policy. Once all policies
         # finish, only returned-path ancestry and compact stop evidence remain.
+        retained = set().union(*self.policy_edges.values())
+        self.builder.transitions = [replace(edge, id=index) for index, edge in enumerate(
+            edge for edge in self.builder.transitions if edge.id in retained)]
         self.builder.retain((self.root,))
         self.branches.clear()
         self.decisions.clear()
@@ -105,6 +114,7 @@ unchanged. Identical growth output is never expanded into bijections.
         self.builder.nodes.clear()
         self.builder.edges.clear()
         self.builder.stop_keys.clear()
+        self.policy_edges.clear()
 
     def _expand(self, branch, seed):
         key = (branch.node, seed)
@@ -120,6 +130,7 @@ unchanged. Identical growth output is never expanded into bijections.
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
                 random_seed=self.config.random_seed, self_tolerance=self.config.self_tolerance),
             profile=self.profile)
+        edges = []
         if result.capped:
             self.builder.stop(branch, 'capped', stage='fragment_growth',
                               count=result.branch_count, limit=result.branch_limit)
@@ -130,13 +141,31 @@ unchanged. Identical growth output is never expanded into bijections.
             children, changed = [], False
             for match in result.matches:
                 child = branch.fork()
+                self.builder.last_transition = None
                 child.commit(match, deferred_edges=result.deferred_edges,
                              placement_generators=result.placement_generators)
+                if self.builder.last_transition is not None:
+                    edges.append(self.builder.last_transition)
                 changed |= child.state_key() != branch.state_key()
                 children.append(self.branches.setdefault(child.state_key(), child))
             children = tuple(children)
-        self.decisions[key] = (children, changed)
-        return children, changed
+        self.decisions[key] = (children, changed, tuple(edges))
+        return self.decisions[key]
+
+    def _prune_policy(self, index, branches):
+        # Local edge order keeps tie decisions independent of which other
+        # policy first computed a shared transition.
+        edges = tuple(self.policy_edges[index])
+        transitions = tuple(replace(self.builder.transitions[edge], id=position)
+                            for position, edge in enumerate(edges))
+        kept, retained, cuts = prune_frontier(self.builder.states, transitions,
+            (self.root.node,), [branch.node for branch in branches], self.config.branch_limit)
+        self.policy_edges[index] = dict.fromkeys(edges[edge] for edge in sorted(retained))
+        for _node, _edge, count, _size in cuts:
+            self.builder._record_stop(SearchStop(None, 'capped', self.builder.seed,
+                'combined_live_leaves', count, self.config.branch_limit,
+                self.builder.step, context=0))
+        return [branch for branch in branches if branch.node in kept]
 
     def _can_seed(self, branch, seed):
         if seed in branch.mapping:
@@ -148,9 +177,10 @@ unchanged. Identical growth output is never expanded into bijections.
         return self.source_elements[seed] in self.available_elements[branch.node]
 
     def _policy(self, index, order):
-        """Original synchronized admission, with growth supplied by the shared DAG."""
+        """Complete each seed step, then prune its policy-local hierarchy."""
         branches, progressed, pass_no = [self.root], True, 0
         cap = self.config.branch_limit
+        self.policy_edges[index] = {}
         while progressed:
             progressed = False
             pass_no += 1
@@ -160,28 +190,26 @@ unchanged. Identical growth output is never expanded into bijections.
                 # the branch unchanged. Keep its place in frontier admission.
                 if not any(self._can_seed(branch,seed) for branch in branches) and len(branches) <= cap:
                     continue
-                admitted, seen = [], set()
+                admitted, seen, advanced = [], set(), set()
                 for branch in branches:
                     self.frontiers[index] = tuple(branches) + tuple(admitted)
                     if not self._can_seed(branch,seed):
-                        subtree, changed = (branch,), False
+                        subtree, changed, edges = (branch,), False, ()
                     else:
-                        subtree, changed = yield (index, pass_no, position, seed, branch)
-                    additions, local = [], set()
+                        subtree, changed, edges = yield (index, pass_no, position, seed, branch)
+                    self.policy_edges[index].update(dict.fromkeys(edges))
                     for child in subtree:
-                        if child.node not in seen and child.node not in local:
-                            additions.append(child)
-                            local.add(child.node)
-                    if len(admitted)+len(additions) > cap:
-                        for child in additions:
-                            self.builder.stop(child, 'capped', stage='combined_live_leaves',
-                                count=len(admitted)+len(additions), limit=cap)
-                        continue
-                    admitted.extend(additions)
-                    seen.update(local)
-                    progressed |= bool(additions) and changed
+                        if child.node not in seen:
+                            admitted.append(child)
+                            seen.add(child.node)
+                        if changed and child.node != branch.node:
+                            advanced.add(child.node)
+                if len(admitted) > cap:
+                    admitted = self._prune_policy(index, admitted)
+                progressed |= any(branch.node in advanced for branch in admitted)
                 branches = sorted(admitted, key=lambda branch:-len(branch.mapping))
                 self.max_live_branches = max(self.max_live_branches, len(branches))
+        branches = self._prune_policy(index, branches)
         for branch in branches:
             self.builder.stop(branch, 'objective_met' if len(branch.mapping)==len(self.source) else 'stalled')
         self.frontiers.pop(index, None)
@@ -210,6 +238,10 @@ unchanged. Identical growth output is never expanded into bijections.
             for index, frontier in sorted(self.frontiers.items())
             for state in sorted({branch.node for branch in frontier}))
         graph = self.builder.finish()
+        if self.agenda:
+            retained = set().union(*self.policy_edges.values())
+            graph = replace(graph, transitions=tuple(replace(edge, id=index)
+                for index, edge in enumerate(edge for edge in graph.transitions if edge.id in retained)))
         if pending:
             graph = replace(graph, stops=graph.stops + tuple(SearchStop(state, 'budget', stage='shared_policy')
                 for state in sorted({p['state'] for p in pending})))

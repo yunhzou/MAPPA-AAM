@@ -234,13 +234,17 @@ alone do not suffice.
 For each parent branch, each retained representative completed-fragment match
 produces one child continuation with its saved placement relationship. Symmetric
 bijections inside that match are not separate branches.
-The existing cap applies at every hierarchy level, including the combined live
-leaves across parents. Counts include only surviving continuations: rejecting a
-child subtree must not cause its surviving ancestor or siblings to be pruned
-using a stale count. Each parent's completed children are admitted together;
-an addition exceeding the current live-frontier budget is rejected while
-previously admitted siblings remain. Completion, stalls and caps remain explicit; capped search
-is not an exhaustive absence proof.
+After each completed search step, apply the cap bottom-up at every hierarchy
+level. Each node counts distinct surviving continuations below it. If over the
+cap, remove its largest child subtree, recount and repeat until within the cap;
+ties preserve the earlier decision. Ancestors use the reduced descendant counts,
+so pruning below can spare their other subtrees. A shared continuation remains
+reachable through its retained parents, without retaining a rejected decision
+path. Seed policies apply this rule independently even when computation is shared.
+The completed-fragment limit remains an early rejection of a placement result
+that exceeds the cap; it does not truncate intermediate one-witness growth.
+Completion, stalls and caps remain explicit; capped search is not an exhaustive
+absence proof.
 
 ```mermaid
 flowchart TD

@@ -78,15 +78,88 @@ struct ScheduledGraph {
         }
         stops.push_back({state,seed,pass,position,std::move(reason),std::move(stage),count,limit});
     }
+    bool cap_frontier(std::vector<BranchPtr>& frontier,long limit) {
+        if ((long)frontier.size()<=limit) return false;
+        std::vector<std::vector<size_t>> outgoing(states.size());
+        for (size_t i=0;i<transitions.size();++i) outgoing[transitions[i].source].push_back(i);
+        std::vector<int> leaf(states.size(),-1);
+        for (size_t i=0;i<frontier.size();++i) leaf[frontier[i]->node]=(int)i;
+        using Leaves=std::shared_ptr<const std::vector<int>>;
+        auto empty=std::make_shared<const std::vector<int>>();
+        std::vector<Leaves> descendants(states.size(),empty);
+        std::vector<uint8_t> removed(transitions.size(),0);
+        bool changed=false;
+        // States are topological. Joined histories share one continuation and
+        // therefore one leaf identity, rather than multiplying ancestry paths.
+        for (size_t node=states.size();node-->0;) {
+            std::vector<size_t> children;
+            for (size_t edge:outgoing[node])
+                if (!descendants[transitions[edge].target]->empty()) children.push_back(edge);
+            if (leaf[node]<0 && children.size()==1) {
+                descendants[node]=descendants[transitions[children[0]].target];
+                continue;
+            }
+            std::vector<int> retained;
+            if (leaf[node]>=0) retained.push_back(leaf[node]);
+            for (size_t edge:children) {
+                const auto& values=*descendants[transitions[edge].target];
+                retained.insert(retained.end(),values.begin(),values.end());
+            }
+            if (retained.empty()) continue;
+            std::sort(retained.begin(),retained.end());
+            retained.erase(std::unique(retained.begin(),retained.end()),retained.end());
+            if ((long)retained.size()>limit) {
+                std::unordered_map<int,size_t> references;
+                references.reserve(retained.size());
+                if (leaf[node]>=0) ++references[leaf[node]];
+                for (size_t edge:children)
+                    for (int value:*descendants[transitions[edge].target]) ++references[value];
+                std::sort(children.begin(),children.end(),[&](size_t a,size_t b) {
+                    size_t left=descendants[transitions[a].target]->size();
+                    size_t right=descendants[transitions[b].target]->size();
+                    return left!=right ? left>right : a>b;
+                });
+                long count=(long)retained.size();
+                ScheduledBranch stopped;stopped.node=(int)node;
+                for (size_t edge:children) {
+                    if (count<=limit) break;
+                    stop(stopped,"capped","combined_live_leaves",count,limit);
+                    removed[edge]=1;changed=true;
+                    for (int value:*descendants[transitions[edge].target])
+                        if (--references[value]==0) --count;
+                }
+                retained.erase(std::remove_if(retained.begin(),retained.end(),
+                    [&](int value){return references[value]==0;}),retained.end());
+            }
+            descendants[node]=std::make_shared<const std::vector<int>>(std::move(retained));
+        }
+        std::vector<uint8_t> reachable(states.size(),0);reachable[0]=1;
+        for (size_t i=0;i<transitions.size();++i)
+            if (!removed[i] && reachable[transitions[i].source]) reachable[transitions[i].target]=1;
+        frontier.erase(std::remove_if(frontier.begin(),frontier.end(),
+            [&](const auto& branch){return !reachable[branch->node];}),frontier.end());
+        size_t kept=0;
+        for (size_t i=0;i<transitions.size();++i)
+            if (!removed[i] && reachable[transitions[i].source]) {
+                if (kept!=i) transitions[kept]=std::move(transitions[i]);
+                ++kept;
+            }
+        transitions.resize(kept);
+        return changed;
+    }
     void prune(const std::vector<BranchPtr>& frontier) {
+        std::vector<uint8_t> reachable(states.size(),0);reachable[0]=1;
+        for (const auto& edge:transitions)
+            if (reachable[edge.source]) reachable[edge.target]=1;
         std::vector<uint8_t> retained(states.size(),0);
         retained[0]=1;
-        for (const auto& branch:frontier) retained[branch->node]=1;
-        for (const auto& stop:stops) if (stop.state>=0) retained[stop.state]=1;
+        for (const auto& branch:frontier) if (reachable[branch->node]) retained[branch->node]=1;
+        for (const auto& stop:stops)
+            if (stop.state>=0 && reachable[stop.state]) retained[stop.state]=1;
         // Every edge points to a newly appended state. Reverse traversal keeps
         // every incoming path through joins, not just one representative path.
         for (auto edge=transitions.rbegin();edge!=transitions.rend();++edge)
-            if (retained[edge->target]) retained[edge->source]=1;
+            if (reachable[edge->source] && retained[edge->target]) retained[edge->source]=1;
         std::vector<int> indices(states.size(),-1);
         size_t kept=0;
         for (size_t i=0;i<states.size();++i) if (retained[i]) {
@@ -96,14 +169,28 @@ struct ScheduledGraph {
         }
         states.resize(kept);
         kept=0;
-        for (size_t i=0;i<transitions.size();++i) if (retained[transitions[i].target]) {
-            auto& edge=transitions[i];
-            edge.source=indices[edge.source];edge.target=indices[edge.target];
-            if (kept!=i) transitions[kept]=std::move(edge);
+        for (size_t i=0;i<transitions.size();++i)
+            if (reachable[transitions[i].source] && retained[transitions[i].target]) {
+                auto& edge=transitions[i];
+                edge.source=indices[edge.source];edge.target=indices[edge.target];
+                if (kept!=i) transitions[kept]=std::move(edge);
+                ++kept;
+            }
+        transitions.resize(kept);
+        kept=0;cap_summaries.clear();
+        for (size_t i=0;i<stops.size();++i) {
+            auto& stop=stops[i];
+            if (stop.state>=0) {
+                if (!reachable[stop.state]) continue;
+                stop.state=indices[stop.state];
+            } else if (stop.reason=="capped") {
+                cap_summaries.emplace(std::make_tuple(stop.seed,stop.pass,stop.position,
+                    stop.reason,stop.stage,stop.count,stop.limit),kept);
+            }
+            if (kept!=i) stops[kept]=std::move(stops[i]);
             ++kept;
         }
-        transitions.resize(kept);
-        for (auto& stop:stops) if (stop.state>=0) stop.state=indices[stop.state];
+        stops.resize(kept);
         for (const auto& branch:frontier) branch->node=indices[branch->node];
         needs_pruning=false;
     }
@@ -204,31 +291,33 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
             }
             std::vector<BranchPtr> next;
             ScheduledFrontier seen;
+            std::unordered_set<const ScheduledBranch*> advanced;
             seen.reserve(branches.size());next.reserve(branches.size());
-            auto admit=[&](const std::vector<BranchPtr>& subtree,bool made_progress=false) {
+            auto admit=[&](const std::vector<BranchPtr>& subtree,const ScheduledBranch& parent) {
                 std::vector<BranchPtr> additions;
                 ScheduledFrontier local;
                 for (const auto& b:subtree) {
+                    bool changed=b->key!=parent.key;
                     auto prior=seen.find(b.get());
-                    if (prior!=seen.end()) {graph.join(*prior->second,*b);continue;}
+                    if (prior!=seen.end()) {
+                        graph.join(*prior->second,*b);
+                        if (changed) advanced.insert(prior->second.get());
+                        continue;
+                    }
                     auto sibling=local.find(b.get());
-                    if (sibling!=local.end()) {graph.join(*sibling->second,*b);continue;}
+                    if (sibling!=local.end()) {
+                        graph.join(*sibling->second,*b);
+                        if (changed) advanced.insert(sibling->second.get());
+                        continue;
+                    }
                     local.emplace(b.get(),b);additions.push_back(b);
-                }
-                if ((long)(next.size()+additions.size())>max_branches) {
-                    for (const auto& b:additions)
-                        graph.stop(*b,"capped","combined_live_leaves",next.size()+additions.size(),max_branches);
-                    return;
+                    if (changed) advanced.insert(b.get());
                 }
                 for (const auto& b:additions) {seen.emplace(b.get(),b);next.push_back(b);}
-                if (!additions.empty() && made_progress) progressed=true;
             };
             auto carry=[&](const BranchPtr& b) {
                 auto prior=seen.find(b.get());
                 if (prior!=seen.end()) {graph.join(*prior->second,*b);return;}
-                if ((long)next.size()+1>max_branches) {
-                    graph.stop(*b,"capped","combined_live_leaves",next.size()+1,max_branches);return;
-                }
                 seen.emplace(b.get(),b);next.push_back(b);
             };
             for (const auto& branch:branches) {
@@ -249,14 +338,18 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                 }
                 if (result.fragments.empty()) {carry(branch);continue;}
                 std::vector<BranchPtr> subtree;
-                bool changed=false;
                 for (const auto& fragment:result.fragments) {
                     auto child=commit_scheduled_fragment(branch,fragment,result.deferred_edges,
                         result.placement_generators,source,graph);
-                    changed|=(child->key!=branch->key);subtree.push_back(std::move(child));
+                    subtree.push_back(std::move(child));
                 }
-                admit(subtree,changed);
+                admit(subtree,*branch);
             }
+            seen.clear();
+            branches.clear();
+            graph.cap_frontier(next,max_branches);
+            if (std::any_of(next.begin(),next.end(),[&](const auto& b){return advanced.count(b.get());}))
+                progressed=true;
             std::stable_sort(next.begin(),next.end(),[](const auto& a,const auto& b){return a->mapped>b->mapped;});
             branches=std::move(next);
             if (graph.needs_pruning) graph.prune(branches);

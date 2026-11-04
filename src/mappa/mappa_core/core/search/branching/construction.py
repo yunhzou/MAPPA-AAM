@@ -1,4 +1,4 @@
-"""Fragment locking, branch construction and exact frontier admission."""
+"""Fragment locking, branch construction and bottom-up hierarchy pruning."""
 
 from __future__ import annotations
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
@@ -239,72 +239,32 @@ def find_islands(g_R, g_P, seed_order,
             graph.seed = int(seed)
             new_branches = []
             pending_seen = {}
+            changed_states = set()
             discarded = False
 
-            def _admit_subtree(subtree, *, made_progress=False,
-                               source_branch=None):
-                """Admit one parent branch's result atomically.
-
-                A subtree that would take the live post-dedupe leaf count over
-                ``max_branches`` is discarded by itself.  Sibling branches and
-                other seed orders remain valid; exactly ``max_branches`` live
-                leaves is allowed.
-                """
-                nonlocal progressed, discarded
-                additions = []
-                local_seen = {}
+            def _admit_subtree(subtree, *, made_progress=False):
+                """Share equal continuations before counting the completed step."""
                 for candidate in subtree:
                     sig = _branch_signature(candidate)
+                    if made_progress:
+                        changed_states.add(sig)
                     if sig in pending_seen:
                         _merge_equivalent_paths(
                             pending_seen[sig], candidate)
                         continue
-                    if sig in local_seen:
-                        _merge_equivalent_paths(local_seen[sig], candidate)
-                        continue
-                    local_seen[sig] = candidate
-                    additions.append((sig, candidate))
-                if len(new_branches) + len(additions) > max_branches:
-                    discarded = True
-                    for _sig, candidate in additions:
-                        graph.stop(candidate, 'capped', stage='combined_live_leaves',
-                                   count=len(new_branches) + len(additions), limit=max_branches)
-                    if profile is not None:
-                        profile.append({
-                            'seed': int(seed),
-                            'pass': int(pass_no),
-                            'branch_index': (
-                                None if source_branch is None
-                                else int(source_branch)),
-                            'mapped_before': (
-                                0 if source_branch is None
-                                else len(branches[source_branch].mapping)),
-                            'result': 'subtree_branch_cap',
-                            'stage': 'combined_live_leaves',
-                            'subtree_branches': len(additions),
-                            'live_branches_before': len(new_branches),
-                            'max_branches': int(max_branches),
-                            'elapsed_sec': 0.0,
-                            'extend_elapsed_sec': 0.0,
-                        })
-                    return False
-                for sig, candidate in additions:
                     pending_seen[sig] = candidate
                     new_branches.append(candidate)
-                if additions and made_progress:
-                    progressed = True
-                return bool(additions)
 
             for bi, b in enumerate(branches):
                 if stop_when_core_mapped and _core_complete(b.mapping):
-                    _admit_subtree([b], source_branch=bi)
+                    _admit_subtree([b])
                     continue
                 seed_is_mapped_anchor = seed in b.mapping and seed in anchor_map
                 if seed in b.mapping and not seed_is_mapped_anchor:
-                    _admit_subtree([b], source_branch=bi)
+                    _admit_subtree([b])
                     continue
                 if seed_is_mapped_anchor and not _mapped_anchor_can_seed(b, seed):
-                    _admit_subtree([b], source_branch=bi)
+                    _admit_subtree([b])
                     continue
                 # Only record events for branch 0 to keep trace linear
                 ev_arg = events if (events is not None and bi == 0) else None
@@ -335,7 +295,7 @@ def find_islands(g_R, g_P, seed_order,
                     continue
                 isos = result.matches
                 if not isos:
-                    _admit_subtree([b], source_branch=bi)
+                    _admit_subtree([b])
                     continue
                 # Completion supplies distinct compressed choices. Event
                 # summaries cannot replace their mapping relationships.
@@ -354,9 +314,11 @@ def find_islands(g_R, g_P, seed_order,
                     else:
                         subtree.append(b2)
                         subtree_progressed = True
-                _admit_subtree(
-                    subtree, made_progress=subtree_progressed,
-                    source_branch=bi)
+                _admit_subtree(subtree, made_progress=subtree_progressed)
+            if len(new_branches) > max_branches:
+                new_branches = graph.cap_frontier(new_branches, max_branches, profile)
+                discarded = True
+            progressed |= any(branch.state_key() in changed_states for branch in new_branches)
             new_branches.sort(key=lambda b: -len(b.mapping))
             # Admission already enforces unique live state keys.
             branches = new_branches

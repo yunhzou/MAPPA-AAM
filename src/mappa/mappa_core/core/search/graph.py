@@ -390,6 +390,71 @@ class AAMSearchGraph:
         return cls(tuple(contexts), tuple(roots), tuple(states), tuple(transitions), tuple(stops))
 
 
+def prune_frontier(states, transitions, roots, frontier_ids, cap):
+    """Limit descendant continuations bottom-up without unfolding DAG paths.
+
+    A rejected decision edge does not remove a shared child reached through
+    another parent. The final root walk retains only surviving histories.
+    """
+    frontier = set(frontier_ids)
+    outgoing = [[] for _ in states]
+    incoming_count = [0] * len(states)
+    ordered = True
+    for edge in transitions:
+        outgoing[edge.source].append(edge)
+        incoming_count[edge.target] += 1
+        ordered &= edge.source < edge.target
+    order = list(range(len(states))) if ordered else [
+        node for node, count in enumerate(incoming_count) if not count]
+    if not ordered:
+        # Shared policies can reuse a state created before its new parent.
+        for node in order:
+            for edge in outgoing[node]:
+                incoming_count[edge.target] -= 1
+                if not incoming_count[edge.target]:
+                    order.append(edge.target)
+
+    descendants = [frozenset()] * len(states)
+    rejected, cuts = set(), []
+    for node in reversed(order):
+        children = [edge for edge in outgoing[node] if descendants[edge.target]]
+        own = frozenset((node,)) if node in frontier else frozenset()
+        if len(children) == 1 and not own:
+            descendants[node] = descendants[children[0].target]
+            continue
+        live = own.union(*(descendants[edge.target] for edge in children))
+        if len(live) > cap:
+            counts = {leaf: 1 for leaf in own}
+            for edge in children:
+                for leaf in descendants[edge.target]:
+                    counts[leaf] = counts.get(leaf, 0) + 1
+            children.sort(key=lambda edge: (len(descendants[edge.target]), edge.id), reverse=True)
+            for edge in children:
+                if len(counts) <= cap:
+                    break
+                removed = descendants[edge.target]
+                cuts.append((node, edge.id, len(counts), len(removed)))
+                rejected.add(edge.id)
+                for leaf in removed:
+                    counts[leaf] -= 1
+                    if not counts[leaf]:
+                        del counts[leaf]
+            live = frozenset(counts)
+        descendants[node] = live
+
+    reachable, kept_edges = set(roots), set()
+    pending = list(roots)
+    while pending:
+        for edge in outgoing[pending.pop()]:
+            if edge.id in rejected or not descendants[edge.target]:
+                continue
+            kept_edges.add(edge.id)
+            if edge.target not in reachable:
+                reachable.add(edge.target)
+                pending.append(edge.target)
+    return frontier & reachable, kept_edges, cuts
+
+
 class SearchGraphBuilder:
     def __init__(self, context):
         self.context = context
@@ -468,6 +533,21 @@ class SearchGraphBuilder:
                 return
             self._cap_stops[key] = len(self.stops)
         self.stops.append(stop)
+
+    def cap_frontier(self, branches, cap, profile=None):
+        kept, edges, cuts = prune_frontier(self.states, self.transitions, self.roots,
+                                          (branch.node for branch in branches), cap)
+        for node, _edge, count, removed in cuts:
+            self._record_stop(SearchStop(None, 'capped', self.seed,
+                'combined_live_leaves', count, cap, self.step, context=0))
+            if profile is not None:
+                profile.append(dict(seed=self.seed, **{'pass': self.step[0]},
+                    result='subtree_branch_cap', stage='combined_live_leaves',
+                    mapped_before=len(self.states[node].mapping),
+                    subtree_branches=removed, live_branches_before=count,
+                    max_branches=cap, elapsed_sec=0.0, extend_elapsed_sec=0.0))
+        self.transitions = [edge for edge in self.transitions if edge.id in edges]
+        return [branch for branch in branches if branch.node in kept]
 
     def retain(self, branches):
         """Release discarded history while preserving every live incoming path.
