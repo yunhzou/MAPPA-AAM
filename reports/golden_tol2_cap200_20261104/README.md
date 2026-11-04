@@ -76,19 +76,26 @@ failures were recorded. The four failed attempts each consumed approximately
 600 CPU seconds during computation, with peak sampled process-tree memory
 between 0.32 and 1.09 GiB, below the 2 GiB guard.
 
+By 06:52 UTC, both remaining directions (569 forward and reverse) also reached
+the 600-second limit. Decoding therefore ended with 3,696 successes and six
+timeouts; external reference verification began in the same pool. There were
+still no memory-limit failures or retries.
+
 | Direction | Current decoding | Previous decoder compute CPU seconds |
 |---|---|---:|
 | 1361 forward | 600-second timeout | 7.634 |
 | 1361 reverse | 600-second timeout | 286.099 |
 | 575 reverse | 600-second timeout | 792.088 |
 | 837 forward | 600-second timeout | 11.463 |
+| 569 forward | 600-second timeout | 1.379 |
+| 569 reverse | 600-second timeout | 37.227 |
 
 Previous measurements are from the full decoder rerun in
 [the placement study](../golden_placement_20261103/README.md), using decoder
 `119dca4`, tolerance 1, cap 2,000, minimum + 6 and a 1,800-second allowance.
 They used different catalogues and 4–8 GiB guards. Case 575 reverse already
-exceeded the current time allowance. The previously fast 1361 forward and
-837 forward require investigation; these comparisons do not isolate a code
+exceeded the current time allowance. The previously fast 1361 forward,
+837 forward and both 569 directions require investigation; these comparisons do not isolate a code
 regression from the changed search settings and decoder model. Failure is not
 evidence that a mapping is absent. Failed attempts and their consumed budgets
 remain preserved; no reruns or algorithm changes were made.
