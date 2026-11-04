@@ -7,8 +7,8 @@ description: Open or build the existing MAPPA 3D fragment-growth replay from sav
 
 Resolve this skill's symlink, then go up two directories for the active checkout.
 Use its established UI and `docs/SEARCH_TRAJECTORIES.md`; do not create another
-viewer or reconstruct growth from a final mapping. On this Mac the project Python
-is `/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/aam-event-env/bin/python`.
+viewer or reconstruct growth from a final mapping. Activate the project's Python
+environment and use its `python` for the commands below.
 
 ## Fast reusable workflow
 

@@ -25,8 +25,7 @@ PYTHONPATH=src:bench python tools/render_mapping_comparison.py \
   private/golden-viewer/view.html --golden-cases 1654 --open
 ```
 
-Use the project Python environment. On this Mac it is
-`/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/aam-event-env/bin/python`.
+Activate the project's Python environment and use its `python` for these commands.
 Supply only the requested case IDs, in the desired display order. The command
 loads their checksummed input/reference byte ranges, generates missing 3D display
 geometry once, caches it by chemistry and generation settings, renders the shared
