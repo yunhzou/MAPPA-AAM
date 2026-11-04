@@ -531,8 +531,8 @@ class FragmentEventTables:
         self.components = self._dependency_components()
         lower, upper = boundary.lower, boundary.count
         for response, _ in self.fragment_responses:
-            local_lower, local_upper = local.bounds(response)
-            lower += local_lower
+            _, local_upper = local.bounds(response)
+            lower += response.event_counts.lower
             upper += local_upper
         if self.sweep_cut is not None:
             term = next(iter(self.boundary.values()))[0]

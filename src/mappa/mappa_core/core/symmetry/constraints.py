@@ -368,13 +368,15 @@ def _inverse_action(system, program, degree):
     return values
 
 
-def compile_relaxed_relation(system, relation, label):
+def compile_relaxed_relation(system, relation, label, *, images_only=False):
     """Compile beta o D o alpha^-1 without expanding discovery maps or groups.
 
     Returned images use original endpoint indices. Both self actions use their
     compact structural factors and their own joint original-weight constraints.
     Only local edge tables are materialized; injectivity remains one shared
-    constraint over the discovery choices.
+    constraint over the discovery choices. Image-only consumers may absorb
+    actions already closed within discovery; callers querying action provenance
+    retain the original factor variables.
     """
     discovery = {r: system.symbol(domain) for r, domain in relation.domains}
     system.distinct(value[0] for value in discovery.values())
@@ -383,8 +385,13 @@ def compile_relaxed_relation(system, relation, label):
     for edge in relation.accepted_edges:
         system.relation(tuple(discovery[r][0] for r in edge.atoms),
                         relation.discovery_pairs(edge))
-    source_action, source_program = _compile_self(system, relation.source, (label, 'source'))
-    target_action, target_program = _compile_self(system, relation.target, (label, 'target'))
+    source_absorbed, target_absorbed = relation.absorbed_self_actions if images_only else (False, False)
+    source_action, source_program = (
+        (tuple(system.constant(i) for i in range(len(relation.source_atoms))), ())
+        if source_absorbed else _compile_self(system, relation.source, (label, 'source')))
+    target_action, target_program = (
+        (tuple(system.constant(i) for i in range(len(relation.target_atoms))), ())
+        if target_absorbed else _compile_self(system, relation.target, (label, 'target')))
     inverse = _inverse_action(system, source_program, len(relation.source_atoms))
     original_targets = {i: system.constant(atom) for i, atom in enumerate(relation.target_atoms)}
     target_images = {atom: system.lookup(value, original_targets)

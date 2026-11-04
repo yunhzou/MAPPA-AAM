@@ -15,6 +15,8 @@ class EventWindow:
         ordered = sorted(candidates)
         bounds = {}
         lower_minimum = None
+        unresolved = []
+        witness_minimum = None
         for lower, fid, partition, cut in ordered:
             if lower_minimum is not None and lower >= lower_minimum:
                 break
@@ -22,13 +24,27 @@ class EventWindow:
             if lower_minimum is not None and table.count_bounds[0] >= lower_minimum:
                 del table
                 continue
+            lower = table.count_bounds[0]
+            bounds[fid, partition, cut] = lower
+            witness_minimum = (table.count_bounds[1] if witness_minimum is None else
+                               min(witness_minimum, table.count_bounds[1]))
+            if all(response.event_counts.lower == response.event_counts.bounds[1]
+                   for response, _ in table.fragment_responses):
+                lower_minimum = lower if lower_minimum is None else min(lower_minimum, lower)
+            else:
+                unresolved.append((lower, fid, partition, cut))
+            del table
+        for lower, fid, partition, cut in sorted(unresolved):
+            if lower_minimum is not None and lower >= lower_minimum:
+                break
+            table = self._table(decoded, fid, partition, cut)
             lower = table.boundary_events.lower + sum(self._local_minima(decoded, table))
             bounds[fid, partition, cut] = lower
             lower_minimum = lower if lower_minimum is None else min(lower_minimum, lower)
             del table
-
-        best = None
         initial_maximum = None if lower_minimum is None else lower_minimum + 2
+        best = (witness_minimum if witness_minimum is not None and
+                witness_minimum <= initial_maximum else None)
         for lower, fid, partition, cut in ordered:
             if lower > initial_maximum or (best is not None and lower >= best):
                 break
@@ -77,7 +93,7 @@ class EventWindow:
 
     @staticmethod
     def _local_minima(decoded, table):
-        return tuple(decoded.local.minimum(response) for response, _ in table.fragment_responses)
+        return tuple(response.event_counts.minimum for response, _ in table.fragment_responses)
 
     @staticmethod
     def _sweep_minimum(decoded, table, minima, upper):
@@ -95,18 +111,27 @@ class EventWindow:
                  for p in selected[0].atom_domains[a] for q in selected[1].atom_domains[b]
                  }
         reserve = boundary.sweep_removed - int(boundary.source_cut_counted)
-        # Most swept pairs have a fixed response even when their endpoint
-        # fragments contain many choices. Certify that before a joint query.
+        # Fixed sweep responses need only the already prepared local counts.
         lower += reserve + min(cost for (p, q), cost in costs.items() if p != q)
         if lower > upper:
             return None
         if lower == table.count_bounds[1]:
             return lower
-        from .local_counts import compile_local
-        query = compile_local(decoded.index, selected)
-        x, y = query.images[0][a], query.images[1][b]
-        query.solver.add(x != y)
-        correction = query.pair_cost(x, y, costs)
         base = boundary.lower + sum(value for i, value in enumerate(minima) if i not in (left, right))
-        expression = base + reserve + sum(query.counts) + correction
-        return query.minimum(expression, lower, upper)
+        def compose(xs, ys):
+            return min((base + reserve + cx + cy + costs[x, y]
+                        for x, cx in xs.items() for y, cy in ys.items() if x != y), default=None)
+        # A retained valid choice can certify the lower endpoint without any
+        # endpoint contraction. Otherwise use the shared conditional responses.
+        attained = compose(selected[0].event_counts.witness_endpoints(a),
+                           selected[1].event_counts.witness_endpoints(b))
+        if attained == lower:
+            return attained
+        lower = compose(selected[0].event_counts.endpoint_bounds(a),
+                        selected[1].event_counts.endpoint_bounds(b))
+        if lower is None or lower > upper:
+            return None
+        if attained == lower:
+            return attained
+        value = compose(selected[0].event_counts.endpoint(a), selected[1].event_counts.endpoint(b))
+        return value if value is not None and value <= upper else None

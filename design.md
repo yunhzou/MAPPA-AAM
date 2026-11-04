@@ -410,12 +410,23 @@ such bound. First consider only compositions whose lower bound is at most
 `L + 2`, resolving their sweep endpoints within that initial window to find the
 model minimum `M`. Then decode through `M + n`, with `n=6` by default.
 
-Compute numeric bounds and local minima on demand and reuse them across
-compositions. A cheap boundary bound can exclude a composition before its local
-responses need preparation. Retain shared conditional responses with the final
-upper-window predicate. Do not enumerate every attainable count or bin before
-serving the window, solve whole-branch correlations, or expand all atom
-bijections.
+The shared fragment response owns its event count and endpoint-conditioned
+counts. Preserve the correlation between an endpoint choice and the fragment's
+internal count when assembling the sweep; independently minimizing those two
+contributions is incorrect. Reuse these responses across compositions. Window
+assembly consumes them and must not launch separate feasibility or minimum
+solver queries.
+
+Aggregate original-weight responses can establish a local minimum when a saved
+valid choice attains their lower bound. Otherwise contract the fragment's shared
+choice tables, keeping the correlations and any requested sweep endpoint.
+Absorb a self action into discovery only when discovery already contains every
+resulting mapping; retain explicit action provenance for callers requesting it.
+A cheap boundary bound can exclude a composition before its local responses
+need preparation. Resolve only responses that can affect the initial window;
+keep the remaining conditional responses for reporting through `M + n`.
+Do not enumerate every attainable count or bin, solve whole-branch correlations,
+expand complete atom bijections, or replace `M` with an unattained lower bound.
 
 `minimum_events`, `event_window`, `contributions` and `counts` describe this
 approximate model over the retained catalogue. They do not certify a global

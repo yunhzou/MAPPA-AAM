@@ -1,5 +1,6 @@
 """The window uses local constraints and only the selected sweep coupling."""
 import pytest
+import z3
 
 from mappa import AAMProblem, decode_events
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder
@@ -30,7 +31,9 @@ def test_boundary_bound_rejects_composition_before_local_preparation(monkeypatch
     assert record['catalogue'] == source.to_record()
 
 
-def test_sweep_resolves_only_its_endpoint_fragments_and_preserves_count_gaps():
+def test_sweep_resolves_only_its_endpoint_fragments_and_preserves_count_gaps(monkeypatch):
+    monkeypatch.setattr(z3.Solver, 'check',
+                        lambda *_: pytest.fail('Window construction must reuse prepared fragment counts'))
     r = endpoint('CCC', [(0, 1, 1.)])
     p = endpoint('CCC', [(0, 2, 1.)])
     fragment = saved_fragment(AAMProblem(r, p), source_atoms=(1, 2))
@@ -48,6 +51,32 @@ def test_sweep_resolves_only_its_endpoint_fragments_and_preserves_count_gaps():
     assert record['tables'][0]['event_window'] == 1
     assert record['minimum_scope'] == 'independent_fragment_model'
     assert record['event_counts_approximate'] and not record['global_minimum_proven']
+
+
+def test_sweep_endpoint_choice_preserves_its_fragment_internal_cost(monkeypatch):
+    from mappa.mappa_core.post_processing.decoder.local_counts import FragmentEventCounts
+    monkeypatch.setattr(z3.Solver, 'check',
+                        lambda *_: pytest.fail('Sweep assembly must use endpoint-conditioned counts'))
+    monkeypatch.setattr(FragmentEventCounts, 'project',
+                        lambda *_: pytest.fail('Incident pair bounds and the saved witness certify this sweep'))
+    r = endpoint('CCCC', [(0, 1, 1.), (1, 3, 1.)])
+    p = endpoint('CCCC', [(0, 2, 1.), (1, 3, 1.)])
+    fragment = saved_fragment(AAMProblem(r, p), source_atoms=(1, 2, 3), anchors=((3, 3),))
+    source = saved(r, p, dict(enumerate(range(4))), fragments=(fragment,),
+                   pairs=(((0,), (0,)), ((1, 2, 3), (1, 2, 3))))
+    source.families[0].provenance = [dict(cuts=((0, 1),))]
+    result = decode_events(source, event_slack=0)
+    response = result.tables(0).fragment_responses[1][0]
+    assert response.event_counts.minimum == 0
+    bounds = response.event_counts.endpoint_bounds(1)
+    assert bounds[1] == 0 and bounds[2] == 2
+    # The same swap exchanges internal and sweep costs: (0 + 2) or (2 + 0).
+    # Combining their separate zero minima would invent a nonexistent result.
+    assert result.minimum_events == result.event_window == 2
+    original = result.contributions(0)
+    moved = result.contributions(0, [dict(discovery={1: 2, 2: 1, 3: 3})])
+    assert original['total'] == moved['total'] == 2
+    assert not original['internal'] and not moved['boundary']
 
 
 def test_minimum_at_initial_upper_endpoint_is_retained():
@@ -109,7 +138,7 @@ def test_initial_sweep_window_uses_local_minima_before_the_reporting_window(monk
     shared = [response for response in result.local.fragments.values()
               if response.piece.source_atoms == (1, 2)]
     assert len(shared) == 1
-    assert result.local.minima[(shared[0].mapping, shared[0].actions)] == 0
+    assert shared[0].event_counts.minimum == 0
 
 
 def test_incompatible_local_minima_do_not_invent_a_feasible_initial_window():
@@ -125,12 +154,12 @@ def test_incompatible_local_minima_do_not_invent_a_feasible_initial_window():
     result = decode_events(source)
     table = result.tables(0)
     assert table.boundary_events.lower == 0
-    assert [result.local.minimum(response) for response, _ in table.fragment_responses] == [0, 0]
+    assert [response.event_counts.minimum for response, _ in table.fragment_responses] == [0, 0]
     with pytest.raises(ValueError, match='No attainable event count.*lower-bound'):
         _ = result.minimum_events
 
 
-def test_reporting_window_keeps_conditional_fragments_without_solving_their_minima(monkeypatch):
+def test_reporting_window_reuses_prepared_fragment_counts_without_solver_queries(monkeypatch):
     ep = endpoint('CHHHON', [(0, 1, 1.), (0, 2, 2.), (0, 3, 3.), (0, 4, 1.), (0, 5, 1.)])
     source = saved(ep, ep, dict(enumerate(range(6))))
     mapping = {0: 0, 1: 2, 2: 1, 3: 3}
@@ -139,14 +168,8 @@ def test_reporting_window_keeps_conditional_fragments_without_solving_their_mini
     source.families.extend(partial.families)
     source.branches.update({key: {1} for key in partial.branches})
 
-    minimum = FragmentDecoder.minimum
-
-    def only_initial_fragments(local, response):
-        assert response.piece.source_atoms != (0, 1, 2, 3), (
-            'the reporting window must retain the conditional response without solving its minimum')
-        return minimum(local, response)
-
-    monkeypatch.setattr(FragmentDecoder, 'minimum', only_initial_fragments)
+    monkeypatch.setattr(z3.Solver, 'check',
+                        lambda *_: pytest.fail('Reporting must reuse prepared fragment responses'))
     result = decode_events(source, event_slack=6)
     record = decoded_events_record(result)
     assert result.minimum_events == 0 and result.event_window == 6
@@ -188,7 +211,6 @@ def test_empty_catalogue_has_no_minimum_or_window():
 
 
 def test_fixed_sweep_response_needs_no_joint_fragment_query(monkeypatch):
-    from mappa.mappa_core.post_processing.decoder import local_counts
     r, p = endpoint('CCCC', [(0, 2, 1.)]), endpoint('CCCC', [])
     problem = AAMProblem(r, p)
     fragments = tuple(saved_fragment(problem, source_atoms=atoms) for atoms in ((0, 1), (2, 3)))
@@ -197,7 +219,7 @@ def test_fixed_sweep_response_needs_no_joint_fragment_query(monkeypatch):
     source.families[0].provenance = [dict(cuts=((0, 2),))]
     def forbidden(*args):
         pytest.fail('the sweep costs one event for every allowed endpoint pair')
-    monkeypatch.setattr(local_counts, 'compile_local', forbidden)
+    monkeypatch.setattr(z3.Solver, 'check', forbidden)
     result = decode_events(source)
     assert result.minimum_events == 1
     for choice in ([None, None], [swap(fragment) for fragment in fragments]):

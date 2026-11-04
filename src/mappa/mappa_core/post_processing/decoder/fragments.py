@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
 from .records import BondEventTerm
+from .local_counts import FragmentCountIndex, FragmentEventCounts
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +72,7 @@ class FragmentResponse:
     neighboring_pair_count: int
     mapping: tuple[tuple[int, int], ...]
     actions: tuple
+    event_counts: object = None
 
 
 class FragmentDecoder:
@@ -82,31 +84,12 @@ class FragmentDecoder:
         self.bonds = {}
         self.terms = {}
         self.bindings = {}
-        self.minima = {}
-        self._bounds = {}
+        self.counts = FragmentCountIndex(index)
         self._bound_terms = {}
 
     def bounds(self, response):
         """Reuse the local bound and saved-witness count across branch uses."""
-        key = id(response)
-        if key not in self._bounds:
-            from .local_counts import count_bounds
-            self._bounds[key] = count_bounds(self.index, response)
-        return self._bounds[key]
-
-    def minimum(self, response):
-        """Prove a shared local minimum, compiling joint choices only if needed."""
-        key = response.mapping, response.actions
-        if key not in self.minima:
-            from .local_counts import compile_local
-            lower, upper = self.bounds(response)
-            if lower != upper:
-                query = compile_local(self.index, (response,))
-                lower = query.minimum(query.counts[0], lower, upper)
-                if lower is None:
-                    raise ValueError('Saved fragment witness has no attainable local event count')
-            self.minima[key] = lower
-        return self.minima[key]
+        return response.event_counts.bounds
 
     def bond(self, atoms, pair, actions, domains, action_ids, manual_cut):
         """Decode one exact local relationship, retaining its ordered actions."""
@@ -160,8 +143,9 @@ class FragmentDecoder:
                 projected += count
                 if term is not None:
                     terms.append(term)
-            self.fragments[key] = FragmentResponse(piece, local_domains,
+            response = FragmentResponse(piece, local_domains,
                 local_dependencies, tuple(terms), projected, len(neighbors), pairs, local_actions)
+            self.fragments[key] = replace(response, event_counts=FragmentEventCounts(self.counts, response))
         return self.fragments[key], binding
 
     def bind(self, terms, binding):

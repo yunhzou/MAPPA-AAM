@@ -126,6 +126,45 @@ class RelaxedIsomorphism:
         return tuple((p, q) for a, b in self.target_edges for p, q in ((a, b), (b, a))
                      if p in left and q in right and self._allows_edge(edge, p, q))
 
+    @cached_property
+    def absorbed_self_actions(self):
+        """Sides whose structural action already preserves all discovery maps.
+
+        Discovery contains every satisfying map, so composing such an action
+        cannot add a map. Checking all structural generators is stronger than
+        checking the permitted relaxed subset and remains valid when that subset
+        is not closed under composition.
+        """
+        domains = {r: frozenset(values) for r, values in self.domains}
+        domains.update((r, frozenset((p,))) for r, p in self.anchors)
+        predicates = {edge.atoms: frozenset((p, q) for p, q in self.discovery_pairs(edge)
+                                          if p in domains[edge.atoms[0]] and q in domains[edge.atoms[1]])
+                      for edge in self.accepted_edges}
+
+        def target_preserves(generator):
+            move = {p: self.target_atoms[generator[i]] for i, p in enumerate(self.target_atoms)}
+            return (all(frozenset(move[p] for p in values) == values for values in domains.values())
+                    and all(frozenset((move[p], move[q]) for p, q in pairs) == pairs
+                            for pairs in predicates.values()))
+
+        def source_preserves(generator):
+            move = {r: self.source_atoms[generator[i]] for i, r in enumerate(self.source_atoms)}
+            if any(domains[r] != domains[move[r]] for r in self.source_atoms):
+                return False
+            for (a, b), pairs in predicates.items():
+                left, right = move[a], move[b]
+                key = tuple(sorted((left, right)))
+                target = predicates.get(key)
+                if target is None:
+                    target = frozenset((p, q) for p in domains[key[0]] for q in domains[key[1]] if p != q)
+                transformed = pairs if left < right else frozenset((q, p) for p, q in pairs)
+                if transformed != target:
+                    return False
+            return True
+
+        return (all(source_preserves(g) for g in self.source.generators),
+                all(target_preserves(g) for g in self.target.generators))
+
     def _validate_discovery(self, discovery):
         pairs = _pairs(discovery)
         if any(not isinstance(atom, Integral) for pair in pairs for atom in pair):

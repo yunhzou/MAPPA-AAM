@@ -308,3 +308,28 @@ def test_large_symmetric_relation_uses_factors_without_generating_group_elements
     assert factor_size <= n * (n + 1)
     assert factor_size < factorial(n - 1)
     assert set(compiled.images) == set(range(n))
+
+
+@pytest.mark.parametrize('fixture', ['unrestricted', 'partial_edges', 'weighted', 'domains'])
+def test_image_only_compilation_absorbs_only_discovery_closed_self_actions(fixture):
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
+    from mappa.mappa_core.core.symmetry.event_counts import EventCountProgram
+    if fixture == 'weighted':
+        matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
+        value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+        assert value.absorbed_self_actions == (False, False)
+    else:
+        matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
+        accepted = ((0, 1), (1, 2), (0, 3)) if fixture == 'partial_edges' else ()
+        domains = ((0, (0,)), (1, (1, 2, 3)), (2, (1, 2, 3)), (3, (1, 2, 3))) if fixture == 'domains' else None
+        value = relation(matrix, matrix, accepted, domains=domains)
+        if fixture == 'unrestricted':
+            assert value.absorbed_self_actions == (True, True)
+        if fixture == 'partial_edges':
+            assert value.absorbed_self_actions == (False, True)
+    expected = represented(value)
+    system = FiniteConstraints()
+    compiled = compile_relaxed_relation(system, value, fixture, images_only=True)
+    actual = EventCountProgram(system).project(tuple(compiled.images[a][0] for a in value.source_atoms))
+    assert set(actual) == expected
+    assert set(actual.values()) == {0}

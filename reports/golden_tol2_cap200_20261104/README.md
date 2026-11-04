@@ -99,3 +99,52 @@ exceeded the current time allowance. The previously fast 1361 forward,
 regression from the changed search settings and decoder model. Failure is not
 evidence that a mapping is absent. Failed attempts and their consumed budgets
 remain preserved; no reruns or algorithm changes were made.
+
+## Local fragment-response repair
+
+The six saved timeout catalogues were decoded again locally with the same
+event thresholds and minimum + 5 policy, without rerunning matching or changing
+the saved mapping relations. The separate numerical minimum-query implementation
+was removed. Unique fragment responses now supply reusable correlated counts;
+sweep assembly retains endpoint-conditioned internal costs. Aggregate pair-weight
+responses and retained valid choices establish counts without exploring the
+large symmetry spaces. Remaining local correlations use shared table contraction,
+with no solver fallback.
+
+During this validation, every Z3 solver check was forbidden. All six directions
+completed decoding and record export, and every exported catalogue equalled its
+input catalogue. These are local sequential measurements, not cluster speedup
+factors or evidence that the entire frozen benchmark has been repaired. Its
+original timeout records and budgets remain unchanged.
+
+| Direction | Decode + export wall s | CPU s | Model minimum | Final upper event count |
+|---|---:|---:|---:|---:|
+| 569 forward | 0.587 | 0.585 | 7 | 12 |
+| 569 reverse | 0.667 | 0.667 | 7 | 12 |
+| 1361 forward | 1.535 | 1.534 | 7 | 12 |
+| 1361 reverse | 1.674 | 1.674 | 7 | 12 |
+| 575 reverse | 1.576 | 1.575 | 11 | 16 |
+| 837 forward | 0.199 | 0.199 | 6 | 11 |
+
+All six took **6.238 seconds** sequentially. The shared test process peaked at **437.8 MiB**; this is a cumulative process peak, not a separate per-direction memory measurement.
+
+The independent checks preserve correlated counts (including a fragment whose
+only attainable total is two although each individual bond permits zero),
+sweep endpoint/internal-count dependence, exact window boundaries, original
+constraints, shared response reuse and tiny exhaustive mapping coverage.
+The recurring monitor was removed at the user's request. No replacement
+benchmark or cluster retry was started as part of this repair.
+
+Validation covered **all 1,002 collected tests**, including the full regression
+scope, eight new aggregate-response checks and the final 74-test affected-module
+run. The initial full run passed 918 tests; 15 process tests passed when rerun
+with the standard module entry point, and the remaining 61 passed with the
+localhost/process permissions needed by the work pool. The eight additional
+checks passed separately. The final cache simplification passed the 74 affected
+tests. An independent review also checked 1,163 valid tiny permutations across
+120 random mixed-element cases, including metal and floating-point thresholds.
+
+The generic correlated-table operation can still grow for difficult coupled
+fragment relations. The six measured directions avoid that operation through
+attained aggregate responses; these results do not establish a runtime bound
+for every possible input.
