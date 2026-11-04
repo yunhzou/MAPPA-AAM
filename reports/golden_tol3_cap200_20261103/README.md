@@ -24,4 +24,7 @@ Rollback validation: the restored source, tests and documentation match
 `0349a8c` exactly. The native module was rebuilt, and the restored API was checked
 to exclude the withdrawn event-window argument and native helper. The full
 local regression suite passes: **956 tests in 136.02 seconds**. Unrelated working
-reports retain their original checksums. Cluster synchronization is pending.
+reports retain their original checksums. Rollback commit `b36baa2` is pushed to
+main and deployed to the existing cluster checkout through Git. Its native
+module was rebuilt there; **89 affected Linux tests pass in 8.25 seconds**.
+No matching or decoding benchmark was launched.
