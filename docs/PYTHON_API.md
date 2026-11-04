@@ -25,9 +25,11 @@ record = decoded_events_record(decoded)
 Decoding first inventories all unique fragments and shares their conditional
 internal responses. Its **independent-fragment event model** fixes ordinary
 boundary contributions and resolves only the single sweep correction. Local
-minima and compositions ordered by lower bound give the model minimum. The
-default window extends through `minimum_events + 6`; change its width with a
-nonnegative integer `event_slack`. `event_window` is the inclusive upper count.
+minima and fixed boundaries give composition lower bounds. If their smallest is
+`L`, decoding first resolves sweep contributions only within `L + 2` to find the
+model minimum. The default window extends through `minimum_events + 6`; change
+its width with a nonnegative integer `event_slack`. `event_window` is the
+inclusive upper count.
 Saved conditional tables retain that window predicate without
 enumerating all attainable event counts or complete mappings.
 
@@ -277,12 +279,17 @@ fragment separation alone does not imply an event. The model treats ordinary
 fragment boundaries independently; it does not solve correlations across the
 whole branch to recover a physical minimum.
 
-Local minima provide lower bounds for ordering compositions. Only relevant sweep
-endpoints need further resolution when finding `minimum_events`. The window
-retains conditional choices up to `minimum_events + event_slack`, with a default
-slack of six. It does not eagerly build every count bin, enumerate all symmetry
-bijections or repeat fragment preparation per branch. Alternative partitions are
-alternative views, so their contributions must not be added together.
+Add shared local minima to fixed boundaries to obtain each composition's lower
+bound. Let `L` be the smallest. The initial sweep resolution includes only
+compositions with lower bounds at most `L + 2`, and finds `minimum_events` within
+that window. The final window retains conditional choices up to
+`minimum_events + event_slack`, with a default slack of six.
+
+Numeric bounds and local minima are computed lazily and reused. Cheap boundary
+bounds exclude compositions before local preparation when possible. The decoder
+does not eagerly build every count bin, enumerate all symmetry bijections or
+repeat fragment preparation per branch. Alternative partitions are alternative
+views, so their contributions must not be added together.
 
 `contributions` and `counts` report approximate model counts. `evaluate` is an
 explicit original-WBO check of a valid concrete mapping, outside model-window

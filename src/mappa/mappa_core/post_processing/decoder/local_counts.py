@@ -128,11 +128,12 @@ class LocalCountQuery:
         self._pair_count = 0
 
     def minimum(self, expression, lower, upper):
-        """Find the exact minimum between a proven bound and attainable witness."""
+        """Return the lowest attainable count in this inclusive window, or None."""
         import z3
         if lower > upper:
-            raise ValueError('Local minimum lower bound exceeds its witness')
-        while lower < upper:
+            raise ValueError('Local minimum lower bound exceeds its window')
+        found = None
+        while lower <= upper:
             middle = (lower + upper) // 2
             self.solver.push()
             try:
@@ -145,10 +146,11 @@ class LocalCountQuery:
                 else:
                     value = expression if isinstance(expression, int) else self.solver.model().eval(
                         expression, model_completion=True).as_long()
-                    upper = int(value)
+                    found = int(value)
+                    upper = found - 1
             finally:
                 self.solver.pop()
-        return int(lower)
+        return found
 
     def pair_cost(self, left, right, rows):
         """Add one complete endpoint-pair cost table, including negative costs."""

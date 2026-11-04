@@ -103,6 +103,8 @@ class FragmentDecoder:
             if lower != upper:
                 query = compile_local(self.index, (response,))
                 lower = query.minimum(query.counts[0], lower, upper)
+                if lower is None:
+                    raise ValueError('Saved fragment witness has no attainable local event count')
             self.minima[key] = lower
         return self.minima[key]
 

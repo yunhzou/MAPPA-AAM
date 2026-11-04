@@ -380,10 +380,12 @@ flowchart LR
     Inventory --> Local[Shared conditional fragment responses and local minima]
     Inventory --> Boundary[Fixed ordinary boundary contribution]
     Inventory --> Sweep[Single sweep correction]
-    Local --> Compose[Compositions ordered by lower bound]
-    Boundary --> Compose
-    Sweep --> Compose
-    Compose --> Window[Model minimum through minimum plus n]
+    Local --> Lower[Smallest composition lower bound L]
+    Boundary --> Lower
+    Lower --> Initial[Resolve only compositions within L plus 2]
+    Sweep --> Initial
+    Initial --> Minimum[Model minimum M]
+    Minimum --> Window[Decode through M plus n]
     Catalogue --> Realize[Validate requested mapping against original constraints]
 ```
 
@@ -402,13 +404,18 @@ once; neither cutting a bond nor separating fragments proves that an event
 occurred. Alternative saved partitions are alternative decompositions, not
 additional contributions to sum.
 
-Find the model minimum by considering compositions in lower-bound order. Reuse
-local fragment minima and the fixed boundary count, resolving the sweep
-endpoints only when needed to decide whether a composition can improve the
-minimum. The event window is the model minimum through that minimum plus `n`,
-with `n=6` by default. Retain shared conditional responses with the upper-window
-predicate. Do not enumerate every attainable count or bin before serving the
-window, solve whole-branch correlations, or expand all atom bijections.
+Each composition's lower bound is its fixed boundary contribution plus its
+shared local fragment minima, before the sweep residual. Let `L` be the smallest
+such bound. First consider only compositions whose lower bound is at most
+`L + 2`, resolving their sweep endpoints within that initial window to find the
+model minimum `M`. Then decode through `M + n`, with `n=6` by default.
+
+Compute numeric bounds and local minima on demand and reuse them across
+compositions. A cheap boundary bound can exclude a composition before its local
+responses need preparation. Retain shared conditional responses with the final
+upper-window predicate. Do not enumerate every attainable count or bin before
+serving the window, solve whole-branch correlations, or expand all atom
+bijections.
 
 `minimum_events`, `event_window`, `contributions` and `counts` describe this
 approximate model over the retained catalogue. They do not certify a global

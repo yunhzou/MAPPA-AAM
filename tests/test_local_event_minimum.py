@@ -60,6 +60,17 @@ def test_joint_cycle_minimum_is_two_when_each_pair_individually_allows_zero(monk
     assert local.minimum(response) == 2
 
 
+def test_bounded_minimum_requires_an_attainable_count_and_includes_upper_endpoint():
+    local, response, choices = cyclic_response()
+    assert {literal_count(local.index.problem, choice, response.piece.source_atoms)
+            for choice in choices} == {2}
+    query = compile_local(local.index, (response,))
+    assert query.minimum(query.counts[0], 0, 1) is None
+    assert query.minimum(query.counts[0], 0, 2) == 2
+    assert query.minimum(query.counts[0], 2, 2) == 2
+    assert query.minimum(query.counts[0], 0, 0) is None
+
+
 def test_repeated_branch_uses_share_bounds_and_complete_binding(monkeypatch):
     local, response, _ = cyclic_response()
     assert local.bounds(response) == (0, 2)

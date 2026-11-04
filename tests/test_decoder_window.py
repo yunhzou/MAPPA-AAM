@@ -50,6 +50,114 @@ def test_sweep_resolves_only_its_endpoint_fragments_and_preserves_count_gaps():
     assert record['event_counts_approximate'] and not record['global_minimum_proven']
 
 
+def test_minimum_at_initial_upper_endpoint_is_retained():
+    r, p = endpoint('CCC', [(0, 1, 1.)]), endpoint('CCC', [(0, 2, 1.)])
+    source = saved(r, p, {0: 0, 1: 1, 2: 2},
+                   pairs=(((0,), (0,)), ((1,), (1,)), ((2,), (2,))))
+    source.families[0].provenance = [dict(cuts=((0, 1),))]
+    result = decode_events(source, event_slack=0)
+    assert result.tables(0).boundary_events.lower == 0
+    assert result.minimum_events == result.event_window == 2
+    assert result.window.contexts == ((0, 0, 0),)
+    assert result.contributions(0)['within_window']
+
+
+def test_initial_sweep_window_uses_local_minima_before_the_reporting_window(monkeypatch):
+    from mappa.mappa_core.post_processing.decoder.window import EventWindow
+
+    # The sweep can contribute 0 or 2. A separate fixed path contributes
+    # 4, 0, 2 or 6 events, although every composition has boundary lower bound 0.
+    r = endpoint('CCCCCCC', [(0, 1, 1.), (3, 4, 1.), (4, 5, 1.), (5, 6, 1.)])
+    p = endpoint('CCCCCCC', [(0, 2, 1.), (3, 4, 1.), (4, 5, 1.), (5, 6, 1.)])
+    problem = AAMProblem(r, p)
+    movable = saved_fragment(problem, source_atoms=(1, 2))
+    source = None
+    for images in ((3, 5, 4, 6), (3, 4, 5, 6), (3, 4, 6, 5), (4, 6, 3, 5)):
+        path_mapping = tuple(zip(range(3, 7), images))
+        fixed = saved_fragment(problem, source_atoms=range(3, 7),
+                               witness=path_mapping, anchors=path_mapping)
+        mapping = {0: 0, 1: 1, 2: 2, **dict(path_mapping)}
+        row = saved(r, p, mapping, fragments=(movable, fixed),
+                    pairs=(((0,), (0,)), ((1, 2), (1, 2)), ((3, 4, 5, 6), (3, 4, 5, 6))))
+        row.families[0].provenance = [dict(cuts=((0, 1),))]
+        if source is None:
+            source = row
+        else:
+            source.families.extend(row.families)
+            next(iter(source.branches.values())).add(len(source.families) - 1)
+
+    resolved = []
+    resolve = EventWindow._sweep_minimum
+
+    def within_initial_window(decoded, table, minima, upper):
+        lower = table.boundary_events.lower + sum(minima)
+        resolved.append(lower)
+        assert lower <= 2, 'a composition outside L + 2 entered sweep minimization'
+        assert upper <= 2, 'the initial sweep query exceeded L + 2'
+        return resolve(decoded, table, minima, upper)
+
+    monkeypatch.setattr(EventWindow, '_sweep_minimum', staticmethod(within_initial_window))
+    result = decode_events(source, event_slack=4)
+    assert result.minimum_events == 0 and result.event_window == 4
+    assert resolved and 0 in resolved
+    assert result.window.contexts == ((0, 0, 0), (1, 0, 0), (2, 0, 0))
+    # The lower-4 composition was excluded from minimum finding, but belongs
+    # to the larger reporting window. The lower-6 composition belongs to neither.
+    assert [result.contributions(fid, [swap(movable), None])['total']
+            for fid in range(4)] == [4, 0, 2, 6]
+    assert [result.contributions(fid)['total'] for fid in range(4)] == [6, 2, 4, 8]
+    shared = [response for response in result.local.fragments.values()
+              if response.piece.source_atoms == (1, 2)]
+    assert len(shared) == 1
+    assert result.local.minima[(shared[0].mapping, shared[0].actions)] == 0
+
+
+def test_incompatible_local_minima_do_not_invent_a_feasible_initial_window():
+    # This manually partitioned whole-fragment relation lets both pieces
+    # minimize onto the same target CH3. Distinct sweep endpoints prevent it.
+    r = endpoint('CHHHCHHH', [(0, 1, 1.), (0, 2, 1.), (0, 3, 1.),
+                             (4, 5, 1.), (4, 6, 1.), (4, 7, 1.), (0, 4, 1.)])
+    p = endpoint('CHHHCHHH', [(0, 1, 1.), (0, 2, 1.), (0, 3, 1.)])
+    fragment = saved_fragment(AAMProblem(r, p))
+    source = saved(r, p, dict(enumerate(range(8))), fragments=(fragment,),
+                   pairs=(((0, 1, 2, 3), (0, 1, 2, 3)), ((4, 5, 6, 7), (4, 5, 6, 7))))
+    source.families[0].provenance = [dict(cuts=((0, 4),))]
+    result = decode_events(source)
+    table = result.tables(0)
+    assert table.boundary_events.lower == 0
+    assert [result.local.minimum(response) for response, _ in table.fragment_responses] == [0, 0]
+    with pytest.raises(ValueError, match='No attainable event count.*lower-bound'):
+        _ = result.minimum_events
+
+
+def test_reporting_window_keeps_conditional_fragments_without_solving_their_minima(monkeypatch):
+    ep = endpoint('CHHHON', [(0, 1, 1.), (0, 2, 2.), (0, 3, 3.), (0, 4, 1.), (0, 5, 1.)])
+    source = saved(ep, ep, dict(enumerate(range(6))))
+    mapping = {0: 0, 1: 2, 2: 1, 3: 3}
+    fragment = saved_fragment(AAMProblem(ep, ep), source_atoms=range(4), witness=mapping)
+    partial = saved(ep, ep, mapping, fragments=(fragment,))
+    source.families.extend(partial.families)
+    source.branches.update({key: {1} for key in partial.branches})
+
+    minimum = FragmentDecoder.minimum
+
+    def only_initial_fragments(local, response):
+        assert response.piece.source_atoms != (0, 1, 2, 3), (
+            'the reporting window must retain the conditional response without solving its minimum')
+        return minimum(local, response)
+
+    monkeypatch.setattr(FragmentDecoder, 'minimum', only_initial_fragments)
+    result = decode_events(source, event_slack=6)
+    record = decoded_events_record(result)
+    assert result.minimum_events == 0 and result.event_window == 6
+    # Four ordinary boundary events exclude the partial star from L+2.
+    # Its local count remains conditional between 0 and 2 in the M+6 output.
+    assert result.tables(1).count_bounds == (4, 6)
+    assert result.window.bounds[(1, 0, 0)] == 4
+    assert len(record['tables']) == 2
+    assert record['catalogue'] == source.to_record()
+
+
 def test_separate_sweep_histories_do_not_become_a_two_cut_query():
     ep = endpoint('CCC', [(0, 1, 1.), (1, 2, 1.)])
     source = saved(ep, ep, {0: 0, 1: 1, 2: 2},
