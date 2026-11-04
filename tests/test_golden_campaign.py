@@ -535,13 +535,17 @@ def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(t
     from mappa.execution.identity import code_identity
 
     index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    index.write_text(json.dumps(data))
     baseline = tmp_path/'baseline'
     prepare_fresh([index], baseline, [1])
     (baseline/'launch.json').write_text(json.dumps(dict(source_commit='a'*40, source_identity=code_identity())))
     assert run(baseline/'0/index.json', baseline/'0/result', local=True, workers=1,
                memory_bytes=2**30, stop_after='decoding')['pass_finished'] == 'decoding'
     candidate = tmp_path/'candidate'
-    prepare_decoding(baseline, candidate, [1])
+    manifest = prepare_decoding(baseline, candidate, [1])
+    assert manifest['decode_config'] == data['decode_config']
     (candidate/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity=code_identity())))
     assert run(candidate/'0/index.json', candidate/'0/result', local=True, workers=1,
                memory_bytes=2**30, decode_only=True)['pass_finished'] == 'decoding'

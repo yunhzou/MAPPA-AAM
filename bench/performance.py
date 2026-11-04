@@ -285,7 +285,7 @@ def audit_decoding_direction(payload, workspace):
 
 def decoding_campaign(path, *, candidate):
     """Read immutable campaign provenance and terminal ledger rows, never payloads."""
-    from enzymemap import require_drained
+    from enzymemap import decoding_policy, require_drained
 
     path = Path(path).resolve()
     files = {}
@@ -306,6 +306,9 @@ def decoding_campaign(path, *, candidate):
         if (digest != batch['index_sha256'] or digest != plan['input_index_sha256']
                 or index['config'] != manifest['config'] or plan['config'] != manifest['config']):
             raise ValueError('Campaign input hashes or scientific settings differ')
+        if not candidate and (decoding_policy(index) != decoding_policy(manifest)
+                              or decoding_policy(plan) != decoding_policy(manifest)):
+            raise ValueError('Baseline decoding policies differ')
         if candidate:
             progress = read(f'{directory}/result/progress.json')
             if (plan.get('mode') != 'decode_only'
@@ -351,16 +354,14 @@ def decoding_campaign(path, *, candidate):
 
 
 def decoding_audit_plan(baseline, candidate, *, memory_bytes, task_seconds):
-    from mappa import EventDecodeConfig
+    from enzymemap import decoding_policy
     from mappa.execution.identity import code_identity
 
     old, before, old_files, old_source = decoding_campaign(baseline, candidate=False)
     new, after, new_files, new_source = decoding_campaign(candidate, candidate=True)
     if old['config'] != new['config'] or set(before) != set(after):
         raise ValueError('Decoding campaigns have different scientific scope')
-    decode_config = asdict(EventDecodeConfig(
-        threshold=old['config']['event_threshold'],
-        metal_threshold=old['config']['metal_event_threshold']))
+    decode_config = asdict(decoding_policy(old))
     if new.get('decode_config') != decode_config:
         raise ValueError('Decoding configuration changed')
     origin = new['decoding_source']

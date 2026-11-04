@@ -34,6 +34,9 @@ def prepared_index(tmp_path, *, corrupt=False):
 
 def test_full_passes_and_resume_preserve_results_without_old_operations(tmp_path):
     index=prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=5)
+    index.write_text(json.dumps(data))
     output=tmp_path/'result'
     status=run(index,output,local=True,workers=2,window=2)
     assert status['finished']
@@ -42,11 +45,22 @@ def test_full_passes_and_resume_preserve_results_without_old_operations(tmp_path
         record=db.execute("SELECT reference FROM results WHERE stage='verification'").fetchone()[0]
     from mappa.mappa_core.core.scheduler.bundles import Blob
     assert BundleStore(output/'bundles').load(Blob(**json.loads(record)))['status']=='recovered'
+    assert json.loads((output/'plan.json').read_text())['decode_config'] == data['decode_config']
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        for raw, in db.execute("SELECT reference FROM results WHERE stage='decoding'"):
+            result = BundleStore(output/'bundles').load(Blob(**json.loads(raw)))
+            assert asdict(result.config) == data['decode_config']
+            assert result.record['event_slack'] == 5
+            assert result.record['event_window'] == result.record['minimum_events'] + 5
     with sqlite3.connect(output/'bundles/queue.sqlite') as db:
         assert db.execute('SELECT count(*) FROM tasks').fetchone()[0] == 0
     before=len(list((output/'bundles').glob('*.bundle')))
     assert run(index,output,local=True,workers=1,resume=True)['finished']
     assert len(list((output/'bundles').glob('*.bundle'))) == before
+    data['decode_config']['event_slack'] = 6
+    index.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match='Resume input/configuration differs'):
+        run(index, output, local=True, workers=1, resume=True)
 
 
 def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
@@ -321,6 +335,7 @@ def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
     from prepare_batches import prepare
     index=prepared_index(tmp_path)
     data=json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
     data['directions'] += [dict(row,case=1) for row in data['directions']]
     index.write_text(json.dumps(data))
     baseline=tmp_path/'baseline'
@@ -341,6 +356,7 @@ def test_fresh_batches_preserve_inputs_and_import_no_old_results(tmp_path):
     from prepare_batches import prepare_fresh
     index = prepared_index(tmp_path)
     data = json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
     data['directions'] = [dict(row, case=case) for case in range(8)
                           for row in data['directions']]
     index.write_text(json.dumps(data))
@@ -352,6 +368,8 @@ def test_fresh_batches_preserve_inputs_and_import_no_old_results(tmp_path):
     assert not list(output.rglob('*.sqlite'))
     assert not list(output.rglob('*.bundle'))
     batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(2)]
+    assert manifest['decode_config'] == data['decode_config']
+    assert all(batch['decode_config'] == data['decode_config'] for batch in batches)
     assert [len(batch['directions']) for batch in batches] == [12, 4]
     actual = [row for batch in batches for row in batch['directions']]
     key = lambda row: (row['case'], row['reversed'])
@@ -374,7 +392,7 @@ def test_fresh_batches_reject_duplicate_and_incomplete_inputs(tmp_path):
         prepare_fresh([index], tmp_path/'partial', workers=[1])
 
 
-def failed_decode_campaign(tmp_path, *, bad_catalogue=False):
+def failed_decode_campaign(tmp_path, *, bad_catalogue=False, decode_config=None):
     """Keep a terminal campaign, with two diagnosed failures and two successes."""
     from prepare_batches import prepare_fresh
     from mappa.mappa_core.core.scheduler.bundles import Blob
@@ -383,6 +401,8 @@ def failed_decode_campaign(tmp_path, *, bad_catalogue=False):
 
     index = prepared_index(tmp_path)
     data = json.loads(index.read_text())
+    if decode_config is not None:
+        data['decode_config'] = decode_config
     data['directions'] += [dict(row, case=1) for row in data['directions']]
     index.write_text(json.dumps(data))
     source = tmp_path/'original'
@@ -530,7 +550,8 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
     from mappa.mappa_core.core.scheduler.bundles import Blob
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
-    source, selected = failed_decode_campaign(tmp_path)
+    policy = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    source, selected = failed_decode_campaign(tmp_path, decode_config=policy)
     original_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     output = tmp_path/'recovery'
     options = dict(local=True, workers=2, window=2, memory_bytes=2*2**30, recover_decoding=True)
@@ -574,6 +595,7 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
         assert not recovered['retries']
         task = _loads_checkpoint(recovered['tasks'][0][1])
         assert store.load(Blob(**json.loads(reference))).config == task.payload['config']
+        assert asdict(task.payload['config']) == policy
     assert run(source, output, resume=True, **options)['pass_finished'] == 'decoding'
     with sqlite3.connect(output/'ledger.sqlite') as db:
         assert db.execute('SELECT * FROM results ORDER BY case_name').fetchall() == rows

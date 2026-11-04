@@ -11,6 +11,7 @@ import sqlite3
 from mappa import AAMSearchConfig
 from mappa.mappa_core.core.scheduler.bundles import Blob, read_blobs
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+from enzymemap import decoding_policy
 
 
 def prepare_fresh(index_paths, output, workers):
@@ -25,7 +26,7 @@ def prepare_fresh(index_paths, output, workers):
         raise ValueError('Input manifests must use identical scientific settings')
     metadata = settings[0]
     config = AAMSearchConfig(**metadata['config'])
-    metadata = dict(metadata, config=asdict(config))
+    metadata = dict(metadata, config=asdict(config), decode_config=asdict(decoding_policy(metadata)))
     reactions = defaultdict(list)
     identities = set()
     for index in indexes:
@@ -59,6 +60,7 @@ def prepare_fresh(index_paths, output, workers):
             directions=len(rows), input_bytes=loads[number],
             index_sha256=hashlib.sha256(raw).hexdigest()))
     manifest = dict(cases=len(reactions), directions=len(identities), config=asdict(config),
+        decode_config=metadata['decode_config'],
         batches=summaries, fresh=True, reused_scientific_results=0,
         ordering='descending prepared-input bytes; greedy load per planned worker',
         sources=[dict(path=str(path.resolve()), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
@@ -88,6 +90,7 @@ def _decoding_catalogues(source, owners):
     launch_raw = (source/'launch.json').read_bytes()
     launch = json.loads(launch_raw)
     config = asdict(AAMSearchConfig(**manifest['config']))
+    policy = decoding_policy(manifest)
     expected, source_indexes = {}, []
     for origin in manifest['sources']:
         path = Path(origin['path'])
@@ -96,7 +99,7 @@ def _decoding_catalogues(source, owners):
         if digest != origin['sha256']:
             raise ValueError('Original source index checksum differs')
         index = json.loads(index_raw)
-        if asdict(AAMSearchConfig(**index['config'])) != config:
+        if asdict(AAMSearchConfig(**index['config'])) != config or decoding_policy(index) != policy:
             raise ValueError('Original source configuration differs')
         rows = _direction_rows(index)
         if expected.keys() & rows.keys():
@@ -123,7 +126,8 @@ def _decoding_catalogues(source, owners):
         digest = hashlib.sha256(index_raw).hexdigest()
         if (digest != batch['index_sha256'] or digest != plan['input_index_sha256']
                 or index['config'] != plan['config']
-                or asdict(AAMSearchConfig(**index['config'])) != config):
+                or asdict(AAMSearchConfig(**index['config'])) != config
+                or decoding_policy(index) != policy or decoding_policy(plan) != policy):
             raise ValueError('Original campaign input or configuration differs')
         if progress['source'] != launch['source_identity']:
             raise ValueError('Original campaign source identities differ')
@@ -177,7 +181,7 @@ def _decoding_catalogues(source, owners):
         launch_sha256=hashlib.sha256(launch_raw).hexdigest(), source_commit=launch['source_commit'],
         source_identity=launch['source_identity'], source_indexes=source_indexes,
         original_batches=origins)
-    return config, selected, memory_failures, provenance
+    return config, policy, selected, memory_failures, provenance
 
 
 def prepare_decoding(source, output, workers, *, memory_failures_workers=(), decode_config=None):
@@ -190,8 +194,8 @@ def prepare_decoding(source, output, workers, *, memory_failures_workers=(), dec
     if output.exists():
         raise FileExistsError(output)
     with ExitStack() as owners:
-        config, selected, failures, provenance = _decoding_catalogues(source, owners)
-        policy = decode_config or EventDecodeConfig(config['event_threshold'], config['metal_event_threshold'])
+        config, original_policy, selected, failures, provenance = _decoding_catalogues(source, owners)
+        policy = decode_config or original_policy
         if not isinstance(policy, EventDecodeConfig):
             raise TypeError('decode_config must be EventDecodeConfig')
         metadata = dict(config=config, decode_config=asdict(policy), decoding_source=provenance)
@@ -249,7 +253,7 @@ def prepare(index_path, previous, output, count=40, additional_ledgers=()):
         root.mkdir(parents=True, exist_ok=False)
         rows = [row for row in index['directions'] if row['case'] % count == batch]
         # A batch manifest contains only its own scientific input rows.
-        subset = dict(config=index['config'], directions=rows)
+        subset = dict(index, directions=rows)
         path = root/'index.json'
         path.write_text(json.dumps(subset))
         result = root/'result'; result.mkdir()

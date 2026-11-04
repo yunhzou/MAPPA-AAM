@@ -23,6 +23,13 @@ from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 from mappa.mappa_core.utils.io.records import problem_from_record
 
 
+def decoding_policy(index):
+    """Read the declared event policy, using defaults only for omitted settings."""
+    return EventDecodeConfig(**index.get('decode_config', dict(
+        threshold=index['config']['event_threshold'],
+        metal_threshold=index['config']['metal_event_threshold'])))
+
+
 def prepared_problem(row):
     if 'input' in row:
         return problem_from_record(read_blob(Blob(**row['input']), None))
@@ -127,9 +134,7 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
         raise ValueError('Decoding recovery requires a separate output directory')
     raw = (source/'manifest.json').read_bytes()
     manifest = json.loads(raw)
-    decoding_config = asdict(EventDecodeConfig(
-        threshold=manifest['config']['event_threshold'],
-        metal_threshold=manifest['config']['metal_event_threshold']))
+    decoding_config = asdict(decoding_policy(manifest))
     selected, origins, identities, task_keys = [], [], set(), set()
     for batch in manifest['batches']:
         directory = source/str(batch['batch'])
@@ -143,7 +148,9 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
         plan = json.loads(plan_raw)
         digest = hashlib.sha256(index_raw).hexdigest()
         if (digest != batch['index_sha256'] or digest != plan['input_index_sha256']
-                or index['config'] != plan['config'] or index['config'] != manifest['config']):
+                or index['config'] != plan['config'] or index['config'] != manifest['config']
+                or asdict(decoding_policy(index)) != decoding_config
+                or asdict(decoding_policy(plan)) != decoding_config):
             raise ValueError('Original campaign input or configuration differs')
         names = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}": row
                  for row in index['directions']}
@@ -334,22 +341,22 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             if 'decoding_source' in index and not decode_only:
                 raise ValueError('A saved catalogue index requires --decode-only')
             config = AAMSearchConfig(**index['config'])
+            decoding_config = decoding_policy(index)
             verification = index.get('verification', 'enzymemap:verify')
             reference_policy = index.get('reference_policy',
                 'exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
             rows = [row for row in index['directions'] if limit is None or row['case'] < limit]
             requested = dict(input_index=str(Path(index_path).resolve()), input_index_sha256=hashlib.sha256(raw).hexdigest(),
-                config=asdict(config), cases=len({r['case'] for r in rows}), directions=len(rows),
+                config=asdict(config), decode_config=asdict(decoding_config),
+                cases=len({r['case'] for r in rows}), directions=len(rows),
                 reference_policy=reference_policy)
             if decode_only:
                 if not rows or not isinstance(index.get('decoding_source'), dict) or not index['decoding_source']:
                     raise ValueError('Fresh decoding requires saved catalogue provenance and nonempty scope')
-                decoding_config = EventDecodeConfig(**index.get('decode_config', dict(
-                    threshold=config.event_threshold, metal_threshold=config.metal_event_threshold)))
                 catalogues = [dict(case=row['case'], reversed=row['reversed'],
                                    catalogue=asdict(Blob(**row['catalogue']))) for row in rows]
                 requested.update(mode='decode_only', decoding_source=index['decoding_source'],
-                    decoder_source=code_identity(), decode_config=asdict(decoding_config),
+                    decoder_source=code_identity(),
                     directions_to_decode=catalogues, memory_bytes=memory_bytes, case_seconds=case_seconds)
         identities = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}" for row in rows}
         if len(identities) != len(rows):
@@ -473,7 +480,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                     if stage == 'deduplication':
                                         result = pool.deduplicate(prior_results)
                                     elif stage == 'decoding':
-                                        result = pool.decode(prior_results)
+                                        result = pool.decode(prior_results, decoding_config)
                                     else:
                                         catalogue = ledger.get(name, 'deduplication')
                                         key = f'{uuid.uuid4().hex}/{name}/verification'

@@ -79,6 +79,12 @@ The output directory must not already exist. `prepare_batches.py resume INDEX
 PREVIOUS OUTPUT` instead repartitions a stopped campaign while preserving its
 results; it does not initialize a fresh benchmark.
 
+The input index can declare `decode_config`, for example
+`{"threshold": 0.5, "metal_threshold": 0.3, "event_slack": 5}`. Both a full run
+and a decoding-only run use that policy. Preparation and execution record it in
+the manifest and plan; recovery and output audits preserve it. Changing the
+policy requires a fresh run rather than resuming an existing result directory.
+
 ## Private configuration and one portable launcher
 
 `enzymemap.sbatch` serves both EnzymeMap and Golden. Site accounts, partitions,
