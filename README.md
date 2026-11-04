@@ -2,7 +2,7 @@
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder reports approximate event counts using independent local fragments, fixed ordinary boundaries and a coupled sweep contribution. The original mapping constraints remain intact for reference verification and explicit realizations.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder interprets the original compressed mappings using local fragment and boundary event tables. It preserves their correlated choices and constraints; requested realizations have concrete atom mappings and bond-change counts.
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
@@ -93,11 +93,10 @@ from mappa import search_aam, deduplicate, decode_events
 
 aam = search_aam(problem)       # Retained seed/cut search histories
 catalogue = deduplicate(aam)    # Families across all retained seeds and cuts
-decoded = decode_events(catalogue)  # Approximate model minimum + 6 events
+decoded = decode_events(catalogue)  # Original-space event functions
 
-for fid in decoded.retained_family_ids:
-    for partition in decoded.window.retained_partitions[fid]:
-        print(fid, partition, decoded.attainable_counts(fid, partition=partition))
+for fid in range(len(decoded.catalogue.families)):
+    print(decoded.contributions(fid)['counts'], decoded.realize(fid))
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
@@ -114,7 +113,7 @@ A reaction can admit several atom correspondences, with different bond changes o
 
 ![Manuscript overview: fragment growth, three levels of conditional branching, cut sweep, and symmetry-aware event decoding](manuscript/figs/fig1_algorithm.png)
 
-Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions. Decoding collects the unique saved fragments, shares their local responses, and composes approximate event counts.
+Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions. Decoding collects the unique saved fragments, shares their local responses, and composes the bond changes for requested valid choices.
 
 ![MAPPA: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.gif)
 
@@ -208,13 +207,13 @@ The main Python workflow keeps search and event decoding separate:
 search_aam -> deduplicate -> decode_events -> EventInterpretation
                             |               |- shared fragment/boundary responses
                             |               |- original mapping choices
-                            |               `- approximate model bins and requested counts
+                            |               `- requested event counts and queries
                             `- collect all unique fragments first
 ```
 
 TS analysis consumes an explicit `ReactionContext`. It is not run automatically by AAM or event decoding.
 
-The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding first collects all unique saved fragments and shares their internal event responses. It combines independent local event spectra with fixed ordinary boundary counts and the coupled sweep contribution. The default window is the model minimum plus six. These approximate bins need not have a complete joint mapping witness; explicit realizations still obey the original constraints. Hierarchical rematching is a separate experimental operation.
+The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding first collects all unique saved fragments, shares their internal event responses, and adds boundary relationships to compose each branch's results. It preserves the original mapping choices and constraints. You can inspect a witness, evaluate a valid joint choice, or replay the search that produced it. Hierarchical rematching is a separate experimental operation.
 
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 
@@ -233,20 +232,16 @@ from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, de
 problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
                      MolecularEndpoint(elements_P, xyz_P, wbo_P))
 aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
-decoded = decode_events(aam, threshold=0.5, metal_threshold=0.3,
-                        event_slack=None)  # Inspect witnesses without a model window.
+decoded = decode_events(aam, threshold=0.5, metal_threshold=0.3)
 for fid in range(len(decoded.catalogue.families)):
     print(decoded.realize(fid), decoded.contributions(fid))
 ```
 
-Decoding retains the original compressed mappings. Explicit choices preserve
-their correlations and constraints; reported counts use the declared
-independent-fragment approximation. Calling `evaluate` reports one valid mapping
-and its approximate contributions, without a canonical event ID. Set
-`event_slack` to a nonnegative allowance for a model-relative window; its default
-is six. A retained occurrence's default witness may lie outside that window.
-Hierarchical rematching is a separate experimental operation in
-`post_processing/hierarchical_mapping.py`.
+Decoding attaches local event functions to the unchanged compressed mappings.
+Explicit choices preserve their correlations and original growth constraints.
+Calling `evaluate` selects one realization; it does not enumerate all symmetry
+alternatives or prove their minimum. Hierarchical rematching is a separate,
+experimental operation in `post_processing/hierarchical_mapping.py`.
 
 Anchors use `AAMSearchConfig(anchors=((r_atom, p_atom),))`.
 `from mappa import search_aam_directions` exposes forward, reverse,
@@ -273,7 +268,7 @@ and explicit handoff of a selected event witness to TS analysis.
 
 ## CLI
 
-The default stage is approximate event decoding. NPZ endpoints contain `elements`,
+The default stage is signed-event decoding. NPZ endpoints contain `elements`,
 `coordinates`, and `wbo` arrays:
 
 ```bash
@@ -283,12 +278,10 @@ mappa --stage events \
 ```
 
 Use `--stage aam` for raw search only. Both stages write `aam.json` and the
-self-contained `search.html` viewer. The events stage also writes v10 `events.json`
-with the full catalogue, shared local tables, partition/cut references and model
-bins. `--event-slack` defaults to six. Records distinguish a proved model minimum
-from a physical minimum: `approximate=True`, `minimum_proven=False` and
-`bin_witnesses_guaranteed=False`. No automatic representative reports or claim
-that capped search explored every mapping are produced.
+self-contained `search.html` viewer. The events stage also writes `events.json`
+with candidate witnesses, per-family reports, and explicit completeness flags.
+`complete` is scoped to retained families and the requested event window; it
+must not be interpreted as proof that capped search explored every mapping.
 Existing xTB caches can be supplied with `--reactant-cache` and `--product-cache`.
 
 TS processing requires an explicitly supplied resolved-reaction record:
@@ -331,8 +324,7 @@ FinalBranchCatalogue                      # reduction across retained seeds/cuts
 
 EventInterpretation                       # separate event decoding
 |- unique fragments and shared local/boundary responses
-|- original family/partition/cut references and correlated choices
-`- approximate event bins and model window
+`- original family/partition references and correlated choices
 
 MechanismResult / AnalyticalAAMResult       # explicit family analysis
 `- analytical mapping families per mechanism
@@ -444,21 +436,20 @@ Bond diagnostics do not alter the score or impose a rejection threshold.
 
 ### Partial mappings and unbalanced endpoints
 
-The same approximate event model handles complete and partial mappings. It
-includes boundaries touching mapped atoms and ignores bonds whose atoms are both
-unmatched. Original WBOs and ordinary/metal thresholds determine local events and
-the fixed boundary contributions. No missing atoms are invented.
+The same event decoder handles both complete and partial mappings. It counts
+bond differences touching mapped atoms, including bonds across the mapped/unmapped
+boundary, and ignores bonds whose atoms are both unmatched. Existing WBO-change
+and metal thresholds apply in both directions. No missing atoms are invented.
 
 `decode_events(aam)` attaches sparse internal and boundary event functions to the
 original compressed AAM families. It preserves ordered correlated choices and
-required growth edges. `result.realize(family_id, choices, partition=...)` gives
-one valid requested realization within the model window;
-`result.contributions(...)` gives approximate breaking, forming, strengthening
-and weakening counts. It does not enumerate all bijections or claim a physical
+required growth edges. `result.realize(family_id, choices)` gives one requested
+realization; `result.contributions(...)` gives breaking, forming, strengthening
+and weakening counts. It does not enumerate all bijections or claim a global
 minimum. `decoded_events_record(result)` saves shared event tables and the original
 catalogue without automatic representative reports or global event-pattern
-deduplication. `result.evaluate(...)` reports the mapping and approximate event
-contributions with their model label.
+deduplication. `result.evaluate(...)` explicitly requests a whole-reaction report
+with a canonical event ID for optional pattern comparison.
 
 Experimental hierarchical refinement is explicitly available from
 `mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`

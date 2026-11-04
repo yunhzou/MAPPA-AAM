@@ -19,8 +19,8 @@ from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_core.post_processing.decoder.api import _validate_atom_identity
 from mappa.mappa_core.utils.io.records import problem_from_record
-from mappa.mappa_core.core.symmetry.event_counts import _event_model, _event_count_constraint
-from mappa.mappa_core.core.symmetry.family import compile_path
+from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint
+from mappa.mappa_workflow.mapping_analytics.family import compile_path
 
 
 def heavy_event_index(problem, *, threshold=.5, metal_threshold=.3):
@@ -45,12 +45,11 @@ def heavy_event_index(problem, *, threshold=.5, metal_threshold=.3):
 
 
 def saved_response_bounds(record, problem, deadline):
-    """Admissible heavy-event bounds from saved internal responses only.
+    """Admissible heavy-event bounds, scoped to this complete decoded record.
 
     Each partition contains each source bond once. Alternative partitions are
     separate decompositions, so their bounds combine by maximum, never addition.
-    Approximate boundary counts and model bins cannot certify physical events.
-    A family without exported tables receives a zero bound, not an exclusion.
+    Product-boundary occupancy is not proved here and contributes a safe zero.
     Correlation and required edges can restrict choices further, never invalidate
     an event whose saved local responses are all nonzero.
     """
@@ -64,7 +63,7 @@ def saved_response_bounds(record, problem, deadline):
             break
         table_bounds[number] = sum(
             heavy[term['atoms'][0]] and heavy[term['atoms'][1]] and mandatory[term['response']]
-            for group in table['internal'] for term in group['terms'])
+            for kind in ('internal', 'boundary') for group in table[kind] for term in group['terms'])
         checked += 1
     return [max((table_bounds[i] for i in family['tables']), default=0)
             for family in record['families']], checked
@@ -74,17 +73,15 @@ def minimum_events(decoded, reference, *, seconds=30.):
     """Certify a retained-catalogue minimum; unknown never becomes a point estimate.
 
     Reference and candidate counts use heavy-heavy original-WBO events. Matching
-    constraints still use the original full-atom problem. The complete saved
-    catalogue is queried regardless of approximate decoder bins or its window.
-    Physical mapped/unmapped boundaries and witness coverage are retained.
+    constraints still use the original full-atom problem. The ordinary decoder's
+    mapped/unmapped boundary rule is unchanged; witness coverage is reported.
     This is a soft encoding/solving budget. The runner supplies a process guard.
     """
     import z3
 
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
-    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8',
-                                 'mappa.decoded_events/v10'):
+    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8'):
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds
@@ -95,13 +92,11 @@ def minimum_events(decoded, reference, *, seconds=30.):
             len(decoded['families']) != len(families)):
         raise ValueError('Decoded responses and catalogue must belong to the same problem')
     event_problem = problem
-    if 'event_problem' in decoded:
+    if decoded['schema'] == 'mappa.decoded_events/v8':
         event_problem = problem_from_record(decoded['event_problem'])
         _validate_atom_identity(problem, event_problem)
-    event_problem_sha256 = FinalBranchCatalogue(event_problem).problem_sha256
-    if decoded['schema'] in ('mappa.decoded_events/v8', 'mappa.decoded_events/v10'):
         if (decoded['matching_problem_sha256'] != catalogue['problem_sha256'] or
-                decoded['event_problem_sha256'] != event_problem_sha256):
+                decoded['event_problem_sha256'] != FinalBranchCatalogue(event_problem).problem_sha256):
             raise ValueError('Saved matching and event identities differ from their matrices')
     threshold = decoded['event_policy']['threshold']
     metal_threshold = decoded['event_policy']['metal_threshold']
@@ -142,7 +137,8 @@ def minimum_events(decoded, reference, *, seconds=30.):
                 if upper is None or lower[row['family']] < upper],
             incomplete_paths=catalogue['incomplete_paths'],
             problem_sha256=catalogue['problem_sha256'], catalogue_schema=catalogue['schema'],
-            event_problem_sha256=event_problem_sha256,
+            event_problem_sha256=(decoded['event_problem_sha256']
+                if decoded['schema'] == 'mappa.decoded_events/v8' else catalogue['problem_sha256']),
             decoded_schema=decoded['schema'],
             cpu_seconds=time.process_time()-cpu, wall_seconds=time.perf_counter()-started,
             event_policy=dict(threshold=threshold, metal_threshold=metal_threshold,

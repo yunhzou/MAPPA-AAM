@@ -1,4 +1,4 @@
-"""Decoder configuration and approximate fragment event results."""
+"""Decoder configuration, witnesses and scoped completion records."""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -9,30 +9,21 @@ if TYPE_CHECKING:
     from .events import SignedEventIndex
     from .fragments import FragmentInventory, FragmentDecoder
     from ..final_branches import FinalBranchCatalogue
-    from .window import EventWindowSelection
 
 @dataclass(frozen=True)
 class EventDecodeConfig:
     threshold: float = 0.5
     metal_threshold: float | None = 0.3
-    event_slack: int | None = 6
 
     def __post_init__(self):
         import math
-        from numbers import Integral
         if self.threshold is None or any(
             v is not None and (not math.isfinite(v) or v <= 0)
             for v in (self.threshold, self.metal_threshold)
         ):
             raise ValueError('event thresholds must be finite and positive')
-        if self.event_slack is not None and (
-                isinstance(self.event_slack, bool) or
-                not isinstance(self.event_slack, Integral) or self.event_slack < 0):
-            raise ValueError('event_slack must be a nonnegative integer or None')
 
     def __setstate__(self, state):
-        if 'event_slack' not in state:
-            raise ValueError('historical decoder configuration requires its producing revision')
         validated = type(self)(**state)
         for name, value in vars(validated).items():
             object.__setattr__(self, name, value)
@@ -58,6 +49,7 @@ class BondEventTerm:
     projected_actions: tuple
     index: SignedEventIndex = field(repr=False, compare=False)
     endpoint_case: str
+    manual_cut: bool
 
     @property
     def target_pairs(self):
@@ -67,11 +59,11 @@ class BondEventTerm:
 
 @dataclass
 class EventInterpretation:
-    """Independent-fragment event counts on the unchanged saved mapping space.
+    """Bond responses attached to the unchanged, ordered saved mapping space.
 
-    Ordinary boundaries contribute fixed events; only the sweep correction
-    couples local event contributions. Minima and bins describe this model.
-    Requested atom mappings still satisfy the original joint relation.
+    This is a compressed event function, not an enumerated pattern catalogue.
+    Invariance concerns bond responses/counts; labelled unmatched target atoms
+    can still move. No minimum or exhaustive event-window claim is made.
     """
     catalogue: FinalBranchCatalogue
     index: SignedEventIndex
@@ -79,35 +71,7 @@ class EventInterpretation:
     inventory: FragmentInventory
     local: FragmentDecoder
     event_problem_sha256: str
-    window: EventWindowSelection
     _tables: dict = field(default_factory=dict, repr=False)
-
-    @property
-    def retained_family_ids(self):
-        return self.window.retained_family_ids
-
-    @property
-    def minimum_events(self):
-        return self.window.minimum
-
-    @property
-    def event_window(self):
-        return self.window.limit
-
-    @property
-    def bin_witnesses_guaranteed(self):
-        return False
-
-    def _check_partition(self, family_id, partition):
-        if family_id not in self.window.retained_family_ids:
-            raise ValueError('family lies outside the requested event window')
-        if partition not in self.window.retained_partitions[family_id]:
-            raise ValueError('partition lies outside the requested event window')
-
-    def attainable_counts(self, family_id, *, partition=0):
-        """Return model bins, which need not have a complete joint mapping witness."""
-        self._check_partition(family_id, partition)
-        return self.window.event_counts[family_id][partition]
 
     @property
     def matching_problem_sha256(self):
@@ -124,7 +88,8 @@ class EventInterpretation:
     def _table_key(self, family_id, partition):
         family = self.catalogue.families[family_id]
         fragments = self.fragment_partitions[family_id][partition]
-        cut_bonds = self.inventory.cuts[family_id][partition]
+        cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
+                                  for pair in origin.get('cuts', ())}))
         actions = self.local.programs.program(family.actions)
         return family.mapping, actions, fragments, cut_bonds
 
@@ -137,7 +102,6 @@ class EventInterpretation:
 
     def tables(self, family_id, partition=0):
         """Prepare one saved partition lazily; share bond responses across branches."""
-        self._check_partition(family_id, partition)
         key = self._table_key(family_id, partition)
         if key not in self._tables:
             self._tables[key] = self._prepare_table(family_id, partition, key)
@@ -150,8 +114,8 @@ class EventInterpretation:
         requested through tables() remain owned by the interpretation.
         """
         references = {}
-        for family_id in self.retained_family_ids:
-            for partition in self.window.retained_partitions[family_id]:
+        for family_id, partitions in enumerate(self.fragment_partitions):
+            for partition in range(len(partitions)):
                 key = self._table_key(family_id, partition)
                 if key in references:
                     yield family_id, references[key], None
@@ -162,11 +126,11 @@ class EventInterpretation:
                 del table
 
     def contributions(self, family_id, choices=None, *, partition=0, include_events=False):
-        """Compose approximate categories for one permitted joint choice."""
-        vector = self.index.vector(self.realize(family_id, choices, partition=partition))
+        """Compose internal and boundary categories for one permitted choice."""
+        vector = self.index.vector(self.realize(family_id, choices))
         return self.tables(family_id, partition).evaluate(vector, include_events=include_events)
 
-    def realize(self, family_id, choices=None, *, partition=0):
+    def realize(self, family_id, choices=None):
         """Apply ordered local choices and joint global placement words.
 
         A relation choice names discovery and source/target self rearrangements;
@@ -174,7 +138,6 @@ class EventInterpretation:
         witness. Discovery predicates constrain D; they are not reapplied to the
         two-sided relaxed alternative.
         """
-        self._check_partition(family_id, partition)
         family = self.catalogue.families[family_id]
         choices = (None,) * len(family.actions) if choices is None else tuple(choices)
         if len(choices) != len(family.actions):
@@ -186,32 +149,26 @@ class EventInterpretation:
         mapping = {int(r): int(p) for r, p in zip(atoms, images)}
         vector = self.index.vector(mapping)
         self.index._vectors([vector])
-        if (self.window.limit is not None and
-                int(self.tables(family_id, partition).counts([vector])[0].sum()) > self.window.limit):
-            raise ValueError('joint choice lies outside the requested event window')
         return mapping
 
-    def evaluate(self, family_id, choices=None, *, partition=0):
-        """Report the permitted mapping and its approximate event contributions."""
-        mapping = self.realize(family_id, choices, partition=partition)
-        result = self.tables(family_id, partition).evaluate(
-            self.index.vector(mapping), include_events=True)
-        return dict(result, mapping=mapping, model='independent_fragments_with_sweep',
-                    approximate=True, bin_witnesses_guaranteed=False)
+    def evaluate(self, family_id, choices=None):
+        """Explicit whole-reaction report with a canonical ID for one realization.
 
-    def counts(self, family_id, choices, *, partition=0, batch_size=64, categories=False):
+        Use contributions() to compose local events without canonicalization.
+        """
+        mapping = self.realize(family_id, choices)
+        return self.index.describe(self.index.vector(mapping))
+
+    def counts(self, family_id, choices, *, batch_size=64, categories=False):
         """Stream requested counts; categories=True returns breaking/forming/strengthening/weakening."""
         if batch_size < 1:
             raise ValueError('batch_size must be positive')
         pair_count = len(self.index.a) + len(self.index.pa)
         batch_size = min(batch_size, max(1, 65536 // max(1, pair_count)))
-        table = self.tables(family_id, partition)
-        def count(vectors):
-            rows = table.counts(vectors)
-            return rows if categories else rows[:, (0, 1)] + rows[:, (3, 2)]
+        count = self.tables(family_id).counts if categories else self.index.counts
         batch = []
         for choice in choices:
-            batch.append(self.index.vector(self.realize(family_id, choice, partition=partition)))
+            batch.append(self.index.vector(self.realize(family_id, choice)))
             if len(batch) == batch_size:
                 yield from count(batch)
                 batch.clear()

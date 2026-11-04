@@ -74,8 +74,6 @@ def _parser():
     parser.add_argument("--iso-tolerance", type=float, default=1.0)
     parser.add_argument("--event-threshold", type=float, default=0.5)
     parser.add_argument("--metal-event-threshold", type=float, default=0.3)
-    parser.add_argument("--event-slack", type=int, default=6,
-                        help="approximate event window above the fragment-model minimum (default: 6)")
     parser.add_argument("--seed-count", type=int, default=1)
     parser.add_argument("--branch-limit", type=int, default=100)
     parser.add_argument("--anchor", action="append", default=[], metavar="R:P")
@@ -109,8 +107,7 @@ def main(argv=None):
         if args.stage == "events":
             decoded = decode_events(aam, EventDecodeConfig(
                 threshold=args.event_threshold,
-                metal_threshold=args.metal_event_threshold,
-                event_slack=args.event_slack))
+                metal_threshold=args.metal_event_threshold))
             (output / "events.json").write_text(
                 json.dumps(decoded_events_record(decoded), indent=2))
         print(output.resolve())

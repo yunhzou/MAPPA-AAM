@@ -13,7 +13,6 @@ import math
 import numpy as np
 import pynauty
 
-from mappa._group_ops import BondNeighborhood
 from mappa.mappa_core.utils.bonds import is_metal_element, bond_event_threshold
 from mappa.mappa_core.core.symmetry.responses import BondResponseIndex, response_bounds
 
@@ -56,8 +55,6 @@ class SignedEventIndex(BondResponseIndex):
             self.r[self.a, self.b] > self.tau]
         self.product_bonds = np.column_stack((self.pa, self.pb))[
             self.p[self.pa, self.pb] > self.ptau]
-        self._neighborhood = BondNeighborhood(self.n, self.m,
-            self.reactant_bonds, self.product_bonds)
         self.cache = OrderedDict()
         self._actions = OrderedDict()
         self._pair_tables = OrderedDict()
@@ -106,7 +103,39 @@ class SignedEventIndex(BondResponseIndex):
         preparation already owns the internal pairs. Joint action constraints
         remain attached to every retained response.
         """
-        return self._neighborhood.pairs(domains, owners)
+        pairs = {(int(a), int(b)) for a, b in self.reactant_bonds
+                 if (a in domains or b in domains)
+                 and (owners is None or owners[a] != owners[b])}
+        sources = [0] * self.m
+        for atom, images in domains.items():
+            for image in images:
+                sources[image] |= 1 << int(atom)
+        neighbors = [0] * self.m
+        for x, y in self.product_bonds:
+            neighbors[x] |= sources[y]
+            neighbors[y] |= sources[x]
+        owner_masks = {}
+        if owners is not None:
+            for atom in domains:
+                owner = owners[atom]
+                owner_masks[owner] = owner_masks.get(owner, 0) | (1 << int(atom))
+        domain_neighbors = {}
+        for a, images in domains.items():
+            a = int(a)
+            images = tuple(images)
+            if images not in domain_neighbors:
+                reached = 0
+                for image in images:
+                    reached |= neighbors[image]
+                domain_neighbors[images] = reached
+            reached = domain_neighbors[images] & ~((1 << (a + 1)) - 1)
+            if owners is not None:
+                reached &= ~owner_masks[owners[a]]
+            while reached:
+                bit = reached & -reached
+                pairs.add((a, bit.bit_length() - 1))
+                reached ^= bit
+        return pairs
 
     @property
     def policy(self):
@@ -383,266 +412,213 @@ EVENT_CATEGORIES = ('breaking', 'forming', 'strengthening', 'weakening')
 
 
 class FragmentEventTables:
-    """Correlated internal responses, fixed ordinary boundaries, one sweep pair.
+    """Sparse internal/boundary factors over ORIGINAL ordered family choices.
 
-    Boundary breaking/forming is an explicit approximation. Only the swept
-    boundary replaces its two flat contributions by its actual WBO response.
+    Endpoint bounds prepare local weight responses without granting independent
+    choices. Constants are accumulated once; internal and cut-boundary terms
+    retain joint fragment IDs. Evaluation checks complete choices before lookup.
     """
-
     def __init__(self, local, family, fragments, cut_bonds=()):
-        self.index = index = local.index
+        index = local.index
+        self.index = index
         self.fragments = tuple(piece.source_atoms for piece in fragments)
         self.cut_bonds = frozenset(cut_bonds)
         owners = {a: i for i, atoms in enumerate(self.fragments) for a in atoms}
         mapping = dict(family.mapping)
         if len(owners) != sum(map(len, self.fragments)) or set(owners) != set(mapping):
-            raise ValueError("saved fragments must partition the mapped source atoms")
+            raise ValueError('saved fragments must partition the mapped source atoms')
         self.owners = np.array([owners.get(a, -1) for a in range(index.n)], dtype=int)
-        target_owners = np.full(index.m, -1, dtype=int)
-        for a, p in mapping.items():
-            target_owners[p] = owners[a]
-        self.target_owners = target_owners
         program = local.programs.program(family.actions)
         self.atom_domains, self.atom_actions = local.programs.bind(program, family.mapping)
-        self.fragment_responses = tuple(
-            local.fragment(piece, mapping, program, self.atom_domains, self.atom_actions)
-            for piece in fragments
-        )
-        self.internal = {
-            i: local.bind(response.terms, binding)
-            for i, (response, binding) in enumerate(self.fragment_responses)
-            if response.terms
-        }
-
-        def boundary(pairs, labels):
-            return pairs[labels[pairs[:, 0]] != labels[pairs[:, 1]]]
-
-        self.reactant_boundary_pairs = boundary(index.reactant_bonds, self.owners)
-        self.product_boundary_pairs = boundary(index.product_bonds, target_owners)
-        self.product_boundary_set = frozenset(map(tuple, self.product_boundary_pairs))
-        self.fixed_boundary = {}
-        for pairs, labels, code in (
-            (self.reactant_boundary_pairs, self.owners, 0),
-            (self.product_boundary_pairs, target_owners, 1),
-        ):
-            for a, b in pairs:
-                region = tuple(sorted((int(labels[a]), int(labels[b]))))
-                self.fixed_boundary.setdefault(region, np.zeros(4, dtype=int))[code] += 1
-        self.boundary_count = len(self.reactant_boundary_pairs) + len(self.product_boundary_pairs)
-        if len(self.cut_bonds) > 1:
-            raise ValueError("Independent-fragment decoding supports one sweep cut per history")
-        self.sweep_cut = next(
-            (
-                (a, b)
-                for a, b in self.cut_bonds
-                if a in mapping and b in mapping and owners[a] != owners[b]
-            ),
-            None,
-        )
-        self.sweep_removed = self.sweep_width = 0
-        if self.sweep_cut is not None:
-            a, b = self.sweep_cut
-            tau = bond_event_threshold(index.elements, a, b,
-                default_threshold=index.threshold, metal_threshold=index.metal_threshold)
-            reserve = int(bool(self.product_boundary_set))
-            self.sweep_removed = int(index.r[a, b] > tau) + reserve
-            self.sweep_width = 1 + reserve
-        self.projected_pair_states = sum(
-            r.projected_pair_states for r, _ in self.fragment_responses
-        )
-        self.neighboring_pair_count = sum(
-            r.neighboring_pair_count for r, _ in self.fragment_responses
-        )
-        self.components = tuple(
-            ((i,), tuple(binding)) for i, (_, binding) in enumerate(self.fragment_responses)
-        )
+        self.internal, self.boundary = {}, {}
+        self.fragment_responses = tuple(local.fragment(fragment, mapping, program,
+            self.atom_domains, self.atom_actions, self.cut_bonds) for fragment in fragments)
+        # A branch binds shared local action positions to its original program.
+        # Only these bindings and boundary relationships belong to the branch.
+        for owner, (response, binding) in enumerate(self.fragment_responses):
+            self.atom_domains.update(response.atom_domains)
+            if response.terms:
+                self.internal[owner] = local.bind(response.terms, binding)
+        self.projected_pair_states = sum(response.projected_pair_states
+                                         for response, _ in self.fragment_responses)
+        # Internal neighborhoods are already prepared once per shared fragment.
+        # Assemble only cross-owner pairs and their explicit cut boundaries.
+        pairs = index.neighboring_pairs(self.atom_domains, owners=self.owners)
+        pairs.update((a, b) for a, b in self.cut_bonds
+                     if (a in mapping or b in mapping) and self.owners[a] != self.owners[b])
+        self.neighboring_pair_count = len(pairs) + sum(
+            response.neighboring_pair_count for response, _ in self.fragment_responses)
+        for a, b in sorted(pairs):
+            left, right = int(self.owners[a]), int(self.owners[b])
+            pair = mapping.get(int(a), -1), mapping.get(int(b), -1)
+            action_ids = tuple(sorted(set(self.atom_actions.get(a, ())) | set(self.atom_actions.get(b, ()))))
+            actions = local.programs.select(program, action_ids)
+            term, projected = local.bond((int(a), int(b)), pair, actions,
+                (self.atom_domains.get(a, (-1,)), self.atom_domains.get(b, (-1,))),
+                action_ids, (a, b) in self.cut_bonds)
+            self.projected_pair_states += projected
+            if term is not None:
+                self.boundary.setdefault(tuple(sorted((left, right))), []).append(term)
+        # Preserve the public record order of the original sorted bond walk.
+        self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1][0].atoms))
+        self.boundary = {key: tuple(terms) for key, terms in self.boundary.items()}
+        # Product-to-unmatched boundaries depend on occupied target atoms, not
+        # a fabricated correspondence between unmatched reactants and products.
+        bonds = index.product_bonds
+        if len(mapping) == index.m:
+            self.product_boundary_pairs = bonds[:0]
+        else:
+            reachable = set().union(*self.atom_domains.values()) if self.atom_domains else set()
+            eligible = np.array([a in reachable or b in reachable for a, b in bonds], dtype=bool)
+            self.product_boundary_pairs = bonds[eligible]
+        self.product_boundary_actions = tuple(range(len(family.actions)))
+        self.components = self._dependency_components(family)
 
     @cached_property
     def _evaluation(self):
-        groups = defaultdict(list)
-        fixed = np.zeros((len(self.fragments), 5), dtype=np.int64)
-        for owner, terms in self.internal.items():
+        """Compile array lookups only when a caller evaluates joint choices."""
+        groups, constant = defaultdict(list), Counter()
+        for terms in (*self.internal.values(), *self.boundary.values()):
             for term in terms:
+                a, b = term.atoms
+                region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
                 if term.response.constant is None:
-                    groups[term.response].append((*term.atoms, owner))
+                    groups[term.response].append((a, b, region))
                 else:
-                    fixed[owner, term.response.constant] += 1
-        variable = tuple(
-            (
-                response,
-                np.array([(a, b) for a, b, _ in rows], dtype=int),
-                np.array([owner for _, _, owner in rows], dtype=int),
-            )
-            for response, rows in groups.items()
-        )
-        return fixed, variable
+                    constant[region, term.response.constant] += 1
+        regions = tuple(sorted({region for terms in groups.values() for _,_,region in terms}
+                               | {region for region, _ in constant}))
+        region_ids = {region:i for i,region in enumerate(regions)}
+        fixed = np.zeros((len(regions), 5), dtype=np.int64)
+        for (region, code), count in constant.items():
+            fixed[region_ids[region], code] += count
+        variable = tuple((response, np.array([(a,b) for a,b,_ in terms], dtype=int),
+                          np.array([region_ids[region] for _,_,region in terms], dtype=int))
+                         for response, terms in groups.items())
+        return fixed, variable, regions
 
-    def _sweep(self, vector):
-        from mappa.mappa_core.core.symmetry.responses import bond_categories
+    def _dependency_components(self, family):
+        """Separate contribution groups without separating shared choices.
 
-        if self.sweep_cut is None:
-            return None
-        a, b = self.sweep_cut
-        x, y = int(vector[a]), int(vector[b])
-        tau = bond_event_threshold(
-            self.index.elements,
-            a,
-            b,
-            default_threshold=self.index.threshold,
-            metal_threshold=self.index.metal_threshold,
-        )
-        source, target = float(self.index.r[a, b]), float(self.index.p[x, y])
-        code = int(bond_categories(source, target, tau))
-        correction = np.zeros(4, dtype=int)
-        correction[0] -= int(source > tau)
-        correction[1] -= int(tuple(sorted((x, y))) in self.product_boundary_set)
-        if code:
-            correction[code - 1] += 1
-        return correction, code, (a, b), tuple(sorted((x, y))), source, target
+        One fragment relation is one joint choice even when some local responses
+        are constant. Partial target occupancy retains the
+        dependencies of every source atom that can own either endpoint.
+        """
+        parent = {('fragment', i): ('fragment', i) for i in range(len(self.fragments))}
+        def root(node):
+            parent.setdefault(node, node)
+            while parent[node] != node:
+                parent[node] = parent[parent[node]]
+                node = parent[node]
+            return node
+        def join(owners, actions):
+            nodes = [('fragment', i) for i in owners if i >= 0] + [('action', i) for i in actions]
+            if nodes:
+                first = root(nodes[0])
+                for node in nodes[1:]:
+                    parent[root(node)] = first
+        # Atom rows join every owner to its actions. Boundary terms only add
+        # the connection between their two owners, once per variable region.
+        for owners, terms in self.boundary.items():
+            if any(term.response.constant is None for term in terms):
+                join(owners, ())
+        for atom, actions in self.atom_actions.items():
+            if actions:
+                join((int(self.owners[atom]),), actions)
+        for x,y in self.product_boundary_pairs:
+            atoms = [a for a, domain in self.atom_domains.items() if x in domain or y in domain]
+            join({int(self.owners[a]) for a in atoms},
+                 {i for a in atoms for i in self.atom_actions[a]})
+        groups = defaultdict(lambda: ([], []))
+        for kind,i in tuple(parent):
+            groups[root((kind,i))][kind == 'action'].append(i)
+        return tuple(sorted((tuple(sorted(fs)), tuple(sorted(actions)))
+                            for fs,actions in groups.values() if fs))
 
     def evaluate(self, vector, *, include_events=False):
-        """Evaluate the declared approximate bin for a valid saved mapping."""
+        """Lookup only the requested joint choice; sum each pair once."""
         vector = np.asarray(vector, dtype=int)
-        fixed, groups = self._evaluation
+        fixed, groups, regions = self._evaluation
         totals = fixed.copy()
-        for response, pairs, owners in groups:
-            codes = response.lookup(
-                self.index.padded_product[vector[pairs[:, 0]], vector[pairs[:, 1]]]
-            )
-            np.add.at(totals, (owners, codes), 1)
-        internal = {i: row.copy() for i, row in enumerate(totals[:, 1:]) if np.any(row)}
-        boundary = {region: row.copy() for region, row in self.fixed_boundary.items()}
-        sweep = self._sweep(vector)
-        if sweep is not None:
-            correction, _, (a, b), *_ = sweep
-            region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
-            boundary.setdefault(region, np.zeros(4, dtype=int))[:] += correction
-            if sweep[3] in self.product_boundary_set:
-                target_region = tuple(sorted(int(self.target_owners[p]) for p in sweep[3]))
-                if target_region != region:
-                    boundary[region][1] += 1
-                    boundary[target_region][1] -= 1
-        counts = sum(internal.values(), np.zeros(4, dtype=int)) + sum(
-            boundary.values(), np.zeros(4, dtype=int)
-        )
-
-        def named(row):
-            return dict(zip(EVENT_CATEGORIES, map(int, row)))
-
-        result = dict(
-            counts=named(counts),
-            total=int(counts.sum()),
-            internal={i: named(row) for i, row in internal.items()},
-            boundary={region: named(row) for region, row in boundary.items() if np.any(row)},
-            model="independent_fragments_with_sweep",
-            approximate=True,
-        )
+        for response, pairs, region_ids in groups:
+            codes = response.lookup(self.index.padded_product[vector[pairs[:,0]], vector[pairs[:,1]]])
+            np.add.at(totals, (region_ids, codes), 1)
+        inverse = np.full(self.index.m, -1, dtype=int)
+        mapped = np.flatnonzero(vector >= 0)
+        inverse[vector[mapped]] = mapped
+        pairs = self.product_boundary_pairs
+        source = inverse[pairs]
+        boundary = (source[:,0] >= 0) ^ (source[:,1] >= 0)
+        target_boundary = pairs[boundary]
+        internal, boundary_result = {}, {}
+        counts = totals[:,1:].sum(axis=0)
+        for (left, right), row in zip(regions, totals[:,1:]):
+            if np.any(row):
+                collection = internal if left == right else boundary_result
+                key = left if left == right else (left, right)
+                collection[key] = row.copy()
+        formed_owners = self.owners[np.maximum(source[boundary,0], source[boundary,1])]
+        for owner, count in zip(*np.unique(formed_owners, return_counts=True)):
+            boundary_result.setdefault((-1, int(owner)), np.zeros(4, dtype=int))[1] += count
+            counts[1] += count
+        def named(counts):
+            return dict(zip(EVENT_CATEGORIES, map(int, counts)))
+        result = dict(counts=named(counts), total=int(counts.sum()),
+                      internal={k:named(v) for k,v in internal.items()},
+                      boundary={k:named(v) for k,v in boundary_result.items()})
         if include_events:
             events = []
-            for terms in self.internal.values():
+            for terms in (*self.internal.values(), *self.boundary.values()):
                 for term in terms:
-                    a, b = term.atoms
-                    x, y = int(vector[a]), int(vector[b])
-                    weight = float(self.index.p[x, y])
+                    a,b = term.atoms
+                    x,y = int(vector[a]), int(vector[b])
+                    weight = self.index.padded_product[x,y]
                     code = int(term.response.lookup(weight))
                     if code:
-                        events.append(
-                            dict(
-                                category=EVENT_CATEGORIES[code - 1],
-                                reactant_pair=(a, b),
-                                product_pair=tuple(sorted((x, y))),
-                                reactant_weight=float(self.index.r[a, b]),
-                                product_weight=weight,
-                            )
-                        )
-            for a, b in self.reactant_boundary_pairs:
-                pair = int(a), int(b)
-                if sweep is None or pair != sweep[2]:
-                    events.append(
-                        dict(
-                            category="breaking",
-                            reactant_pair=pair,
-                            product_pair=None,
-                            reactant_weight=float(self.index.r[a, b]),
-                            product_weight=0.0,
-                        )
-                    )
-            for a, b in self.product_boundary_pairs:
-                pair = int(a), int(b)
-                if sweep is None or pair != sweep[3]:
-                    events.append(
-                        dict(
-                            category="forming",
-                            reactant_pair=None,
-                            product_pair=pair,
-                            reactant_weight=0.0,
-                            product_weight=float(self.index.p[a, b]),
-                        )
-                    )
-            if sweep is not None and sweep[1]:
-                _, code, source_pair, target_pair, source, target = sweep
-                events.append(
-                    dict(
-                        category=EVENT_CATEGORIES[code - 1],
-                        reactant_pair=source_pair,
-                        product_pair=target_pair,
-                        reactant_weight=source,
-                        product_weight=target,
-                    )
-                )
-            result["events"] = tuple(events)
+                        events.append(dict(category=EVENT_CATEGORIES[code-1], reactant_pair=(a,b),
+                            product_pair=tuple(sorted((x,y))) if x >= 0 and y >= 0 else None,
+                            reactant_weight=float(self.index.r[a,b]), product_weight=float(weight)))
+            events.extend(dict(category='forming', reactant_pair=None,
+                product_pair=(int(a),int(b)), reactant_weight=0., product_weight=float(self.index.p[a,b]))
+                for a,b in target_boundary)
+            result['events'] = tuple(events)
         return result
 
     def counts(self, vectors):
-        """Batch lookups and sweep correction use native NumPy array kernels."""
-        from mappa.mappa_core.core.symmetry.responses import bond_categories
-
+        """Vectorized category lookup for caller-supplied, validated realizations."""
         vectors = np.asarray(vectors, dtype=int)
-        fixed, groups = self._evaluation
-        base = fixed[:, 1:].sum(axis=0) + sum(self.fixed_boundary.values(), np.zeros(4, dtype=int))
-        result = np.broadcast_to(base, (len(vectors), 4)).copy()
+        fixed, groups, _ = self._evaluation
+        result = np.broadcast_to(fixed[:,1:].sum(axis=0), (len(vectors), 4)).copy()
         for response, pairs, _ in groups:
-            weights = self.index.padded_product[vectors[:, pairs[:, 0]], vectors[:, pairs[:, 1]]]
-            codes = response.lookup(weights)
+            values = self.index.padded_product[vectors[:,pairs[:,0]], vectors[:,pairs[:,1]]]
+            codes = response.lookup(values)
             for code in range(1, 5):
-                result[:, code - 1] += np.count_nonzero(codes == code, axis=1)
-        if self.sweep_cut is not None:
-            a, b = self.sweep_cut
-            tau = bond_event_threshold(
-                self.index.elements,
-                a,
-                b,
-                default_threshold=self.index.threshold,
-                metal_threshold=self.index.metal_threshold,
-            )
-            source = self.index.r[a, b]
-            target = self.index.p[vectors[:, a], vectors[:, b]]
-            result[:, 0] -= int(source > tau)
-            pairs = np.sort(vectors[:, (a, b)], axis=1)
-            keys = pairs[:, 0] * self.index.m + pairs[:, 1]
-            counted = self.product_boundary_pairs
-            result[:, 1] -= np.isin(keys, counted[:, 0] * self.index.m + counted[:, 1])
-            codes = bond_categories(source, target, tau)
-            for code in range(1, 5):
-                result[:, code - 1] += codes == code
+                result[:,code-1] += np.count_nonzero(codes == code, axis=1)
+        pairs = self.product_boundary_pairs
+        if len(pairs):
+            present = np.zeros((len(vectors), self.index.m), dtype=bool)
+            rows, atoms = np.nonzero(vectors >= 0)
+            present[rows, vectors[rows,atoms]] = True
+            result[:,1] += np.count_nonzero(present[:,pairs[:,0]] ^ present[:,pairs[:,1]], axis=1)
         return result
 
     @property
     def statistics(self):
-        terms = [term for rows in self.internal.values() for term in rows]
-        return dict(
-            fragments=len(self.fragments),
-            internal_terms=len(terms),
-            neighboring_pairs=self.neighboring_pair_count,
-            boundary_terms=self.boundary_count,
-            variable_terms=sum(t.response.constant is None for t in terms),
-            constant_terms=sum(t.response.constant is not None for t in terms),
-            unique_responses=len({id(t.response) for t in terms}),
-            product_boundary_pairs=len(self.product_boundary_pairs),
-            sweep_pairs=int(self.sweep_cut is not None),
-            projected_pair_states=self.projected_pair_states,
-            contribution_components=len(self.components),
-        )
+        terms = [t for rows in (*self.internal.values(), *self.boundary.values()) for t in rows]
+        return dict(fragments=len(self.fragments), internal_terms=sum(map(len,self.internal.values())),
+                    neighboring_pairs=self.neighboring_pair_count,
+                    boundary_terms=sum(map(len,self.boundary.values())),
+                    variable_terms=sum(t.response.constant is None for t in terms),
+                    constant_terms=sum(t.response.constant is not None for t in terms),
+                    unique_responses=len({id(t.response) for t in terms}),
+                    product_boundary_pairs=len(self.product_boundary_pairs),
+                    cut_terms=sum(t.manual_cut for t in terms),
+                    boundary_cases=dict(Counter(t.endpoint_case for ts in self.boundary.values() for t in ts)),
+                    variable_boundary_terms=sum(t.response.constant is None
+                                                for ts in self.boundary.values() for t in ts),
+                    projected_pair_states=self.projected_pair_states,
+                    contribution_components=len(self.components))
+
 
 def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
                    elements_R=None, elements_P=None,

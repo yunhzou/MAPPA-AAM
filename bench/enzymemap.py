@@ -127,9 +127,8 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
         raise ValueError('Decoding recovery requires a separate output directory')
     raw = (source/'manifest.json').read_bytes()
     manifest = json.loads(raw)
-    decoding_config = EventDecodeConfig(**manifest.get('decode_config', dict(
-        threshold=manifest['config']['event_threshold'],
-        metal_threshold=manifest['config']['metal_event_threshold'])))
+    decoding_config = dict(threshold=manifest['config']['event_threshold'],
+                           metal_threshold=manifest['config']['metal_event_threshold'])
     selected, origins, identities, task_keys = [], [], set(), set()
     for batch in manifest['batches']:
         directory = source/str(batch['batch'])
@@ -173,8 +172,8 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
             if (task.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue'
                     or task.payload['catalogue'] != catalogue):
                 raise ValueError('Original decoding task differs from its saved catalogue')
-            if task.payload['config'] != decoding_config:
-                raise ValueError('Original decoding policy differs from the campaign configuration')
+            if asdict(task.payload['config']) != decoding_config:
+                raise ValueError('Original decoding thresholds differ from the campaign configuration')
             if task_row[3] != memory_bytes or task.memory_bytes != memory_bytes:
                 raise ValueError('Decoding recovery must preserve the original memory guard')
             if record['case'][3] >= record['case'][1]:
@@ -361,10 +360,6 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             saved_plan = json.loads(plan.read_text())
             if not recover_decoding:
                 saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
-            if decode_only:
-                if 'event_slack' not in saved_plan['decode_config']:
-                    raise ValueError('Resume input/configuration differs: historical decoder policy')
-                saved_plan['decode_config'] = asdict(EventDecodeConfig(**saved_plan['decode_config']))
             if saved_plan != requested:
                 raise ValueError('Resume input/configuration differs')
             if decode_only:

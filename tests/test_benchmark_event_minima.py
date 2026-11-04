@@ -42,29 +42,6 @@ def test_minimum_is_over_correlated_choices_not_only_the_saved_witness():
     assert catalogue.to_record() == before
 
 
-def test_exact_minimum_keeps_a_family_excluded_by_the_approximate_window():
-    catalogue = rearrangement()
-    identity = dict(enumerate(range(4)))
-    fixed = saved(catalogue.problem.reactant, catalogue.problem.product, identity)
-    catalogue.families.append(fixed.families[0])
-    split = tuple((atoms, atoms) for atoms in ((0,), (1, 2), (3,)))
-    catalogue.branches = {((.2, 1.), split): {0}, next(iter(fixed.branches)): {1}}
-    catalogue.path_count = 2
-    record = decoded_events_record(decode_events(catalogue, event_slack=0))
-    # Fixed ordinary boundaries give the variable family four model events.
-    # Its valid C1/C2 swap has zero heavy events, while the retained fixed
-    # identity family has two. The external query must inspect both families.
-    assert record['event_window']['minimum'] == 2
-    assert record['event_window']['retained_family_ids'] == (1,)
-    assert record['families'][0]['tables'] == []
-    assert saved_response_bounds(record, catalogue.problem, float('inf'))[0] == [0, 2]
-    result = minimum_events(record, {0: 0, 1: 1, 2: 2}, seconds=5)
-    assert result['status'] == 'exact' and result['minimum_events'] == 0
-    assert result['reference_events'] == result['difference'] == 2
-    assert result['witness_family'] == 0
-    assert dict(result['witness']) == {0: 0, 1: 2, 2: 1, 3: 3}
-
-
 def test_heavy_event_projection_preserves_hydrogen_matching_constraints():
     catalogue = rearrangement(hydrogen_constraint=True)
     before = catalogue.to_record()

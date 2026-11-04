@@ -21,9 +21,8 @@ def query_assignments(decoded, candidate, assignments, *, same_events=True, seco
     are soft (encoding and native calls are not preemptible).
     """
     import z3
-    from mappa.mappa_core.core.symmetry.family import compile_path
-    from mappa.mappa_core.core.symmetry.event_counts import _event_model
-    from mappa.mappa_workflow.mapping_analytics.event_query import _same_event_orbit
+    from mappa.mappa_workflow.mapping_analytics.family import compile_path
+    from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _same_event_orbit
 
     decoded._check_candidate(candidate)
     if not math.isfinite(seconds) or seconds < 0:

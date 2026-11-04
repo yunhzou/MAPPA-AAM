@@ -5,7 +5,7 @@ from mappa import classify_bonds
 from mappa import build_graph
 
 from mappa.mappa_core.core.search.planning import _generate_seed_orders
-from mappa.mappa_core.core.symmetry.family import project_path_assignments
+from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
 import mappa.mappa_core.core.search.branching.construction as branch_mod
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
 from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded

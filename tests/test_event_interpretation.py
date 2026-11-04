@@ -2,6 +2,7 @@
 from dataclasses import replace
 from itertools import permutations, product
 import json
+import time
 
 import numpy as np
 import pytest
@@ -90,16 +91,8 @@ def test_neighbor_domains_and_boundary_filter_match_independent_dense_pairs():
     # Atom masks retain sparse NumPy indices beyond a machine integer's width.
     ep = endpoint('C' * 131, [(0, 1, 1.)])
     index = SignedEventIndex(AAMProblem(ep, ep))
-    atoms = (63, 64, 127, 128, 130)
-    domains = {np.int64(a): (0, 1) for a in atoms}
-    expected = set(combinations(atoms, 2))
-    assert index.neighboring_pairs(domains) == expected
-    owners = [-1] * 131
-    for a in atoms:
-        owners[a] = a % 2
-    assert index.neighboring_pairs(domains, owners=owners) == {
-        (a, b) for a, b in expected if owners[a] != owners[b]}
-    assert index.neighboring_pairs({}, owners=owners) == set()
+    domains = {np.int64(65): (0, 1), np.int64(130): (0, 1)}
+    assert index.neighboring_pairs(domains) == {(65, 130)}
 
 
 
@@ -154,14 +147,13 @@ def test_exact_weight_placements_do_not_prepare_opposite_response_labels():
 
 def test_count_batches_bound_pair_scratch(monkeypatch):
     ep = endpoint('C'*300,[(0,1,1.)])
-    result = decode_events(saved(ep,ep,{0:0,1:1}), event_slack=None)
-    table = result.tables(0)
-    original, sizes = table.counts, []
+    result = decode_events(saved(ep,ep,{0:0,1:1}))
+    original, sizes = result.index.counts, []
     def checked(vectors):
         sizes.append(len(vectors))
         return original(vectors)
-    monkeypatch.setattr(table,'counts',checked)
-    assert [int(row.sum()) for row in result.counts(0,[None]*3, batch_size=1)] == [0,0,0]
+    monkeypatch.setattr(result.index,'counts',checked)
+    assert [int(row.sum()) for row in result.counts(0,[None]*3)] == [0,0,0]
     assert sizes == [1,1,1]
 
 
@@ -196,83 +188,24 @@ def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
 
 
 
-def approximate_categories(problem, representative, mapping, fragments, cuts=(),
-                           threshold=.5, metal_threshold=.3):
-    """Literal approved model: local pairs, fixed boundaries, one cut replacement.
-
-    This oracle deliberately scans all pairs. It shares no preparation or
-    response machinery with the sparse production decoder.
-    """
-    source, target = problem.reactant, problem.product
-    owners = {a: i for i, atoms in enumerate(fragments) for a in atoms}
-    target_owners = {p: owners[a] for a, p in representative.items()}
-
-    def tau(endpoint, a, b):
-        return (metal_threshold if metal_threshold is not None and any(
-            is_metal_element(endpoint.elements[k]) for k in (a, b)) else threshold)
-
-    def pair_event(a, b):
-        x, y = mapping[a], mapping[b]
-        old, new = source.wbo[a, b], target.wbo[x, y]
-        limit = tau(source, a, b)
-        if old - new > limit:
-            category = 'weakening' if new > limit else 'breaking'
-        elif new - old > limit:
-            category = 'strengthening' if old > limit else 'forming'
-        else:
-            return []
-        return [(category, (a, b), tuple(sorted((x, y))))]
-
-    result = []
-    for a in range(source.atom_count):
-        for b in range(a + 1, source.atom_count):
-            left, right = owners.get(a, -1), owners.get(b, -1)
-            if left == right:
-                if left >= 0:
-                    result.extend(pair_event(a, b))
-            elif source.wbo[a, b] > tau(source, a, b):
-                result.append(('breaking', (a, b), None))
-    for a in range(target.atom_count):
-        for b in range(a + 1, target.atom_count):
-            if (target_owners.get(a, -1) != target_owners.get(b, -1)
-                    and target.wbo[a, b] > tau(target, a, b)):
-                result.append(('forming', None, (a, b)))
-    assert len(cuts) <= 1
-    for a, b in cuts:
-        if a in mapping and b in mapping and owners[a] != owners[b]:
-            replaced = {('breaking', (a, b), None),
-                        ('forming', None, tuple(sorted((mapping[a], mapping[b]))))}
-            result = [event for event in result if event not in replaced]
-            result.extend(pair_event(a, b))
-    return sorted(result, key=repr)
-
-
-def approximate_for(decoded, fid, mapping, partition=0):
-    return approximate_categories(decoded.index.problem,
-        dict(decoded.catalogue.families[fid].mapping), mapping,
-        decoded.fragment_partitions[fid][partition], decoded.inventory.cuts[fid][partition],
-        decoded.index.threshold, decoded.index.metal_threshold)
-
-
 def check_contributions(interpreted, choices):
     from collections import Counter
     from mappa.mappa_core.post_processing.decoder.events import EVENT_CATEGORIES
     from mappa.mappa_core.utils.io.records import decoded_events_record
     record = json.loads(json.dumps(decoded_events_record(interpreted)))
-    assert len(record['families'][0]['tables']) == len(interpreted.window.retained_partitions[0])
-    for partition, number in zip(interpreted.window.retained_partitions[0],
-                                 record['families'][0]['tables']):
-        expected_counts = []
-        for choice in choices:
-            mapping = interpreted.realize(0, choice, partition=partition)
-            expected = approximate_for(interpreted, 0, mapping, partition)
-            result = interpreted.contributions(0, choice, partition=partition, include_events=True)
-            actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
-            assert actual == expected
-            # Saved local responses and fixed boundary pairs suffice without
-            # derived per-atom maps or a whole-reaction event query.
+    expected_counts = []
+    for choice in choices:
+        mapping = interpreted.realize(0,choice)
+        expected = dense_categories(interpreted.index.problem,mapping,
+            interpreted.index.threshold,interpreted.index.metal_threshold)
+        result = interpreted.contributions(0,choice,include_events=True)
+        actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
+        assert actual == expected
+        # The saved local responses suffice without the derived per-atom maps.
+        # Check every saved partition against the independent scalar oracle.
+        for number in record['families'][0]['tables']:
             table, exported = record['tables'][number], []
-            for region in table['internal']:
+            for region in (*table['internal'], *table['boundary']):
                 for term in region['terms']:
                     images = tuple(mapping.get(a) for a in term['atoms'])
                     weight = (0. if None in images else
@@ -282,26 +215,18 @@ def check_contributions(interpreted, choices):
                     if code:
                         exported.append((EVENT_CATEGORIES[code - 1], tuple(term['atoms']),
                                          None if None in images else tuple(sorted(images))))
-            exported.extend(('breaking', tuple(pair), None) for pair in table['reactant_boundary_pairs'])
-            exported.extend(('forming', None, tuple(pair)) for pair in table['product_boundary_pairs'])
-            cut = table['sweep_cut']
-            if cut is not None:
-                a, b = cut
-                target_pair = tuple(sorted((mapping[a], mapping[b])))
-                removed = {('breaking', (a, b), None), ('forming', None, target_pair)}
-                exported = [event for event in exported if event not in removed]
-                exported.extend(event for event in dense_categories(interpreted.index.problem, mapping,
-                    interpreted.index.threshold, interpreted.index.metal_threshold)
-                    if event[1] == (a, b))
+            occupied = set(mapping.values())
+            exported.extend(('forming', None, tuple(pair))
+                            for pair in table['product_boundary_pairs']
+                            if (pair[0] in occupied) != (pair[1] in occupied))
             assert sorted(exported, key=repr) == expected
-            counts = Counter(e[0] for e in expected)
-            assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
-            assert result['total'] == len(expected)
-            for kind,count in result['counts'].items():
-                assert sum(row[kind] for row in (*result['internal'].values(),*result['boundary'].values())) == count
-            expected_counts.append([counts[k] for k in EVENT_CATEGORIES])
-        assert list(map(list, interpreted.counts(0, choices, partition=partition,
-            categories=True, batch_size=2))) == expected_counts
+        counts = Counter(e[0] for e in expected)
+        assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
+        assert result['total'] == len(expected)
+        for kind,count in result['counts'].items():
+            assert sum(row[kind] for row in (*result['internal'].values(),*result['boundary'].values())) == count
+        expected_counts.append([counts[k] for k in EVENT_CATEGORIES])
+    assert list(map(list,interpreted.counts(0,choices,categories=True,batch_size=2))) == expected_counts
 
 
 
@@ -436,13 +361,10 @@ def test_sweep_cut_provenance_survives_catalogue_roundtrip():
     cuts = {tuple(map(tuple,p['cuts'])) for f in restored.families for p in f.provenance}
     assert cuts == {c.cuts for c in aam.graph.contexts}
     assert cuts == {(),((0,1),),((1,2),)}
-    result = decode_events(restored, event_slack=None)
+    result = decode_events(restored)
     for fid,family in enumerate(restored.families):
-        assert set(result.inventory.cuts[fid]) == {tuple(map(tuple, row['cuts'])) for row in family.provenance}
-        for pid, cuts in enumerate(result.inventory.cuts[fid]):
-            assert result.tables(fid, pid).cut_bonds == frozenset(cuts)
-            assert result.contributions(fid, partition=pid)['total'] == len(
-                approximate_for(result, fid, dict(family.mapping), pid))
+        assert result.tables(fid).cut_bonds == frozenset(tuple(p) for row in family.provenance for p in row['cuts'])
+        assert result.contributions(fid)['total'] == sum(dense_counts(source.problem,dict(family.mapping)))
 
 
 
@@ -461,12 +383,11 @@ def test_preparation_visits_only_bond_neighbors_and_recorded_cut(monkeypatch):
         return original(weight, tau, xs, ys)
     monkeypatch.setattr(result.index, 'domain_response', record)
     table = result.tables(0)
-    assert len(visits) == table.statistics['neighboring_pairs'] == 0
-    assert table.statistics['sweep_pairs'] == 1
-    assert len(table.reactant_boundary_pairs) == 79
-    assert len(table.product_boundary_pairs) == 80
+    assert len(visits) == table.statistics['neighboring_pairs'] == 81
+    assert table.statistics['cut_terms'] == 1
+    assert set(table.boundary) == {(0,79),(17,42)}
     check_contributions(result, [None])
-    assert result.contributions(0)['counts'] == dict(breaking=79, forming=80, strengthening=0, weakening=0)
+    assert result.contributions(0)['counts'] == dict(breaking=0, forming=1, strengthening=0, weakening=0)
 
 
 
@@ -523,15 +444,15 @@ def test_boundary_categories_follow_all_fixed_image_choices(partial):
     fragment = saved_fragment(AAMProblem(ep, ep), source_atoms=atoms)
     source = saved(ep, ep, dict(zip(atoms, atoms)), fragments=(fragment,),
                    pairs=tuple(((a,), (a,)) for a in atoms))
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     selections = [[dict(discovery=dict(zip(atoms, order)))] for order in permutations(atoms)]
     check_contributions(decoded, selections)
-    assert decoded.tables(0).components == tuple(((i,), (0,)) for i in range(len(atoms)))
+    assert decoded.tables(0).components == ((tuple(range(len(atoms))), (0,)),)
 
 
-@pytest.mark.parametrize('moving', [(), ((2, 3),), ((0, 1), (2, 3))],
-                         ids=['fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle'])
-def test_cut_endpoint_cases_retain_original_bonds(moving):
+@pytest.mark.parametrize('moving,expected_case', [((), 'fixed_fixed'),
+    (((2, 3),), 'fixed_shuffle'), (((0, 1), (2, 3)), 'shuffle_shuffle')])
+def test_cut_endpoint_cases_retain_original_bonds(moving, expected_case):
     r, p = endpoint('CCCC', [(0, 2, 1.)]), endpoint('CCCC', [(0, 2, 1.), (1, 3, 1.)])
     value = AAMProblem(r, p)
     fragments = tuple(saved_fragment(value, source_atoms=atoms) for atoms in moving)
@@ -539,11 +460,10 @@ def test_cut_endpoint_cases_retain_original_bonds(moving):
                    pairs=(((0, 1), (0, 1)), ((2, 3), (2, 3))))
     source.families[0].provenance.append(dict(cuts=((0, 2),)))
     decoded = decode_events(source)
-    assert decoded.tables(0).sweep_cut == (0, 2)
-    choices = list(product(*[(None, swap(fragment)) for fragment in fragments]))
-    images = {tuple(decoded.realize(0, choice)[a] for a in (0, 2)) for choice in choices}
-    assert len(images) == 2 ** len(moving)
-    check_contributions(decoded, choices)
+    term = next(term for term in decoded.tables(0).boundary[0, 1] if term.atoms == (0, 2))
+    assert term.manual_cut and term.endpoint_case == expected_case
+    assert len(tuple(term.target_pairs)) == 2 ** len(moving)
+    check_contributions(decoded, [[None] * len(moving), [swap(fragment) for fragment in fragments]])
 
 
 def test_binary_matching_uses_original_wbo_and_preserves_complete_relation_on_roundtrip():
@@ -594,20 +514,18 @@ def test_partition_views_do_not_duplicate_counts_or_split_shared_choices():
     source = saved(ep, ep, dict(enumerate(range(6))), fragments=fragments,
         pairs=(((0, 1, 2), (0, 1, 2)), ((3, 4, 5), (3, 4, 5))))
     source.coupled_branches[0] = {tuple(((a,), (a,)) for a in range(6))}
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     separate = next(decoded.tables(0, i) for i, parts in enumerate(decoded.fragment_partitions[0])
                     if len(parts) == 2)
     assert separate.components == (((0,), (0,)), ((1,), (1,)))
     for selections in product(*[(None, swap(fragment)) for fragment in fragments]):
-        for i in range(2):
-            mapping = decoded.realize(0, selections, partition=i)
-            assert decoded.contributions(0, selections, partition=i)['total'] == len(
-                approximate_for(decoded, 0, mapping, i))
+        totals = [decoded.contributions(0, selections, partition=i)['counts'] for i in range(2)]
+        assert totals[0] == totals[1]
     joint = saved_fragment(value, accepted_edges=((0, 1), (0, 2), (3, 4), (3, 5)))
     source.families[0].actions = (('relation', joint),)
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     split = next(decoded.tables(0, i) for i, parts in enumerate(decoded.fragment_partitions[0]) if len(parts) == 2)
-    assert split.components == (((0,), (0,)), ((1,), (0,)))
+    assert split.components == (((0, 1), (0,)),)
 
 
 def test_large_boundary_tables_do_not_expand_complete_choices(monkeypatch):
@@ -627,8 +545,8 @@ def test_large_boundary_tables_do_not_expand_complete_choices(monkeypatch):
     decoded = decode_events(source)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs', forbidden)
     table = decoded.tables(0)
-    assert len(table.fixed_boundary) == count - 1
-    assert table.statistics['boundary_terms'] == 2 * (count - 1)
+    assert len(table.boundary) == count - 1
+    assert table.statistics['boundary_terms'] == 4 * (count - 1)
     assert table.statistics['projected_pair_states'] == 0
     check_contributions(decoded, [[None] * count, [swap(fragment) for fragment in fragments]])
 
@@ -641,15 +559,14 @@ def test_constant_boundaries_and_possible_product_neighbors_use_bounded_domains(
     source.families[0].provenance.append(dict(cuts=((0, 1),)))
     decoded = decode_events(source)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs', lambda *args: pytest.fail('expanded constant pair bounds'))
-    assert decoded.tables(0).statistics['sweep_pairs'] == 1
-    assert decoded.contributions(0)['total'] == 2 * 66 - 2
+    assert decoded.tables(0).statistics['cut_terms'] == 1
+    assert decoded.contributions(0)['total'] == 0
     ep = endpoint('CCCCCC', [(0, 2, 1.), (3, 4, .5)])
     fragment = saved_fragment(AAMProblem(ep, ep), source_atoms=(0, 1))
     decoded = decode_events(saved(ep, ep, dict(enumerate(range(6))), fragments=(fragment,),
         pairs=(((0, 1), (0, 1)), ((2,), (2,)), ((3, 4, 5), (3, 4, 5)))))
-    assert decoded.tables(0).statistics['neighboring_pairs'] == 0
-    assert set(map(tuple, decoded.tables(0).reactant_boundary_pairs)) == {(0, 2)}
-    assert set(map(tuple, decoded.tables(0).product_boundary_pairs)) == {(0, 2)}
+    assert decoded.tables(0).statistics['neighboring_pairs'] == 2
+    assert {term.atoms for rows in decoded.tables(0).boundary.values() for term in rows} == {(0, 2), (1, 2)}
     check_contributions(decoded, [[None], [swap(fragment)]])
 
 
@@ -666,7 +583,7 @@ def test_normal_decoding_export_keeps_relations_without_whole_reaction_reports(m
     monkeypatch.setattr(events, 'classify_bonds', forbidden)
     for name in ('describe', '_describe_events', 'counts'):
         monkeypatch.setattr(SignedEventIndex, name, forbidden)
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     record = decoded_events_record(decoded)
     assert record['catalogue'] == source.to_record() and record['mapping_space_preserved']
     assert not record['exhaustive_event_patterns'] and not record['global_minimum_proven']

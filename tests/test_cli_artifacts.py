@@ -50,25 +50,18 @@ def test_typed_cli_decodes_then_uses_explicit_reaction_for_ts(tmp_path):
     ])
 
     decoded = json.loads((output / "events.json").read_text())
-    assert decoded['schema'] == 'mappa.decoded_events/v10'
-    assert decoded['catalogue_preserved'] and not decoded["mapping_space_preserved"]
-    assert decoded['approximate'] and not decoded['minimum_proven']
-    assert decoded['event_window']['minimum'] == 4
-    assert decoded['event_window']['limit'] == 10
+    assert decoded["mapping_space_preserved"]
     assert not decoded["exhaustive_event_patterns"]
     assert not decoded["global_minimum_proven"]
     assert 'representatives' not in decoded
     catalogue = FinalBranchCatalogue.from_record(
         problem_from_record(decoded['problem']), decoded['catalogue'])
     interpretation = decode_events(catalogue)
-    for family_id in interpretation.retained_family_ids:
+    for family_id in range(len(catalogue.families)):
         candidate = interpretation.evaluate(family_id)
-        assert candidate["mapping"] == {0: 0, 1: 1, 2: 2, 3: 3}
-        assert candidate['counts'] == dict(breaking=2, forming=2, strengthening=0, weakening=0)
-        assert sorted(event['reactant_pair'] for event in candidate['events']
-                      if event['category'] == 'breaking') == [(0, 1), (2, 3)]
-        assert sorted(event['product_pair'] for event in candidate['events']
-                      if event['category'] == 'forming') == [(0, 2), (1, 3)]
+        assert candidate["mapping"] == [0, 1, 2, 3]
+        assert candidate["events"] == {
+            "broken": ((0, 1), (2, 3)), "formed": ((0, 2), (1, 3))}
     candidate = interpretation.evaluate(0)
     view = (output / "search.html").read_text()
     assert "$3Dmol.createViewer" in view
@@ -79,11 +72,9 @@ def test_typed_cli_decodes_then_uses_explicit_reaction_for_ts(tmp_path):
     record = {
         "schema": "rxn_core.resolved_reaction/v1", "atom_count": 4,
         "mechanisms": [{
-            "mapping": {str(atom): image for atom, image in candidate["mapping"].items()},
-            "broken_bonds": [event['reactant_pair'] for event in candidate['events']
-                             if event['category'] == 'breaking'],
-            "formed_bonds": [event['product_pair'] for event in candidate['events']
-                             if event['category'] == 'forming'],
+            "mapping": {str(atom): image for atom, image in enumerate(candidate["mapping"])},
+            "broken_bonds": candidate["events"]["broken"],
+            "formed_bonds": candidate["events"]["formed"],
             "core_atoms": [0, 1, 2, 3],
         }],
     }

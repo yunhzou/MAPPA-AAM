@@ -24,47 +24,16 @@ def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatc
     output = tmp_path / 'events'
     main([*endpoints(tmp_path), '--output', str(output)])
     record = json.loads((output / 'events.json').read_text())
-    assert record['schema'] == 'mappa.decoded_events/v10'
-    assert record['model'] == 'independent_fragments_with_sweep'
-    assert record['approximate'] and record['catalogue_preserved']
-    assert not record['mapping_space_preserved']
-    assert not record['minimum_proven'] and record['model_minimum_proven']
-    assert record['event_window']['minimum'] == 0
-    assert record['event_window']['limit'] == record['event_window']['slack'] == 6
+    assert record['schema'] == 'mappa.decoded_events/v7'
+    assert record['mapping_space_preserved']
     assert not record['global_minimum_proven']
     assert 'representatives' not in record
-    assert record['families'] and record['tables']
-    assert record['responses'] == []
-    assert not record['bin_witnesses_guaranteed']
-    for family in record['families']:
-        for partition, table_id in zip(family['partitions'], family['tables']):
-            table = record['tables'][table_id]
-            # The uncut H-H fragment has only zero events. Independent swept
-            # endpoints can also choose the same target H, producing model bin2;
-            # that bin is explicitly not a valid complete bijection certificate.
-            expected = [0] if table['sweep_cut'] is None else [0, 2]
-            assert record['event_window']['event_counts'][family['family_id']][partition] == expected
+    assert record['families'] and record['tables'] and record['responses']
+    assert all(set(response['categories']) == {0} for response in record['responses'])
     assert (output / 'aam.json').is_file()
     assert (output / 'search.html').is_file()
     assert not (output / 'rp.json').exists()
     assert not (output / 'reaction.json').exists()
-
-
-def test_decoder_policy_rejects_ambiguous_historical_configs_and_keyword_overrides():
-    import pickle
-    from mappa import EventDecodeConfig
-
-    assert EventDecodeConfig().event_slack == 6
-    config = EventDecodeConfig(event_slack=None)
-    assert pickle.loads(pickle.dumps(config)) == config
-    historical = object.__new__(EventDecodeConfig)
-    object.__setattr__(historical, 'threshold', .5)
-    object.__setattr__(historical, 'metal_threshold', .3)
-    with pytest.raises(ValueError, match='producing revision'):
-        pickle.loads(pickle.dumps(historical))
-    for slack in (None, 6):
-        with pytest.raises(ValueError, match='not both'):
-            mappa.decode_events(None, config, event_slack=slack)
 
 
 @pytest.mark.smoke

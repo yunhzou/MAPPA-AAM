@@ -1,4 +1,4 @@
-"""Approximate local event interpretation on saved atom mappings."""
+"""Event interpretation on the original compressed atom mappings."""
 from collections import OrderedDict
 import numpy as np
 from .records import EventDecodeConfig, EventInterpretation, SymmetryEventResponse
@@ -6,27 +6,18 @@ from .events import SignedEventIndex
 from .fragments import FragmentInventory, FragmentDecoder
 from ..final_branches import FinalBranchCatalogue
 
-_UNSET = object()
-
 
 def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
-                  event_problem=None, event_slack=_UNSET):
-    """Decode independent fragments with fixed ordinary boundary events.
+                  event_problem=None):
+    """Attach tolerance-dependent responses to original compressed families.
 
-    Unique fragments share preparation; a sweep boundary retains its coupled
-    correction. Selection and reported bins use this approximate event model.
-    Model bins need not have a complete joint mapping witness. Original mapping
-    constraints remain attached and govern explicit realizations without rematching.
+    Unique fragments share preparation. Their joint discovery and self
+    constraints remain attached; no fragment rematches, complete mappings or
+    Cartesian combinations are enumerated.
     event_problem may supply different scoring weights for the same indexed
     atoms; the catalogue's matching constraints remain unchanged.
-    The default window is the model minimum plus six events. Explicit None
-    retains all model bins without a window.
     """
-    if config is not None and event_slack is not _UNSET:
-        raise ValueError('set event_slack in config or as a keyword, not both')
-    if config is None:
-        config = EventDecodeConfig(threshold, metal_threshold,
-                                  6 if event_slack is _UNSET else event_slack)
+    config = config or EventDecodeConfig(threshold, metal_threshold)
     catalogue = (aam if isinstance(aam, FinalBranchCatalogue)
                  else FinalBranchCatalogue(aam.problem).add_aam(aam))
     return EventDecodeSession(catalogue.problem, config,
@@ -64,15 +55,8 @@ class EventDecodeSession:
             _validate_atom_identity(catalogue.problem, self.index.problem)
         inventory = FragmentInventory(catalogue)
         local = FragmentDecoder(self.index, inventory)
-        from .window import select_event_window
-        window = select_event_window(catalogue, self.index, self.config.event_slack,
-                                     local=local)
-        retained = frozenset(window.retained_family_ids)
         families = []
-        for fid, family in enumerate(catalogue.families):
-            if fid not in retained:
-                families.append(())
-                continue
+        for family in catalogue.families:
             responses = []
             for original, action in zip(family.actions, local.programs.program(family.actions)):
                 if action not in self.actions:
@@ -91,4 +75,4 @@ class EventDecodeSession:
                 responses.append(self.actions[action])
             families.append(tuple(responses))
         return EventInterpretation(catalogue, self.index, tuple(families),
-                                   inventory, local, self.event_problem_sha256, window)
+                                   inventory, local, self.event_problem_sha256)

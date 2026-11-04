@@ -12,7 +12,6 @@ from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, re
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_relaxed_isomorphism import discovery_oracle, relation, self_oracle, weights
-from test_event_interpretation import approximate_for
 
 
 def problem(source, target):
@@ -70,8 +69,8 @@ def dense_events(endpoints, mapping, threshold=.5):
 
 
 def assert_counts(decoded, selection, *, partition=0):
-    mapping = decoded.realize(0, selection, partition=partition)
-    expected = approximate_for(decoded, 0, mapping, partition)
+    mapping = decoded.realize(0, selection)
+    expected = dense_events(decoded.event_problem, mapping)
     result = decoded.contributions(0, selection, partition=partition, include_events=True)
     actual = [(event['category'], event['reactant_pair'], event['product_pair'])
               for event in result['events']]
@@ -138,19 +137,16 @@ def test_all_six_relaxed_triangle_tail_choices_decode_without_discovery_refilter
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
     value = relation(matrix, matrix, ((0, 1), (1, 2), (0, 3)))
     fragment = Fragment(value)
-    saved = catalogue(problem(matrix, matrix), (fragment,))
-    saved.families[0].provenance = [dict(cuts=(cut,)) for cut in ((0, 2), (2, 3))]
+    saved = catalogue(problem(matrix, matrix), (fragment,), cuts=((0, 2), (2, 3)))
     decoded = decode_events(saved)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs',
         lambda *args: pytest.fail('relation decoding expanded pair projections'))
-    seen = {assert_counts(decoded, [choice], partition=pid)
-            for pid in range(2) for choice in choices(value)}
+    seen = {assert_counts(decoded, [choice]) for choice in choices(value)}
     assert len(seen) == 6 and len(seen - discovery_oracle(value)) == 2
     table = decoded.tables(0)
-    assert set(decoded.inventory.cuts[0]) == {((0, 2),), ((2, 3),)}
-    assert table.statistics['sweep_pairs'] == 0
+    assert table.statistics['cut_terms'] == 2
     assert table.statistics['projected_pair_states'] == 0
-    terms = [term.atoms for rows in table.internal.values() for term in rows]
+    terms = [term.atoms for rows in (*table.internal.values(), *table.boundary.values()) for term in rows]
     assert len(terms) == len(set(terms))
     assert decoded.inventory.fragments == (fragment,)
     assert decoded.inventory.fragments[0] is fragment
@@ -185,11 +181,9 @@ def test_shared_history_keeps_final_partition_bond_ownership_and_joint_occupancy
         ((0, (0, 1)), (1, (0, 1))), (DiscoveryEdge((0, 1), 1., 0.),), ((0, 1),), .2))
     saved = catalogue(problem(matrix, matrix), (whole, previous), cuts=((0, 2),))
     saved.coupled_branches[0] = {(((0, 1), (0, 1)), ((2, 3), (2, 3)))}
-    original = [dict(cuts=((0, 2),), source_partition=((0, 1, 2, 3),))]
-    saved.families[0].provenance = original + [dict(cuts=((0, 2),), source_partition=((0, 1), (2, 3)))]
-    saved.families.append(replace(saved.families[0], provenance=original))
+    saved.families.append(replace(saved.families[0]))
     next(iter(saved.branches.values())).add(1)
-    decoded = decode_events(saved, event_slack=None)
+    decoded = decode_events(saved)
     assert decoded.inventory.fragments == (previous, whole)
     assert decoded.family_actions[0][0] is decoded.family_actions[1][0]
     common = decoded.fragment_partitions[0].index(decoded.fragment_partitions[1][0])
@@ -201,8 +195,8 @@ def test_shared_history_keeps_final_partition_bond_ownership_and_joint_occupancy
         assert len(set(one)) == 4
     split = next(decoded.tables(0, i) for i, part in enumerate(decoded.fragment_partitions[0])
                  if len(part) == 2)
-    assert split.components == (((0,), (0, 1)), ((1,), (0, 1)))
-    assert split.statistics['sweep_pairs'] == 1
+    assert split.components == (((0, 1), (0, 1)),)
+    assert split.statistics['cut_terms'] == 1
 
 
 def test_sparse_fixed_image_preserves_anchors_and_counts_unmatched_boundaries():
@@ -218,7 +212,7 @@ def test_sparse_fixed_image_preserves_anchors_and_counts_unmatched_boundaries():
     for choice in choices(value):
         assert_counts(decoded, [choice])
         assert decoded.realize(0, [choice])[0] == 1
-    assert decoded.tables(0).statistics['sweep_pairs'] == 1
+    assert decoded.tables(0).statistics['cut_terms'] == 1
     assert decoded.contributions(0)['total'] == 2
     with pytest.raises(ValueError, match='atom domain|anchor'):
         decoded.realize(0, [dict(discovery={0: 3, 2: 1, 4: 5})])
@@ -261,7 +255,7 @@ def test_large_symmetric_fragment_prepares_without_solver_or_permutation_expansi
 def test_saved_path_replays_compiled_two_sided_choices_after_json_roundtrip():
     import json
     from mappa.mappa_core.core.search.graph import AAMSearchGraph
-    from mappa.mappa_core.core.symmetry.family import query_path
+    from mappa.mappa_workflow.mapping_analytics.family import query_path
     from test_event_patterns import saved_path
 
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])

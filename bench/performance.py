@@ -233,7 +233,6 @@ def canonical_digest(value):
 
 def audit_decoding_direction(payload, workspace):
     """Release one complete decoded artifact before loading the other revision."""
-    from mappa import EventDecodeConfig
     from mappa.mappa_core.core.scheduler.bundles import Blob
     from mappa.mappa_core.core.scheduler.results import DecodingResult, MatchingResult
 
@@ -261,7 +260,7 @@ def audit_decoding_direction(payload, workspace):
             search_config=asdict(saved.search_config), execution=saved.execution)
         if (saved.case != payload['case'] or metadata['scope'] != scope
                 or canonical_digest(metadata['search_config'])[0] != canonical_digest(payload['search_config'])[0]
-                or saved.config != EventDecodeConfig(**payload['decode_config'])):
+                or metadata['config'] != payload['decode_config']):
             raise ValueError('Decoded output differs from its declared input or search scope')
         wall, cpu = time.perf_counter(), time.process_time()
         record_hash, size = canonical_digest(saved.record)
@@ -287,7 +286,6 @@ def audit_decoding_direction(payload, workspace):
 def decoding_campaign(path, *, candidate):
     """Read immutable campaign provenance and terminal ledger rows, never payloads."""
     from enzymemap import require_drained
-    from mappa import EventDecodeConfig
 
     path = Path(path).resolve()
     files = {}
@@ -316,9 +314,8 @@ def decoding_campaign(path, *, candidate):
                 raise ValueError('Candidate must be a fresh decode-only campaign with shared provenance')
             if plan.get('decoder_source') != identity or progress['source'] != identity:
                 raise ValueError('Candidate decoder identities differ')
-            policy = EventDecodeConfig(**manifest['decode_config'])
-            if (EventDecodeConfig(**index['decode_config']) != policy
-                    or EventDecodeConfig(**plan['decode_config']) != policy):
+            if (index.get('decode_config') != manifest.get('decode_config')
+                    or plan.get('decode_config') != manifest.get('decode_config')):
                 raise ValueError('Candidate decoding policies differ')
         output = path/directory/'result'
         require_drained(output)
@@ -354,18 +351,16 @@ def decoding_campaign(path, *, candidate):
 
 
 def decoding_audit_plan(baseline, candidate, *, memory_bytes, task_seconds):
-    from mappa import EventDecodeConfig
     from mappa.execution.identity import code_identity
 
     old, before, old_files, old_source = decoding_campaign(baseline, candidate=False)
     new, after, new_files, new_source = decoding_campaign(candidate, candidate=True)
     if old['config'] != new['config'] or set(before) != set(after):
         raise ValueError('Decoding campaigns have different scientific scope')
-    decode_config = EventDecodeConfig(**old.get('decode_config', dict(
-        threshold=old['config']['event_threshold'],
-        metal_threshold=old['config']['metal_event_threshold'])))
-    if EventDecodeConfig(**new['decode_config']) != decode_config:
-        raise ValueError('Decoding policy changed')
+    decode_config = dict(threshold=old['config']['event_threshold'],
+                         metal_threshold=old['config']['metal_event_threshold'])
+    if new.get('decode_config') != decode_config:
+        raise ValueError('Decoding thresholds changed')
     origin = new['decoding_source']
     baseline = Path(baseline).resolve()
     if (Path(origin['campaign']).resolve() != baseline
@@ -395,7 +390,7 @@ def decoding_audit_plan(baseline, candidate, *, memory_bytes, task_seconds):
             raise ValueError('Candidate catalogue or original input lineage differs')
         rows.append(dict(case=name, baseline=left['reference'], candidate=right['reference'],
             baseline_state=left['state'], candidate_state=right['state'], matching=left['matching'],
-            search_config=old['config'], decode_config=asdict(decode_config), runner_sha256=runner))
+            search_config=old['config'], decode_config=decode_config, runner_sha256=runner))
     return dict(schema='mappa.decoding_audit/v1', baseline=str(Path(baseline).resolve()),
         candidate=str(Path(candidate).resolve()), source_files=source_files,
         sources=dict(baseline=old_source, candidate=new_source),

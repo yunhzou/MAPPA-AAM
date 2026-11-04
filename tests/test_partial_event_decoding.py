@@ -8,12 +8,11 @@ import pytest
 
 from mappa import AAMProblem, MolecularEndpoint
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
-from mappa.mappa_core.core.symmetry.event_counts import _event_model
-from mappa.mappa_workflow.mapping_analytics.event_query import _same_event_orbit
+from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _same_event_orbit
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
 from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
-from mappa.mappa_core.core.symmetry.family import compile_path
+from mappa.mappa_workflow.mapping_analytics.family import compile_path
 from reference_event_decoder import extract_path_events
 from growth_cases import saved_fragment, represented
 
@@ -129,7 +128,7 @@ def test_partial_target_symmetry_needs_no_solver(monkeypatch):
     cat = catalogue(AAMProblem(r,p),{0:0},range(3))
     def forbidden(*args,**kwargs):
         raise AssertionError('Exact target symmetry needs no solver')
-    monkeypatch.setattr('mappa.mappa_core.core.symmetry.family.compile_path',forbidden)
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path',forbidden)
     result=refine_mapping(cat,RefinementConfig(event_slack=0))
     assert result.minimum_proven and result.observed_minimum==2
     assert len(result.candidates)==1
@@ -158,7 +157,7 @@ def test_impossible_assignment_needs_no_event_composition(monkeypatch):
 
     def forbidden(*args, **kwargs):
         raise AssertionError('An impossible mapping needs no event query')
-    monkeypatch.setattr('mappa.mappa_core.core.symmetry.event_counts._event_model', forbidden)
+    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.event_query._event_model', forbidden)
     assert query_assignments(decoded, candidate, {0: 2}).status == 'forbidden'
 
 

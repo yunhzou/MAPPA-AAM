@@ -109,7 +109,7 @@ def test_grouped_pairs_are_reused_but_different_anchors_are_separate(backend):
 def test_conversion_retains_global_placement_coverage_and_program_identity(backend):
     from itertools import permutations
     from test_final_branches import placed_fragment_path
-    from mappa.mappa_core.core.symmetry.family import query_path
+    from mappa.mappa_workflow.mapping_analytics.family import query_path
     value, path = placed_fragment_path()
     catalogue = FinalBranchCatalogue(value).add_graph(path.graph)
     first = catalogue.families[0]
@@ -315,7 +315,7 @@ def test_alternative_partitions_remain_distinct_under_explicit_rematching():
     assert result.candidates[0].family_ids == [0, 1]
     assert result.catalogue is not source
     assert len({branch.islands for branch in result.conversion.branches}) == 2
-    from mappa.mappa_core.core.symmetry.family import query_path
+    from mappa.mappa_workflow.mapping_analytics.family import query_path
     represented = [{image for image in ((0, 1), (1, 0)) if query_path(
         family.as_path(source.problem), source.problem, dict(enumerate(image)),
         source_atoms=(0, 1))[0] == 'recovered'} for family in result.catalogue.families]

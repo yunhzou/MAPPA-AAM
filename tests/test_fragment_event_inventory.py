@@ -18,7 +18,7 @@ from mappa.mappa_core.core.scheduler.storage import BundleStore
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from mappa import AAMProblem
 from growth_cases import saved_fragment
-from test_event_interpretation import approximate_for, endpoint, saved, swap
+from test_event_interpretation import dense_categories, endpoint, saved, swap
 
 
 def two_branches(*, shift_actions=False):
@@ -63,13 +63,12 @@ def assert_all_choices(decoded):
     for fid, family in enumerate(decoded.catalogue.families):
         choices = [(None, swap(fragment)) for _, fragment in family.actions]
         for choice in product(*choices):
-            for partition in decoded.window.retained_partitions[fid]:
-                mapping = decoded.realize(fid, choice, partition=partition)
-                expected = approximate_for(decoded, fid, mapping, partition)
-                result = decoded.contributions(fid, choice, partition=partition, include_events=True)
-                actual = [(e['category'], e['reactant_pair'], e['product_pair']) for e in result['events']]
-                assert sorted(actual, key=repr) == expected
-                assert result['total'] == len(expected)
+            mapping = decoded.realize(fid, choice)
+            expected = dense_categories(decoded.catalogue.problem, mapping)
+            result = decoded.contributions(fid, choice, include_events=True)
+            actual = [(e['category'], e['reactant_pair'], e['product_pair']) for e in result['events']]
+            assert sorted(actual, key=repr) == expected
+            assert result['total'] == len(expected)
 
 
 def test_inventory_is_complete_before_any_event_decoding(monkeypatch):
@@ -92,7 +91,7 @@ def test_inventory_is_complete_before_any_event_decoding(monkeypatch):
     monkeypatch.setattr(PreparedActionPrograms, 'program', responses)
     decoded = decode_events(source)
     assert decoded.inventory is collected[0]
-    assert decoded.local.fragments and decoded.local.bonds and not decoded._tables
+    assert not decoded.local.fragments and not decoded.local.bonds and not decoded._tables
     assert decoded.inventory.uses[0][0][0] is decoded.inventory.uses[1][0][0]
 
 
@@ -125,19 +124,18 @@ def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
         anchors=((0, 0),), accepted_edges=((0, 1),), iso_tolerance=.1, self_tolerance=.1)
     source.families[1] = replace(source.families[1], mapping=source.families[0].mapping,
         actions=(('relation', constrained), source.families[1].actions[1]),
-        provenance=[dict(cuts=((1, 2),)), dict(cuts=((2, 3),))])
+        provenance=[dict(cuts=((1, 2), (2, 3)))])
     decoded = decode_events(source)
     first, second = decoded.tables(0), decoded.tables(1)
     assert first.cut_bonds == frozenset()
-    assert second.cut_bonds == frozenset(((1, 2),))
-    assert second.sweep_cut is None
-    assert decoded.tables(1, 1).sweep_cut == (2, 3)
+    assert second.cut_bonds == frozenset(((1, 2), (2, 3)))
+    assert any(t.atoms == (1, 2) and t.manual_cut for t in second.internal[0])
     assert not any(t.atoms == (1, 2) for t in first.internal[0])
     record = decoded_events_record(decoded)
     first_group, second_group = [record['tables'][row['tables'][0]]['internal'][0]
                                  for row in record['families']]
     assert first_group is not second_group
-    assert record['tables'][record['families'][1]['tables'][1]]['sweep_cut'] == (2, 3)
+    assert any(t['atoms'] == (1, 2) and t['manual_cut'] for t in second_group['terms'])
     assert decoded.contributions(0, [swap(source.families[0].actions[0][1]), None])['total'] > 0
     with pytest.raises(ValueError, match='accepted edge'):
         decoded.contributions(1, [dict(discovery={0: 0, 1: 2, 2: 1}), None])
@@ -146,7 +144,7 @@ def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
 def test_shared_preparation_keeps_joint_choices_cuts_and_constraints():
     source = correlated_branches()
     before = source.to_record()
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     decoded_events_record(decoded)
     allowed = []
     for fid, family in enumerate(source.families):
@@ -171,8 +169,8 @@ def test_shared_preparation_keeps_joint_choices_cuts_and_constraints():
                 continue
             permitted += 1
             assert decoded.realize(fid, choices) == mapping
+            expected = dense_categories(source.problem, mapping)
             for partition in range(len(decoded.fragment_partitions[fid])):
-                expected = approximate_for(decoded, fid, mapping, partition)
                 result = decoded.contributions(fid, choices, partition=partition, include_events=True)
                 events = [(e['category'], e['reactant_pair'], e['product_pair'])
                           for e in result['events']]
@@ -183,9 +181,9 @@ def test_shared_preparation_keeps_joint_choices_cuts_and_constraints():
     internal = decoded.tables(1)
     boundary = decoded.tables(2)
     assert internal.cut_bonds == frozenset(((0, 1),))
-    assert internal.sweep_cut is None
+    assert any(term.atoms == (0, 1) and term.manual_cut for term in internal.internal[0])
     assert boundary.cut_bonds == frozenset(((0, 2),))
-    assert boundary.sweep_cut == (0, 2)
+    assert any(term.atoms == (0, 2) and term.manual_cut for term in boundary.boundary[0, 1])
     assert decoded.tables(0).atom_domains[0] != decoded.tables(3).atom_domains[0] or \
         decoded.tables(0).atom_actions[0] != decoded.tables(3).atom_actions[0]
     # The second action still controls the result when it does not enlarge a domain.
@@ -242,7 +240,7 @@ def test_independent_fragments_reuse_preparation_across_distinct_family_orders(m
                 position = family.actions.index(('relation', fragments[selected]))
                 choices[position] = swap(fragments[selected])
             assert decoded.realize(fid, choices) == expected_mapping
-            expected = approximate_for(decoded, fid, expected_mapping)
+            expected = dense_categories(problem, expected_mapping)
             actual = decoded.contributions(fid, choices, include_events=True)
             events = [(e['category'], e['reactant_pair'], e['product_pair'])
                       for e in actual['events']]
@@ -272,7 +270,7 @@ def test_ordered_joint_placements_preserve_cut_and_unmatched_boundary_events():
         endpoint('CCCCCC', [(0, 2, 1.), (1, 3, 1.8), (0, 4, 1.)]),
         endpoint('CCCCCC', [(0, 2, 1.), (1, 3, 1.8), (2, 4, .9),
                             (3, 5, 1.6), (4, 5, .7)]))
-    decoded = decode_events(source, event_problem=event_problem, event_slack=None)
+    decoded = decode_events(source, event_problem=event_problem)
     totals = []
     for fid, (first, second) in enumerate(orders):
         outcomes = {}
@@ -286,7 +284,7 @@ def test_ordered_joint_placements_preserve_cut_and_unmatched_boundary_events():
                 images = [second[p] for p in images]
             mapping = dict(enumerate(images))
             assert decoded.realize(fid, choices) == mapping
-            expected = approximate_for(decoded, fid, mapping)
+            expected = dense_categories(event_problem, mapping)
             actual = decoded.contributions(fid, choices, include_events=True)
             events = [(e['category'], e['reactant_pair'], e['product_pair'])
                       for e in actual['events']]
@@ -294,13 +292,12 @@ def test_ordered_joint_placements_preserve_cut_and_unmatched_boundary_events():
             assert actual['total'] == len(expected)
             outcomes[local, move_first, move_second] = actual['total']
         table = decoded.tables(fid)
-        assert table.sweep_cut == (0, 2)
-        assert set(table.atom_actions[0]) | set(table.atom_actions[2]) == {0, 1, 2}
-        assert table.components == (((0,), (0, 1, 2) if fid == 0 else (0, 2)),
-                                    ((1,), (1, 2)))
-        assert set(map(tuple, table.product_boundary_pairs)) == {(0, 2), (1, 3), (2, 4), (3, 5)}
+        cut = next(term for term in table.boundary[0, 1] if term.atoms == (0, 2))
+        assert cut.manual_cut and cut.action_ids == (0, 1, 2)
+        assert table.components == (((0, 1), (0, 1, 2)),)
+        assert len(table.product_boundary_pairs) == 5
         totals.append(outcomes[False, True, True])
-    assert totals[0] != totals[1]
+    assert totals == [8, 4]
     record = decoded_events_record(decoded)
     assert record['catalogue'] == before == source.to_record()
     assert pickle.loads(pickle.dumps(record, protocol=5)) == record
@@ -319,7 +316,7 @@ def test_sparse_binding_does_not_close_a_relaxed_action_with_itself():
     assert domains == {1: (1, 2, 3)} and positions == {1: (0, 1)}
 
 
-def test_branch_assembly_reuses_internal_preparation_without_boundary_projection(monkeypatch):
+def test_branch_assembly_requests_only_boundaries_after_unique_internal_preparation(monkeypatch):
     source = correlated_branches()
     observed = Counter()
     neighboring_pairs = SignedEventIndex.neighboring_pairs
@@ -331,15 +328,16 @@ def test_branch_assembly_reuses_internal_preparation_without_boundary_projection
         return pairs
     monkeypatch.setattr(SignedEventIndex, 'neighboring_pairs', inspect)
     decoded = decode_events(source)
-    prepared = observed.copy()
     record = decoded_events_record(decoded)
-    assert observed == prepared and observed['boundary'] == 0
+    assert observed['internal'] == len(decoded.local.fragments)
+    assert observed['boundary'] == len(record['tables'])
     for fid, partitions in enumerate(decoded.fragment_partitions):
         for partition in range(len(partitions)):
             table = decoded.tables(fid, partition)
-            assert table.statistics['neighboring_pairs'] == sum(
-                response.neighboring_pair_count for response, _ in table.fragment_responses)
-    assert observed == prepared
+            pairs = neighboring_pairs(decoded.index, table.atom_domains)
+            pairs.update((a, b) for a, b in table.cut_bonds
+                         if a in table.atom_domains or b in table.atom_domains)
+            assert table.statistics['neighboring_pairs'] == len(pairs)
 
 
 def test_domain_preparation_eviction_preserves_results_and_bounds_retention(monkeypatch):
@@ -468,12 +466,12 @@ def test_export_releases_working_tables_and_does_not_compile_evaluation(monkeypa
 def test_inventory_keeps_alternative_and_coupled_partitions():
     source = two_branches()
     source.coupled_branches[0] = {tuple(((a,), (a,)) for a in range(6))}
-    decoded = decode_events(source, event_slack=None)
+    decoded = decode_events(source)
     assert len(decoded.inventory.fragments) == 2
     assert len(decoded.inventory.pieces) == 8
     assert len(decoded.fragment_partitions[0]) == 2
     for partition in range(2):
         choice = [swap(fragment) for _, fragment in source.families[0].actions]
         actual = decoded.contributions(0, choice, partition=partition, include_events=True)
-        expected = approximate_for(decoded, 0, decoded.realize(0, choice, partition=partition), partition)
+        expected = dense_categories(source.problem, decoded.realize(0, choice))
         assert actual['total'] == len(expected)

@@ -92,18 +92,17 @@ def refined_mapping_record(result):
 
 
 def decoded_events_record(result):
-    """Persist the approximate event model and its unchanged source catalogue.
+    """Persist unchanged mappings and local event functions, not an enumeration.
 
-    Tables and responses shared across branches are stored once.
+    Tables and responses shared across branches are stored once. Whole-reaction
+    reports and canonical event IDs are explicit queries, not part of export.
     Per-atom lookup maps are derived from the saved catalogue, not persisted.
     """
-    from dataclasses import asdict
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, responses, response_ids = [], [], {}
     families = [dict(family_id=fid, tables=[],
-        partitions=result.window.retained_partitions[fid],
         action_responses=[r.generators for r in actions])
         for fid, actions in enumerate(result.family_actions)]
     term_records, term_lists, group_records = {}, {}, {}
@@ -119,7 +118,7 @@ def decoded_events_record(result):
         if term not in term_records:
             term_records[term] = dict(atoms=term.atoms, action_ids=term.action_ids,
                 response=response_ids[response], initial_pair=term.initial_pair,
-                endpoint_case=term.endpoint_case)
+                endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
         return term_records[term]
     def terms_record(terms):
         if terms not in term_lists:
@@ -141,38 +140,29 @@ def decoded_events_record(result):
 
     for fid, number, table in result._export_tables():
         if table is not None:
-            tables.append(dict(fragments=table.fragments, sweep_cut=table.sweep_cut,
+            tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
                 internal=groups_record(table.internal, 'fragment'),
-                reactant_boundary_pairs=table.reactant_boundary_pairs.tolist(),
+                boundary=groups_record(table.boundary, 'fragments'),
                 product_boundary_pairs=table.product_boundary_pairs.tolist(),
                 components=component_records.setdefault(table.components, table.components),
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    window = asdict(result.window)
-    window.update(minimum_proven=False,
-        model_minimum_proven=result.window.minimum is not None,
-        bin_witnesses_guaranteed=False,
-        scope='Independent-fragment event model on this saved direction catalogue',
-        predicate='approximate fragment event count <= limit' if result.window.limit is not None else None)
-    record = dict(schema='mappa.decoded_events/v10', method='compressed_event_interpretation',
-        model='independent_fragments_with_sweep', approximate=True,
-        bin_witnesses_guaranteed=False,
-        minimum_proven=False, model_minimum_proven=result.window.minimum is not None,
-        scope='Fixed ordinary boundaries and independent local events, with a coupled sweep correction',
+    record = dict(schema='mappa.decoded_events/v7', method='compressed_event_interpretation',
+        scope='Original compressed mappings with correlated local event responses',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
             reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
             product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
         families=families, tables=tables, responses=responses,
-        event_window=window, catalogue_preserved=True,
-        matching_problem_sha256=result.matching_problem_sha256,
-        event_problem_sha256=result.event_problem_sha256,
-        mapping_space_preserved=result.window.limit is None,
+        mapping_space_preserved=True,
         incomplete_paths=result.catalogue.incomplete_paths,
         exhaustive_event_patterns=False, global_minimum_proven=False)
     if result.event_problem_sha256 != result.matching_problem_sha256:
-        record.update(event_problem=dict(name=result.event_problem.name,
+        record.update(schema='mappa.decoded_events/v8',
+            matching_problem_sha256=result.matching_problem_sha256,
+            event_problem_sha256=result.event_problem_sha256,
+            event_problem=dict(name=result.event_problem.name,
                 reactant=endpoint_record(result.event_problem.reactant, array_lists=True),
                 product=endpoint_record(result.event_problem.product, array_lists=True)))
     return record
