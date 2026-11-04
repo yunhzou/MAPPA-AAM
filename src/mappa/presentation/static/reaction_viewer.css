@@ -52,7 +52,9 @@ body[data-viewer-layout="growth_trace"] #graph{overflow:auto}
 body[data-viewer-layout="growth_trace"] #graph circle{cursor:pointer}
 body[data-viewer-layout="growth_trace"] #explanation{margin:6px 0}
 body[data-viewer-layout="growth_trace"] #candidates{padding:6px}
-body[data-viewer-layout="growth_trace"] label{display:flex;align-items:center;gap:5px;min-width:0}
+body[data-viewer-layout="growth_trace"] label{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%}
+body[data-viewer-layout="growth_trace"] select{min-width:0;max-width:100%}
+body[data-viewer-layout="growth_trace"] #runs{flex-shrink:0}
 @media(max-width:700px){body[data-viewer-layout="growth_trace"] .trace-grid{grid-template-columns:1fr}
 body[data-viewer-layout="growth_trace"] #events{max-width:100%}}
 

@@ -131,7 +131,29 @@ def frames_for(graph, terminal, traces):
 def endpoint_record(endpoint):
     if endpoint.coordinates is None:
         raise ValueError('A 3D search trajectory requires endpoint coordinates in the archive')
-    return dict(elements=list(endpoint.elements),coordinates=endpoint.coordinates.tolist(),wbo=endpoint.wbo.tolist())
+    return dict(elements=list(endpoint.elements),coordinates=endpoint.coordinates.tolist(),
+                wbo=endpoint.wbo.tolist(),metadata=dict(endpoint.metadata))
+
+
+def with_display_geometry(document, *, cache, endpoints=None):
+    """Replace coordinates only in a rendering copy; retain the scientific trace."""
+    from mappa.presentation.geometry import display_endpoint
+
+    endpoints = document['input'] if endpoints is None else endpoints
+    displayed = dict(document, input=dict(document['input']))
+    metadata = {}
+    for side in ('reactant', 'product'):
+        original, endpoint = document['input'][side], endpoints[side]
+        if (tuple(endpoint['elements']) != tuple(original['elements'])
+                or not np.array_equal(endpoint['wbo'], original['wbo'])):
+            raise ValueError('Display geometry input must preserve endpoint atom order and WBOs')
+        rendered = display_endpoint(endpoint, cache=cache)
+        displayed['input'][side] = dict(original, coordinates=rendered['coordinates'])
+        metadata[side] = rendered['geometry']
+    displayed['display_geometry'] = dict(endpoints=metadata,
+        source_input_sha256=hashlib.sha256(json.dumps(document['input'], sort_keys=True,
+            separators=(',', ':')).encode()).hexdigest())
+    return displayed
 
 
 def read_archive(path):
@@ -187,7 +209,7 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         for t in terminals:
             frames=frames_for(g,t,traces);mapping=dict(g.states[t].mapping)
             complete=len(mapping)==len(raw['reactant']['elements'])
-            events=bond_events(raw,mapping,c.graph_floor,event_tolerance,metal_event_tolerance) if complete else []
+            events=bond_events(raw,mapping,c.graph_floor,event_tolerance,metal_event_tolerance)
             for frame in frames:
                 for candidate in frame['candidates']:
                     preview={**frame['locked'],**candidate['witness']}
@@ -198,7 +220,9 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
                               frames=frames,mapping=mapping,events=events,complete=complete))
             checks.append(dict(archive=origin,context=context_id,terminal=t,frames=len(frames),
                                archived_fragment_matches='exact',complete=complete,events=len(events)))
-        nodes=[s for s in g.states if s.context==context_id]
+        selected_states=set(terminals)|{node for eid in ids
+            for node in (g.transitions[eid].source,g.transitions[eid].target)}
+        nodes=[s for s in g.states if s.id in selected_states]
         runs.append(dict(label=selection.get('label',f'Context {context_id} · R{c.seed_order[0]} first'),
             context=context_id,seed_order=list(c.seed_order),cuts=list(c.cuts),paths=paths,
             default_terminal=selection.get('default_terminal',terminals[0]),focus=selection.get('focus'),
@@ -258,11 +282,10 @@ def with_represented_targets(document):
                         system.emit(solver)
                         options = {}
                         for atom, (value, _) in images.items():
-                            expression = system.expression(value)
                             allowed = []
                             for target in sorted(system.domain(value)):
                                 solver.push()
-                                solver.add(expression == target)
+                                solver.add(system.predicate(value, target))
                                 status = solver.check()
                                 if status == z3.unknown:
                                     raise RuntimeError('fragment target projection is unknown')

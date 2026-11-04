@@ -2,7 +2,9 @@
 <title>Fragment-growth search trajectory</title><script>__LIBRARY__</script></head><body>
 <h2 id="title">Fragment-growth search trajectory</h2>
 <p class="meta" id="configuration"></p>
+<p class="meta" id="geometry-note"></p>
 <div class="topbar"><div class="mech-sel" id="runs"></div><label>Saved branch <select id="path"></select></label>
+<label>Growth fragment <select id="fragment"></select></label><button class="dl" id="terminal">Final mapping</button>
 <button class="dl" id="critical">Jump to decision</button><button class="dl" id="start">Replay from start</button></div>
 <div class="panel"><div class="trace-controls"><button class="dl" id="play">Play</button>
 <button class="dl" id="prev" aria-label="Previous search event">←</button><input id="step" type="range" min="0" value="0" aria-label="Search event">
@@ -153,6 +155,7 @@ function drawGraph(){
 }
 function render(){
  const f=frame();$('event-title').textContent=f.title;$('counter').textContent=(fi+1)+' / '+path().frames.length;$('step').value=fi;$('events').value=fi;
+ $('fragment').value=f.stage;
  $('stats').textContent=Object.keys(f.locked).length+' committed atoms · '+f.active.length+' in growing fragment · '+f.candidates.length+(f.candidate_kind==='witness'?' witness':' completed placement(s)');
  $('explanation').textContent=f.kind==='pop'?'Test whether the enlarged fragment has a feasible placement.':
   f.kind==='commit'?'At least one extension survives, so the shared fragment grows.':
@@ -171,15 +174,24 @@ function jump(){const focus=run().focus;if(!focus)return;
 function setup(jumpToDecision=true){stop();
  $('title').textContent=DATA.name;document.title=DATA.name;
  $('configuration').textContent=(run().cuts.length?run().cuts.map(p=>'R'+p.join('–R')).join(', ')+' sweep cut':'Uncut')+' · matching tolerance '+run().config.iso_tolerance+' · cap '+run().config.branch_limit;
+ $('geometry-note').textContent=Object.values(DATA.display_geometry?.endpoints||{}).some(e=>e.source==='generated')?
+  'Generated 3D display conformers · fixed during playback · not used for matching':'Saved endpoint coordinates';
  $('critical').hidden=!run().focus;$('critical').textContent=run().focus?'Jump to P'+run().focus.target+' decision':'Jump to decision';
  for(const side of ['r','p']){viewers[side].removeAllModels();addMolecule(side);}
 $('path').replaceChildren(...run().paths.map((p,i)=>new Option(p.label,String(i))));$('path').value=pi;
+ let previous=new Set();$('fragment').replaceChildren(...path().frames.filter(f=>f.kind==='locked').map(f=>{
+  const atoms=Object.keys(f.locked).map(Number),added=atoms.filter(a=>!previous.has(a));previous=new Set(atoms);
+  const heavy=added.filter(a=>DATA.input.reactant.elements[a]!=='H').length;
+  return new Option('Fragment '+f.stage+' · '+added.length+' new atoms ('+heavy+' heavy, '+(added.length-heavy)+' H)',String(f.stage));
+ }));
  $('step').max=path().frames.length-1;$('events').replaceChildren(...path().frames.map((f,i)=>new Option((i+1)+'. '+f.title,String(i))));
  $('runs').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===ri));
  $('scope').textContent=DATA.scope;$('provenance').textContent=JSON.stringify({engine_source:DATA.engine_source,requested_commit:DATA.requested_engine_commit,source_hashes:DATA.capture_source,seed_order:run().seed_order,...run().provenance},null,2);
  setFrame(0);if(jumpToDecision)jump();}
 DATA.runs.forEach((r,i)=>{const b=document.createElement('button');b.textContent=r.label;b.onclick=()=>{ri=i;pi=Math.max(0,run().paths.findIndex(p=>p.terminal===run().default_terminal));setup()};$('runs').append(b)});
 $('path').onchange=()=>{pi=+$('path').value;setup()};$('play').onclick=play;$('start').onclick=()=>{setFrame(0);play()};$('critical').onclick=jump;
+$('fragment').onchange=()=>setFrame(path().frames.findIndex(f=>f.stage===+$('fragment').value));
+$('terminal').onclick=()=>setFrame(path().frames.length-1);
 $('prev').onclick=()=>setFrame(fi-1);$('next').onclick=()=>setFrame(fi+1);$('step').oninput=e=>setFrame(+e.target.value);$('events').onchange=e=>setFrame(+e.target.value);
 $('all-candidates').onclick=()=>{stop();overview=true;render()};
 for(const id of ['labels','all-labels','final-events','locked-fragments'])$(id).onchange=paint;

@@ -1,93 +1,81 @@
 ---
 name: mappa-growth-viewer
-description: Open or build the established MAPPA fragment-growth trajectory viewer from saved search checkpoints or traces. Use for growth replay, seed decisions, candidate branching, fragment locking, and inspecting a saved branch. For ordinary final-mapping or Reactivo pathway viewing, use the normal MAPPA/Reactivo viewer workflow instead.
+description: Open or build the existing MAPPA 3D fragment-growth replay from saved search archives, work-pool cuts or traces. Use for seed and extension decisions, saturation candidates, fragment locking and saved-branch inspection. For final mappings use mappa-viewer.
 ---
 
 # MAPPA growth viewer
 
-Use the existing interactive growth viewer, with two rotatable molecular endpoints,
-playback, frame stepping, candidate and target inspection, branch navigation,
-persistent locked-fragment highlighting, and final bond-event overlays.
+Resolve this skill's symlink, then go up two directories for the active checkout.
+Use its established UI and `docs/SEARCH_TRAJECTORIES.md`; do not create another
+viewer or reconstruct growth from a final mapping. On this Mac the project Python
+is `/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/aam-event-env/bin/python`.
 
-The canonical implementation is in the MAPPA checkout containing this skill:
-resolve this file's symlink, then go up two directories. Read that checkout's
-`docs/SEARCH_TRAJECTORIES.md` for the manifest schema and replay contract.
+## Fast reusable workflow
 
-## Select the saved evidence
+1. Open the requested existing `algorithm_trajectory.html` directly when available.
+2. With a saved verified trace, render only:
+   `PYTHONPATH=src python tools/render_search_trajectory.py trace.json algorithm_trajectory.html`.
+3. Otherwise select the original saved branch in a manifest and run:
+   `python tools/build_search_trajectory.py manifest.json output_directory --open`.
 
-- Identify the requested case, cut/no-cut context, seed ordering, terminal branch,
-  and event count from saved records. Distinguish a retained-family minimum from
-  a global optimum. Do not select an unrelated convenient example.
-- If a matching verified `trace.json` exists, reuse it and re-render only. Viewing
-  does not authorize a new search, cut sweep, chemistry calculation, or monitor.
-- Otherwise select the original AAM checkpoint/JSON and its producing engine.
-  For archived native searches, use the matching Python replay and require exact
-  agreement with saved placements, fragments, and deferred boundaries. A differing
-  replay must be diagnosed, not presented as the original trajectory.
-- Raw search graphs without endpoints/configuration need an explicit AAM archive
-  adapter using the original saved inputs and settings. Do not infer a trajectory
-  from only the final mapping. Preserve originals and record adaptation provenance.
+The build command replays only the selected fragment calls and checks their saved
+fragments, deferred edges and shared placement relationship. It does not run a
+seed search or cut sweep. A mismatch is an error, not permission to substitute a
+new trajectory. Select explicit terminals for large archives rather than replaying
+all branches. Keep case-specific data in the private manifest.
 
-## Build or refresh
+A manifest accepts AAM checkpoint/JSON `archive` selections or the original typed
+work-pool `saved_cut` pair: `input` and `cut` Blob records with path, offset, size
+and SHA-256. The maintained command performs this adaptation; do not write a
+one-off conversion script. For a catalogue branch, use its family provenance to
+find cut/context/terminal/transitions and the completed `MatchingResult` to find
+the input and cut ranges. Set `expected_transitions` when selecting that history.
+The guide documents the exact manifest. Only copy needed ranges from remote results,
+retain checksums, and keep infrastructure details in ignored private storage.
 
-Run from the canonical checkout using its Python environment:
+## Current representation and display
 
-```sh
-python tools/build_search_trajectory.py manifest.json output_directory
-```
+The capture owner is `mappa.presentation.trajectory`; rendering is
+`mappa.presentation.viewers.growth_trace_html` and
+`src/mappa/presentation/static/growth_trace.html`. Extend those components rather
+than implementing a parallel UI. In-memory results use `aam_growth_html` with an
+explicit context and terminals.
 
-For an existing verified trace, skip capture:
+Growth shows one witness. Saturation shows complete compressed `Fragment`
+relations, including relaxed source/target self-relationships and the shared global
+placement action. Target highlights are exact correlated per-atom domains, not
+independent choices. Preserve all candidates from the replayed operation; do not
+truncate alternatives or replace local relations with global endpoint orbits.
+The displayed committed mapping is one saved representative, not the whole family.
 
-```sh
-PYTHONPATH=src python tools/render_search_trajectory.py output_directory/trace.json output_directory/algorithm_trajectory.html
-```
+Keep the two rotatable 3D endpoints, playback/stepping, candidate selection,
+numbered fragment colors and persistent locks. **Growth fragment** jumps directly
+to a stage; **Final mapping** shows its terminal and bond overlays. Stage labels
+count newly assigned atoms; joined stages need not equal final fragment partitions.
+Explain hydrogen-only fragments separately when interpreting large counts.
+Red indicates losses on R, green gains on P, including mapped/unmatched boundaries.
+A sweep cut is a search condition, not automatically a bond event.
 
-The renderer is `mappa.viewers.growth_trace_html`; its shared template is
-`src/mappa/static/growth_trace.html`. For an in-memory AAM result use
-`mappa.viewers.aam_growth_html` with an explicit context. Extend these components
-when necessary; do not build a replacement molecular UI or duplicate the renderer
-inside the skill. Keep dataset-specific selection data in the manifest.
+## Geometry and validation
 
-Keep all saved compressed candidates and symmetry blocks; do not cap the display
-to match the search branch cap. Temporary embedding counts and completed-frontier
-branch counts describe different stages.
+Reuse native 3D coordinates. For graph-only input set manifest `geometry_cache`
+(or build `--geometry-cache`) to reuse the ordinary viewer's conformer cache.
+The shared geometry module preserves indexed atoms, bonds and specified stereo.
+Keep `trace.json` unchanged and render `display-trace.json`; label generated
+coordinates as display conformers. Older traces can supply original endpoint
+chemistry using render `--geometry-input`. Never replace failed 3D generation with
+flat coordinates or change scientific inputs to make replay agree.
 
-Default to all represented target options, including alternative product
-components. Never present a single stored witness as the full matching relation.
-Show per-atom options as correlated domains, not independently selectable pairs.
-Use conditioned candidate groups and local pools; raw automorph-domain unions
-and global endpoint orbits do not prove a current assignment is represented.
-Preserve complete symmetry records at saturation. Label missing records explicitly.
-Verify the visible atom highlights and mapping labels, not only candidate counts.
+After adapting capture or UI, run the focused trajectory tests and:
+`PYTHONPATH=src python tools/check_search_trajectory.py output_directory`.
+Add `--trace display-trace.json` when that rendering copy is used.
+`MANUSCRIPT_BROWSER` can select installed Chrome; on this Mac Playwright is
+available via `PYTHONPATH=src:/private/tmp/mappa-browser-deps` and Chrome is
+`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.
 
-## Geometry and persistent locks
-
-- Preserve endpoint atom order, graph, mappings, and fixed coordinates throughout
-  playback. Reuse genuine saved 3D geometry where available.
-- For zero/flat SMILES input coordinates, use a separately validated 3D display
-  conformer in a rendering copy; retain the raw trace. Record geometry source/hash,
-  verify atom identity, stereochemistry, bonds, and clashes. Display geometry does
-  not participate in matching and must not alter the scientific input.
-- Give each fragment a distinct color and show a numbered color legend. Use the
-  same color on R and P during growth and after locking. Previously locked atoms
-  retain their original fragment color if revisited by a later growth stage. The
-  **Locked fragments** toggle defaults on. Derive locks from each frame's saved
-  mapping, not accumulated playback state or a speculative candidate preview.
-- Keep final bond losses red on R and gains green on P, independently of locking.
-
-## Verify and show
-
-Run `PYTHONPATH=src python tools/check_search_trajectory.py output_directory`
-with Playwright/Chromium available; `MANUSCRIPT_BROWSER` can select installed
-Chrome. If the local runtime uses Node Playwright instead, execute the same
-behavioral checks in that runtime rather than claiming the Python checker ran.
-
-Check locks at commit and the next fragment, backward seek/restart, candidate
-selection, playback, final correspondence/event count, fixed geometry, rotation,
-offline loading, and no browser errors. For multi-branch bundles also switch
-branches and verify their own saved locks. Inspect a screenshot after a lock
-while the next fragment grows; a screenshot of the initial frame cannot prove
-persistence. Preserve the validation receipt beside the output.
-
-Open `algorithm_trajectory.html` and give its absolute clickable path with a
-short description of the selected saved branch and controls. No server is needed.
+Check candidate choice, persistent locks through the next stage and reverse seeks,
+fragment navigation, playback, final mapping/bond colors, fixed geometry, rotation,
+offline loading and browser errors. Inspect the saved screenshot after a lock.
+Routine reopening needs no repeated audit. Deliver the absolute viewer link and
+briefly identify the saved case/branch. When speed is at issue, report measured
+capture/render times separately; opening existing HTML needs neither step.
