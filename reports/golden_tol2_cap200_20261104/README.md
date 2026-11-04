@@ -66,3 +66,29 @@ failures. The live plan confirmed tolerance 2, cap 200 and event slack 5; the
 progress record confirmed the 2 GiB guard. Reduction, decoding and verification
 were not yet complete. No benchmark accuracy or performance conclusion is
 available yet.
+
+## Interim decoding timeouts
+
+At 06:50 UTC, matching and reduction had completed all 3,702 directions.
+Decoding had 3,696 successful outputs, four timeouts and two directions still
+running. External verification had not started. No retries or memory-limit
+failures were recorded. The four failed attempts each consumed approximately
+600 CPU seconds during computation, with peak sampled process-tree memory
+between 0.32 and 1.09 GiB, below the 2 GiB guard.
+
+| Direction | Current decoding | Previous decoder compute CPU seconds |
+|---|---|---:|
+| 1361 forward | 600-second timeout | 7.634 |
+| 1361 reverse | 600-second timeout | 286.099 |
+| 575 reverse | 600-second timeout | 792.088 |
+| 837 forward | 600-second timeout | 11.463 |
+
+Previous measurements are from the full decoder rerun in
+[the placement study](../golden_placement_20261103/README.md), using decoder
+`119dca4`, tolerance 1, cap 2,000, minimum + 6 and a 1,800-second allowance.
+They used different catalogues and 4–8 GiB guards. Case 575 reverse already
+exceeded the current time allowance. The previously fast 1361 forward and
+837 forward require investigation; these comparisons do not isolate a code
+regression from the changed search settings and decoder model. Failure is not
+evidence that a mapping is absent. Failed attempts and their consumed budgets
+remain preserved; no reruns or algorithm changes were made.
