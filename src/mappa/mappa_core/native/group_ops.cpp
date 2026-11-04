@@ -1,7 +1,8 @@
-// Exact permutation bookkeeping. Search choices and chemical semantics live in Python.
+// Exact permutation and endpoint-domain bookkeeping. Chemical policies live in Python.
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <algorithm>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <numeric>
@@ -316,6 +317,85 @@ public:
     }
 };
 
+class BondNeighborhood {
+    using Bits = std::vector<uint64_t>;
+    int source_size, target_size;
+    std::vector<Bond> source_bonds, target_bonds;
+
+    static void include(Bits& into, const Bits& other) {
+        for (size_t i = 0; i < into.size(); ++i) into[i] |= other[i];
+    }
+
+public:
+    BondNeighborhood(int n, int m, std::vector<Bond> source, std::vector<Bond> target)
+        : source_size(n), target_size(m), source_bonds(std::move(source)),
+          target_bonds(std::move(target)) {
+        if (n < 0 || m < 0) throw std::invalid_argument("negative atom frame");
+        auto check = [](const std::vector<Bond>& bonds, int size) {
+            for (const auto& [a, b] : bonds)
+                if (a < 0 || a >= size || b < 0 || b >= size || a == b)
+                    throw std::invalid_argument("bond outside atom frame");
+        };
+        check(source_bonds, n);
+        check(target_bonds, m);
+    }
+
+    std::set<Bond> pairs(const std::map<int, Images>& domains,
+                        const std::optional<Images>& owners) const {
+        if (owners && owners->size() != static_cast<size_t>(source_size))
+            throw std::invalid_argument("fragment owners differ from source frame");
+        const size_t width = (static_cast<size_t>(source_size) + 63) / 64;
+        std::vector<Bits> sources(target_size, Bits(width));
+        std::map<int, Bits> owner_masks;
+        for (const auto& [atom, images] : domains) {
+            if (atom < 0 || atom >= source_size)
+                throw std::invalid_argument("domain source outside atom frame");
+            for (int image : images) {
+                if (image < 0 || image >= target_size)
+                    throw std::invalid_argument("domain target outside atom frame");
+                sources[image][atom / 64] |= uint64_t{1} << (atom % 64);
+            }
+            if (owners) {
+                auto [entry, inserted] = owner_masks.try_emplace((*owners)[atom], width);
+                entry->second[atom / 64] |= uint64_t{1} << (atom % 64);
+            }
+        }
+        std::vector<Bits> neighbors(target_size, Bits(width));
+        for (const auto& [a, b] : target_bonds) {
+            include(neighbors[a], sources[b]);
+            include(neighbors[b], sources[a]);
+        }
+        std::set<Bond> result;
+        for (const auto& [a, b] : source_bonds)
+            if ((domains.count(a) || domains.count(b)) &&
+                (!owners || (*owners)[a] != (*owners)[b]))
+                result.insert(std::minmax(a, b));
+
+        // Equal image domains share one union, even when many atoms use it.
+        std::map<Images, Bits> domain_neighbors;
+        for (const auto& [atom, images] : domains) {
+            auto [entry, inserted] = domain_neighbors.try_emplace(images, width);
+            if (inserted)
+                for (int image : images) include(entry->second, neighbors[image]);
+            const Bits* excluded = owners ? &owner_masks.at((*owners)[atom]) : nullptr;
+            for (size_t word = atom / 64; word < width; ++word) {
+                uint64_t reached = entry->second[word];
+                if (word == static_cast<size_t>(atom / 64)) {
+                    const int offset = atom % 64;
+                    reached &= offset == 63 ? 0 : ~((uint64_t{1} << (offset + 1)) - 1);
+                }
+                if (excluded) reached &= ~(*excluded)[word];
+                while (reached) {
+                    const int other = static_cast<int>(word * 64 + __builtin_ctzll(reached));
+                    result.emplace(atom, other);
+                    reached &= reached - 1;
+                }
+            }
+        }
+        return result;
+    }
+};
+
 PYBIND11_MODULE(_group_ops, m) {
     py::class_<permutation_native::SetOrbit>(m, "SetOrbit")
         .def(py::init<int, const permutation_native::Generators&>())
@@ -327,6 +407,10 @@ PYBIND11_MODULE(_group_ops, m) {
     py::class_<EndpointPairProgram>(m, "EndpointPairProgram")
         .def(py::init<int, std::vector<std::shared_ptr<PairAction>>>())
         .def("project", &EndpointPairProgram::project);
+    py::class_<BondNeighborhood>(m, "BondNeighborhood")
+        .def(py::init<int, int, std::vector<Bond>, std::vector<Bond>>())
+        .def("pairs", &BondNeighborhood::pairs, py::arg("domains"),
+             py::arg("owners") = py::none(), py::call_guard<py::gil_scoped_release>());
 
     m.def("occupation_orbit", &occupation_orbit,
           py::arg("witness"), py::arg("degree"), py::arg("stages"),

@@ -45,7 +45,28 @@ class FragmentInventory:
         for fid, alternatives in catalogue.coupled_branches.items():
             for pairs in alternatives:
                 collect(pairs, (fid,))
-        self.partitions = tuple(tuple(sorted(parts)) for parts in partitions)
+        self.partitions, self.cuts = [], []
+        for family, alternatives in zip(catalogue.families, partitions):
+            contexts = set()
+            for origin in family.provenance:
+                cuts = tuple(sorted(tuple(sorted(pair)) for pair in origin.get('cuts', ())))
+                if len(cuts) > 1:
+                    raise ValueError('Independent-fragment decoding supports one sweep cut per history')
+                partition = origin.get('source_partition')
+                if partition is None:
+                    if len(alternatives) != 1:
+                        raise ValueError('Saved multi-partition family lacks partition/cut provenance')
+                    partition = next(iter(alternatives))
+                partition = tuple(sorted(tuple(sorted(atoms)) for atoms in partition))
+                if partition not in alternatives:
+                    raise ValueError('Saved cut context names an unknown fragment partition')
+                contexts.add((partition, cuts))
+            if not family.provenance:
+                contexts.update((partition, ()) for partition in alternatives)
+            ordered = sorted(contexts)
+            self.partitions.append(tuple(partition for partition, _ in ordered))
+            self.cuts.append(tuple(cuts for _, cuts in ordered))
+        self.partitions, self.cuts = tuple(self.partitions), tuple(self.cuts)
         self.uses = []
         for family, alternatives in zip(catalogue.families, self.partitions):
             mapping = dict(family.mapping)
@@ -64,24 +85,35 @@ class FragmentInventory:
 @dataclass(frozen=True, slots=True)
 class FragmentResponse:
     piece: PartitionPiece
+    mapping: tuple
+    actions: tuple
     atom_domains: dict
     atom_actions: dict
     terms: tuple[BondEventTerm, ...]
     projected_pair_states: int
     neighboring_pair_count: int
 
+    @property
+    def constant_count(self):
+        if all(term.response.constant == 0 or term.response.always_event for term in self.terms):
+            return sum(term.response.always_event for term in self.terms)
+        return None
+
 
 class FragmentDecoder:
     """Owned decoded results shared by fragment uses and boundary references."""
     def __init__(self, index, inventory):
+        from mappa.mappa_core.core.symmetry.event_counts import LocalEventCounts
         self.index, self.inventory = index, inventory
+        self.counts = LocalEventCounts(index)
         self.programs = PreparedActionPrograms(index)
         self.fragments = {}
         self.bonds = {}
         self.terms = {}
         self.bindings = {}
+        self.bound_fragments = {}
 
-    def bond(self, atoms, pair, actions, domains, action_ids, manual_cut):
+    def bond(self, atoms, pair, actions, domains, action_ids):
         """Decode one exact local relationship, retaining its ordered actions."""
         xs, ys = domains
         key = atoms, pair, actions, xs, ys
@@ -94,16 +126,16 @@ class FragmentDecoder:
             response, projected = self.index.refine_response(weight, tau, pair, actions, response)
             self.bonds[key] = response, projected
         response, projected = self.bonds[key]
-        if response.constant == 0 and not manual_cut:
+        if response.constant == 0:
             return None, projected
-        term_key = key, action_ids, manual_cut
+        term_key = key, action_ids
         if term_key not in self.terms:
             moving = int(len(xs) > 1) + int(len(ys) > 1)
             self.terms[term_key] = BondEventTerm(atoms, action_ids, response, pair,
-                actions, self.index, ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving], manual_cut)
+                actions, self.index, ('fixed_fixed', 'fixed_shuffle', 'shuffle_shuffle')[moving])
         return self.terms[term_key], projected
 
-    def fragment(self, piece, mapping, actions, domains, dependencies, cut_bonds):
+    def fragment(self, piece, mapping, actions, domains, dependencies):
         """Reuse a partition's local mapping and conditional event responses.
 
         Local action positions are bound back to each family's original positions;
@@ -113,15 +145,15 @@ class FragmentDecoder:
         binding = tuple(sorted({i for a in atoms for i in dependencies[a]}))
         local_actions = self.programs.select(self.programs.program(actions), binding)
         pairs = tuple((a, mapping[a]) for a in atoms)
-        cuts = tuple(sorted((a, b) for a, b in cut_bonds if a in atoms and b in atoms))
-        key = piece, pairs, local_actions, cuts
+        # Internal cut bonds already belong to this fragment's original WBOs.
+        # Cut provenance changes assembly, not the reusable local response.
+        key = piece, pairs, local_actions
         if key not in self.fragments:
             positions = {aid: i for i, aid in enumerate(binding)}
             local_domains = {a: domains[a] for a in atoms}
             local_dependencies = {a: tuple(positions[i] for i in dependencies[a]) for a in atoms}
             neighbors = self.index.neighboring_pairs(local_domains)
             neighbors = {(a, b) for a, b in neighbors if a in local_domains and b in local_domains}
-            neighbors.update(cuts)
             terms, projected = [], 0
             sequences = {}
             for a, b in sorted(neighbors):
@@ -129,17 +161,21 @@ class FragmentDecoder:
                 if ids not in sequences:
                     sequences[ids] = self.programs.select(local_actions, ids)
                 term, count = self.bond((a, b), (mapping[a], mapping[b]), sequences[ids],
-                    (local_domains[a], local_domains[b]), ids, (a, b) in cuts)
+                    (local_domains[a], local_domains[b]), ids)
                 projected += count
                 if term is not None:
                     terms.append(term)
-            self.fragments[key] = FragmentResponse(piece, local_domains,
+            self.fragments[key] = FragmentResponse(piece, pairs, local_actions, local_domains,
                 local_dependencies, tuple(terms), projected, len(neighbors))
         return self.fragments[key], binding
 
     def bind(self, terms, binding):
         if binding == tuple(range(len(binding))):
             return terms
+        # Fragment responses own these immutable tuples for the decoder lifetime.
+        binding_key = id(terms), binding
+        if binding_key in self.bound_fragments:
+            return self.bound_fragments[binding_key]
         bound = []
         for term in terms:
             ids = tuple(binding[i] for i in term.action_ids)
@@ -147,7 +183,10 @@ class FragmentDecoder:
                 bound.append(term)
                 continue
             key = term, ids
-            if key not in self.bindings:
-                self.bindings[key] = replace(term, action_ids=ids)
-            bound.append(self.bindings[key])
-        return tuple(bound)
+            shared = self.bindings.get(key)
+            if shared is None:
+                shared = self.bindings[key] = replace(term, action_ids=ids)
+            bound.append(shared)
+        result = tuple(bound)
+        self.bound_fragments[binding_key] = result
+        return result

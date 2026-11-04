@@ -167,7 +167,7 @@ def test_fresh_decoding_batches_preserve_full_scope_and_prior_memory_failures(tm
     assert manifest['cases'] == 3 and manifest['directions'] == 6
     assert manifest['imported_stage_results'] == 0 and manifest['reused_catalogues'] == 6
     assert manifest['prior_memory_failure_directions'] == ['00000/forward', '00001/reverse', '00002/reverse']
-    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4)
+    assert manifest['decode_config'] == asdict(EventDecodeConfig(.7, .4))
     assert manifest['decoding_source']['source_commit'] == 'a'*40
     assert manifest['decoding_source']['source_identity'] == 'c'*64
     batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(3)]
@@ -354,8 +354,12 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == ('mappa.decoded_events/v8' if arm == 'binary_iso1'
-                                         else 'mappa.decoded_events/v7')
+            assert record['schema'] == 'mappa.decoded_events/v10'
+            assert record['model'] == 'independent_fragments_with_sweep'
+            assert record['approximate'] and not record['minimum_proven']
+            assert record['model_minimum_proven']
+            assert record['event_window']['minimum'] == 1
+            assert record['event_window']['slack'] == 6
             event_record = record['event_problem'] if arm == 'binary_iso1' else record['problem']
             assert np.array_equal(event_record['reactant']['wbo'], original.reactant.wbo)
             assert np.array_equal(event_record['product']['wbo'], original.product.wbo)
@@ -365,14 +369,22 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             # its saved local response directly, without invoking another decoder.
             for number in record['families'][family]['tables']:
                 table = record['tables'][number]
-                terms = [term for region in (*table['internal'], *table['boundary'])
+                terms = [term for region in table['internal']
                          for term in region['terms'] if tuple(term['atoms']) == (0, 1)]
-                assert len(terms) == 1
-                response = record['responses'][terms[0]['response']]
-                target_weight = float(original.product.wbo[0, 1])
-                code = response['categories'][response['target_weights'].index(target_weight)]
-                assert EVENT_CATEGORIES[code - 1] == category and code != 0
-                assert not table['product_boundary_pairs']
+                if terms:
+                    assert len(terms) == 1
+                    response = record['responses'][terms[0]['response']]
+                    target_weight = float(original.product.wbo[0, 1])
+                    code = response['categories'][response['target_weights'].index(target_weight)]
+                    assert EVENT_CATEGORIES[code - 1] == category and code != 0
+                    assert not table['reactant_boundary_pairs'] and not table['product_boundary_pairs']
+                else:
+                    assert tuple(table['sweep_cut']) == (0, 1)
+                    assert table['reactant_boundary_pairs'] == table['product_boundary_pairs'] == [[0, 1]]
+                # This fixed CO mapping changes one bond's order in every
+                # partition; a sweep must not turn it into two events.
+                for partition in record['families'][family]['partitions']:
+                    assert record['event_window']['event_counts'][family][partition] == (1,)
     assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in input_files} == original_hashes
 
     # An empty checkpoint may predate admitted work. Only a deliberate drain
@@ -600,7 +612,8 @@ def test_decoding_audit_plans_missing_baseline_outputs_and_rejects_incomplete_ca
     original_plan = (output/'plan.json').read_text()
     for field, value, message in (
             ('decoder_source', 'f'*64, 'decoder identities differ'),
-            ('decode_config', dict(threshold=.7, metal_threshold=.4), 'decoding policies differ')):
+            ('decode_config', dict(threshold=.7, metal_threshold=.4), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3, event_slack=1), 'decoding policies differ')):
         changed_plan = json.loads(original_plan); changed_plan[field] = value
         (output/'plan.json').write_text(json.dumps(changed_plan))
         with pytest.raises(ValueError, match=message):

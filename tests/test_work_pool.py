@@ -93,7 +93,28 @@ def test_catalogue_manifest_decodes_in_a_fresh_pool(tmp_path):
     restored = StageResults.open(tmp_path/'catalogues.json', store=store)
     with WorkPool.local(store=store) as pool:
         decoded = pool.decode(restored).wait_and_validate()
-        assert decoded.load('case').record['mapping_space_preserved']
+        assert decoded.load('case').record['catalogue_preserved']
+        assert decoded.load('case').record['approximate']
+
+
+def test_event_window_survives_separate_pool_and_bundle_handoff(tmp_path):
+    from mappa import EventDecodeConfig
+    store = BundleStore(tmp_path/'results')
+    with WorkPool.local(store=store) as pool:
+        matched = pool.search({'case': problem()}, AAMSearchConfig(seed_count=1)).wait_and_validate()
+        catalogues = pool.deduplicate(matched).wait_and_validate()
+        catalogues.save_manifest(tmp_path/'catalogues.json')
+    restored = StageResults.open(tmp_path/'catalogues.json', store=store)
+    config = EventDecodeConfig(event_slack=0)
+    with WorkPool.local(store=store) as pool:
+        decoded = pool.decode(restored, config).wait_and_validate()
+        actual = decoded.load('case')
+        expected = decoded_events_record(decode_events(restored.load('case').catalogue, config))
+        assert actual.config == config
+        assert actual.record == expected
+        assert actual.record['event_window']['model_minimum_proven']
+        assert not actual.record['event_window']['minimum_proven']
+        assert actual.record['event_window']['limit'] == actual.record['event_window']['minimum']
 
 
 def test_slurm_requires_an_allocation(monkeypatch):
@@ -128,7 +149,8 @@ def test_one_slurm_startup_serves_all_stages_with_separate_remote_process(tmp_pa
         pids = {r['result']['compute_pid'] for r in pool.queue.results().values()}
         catalogues = pool.deduplicate(matched).wait_and_validate()
         decoded = pool.decode(catalogues).wait_and_validate()
-        assert decoded.load('case').record['mapping_space_preserved']
+        assert decoded.load('case').record['catalogue_preserved']
+        assert decoded.load('case').record['approximate']
         assert {r['result']['compute_pid'] for r in pool.queue.results().values()} == pids
     assert len(commands) == 1
 
@@ -189,7 +211,8 @@ def test_archived_matching_retry_reuses_completed_cuts_and_attempts(tmp_path, fa
         assert pool.queue.db.execute('SELECT spent FROM cases').fetchone()[0] >= before['case'][3]
         catalogue = pool.deduplicate(matched).wait_and_validate()
         decoded = pool.decode(catalogue).wait_and_validate()
-        assert decoded.load('case').record['mapping_space_preserved']
+        assert decoded.load('case').record['catalogue_preserved']
+        assert decoded.load('case').record['approximate']
         again = store.load(pool.queue.archive_case(keys[0], store))
         if failure_state == 'timeout':
             assert again['case'][1] == before['case'][3]+60.

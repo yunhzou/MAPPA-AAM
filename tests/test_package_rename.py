@@ -53,8 +53,8 @@ def test_current_decoder_configuration_rejects_obsolete_rematching_fields():
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
     obsolete = EventDecodeConfig()
-    object.__setattr__(obsolete, 'event_slack', 3)
-    with pytest.raises(TypeError, match='event_slack'):
+    object.__setattr__(obsolete, 'branch_limit', 3)
+    with pytest.raises(TypeError, match='branch_limit'):
         _loads_checkpoint(pickle.dumps(obsolete))
 
 

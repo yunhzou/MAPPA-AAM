@@ -1,4 +1,4 @@
-"""Reference membership in the complete saved fragment relationships."""
+"""Joint queries on complete saved fragment and placement relationships."""
 from functools import lru_cache, cached_property
 from dataclasses import dataclass
 import time
@@ -67,9 +67,9 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
 
     Every local discovery and both self rearrangements remain joint choices.
     Endpoint equivalence normalizes reference identity only, never the returned
-    physical mapping. Decoding does not call this reference query.
+    physical mapping. Reference restrictions are optional; event queries use the same joint relation.
     """
-    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
     started = time.perf_counter()
     encoder = FiniteConstraints()
     source_atoms = tuple(source_atoms)
@@ -83,18 +83,14 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
         encoder.failed = True
         return CompiledFamily(encoder, values, representative, actions, path, problem,
                               time.perf_counter() - started)
+    program = []
     for edge_id in reversed(path.transitions):
         edge = path.graph.transitions[edge_id]
-        fragment = edge.match
-        if fragment is not None:
-            relation = compile_relaxed_relation(encoder, fragment.relation, edge_id)
-            transport = {p: relation.images[r] for r, p in fragment.witness}
-            values = [encoder.lookup(value, transport) for value in values]
-            actions.append(('relation', edge_id, relation))
+        if edge.match is not None:
+            program.append(('relation', edge_id, edge.match))
         if edge.placement_generators:
-            start = len(encoder.program)
-            values = encoder.act(values, edge.placement_generators, ('placement', edge_id))
-            actions.append(('group', edge_id, tuple(encoder.program[start:])))
+            program.append(('group', edge_id, edge.placement_generators))
+    values, actions = _compile_actions(encoder, values, program)
     if len(set(representative.values())) != len(representative):
         encoder.failed = True
     for r in representative:
@@ -110,6 +106,48 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
             encoder.restrict(value[0], {reference.get(atom, np_)})
     encoder.propagate()
     return CompiledFamily(encoder, physical_values, representative, actions, path, problem,
+                          time.perf_counter() - started)
+
+
+def _compile_actions(encoder, values, program):
+    """Keep every choice joint while transporting the requested atom images."""
+    from mappa.mappa_core.core.symmetry.constraints import compile_relaxed_relation
+
+    actions = []
+    for kind, label, data in program:
+        if kind == 'relation':
+            relation = compile_relaxed_relation(encoder, data.relation, label)
+            transport = {p: relation.images[r] for r, p in data.witness}
+            values = [encoder.lookup(value, transport) for value in values]
+            actions.append((kind, label, relation))
+        elif kind == 'group':
+            start = len(encoder.program)
+            values = encoder.act(values, data, ('placement', label))
+            actions.append((kind, label, tuple(encoder.program[start:])))
+        else:
+            raise ValueError(f'unsupported saved action: {kind}')
+    return values, actions
+
+
+def compile_actions(actions, problem, mapping):
+    """Compile one fragment's relevant ordered actions without a branch query."""
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
+
+    started = time.perf_counter()
+    encoder = FiniteConstraints()
+    representative = dict(mapping)
+    degree = problem.target_atom_count
+    values = [encoder.constant(representative.get(r, degree))
+              for r in range(problem.source_atom_count)]
+    values, compiled = _compile_actions(encoder, values,
+        ((kind, position, data) for position, (kind, data) in enumerate(actions)))
+    if len(set(representative.values())) != len(representative):
+        encoder.failed = True
+    for atom in representative:
+        encoder.restrict(values[atom][0], {image for image in values[atom][1]
+            if image < degree and problem.reactant.elements[atom] == problem.product.elements[image]})
+    encoder.propagate()
+    return CompiledFamily(encoder, values, representative, compiled, None, problem,
                           time.perf_counter() - started)
 
 

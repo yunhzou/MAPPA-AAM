@@ -10,7 +10,7 @@ from test_event_patterns import problem, saved_path
 from mappa import decode_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, canonical_actions
-from mappa.mappa_workflow.mapping_analytics.family import query_path
+from mappa.mappa_core.core.symmetry.family import query_path
 
 
 def independent_path(order, mapping=None, labels=(7, 19)):
@@ -46,6 +46,40 @@ def test_order_and_owner_labels_do_not_create_branches_or_families():
     assert saved.path_count == 2 and saved.branch_count == len(saved.families) == 1
     assert len(saved.families[0].provenance) == 2
     assert recovered(first, value) == recovered(saved.families[0].as_path(value), value)
+
+
+@pytest.mark.parametrize('transport', ['json', 'bundle'])
+def test_catalogue_provenance_keeps_each_partition_with_its_cut_history(tmp_path, transport):
+    from mappa.execution import BundleStore
+
+    value = problem('HHHH', [], [])
+    first = independent_path((0, 1)).graph
+    first = replace(first, contexts=(replace(first.contexts[0], cuts=((0, 1),)),))
+    second = independent_path((1, 0), labels=(123, 2)).graph
+    second = replace(second,
+        contexts=(replace(second.contexts[0], cuts=((2, 3),)),),
+        states=second.states[:-1] + (replace(second.states[-1],
+            islands=tuple((atom, 77) for atom in range(4))),))
+    saved = FinalBranchCatalogue(value).add_graph(first, 'separate').add_graph(second, 'joined')
+    assert saved.branch_count == 2 and len(saved.families) == 1
+    expected = {
+        'separate': (((0, 1), (2, 3)), ((0, 1),)),
+        'joined': (((0, 1, 2, 3),), ((2, 3),)),
+    }
+    record = json.loads(json.dumps(saved.to_record()))
+    if transport == 'json':
+        restored = FinalBranchCatalogue.from_record(value, record)
+    else:
+        store = BundleStore(tmp_path / 'provenance', scratch=tmp_path)
+        restored = store.load(store.put(saved))
+    assert json.loads(json.dumps(restored.to_record())) == record
+    for catalogue in (saved, restored):
+        assert {
+            origin['archive']: (
+                tuple(tuple(atoms) for atoms in origin['source_partition']),
+                tuple(tuple(edge) for edge in origin['cuts']))
+            for origin in catalogue.families[0].provenance
+        } == expected
 
 
 def test_different_target_pairs_remain_separate_and_overlap_is_not_lost():

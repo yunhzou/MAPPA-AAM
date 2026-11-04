@@ -8,7 +8,7 @@ from mappa.mappa_core.core.search.planning import _generate_seed_orders
 from mappa.mappa_core.domain import AAMHierarchy, AAMProblem
 from mappa.mappa_core.domain import AAMSearchConfig, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint
 from mappa.mappa_core.core.matching.graphs import build_graph
-from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+from mappa.mappa_core.core.symmetry.family import project_path_assignments
 
 
 def search_core_assignments(

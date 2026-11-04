@@ -51,6 +51,10 @@ class BondResponse:
     def constant(self):
         return int(self.categories[0]) if np.all(self.categories == self.categories[0]) else None
 
+    @cached_property
+    def always_event(self):
+        return bool(self.categories.size and self.categories.all())
+
     def lookup(self, weights):
         return self.categories[np.searchsorted(self.target_weights, weights)]
 

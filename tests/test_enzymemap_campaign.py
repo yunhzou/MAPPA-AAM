@@ -445,7 +445,7 @@ def test_fresh_decoding_uses_all_catalogues_with_new_budgets_and_preserves_sourc
     source, _ = failed_decode_campaign(tmp_path)
     index = fresh_decoding_index(source, tmp_path/'decode-index.json')
     data = json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.75, metal_threshold=None)
+    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=2)
     index.write_text(json.dumps(data))
     source_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     def forbidden(*args, **kwargs):
@@ -509,8 +509,15 @@ def test_fresh_decoding_preserves_new_failures_without_retry_or_other_stages(tmp
     assert sorted(row[2] for row in records) == ['complete', 'complete', 'complete', 'error']
     assert {row[1] for row in records} == {'decoding'}
     plan = json.loads((output/'plan.json').read_text())
-    assert plan['decode_config'] == dict(threshold=.5, metal_threshold=.3)
-    with pytest.raises(RuntimeError, match='decoding contains failed directions'):
+    assert plan['decode_config'] == dict(threshold=.5, metal_threshold=.3, event_slack=6)
+    plan_path = output/'plan.json'
+    plan['decode_config']['event_slack'] = 1
+    plan_path.write_text(json.dumps(plan))
+    with pytest.raises(ValueError, match='Resume input/configuration differs'):
+        run(index, output, resume=True, **options)
+    del plan['decode_config']['event_slack']
+    plan_path.write_text(json.dumps(plan))
+    with pytest.raises(ValueError, match='historical decoder policy'):
         run(index, output, resume=True, **options)
     with sqlite3.connect(output/'ledger.sqlite') as ledger:
         assert ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall() == records
@@ -735,7 +742,8 @@ def test_decoding_recovery_chain_rejects_changed_predecessor(tmp_path, change, m
 
 @pytest.mark.parametrize('change, message', [
     ('catalogue', 'differs from its saved catalogue'),
-    ('thresholds', 'thresholds differ'),
+    ('thresholds', 'decoding policy differs'),
+    ('event_window', 'decoding policy differs'),
     ('identity', 'source identities differ'),
     ('guard', 'original memory guard'),
     ('budget', 'no remaining case budget'),
@@ -751,7 +759,7 @@ def test_decoding_recovery_rejects_changed_original_before_writing(tmp_path, cha
     original_output = entry['output']
     store = BundleStore(original_output/'bundles')
     record = entry['record']
-    if change in ('catalogue', 'thresholds', 'budget'):
+    if change in ('catalogue', 'thresholds', 'event_window', 'budget'):
         if change == 'budget':
             record['case'] = tuple(record['case'][1] if i == 3 else item for i, item in enumerate(record['case']))
         else:
@@ -759,6 +767,8 @@ def test_decoding_recovery_rejects_changed_original_before_writing(tmp_path, cha
             task = _loads_checkpoint(task_row[1])
             if change == 'catalogue':
                 task.payload['catalogue'] = store.put('another catalogue')
+            elif change == 'event_window':
+                task.payload['config'] = replace(task.payload['config'], event_slack=1)
             else:
                 task.payload['config'] = replace(task.payload['config'], threshold=.9)
             task_row[1] = pickle.dumps(task, protocol=5)
