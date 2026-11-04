@@ -11,6 +11,7 @@ from mappa.mappa_core.core.matching.representation.records import Fragment
 from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.utils.io.records import decoded_events_record
+from test_event_interpretation import model_events
 from test_relaxed_isomorphism import discovery_oracle, relation, self_oracle, weights
 
 
@@ -68,10 +69,18 @@ def dense_events(endpoints, mapping, threshold=.5):
     return sorted(events, key=repr)
 
 
-def assert_counts(decoded, selection, *, partition=0):
+def assert_counts(decoded, selection, *, partition=0, cut=0):
     mapping = decoded.realize(0, selection)
-    expected = dense_events(decoded.event_problem, mapping)
-    result = decoded.contributions(0, selection, partition=partition, include_events=True)
+    physical = dense_events(decoded.event_problem, mapping)
+    evaluated = decoded.evaluate(0, selection)
+    assert evaluated['total'] == len(physical)
+    assert evaluated['counts'] == {
+        'broken': sum(event[0] in ('breaking', 'weakening') for event in physical),
+        'formed': sum(event[0] in ('forming', 'strengthening') for event in physical),
+    }
+    expected = model_events(decoded.event_problem, dict(decoded.catalogue.families[0].mapping),
+        mapping, decoded.fragment_partitions[0][partition], decoded.cut_contexts[0][partition][cut])
+    result = decoded.contributions(0, selection, partition=partition, cut=cut, include_events=True)
     actual = [(event['category'], event['reactant_pair'], event['product_pair'])
               for event in result['events']]
     assert sorted(actual, key=repr) == expected
@@ -137,14 +146,22 @@ def test_all_six_relaxed_triangle_tail_choices_decode_without_discovery_refilter
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
     value = relation(matrix, matrix, ((0, 1), (1, 2), (0, 3)))
     fragment = Fragment(value)
-    saved = catalogue(problem(matrix, matrix), (fragment,), cuts=((0, 2), (2, 3)))
+    saved = catalogue(problem(matrix, matrix), (fragment,))
+    saved.families[0].provenance.extend(
+        dict(cuts=(cut,), fragment_partition=((0, 1, 2, 3),))
+        for cut in ((0, 2), (2, 3)))
     decoded = decode_events(saved)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs',
         lambda *args: pytest.fail('relation decoding expanded pair projections'))
-    seen = {assert_counts(decoded, [choice]) for choice in choices(value)}
+    assert decoded.cut_contexts[0][0] == (((0, 2),), ((2, 3),))
+    seen = {assert_counts(decoded, [choice], cut=0) for choice in choices(value)}
+    assert {assert_counts(decoded, [choice], cut=1) for choice in choices(value)} == seen
     assert len(seen) == 6 and len(seen - discovery_oracle(value)) == 2
     table = decoded.tables(0)
-    assert table.statistics['cut_terms'] == 2
+    # Both histories cut inside the same fragment: its internal responses already
+    # count the original bonds, so neither adds a separate boundary correction.
+    assert all(not decoded.tables(0, cut=i).boundary for i in range(2))
+    assert all(decoded.tables(0, cut=i).statistics['cut_terms'] == 1 for i in range(2))
     assert table.statistics['projected_pair_states'] == 0
     terms = [term.atoms for rows in (*table.internal.values(), *table.boundary.values()) for term in rows]
     assert len(terms) == len(set(terms))

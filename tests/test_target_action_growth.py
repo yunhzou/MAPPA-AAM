@@ -58,6 +58,7 @@ def test_asymmetric_future_neighbors_keep_non_equivalent_matches():
 def test_decoding_keeps_fragment_atom_sets_and_later_occupancy():
     from mappa import AAMProblem, query_path, decode_events
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from test_event_interpretation import model_events
     from test_relaxed_fragment_decoding import dense_events
     from mappa.mappa_core.core.search.branching.construction import find_islands
     from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
@@ -85,7 +86,16 @@ def test_decoding_keeps_fragment_atom_sets_and_later_occupancy():
                 counts = decoded.tables(0).evaluate(decoded.index.vector(mapping), include_events=True)
                 events = [(event['category'], event['reactant_pair'], event['product_pair'])
                           for event in counts['events']]
-                assert sorted(events, key=repr) == dense_events(problem, mapping)
+                assert sorted(events, key=repr) == model_events(problem,
+                    dict(decoded.catalogue.families[0].mapping), mapping,
+                    decoded.fragment_partitions[0][0], decoded.cut_contexts[0][0][0])
+                physical = dense_events(problem, mapping)
+                evaluated = decoded.index.describe(decoded.index.vector(mapping))
+                assert evaluated['total'] == len(physical)
+                assert evaluated['counts'] == {
+                    'broken': sum(event[0] in ('breaking', 'weakening') for event in physical),
+                    'formed': sum(event[0] in ('forming', 'strengthening') for event in physical),
+                }
                 assert counts['total'] == len(events)
                 assert sum(sum(part.values()) for field in ('internal', 'boundary')
                            for part in counts[field].values()) == len(events)

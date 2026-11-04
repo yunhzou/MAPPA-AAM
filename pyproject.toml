@@ -23,12 +23,12 @@ dependencies = [
     "networkx>=2.8",
     "pynauty>=2.8",
     "sympy>=1.10",
+    "z3-solver>=4.13",
 ]
 
 [project.optional-dependencies]
 execution = ["psutil>=5.9"]
-notebook = ["rdkit>=2022.9", "z3-solver>=4.13", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
-postprocessing = ["z3-solver>=4.13"]
+notebook = ["rdkit>=2022.9", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
 dev = ["pytest", "nbclient", "ipykernel", "pypdf", "Pillow"]
 smiles = ["rdkit>=2022.9"]
 

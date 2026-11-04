@@ -261,7 +261,8 @@ class FinalBranchCatalogue:
             branch.add(family_id)
             self.families[family_id].provenance.append(dict(
                 archive=str(archive), context=state.context, terminal=path.terminal,
-                transitions=path.transitions, cuts=context.cuts))
+                transitions=path.transitions, cuts=context.cuts,
+                fragment_partition=tuple(rs for rs, _ in pairs[path.terminal])))
         return self
 
     @property

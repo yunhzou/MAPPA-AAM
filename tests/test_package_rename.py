@@ -41,11 +41,12 @@ def test_current_decoder_configuration_keeps_its_type_through_bundle_storage(tmp
     from mappa.execution import BundleStore
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.core.scheduler.results import DecodingResult
-    original = DecodingResult('case', EventDecodeConfig(.6, .4), (), (), {},
+    original = DecodingResult('case', EventDecodeConfig(.6, .4, event_slack=3), (), (), {},
                               mappa.AAMSearchConfig(), 'reused_native')
     store = BundleStore(tmp_path)
     loaded = store.load(store.put(original))
     assert type(loaded.config) is EventDecodeConfig
+    assert loaded.config.event_slack == 3
     assert loaded == original
 
 
@@ -53,8 +54,8 @@ def test_current_decoder_configuration_rejects_obsolete_rematching_fields():
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
     obsolete = EventDecodeConfig()
-    object.__setattr__(obsolete, 'event_slack', 3)
-    with pytest.raises(TypeError, match='event_slack'):
+    object.__setattr__(obsolete, 'iso_tolerance', 1.)
+    with pytest.raises(TypeError, match='iso_tolerance'):
         _loads_checkpoint(pickle.dumps(obsolete))
 
 

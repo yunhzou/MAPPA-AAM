@@ -167,7 +167,7 @@ def test_fresh_decoding_batches_preserve_full_scope_and_prior_memory_failures(tm
     assert manifest['cases'] == 3 and manifest['directions'] == 6
     assert manifest['imported_stage_results'] == 0 and manifest['reused_catalogues'] == 6
     assert manifest['prior_memory_failure_directions'] == ['00000/forward', '00001/reverse', '00002/reverse']
-    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4)
+    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4, event_slack=6)
     assert manifest['decoding_source']['source_commit'] == 'a'*40
     assert manifest['decoding_source']['source_identity'] == 'c'*64
     batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(3)]
@@ -354,8 +354,10 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == ('mappa.decoded_events/v8' if arm == 'binary_iso1'
-                                         else 'mappa.decoded_events/v7')
+            assert record['schema'] == 'mappa.decoded_events/v11'
+            assert record['event_counts_approximate']
+            assert record['minimum_events'] == 1
+            assert record['event_slack'] == 6 and record['event_window'] == 7
             event_record = record['event_problem'] if arm == 'binary_iso1' else record['problem']
             assert np.array_equal(event_record['reactant']['wbo'], original.reactant.wbo)
             assert np.array_equal(event_record['product']['wbo'], original.product.wbo)
@@ -600,7 +602,9 @@ def test_decoding_audit_plans_missing_baseline_outputs_and_rejects_incomplete_ca
     original_plan = (output/'plan.json').read_text()
     for field, value, message in (
             ('decoder_source', 'f'*64, 'decoder identities differ'),
-            ('decode_config', dict(threshold=.7, metal_threshold=.4), 'decoding policies differ')):
+            ('decode_config', dict(threshold=.7, metal_threshold=.4, event_slack=6), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3, event_slack=3), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3), 'decoding policies differ')):
         changed_plan = json.loads(original_plan); changed_plan[field] = value
         (output/'plan.json').write_text(json.dumps(changed_plan))
         with pytest.raises(ValueError, match=message):

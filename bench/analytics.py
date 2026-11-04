@@ -81,7 +81,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
 
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
-    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8'):
+    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8', 'mappa.decoded_events/v11'):
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds
@@ -92,7 +92,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
             len(decoded['families']) != len(families)):
         raise ValueError('Decoded responses and catalogue must belong to the same problem')
     event_problem = problem
-    if decoded['schema'] == 'mappa.decoded_events/v8':
+    if 'event_problem' in decoded:
         event_problem = problem_from_record(decoded['event_problem'])
         _validate_atom_identity(problem, event_problem)
         if (decoded['matching_problem_sha256'] != catalogue['problem_sha256'] or
@@ -138,7 +138,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
             incomplete_paths=catalogue['incomplete_paths'],
             problem_sha256=catalogue['problem_sha256'], catalogue_schema=catalogue['schema'],
             event_problem_sha256=(decoded['event_problem_sha256']
-                if decoded['schema'] == 'mappa.decoded_events/v8' else catalogue['problem_sha256']),
+                if 'event_problem' in decoded else catalogue['problem_sha256']),
             decoded_schema=decoded['schema'],
             cpu_seconds=time.process_time()-cpu, wall_seconds=time.perf_counter()-started,
             event_policy=dict(threshold=threshold, metal_threshold=metal_threshold,

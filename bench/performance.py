@@ -351,16 +351,18 @@ def decoding_campaign(path, *, candidate):
 
 
 def decoding_audit_plan(baseline, candidate, *, memory_bytes, task_seconds):
+    from mappa import EventDecodeConfig
     from mappa.execution.identity import code_identity
 
     old, before, old_files, old_source = decoding_campaign(baseline, candidate=False)
     new, after, new_files, new_source = decoding_campaign(candidate, candidate=True)
     if old['config'] != new['config'] or set(before) != set(after):
         raise ValueError('Decoding campaigns have different scientific scope')
-    decode_config = dict(threshold=old['config']['event_threshold'],
-                         metal_threshold=old['config']['metal_event_threshold'])
+    decode_config = asdict(EventDecodeConfig(
+        threshold=old['config']['event_threshold'],
+        metal_threshold=old['config']['metal_event_threshold']))
     if new.get('decode_config') != decode_config:
-        raise ValueError('Decoding thresholds changed')
+        raise ValueError('Decoding configuration changed')
     origin = new['decoding_source']
     baseline = Path(baseline).resolve()
     if (Path(origin['campaign']).resolve() != baseline

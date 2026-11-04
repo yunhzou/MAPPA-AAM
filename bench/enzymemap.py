@@ -127,8 +127,9 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
         raise ValueError('Decoding recovery requires a separate output directory')
     raw = (source/'manifest.json').read_bytes()
     manifest = json.loads(raw)
-    decoding_config = dict(threshold=manifest['config']['event_threshold'],
-                           metal_threshold=manifest['config']['metal_event_threshold'])
+    decoding_config = asdict(EventDecodeConfig(
+        threshold=manifest['config']['event_threshold'],
+        metal_threshold=manifest['config']['metal_event_threshold']))
     selected, origins, identities, task_keys = [], [], set(), set()
     for batch in manifest['batches']:
         directory = source/str(batch['batch'])
@@ -173,7 +174,7 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
                     or task.payload['catalogue'] != catalogue):
                 raise ValueError('Original decoding task differs from its saved catalogue')
             if asdict(task.payload['config']) != decoding_config:
-                raise ValueError('Original decoding thresholds differ from the campaign configuration')
+                raise ValueError('Original decoding configuration differs from the campaign configuration')
             if task_row[3] != memory_bytes or task.memory_bytes != memory_bytes:
                 raise ValueError('Decoding recovery must preserve the original memory guard')
             if record['case'][3] >= record['case'][1]:

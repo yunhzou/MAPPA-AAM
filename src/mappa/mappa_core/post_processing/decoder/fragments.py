@@ -69,6 +69,8 @@ class FragmentResponse:
     terms: tuple[BondEventTerm, ...]
     projected_pair_states: int
     neighboring_pair_count: int
+    mapping: tuple[tuple[int, int], ...]
+    actions: tuple
 
 
 class FragmentDecoder:
@@ -80,6 +82,29 @@ class FragmentDecoder:
         self.bonds = {}
         self.terms = {}
         self.bindings = {}
+        self.minima = {}
+        self._bounds = {}
+        self._bound_terms = {}
+
+    def bounds(self, response):
+        """Reuse the local bound and saved-witness count across branch uses."""
+        key = id(response)
+        if key not in self._bounds:
+            from .local_counts import count_bounds
+            self._bounds[key] = count_bounds(self.index, response)
+        return self._bounds[key]
+
+    def minimum(self, response):
+        """Prove a shared local minimum, compiling joint choices only if needed."""
+        key = response.mapping, response.actions
+        if key not in self.minima:
+            from .local_counts import compile_local
+            lower, upper = self.bounds(response)
+            if lower != upper:
+                query = compile_local(self.index, (response,))
+                lower = query.minimum(query.counts[0], lower, upper)
+            self.minima[key] = lower
+        return self.minima[key]
 
     def bond(self, atoms, pair, actions, domains, action_ids, manual_cut):
         """Decode one exact local relationship, retaining its ordered actions."""
@@ -134,20 +159,27 @@ class FragmentDecoder:
                 if term is not None:
                     terms.append(term)
             self.fragments[key] = FragmentResponse(piece, local_domains,
-                local_dependencies, tuple(terms), projected, len(neighbors))
+                local_dependencies, tuple(terms), projected, len(neighbors), pairs, local_actions)
         return self.fragments[key], binding
 
     def bind(self, terms, binding):
         if binding == tuple(range(len(binding))):
             return terms
+        key = id(terms), binding
+        if key in self._bound_terms:
+            return self._bound_terms[key][1]
         bound = []
         for term in terms:
             ids = tuple(binding[i] for i in term.action_ids)
             if ids == term.action_ids:
                 bound.append(term)
                 continue
-            key = term, ids
-            if key not in self.bindings:
-                self.bindings[key] = replace(term, action_ids=ids)
-            bound.append(self.bindings[key])
-        return tuple(bound)
+            term_key = term, ids
+            if term_key not in self.bindings:
+                self.bindings[term_key] = replace(term, action_ids=ids)
+            bound.append(self.bindings[term_key])
+        result = tuple(bound)
+        # Retain the source tuple alongside its identity, so its ID cannot be
+        # reused while a binding is cached. Both belong to this local decoder.
+        self._bound_terms[key] = terms, result
+        return result

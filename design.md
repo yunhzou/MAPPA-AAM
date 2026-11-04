@@ -14,8 +14,8 @@ flowchart LR
     Matching --> Reduce[Group branches and deduplicate families across seeds and cuts]
     Reduce --> Catalogue[Catalogue for one reaction and direction]
     Catalogue --> Inventory[Collect all unique fragments and branch references]
-    Inventory --> Local[Decode local fragment and boundary responses]
-    Local --> Compose[Compose requested branch event results]
+    Inventory --> Local[Shared conditional fragment responses]
+    Local --> Compose[Compose approximate event counts and window]
 ```
 
 A cut is a search condition and provenance field, not the unit of decoding.
@@ -369,47 +369,55 @@ records while preserving every family's values, action order and provenance.
 For one reaction and direction, first collect **all unique saved fragments** from
 the completed catalogue, together with every branch occurrence, partition,
 constraint, action and boundary reference. Complete this inventory before
-computing event responses. Structural sharing does not discard restrictions or
-make correlated choices independent.
+computing event responses. Prepare each distinct contextual fragment once and
+share its conditional event responses across every use. Identity includes its
+mapping, constraints, relevant ordered actions and endpoint context; atom sets
+alone do not establish interchangeable responses.
 
 ```mermaid
 flowchart LR
     Catalogue[Completed catalogue] --> Inventory[Unique fragments and branch references]
-    Inventory --> Internal[Shared internal fragment responses]
-    Inventory --> Boundary[Shared inter-fragment and unmatched-boundary responses]
-    Internal --> Compose[Compose requested valid branch choices]
+    Inventory --> Local[Shared conditional fragment responses and local minima]
+    Inventory --> Boundary[Fixed ordinary boundary contribution]
+    Inventory --> Sweep[Single sweep correction]
+    Local --> Compose[Compositions ordered by lower bound]
     Boundary --> Compose
-    Catalogue --> Constraints[Original joint constraints and ordered actions]
-    Constraints --> Compose
+    Sweep --> Compose
+    Compose --> Window[Model minimum through minimum plus n]
+    Catalogue --> Realize[Validate requested mapping against original constraints]
 ```
 
-`decode_events` interprets the retained mapping relation. It does not rematch,
-replace choices, enumerate complete bijections or select a minimum-event mapping.
-Local responses are shared only when their fragment, witness, relevant ordered
-actions and cut/boundary context agree. A shared action remains one joint choice
-across all affected fragments. Placement actions move the complete continuation,
-including mapped/unmatched boundaries, and do not replace local fragment
-relationships. Discovery predicates constrain the discovery
-assignment; both self rearrangements satisfy their own original-fragment
-constraints. Target occupancy and action dependencies remain joint.
+The event-count model uses an explicitly accepted **independent-fragment
+approximation**. A composition adds the conditional internal response of each
+fragment and a fixed ordinary boundary contribution, including ordinary
+mapped/unmapped boundaries. It does not recompute those ordinary boundaries for
+every combination of fragment choices. Internal responses preserve each
+fragment's own conditional relationship; independence is an approximation in
+branch event composition, not permission to change the saved mapping relation.
 
-Preparation is shared with the responses: repeated fragment occurrences reuse
-their prepared symmetry and reachable atom sets, rather than deriving them again
-before each lookup. Branch assembly must not replay the whole symmetry sequence
-separately for every mapped atom. It binds shared preparation only where a local
-or placement choice affects the participating fragment endpoints.
-Branches bind shared local choices to their original action
-positions and retain their own boundary and constraint relationships. Shared
-preparation must preserve action order and remain bounded; it does not retain
-intermediate symmetry histories or complete working tables for every branch.
+The single sweep cut is the only coupled boundary correction. Keep its residual
+contribution separate from the fixed boundary count and resolve only the
+relevant endpoint choices. Its residual is zero, one or two events. Count it
+once; neither cutting a bond nor separating fragments proves that an event
+occurred. Alternative saved partitions are alternative decompositions, not
+additional contributions to sum.
 
-Local tables cover internal bonds, bonds between fragments and mapped/unmapped
-boundaries. Evaluation validates a requested joint choice, then sums each bond's
-contribution once. Alternative partitions decompose the same family and must not
-have their totals added together. Constant responses may avoid pair expansion;
-they do not permit independent atom choices or removal of correlated actions.
-Preparation follows reachable endpoint pairs rather than enumerating full group
-elements, though pair-table size can still grow with the reachable domains.
+Find the model minimum by considering compositions in lower-bound order. Reuse
+local fragment minima and the fixed boundary count, resolving the sweep
+endpoints only when needed to decide whether a composition can improve the
+minimum. The event window is the model minimum through that minimum plus `n`,
+with `n=6` by default. Retain shared conditional responses with the upper-window
+predicate. Do not enumerate every attainable count or bin before serving the
+window, solve whole-branch correlations, or expand all atom bijections.
+
+`minimum_events`, `event_window`, `contributions` and `counts` describe this
+approximate model over the retained catalogue. They do not certify a global
+physical minimum or exhaustive matching coverage. Original discovery and self
+constraints, occupancy, anchors and ordered placement actions remain attached
+to the mappings and are validated when a realization is requested. Explicit
+`evaluate` reports physical original-WBO events for that valid realization.
+This separate check may differ from its model count; it does not reassign the
+realization to another model bin or redefine the model minimum.
 
 Events use **original endpoint WBOs**, not cut search graphs. A cut or fragment
 boundary does not itself imply an event. The ordinary threshold defaults to 0.5
@@ -426,26 +434,19 @@ problem; event responses use the original event problem. Saved results identify 
 retain both endpoint problems when their weights differ.
 
 `EventDecodeSession` owns reusable endpoint preparation and bounded caches.
-`EventInterpretation` owns the inventory, shared local responses, dependencies
-and family/partition views. These reaction-specific results are released after
-publication. Binary export preserves shared tables; explicit JSON may expand
-references.
+`EventInterpretation` owns the inventory, shared conditional responses, model
+minimum/window and family/partition views. Branch assembly binds shared fragment
+preparation rather than replaying the whole symmetry sequence per atom. Shared
+preparation remains bounded and does not retain intermediate symmetry histories
+or complete working tables for every branch.
 
-Export processes family/partition working tables one at a time and shares equal
-saved metadata without merging families or their choices. Arrays used to evaluate
-joint choices are prepared only when evaluation is requested. The retained
-catalogue and exported records still consume memory; transient-table release is
-not a fixed bound on total decoding memory.
-Derived per-atom domain and action lookup maps belong to working tables; saved
-output retains the original catalogue and local responses without repeating these
-maps for every family or partition.
-
-Normal decoding/export retains the catalogue and local composition without a
-whole-reaction event-pattern deduplication pass or automatic representative
-selection. Explicit whole-reaction queries may compare event patterns. Different
-fragment compositions can yield identical bond changes, so decoding does not
-claim exhaustive unique event patterns or a proven global minimum. Experimental
-rematching and minimum-event selection are separate operations.
+Saved output retains the original catalogue, shared responses and conditional
+window representation without merging families or repeating derived per-atom
+maps. Binary export preserves sharing; explicit JSON may expand it. Release
+reaction-specific working state after publication. The retained catalogue and
+output still consume memory, so transient-table release is not a total memory
+bound. Whole-reaction event-pattern comparison and experimental rematching are
+separate operations.
 
 ## Local and distributed execution
 

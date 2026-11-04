@@ -1,6 +1,6 @@
 """Independent bond-event and preparation checks for saved fragment relations."""
 from dataclasses import replace
-from itertools import permutations, product
+from itertools import combinations, permutations, product
 import json
 import time
 
@@ -148,11 +148,12 @@ def test_exact_weight_placements_do_not_prepare_opposite_response_labels():
 def test_count_batches_bound_pair_scratch(monkeypatch):
     ep = endpoint('C'*300,[(0,1,1.)])
     result = decode_events(saved(ep,ep,{0:0,1:1}))
-    original, sizes = result.index.counts, []
+    table = result.tables(0)
+    original, sizes = table.counts, []
     def checked(vectors):
         sizes.append(len(vectors))
         return original(vectors)
-    monkeypatch.setattr(result.index,'counts',checked)
+    monkeypatch.setattr(table,'counts',checked)
     assert [int(row.sum()) for row in result.counts(0,[None]*3)] == [0,0,0]
     assert sizes == [1,1,1]
 
@@ -187,6 +188,31 @@ def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
     return sorted(result,key=repr)
 
 
+def model_events(problem, representative, mapping, partition, cuts=(), *, threshold=.5, metal_threshold=.3):
+    """Independent dense oracle: local physical events plus fixed boundary ledgers."""
+    owners = {a: i for i, atoms in enumerate(partition) for a in atoms}
+    target_owners = {p: owners[a] for a, p in representative.items()}
+    cut = next(((a, b) for a, b in cuts
+                if a in owners and b in owners and owners[a] != owners[b]), None)
+    cut_target = None if cut is None else tuple(sorted(mapping[a] for a in cut))
+    physical = dense_categories(problem, mapping, threshold, metal_threshold)
+    result = [event for event in physical if event[1] is not None
+              and all(a in owners for a in event[1])
+              and (owners[event[1][0]] == owners[event[1][1]] or event[1] == cut)]
+    for endpoint, labels, category, excluded in (
+        (problem.reactant, owners, 'breaking', cut),
+        (problem.product, target_owners, 'forming', cut_target),
+    ):
+        for a, b in combinations(range(endpoint.atom_count), 2):
+            tau = (metal_threshold if metal_threshold is not None
+                   and any(is_metal_element(endpoint.elements[i]) for i in (a, b)) else threshold)
+            if ((a, b) != excluded and labels.get(a, -1) != labels.get(b, -1)
+                    and endpoint.wbo[a, b] > tau):
+                result.append((category, (a, b) if category == 'breaking' else None,
+                               (a, b) if category == 'forming' else None))
+    return sorted(result, key=repr)
+
+
 
 def check_contributions(interpreted, choices):
     from collections import Counter
@@ -196,8 +222,12 @@ def check_contributions(interpreted, choices):
     expected_counts = []
     for choice in choices:
         mapping = interpreted.realize(0,choice)
-        expected = dense_categories(interpreted.index.problem,mapping,
+        physical = dense_categories(interpreted.index.problem,mapping,
             interpreted.index.threshold,interpreted.index.metal_threshold)
+        assert interpreted.evaluate(0, choice)['total'] == len(physical)
+        expected = model_events(interpreted.event_problem, dict(interpreted.catalogue.families[0].mapping),
+            mapping, interpreted.fragment_partitions[0][0], interpreted.cut_contexts[0][0][0],
+            threshold=interpreted.index.threshold, metal_threshold=interpreted.index.metal_threshold)
         result = interpreted.contributions(0,choice,include_events=True)
         actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
         assert actual == expected
@@ -215,11 +245,20 @@ def check_contributions(interpreted, choices):
                     if code:
                         exported.append((EVENT_CATEGORIES[code - 1], tuple(term['atoms']),
                                          None if None in images else tuple(sorted(images))))
-            occupied = set(mapping.values())
+            owners = {a: i for i, atoms in enumerate(table['fragments']) for a in atoms}
+            cut = next((tuple(pair) for pair in table['cut_bonds']
+                        if all(a in owners for a in pair) and owners[pair[0]] != owners[pair[1]]), None)
+            target_cut = None if cut is None else tuple(sorted(mapping[a] for a in cut))
+            exported.extend(('breaking', tuple(pair), None)
+                            for pair in table['reactant_boundary_pairs'] if tuple(pair) != cut)
             exported.extend(('forming', None, tuple(pair))
                             for pair in table['product_boundary_pairs']
-                            if (pair[0] in occupied) != (pair[1] in occupied))
-            assert sorted(exported, key=repr) == expected
+                            if tuple(pair) != target_cut)
+            partition_expected = model_events(interpreted.event_problem,
+                dict(interpreted.catalogue.families[0].mapping), mapping,
+                table['fragments'], tuple(map(tuple, table['cut_bonds'])),
+                threshold=interpreted.index.threshold, metal_threshold=interpreted.index.metal_threshold)
+            assert sorted(exported, key=repr) == partition_expected
         counts = Counter(e[0] for e in expected)
         assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
         assert result['total'] == len(expected)
@@ -363,8 +402,18 @@ def test_sweep_cut_provenance_survives_catalogue_roundtrip():
     assert cuts == {(),((0,1),),((1,2),)}
     result = decode_events(restored)
     for fid,family in enumerate(restored.families):
-        assert result.tables(fid).cut_bonds == frozenset(tuple(p) for row in family.provenance for p in row['cuts'])
-        assert result.contributions(fid)['total'] == sum(dense_counts(source.problem,dict(family.mapping)))
+        expected_contexts = {(tuple(map(tuple, row['fragment_partition'])), tuple(map(tuple, row['cuts'])))
+                             for row in family.provenance}
+        contexts = set()
+        for partition, alternatives in enumerate(result.cut_contexts[fid]):
+            atoms = result.fragment_partitions[fid][partition]
+            for cut, bonds in enumerate(alternatives):
+                contexts.add((atoms, bonds))
+                assert result.tables(fid, partition, cut=cut).cut_bonds == frozenset(bonds)
+                expected = model_events(source.problem, dict(family.mapping), dict(family.mapping), atoms, bonds)
+                assert result.contributions(fid, partition=partition, cut=cut)['total'] == len(expected)
+        assert contexts == expected_contexts
+        assert result.evaluate(fid)['total'] == sum(dense_counts(source.problem, dict(family.mapping)))
 
 
 
@@ -383,11 +432,12 @@ def test_preparation_visits_only_bond_neighbors_and_recorded_cut(monkeypatch):
         return original(weight, tau, xs, ys)
     monkeypatch.setattr(result.index, 'domain_response', record)
     table = result.tables(0)
-    assert len(visits) == table.statistics['neighboring_pairs'] == 81
+    assert len(visits) == table.statistics['neighboring_pairs'] == 1
     assert table.statistics['cut_terms'] == 1
-    assert set(table.boundary) == {(0,79),(17,42)}
+    assert set(table.boundary) == {(0,79)}
     check_contributions(result, [None])
-    assert result.contributions(0)['counts'] == dict(breaking=0, forming=1, strengthening=0, weakening=0)
+    assert result.contributions(0)['counts'] == dict(breaking=79, forming=80, strengthening=0, weakening=0)
+    assert result.evaluate(0)['total'] == 1
 
 
 
@@ -507,7 +557,7 @@ def test_discovery_connectivity_is_enforced_before_relaxed_self_actions(toleranc
         decoded.realize(0, [dict(discovery={0: 0, 1: 2, 2: 1})])
 
 
-def test_partition_views_do_not_duplicate_counts_or_split_shared_choices():
+def test_partition_views_have_separate_model_counts_and_preserve_shared_choices():
     ep = endpoint('CCCCCC', [(0, 1, 1.), (0, 2, 1.8), (3, 4, 1.), (3, 5, 1.8)])
     value = AAMProblem(ep, ep)
     fragments = tuple(saved_fragment(value, source_atoms=atoms) for atoms in ((1, 2), (4, 5)))
@@ -519,8 +569,12 @@ def test_partition_views_do_not_duplicate_counts_or_split_shared_choices():
                     if len(parts) == 2)
     assert separate.components == (((0,), (0,)), ((1,), (1,)))
     for selections in product(*[(None, swap(fragment)) for fragment in fragments]):
-        totals = [decoded.contributions(0, selections, partition=i)['counts'] for i in range(2)]
-        assert totals[0] == totals[1]
+        mapping = decoded.realize(0, selections)
+        for i, partition in enumerate(decoded.fragment_partitions[0]):
+            expected = model_events(value, dict(source.families[0].mapping), mapping, partition)
+            assert decoded.contributions(0, selections, partition=i)['total'] == len(expected)
+        assert decoded.evaluate(0, selections)['total'] == len(dense_categories(value, mapping))
+    assert {decoded.contributions(0, partition=i)['total'] for i in range(2)} == {0, 8}
     joint = saved_fragment(value, accepted_edges=((0, 1), (0, 2), (3, 4), (3, 5)))
     source.families[0].actions = (('relation', joint),)
     decoded = decode_events(source)
@@ -545,9 +599,12 @@ def test_large_boundary_tables_do_not_expand_complete_choices(monkeypatch):
     decoded = decode_events(source)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs', forbidden)
     table = decoded.tables(0)
-    assert len(table.boundary) == count - 1
-    assert table.statistics['boundary_terms'] == 4 * (count - 1)
+    assert not table.boundary
+    assert len(table.fixed_boundary) == count - 1
+    assert table.statistics['boundary_terms'] == 0
+    assert table.statistics['fixed_boundary_events'] == 2 * (count - 1)
     assert table.statistics['projected_pair_states'] == 0
+    assert decoded.minimum_events == 2 * (count - 1)
     check_contributions(decoded, [[None] * count, [swap(fragment) for fragment in fragments]])
 
 
@@ -560,13 +617,15 @@ def test_constant_boundaries_and_possible_product_neighbors_use_bounded_domains(
     decoded = decode_events(source)
     monkeypatch.setattr(decoded.index, 'endpoint_pairs', lambda *args: pytest.fail('expanded constant pair bounds'))
     assert decoded.tables(0).statistics['cut_terms'] == 1
-    assert decoded.contributions(0)['total'] == 0
+    assert decoded.contributions(0)['total'] == 2 * (66 - 1)
+    assert decoded.evaluate(0)['total'] == 0
     ep = endpoint('CCCCCC', [(0, 2, 1.), (3, 4, .5)])
     fragment = saved_fragment(AAMProblem(ep, ep), source_atoms=(0, 1))
     decoded = decode_events(saved(ep, ep, dict(enumerate(range(6))), fragments=(fragment,),
         pairs=(((0, 1), (0, 1)), ((2,), (2,)), ((3, 4, 5), (3, 4, 5)))))
-    assert decoded.tables(0).statistics['neighboring_pairs'] == 2
-    assert {term.atoms for rows in decoded.tables(0).boundary.values() for term in rows} == {(0, 2), (1, 2)}
+    assert decoded.tables(0).statistics['neighboring_pairs'] == 0
+    assert not decoded.tables(0).boundary
+    assert decoded.tables(0).statistics['fixed_boundary_events'] == 2
     check_contributions(decoded, [[None], [swap(fragment)]])
 
 

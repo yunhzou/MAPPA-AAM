@@ -92,7 +92,7 @@ def refined_mapping_record(result):
 
 
 def decoded_events_record(result):
-    """Persist unchanged mappings and local event functions, not an enumeration.
+    """Persist the windowed fragment model and unchanged mapping constraints.
 
     Tables and responses shared across branches are stored once. Whole-reaction
     reports and canonical event IDs are explicit queries, not part of export.
@@ -143,24 +143,30 @@ def decoded_events_record(result):
             tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
                 internal=groups_record(table.internal, 'fragment'),
                 boundary=groups_record(table.boundary, 'fragments'),
+                fixed_boundary=[dict(fragments=region, counts=tuple(map(int, counts)))
+                                for region, counts in table.fixed_boundary.items()],
+                reactant_boundary_pairs=table.reactant_boundary_pairs.tolist(),
                 product_boundary_pairs=table.product_boundary_pairs.tolist(),
+                event_window=result.event_window,
                 components=component_records.setdefault(table.components, table.components),
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    record = dict(schema='mappa.decoded_events/v7', method='compressed_event_interpretation',
-        scope='Original compressed mappings with correlated local event responses',
+    record = dict(schema='mappa.decoded_events/v11', method='independent_fragment_events',
+        scope='Independent fragment event model over the retained catalogue',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
             reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
             product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
         families=families, tables=tables, responses=responses,
         mapping_space_preserved=True,
+        event_counts_approximate=True, minimum_events=result.minimum_events,
+        event_slack=result.event_slack, event_window=result.event_window,
+        minimum_scope='independent_fragment_model',
         incomplete_paths=result.catalogue.incomplete_paths,
         exhaustive_event_patterns=False, global_minimum_proven=False)
     if result.event_problem_sha256 != result.matching_problem_sha256:
-        record.update(schema='mappa.decoded_events/v8',
-            matching_problem_sha256=result.matching_problem_sha256,
+        record.update(matching_problem_sha256=result.matching_problem_sha256,
             event_problem_sha256=result.event_problem_sha256,
             event_problem=dict(name=result.event_problem.name,
                 reactant=endpoint_record(result.event_problem.reactant, array_lists=True),

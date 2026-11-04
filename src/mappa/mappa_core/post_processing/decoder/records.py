@@ -1,6 +1,7 @@
 """Decoder configuration, witnesses and scoped completion records."""
 from __future__ import annotations
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import TYPE_CHECKING
 import numpy as np
 from mappa.mappa_core.core.symmetry.responses import BondResponse
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 class EventDecodeConfig:
     threshold: float = 0.5
     metal_threshold: float | None = 0.3
+    event_slack: int = 6
 
     def __post_init__(self):
         import math
@@ -22,6 +24,8 @@ class EventDecodeConfig:
             for v in (self.threshold, self.metal_threshold)
         ):
             raise ValueError('event thresholds must be finite and positive')
+        if isinstance(self.event_slack, bool) or not isinstance(self.event_slack, int) or self.event_slack < 0:
+            raise ValueError('event_slack must be a nonnegative integer')
 
     def __setstate__(self, state):
         validated = type(self)(**state)
@@ -61,9 +65,9 @@ class BondEventTerm:
 class EventInterpretation:
     """Bond responses attached to the unchanged, ordered saved mapping space.
 
-    This is a compressed event function, not an enumerated pattern catalogue.
-    Invariance concerns bond responses/counts; labelled unmatched target atoms
-    can still move. No minimum or exhaustive event-window claim is made.
+    Local conditional responses compose with fixed ordinary boundaries and one
+    sweep correction. The minimum and window belong to this approximate model,
+    not to physical whole-reaction counts or unsearched mappings.
     """
     catalogue: FinalBranchCatalogue
     index: SignedEventIndex
@@ -71,6 +75,7 @@ class EventInterpretation:
     inventory: FragmentInventory
     local: FragmentDecoder
     event_problem_sha256: str
+    event_slack: int = 6
     _tables: dict = field(default_factory=dict, repr=False)
 
     @property
@@ -85,11 +90,49 @@ class EventInterpretation:
     def fragment_partitions(self):
         return self.inventory.partitions
 
-    def _table_key(self, family_id, partition):
+    @cached_property
+    def cut_contexts(self):
+        """Keep alternative sweep histories separate from each other."""
+        result = []
+        for family, partitions in zip(self.catalogue.families, self.fragment_partitions):
+            origins = family.provenance or ({'cuts': ()},)
+            choices = [set() for _ in partitions]
+            distinct_cuts = {tuple(sorted(tuple(sorted(pair)) for pair in origin.get('cuts', ())))
+                             for origin in origins}
+            for origin in origins:
+                cuts = tuple(sorted(tuple(sorted(pair)) for pair in origin.get('cuts', ())))
+                if len(cuts) > 1:
+                    raise ValueError('each decoding context must identify at most one sweep bond')
+                saved = origin.get('fragment_partition')
+                if saved is not None:
+                    partition = tuple(sorted(tuple(sorted(atoms)) for atoms in saved))
+                    choices[partitions.index(partition)].add(cuts)
+                elif len(partitions) == 1 or len(distinct_cuts) == 1:
+                    # Older records are unambiguous when only one side varies.
+                    for alternatives in choices:
+                        alternatives.add(cuts)
+                else:
+                    raise ValueError('catalogue lacks the association between partitions and sweep histories')
+            result.append(tuple(tuple(sorted(alternatives)) for alternatives in choices))
+        return tuple(result)
+
+    @cached_property
+    def window(self):
+        from .window import EventWindow
+        return EventWindow(self)
+
+    @property
+    def minimum_events(self):
+        return self.window.minimum
+
+    @property
+    def event_window(self):
+        return self.window.maximum
+
+    def _table_key(self, family_id, partition, cut=0):
         family = self.catalogue.families[family_id]
         fragments = self.fragment_partitions[family_id][partition]
-        cut_bonds = tuple(sorted({tuple(pair) for origin in family.provenance
-                                  for pair in origin.get('cuts', ())}))
+        cut_bonds = self.cut_contexts[family_id][partition][cut]
         actions = self.local.programs.program(family.actions)
         return family.mapping, actions, fragments, cut_bonds
 
@@ -100,9 +143,9 @@ class EventInterpretation:
         return FragmentEventTables(self.local, self.catalogue.families[family_id],
                                    self.inventory.uses[family_id][partition], key[-1])
 
-    def tables(self, family_id, partition=0):
+    def tables(self, family_id, partition=0, *, cut=0):
         """Prepare one saved partition lazily; share bond responses across branches."""
-        key = self._table_key(family_id, partition)
+        key = self._table_key(family_id, partition, cut)
         if key not in self._tables:
             self._tables[key] = self._prepare_table(family_id, partition, key)
         return self._tables[key]
@@ -114,21 +157,22 @@ class EventInterpretation:
         requested through tables() remain owned by the interpretation.
         """
         references = {}
-        for family_id, partitions in enumerate(self.fragment_partitions):
-            for partition in range(len(partitions)):
-                key = self._table_key(family_id, partition)
-                if key in references:
-                    yield family_id, references[key], None
-                    continue
-                number = references[key] = len(references)
-                table = self._prepare_table(family_id, partition, key)
-                yield family_id, number, table
-                del table
+        for family_id, partition, cut in self.window.contexts:
+            key = self._table_key(family_id, partition, cut)
+            if key in references:
+                yield family_id, references[key], None
+                continue
+            number = references[key] = len(references)
+            table = self._prepare_table(family_id, partition, key)
+            yield family_id, number, table
+            del table
 
-    def contributions(self, family_id, choices=None, *, partition=0, include_events=False):
+    def contributions(self, family_id, choices=None, *, partition=0, cut=0, include_events=False):
         """Compose internal and boundary categories for one permitted choice."""
         vector = self.index.vector(self.realize(family_id, choices))
-        return self.tables(family_id, partition).evaluate(vector, include_events=include_events)
+        result = self.tables(family_id, partition, cut=cut).evaluate(vector, include_events=include_events)
+        result['within_window'] = self.minimum_events <= result['total'] <= self.event_window
+        return result
 
     def realize(self, family_id, choices=None):
         """Apply ordered local choices and joint global placement words.
@@ -159,13 +203,16 @@ class EventInterpretation:
         mapping = self.realize(family_id, choices)
         return self.index.describe(self.index.vector(mapping))
 
-    def counts(self, family_id, choices, *, batch_size=64, categories=False):
+    def counts(self, family_id, choices, *, partition=0, cut=0, batch_size=64, categories=False):
         """Stream requested counts; categories=True returns breaking/forming/strengthening/weakening."""
         if batch_size < 1:
             raise ValueError('batch_size must be positive')
         pair_count = len(self.index.a) + len(self.index.pa)
         batch_size = min(batch_size, max(1, 65536 // max(1, pair_count)))
-        count = self.tables(family_id).counts if categories else self.index.counts
+        def count(vectors):
+            values = self.tables(family_id, partition, cut=cut).counts(vectors)
+            return values if categories else np.column_stack((values[:,0] + values[:,3],
+                                                              values[:,1] + values[:,2]))
         batch = []
         for choice in choices:
             batch.append(self.index.vector(self.realize(family_id, choice)))

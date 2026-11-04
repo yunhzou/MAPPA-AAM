@@ -2,7 +2,7 @@
 
 Start with [AAM_SIMPLE.ipynb](AAM_SIMPLE.ipynb): a self-contained six-atom reaction with embedded coordinates, bond orders, and display helpers. It inspects the raw AAM, unique event candidates, certified shuffles, anchors, both search directions, conditional matching, serialization, and one growth animation per sweep. It uses one worker and can run outside the checkout after installation. Saved tables and static molecule drawings render on GitHub; interactive views require a trusted Jupyter notebook. The longer [TUTORIAL.ipynb](TUTORIAL.ipynb) covers R/P geometry and TS analysis.
 
-Install `python -m pip install -e ".[notebook]"` for the notebook, or `.[postprocessing]` for optional symbolic mapping queries without notebook packages. Event conversion itself needs no solver. A C++17 compiler builds the bookkeeping extensions. Normal search requires the fast growth engine: run `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Missing native execution is an error. Python comparison runs explicitly select `MAPPA_NATIVE=0` and `search_aam(..., execution="reference")`. No xTB is needed when coordinates and bond-order matrices are supplied.
+Install `python -m pip install -e ".[notebook]"` for the notebook, or `.` for the mapping and decoding API without notebook packages. A C++17 compiler builds the bookkeeping extensions. Normal search requires the fast growth engine: run `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Missing native execution is an error. Python comparison runs explicitly select `MAPPA_NATIVE=0` and `search_aam(..., execution="reference")`. No xTB is needed when coordinates and bond-order matrices are supplied.
 
 ## Default pipeline
 
@@ -14,22 +14,30 @@ problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
                      MolecularEndpoint(elements_P, xyz_P, wbo_P))
 aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
 catalogue = deduplicate(aam)
-decoded = decode_events(catalogue, threshold=0.5, metal_threshold=0.3)
+decoded = decode_events(catalogue, threshold=0.5, metal_threshold=0.3, event_slack=6)
+print(decoded.minimum_events, decoded.event_window)
 witness = decoded.realize(0)
-events = decoded.contributions(0, include_events=True)
+model_counts = decoded.contributions(0)['counts']
+physical_events = decoded.evaluate(0)
 record = decoded_events_record(decoded)
 ```
 
-Decoding keeps the original compressed mappings, their correlated actions and
-required growth edges. Only event interpretation changes with the thresholds.
-Sparse local tables retain internal and boundary responses, including manual cuts.
-Requested choices are applied in saved order. No rematching, solver search,
-Cartesian branch combination or full symmetry enumeration is performed.
+Decoding first inventories all unique fragments and shares their conditional
+internal responses. Its **independent-fragment event model** fixes ordinary
+boundary contributions and resolves only the single sweep correction. Local
+minima and compositions ordered by lower bound give the model minimum. The
+default window extends through `minimum_events + 6`; change its width with a
+nonnegative integer `event_slack`. `event_window` is the inclusive upper count.
+Saved conditional tables retain that window predicate without
+enumerating all attainable event counts or complete mappings.
 
-Records preserve the original catalogue and shared local event tables.
-They do not enumerate all event patterns or prove a global minimum.
-Partial mappings count bonds touching mapped atoms and ignore wholly
-unmatched bonds. Both ordinary and metal thresholds treat equality as unchanged.
+`minimum_events`, `event_window`, `contributions` and `counts` use this approximate
+model. `realize` still validates the original mapping constraints; `evaluate`
+reports physical original-WBO events for one requested valid realization.
+Physical counts may differ from model counts and do not redefine their bins.
+The model minimum is not a global physical minimum. Partial mappings omit bonds
+wholly inside unmatched material. Ordinary and metal event thresholds treat
+equality as unchanged.
 
 For explicit matching/deduplication/decoding passes over many reactions, see the
 [persistent local and Slurm pool](shared-execution.md). Its RAM and bundle storage
@@ -130,6 +138,7 @@ reject unsupported trace events and custom node policies. Select `MAPPA_NATIVE=0
 |---|---|
 | `AAMSearchConfig` | `iso_tolerance=1.0`; `self_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
+| `decode_events` / `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3`; `event_slack=6` above the approximate model minimum |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `self_tolerance=1.0`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
@@ -217,7 +226,7 @@ The event count is the number of bond differences touching mapped atoms, includi
 
 `max_events` and `event_slack` filter the converted branch results; they are not solver search bounds. The minimum is the lowest count among these branches. `complete` requires completed uncapped rematches, retained mapped atoms, and no counted events internal to a new fragment. `minimum_proven` uses this same converted-branch scope. Neither flag certifies exhaustive original-family decoding or global AAM search.
 
-`result.symmetry(candidate)` returns compressed choices from the converted catalogue. `query_assignments(result, ...)` is a separate, explicitly requested constraint query over those choices. Only that query requires the optional solver dependency. Conversion does not call it or use it as a fallback.
+`result.symmetry(candidate)` returns compressed choices from the converted catalogue. `query_assignments(result, ...)` is a separate, explicitly requested constraint query over those choices. Conversion does not call this query. The solver dependency is installed with MAPPA.
 
 Historical benchmark proofs apply only to their recorded source revisions; they do not certify converted-branch outputs.
 
@@ -240,7 +249,7 @@ Old internal search module paths are removed. Local workers use
 
 `search_core_assignments` projects the requested atoms through the saved ordered
 fragment discovery constraints and both-sided relaxed self relationships. It uses the optional symbolic-query
-dependency from `.[postprocessing]`, enumerates only distinct requested tuples,
+dependency installed with MAPPA, enumerates only distinct requested tuples,
 and enforces `assignment_limit` without expanding complete atom mappings.
 
 Trusted checkpoint and bundle readers explicitly relocate saved search class
@@ -253,15 +262,35 @@ fragment competition remain supported.
 ```python
 from mappa import decode_events
 
-events = decode_events(aam, threshold=0.5, metal_threshold=0.3)
-counts = events.contributions(0)['counts']  # Compose the saved witness's local responses.
-actions = events.family_actions[0]
+events = decode_events(aam, threshold=0.5, metal_threshold=0.3, event_slack=6)
+events.minimum_events                  # Minimum of the approximate event model
+events.event_window                    # Inclusive upper count: minimum + 6
+counts = events.contributions(0)['counts']
+physical = events.evaluate(0)           # Separate physical check of this mapping
 ```
 
-The returned object retains the original catalogue and all its correlated
-choices. Each action has a `response_invariant` certificate and per-generator
-changed-pair counts. An uncertified action remains compressed; it is not rejected
-or enumerated. This API does not list all patterns or assert a minimum.
+The decoder keeps the original catalogue and its mapping constraints. It shares
+each unique fragment's conditional responses across compositions, adds fixed
+ordinary boundary counts, and resolves the residual for the single sweep cut.
+That residual contributes zero, one or two events and is counted once. A cut or
+fragment separation alone does not imply an event. The model treats ordinary
+fragment boundaries independently; it does not solve correlations across the
+whole branch to recover a physical minimum.
+
+Local minima provide lower bounds for ordering compositions. Only relevant sweep
+endpoints need further resolution when finding `minimum_events`. The window
+retains conditional choices up to `minimum_events + event_slack`, with a default
+slack of six. It does not eagerly build every count bin, enumerate all symmetry
+bijections or repeat fragment preparation per branch. Alternative partitions are
+alternative views, so their contributions must not be added together.
+
+`contributions` and `counts` report approximate model counts. `evaluate` is an
+explicit original-WBO check of a valid concrete mapping, outside model-window
+construction. Its physical count can differ; it does not re-bin the model result
+or alter `minimum_events`. No global physical minimum or exhaustive matching
+coverage is claimed.
+
+### Requested mappings and physical checks
 
 To request a realization, provide one choice per ordered saved action to
 `events.realize(family_id, choices)`. For a fragment relation, `None` keeps its
@@ -286,90 +315,52 @@ realized = path.realize(
 The decoder validates discovery constraints and checks each self rearrangement
 against its own original fragment. It applies target rearrangement composed with
 discovery composed with inverse source rearrangement, once. The resulting mapping
-may exceed discovery tolerance; its bond events are counted using original WBOs. `events.counts(family_id, choices_iterable)` streams
-counts in bounded vector batches for explicitly supplied choices only.
-
-Internal and boundary contributions are available without expanding combinations:
+may exceed discovery tolerance; explicit physical evaluation uses original WBOs.
+The event-count approximation does not relax these realization checks.
 
 ```python
-tables = events.tables(0)  # Lazy, shared response tables for one saved partition.
-tables.internal          # Fragment ID -> original source-pair terms.
-tables.boundary          # Fragment pair -> source-pair terms; -1 is unmatched.
-tables.product_boundary_pairs  # Product bonds with dynamic unmatched occupancy.
-result = events.contributions(0, choices=None, include_events=True)
-result["counts"]         # breaking, forming, strengthening, weakening
-result["internal"]       # Contributions by fragment.
-result["boundary"]       # Contributions by pair of fragments / unmatched material.
-result["events"]         # Original R/P endpoint pairs and weights.
+mapping = events.realize(0, choices)
+model = events.contributions(0, choices)
 rows = events.counts(0, requested_choices, categories=True)
+physical = events.evaluate(0, choices)
 ```
 
 Bond presence uses the same pair threshold as event counting: WBO > threshold.
 An event additionally needs absolute change > threshold. Equality produces no
-event. The four categories are exclusive; their sum equals the historical total.
+event. Breaking, forming, strengthening and weakening are exclusive categories.
 Without `categories=True`, `counts` retains decrease/increase counts.
 
-Saved event records use `mappa.decoded_events/v7`. They retain the catalogue,
-ordered actions, local responses and branch references. The derived
-`atom_domains` and `atom_actions` maps remain available on runtime tables;
-they are omitted from saved records because the catalogue determines them.
-The embedded `mappa.final_fragment_branches/v3` catalogue stores shared fragment
-and placement-group tables with explicit ordered action references.
+### Shared responses and persistence
+
+`events.inventory.fragments` contains the unique source/target fragment atom-set
+pairs; `events.inventory.uses[family_id]` links each saved partition to them.
+Inventory construction precedes response preparation. Reuse also requires the
+same mapping, local constraints, ordered actions and endpoint context; matching
+atom sets alone are insufficient.
+
+`events.tables(family_id)` exposes the conditional fragment and boundary data.
+Responses preserve local correlations and action order. The branch composition
+model uses fixed ordinary boundaries and the separate sweep correction;
+ordinary boundaries are not reevaluated for every combination of local choices.
+Mapped/unmapped boundaries follow this same convention. Physical evaluation
+counts each original bond touching mapped atoms once and omits bonds wholly
+inside unmatched material.
+
+`decoded_events_record(events)` uses `mappa.decoded_events/v11` and retains the original catalogue, shared conditional
+responses, model minimum/window and upper-window predicate. It does not export
+an eager list of all count bins or repeat derived per-atom maps for every family.
+Normal decoding performs no whole-reaction event-pattern deduplication. For
+optional pattern comparison, `evaluate` includes a canonical event ID for the
+requested physical realization.
 
 If matching used transformed weights, pass the original endpoint problem as
 `decode_events(catalogue, event_problem=original_problem)`. Elements, atom order
 and coordinates must agree. Matching constraints still use `catalogue.problem`;
 event responses use `events.event_problem`. `EventDecodeSession` accepts the same
-keyword. When the weights differ, records use `mappa.decoded_events/v8`, retaining
-`problem` as the matching endpoints and adding `event_problem`,
-`matching_problem_sha256` and `event_problem_sha256`. Ordinary decoding keeps v7.
-
-Terms retain the IDs of original actions affecting their endpoints; these are
-not new independent choices. Atom domains and table entries can overapproximate
-jointly reachable pairs. Only requested choices validated against the saved
-family may be composed. Product-to-unmatched contributions are conditional on
-occupied target atoms and are added once, not once per possible target image.
-If a family has multiple saved partitions, select one with `partition=` in
-`tables` / `contributions`; counts are independent of that bookkeeping choice.
-Tables never select independent per-bond minima or claim a global optimum.
+keyword. When weights differ, saved records retain `problem` as the matching
+endpoints and additionally identify the original `event_problem`,
+`matching_problem_sha256` and `event_problem_sha256`.
 
 `convert_fragments` and `refine_mapping` retain their existing hierarchical
-rematching behavior. They do not replace this lossless interpretation.
-
-## Local event contributions and sweep cuts
-
-`events = decode_events(catalogue)` first collects every unique saved fragment
-across the complete reaction/direction catalogue. `events.inventory.fragments`
-contains the reactant/product atom-set pairs; `events.inventory.uses[family_id]`
-contains their references for each saved partition. This collection happens before
-event-response work.
-
-Local internal responses are built lazily and reused when the fragment's mapping,
-ordered actions and cut annotations agree. Each branch binds those local actions
-back to its original choices and adds its boundary relationships. Sharing does
-not merge constraints or make choices independent. Binary exports retain shared
-term records. The v4 export removes v3's automatic `representatives` reports;
-the catalogue and all local event data remain unchanged. Normal decoding and
-export perform no whole-reaction canonicalization or event-pattern deduplication.
-For optional pattern comparison, explicitly call `events.evaluate(family_id,
-choices)` to request a whole-reaction report with its canonical event ID.
-
-`decode_events(aam).tables(family_id)` exposes internal and boundary bond
-terms. Each term retains `target_pairs`, original `action_ids`, `endpoint_case`
-(`fixed_fixed`, `fixed_shuffle`, or `shuffle_shuffle`) and `manual_cut` provenance.
-Pair projection preserves correlated moves and saved action order without
-expanding full permutations. A projected pair alone is not permission to combine
-it with another term; use `contributions` or `counts` with a joint saved choice.
-
-`tables.components` contains `(fragment_ids, action_ids)` contribution groups.
-Shared choices, required-edge constraints and partial target occupancy keep
-related fragments together. Constant responses are counted once. Original
-sweep cuts are recorded even when no bond event occurs; fragment separation
-alone never creates an event. All four event categories use the original R/P
-bond weights and the existing ordinary/metal thresholds.
-
-Preparation follows source/product bond neighborhoods, including product bonds
-reachable through allowed choices. Manual cuts add their own endpoint pair;
-unrelated source nonbonds are not visited. `tables.statistics['neighboring_pairs']`
-reports the number of pairs examined. This preserves internal variations and
-possible forming bonds without repeating an all-atom-pair scan per family.
+rematching behavior. They are separate from this model and are never invoked by
+normal decoding.

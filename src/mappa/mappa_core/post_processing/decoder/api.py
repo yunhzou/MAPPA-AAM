@@ -8,16 +8,17 @@ from ..final_branches import FinalBranchCatalogue
 
 
 def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
-                  event_problem=None):
-    """Attach tolerance-dependent responses to original compressed families.
+                  event_slack=6, event_problem=None):
+    """Prepare the independent-fragment event model and its minimum+n window.
 
     Unique fragments share preparation. Their joint discovery and self
     constraints remain attached; no fragment rematches, complete mappings or
-    Cartesian combinations are enumerated.
+    Cartesian combinations are enumerated. Ordinary boundary counts are fixed;
+    only the selected sweep correction couples fragment endpoints.
     event_problem may supply different scoring weights for the same indexed
     atoms; the catalogue's matching constraints remain unchanged.
     """
-    config = config or EventDecodeConfig(threshold, metal_threshold)
+    config = config or EventDecodeConfig(threshold, metal_threshold, event_slack)
     catalogue = (aam if isinstance(aam, FinalBranchCatalogue)
                  else FinalBranchCatalogue(aam.problem).add_aam(aam))
     return EventDecodeSession(catalogue.problem, config,
@@ -75,4 +76,5 @@ class EventDecodeSession:
                 responses.append(self.actions[action])
             families.append(tuple(responses))
         return EventInterpretation(catalogue, self.index, tuple(families),
-                                   inventory, local, self.event_problem_sha256)
+                                   inventory, local, self.event_problem_sha256,
+                                   self.config.event_slack)
