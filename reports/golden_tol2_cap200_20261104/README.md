@@ -17,9 +17,9 @@ in the private campaign directory.
 | Event / metal event threshold | 0.5 / 0.3 |
 | Decoder window | Independent-fragment model minimum through minimum + 5 |
 | Input weights | Original prepared bond-weight matrices; no binary transform |
-| Requested compute workers | 110 in one persistent pool |
-| Requested CPUs, including execution overhead | 140 |
-| Compute-worker memory guard | 4 GiB |
+| Requested compute workers | 32 in one persistent pool |
+| Requested CPUs, including execution overhead | 40 |
+| Compute-worker memory guard | 2 GiB |
 | Direction compute budget | 600 seconds; no automatic fresh retries |
 
 Shared reaction caches are enabled. The same pool runs matching, reduction,
@@ -56,5 +56,8 @@ external verification separate. Preserve failures, timeouts and unknown outcomes
 in the full denominator. Compare timings on the same successfully completed
 reaction scope and report both compute CPU and elapsed time.
 
-At the initial queue check, the allocation was pending priority. No benchmark
-accuracy or performance conclusion is available yet.
+The initial 110-worker allocation remained pending and performed no computation.
+At the user's request, it was cancelled and replaced with a 32-worker pool using
+a 2 GiB guard. The input index, scientific settings, source identity and compute
+budgets are unchanged. No benchmark accuracy or performance conclusion is
+available yet.
