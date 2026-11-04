@@ -123,9 +123,20 @@ atom order or weights are rejected.
 
 ## Re-render an existing trace
 
+For generated display conformers, reuse the rendering copy:
+
+```bash
+PYTHONPATH=src python tools/render_search_trajectory.py output_directory/display-trace.json output_directory/algorithm_trajectory.html
+```
+
+For native 3D coordinates, use the scientific trace directly:
+
 ```bash
 PYTHONPATH=src python tools/render_search_trajectory.py output_directory/trace.json output_directory/algorithm_trajectory.html
 ```
+
+Do not render an all-zero scientific trace without `--geometry-cache DIRECTORY`;
+that would discard the generated display geometry.
 
 This stage does not replay matching or load the original archives. The generated
 HTML embeds its molecular renderer, shared stylesheet, and trace, so it works

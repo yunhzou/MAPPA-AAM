@@ -13,8 +13,10 @@ is `/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/aam-event-env/bin/python`
 ## Fast reusable workflow
 
 1. Open the requested existing `algorithm_trajectory.html` directly when available.
-2. With a saved verified trace, render only:
-   `PYTHONPATH=src python tools/render_search_trajectory.py trace.json algorithm_trajectory.html`.
+2. With a saved verified trace, render only. Use `display-trace.json` for generated
+   conformers, or `trace.json` when it contains native 3D coordinates:
+   `PYTHONPATH=src python tools/render_search_trajectory.py display-trace.json algorithm_trajectory.html`.
+   Do not render an all-zero raw trace without `--geometry-cache DIRECTORY`.
 3. Otherwise select the original saved branch in a manifest and run:
    `python tools/build_search_trajectory.py manifest.json output_directory --open`.
 
