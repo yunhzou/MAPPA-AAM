@@ -235,7 +235,11 @@ For each parent branch, each retained representative completed-fragment match
 produces one child continuation with its saved placement relationship. Symmetric
 bijections inside that match are not separate branches.
 The existing cap applies at every hierarchy level, including the combined live
-leaves across parents. Completion, stalls and caps remain explicit; capped search
+leaves across parents. Counts include only surviving continuations: rejecting a
+child subtree must not cause its surviving ancestor or siblings to be pruned
+using a stale count. Each parent's completed children are admitted together;
+an addition exceeding the current live-frontier budget is rejected while
+previously admitted siblings remain. Completion, stalls and caps remain explicit; capped search
 is not an exhaustive absence proof.
 
 ```mermaid

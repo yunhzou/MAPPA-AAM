@@ -812,3 +812,43 @@ guard. These are execution timeouts, separate from a completed query returning
 unknown or not recovered. Completed direction results currently comprise
 3,615 recovered, 80 not recovered and one unknown. The run does not establish a
 universal absence of speed or memory regressions.
+
+## Case 1654: cap 100 and dynamic subtree pruning
+
+The requested local rerun completed both directions and all **320 cuts** (171
+forward, 149 reverse), with one seed, discovery/self tolerance 1, random seed 42,
+original bond weights and the full cut sweep. A same-Mac cap 2,000 baseline used
+the same four-worker pool configuration and a fresh reaction cache for each run.
+Both runs reached four overlapping matching tasks. These are single-run timings;
+computation includes input loading/preparation and excludes publication CPU.
+
+| Measurement, both directions | Cap 2,000 | Cap 100 |
+|---|---:|---:|
+| Matching compute CPU seconds |49.45|9.69|
+| Reduction compute CPU seconds |30.91|3.33|
+| Matching + reduction elapsed seconds, including startup/publication |34.83|6.56|
+| Retained families |96,587|6,362|
+| Final fragment compositions |96,495|6,270|
+
+Cap 100 was **5.31 times faster in elapsed time** for this case. Separate external
+verification recovered the 62-heavy-atom ground-truth relation in both directions
+(family 2 forward, family 0 reverse). This establishes retained reference coverage
+for this point test, not equal coverage of every alternative at the two caps.
+No decoding was run. The [measurement record](case-1654-cap100.json) keeps stages
+separate; private task audits retain all per-cut timings, source checksums and
+allocation evidence. A preliminary sandbox launch could not perform process-tree
+memory sampling and was preserved separately; these timings describe the successful
+runs with the required process access.
+
+The cap counts surviving representative continuations, never a cumulative total
+of discarded descendants. Rejecting an oversized child preserves its smaller
+sibling and their shared ancestor. Completion can establish overflow at cap+1;
+it need not enumerate all 990 choices to reject that child at cap 100. Admission
+is sequential: with two 60-child subtrees and cap 100, the first is admitted and
+the later subtree is rejected as a whole.
+
+A real-graph regression gives one sibling two placements and another four, with
+cap 3. Both child orders retain exactly the two surviving mappings in both Python
+and native execution. All **14 completed-branch-cap tests passed**. The production
+algorithm was unchanged; the approved surviving-count rule is now explicit in
+`design.md`.

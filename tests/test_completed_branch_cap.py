@@ -83,6 +83,36 @@ def test_frontier_limit_combines_children_from_different_parents(engine):
     assert len(capped.transitions) == 3
 
 
+@pytest.mark.parametrize('oversized_first', [False, True])
+def test_capped_child_preserves_its_smaller_sibling(engine, oversized_first):
+    # The first C–N fragment chooses one of two N atoms. The next O–N
+    # fragment uses the remaining N: one choice has four placements, the
+    # other has two. Discarding the four must leave both valid sibling leaves.
+    source = graph(['C', 'N', 'O', 'N'], [(0, 1), (2, 3)])
+    small, large = (1, 2) if oversized_first else (2, 1)
+    # Different external attachments distinguish O placements globally without
+    # changing the accepted C–N and O–N matching constraints.
+    target = graph(['C', 'N', 'N'] + ['O'] * 6 + ['F', 'Cl', 'Br', 'I', 'P', 'S'],
+                   [(0, 1), (0, 2), (small, 3), (small, 4)]
+                   + [(large, oxygen) for oxygen in range(5, 9)]
+                   + [(oxygen, oxygen+6) for oxygen in range(3, 9)])
+    if engine == 'native':
+        from mappa.mappa_core.core.search.branching.native import find_islands_native
+        search = find_islands_native
+    else:
+        search = find_islands
+    full = search(source, target, [0, 1, 2, 3], iso_tol=.1, max_branches=6)
+    capped = search(source, target, [0, 1, 2, 3], iso_tol=.1, max_branches=3)
+    expected = [{0: 0, 1: large, 2: oxygen, 3: small} for oxygen in (3, 4)]
+    assert len(full.terminals) == 6
+    assert [path.mapping for path in capped.paths()] == expected
+    assert all(mapping in [path.mapping for path in full.paths()] for mapping in expected)
+    cap, = [stop for stop in capped.stops if stop.reason == 'capped']
+    assert (cap.stage, cap.seed, cap.count, cap.limit, cap.occurrences) == (
+        'fragment_growth', 2, 4, 3, 1)
+    assert not any(stop.stage == 'combined_live_leaves' for stop in capped.stops)
+
+
 @pytest.mark.parametrize('checkpoint_only', [False, True])
 def test_old_intermediate_cap_checkpoints_cannot_resume(tmp_path, checkpoint_only):
     import json
