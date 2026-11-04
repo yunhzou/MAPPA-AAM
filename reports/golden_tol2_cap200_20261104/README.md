@@ -59,5 +59,10 @@ reaction scope and report both compute CPU and elapsed time.
 The initial 110-worker allocation remained pending and performed no computation.
 At the user's request, it was cancelled and replaced with a 32-worker pool using
 a 2 GiB guard. The input index, scientific settings, source identity and compute
-budgets are unchanged. No benchmark accuracy or performance conclusion is
+budgets are unchanged. The replacement started at 06:30 UTC on 4 November.
+All 32 workers registered in 6.16 seconds. At 06:30:48 UTC, 69 of 3,702 directions
+had completed matching, with 29 tasks running at that snapshot and no reported
+failures. The live plan confirmed tolerance 2, cap 200 and event slack 5; the
+progress record confirmed the 2 GiB guard. Reduction, decoding and verification
+were not yet complete. No benchmark accuracy or performance conclusion is
 available yet.
