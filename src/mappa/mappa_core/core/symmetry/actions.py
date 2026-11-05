@@ -48,8 +48,13 @@ def apply_action(images, action, choice, degree):
                 raise ValueError('placement choice must supply one permutation or a generator word')
             selected = tuple(choice['permutation'])
             if (len(selected) != degree or any(not isinstance(p, Integral) for p in selected)
-                    or sorted(selected) != list(range(degree))
-                    or not permutation_group(data, degree).contains(Permutation(list(selected)))):
+                    or sorted(selected) != list(range(degree))):
+                raise ValueError('placement permutation is outside the saved group')
+            # The unchanged placement belongs to every group. Checking it must
+            # not reconstruct a stabilizer chain for each composed branch.
+            if selected == tuple(range(degree)):
+                return images
+            if not permutation_group(data, degree).contains(Permutation(list(selected))):
                 raise ValueError('placement permutation is outside the saved group')
             return np.asarray(selected)[images]
         for number in choice:

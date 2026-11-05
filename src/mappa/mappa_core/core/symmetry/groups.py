@@ -31,8 +31,11 @@ def pair_orbits(group, size, pairs=None):
     """Only unordered atom pairs are expanded, never complete shuffles."""
     remaining = set(zip(*np.triu_indices(size, 1))) if pairs is None else set(pairs)
     operations = [g.array_form for g in group.generators]
-    while remaining:
-        first = min(remaining)
+    # Visit each possible representative once. Repeatedly finding the minimum
+    # of all remaining pairs is quadratic when most pairs have singleton orbits.
+    for first in sorted(remaining):
+        if first not in remaining:
+            continue
         orbit, pending = {first}, [first]
         while pending:
             i, j = pending.pop()

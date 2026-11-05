@@ -1,6 +1,6 @@
 """Independent mapping oracles for binary structural shuffles."""
 from collections import deque
-from itertools import permutations
+from itertools import combinations, permutations
 
 import numpy as np
 import pytest
@@ -169,3 +169,35 @@ def test_dendrimer_joint_words_match_dense_original_weight_checks():
         assert relation.contains(permutation) == expected
         outcomes.add(expected)
     assert outcomes == {True}
+
+
+@pytest.mark.parametrize('generators', [(), ((1, 2, 3, 4, 0),), ((1, 0, 3, 2, 4),)])
+@pytest.mark.parametrize('selected', [None, ((1, 4), (2, 3))])
+def test_pair_orbits_match_complete_small_group(generators, selected):
+    from mappa.mappa_core.core.symmetry.groups import pair_orbits, permutation_group
+
+    group = permutation_group(generators, 5)
+    choices = broad_words(generators, 5)
+    pairs = set(combinations(range(5), 2) if selected is None else selected)
+    expected = {frozenset(tuple(sorted((choice[a], choice[b]))) for choice in choices)
+                for a, b in pairs}
+    ordered = sorted(expected, key=lambda orbit: min(orbit & pairs))
+    assert list(pair_orbits(group, 5, selected)) == [tuple(sorted(orbit)) for orbit in ordered]
+
+
+def test_placement_identity_avoids_group_search_and_nonidentity_remains_checked(monkeypatch):
+    from mappa.mappa_core.core.symmetry import groups
+    from mappa.mappa_core.core.symmetry.actions import apply_action
+
+    action = ('group', ((1, 0, 3, 2),))
+    images = np.array([0, 2])
+    with monkeypatch.context() as patch:
+        def unnecessary_search(*args):
+            pytest.fail('the identity requires no group construction or membership search')
+        patch.setattr(groups, 'permutation_group', unnecessary_search)
+        assert np.array_equal(apply_action(images, action, {'permutation': (0, 1, 2, 3)}, 4), images)
+    assert tuple(apply_action(images, action, {'permutation': (1, 0, 3, 2)}, 4)) == (1, 3)
+    # Each swap is individually in an atom orbit, but only their joint action
+    # belongs to this placement group.
+    with pytest.raises(ValueError, match='outside the saved group'):
+        apply_action(images, action, {'permutation': (1, 0, 2, 3)}, 4)

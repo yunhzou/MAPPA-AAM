@@ -127,7 +127,40 @@ fresh campaign; the original matching catalogues and stopped attempt are kept.
 
 The allocation started on 2026-11-05 at approximately 07:40 UTC. Explicit input
 conversion precedes worker startup; reserved worker capacity is not decoding
-utilization during that preparation. The pass is currently in progress. Final
-counts, output integrity and timing distributions will be audited after it
-drains. An observed decoding failure stops admission for investigation, rather
-than being silently retried or given a larger resource allowance.
+utilization during that preparation. The full pass was stopped for the further
+performance issue below. No full-set result or timing distribution is claimed.
+
+## Further overhead found during the restart
+
+All 3,702 catalogues converted successfully in 813.129 wall / 794.835 CPU
+seconds, with 402.6 MiB peak RSS. Their checksums, complete two-direction scope
+and declared settings passed inspection; none had zero families. Conversion is
+separate from decoding. All 32 workers registered in 2.898 seconds, and saved
+queue observations confirmed 32 distinct workers executing 32 distinct directions.
+
+Case 862 exceeded four minutes per direction, versus 10.309 / 6.320 seconds in
+the original run. The changed binary-symmetry policy prevents attributing that
+comparison solely to implementation, but the slowdown warranted investigation.
+New admission was stopped after 304 directions entered the pool. Accepted tasks
+drain under their original limits; failures and partial results are retained.
+
+A 45-second profile of 862 forward identified repeated work: 19.043 seconds
+finding the minimum remaining atom pair, and 14.559 seconds checking placement
+group membership. The first repeatedly scanned a shrinking set even when most
+pair orbits were singletons. The second rebuilt group machinery even for the
+identity placement. These are preparation/composition costs, not evidence that
+an exhaustive bond-event table is required.
+
+The follow-up visits potential pair representatives in sorted order once and
+accepts the identity directly, while retaining membership checks for every
+nonidentity permutation. Pair-orbit ordering and the represented choices are
+unchanged. Independent small-group tests check complete pair orbits and reject
+an isolated swap when only the correlated joint swap is allowed. Identical
+80- and 160-atom singleton-pair results took 0.1133 / 1.7752 CPU seconds before,
+and 0.00189 / 0.02047 seconds afterward (60–87 times faster). These component
+measurements are not full-catalogue speedups.
+
+The unchanged follow-up source passed 1,098 repository tests: 1,037 in the first
+suite and 61 worker tests rerun with process/socket access after macOS sandbox
+permission failures. The 108 focused symmetry/decoder tests also passed. Full
+catalogue point validation and a completed full-set pass remain outstanding.
