@@ -25,8 +25,6 @@
   },
   "seed_batch": 10,
   "workers": 32,
-  "nodes": 1,
-  "workers_per_node": 32,
   "allocated_cpus": 40,
   "memory_gib_per_worker": 2,
   "case_seconds": 600,
