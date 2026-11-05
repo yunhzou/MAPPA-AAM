@@ -55,8 +55,9 @@ class RelaxedIsomorphism:
     target_edges: tuple[tuple[int, int], ...]
     graph_floor: float
 
-    def __reduce__(self):
-        return type(self), tuple(getattr(self, item.name) for item in fields(self))
+    def __getstate__(self):
+        """Restore trusted snapshots without reconstructing validated relations."""
+        return {item.name: getattr(self, item.name) for item in fields(self)}
 
     def __post_init__(self):
         witness, anchors = _pairs(self.witness), _pairs(self.anchors)

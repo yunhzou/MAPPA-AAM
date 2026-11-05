@@ -419,6 +419,9 @@ counts. Completed search graphs may be ingested one at a time; the accumulated
 catalogue and provenance still consume memory.
 Restoring a catalogue shares equal immutable mapping, constraint and action
 records while preserving every family's values, action order and provenance.
+Trusted binary transport restores already validated scientific fields without
+repeating construction checks. Reduction reuses immutable fragment hashes and
+prepared transition actions; each saved path still contributes its provenance.
 
 ## Decoding: shared fragment responses and branch queries
 

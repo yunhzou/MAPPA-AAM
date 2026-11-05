@@ -89,8 +89,12 @@ class Fragment:
     def __eq__(self, other):
         return isinstance(other, Fragment) and self.key == other.key
 
-    def __hash__(self):
+    @cached_property
+    def _hash(self):
         return hash(self.key)
+
+    def __hash__(self):
+        return self._hash
 
     def relabel_target(self, action):
         """Transport coordinates and constraints together, without rematching."""

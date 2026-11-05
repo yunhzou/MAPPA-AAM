@@ -176,6 +176,7 @@ def test_binary_catalogue_preserves_shared_preparation_without_record_expansion(
     from mappa import AAMSearchConfig
     from mappa.execution import BundleStore
     from mappa.mappa_core.core.scheduler.results import CatalogueResult
+    from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
     import mappa.mappa_core.core.symmetry.structure as structure
 
     saved = shared_source_catalogue()
@@ -189,6 +190,7 @@ def test_binary_catalogue_preserves_shared_preparation_without_record_expansion(
     with monkeypatch.context() as guard:
         guard.setattr(FinalBranchCatalogue, 'to_record', forbidden)
         guard.setattr(structure, 'structural_generators', forbidden)
+        guard.setattr(RelaxedIsomorphism, '__post_init__', forbidden)
         reference = store.put(CatalogueResult('shared', saved, (), (), AAMSearchConfig(), 'native'))
         del saved
         gc.collect()

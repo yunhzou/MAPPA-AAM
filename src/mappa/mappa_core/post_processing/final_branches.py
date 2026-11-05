@@ -180,7 +180,7 @@ class FinalBranchCatalogue:
         prepared = []
         for kind, value in actions:
             if kind == 'relation':
-                value = self._fragments.setdefault(value.key, value)
+                value = self._fragments.setdefault(value, value)
             elif kind == 'group':
                 # Subgraph searches retain original labels in a shorter frame.
                 if value and len(value[0]) < self.problem.target_atom_count:
@@ -231,7 +231,7 @@ class FinalBranchCatalogue:
         return self.add_graph(aam.graph, archive)
 
     def add_graph(self, graph, archive='in_memory', *, paths=None):
-        pairs = {}
+        pairs, decisions = {}, {}
         for path in graph.paths() if paths is None else paths:
             state = graph.states[path.terminal]
             self.path_count += 1
@@ -242,19 +242,21 @@ class FinalBranchCatalogue:
             branch = self.branches.setdefault((policy, pairs[path.terminal]), set())
             program = []
             for eid in reversed(path.transitions):
-                transition = graph.transitions[eid]
-                fragment = transition.match
-                if fragment is not None:
-                    fragment = self._fragments.setdefault(fragment.key, fragment)
-                    program.append(('relation', fragment))
-                if transition.placement_generators:
-                    program.append(('group', transition.placement_generators))
-            program = self._intern(self._programs, canonical_actions(self.intern_actions(program)))
-            required = self._intern(self._required, tuple(sorted({edge
-                for kind, fragment in program if kind == 'relation' for edge in fragment.accepted_edges})))
+                if eid not in decisions:
+                    transition = graph.transitions[eid]
+                    actions = []
+                    if transition.match is not None:
+                        actions.append(('relation', transition.match))
+                    if transition.placement_generators:
+                        actions.append(('group', transition.placement_generators))
+                    decisions[eid] = self.intern_actions(actions)
+                program.extend(decisions[eid])
+            program = self._intern(self._programs, canonical_actions(program))
             mapping = tuple(sorted(state.mapping))
             key = policy, mapping, program
             if key not in self._family_ids:
+                required = self._intern(self._required, tuple(sorted({edge
+                    for kind, fragment in program if kind == 'relation' for edge in fragment.accepted_edges})))
                 self._family_ids[key] = len(self.families)
                 self.families.append(FinalFamily(mapping, required, program, policy))
             family_id = self._family_ids[key]
