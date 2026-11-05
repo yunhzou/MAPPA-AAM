@@ -5,7 +5,7 @@ from functools import cached_property
 
 import numpy as np
 
-from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents, ProgramMinimum
 from mappa.mappa_core.core.symmetry.minimum import SymmetryWork
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 
@@ -130,30 +130,34 @@ class FragmentEventCounts:
         self._endpoints = {}
 
     @cached_property
-    def direct(self):
+    def prepared_fragment(self):
+        """One complete local response, followed only by cost-preserving moves."""
         actions = self.response.actions
-        if len(actions) != 1 or actions[0][0] != 'relation':
-            return False
+        if not actions or actions[0][0] != 'relation':
+            return None
         fragment = actions[0][1]
-        return (self.response.mapping == fragment.witness
-                and self.response.piece.source_atoms == fragment.source_atoms)
+        if (self.response.mapping == fragment.witness
+                and self.response.piece.source_atoms == fragment.source_atoms
+                and all(self.owner.preserves_weights(action) for action in actions[1:])):
+            return self.owner.decoder.prepare(fragment)
+        return None
+
+    @cached_property
+    def direct(self):
+        return len(self.response.actions) == 1 and self.prepared_fragment is not None
 
     @cached_property
     def program(self):
         owner, response = self.owner, self.response
         if self.direct:
-            return owner.decoder.prepare(response.actions[0][1]).response
+            return self.prepared_fragment.response
         actions = tuple((action, owner.decoder.prepare(action[1]).response if action[0] == 'relation' else None)
                         for action in response.actions)
         # A whole fragment followed only by weight-preserving placements has
         # exactly its prepared internal costs. Placements still move endpoints.
-        if actions and actions[0][0][0] == 'relation':
-            fragment = actions[0][0][1]
-            if (response.mapping == fragment.witness
-                    and response.piece.source_atoms == fragment.source_atoms
-                    and all(owner.preserves_weights(action) for action in response.actions[1:])):
-                return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, (),
-                    projections=((actions[0][1], (0,)),))
+        if self.prepared_fragment is not None:
+            return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, (),
+                projections=((self.prepared_fragment.response, (0,)),))
         terms = tuple((term.atoms, term.response.source_weight, term.response.threshold,
                        term.response.constant) for term in response.terms)
         return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, terms)
@@ -166,9 +170,12 @@ class FragmentEventCounts:
 
     @cached_property
     def minimum_result(self):
-        if self.direct:
-            prepared = self.owner.decoder.prepare(self.response.actions[0][1])
-            return prepared.optimization
+        if self.prepared_fragment is not None:
+            answer = self.prepared_fragment.optimization
+            if self.direct:
+                return answer
+            return ProgramMinimum(answer.witness, self.minimum_choices, answer.event_count,
+                                  answer.lower_bound, answer.complete, 0., SymmetryWork())
         lower, attained = self.bounds
         if lower == attained:
             return self.program.result(np.arange(self.program.size), attained, True, 0., SymmetryWork())
@@ -184,11 +191,13 @@ class FragmentEventCounts:
 
     @property
     def minimum_choices(self):
-        result = self.minimum_result
-        if self.direct:
-            return (dict(discovery=dict(result.discovery_witness),
-                source_permutation=result.source_operation, target_permutation=result.target_operation),)
-        return result.choices
+        if self.prepared_fragment is not None:
+            result = self.prepared_fragment.optimization
+            local = dict(discovery=dict(result.discovery_witness),
+                source_permutation=result.source_operation, target_permutation=result.target_operation)
+            identity = dict(permutation=tuple(range(self.owner.index.m)))
+            return (local,) + (identity,) * (len(self.response.actions) - 1)
+        return self.minimum_result.choices
 
     @property
     def constant(self):

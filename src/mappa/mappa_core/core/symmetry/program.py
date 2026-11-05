@@ -200,7 +200,7 @@ class OrderedSymmetryEvents:
 
     def __getstate__(self):
         return {k:v for k,v in self.__dict__.items()
-                if k not in ('group', 'invariant_group', 'factor_graph', 'pair_program', 'deadline')}
+                if k not in ('group', 'invariant_group', 'factor_graph', 'deadline')}
 
     def __setstate__(self, state):
         self.__dict__.update(state)
@@ -267,55 +267,82 @@ class OrderedSymmetryEvents:
         return ProgramMinimum(witness, choices, count, count if complete else self.fixed_events,
                               complete, seconds, work)
 
-    @cached_property
-    def pair_program(self):
-        """Project the same ordered choices onto two endpoints, retaining proofs.
+    def project_pair(self, prefix, terms, group=None):
+        """Resolve an endpoint-only component, retaining its current choices.
 
         A two-sided fragment acts as D alpha^-1 followed by beta. D may differ
         from the saved discovery after preparation; that fixed change is applied
-        once, never closed into another symmetry group.
+        once. Each remaining group must factor across the ordered action frames;
+        its generators certify that property before projection. Other costs can
+        therefore keep their already selected choices unchanged.
         """
         from mappa._group_ops import PairAction, EndpointPairProgram
+        if (not terms or any(not isinstance(term, EventTerm) for term in terms)
+                or len({tuple(sorted(term.atoms)) for term in terms}) != 1):
+            return None
         degree = len(self.target)
         actions, bindings = [], []
+        restricted = None
+        if group is not None:
+            owners = []
+            for (_, prepared), (start, _, size) in zip(self.actions, self.frames):
+                parts = 2 if prepared is not None and prepared.two_sided else 1
+                owners.extend(start + i // (size // parts) * (size // parts) for i in range(size))
+            restricted = {}
+            for generator in group.generators:
+                images = generator.array_form
+                moved = {owners[i] for i,p in enumerate(images) if i != p}
+                if len(moved) > 1:
+                    return None
+                if moved:
+                    restricted.setdefault(moved.pop(), []).append(images)
 
-        def group(generators, atoms, start, inverse=False):
+        def fixed(operation):
+            if np.any(operation != np.arange(degree)):
+                actions.append(PairAction.permutation(operation.tolist()))
+                bindings.append(None)
+
+        def append_group(generators, atoms, start, inverse=False):
+            if restricted is not None:
+                generators = ([p-start for p in g[start:start+len(atoms)]]
+                              for g in restricted.get(start, ()))
+            current = np.asarray(prefix[start:start+len(atoms)]) - start
+            operation = np.arange(degree)
+            operation[list(atoms)] = [atoms[int(p)] for p in (np.argsort(current) if inverse else current)]
+            if inverse:
+                fixed(operation)
             expanded = []
             for generator in generators:
-                operation = np.arange(degree)
+                transport = np.arange(degree)
                 images = np.argsort(generator) if inverse else generator
-                operation[list(atoms)] = [atoms[int(p)] for p in images]
-                expanded.append(operation.tolist())
+                transport[list(atoms)] = [atoms[int(p)] for p in images]
+                expanded.append(transport.tolist())
             actions.append(PairAction.group(degree, expanded))
             bindings.append((start, tuple(atoms), inverse))
+            if not inverse:
+                fixed(operation)
 
         for ((kind, data), prepared), (start, atoms, _) in zip(self.actions, self.frames):
             if kind == 'group':
                 positions = {a:i for i,a in enumerate(atoms)}
-                group(([positions[g[a]] for a in atoms] for g in data), atoms, start)
+                append_group(([positions[g[a]] for a in atoms] for g in data), atoms, start)
                 continue
             selected = dict(prepared.fragment.witness)
             change = np.arange(degree)
             for atom, image in data.witness:
                 change[image] = selected[atom]
-            if np.any(change != np.arange(degree)):
-                actions.append(PairAction.permutation(change.tolist()))
-                bindings.append(None)
+            fixed(change)
             coordinates = tuple(selected[a] for a in prepared.fragment.source_atoms)
             if prepared.two_sided:
-                group(prepared.fragment.source_symmetry.generators, coordinates, start, inverse=True)
+                append_group(prepared.fragment.source_symmetry.generators, coordinates, start, inverse=True)
                 start += len(coordinates)
             positions = {a:i for i,a in enumerate(prepared.fragment.target_atoms)}
             aligned = {a:i for i,a in enumerate(coordinates)}
-            group(([aligned[prepared.fragment.target_atoms[g[positions[a]]]] for a in coordinates]
+            append_group(([aligned[prepared.fragment.target_atoms[g[positions[a]]]] for a in coordinates]
                    for g in prepared.fragment.target_symmetry.generators), coordinates, start)
-        return EndpointPairProgram(degree, actions), tuple(bindings)
-
-    def _pair_minimum(self, started):
-        """Only endpoint costs vary; internal costs have already been prepared."""
-        atoms = self.pairs[0].atoms
+        atoms = terms[0].atoms
         costs = np.zeros(self.target.shape, dtype=np.int32)
-        for term in self.pairs:
+        for term in terms:
             if term.excluded_pairs is None:
                 costs += np.abs(term.weight - self.target) > term.threshold
             else:
@@ -324,10 +351,10 @@ class OrderedSymmetryEvents:
                     costs[a,b] -= 1
                     if a != b:
                         costs[b,a] -= 1
-        program, bindings = self.pair_program
+        program = EndpointPairProgram(degree, actions)
         base = dict(self.base)
         count, operations, visited = program.minimum(tuple(base[a] for a in atoms), costs)
-        prefix = np.arange(self.size)
+        selected = prefix.copy()
         for binding, operation in zip(bindings, operations):
             if binding is None:
                 continue
@@ -336,11 +363,8 @@ class OrderedSymmetryEvents:
             local = [positions[operation[a]] for a in atoms]
             if inverse:
                 local = np.argsort(local)
-            prefix[start:start + len(atoms)] = start + np.asarray(local, dtype=int)
-        count += self.fixed_events
-        work = SymmetryWork(nodes=visited, score_evaluations=1,
-                            bond_comparisons=int(costs.size * len(self.pairs)))
-        return self.result(prefix, count, True, perf_counter() - started, work)
+            selected[start:start + len(atoms)] = prefix[start + np.asarray(local, dtype=int)]
+        return count, selected, visited
 
     def solve(self, *, seconds=5., max_nodes=10000, cache_entries=2048):
         started = perf_counter()
@@ -349,9 +373,11 @@ class OrderedSymmetryEvents:
             if not self.pairs:
                 return self.result(np.arange(self.size), self.fixed_events, True,
                                    perf_counter() - started, SymmetryWork())
-            if (all(isinstance(term, EventTerm) for term in self.pairs)
-                    and len({tuple(sorted(term.atoms)) for term in self.pairs}) == 1):
-                return self._pair_minimum(started)
+            projection = self.project_pair(np.arange(self.size), self.pairs)
+            if projection is not None:
+                count, prefix, visited = projection
+                return self.result(prefix, self.fixed_events + count, True, perf_counter() - started,
+                                   SymmetryWork(projected_pair_states=visited))
             return _Search(self, max_nodes, cache_entries).run()
         finally:
             self.deadline = None

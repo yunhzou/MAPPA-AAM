@@ -127,6 +127,29 @@ def test_attained_contextual_bound_does_not_repeat_minimum_search(monkeypatch):
     assert counts.minimum_result.complete and counts.minimum == 0
 
 
+def test_weight_preserving_placement_reuses_a_variable_fragment_minimum(monkeypatch):
+    from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+
+    source_weights, target_weights = (2.,2.,1.,1.,1.,1.), (2.,1.,2.,1.,1.,1.)
+    def rings(values):
+        return endpoint('C'*12, [(offset+i, offset+(i+1)%6, weight)
+            for offset in (0,6) for i,weight in enumerate(values)])
+    r, p = rings(source_weights), rings(target_weights)
+    fragment = saved_fragment(AAMProblem(r,p), source_atoms=range(6),
+                              accepted_edges=tuple((i,(i+1)%6) for i in range(6)))
+    source = saved(r,p,dict(enumerate(range(6))),fragments=(fragment,),
+                   pairs=((tuple(range(6)),tuple(range(6))),))
+    source.families[0] = replace(source.families[0], actions=source.families[0].actions +
+                                (('group', (tuple((i+6)%12 for i in range(12)),)),))
+    monkeypatch.setattr(OrderedSymmetryEvents, 'solve',
+        lambda *a, **k: pytest.fail('cost-preserving placements repeated the prepared fragment minimum'))
+    decoded = decode_events(source)
+    counts = decoded.tables(0).fragment_responses[0][0].event_counts
+    assert counts.program.pairs and not counts.direct
+    assert counts.minimum == 2 and counts.minimum_proven
+    assert decoded.contributions(0, counts.minimum_choices)['total'] == 2
+
+
 def test_minimum_at_initial_upper_endpoint_is_retained():
     r, p = endpoint('CCC', [(0, 1, 1.)]), endpoint('CCC', [(0, 2, 1.)])
     source = saved(r, p, {0: 0, 1: 1, 2: 2},

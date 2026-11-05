@@ -28,6 +28,7 @@ def check_deadline(deadline):
 @dataclass
 class SymmetryWork:
     nodes: int = 0
+    projected_pair_states: int = 0
     score_evaluations: int = 0
     bond_comparisons: int = 0
     cache_hits: int = 0
@@ -436,6 +437,13 @@ class _Search:
         if self.stopped():
             return _Answer(initial,
                 tuple((i, int(prefix[i])) for i in support(group)), False)
+        project = getattr(self.data, 'project_pair', None)
+        if project is not None:
+            projected = project(prefix, pairs, group)
+            if projected is not None:
+                cost, images, visited = projected
+                self.work.projected_pair_states += visited
+                return _Answer(cost, tuple((i, int(images[i])) for i in support(group)), True)
         key, (moved, factors, point) = self._metadata(group)
         relevant = sorted(set(moved).union(atom for pair in pairs for atom in pair))
         answer_key = key, pairs, tuple(int(prefix[i]) for i in relevant)

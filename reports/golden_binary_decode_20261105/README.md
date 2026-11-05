@@ -214,3 +214,20 @@ and successive actions retain their order. No complete permutation group or
 mapping table is expanded. Independent small-graph enumeration validates counts
 and witnesses for both-sided symmetry, changed discoveries, occupancy and ordered
 placements; the ring test now forbids a full symmetry search for its sweep.
+
+Revision `719225b` passed 177 focused Linux checks. Its identical pilot completed
+35/36 directions, with only 607 forward reaching 120 seconds; no memory failures
+or retries occurred. The largest successful direction was 1606 reverse at
+105.259 seconds. Complete-scope pilot CPU was 834.529 seconds over the 35
+successes, with publication measured separately. These totals have a different
+successful denominator from the earlier 23-direction pilots.
+
+A 60-second sample of 607 forward found two further repetitions: an already
+prepared variable fragment minimum was solved again after weight-preserving
+placements, and an endpoint-only component inside a mixed-cost program did not
+use pair projection. The follow-up reuses that fragment's minimum, witness and
+proof status directly. Pair projection also accepts an independent search
+component with its current fixed choices; it requires a generator certificate
+that the remaining group factors across ordered action frames. Other components
+keep their choices, and cross-action constraints remain joint. Small complete
+coset oracles and a variable weighted-ring example test these conditions.

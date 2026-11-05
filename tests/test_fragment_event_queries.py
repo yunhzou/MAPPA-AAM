@@ -152,11 +152,34 @@ def test_pair_minimum_reuses_ordered_binary_choices_without_group_search(seed, m
     images = tuple(dict(answer.witness)[a] for a in range(4))
     assert answer.complete and answer.event_count == answer.lower_bound == min(expected.values())
     assert expected[images] == answer.event_count
-    assert answer.work.nodes <= 5 * 4 * 3
+    assert 0 < answer.work.projected_pair_states <= 5 * 4 * 3 and answer.work.nodes == 0
     realized = np.arange(4)
     for (action, _), choice in zip(actions, answer.choices):
         realized = apply_action(realized, action, choice, 4)
     assert tuple(realized) == images
+
+    # A component reached after other choices were fixed must retain those
+    # choices. Compare its exact coset with the independently enumerated group.
+    operations = list(response.group.generate_schreier_sims())
+    prefix = np.asarray(operations[-1].array_form)
+    subgroup = response.group.stabilizer(seed % response.size)
+    cost, selected, _ = response.project_pair(prefix, response.pairs, subgroup)
+    allowed = [prefix[np.asarray(g.array_form)] for g in subgroup.generate_schreier_sims()]
+    counts = [response.score(p, response.pairs) for p in allowed]
+    assert cost == min(counts) == response.score(selected, response.pairs)
+    assert any(np.array_equal(selected, p) for p in allowed)
+
+
+def test_pair_projection_keeps_a_cross_action_constraint_joint():
+    from mappa.mappa_core.core.symmetry.groups import permutation_group
+    target = weights(3, [(0,1,1.)])
+    actions = ((('group', ((1,0,2),)), None), (('group', ((0,2,1),)), None))
+    response = OrderedSymmetryEvents(tuple(enumerate(range(3))), actions, target,
+                                    (((0,1), 1., .5, None),))
+    # Choosing both swaps together is a subgroup, but not a direct product of
+    # the action frames. Pair projection must not introduce either swap alone.
+    joined = permutation_group([(1,0,3,2)],4)
+    assert response.project_pair(np.arange(4), response.pairs, joined) is None
 
 
 def test_native_pair_minimum_preserves_pool_occupancy_and_fixed_action_order():
