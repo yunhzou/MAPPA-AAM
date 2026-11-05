@@ -46,7 +46,7 @@ All **3,702 directions completed matching, reduction and decoding successfully**
 The full run is terminal, including external verification: **1,834/1,851 reactions
 recovered (99.08%)**, counting either direction, and **17 not recovered**.
 
-External verification produced **3,629 recovered, 69 not recovered, one unknown
+The original external verification produced **3,629 recovered, 69 not recovered, one unknown
 and three timed-out directions**. The unknown is 561 reverse. The 600-second
 compute timeouts are **1351 reverse, 1799 reverse and 1801 reverse**; each used
 approximately 600 sampled CPU seconds and 0.26–0.32 GiB sampled memory. All four
@@ -116,6 +116,67 @@ The completed-fragment cache recorded **65,898,673 hits / 74,281,547 calls
 (88.71%)**, with no cache errors or baseline-recovery loads. Aggregate cache
 loading and saving took 447.725 and 205.778 worker wall seconds respectively;
 these costs are already included in the stage measurements.
+
+## Verification-only acceleration
+
+Revision [`b93591e`](https://github.com/yunhzou/MAPPA-AAM/commit/b93591ee493741466efc71aa81ddc70fb8469586)
+accelerates the shared saved-family membership query. It batches finite
+constraints into the native solver, uses its finite-domain engine and removes
+only self actions certified to be already covered by discovery. Reference
+identity, unmatched atoms, joint constraints and returned mapping witnesses retain
+their meaning. Matching and decoding were neither changed nor rerun.
+
+All **3,702 saved catalogues** were verified again in one persistent 64-worker
+pool, with the same **2 GiB guard and 600-second direction allowance**. This was
+a separately recorded measurement, not a retry that overwrote the original
+campaign. All original 14,808 stage rows remain hash-identical. The audit checked
+every task's catalogue/reference identity, output checksum and single attempt;
+the final queue is empty.
+
+All **3,698 previously conclusive answers agree**. The new pass returns
+**3,632 recovered and 70 not recovered directions**, with **zero unknowns,
+timeouts, memory failures or retries**. Reaction-level recovery remains
+**1,834/1,851 (99.08%)**.
+
+| Previously unresolved direction | New result | New compute CPU seconds |
+|---|---|---:|
+| 561 reverse | Recovered | 3.208 |
+| 1351 reverse | Not recovered | 182.224 |
+| 1799 reverse | Recovered | 6.134 |
+| 1801 reverse | Recovered | 3.315 |
+
+The three former failures each exhausted 600 compute seconds; 561 reverse was
+previously an inconclusive family-query result. Non-recovery here means absence
+from the saved capped matching catalogue, not absence of a chemically valid map.
+
+| Verification measure | Original | Optimized |
+|---|---:|---:|
+| CPU seconds, same 3,698 conclusive directions | 4,358.311 | 1,497.043 |
+| CPU seconds, all attempts | 6,169.447 | 1,691.924 |
+| Compute workers | 128 | 64 |
+| Recorded elapsed seconds | 603.718 verification stage | 194.173 whole verification pool |
+
+The common conclusive scope uses **2.91× less CPU**. Total recorded CPU is
+**3.65× lower**, including sampled CPU from the original timeouts; the new pass
+also establishes four additional conclusive outcomes. The new pool elapsed time
+includes 5.629 seconds of startup. Its actual task interval is 186.187 seconds,
+with 64 simultaneously running tasks. The allocation completed in 201 seconds.
+CPU totals exclude publication, which added 4.631 CPU seconds in the new pass.
+
+The maximum direction verification took **182.224 seconds**, for 1351 reverse; median and 99th
+percentile CPU were **0.223 and 2.718 seconds**. Peak sampled worker memory was
+**0.279 GiB**. Individual directions are not uniformly faster: three took over
+one extra CPU second, with a largest increase of 2.638 seconds (575 reverse).
+The cluster comparison uses separate allocations. An identical ten-family
+paired test on one Mac took **6.491 → 0.683 CPU seconds (9.51×)** with identical
+answers; this small hard-query sample is not the full-dataset speedup.
+
+Validation passed **205 affected tests**, **26 smoke tests**, and **42 Linux
+query tests**, including independent finite mapping oracles and reconstruction
+of valid witnesses after symmetry simplification. Both Golden and EnzymeMap use
+the accelerated query engine; these performance numbers measure Golden only.
+The existing JSON and compressed direction records retain the original evidence
+and add the follow-up under `verification_acceleration`.
 
 ## Completion audit and evidence
 

@@ -11518,5 +11518,208 @@
   ],
   "verification_unknowns": [
     "00561/reverse"
-  ]
+  ],
+  "verification_acceleration": {
+    "directions": 3702,
+    "statuses": {
+      "recovered": 3632,
+      "not_recovered": 70
+    },
+    "attempts": 3702,
+    "retries": 0,
+    "original_rows_unchanged": true,
+    "scope_and_blob_checks": true,
+    "cpu_seconds": 1691.9236479440021,
+    "publish_cpu_seconds": 4.6309981589999705,
+    "maximum_cpu_seconds": 182.223506098,
+    "maximum_wall_seconds": 182.22430977714248,
+    "maximum_memory_bytes": 299618304,
+    "task_interval_seconds": 186.18695855140686,
+    "actual_peak_overlap": 64,
+    "pool_elapsed_seconds": 194.17331558396108,
+    "ready_workers": 64,
+    "source_commit": "b93591ee493741466efc71aa81ddc70fb8469586",
+    "schema": "mappa.verification_acceleration/v1",
+    "reference_policy_unchanged": true,
+    "original_source_commit": "e4e15608c9a8bfedee518fa3abb24fd2c5c6f118",
+    "linux_source_identity": "d97de79ee9f07a0763e34e5e23ad7a1781061b610264ec0726e4fd55bb0f610e",
+    "reaction_recovered": 1834,
+    "reaction_not_recovered": 17,
+    "memory_gib_per_worker": 2,
+    "case_seconds": 600,
+    "common_conclusive_directions": 3698,
+    "common_conclusive_cpu_before": 4358.311026304001,
+    "common_conclusive_cpu_after": 1497.042698399,
+    "common_conclusive_speedup": 2.911280373609223,
+    "original_successful_cpu_seconds": 4369.616615899,
+    "original_failed_sampled_cpu_seconds": 1799.83,
+    "total_recorded_cpu_speedup": 3.646409590288551,
+    "allocation_seconds": 201,
+    "allocated_cpus": 80,
+    "accounted_cpu_seconds": 1816.372,
+    "resolved_directions": [
+      {
+        "name": "00561/reverse",
+        "before": "unknown",
+        "after": "recovered",
+        "cpu_seconds": 3.208121094999999
+      },
+      {
+        "name": "01351/reverse",
+        "before": "error",
+        "after": "not_recovered",
+        "cpu_seconds": 182.223506098
+      },
+      {
+        "name": "01799/reverse",
+        "before": "error",
+        "after": "recovered",
+        "cpu_seconds": 6.133835794
+      },
+      {
+        "name": "01801/reverse",
+        "before": "error",
+        "after": "recovered",
+        "cpu_seconds": 3.315486558
+      }
+    ],
+    "local_paired_timing": {
+      "original": {
+        "cpu_seconds": 6.4906120000000005,
+        "wall_seconds": 6.493255584035069,
+        "answers": [
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered"
+        ]
+      },
+      "optimized": {
+        "cpu_seconds": 0.6827139999999998,
+        "wall_seconds": 0.6826339999679476,
+        "answers": [
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered",
+          "not_recovered"
+        ]
+      }
+    },
+    "local_selected_cases": {
+      "1351/forward": {
+        "status": "recovered",
+        "cpu_seconds": 1.9151580000000001,
+        "wall_seconds": 1.9190968330949545,
+        "peak_rss_bytes": 186777600
+      },
+      "1351/reverse": {
+        "status": "not_recovered",
+        "cpu_seconds": 119.796076,
+        "wall_seconds": 119.79956737486646,
+        "peak_rss_bytes": 267485184
+      },
+      "1799/forward": {
+        "status": "recovered",
+        "cpu_seconds": 4.630205999999999,
+        "wall_seconds": 4.635372957913205,
+        "peak_rss_bytes": 380747776
+      },
+      "1799/reverse": {
+        "status": "recovered",
+        "cpu_seconds": 2.7445269999999997,
+        "wall_seconds": 2.7472189581021667,
+        "peak_rss_bytes": 295829504
+      },
+      "1801/forward": {
+        "status": "recovered",
+        "cpu_seconds": 1.7575150000000002,
+        "wall_seconds": 1.7582849590107799,
+        "peak_rss_bytes": 303431680
+      },
+      "1801/reverse": {
+        "status": "recovered",
+        "cpu_seconds": 2.2859079999999996,
+        "wall_seconds": 2.2875048329588026,
+        "peak_rss_bytes": 275939328
+      },
+      "561/forward": {
+        "status": "recovered",
+        "cpu_seconds": 1.31459,
+        "wall_seconds": 1.3154539579991251,
+        "peak_rss_bytes": 276529152
+      },
+      "561/reverse": {
+        "status": "recovered",
+        "cpu_seconds": 1.5416349999999994,
+        "wall_seconds": 1.542408874956891,
+        "peak_rss_bytes": 343212032
+      },
+      "1800/forward": {
+        "status": "recovered",
+        "cpu_seconds": 3.0100999999999996,
+        "wall_seconds": 3.0128296248149127,
+        "peak_rss_bytes": 352944128
+      },
+      "1800/reverse": {
+        "status": "recovered",
+        "cpu_seconds": 1.8110779999999993,
+        "wall_seconds": 1.813086458016187,
+        "peak_rss_bytes": 289800192
+      },
+      "952/forward": {
+        "status": "recovered",
+        "cpu_seconds": 0.6759070000000005,
+        "wall_seconds": 0.6767858339007944,
+        "peak_rss_bytes": 339558400
+      },
+      "952/reverse": {
+        "status": "recovered",
+        "cpu_seconds": 27.773287000000003,
+        "wall_seconds": 27.77869604085572,
+        "peak_rss_bytes": 328220672
+      }
+    },
+    "validation": {
+      "affected_tests": 205,
+      "smoke_tests": 26,
+      "linux_query_tests": 42
+    },
+    "before_stage_elapsed_seconds": 603.7184416609816,
+    "cpu_distribution_seconds": {
+      "median": 0.22318476600000103,
+      "p90": 0.8620023740000002,
+      "p95": 1.34333786065,
+      "p99": 2.7175454853899845,
+      "max": 182.223506098
+    },
+    "directions_slower_by_over_one_cpu_second": [
+      {
+        "name": "00575/reverse",
+        "before": 19.085620894,
+        "after": 21.723388971
+      },
+      {
+        "name": "00924/reverse",
+        "before": 8.803284327,
+        "after": 10.732518929
+      },
+      {
+        "name": "00838/reverse",
+        "before": 3.419188754000004,
+        "after": 4.954332647999998
+      }
+    ]
+  }
 }
