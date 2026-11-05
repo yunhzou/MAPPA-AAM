@@ -1,0 +1,75 @@
+{
+  "cases": [
+    1654,
+    1606
+  ],
+  "selection": "Two largest combined-direction matching CPU totals in the completed full ten-seed run; separate from the prespecified size-quantile sample.",
+  "repetitions": 1,
+  "directions": 12,
+  "all_per_cut_catalogues_scope_and_caps_equal": true,
+  "cpu_models": [
+    "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "rows": [
+    {
+      "case": 1654,
+      "cache_mib": 64,
+      "matching_cpu_seconds": 101.97833154199995,
+      "evictions": 214080,
+      "cache_hits": 968892,
+      "cache_calls": 1196720,
+      "max_retained_bytes": 67108864,
+      "peak_sampled_process_bytes": 238768128
+    },
+    {
+      "case": 1654,
+      "cache_mib": 256,
+      "matching_cpu_seconds": 101.15657121599995,
+      "evictions": 169924,
+      "cache_hits": 971715,
+      "cache_calls": 1196720,
+      "max_retained_bytes": 268435456,
+      "peak_sampled_process_bytes": 449314816
+    },
+    {
+      "case": 1654,
+      "cache_mib": 1024,
+      "matching_cpu_seconds": 97.43488769700002,
+      "evictions": 20136,
+      "cache_hits": 973605,
+      "cache_calls": 1196720,
+      "max_retained_bytes": 1073741824,
+      "peak_sampled_process_bytes": 1269805056
+    },
+    {
+      "case": 1606,
+      "cache_mib": 64,
+      "matching_cpu_seconds": 94.1494278529999,
+      "evictions": 360169,
+      "cache_hits": 7784254,
+      "cache_calls": 8163134,
+      "max_retained_bytes": 67108864,
+      "peak_sampled_process_bytes": 188428288
+    },
+    {
+      "case": 1606,
+      "cache_mib": 256,
+      "matching_cpu_seconds": 92.20804007999999,
+      "evictions": 296282,
+      "cache_hits": 7790622,
+      "cache_calls": 8163134,
+      "max_retained_bytes": 268435456,
+      "peak_sampled_process_bytes": 424955904
+    },
+    {
+      "case": 1606,
+      "cache_mib": 1024,
+      "matching_cpu_seconds": 87.98492050299998,
+      "evictions": 60091,
+      "cache_hits": 7794996,
+      "cache_calls": 8163134,
+      "max_retained_bytes": 1073741824,
+      "peak_sampled_process_bytes": 1328558080
+    }
+  ]
+}

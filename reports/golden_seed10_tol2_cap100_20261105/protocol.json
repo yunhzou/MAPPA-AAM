@@ -189,7 +189,7 @@
     "direction_seconds": 600
   },
   "original_inputs_unchanged": true,
-  "status": "matching and reduction complete; decoding running",
+  "status": "Stopped for reduction repair; matching/reduction complete; 12 decode memory failures; one verification unfinished",
   "linux_source_identity": "0481b8e242049b1f27ece52626f92850b0c2c72ca24b99f8a74d5e813a0ee5e4",
   "input_index_sha256": "e9b65cd4155a3bab893449cd3db8cedf14a36b6e601cbabfb37c0d26414c9470",
   "completed_directions": 0,
@@ -373,8 +373,30 @@
     "repetitions": 1,
     "expected_direction_runs": 12,
     "comparison": "Same complete search plan; exact catalogue signature independently per cut",
-    "status": "submitted",
+    "status": "complete; all per-cut scientific signatures equal",
     "process_memory_gib": 2,
-    "watchdog_seconds": 600
+    "watchdog_seconds": 600,
+    "completed_direction_runs": 12
+  },
+  "stop": {
+    "requested_by_user": true,
+    "matching_complete": 3702,
+    "reduction_complete": 3702,
+    "decoding_complete": 3690,
+    "decode_memory_failures": 12,
+    "verification_complete": 3701,
+    "verification_unfinished": 1,
+    "retries": 0
+  },
+  "reduction_repair": {
+    "revision": "cb2a4005a33749f4c9f9e1bf433f37e1449a40a2",
+    "complete_catalogue_comparisons": 12,
+    "cases": [
+      190,
+      1561,
+      1654,
+      1841
+    ],
+    "production_benchmark_restarted": false
   }
 }

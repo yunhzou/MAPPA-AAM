@@ -1,0 +1,114 @@
+{
+  "baseline_revision": "b51661d766fc4549aece850a3e5f62e7c1ae230d",
+  "repair_revision": "cb2a4005a33749f4c9f9e1bf433f37e1449a40a2",
+  "repair_source_identity": "4d2425cfb2d0634674789f4f00451353f12f141260a6aeb84bf339d822877a6b",
+  "cases": [
+    {
+      "case": 190,
+      "direction": "forward",
+      "before_cpu_seconds": 0.23395495899999996,
+      "after_cpu_seconds_median": 0.11878740899999984,
+      "after_cpu_seconds_range": [
+        0.11814870900000018,
+        0.12059615000000012
+      ],
+      "observed_speedup": 1.969526576676155,
+      "before_load_cpu_seconds": 0.18006551800000015,
+      "after_load_cpu_seconds_median": 0.0663691529999999,
+      "full_record_sha256": "9608edf5b6cf4c9851c3e3f344b5cd5e63f0967454ce8acedbe250168979c16e",
+      "counts": {
+        "paths": 334,
+        "families": 261,
+        "branches": 74,
+        "fragments": 169,
+        "programs": 261,
+        "placements": 12,
+        "actions": 181,
+        "provenances": 334
+      }
+    },
+    {
+      "case": 1561,
+      "direction": "forward",
+      "before_cpu_seconds": 38.913418772,
+      "after_cpu_seconds_median": 30.371387071,
+      "after_cpu_seconds_range": [
+        30.100562167999982,
+        30.383393043000012
+      ],
+      "observed_speedup": 1.2812526040062333,
+      "before_load_cpu_seconds": 13.196092089999983,
+      "after_load_cpu_seconds_median": 10.836482375000145,
+      "full_record_sha256": "5353e6fa6da5cc9189e6d9348a7dd6f0886e63f08a9081a91d228bbbf6e29eb0",
+      "counts": {
+        "paths": 94717,
+        "families": 91763,
+        "branches": 85361,
+        "fragments": 6631,
+        "programs": 91763,
+        "placements": 181,
+        "actions": 6812,
+        "provenances": 94717
+      }
+    },
+    {
+      "case": 1654,
+      "direction": "forward",
+      "before_cpu_seconds": 26.977425557,
+      "after_cpu_seconds_median": 8.898550164999989,
+      "after_cpu_seconds_range": [
+        8.767184729999997,
+        9.055174085999994
+      ],
+      "observed_speedup": 3.0316652776885293,
+      "before_load_cpu_seconds": 15.042594021999994,
+      "after_load_cpu_seconds_median": 4.508487591999739,
+      "full_record_sha256": "eaf550f175a04d13a7030533e1ddbd62fba5a0dcc537e025422aed977d38fd1e",
+      "counts": {
+        "paths": 18705,
+        "families": 18328,
+        "branches": 16198,
+        "fragments": 5588,
+        "programs": 18328,
+        "placements": 860,
+        "actions": 6448,
+        "provenances": 18705
+      }
+    },
+    {
+      "case": 1841,
+      "direction": "forward",
+      "before_cpu_seconds": 10.597773331,
+      "after_cpu_seconds_median": 8.293421731999999,
+      "after_cpu_seconds_range": [
+        7.844137803000002,
+        8.307349481
+      ],
+      "observed_speedup": 1.2778529385655992,
+      "before_load_cpu_seconds": 3.726674661999998,
+      "after_load_cpu_seconds_median": 2.4417013569999924,
+      "full_record_sha256": "1da4dd532e5d316b921205c4143bed7f0b8eae5dd40b0bb46f326d80d20c79a1",
+      "counts": {
+        "paths": 23489,
+        "families": 21910,
+        "branches": 15932,
+        "fragments": 1458,
+        "programs": 21910,
+        "placements": 107,
+        "actions": 1565,
+        "provenances": 23489
+      }
+    }
+  ],
+  "full_record_equal_comparisons": 12,
+  "baseline_repetitions": 1,
+  "repair_repetitions": 3,
+  "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+  "memory_guard_bytes": 2147483648,
+  "measurement_scope": "Identical saved searches, with fresh binary snapshots for the new transport. Reserialization and full-record auditing are excluded from reduction timings. Baseline and repair use separate allocations; observed point-test speedups are not a full-run projection. Sampled peak memory in raw repaired observations includes conversion and equality auditing.",
+  "validation": {
+    "affected_checks_passed": 169,
+    "smoke_checks_passed": 26,
+    "linux_complete_catalogue_comparisons": 12
+  }
+}

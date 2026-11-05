@@ -7,12 +7,14 @@ inputs. The comparison is the [one-seed full run](../golden_tol2_cap100_20261105
 which recovered **1,834/1,851 reactions**. Source revision:
 [`b51661d`](https://github.com/yunhzou/MAPPA-AAM/commit/b51661d766fc4549aece850a3e5f62e7c1ae230d).
 
-**Status:** all 3,702 directions have completed matching and reduction without
-failures; decoding is running with observed memory-limit failures. All 32 workers registered in 6.05 seconds. The
-384 cache-control runs and 192 paired scientific checks are complete. Full-run
-recovery and final timing remain pending. The first decode failures are 1654
-forward/reverse and 1655 forward at the unchanged 2 GiB guard; no retries have
-been granted. These are resource failures, not mapping absences.
+**Status:** stopped at the user's request to repair observed overhead before
+further benchmarking. All 3,702 directions completed matching and reduction.
+Decoding produced 3,690 successful outputs and 12 memory-limit failures at the
+unchanged 2 GiB guard. Reference verification published 3,701 of 3,702 checks;
+the last check was interrupted. No retries were granted. The campaign is not
+fully complete, and resource failures are not mapping absences. All 32 workers
+registered in 6.05 seconds. The 384 cache-control runs and 192 paired scientific
+checks are complete; their conclusions remain separate from this stopped run.
 
 ## Full-run protocol
 
@@ -135,10 +137,22 @@ settings and resource limits. The original owner was confirmed unstarted and
 cancelled before replacement; no work was duplicated.
 
 The two reactions with the largest full-run matching CPU totals, **1654 and
-1606**, are being tested separately at the same three cache limits. This targeted
-extreme-case check is separate from the prespecified eight-case scaling sample.
-It compares exact per-cut catalogue signatures without retaining a whole-direction
-catalogue during matching; results are pending.
+1606**, also completed all 12 targeted capacity arms with identical exact
+per-cut catalogue, scope and cap signatures. These are separate exploratory
+point tests, one measurement per arm, not part of the prespecified sample.
+They retain only one cut's comparison catalogue at a time while the native
+fragment cache persists across cuts.
+
+| Case, both directions | 64 MiB CPU (s) | 256 MiB CPU (s) | 1 GiB CPU (s) |
+|---|---:|---:|---:|
+| 1654 | 101.978 | 101.157 | 97.435 |
+| 1606 | 94.149 | 92.208 | 87.985 |
+
+The 1 GiB limit reduces observed matching CPU by **4.5% and 6.5%**, respectively.
+Some evictions remain at 1 GiB. This does not support a large capacity-driven
+speedup even on the two slowest matching reactions. It does not establish that
+64 MiB is optimal for every possible reaction. [Raw evidence](cache-capacity-heavy.json.gz)
+and [summary](cache-capacity-heavy-summary.json) preserve timings and memory.
 
 ## Completed full-run matching and reduction
 
@@ -159,7 +173,66 @@ written across the run. These summed worker times are not elapsed campaign time.
 There were no cache-load/save errors or baseline-recovery loads. Increasing
 capacity can add snapshot cost, which the isolated capacity timings exclude.
 
+## Reduction repair
+
+The [baseline profile](reduction-profile.json.gz) separates saved-graph loading
+from catalogue construction. In case 1654 forward, loading used 15.04 of 26.98
+unprofiled CPU-seconds. Instrumented profiles locate repeated relation
+construction checks during loading, plus repeated fragment hashing and action
+preparation during catalogue ingestion. Profiling adds overhead; its absolute
+times are not used in the comparison below.
+
+Revision [`cb2a400`](https://github.com/yunhzou/MAPPA-AAM/commit/cb2a4005a33749f4c9f9e1bf433f37e1449a40a2)
+restores trusted binary scientific fields without rerunning constructor checks,
+reuses immutable fragment hashes and prepares each referenced graph transition
+once per ingestion. Required-edge records are constructed only for new families.
+Public construction still validates input. Fragment permissions, action ordering,
+deduplication identity and every provenance entry are unchanged.
+
+| Case, forward | Before CPU (s) | After median CPU (s) | Observed speedup |
+|---|---:|---:|---:|
+| 190 | 0.234 | 0.119 | 1.97× |
+| 1841 | 10.598 | 8.293 | 1.28× |
+| 1561 | 38.913 | 30.371 | 1.28× |
+| 1654 | 26.977 | 8.899 | 3.03× |
+
+All **12 complete-record comparisons** pass: four directions, three repetitions
+each, retaining exactly the original branches, fragment constraints, action
+order and provenance. Case 1561 contains 94,717 input paths, 91,763 retained
+families and 6,631 unique fragments. This repair removes redundant preparation;
+processing its large retained output still has a cost.
+
+The baseline has one unprofiled observation per case; the repair reports three
+repetitions. Both use the same CPU model in separate allocations. Searches were
+not repeated. The unchanged saved graphs were republished to exercise the new
+binary transport; that conversion and complete-record auditing are outside the
+timed reduction. Existing old snapshots still invoke their original constructor
+restoration until republished. Raw process memory includes conversion and audit,
+not just reduction. Every validation retained the 2 GiB guard and completed.
+These point timings do not establish a full-campaign speedup.
+
+[Raw repair evidence](reduction-repair.json.gz) and
+[summary](reduction-repair-summary.json) record the measurements. Validation also
+passed 169 affected checks and 26 smoke checks; these are reported test scopes,
+not a claim of exhaustive chemistry validation. The benchmark remains stopped;
+this reduction repair does not resolve its 12 decode memory failures.
+
 ## Paper analysis
+
+At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
+recovered in at least one direction, versus 1,834 with one seed: nine gains and
+no losses. The interrupted check is 1351 reverse, whose forward direction already
+recovered the reference, so it cannot change this reaction-level result. This
+does not resolve the 12 decoding failures or establish recovery inside the event
+window. The eight unrecovered reactions are 7, 19, 590, 986, 1285, 1358, 1377 and
+1475. Directional checks remain 3,676 recovered, 25 not recovered and one unfinished.
+
+The [stopped summary](stopped-summary.json) and
+[direction records](stopped-directions.json.gz) retain phase CPU, publication,
+memory and original seed measurements. Failed compute observations remain separate
+from complete timings. The 44 distinct worker identities include replacements
+after memory failures; they do not mean 44 concurrent workers. Pool capacity was
+32 throughout.
 
 Report reaction-level recovery, gains/losses from one seed, all failures/unknowns,
 and the full denominator. Compare matching plus reduction separately from
