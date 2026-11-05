@@ -2,6 +2,12 @@
 
 ## Current implementation
 
+The [ten-seed Golden and cache study](golden_seed10_tol2_cap100_20261105/README.md)
+has completed 384 controlled directions: all cache-on/off catalogue comparisons
+agree, with **1.76× lower matching CPU at ten seeds**. One-to-ten-seed matching
+CPU grows **9.60×** with caching; this is modest sublinear scaling. The full
+ten-seed Golden benchmark is running and has no final recovery result yet.
+
 A [fresh full Golden run at tolerance 2 and cap 100](golden_tol2_cap100_20261105/README.md)
 recovers **1,834/1,851 reactions (99.08%)**. All 3,702 directions completed matching,
 reduction and decoding: **7m36s for matching/reduction and 98s for decoding**, with

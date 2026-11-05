@@ -1,0 +1,133 @@
+{
+  "source_identity": "0481b8e242049b1f27ece52626f92850b0c2c72ca24b99f8a74d5e813a0ee5e4",
+  "seed_count": 10,
+  "branch_cap": 100,
+  "discovery_tolerance": 2,
+  "cases": [
+    190,
+    681,
+    895,
+    1137,
+    1261,
+    1425,
+    1779,
+    1841
+  ],
+  "directions": 144,
+  "repetitions": 3,
+  "all_catalogues_scope_and_caps_equal": true,
+  "process_memory_guard_bytes": 2147483648,
+  "watchdog_seconds": 600,
+  "rows": [
+    {
+      "cache_mib": 64,
+      "matching_cpu_seconds": {
+        "median": 31.891980292000007,
+        "minimum": 31.681849856,
+        "maximum": 32.27845164699999,
+        "repetitions": [
+          32.27845164699999,
+          31.891980292000007,
+          31.681849856
+        ]
+      },
+      "case1841_matching_cpu_seconds": {
+        "median": 13.023304192999987,
+        "minimum": 12.873100628,
+        "maximum": 13.030496561000001,
+        "repetitions": [
+          13.023304192999987,
+          13.030496561000001,
+          12.873100628
+        ]
+      },
+      "evictions_per_repetition": [
+        66376,
+        66376,
+        66376
+      ],
+      "cache_hits_per_repetition": [
+        2119995,
+        2119995,
+        2119995
+      ],
+      "max_retained_bytes": 67108864,
+      "max_sampled_process_bytes": 299577344,
+      "max_process_lifetime_bytes": 306298880
+    },
+    {
+      "cache_mib": 256,
+      "matching_cpu_seconds": {
+        "median": 31.204791088000015,
+        "minimum": 31.17195892400001,
+        "maximum": 31.676751091000003,
+        "repetitions": [
+          31.676751091000003,
+          31.17195892400001,
+          31.204791088000015
+        ]
+      },
+      "case1841_matching_cpu_seconds": {
+        "median": 12.40229020600001,
+        "minimum": 12.208840202000006,
+        "maximum": 12.476319429,
+        "repetitions": [
+          12.476319429,
+          12.208840202000006,
+          12.40229020600001
+        ]
+      },
+      "evictions_per_repetition": [
+        2070,
+        2070,
+        2070
+      ],
+      "cache_hits_per_repetition": [
+        2120541,
+        2120541,
+        2120541
+      ],
+      "max_retained_bytes": 268435452,
+      "max_sampled_process_bytes": 498499584,
+      "max_process_lifetime_bytes": 499675136
+    },
+    {
+      "cache_mib": 1024,
+      "matching_cpu_seconds": {
+        "median": 31.266006298000004,
+        "minimum": 31.220635184000006,
+        "maximum": 31.49132435499999,
+        "repetitions": [
+          31.49132435499999,
+          31.220635184000006,
+          31.266006298000004
+        ]
+      },
+      "case1841_matching_cpu_seconds": {
+        "median": 12.370736889999996,
+        "minimum": 12.234029833999998,
+        "maximum": 12.514162969000004,
+        "repetitions": [
+          12.370736889999996,
+          12.234029833999998,
+          12.514162969000004
+        ]
+      },
+      "evictions_per_repetition": [
+        0,
+        0,
+        0
+      ],
+      "cache_hits_per_repetition": [
+        2120541,
+        2120541,
+        2120541
+      ],
+      "max_retained_bytes": 278070438,
+      "max_sampled_process_bytes": 504000512,
+      "max_process_lifetime_bytes": 509136896
+    }
+  ],
+  "interpretation": "Capacity controls use cold single-direction processes and the same direct SearchSession, FragmentRepair, catalogue reduction and signature functions. They exclude shared-file snapshot I/O and decoding. Each limit is tested three times in rotated order.",
+  "conclusion": "Increasing retention from 64 to 256 MiB reduces aggregate median matching CPU by about 2.2%; 1 GiB gives no further measured improvement. Only case 1841 evicts entries in this fixed sample."
+}

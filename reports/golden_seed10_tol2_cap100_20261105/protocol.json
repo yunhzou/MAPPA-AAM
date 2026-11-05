@@ -1,0 +1,380 @@
+{
+  "source_commit": "b51661d766fc4549aece850a3e5f62e7c1ae230d",
+  "immutable_blobs_verified": 5553,
+  "cases": 1851,
+  "directions": 3702,
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 10,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "decode_config": {
+    "threshold": 0.5,
+    "metal_threshold": 0.3,
+    "event_slack": 5,
+    "fragment_seconds": 5.0
+  },
+  "seed_batch": 10,
+  "workers": 32,
+  "nodes": 1,
+  "workers_per_node": 32,
+  "allocated_cpus": 40,
+  "memory_gib_per_worker": 2,
+  "case_seconds": 600,
+  "run_seconds": 9600,
+  "window": 128,
+  "shared_reaction_cache": true,
+  "reused_scientific_results": 0,
+  "reused_caches": 0,
+  "expected_cut_tasks": 177552,
+  "expected_seed_searches": 1775520,
+  "cache_controls": {
+    "sample": [
+      {
+        "case": 190,
+        "atoms": [
+          24,
+          24
+        ],
+        "heavy_atoms": [
+          13,
+          13
+        ],
+        "cuts": [
+          24,
+          24
+        ],
+        "size_quantile": 0.1
+      },
+      {
+        "case": 1261,
+        "atoms": [
+          33,
+          31
+        ],
+        "heavy_atoms": [
+          18,
+          17
+        ],
+        "cuts": [
+          35,
+          34
+        ],
+        "size_quantile": 0.25
+      },
+      {
+        "case": 895,
+        "atoms": [
+          39,
+          39
+        ],
+        "heavy_atoms": [
+          21,
+          21
+        ],
+        "cuts": [
+          40,
+          42
+        ],
+        "size_quantile": 0.4
+      },
+      {
+        "case": 1137,
+        "atoms": [
+          48,
+          45
+        ],
+        "heavy_atoms": [
+          23,
+          20
+        ],
+        "cuts": [
+          48,
+          46
+        ],
+        "size_quantile": 0.55
+      },
+      {
+        "case": 681,
+        "atoms": [
+          58,
+          58
+        ],
+        "heavy_atoms": [
+          27,
+          27
+        ],
+        "cuts": [
+          59,
+          59
+        ],
+        "size_quantile": 0.7
+      },
+      {
+        "case": 1841,
+        "atoms": [
+          67,
+          48
+        ],
+        "heavy_atoms": [
+          36,
+          25
+        ],
+        "cuts": [
+          69,
+          50
+        ],
+        "size_quantile": 0.8
+      },
+      {
+        "case": 1425,
+        "atoms": [
+          82,
+          37
+        ],
+        "heavy_atoms": [
+          48,
+          23
+        ],
+        "cuts": [
+          85,
+          40
+        ],
+        "size_quantile": 0.9
+      },
+      {
+        "case": 1779,
+        "atoms": [
+          111,
+          64
+        ],
+        "heavy_atoms": [
+          52,
+          31
+        ],
+        "cuts": [
+          116,
+          68
+        ],
+        "size_quantile": 0.97
+      }
+    ],
+    "seeds": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "cache": [
+      "on",
+      "off"
+    ],
+    "directions": [
+      "forward",
+      "reverse"
+    ],
+    "selection": "Eight fixed atom-count quantiles, ranked by max endpoint explicit atoms, then total atoms, then case ID; no outcome filtering",
+    "completed_fragment_cache_bytes": 67108864,
+    "cache_off_bytes": 0,
+    "memory_gib_per_worker": 2,
+    "direction_seconds": 600
+  },
+  "original_inputs_unchanged": true,
+  "status": "matching and reduction complete; decoding running",
+  "linux_source_identity": "0481b8e242049b1f27ece52626f92850b0c2c72ca24b99f8a74d5e813a0ee5e4",
+  "input_index_sha256": "e9b65cd4155a3bab893449cd3db8cedf14a36b6e601cbabfb37c0d26414c9470",
+  "completed_directions": 0,
+  "baseline": "golden_tol2_cap100_20261105",
+  "baseline_recovered": 1834,
+  "baseline_reactions": 1851,
+  "measurements": [
+    "per-seed CPU/wall and cache call/hit/dependency counters",
+    "per-cut task CPU/wall and seed scope",
+    "per-direction matching, reduction, decoding, reference verification",
+    "publication and cache snapshot transport CPU/wall/bytes",
+    "sampled memory and coverage",
+    "cap/stop metadata, unique fragment/family/branch counts",
+    "actual worker readiness, task overlap and allocation accounting",
+    "reaction-level recovery gains/losses and unknown/failure counts"
+  ],
+  "validation": {
+    "local_search_campaign_tests": 50,
+    "local_transport_cache_golden_tests": 95,
+    "smoke_tests": 26,
+    "linux_seed_tests": 12
+  },
+  "instrumentation_parity": [
+    {
+      "case": 1351,
+      "measurements": [
+        {
+          "repeat": 0,
+          "mode": "previous",
+          "cpu_seconds": 0.07067699999999999
+        },
+        {
+          "repeat": 0,
+          "mode": "measured",
+          "cpu_seconds": 0.06866799999999995
+        },
+        {
+          "repeat": 1,
+          "mode": "measured",
+          "cpu_seconds": 0.09426800000000002
+        },
+        {
+          "repeat": 1,
+          "mode": "previous",
+          "cpu_seconds": 0.0681560000000001
+        },
+        {
+          "repeat": 2,
+          "mode": "previous",
+          "cpu_seconds": 0.06809200000000004
+        },
+        {
+          "repeat": 2,
+          "mode": "measured",
+          "cpu_seconds": 0.067156
+        }
+      ],
+      "graphs_equal": true
+    },
+    {
+      "case": 1799,
+      "measurements": [
+        {
+          "repeat": 0,
+          "mode": "previous",
+          "cpu_seconds": 0.4276760000000004
+        },
+        {
+          "repeat": 0,
+          "mode": "measured",
+          "cpu_seconds": 0.42592399999999975
+        },
+        {
+          "repeat": 1,
+          "mode": "measured",
+          "cpu_seconds": 0.41705799999999993
+        },
+        {
+          "repeat": 1,
+          "mode": "previous",
+          "cpu_seconds": 0.45620300000000036
+        },
+        {
+          "repeat": 2,
+          "mode": "previous",
+          "cpu_seconds": 0.4349190000000007
+        },
+        {
+          "repeat": 2,
+          "mode": "measured",
+          "cpu_seconds": 0.43363700000000005
+        }
+      ],
+      "graphs_equal": true
+    },
+    {
+      "case": 561,
+      "measurements": [
+        {
+          "repeat": 0,
+          "mode": "previous",
+          "cpu_seconds": 0.022960000000000313
+        },
+        {
+          "repeat": 0,
+          "mode": "measured",
+          "cpu_seconds": 0.02198299999999964
+        },
+        {
+          "repeat": 1,
+          "mode": "measured",
+          "cpu_seconds": 0.020997999999999628
+        },
+        {
+          "repeat": 1,
+          "mode": "previous",
+          "cpu_seconds": 0.02198600000000006
+        },
+        {
+          "repeat": 2,
+          "mode": "previous",
+          "cpu_seconds": 0.020955999999999975
+        },
+        {
+          "repeat": 2,
+          "mode": "measured",
+          "cpu_seconds": 0.021717999999999904
+        }
+      ],
+      "graphs_equal": true
+    }
+  ],
+  "startup_seconds": 6.045810169074684,
+  "cache_controls_completed": 384,
+  "cache_pairs_equal": 192,
+  "allocation_adjustment": {
+    "initial_workers": 128,
+    "replacement_workers": 32,
+    "original_never_started": true,
+    "reason": "Smaller pool to reduce priority queue delay",
+    "scientific_settings_unchanged": true
+  },
+  "cache_repetitions": {
+    "planned": 3,
+    "initial_completed": true,
+    "additional": 2,
+    "order_by_repetition": {
+      "1": "seeds 1,2,5,10; cache on,off",
+      "2": "seeds 10,5,2,1; cache off,on",
+      "3": "seeds 1,2,5,10; cache on,off"
+    },
+    "reason": "Short per-arm measurements need repeatability assessment; same preselected sample and settings.",
+    "completed": 3
+  },
+  "cache_capacity_test": {
+    "cache_mib": [
+      64,
+      256,
+      1024
+    ],
+    "seeds": 10,
+    "repetitions": 3,
+    "expected_direction_runs": 144,
+    "status": "complete; all scientific signatures equal",
+    "process_memory_gib": 2,
+    "completed_directions": 144
+  },
+  "matching_complete": 3702,
+  "reduction_complete": 3702,
+  "heavy_cache_capacity_test": {
+    "cases": [
+      1654,
+      1606
+    ],
+    "selection": "Two largest combined-direction matching CPU totals in the completed full ten-seed run",
+    "cache_mib": [
+      64,
+      256,
+      1024
+    ],
+    "repetitions": 1,
+    "expected_direction_runs": 12,
+    "comparison": "Same complete search plan; exact catalogue signature independently per cut",
+    "status": "submitted",
+    "process_memory_gib": 2,
+    "watchdog_seconds": 600
+  }
+}
