@@ -529,9 +529,85 @@ def decoding_audit_main(argv):
     return int(not report['complete'])
 
 
+def decoding_timings(campaign):
+    """Summarize a drained decode-only pass, keeping failures in its denominator."""
+    import numpy as np
+    from mappa.mappa_core.core.scheduler.bundles import Blob, read_blobs
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+
+    campaign = Path(campaign).resolve()
+    manifest, cases, files, source = decoding_campaign(campaign, candidate=True)
+    audits = {}
+    for batch in manifest['batches']:
+        ledger = campaign/str(batch['batch'])/'result/ledger.sqlite'
+        with closing(sqlite3.connect(f'{ledger.as_uri()}?mode=ro', uri=True)) as db:
+            for name, raw in db.execute("SELECT case_name,audit FROM results WHERE stage='decoding'"):
+                audits[Blob(**json.loads(raw))] = name
+            if db.execute('SELECT count(*) FROM retries').fetchone()[0]:
+                raise ValueError('Fresh decoding timing summary requires no retries')
+    if len(audits) != len(cases):
+        raise ValueError('Every direction requires its own archived decoding audit')
+    records = []
+    for reference, audit in read_blobs(sorted(audits, key=lambda ref: (ref.path, ref.offset)), None):
+        name = audits[reference]
+        task, = audit['tasks']
+        specification = _loads_checkpoint(task[1])
+        if (specification.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue'
+                or asdict(specification.payload['catalogue']) != cases[name]['catalogue']):
+            raise ValueError('Decoding audit used a different operation or catalogue')
+        metrics = _loads_checkpoint(task[8])
+        if cases[name]['state'] == 'complete':
+            if task[4] != 'complete' or asdict(metrics['blob']) != cases[name]['reference']:
+                raise ValueError('Completed ledger output differs from its archived task')
+        record = dict(case=name, status=task[4], attempts=len(audit['attempts']),
+            consumed_seconds=audit['case'][3], memory_guard_bytes=task[3])
+        for field in ('compute_seconds', 'cpu_seconds', 'publish_seconds', 'publish_cpu_seconds',
+                      'sampled_cpu_seconds', 'elapsed_seconds', 'peak_tree_rss_bytes', 'phase_at_exit'):
+            record[field] = metrics.get(field)
+        records.append(record)
+    records.sort(key=lambda row: row['case'])
+
+    def distribution(rows, field):
+        values = [row[field] for row in rows]
+        if not values:
+            return None
+        slowest = max(rows, key=lambda row: row[field])
+        return dict(count=len(rows), total=sum(values),
+            **dict(zip(('median', 'p90', 'p95', 'p99'), map(float, np.quantile(values, [.5, .9, .95, .99])))),
+            maximum=max(values), maximum_case=slowest['case'])
+
+    complete = [row for row in records if row['status'] == 'complete']
+    grouped = {}
+    for row in records:
+        grouped.setdefault(row['case'].split('/')[0], []).append(row)
+    reactions = [dict(case=name, **{field: sum(row[field] for row in pair)
+                 for field in ('compute_seconds', 'cpu_seconds')})
+                 for name, pair in grouped.items() if all(row['status'] == 'complete' for row in pair)]
+    return dict(schema='mappa.decoding_timings/v1', source=source,
+        expected_reactions=manifest['cases'], expected_directions=manifest['directions'],
+        terminal_directions=len(records), status_counts=dict(Counter(row['status'] for row in records)),
+        successful_reactions=len(reactions),
+        timing_scope='Catalogue loading, decoder and record construction; publication reported separately',
+        conversion=manifest['decoding_source'].get('conversion'), decode_config=manifest['decode_config'],
+        direction={field: distribution(complete, field) for field in (
+            'compute_seconds', 'cpu_seconds', 'publish_seconds', 'publish_cpu_seconds')},
+        reaction={field: distribution(reactions, field) for field in ('compute_seconds', 'cpu_seconds')},
+        source_files={str(Path(path).relative_to(campaign)): digest for path, digest in files.items()},
+        records=records)
+
+
 def main():
     if sys.argv[1:2] == ['audit-decoding']:
         return decoding_audit_main(sys.argv[2:])
+    if sys.argv[1:2] == ['decoding-timings']:
+        parser = argparse.ArgumentParser(description='Report full decoding CPU/wall distributions and failures')
+        parser.add_argument('campaign', type=Path)
+        parser.add_argument('output', type=Path)
+        args = parser.parse_args(sys.argv[2:])
+        report = decoding_timings(args.campaign)
+        save(args.output, report)
+        emit({key: report[key] for key in ('terminal_directions', 'status_counts', 'direction', 'reaction')})
+        return 0
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', type=Path)
     parser.add_argument('--candidate', type=Path)

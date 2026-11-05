@@ -530,7 +530,7 @@ def test_decoding_audit_hashes_complete_records_and_releases_old_before_loading_
 
 
 def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(tmp_path):
-    from performance import audit_decoding
+    from performance import audit_decoding, decoding_timings
     from prepare_batches import prepare_decoding, prepare_fresh
     from mappa.execution.identity import code_identity
 
@@ -549,6 +549,14 @@ def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(t
     (candidate/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity=code_identity())))
     assert run(candidate/'0/index.json', candidate/'0/result', local=True, workers=1,
                memory_bytes=2**30, decode_only=True)['pass_finished'] == 'decoding'
+    timings = decoding_timings(candidate)
+    assert timings['terminal_directions'] == 2
+    assert timings['status_counts'] == {'complete': 2}
+    assert timings['successful_reactions'] == 1
+    assert timings['direction']['compute_seconds']['maximum'] == max(
+        row['compute_seconds'] for row in timings['records'])
+    assert timings['reaction']['cpu_seconds']['total'] == sum(
+        row['cpu_seconds'] for row in timings['records'])
     frozen = {path: hashlib.sha256(path.read_bytes()).hexdigest()
               for source in (baseline, candidate) for path in source.rglob('*') if path.is_file()}
     output = tmp_path/'audit'

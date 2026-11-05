@@ -26,5 +26,41 @@ the denominator and identify the largest completed decoding time separately
 from censored timeout measurements. No matching rerun or recurring monitor is
 started by this experiment.
 
-Full-run results are pending. The fragment-level beta measurements do not
+## Stopped at the observed performance issue
+
+The user directed that an observed issue must stop broad validation immediately.
+The cluster allocation was cancelled during input conversion, before any cluster
+decoding started. The source matching campaign is unchanged. There is no full
+Golden decoding result or measured full-set maximum from this experiment.
+
+A bounded local profile of 569 forward spent 59.35 of 60 seconds in symmetry
+searches for composed historical actions. The first slow contribution already
+had lower bound **1** and an actual witness with **1** event, but the decoder
+entered another minimum search instead of accepting that certificate. Its 793
+variable bond terms each carried all 138 permutation positions from two saved
+actions as their dependency scope. Repeated traversal of these scopes consumed
+41.16 profiled seconds. These are two concrete sources of unnecessary work;
+they do not establish that every slow direction has the same cause.
+
+A process-local diagnostic accepted attained local bounds directly, without
+changing production code. It avoided 273 redundant local searches but still
+reached its 60-second watchdog. The next isolated branch had five final fragment
+pieces with proved minima `0, 1, 0, 0, 0`, fixed boundary contribution 4, and one
+sweep bond. Its lower/attained bounds were 5 and 7. Resolving that sweep still
+constructed a search over 795 bond terms, nine saved actions and 154 permutation
+positions. The branch program did not retain the local response's event-invariant
+compression: its invariant subgroup is explicitly the identity. This explains
+why removing only the first redundant search does not resolve the integration
+bottleneck. These diagnostics do not establish that local minima can be added
+without checking their shared choices or endpoint conditions.
+
+The production scientific implementation remains unchanged. Investigation now
+uses bounded local point tests. Full validation will not continue while this
+performance issue is unresolved. The fragment-level beta measurements do not
 establish full branch-decoding performance.
+
+Conversion and campaign validation passed 66 local tests; Linux preflight passed
+44 tests. The reusable timing summary was checked against actual worker outputs
+in one further integration test. It remains available for a later completed pass
+as `python bench/performance.py decoding-timings CAMPAIGN OUTPUT.json`; it refuses
+an undrained or incomplete pass. No full-set timing distribution is reported here.
