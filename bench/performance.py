@@ -88,12 +88,21 @@ def saved_matching_worker(args, case):
         restored = measure('restoration', lambda: pickle.loads(binary))
         if restored != record:
             raise ValueError('Decoded output changed during transport')
+        catalogue_digest = None
+        if args.audit_output:
+            scientific = dict(record['catalogue'])
+            scientific.pop('schema')  # Storage format may change without changing scientific contents.
+            scientific.pop('histories', None)
+            scientific['families'] = [dict(saved, provenance=list(family.provenance))
+                for saved, family in zip(scientific['families'], catalogue.families)]
+            catalogue_digest = canonical_digest(scientific)[0]
         emit(dict(kind='result', phases=phases, matching_repeated=False,
             cuts=len(matching.scope), seed_searches=sum(len(c.seeds) for c in matching.scope),
             branches=catalogue.branch_count, families=len(catalogue.families),
             fragments=len(decoded.inventory.fragments), paths=catalogue.path_count,
             branch_composition_sha256=canonical_digest(sorted(catalogue.branches))[0],
             catalogue_reference=verified['status'], decoded_reference=selected,
+            catalogue_content_sha256=catalogue_digest,
             minimum_events=decoded.minimum_events, minimum_proven=decoded.minimum_proven,
             serialized_bytes=len(binary), process_lifetime_peak_rss_bytes=peak_rss()))
 
@@ -289,6 +298,7 @@ def compare(args, cases):
                           for run in report['runs'][-2:]}
                 before, after = paired['baseline'], paired['candidate']
                 regression = (before['branch_composition_sha256'] != after['branch_composition_sha256']
+                    or before['catalogue_content_sha256'] != after['catalogue_content_sha256']
                     or (before['catalogue_reference'] == 'recovered' and after['catalogue_reference'] != 'recovered')
                     or (before['decoded_reference']['status'] == 'recovered'
                         and after['decoded_reference']['status'] != 'recovered')

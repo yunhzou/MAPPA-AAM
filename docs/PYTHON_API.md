@@ -26,6 +26,10 @@ Reduction shares each final reactant/product atom-set pair once within the fixed
 reaction, policy and explicit anchors. Growth routes and temporary locks remain
 in the search archive. Branches retain their compositions, ordered global
 placements and sweep provenance. Reduction performs no symmetry or event search.
+Completed states are projected to shared fragment IDs in bulk. Growth histories
+remain compact parent references, including in saved catalogue records.
+`family.provenance` is a sequence view: iterating it explicitly reconstructs the
+original path records. Ordinary reduction and decoding use its shared metadata.
 
 Decoding inventories those unique completed fragments, improves one starting mapping
 within `fragment_seconds` (default five seconds), and shares its binary-symmetry

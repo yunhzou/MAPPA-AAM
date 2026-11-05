@@ -46,7 +46,7 @@ class Fragment:
     """
     relation: RelaxedIsomorphism
 
-    @property
+    @cached_property
     def atom_sets(self):
         return self.source_atoms, self.target_atoms
 

@@ -15,6 +15,8 @@ groups their branch compositions across seeds and cuts. It preserves explicit
 anchors, ordered global placements and sweep provenance; intermediate growth
 proofs stay in the raw matching archive. Decoding prepares local fragment and boundary responses from
 that catalogue. A cut is a matching work unit, not an independent decoding input.
+Catalogue transport retains shared history links and terminal references; it
+does not expand one provenance record per possible growth path.
 
 ## Many reactions on a computer
 

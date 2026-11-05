@@ -432,6 +432,15 @@ Reduction performs structural key lookups and provenance aggregation. It does
 not solve symmetry, search for starting maps or count events. Binary symmetry
 preparation is deferred until a consumer needs it.
 
+Project completed states to shared fragment IDs in one native operation, then
+deduplicate their compositions using those IDs. Reuse source partitions and
+prepared fragment actions. Ordered placement programs are collected once per
+shared search state. Keep growth provenance as parent links and terminal
+references, with path counts computed on the shared graph; do not unfold every
+growth path during reduction, decoding or publication. Explicit history replay
+may expand requested paths. Sweep setup reads the saved cut/partition metadata
+directly from those references.
+
 The catalogue preserves source histories, cut provenance and alternative fragment
 partitions. Raw paths, public atom-set branches and catalogue families are separate
 counts. Completed search graphs may be ingested one at a time; the accumulated

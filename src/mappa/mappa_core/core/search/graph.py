@@ -191,6 +191,127 @@ class SearchBranch:
         return self.paths[0].hierarchy
 
 
+class SearchHistories:
+    """Shared path references containing only transition IDs and parent links.
+
+    Reduction needs final placement programs and path counts, not expanded
+    growth paths. Explicit replay can still recover every original path.
+    """
+    def __init__(self):
+        self.parents = [()]
+        self.counts = [1]
+
+    def add(self, parents):
+        node = len(self.parents)
+        parents = tuple(parents)
+        self.parents.append(parents)
+        self.counts.append(self.counts[parents[0][1]] if len(parents) == 1
+                           else sum(self.counts[parent] for _, parent in parents))
+        return node
+
+    def paths(self, node):
+        stack = [(node, ())]
+        while stack:
+            current, suffix = stack.pop()
+            if not current:
+                yield suffix
+            else:
+                stack.extend((parent, suffix if edge is None else (edge,) + suffix)
+                             for edge, parent in reversed(self.parents[current]))
+
+    def to_record(self):
+        return self.parents
+
+    @classmethod
+    def from_record(cls, record):
+        result = cls()
+        for parents in record[1:]:
+            result.add(tuple(pair) for pair in parents)
+        return result
+
+    @classmethod
+    def collect(cls, graph, paths=None):
+        """Group histories by their ordered placement program once per state."""
+        histories = cls()
+        placements, placement_ids, objects = [], {}, {}
+        programs, program_ids = [None], {}
+
+        def append(program, edge):
+            generators = edge.placement_generators
+            if not generators:
+                return program
+            identity = id(generators)
+            if identity not in objects:
+                group = placement_ids.get(generators)
+                if group is None:
+                    group = placement_ids[generators] = len(placements)
+                    placements.append(generators)
+                objects[identity] = group
+            key = objects[identity], program
+            if key not in program_ids:
+                program_ids[key] = len(programs)
+                programs.append(key)
+            return program_ids[key]
+
+        if paths is not None:
+            # An explicitly selected path scope uses the same compact records.
+            endings, links = {}, {}
+            for path in paths:
+                program = node = 0
+                for eid in path.transitions:
+                    program = append(program, graph.transitions[eid])
+                    key = eid, node
+                    if key not in links:
+                        links[key] = histories.add((key,))
+                    node = links[key]
+                endings.setdefault(path.terminal, {}).setdefault(program, []).append(node)
+            endings = {end: {program: histories.add(tuple((None, node) for node in nodes))
+                              for program, nodes in choices.items()}
+                       for end, choices in endings.items()}
+        else:
+            incoming = [[] for _ in graph.states]
+            for edge in graph.transitions:
+                incoming[edge.target].append(edge)
+            roots, ready, order = set(graph.roots), set(), []
+            for end in graph.terminals:
+                stack = [(end, False)]
+                while stack:
+                    state, complete = stack.pop()
+                    if state in ready:
+                        continue
+                    if complete or state in roots:
+                        ready.add(state)
+                        order.append(state)
+                    else:
+                        stack.append((state, True))
+                        stack.extend((edge.source, False) for edge in reversed(incoming[state]))
+            choices = [None] * len(graph.states)
+            for state in order:
+                if state in roots:
+                    choices[state] = {0: 0}
+                    continue
+                parents = {}
+                for edge in incoming[state]:
+                    for program, node in choices[edge.source].items():
+                        parents.setdefault(append(program, edge), []).append((edge.id, node))
+                choices[state] = {program: histories.add(parents)
+                                  for program, parents in parents.items()}
+            endings = {end: choices[end] for end in graph.terminals}
+
+        expanded = {}
+        for choices in endings.values():
+            for program in choices:
+                if program not in expanded:
+                    sequence, current = [], program
+                    while current:
+                        group, current = programs[current]
+                        sequence.append(placements[group])
+                    expanded[program] = tuple(sequence)
+        return histories, tuple((end, expanded[program], node)
+                                for end, choices in endings.items()
+                                for program, node in choices.items())
+
+
 @dataclass(frozen=True)
 class AAMSearchGraph:
     contexts: tuple[SearchContext, ...]

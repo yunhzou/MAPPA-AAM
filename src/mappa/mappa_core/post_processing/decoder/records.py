@@ -86,7 +86,7 @@ class EventInterpretation:
         """Keep alternative sweep histories separate from each other."""
         result = []
         for family, partitions in zip(self.catalogue.families, self.fragment_partitions):
-            origins = family.provenance or ({'cuts': ()},)
+            origins = tuple(family.provenance.metadata) or ({'cuts': ()},)
             choices = [set() for _ in partitions]
             distinct_cuts = {tuple(sorted(tuple(sorted(pair)) for pair in origin.get('cuts', ())))
                              for origin in origins}

@@ -20,6 +20,74 @@ using Bond = std::pair<int, int>;
 using Key = std::tuple<Images, Images, std::vector<Fragment>, std::vector<Bond>>;
 using State = std::pair<Images, Images>;
 
+static py::tuple atom_tuple(const Images& atoms) {
+    py::tuple result(atoms.size());
+    for (size_t i = 0; i < atoms.size(); ++i) result[i] = atoms[i];
+    return result;
+}
+
+// Project completed states to interned fragment IDs in one call. This is only
+// partition bookkeeping: it performs no matching, symmetry or event search.
+static py::tuple fragment_compositions(py::sequence states, const Images& terminals,
+                                       const Images& policies) {
+    using AtomSets = std::pair<Images, Images>;
+    std::map<std::pair<int, AtomSets>, int> fragments;
+    std::map<std::pair<std::vector<Bond>, Images>, std::vector<Images>> partitions;
+    py::list records, compositions;
+    for (int terminal : terminals) {
+        py::object state = states[terminal];
+        const int policy = policies.at(py::cast<int>(state.attr("context")));
+        std::vector<Bond> assignments, owners;
+        Images source_atoms;
+        for (py::handle item : py::iterable(state.attr("mapping"))) {
+            const auto pair = py::cast<Bond>(item);
+            if (pair.first < 0 || pair.second < 0)
+                throw std::invalid_argument("completed atom indices must be nonnegative");
+            assignments.push_back(pair);
+            source_atoms.push_back(pair.first);
+        }
+        std::sort(source_atoms.begin(), source_atoms.end());
+        Images mapping(source_atoms.empty() ? 0 : source_atoms.back()+1, -1);
+        for (const auto& [atom, target] : assignments) mapping[atom] = target;
+        for (py::handle item : py::iterable(state.attr("islands"))) {
+            owners.push_back(py::cast<Bond>(item));
+        }
+        std::sort(owners.begin(), owners.end());
+        const auto partition_key = std::make_pair(owners, source_atoms);
+        auto found = partitions.find(partition_key);
+        if (found == partitions.end()) {
+            std::map<std::pair<bool, int>, Images> groups;
+            auto owner = owners.begin();
+            for (int atom : source_atoms) {
+                while (owner != owners.end() && owner->first < atom) ++owner;
+                const bool singleton = owner == owners.end() || owner->first != atom;
+                groups[{singleton, singleton ? atom : owner->second}].push_back(atom);
+            }
+            std::vector<Images> partition;
+            for (auto& [owner, atoms] : groups) partition.push_back(std::move(atoms));
+            std::sort(partition.begin(), partition.end());
+            found = partitions.emplace(partition_key, std::move(partition)).first;
+        }
+        Images ids;
+        for (const Images& source : found->second) {
+            Images target;
+            for (int atom : source) target.push_back(mapping.at(atom));
+            std::sort(target.begin(), target.end());
+            const auto key = std::make_pair(policy, AtomSets{source, target});
+            const auto inserted = fragments.try_emplace(key, static_cast<int>(fragments.size()));
+            ids.push_back(inserted.first->second);
+            if (inserted.second) {
+                py::tuple witness(source.size());
+                for (size_t i = 0; i < source.size(); ++i)
+                    witness[i] = py::make_tuple(source[i], mapping.at(source[i]));
+                records.append(py::make_tuple(policy, atom_tuple(source), atom_tuple(target), witness));
+            }
+        }
+        compositions.append(py::make_tuple(terminal, atom_tuple(ids)));
+    }
+    return py::make_tuple(records, compositions);
+}
+
 // Only a closed, permanently unobservable set can be collapsed. Include every
 // point that any recorded generator can transport to an observed point. This
 // over-approximates chronological reachability and is safe for every stage.
@@ -412,6 +480,7 @@ public:
 };
 
 PYBIND11_MODULE(_group_ops, m) {
+    m.def("fragment_compositions", &fragment_compositions);
     py::class_<permutation_native::SetOrbit>(m, "SetOrbit")
         .def(py::init<int, const permutation_native::Generators&>())
         .def("contains", &permutation_native::SetOrbit::contains)

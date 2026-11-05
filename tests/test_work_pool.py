@@ -11,9 +11,14 @@ from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_reused_aam_api import problem
 
 
-def normalize_provenance(record, cuts):
+def normalize_provenance(record, cuts=()):
     """Translate per-archive local IDs to the combined graph's IDs for comparison."""
     record = json.loads(json.dumps(record))
+    from mappa.mappa_core.core.search.graph import SearchHistories
+    from mappa.mappa_core.post_processing.final_branches import FamilyOrigins
+    histories = [SearchHistories.from_record(history) for history in record.pop('histories')]
+    for family in record['families']:
+        family['provenance'] = list(FamilyOrigins.from_record(family['provenance'], histories))
     offsets = []
     contexts = states = transitions = 0
     for cut in cuts:
@@ -23,12 +28,14 @@ def normalize_provenance(record, cuts):
         transitions += len(cut.graph.transitions)
     for family in record['families']:
         for origin in family['provenance']:
+            if not cuts:
+                continue
             number = int(origin['archive'].rsplit('/', 1)[1])
             c, s, t = offsets[number]
             origin.update(archive='in_memory', context=origin['context']+c,
                           terminal=origin['terminal']+s,
                           transitions=[edge+t for edge in origin['transitions']])
-    return record
+    return json.loads(json.dumps(record))
 
 
 @pytest.mark.parametrize('storage', ['ram', 'bundles'])
@@ -53,11 +60,12 @@ def test_separate_stages_preserve_full_graph_catalogue_and_decoding(tmp_path, st
             catalogue = catalogues.load(name)
             assert catalogue.search_config == config
             assert catalogue.execution == 'reused_native'
-            assert normalize_provenance(catalogue.catalogue.to_record(), cuts) == json.loads(json.dumps(reference.final_catalogue().to_record()))
+            assert normalize_provenance(catalogue.catalogue.to_record(), cuts) == normalize_provenance(reference.final_catalogue().to_record())
             actual = dict(decoded.load(name).record)
             assert decoded.load(name).search_config == config
             actual['catalogue'] = normalize_provenance(actual['catalogue'], cuts)
             expected = decoded_events_record(decode_events(reference.final_catalogue()))
+            expected['catalogue'] = normalize_provenance(expected['catalogue'])
             assert json.loads(json.dumps(actual)) == json.loads(json.dumps(expected))
             assert len(catalogue.scope) == len(cuts)
             assert all(scope.seeds == (0, 1, 2) for scope in catalogue.scope)

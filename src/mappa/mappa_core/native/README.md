@@ -28,6 +28,9 @@ imports are `mappa._engine` and `mappa._group_ops`.
   the shared matcher and hierarchy types. It also compiles shared decoder actions
   and projects ordered two-endpoint orbits without Python traversal or complete
   permutation enumeration.
+  The bulk `fragment_compositions` projection interns final atom-set pairs and
+  returns fragment-ID compositions. It performs partition bookkeeping only,
+  without symmetry, event computation or changes to matching choices.
 - `set_orbit.h` supplies compact target-set transport and pointwise stabilizers.
   It keeps correlated generator supports together without materializing the
   complete permutation group or target-set orbit.

@@ -3,7 +3,7 @@
 Growth proofs remain in the search archive. A completed fragment owns the
 internal mapping search; ordered global placements remain branch context.
 """
-from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -21,14 +21,87 @@ def _problem_fingerprint(problem):
 
 
 def final_fragment_pairs(state):
-    mapping = dict(state.mapping)
-    owners = dict(state.islands)
-    groups = defaultdict(list)
-    for r in sorted(mapping):
-        # Unlabelled anchors are singleton fragments.
-        groups[('island', owners[r]) if r in owners else ('single', r)].append(r)
-    return tuple(sorted((tuple(atoms), tuple(sorted(mapping[r] for r in atoms)))
-                        for atoms in groups.values()))
+    from mappa._group_ops import fragment_compositions
+    records, compositions = fragment_compositions((state,), (0,), (0,) * (state.context + 1))
+    return tuple(records[index][1:3] for index in compositions[0][1])
+
+
+class FamilyOrigins(Sequence):
+    """Compact archive references; expanding growth paths is an explicit view."""
+    def __init__(self, origins=()):
+        self.references = []
+        self.count = 0
+        for origin in origins:
+            self.append(origin)
+
+    def append(self, origin):
+        self.references.append((None, (), origin))
+        self.count += 1
+
+    def extend(self, origins):
+        for origin in origins:
+            self.append(origin)
+
+    def add(self, histories, node, origin):
+        terminal = origin.pop('terminal')
+        if (self.references and self.references[-1][0] is histories
+                and self.references[-1][2] == origin):
+            self.references[-1][1].append((terminal, node))
+        else:
+            self.references.append((histories, [(terminal, node)], origin))
+        self.count += histories.counts[node]
+
+    def __len__(self):
+        return self.count
+
+    def __iter__(self):
+        from itertools import groupby
+        from heapq import merge
+        for histories, nodes, origin in self.references:
+            if histories is None:
+                yield origin
+            else:
+                for terminal, entries in groupby(nodes, key=lambda entry: entry[0]):
+                    paths = [histories.paths(node) for _, node in entries]
+                    ordered = paths[0] if len(paths) == 1 else merge(
+                        *paths, key=lambda path: tuple(reversed(path)))
+                    for transitions in ordered:
+                        yield dict(origin, terminal=terminal, transitions=transitions)
+
+    def __getitem__(self, index):
+        from itertools import islice
+        if isinstance(index, slice):
+            return list(self)[index]
+        index = index + len(self) if index < 0 else index
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        return next(islice(self, index, None))
+
+    def __eq__(self, other):
+        return len(self) == len(other) and all(a == b for a, b in zip(self, other))
+
+    @property
+    def metadata(self):
+        return (origin for _, _, origin in self.references)
+
+    def to_record(self, history_ids):
+        return [dict(history=None if histories is None else history_ids[histories],
+                     nodes=nodes, origin=origin)
+                for histories, nodes, origin in self.references]
+
+    @classmethod
+    def from_record(cls, record, histories):
+        result = cls()
+        for entry in record:
+            history = entry['history']
+            if history is None:
+                result.append(entry['origin'])
+            else:
+                history = histories[history]
+                nodes = [tuple(pair) for pair in entry['nodes']]
+                result.references.append((history, nodes, entry['origin']))
+                result.count += sum(history.counts[node] for _, node in nodes)
+        return result
 
 
 @dataclass
@@ -37,7 +110,11 @@ class FinalFamily:
     required_edges: tuple
     actions: tuple
     policy: tuple
-    provenance: list = field(default_factory=list)
+    provenance: FamilyOrigins = field(default_factory=FamilyOrigins)
+
+    def __post_init__(self):
+        if not isinstance(self.provenance, FamilyOrigins):
+            self.provenance = FamilyOrigins(self.provenance)
 
     @property
     def fixed_assignments(self):
@@ -73,7 +150,7 @@ class FinalFamily:
         """Expose the saved local/placement program through the hierarchy API."""
         from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
         floor, iso = self.policy
-        cuts = tuple(sorted({tuple(pair) for origin in self.provenance
+        cuts = tuple(sorted({tuple(pair) for origin in self.provenance.metadata
                              for pair in origin.get('cuts', ())}))
         anchors = tuple(sorted(pair for fragment in self.fragments
                                for pair in fragment.fixed_assignments))
@@ -92,26 +169,26 @@ class FinalFamily:
         return next(graph.paths())
 
     @classmethod
-    def from_record(cls, record, inventory, placements):
+    def from_record(cls, record, inventory, placements, histories):
         inventories = {'relation': inventory, 'group': placements}
         actions = tuple((kind, inventories[kind][index])
                         for kind, index in record['actions'])
         return cls(tuple(tuple(pair) for pair in record['mapping']),
                    tuple(sorted({edge for kind, fragment in actions if kind == 'relation'
                                  for edge in fragment.accepted_edges})), actions,
-                   tuple(record['policy']), list(record.get('provenance', ())))
+                   tuple(record['policy']), FamilyOrigins.from_record(record['provenance'], histories))
 
-    def to_record(self, fragment_ids, placement_ids):
+    def to_record(self, fragment_ids, placement_ids, history_ids):
         inventories = {'relation': fragment_ids, 'group': placement_ids}
         return dict(mapping=self.mapping,
                     actions=tuple((kind, inventories[kind][value])
                                   for kind, value in self.actions),
-                    policy=self.policy, provenance=self.provenance)
+                    policy=self.policy, provenance=self.provenance.to_record(history_ids))
 
 
 class FinalBranchCatalogue:
     """One problem, many saved searches; all histories remain as references."""
-    schema = 'mappa.final_fragment_branches/v4'
+    schema = 'mappa.final_fragment_branches/v5'
 
     def __init__(self, problem):
         self.problem = problem
@@ -127,6 +204,11 @@ class FinalBranchCatalogue:
         self._actions = {}
         self._self_pool = {}
         self._completed_fragments = {}
+        self._fragment_ids = {}
+        self._fragment_records = []
+        self._fragment_actions = []
+        self._compositions = {}
+        self._composition_owners = {}
         self.path_count = 0
         self.incomplete_paths = 0
         self.mode = 'final_atom_set_compositions'
@@ -149,7 +231,10 @@ class FinalBranchCatalogue:
                 value = self._intern(self._placements, value)
             else:
                 raise ValueError(f'unsupported family action: {kind}')
-            prepared.append(self._intern(self._actions, _PreparedAction((kind, value))))
+            key = kind, value
+            if key not in self._actions:
+                self._actions[key] = _PreparedAction(key)
+            prepared.append(self._actions[key])
         return tuple(prepared)
 
     def __reduce__(self):
@@ -183,25 +268,32 @@ class FinalBranchCatalogue:
             family.required_edges = self._intern(self._required, tuple(
                 self._intern(pairs, pair) for pair in family.required_edges))
             family.actions = self._intern(self._programs, self.intern_actions(family.actions))
-            composition = tuple(sorted(fragment.atom_sets for fragment in family.fragments))
             groups = tuple(action for action in family.actions if action[0] == 'group')
             anchors = tuple(sorted(pair for fragment in family.fragments
                                    for pair in fragment.fixed_assignments))
-            self._family_ids[family.policy, composition, anchors, groups] = index
+            ids = tuple(self._fragment_id(fragment)
+                        for fragment in sorted(family.fragments, key=lambda f: f.atom_sets))
+            self._family_ids[(family.policy, anchors, ids), groups] = index
             for fragment in family.fragments:
                 self._completed_fragments[family.policy, anchors, fragment.atom_sets] = fragment
 
-    def _composition(self, policy, pairs, anchors, mapping):
-        from mappa.mappa_core.core.matching.representation.records import Fragment
-        fragments = []
-        for source, target in pairs:
-            key = policy, anchors, (source, target)
-            if key not in self._completed_fragments:
-                fragment = Fragment.from_atom_sets(self.problem, source, target, mapping,
-                    anchors=anchors, graph_floor=policy[0], self_pool=self._self_pool)
-                self._completed_fragments[key] = fragment
-            fragments.append(self._completed_fragments[key])
-        return tuple(fragments)
+    def _fragment_id(self, fragment):
+        if fragment not in self._fragment_ids:
+            self._fragment_ids[fragment] = len(self._fragment_records)
+            self._fragment_records.append(fragment)
+            self._fragment_actions.append(self.intern_actions((('relation', fragment),))[0])
+        return self._fragment_ids[fragment]
+
+    def _composition(self, policy, ids, anchors):
+        key = policy, anchors, ids
+        if key not in self._compositions:
+            fragments = tuple(self._fragment_records[index] for index in ids)
+            pairs = tuple(fragment.atom_sets for fragment in fragments)
+            actions = tuple(self._fragment_actions[index] for index in ids)
+            witness = tuple(sorted(pair for fragment in fragments for pair in fragment.witness))
+            branch = self.branches.setdefault((policy, pairs), set())
+            self._compositions[key] = actions, witness, pairs, tuple(rs for rs, _ in pairs), branch
+        return key, self._compositions[key]
 
     def add_aam(self, aam, archive='in_memory'):
         if _problem_fingerprint(aam.problem) != self.problem_sha256:
@@ -209,53 +301,68 @@ class FinalBranchCatalogue:
         return self.add_graph(aam.graph, archive)
 
     def add_graph(self, graph, archive='in_memory', *, paths=None):
+        from mappa._group_ops import fragment_compositions
+        from mappa.mappa_core.core.matching.representation.records import Fragment
+        from mappa.mappa_core.core.search.graph import SearchHistories
+        histories, endings = SearchHistories.collect(graph, paths)
+        conditions, context_ids = {}, []
+        for context in graph.contexts:
+            condition = (context.graph_floor, context.iso_tolerance), tuple(sorted(context.anchors))
+            context_ids.append(conditions.setdefault(condition, len(conditions)))
+        conditions = tuple(conditions)
+        records, raw_compositions = fragment_compositions(graph.states,
+            tuple(dict.fromkeys(end for end, _, _ in endings)), context_ids)
+        local_ids = []
+        for condition, source, target, witness in records:
+            policy, anchors = conditions[condition]
+            key = policy, anchors, (source, target)
+            if key not in self._completed_fragments:
+                self._completed_fragments[key] = Fragment.from_atom_sets(
+                    self.problem, source, target, witness, anchors=anchors,
+                    graph_floor=policy[0], self_pool=self._self_pool)
+            local_ids.append(self._fragment_id(self._completed_fragments[key]))
+        ids_by_terminal = {end: tuple(local_ids[index] for index in ids)
+                           for end, ids in raw_compositions}
         compositions, placements = {}, {}
-        for path in graph.paths() if paths is None else paths:
-            state = graph.states[path.terminal]
-            self.path_count += 1
-            context = path.context
+        for terminal, sequence, node in endings:
+            state = graph.states[terminal]
+            self.path_count += histories.counts[node]
+            context = graph.contexts[state.context]
             policy = context.graph_floor, context.iso_tolerance
             anchors = tuple(sorted(context.anchors))
-            if path.terminal not in compositions:
-                pairs = final_fragment_pairs(state)
-                fragments = self._composition(policy, pairs, anchors, state.mapping)
-                owners = [-1] * self.problem.target_atom_count
-                for owner, (_, target) in enumerate(pairs):
-                    for atom in target:
-                        owners[atom] = owner
-                for _, atom in anchors:
-                    owners[atom] = len(pairs) + atom
-                compositions[path.terminal] = pairs, fragments, owners
-            pairs, fragments, owners = compositions[path.terminal]
-            branch = self.branches.setdefault((policy, pairs), set())
-            groups = []
-            for eid in reversed(path.transitions):
-                if eid not in placements:
-                    transition = graph.transitions[eid]
-                    placements[eid] = self.intern_actions(
-                        (('group', transition.placement_generators),)
-                        if transition.placement_generators else ())
-                groups.extend(placements[eid])
-            groups = tuple(groups)
+            if terminal not in compositions:
+                compositions[terminal] = self._composition(policy, ids_by_terminal[terminal], anchors)
+            composition, (actions, witness, pairs, partition, branch) = compositions[terminal]
+            identity = id(sequence)
+            if identity not in placements:
+                placements[identity] = self.intern_actions(('group', group) for group in sequence)
+            groups = placements[identity]
             # Before a placement moves a whole atom set, operations confined to
             # its pieces already belong to their target binary symmetries.
             first = 0
-            while first < len(groups) and all(owners[a] == owners[b] for a, b in groups[first].moves):
-                first += 1
+            if groups:
+                if composition not in self._composition_owners:
+                    owners = [-1] * self.problem.target_atom_count
+                    for owner, (_, target) in enumerate(pairs):
+                        for atom in target:
+                            owners[atom] = owner
+                    for _, atom in anchors:
+                        owners[atom] = len(pairs) + atom
+                    self._composition_owners[composition] = owners
+                owners = self._composition_owners[composition]
+                while first < len(groups) and all(owners[a] == owners[b] for a, b in groups[first].moves):
+                    first += 1
             groups = groups[first:]
-            key = policy, pairs, anchors, groups
+            key = composition, groups
             if key not in self._family_ids:
-                program = self._intern(self._programs,
-                    self.intern_actions(tuple(('relation', fragment) for fragment in fragments)) + groups)
-                mapping = tuple(sorted(pair for fragment in fragments for pair in fragment.witness))
+                program = self._intern(self._programs, actions + groups)
                 self._family_ids[key] = len(self.families)
-                self.families.append(FinalFamily(mapping, (), program, policy))
+                self.families.append(FinalFamily(witness, (), program, policy))
             family_id = self._family_ids[key]
             branch.add(family_id)
-            self.families[family_id].provenance.append(dict(
-                archive=str(archive), context=state.context, terminal=path.terminal,
-                transitions=path.transitions, cuts=context.cuts,
-                fragment_partition=tuple(rs for rs, _ in pairs)))
+            self.families[family_id].provenance.add(histories, node, dict(
+                archive=str(archive), context=state.context, terminal=terminal,
+                cuts=context.cuts, fragment_partition=partition))
         return self
 
     @property
@@ -279,7 +386,9 @@ class FinalBranchCatalogue:
                           for fragment in record['fragments'])
         placements = tuple(tuple(tuple(generator) for generator in group)
                            for group in record['placements'])
-        result.families = [FinalFamily.from_record(family_record, inventory, placements)
+        from mappa.mappa_core.core.search.graph import SearchHistories
+        histories = tuple(SearchHistories.from_record(history) for history in record['histories'])
+        result.families = [FinalFamily.from_record(family_record, inventory, placements, histories)
                            for family_record in record['families']]
         result._index_families()
         atom_sets, fragment_pairs = {}, {}
@@ -301,8 +410,11 @@ class FinalBranchCatalogue:
         return result
 
     def to_record(self):
-        fragment_ids, placement_ids = {}, {}
+        fragment_ids, placement_ids, history_ids = {}, {}, {}
         for family in self.families:
+            for histories, _, _ in family.provenance.references:
+                if histories is not None:
+                    history_ids.setdefault(histories, len(history_ids))
             for fragment in family.fragments:
                 fragment_ids.setdefault(fragment, len(fragment_ids))
             for kind, generators in family.actions:
@@ -316,7 +428,8 @@ class FinalBranchCatalogue:
                     coupled_branches=[dict(family=k, source_fragment_pairs=list(v)) for k, v in self.coupled_branches.items()],
                     fragments=[fragment.to_record(self_pool=self_pool) for fragment in fragment_ids],
                     placements=list(placement_ids),
-                    families=[f.to_record(fragment_ids, placement_ids) for f in self.families])
+                    histories=[history.to_record() for history in history_ids],
+                    families=[f.to_record(fragment_ids, placement_ids, history_ids) for f in self.families])
 
 
 def deduplicate_final_branches(aam):

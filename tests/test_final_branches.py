@@ -121,6 +121,102 @@ def test_reduction_shares_final_pairs_without_symmetry_or_starting_search(monkey
     assert answer.complete and answer.event_count == 0
 
 
+def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatch):
+    import pickle
+    from mappa.mappa_core.core.search.graph import SearchHistories
+    value = problem('C', [], [])
+    states = tuple(SearchState(i, 0, ((0, 0),), ((0, 1),), ()) for i in range(21))
+    edges = tuple(FragmentTransition(2*i+j, i, i+1, None, (i, j), None)
+                  for i in range(20) for j in range(2))
+    graph = AAMSearchGraph((SearchContext((0,), (0,), (0,)),), (0,), states,
+                           edges, (SearchStop(20, 'objective_met'),))
+    def forbidden(*args, **kwargs):
+        pytest.fail('Reduction, publication and sweep setup must not unfold growth paths')
+    monkeypatch.setattr(AAMSearchGraph, 'paths', forbidden)
+    monkeypatch.setattr(SearchHistories, 'paths', forbidden)
+    catalogue = FinalBranchCatalogue(value).add_graph(graph)
+    assert catalogue.path_count == 2**20
+    assert catalogue.branch_count == len(catalogue.families) == 1
+    origins = catalogue.families[0].provenance
+    assert len(origins) == 2**20 and len(origins.references) == 1
+    assert len(origins.references[0][0].parents) == 21
+    encoded = pickle.dumps(catalogue)
+    assert len(encoded) < 10_000
+    restored = pickle.loads(encoded)
+    assert restored.path_count == 2**20
+    encoded = json.dumps(restored.to_record())
+    assert len(encoded) < 10_000
+    restored = FinalBranchCatalogue.from_record(value, json.loads(encoded))
+    assert len(restored.families[0].provenance) == 2**20
+    decoded = decode_events(restored)
+    assert decoded.minimum_events == 0
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    assert decoded_events_record(decoded)['catalogue']['input_paths'] == 2**20
+
+
+def test_compact_origins_preserve_each_path_and_selected_scope():
+    from mappa.mappa_core.core.search.graph import SearchHistories
+    value = problem('CC', [], [])
+    # The first two decisions rejoin before a placement-only final decision.
+    states = tuple(SearchState(i, 0, ((0, 0), (1, 1)), ((0, 1), (1, 2)), ()) for i in range(4))
+    edges = (FragmentTransition(0, 0, 1, None, (), None),
+             FragmentTransition(1, 0, 2, None, (), None),
+             FragmentTransition(2, 1, 3, None, (), None, placement_generators=((1, 0),)),
+             FragmentTransition(3, 2, 3, None, (), None))
+    graph = AAMSearchGraph((SearchContext((0, 1), (0, 1), (0,)),), (0,), states,
+                           edges, (SearchStop(3, 'objective_met'),))
+    expected = [path.transitions for path in graph.paths()]
+    histories, endings = SearchHistories.collect(graph)
+    assert [path for _, _, node in endings for path in histories.paths(node)] == expected
+    chosen = tuple(graph.paths())[-1:]
+    selected = FinalBranchCatalogue(value).add_graph(graph, paths=chosen)
+    assert selected.path_count == 1
+    assert selected.families[0].provenance[0]['transitions'] == expected[-1]
+    saved = FinalBranchCatalogue(value).add_graph(graph)
+    restored = FinalBranchCatalogue.from_record(value, json.loads(json.dumps(saved.to_record())))
+    restored.add_graph(graph)
+    assert restored.path_count == 4 and len(restored.families) == len(saved.families)
+    assert sorted(tuple(origin['transitions']) for f in restored.families for origin in f.provenance) == sorted(expected*2)
+
+
+def test_absorbed_placement_histories_keep_original_path_order():
+    value = problem('CC', [], [])
+    states = tuple(SearchState(i, 0, ((0, 0), (1, 1)), ((0, 1), (1, 1)), ()) for i in range(5))
+    pairs = ((0, 1), (0, 2), (1, 3), (2, 3), (0, 3), (3, 4))
+    edges = tuple(FragmentTransition(i, a, b, None, (), None,
+        placement_generators=((1, 0),) if i in (2, 4) else ()) for i, (a, b) in enumerate(pairs))
+    graph = AAMSearchGraph((SearchContext((0, 1), (0, 1), (0,)),), (0,), states,
+                           edges, (SearchStop(4, 'objective_met'),))
+    saved = FinalBranchCatalogue(value).add_graph(graph)
+    assert len(saved.families) == 1
+    assert [origin['transitions'] for origin in saved.families[0].provenance] == [
+        path.transitions for path in graph.paths()]
+
+
+@pytest.mark.parametrize('seed', range(16))
+def test_bulk_atom_sets_match_independent_partition_grouping(seed):
+    import random
+    from mappa._group_ops import fragment_compositions
+    rng = random.Random(seed)
+    states, expected = [], []
+    for number in range(12):
+        atoms = rng.sample(range(10), rng.randrange(1, 11))
+        mapping = dict(zip(atoms, rng.sample(range(10), len(atoms))))
+        owners = {atom: rng.randrange(4) for atom in atoms if rng.random() < .8}
+        groups = {}
+        for atom in atoms:
+            groups.setdefault(('island', owners[atom]) if atom in owners else ('single', atom), set()).add(atom)
+        expected.append(tuple(sorted((tuple(sorted(group)), tuple(sorted(mapping[a] for a in group)))
+                                     for group in groups.values())))
+        states.append(SearchState(number, number % 2, tuple(mapping.items()), tuple(owners.items()), ()))
+    records, compositions = fragment_compositions(states, range(len(states)), (0, 1))
+    actual = [tuple(records[index][1:3] for index in ids) for _, ids in compositions]
+    assert actual == expected
+    for policy, source, target, witness in records:
+        assert tuple(sorted(dict(witness))) == source
+        assert tuple(sorted(dict(witness).values())) == target
+
+
 @pytest.mark.parametrize('seed', range(32))
 @pytest.mark.parametrize('mixed', [False, True])
 def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed, mixed):

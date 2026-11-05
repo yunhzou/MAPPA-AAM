@@ -74,7 +74,7 @@ def catalogue_fingerprint(saved):
                 record = value.to_record() if kind == 'relation' else value
                 inventory[value] = hashlib.sha256(encoded(record)).hexdigest()
             actions.append((kind, inventory[value]))
-        append((family.policy, family.mapping, family.required_edges, actions, family.provenance))
+        append((family.policy, family.mapping, family.required_edges, actions, list(family.provenance)))
     for key, ids in sorted(catalogue.branches.items()):
         append(('branch', key, sorted(ids)))
     for family, partitions in sorted(catalogue.coupled_branches.items()):
