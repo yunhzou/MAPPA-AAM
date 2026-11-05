@@ -1,8 +1,68 @@
 # Full Golden decoding with binary fragment symmetry
 
-This study tests the repaired integrated decoder from `4d2e0d7` on the saved full Golden
-matching catalogue: 1,851 reactions, 3,702 directions, discovery tolerance 2,
-one seed, branch cap 200 and the full single-edge sweep. Matching is not repeated.
+The final decoder at `deadf374a97de7b171e86eee85e07f975deb6d38` completed all
+**1,851 reactions / 3,702 directions**, with **zero failed directions and zero
+retries**, under the unchanged **2 GiB / 600-second** per-direction limits.
+The full repository suite passed **1,127 tests in 175.00 seconds**; Linux
+preflight passed **179 tests in 13.39 seconds**. The final 36-direction pilot
+passed completely before the full restart.
+
+This is decoding of the saved full Golden matching catalogue: discovery tolerance
+2, one seed, branch cap 200 and the full single-edge sweep. Matching is not
+repeated. The decoder retains the agreed independent ordinary-boundary model,
+binary fragment symmetry, original WBO event thresholds and minimum-plus-five
+window. Historical repair attempts follow the final measurements below.
+
+## Final full-set timings
+
+All 32 workers registered in 3.061 seconds; queue snapshots showed 32 distinct
+workers simultaneously processing 32 distinct directions. The allocation
+completed successfully in **305 seconds (5m05s)**; the pool measured **300.542
+seconds**, including startup and publication. Conversion was reused and is
+reported separately below.
+
+| Decoding measure | Median | 90th percentile | 95th percentile | 99th percentile | Maximum |
+|---|---:|---:|---:|---:|---:|
+| One direction, wall seconds | 1.135 | 5.296 | 8.405 | 20.885 | **137.192** |
+| Both directions summed per reaction, wall seconds | 2.410 | 11.169 | 16.754 | 36.724 | **147.157** |
+
+The maximum direction is **1606 reverse**; the maximum two-direction sum is
+reaction **1606**. Direction timings include catalogue loading, decoding and
+record construction. The reaction sum is the total work duration of both
+directions, which can execute concurrently. Publication is separate: median
+0.039 seconds and maximum 3.001 seconds per direction.
+
+Total decoding CPU time is **9,153.399 seconds (2.543 CPU hours)**, with another
+239.553 CPU seconds for publication. Decoding CPU divided by the 32-worker pool
+capacity over its measured runtime is **95.2%**. The allocation reserved 40 CPUs
+including execution overhead; this percentage uses the 32 compute workers.
+The largest sampled task RSS was **1.574 GiB**, below the 2 GiB guard.
+[Per-direction measurements and full distributions](timings.json) retain every
+direction, its attempt count, guard, compute/publication timing and sampled memory.
+
+All 3,702 terminal ledger rows, task audits, input hashes, source/engine identities
+and empty saved queues passed the maintained timing audit. A separate read-only
+audit verified all 3,702 published outputs: their complete matching catalogues,
+metadata and configurations match their inputs. Both directions are present for
+every one of the 1,851 reactions, with exactly one attempt per direction.
+
+The outputs report **3,701 proved model minima and one best-found model minimum**.
+These refer to the selected fragment symmetries and agreed approximate boundary
+model, not a physical global minimum over every discovery. All outputs retain
+that distinction and the minimum-plus-five query window. External reference
+verification was not rerun; these measurements do not provide a new
+reference-recovery score. The read-only output audit took a separate 380-second
+allocation on eight workers and is excluded from decoding timings.
+
+Pilot comparisons do not establish a universal per-case speedup. On the 23
+directions completed by the early preparation-only pilot, final-pilot CPU fell
+from 568.161 to 464.135 seconds in total, while individual cases varied. The
+immediately preceding endpoint pilot completed 35 directions; those directions
+took 834.529 seconds there and 849.895 seconds in the final pilot. Its remaining
+120-second timeout, 607 forward, completed in 45.652 seconds. Pilots used
+separate allocations; the final full pass above is the throughput measurement.
+
+## Input conversion and earlier attempts
 
 An explicit benchmark input conversion removes the retired fragment
 self-tolerance filter and preserves the saved binary generators, original WBOs,
