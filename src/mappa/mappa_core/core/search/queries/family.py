@@ -88,7 +88,8 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
         edge = path.graph.transitions[edge_id]
         fragment = edge.match
         if fragment is not None:
-            relation = compile_relaxed_relation(encoder, fragment.relation, edge_id)
+            relation = compile_relaxed_relation(encoder, fragment.relation, edge_id,
+                                                images_only=True)
             transport = {p: relation.images[r] for r, p in fragment.witness}
             values = [encoder.lookup(value, transport) for value in values]
             actions.append(('relation', edge_id, relation))

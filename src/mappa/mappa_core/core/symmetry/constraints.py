@@ -193,13 +193,33 @@ class FiniteConstraints:
         return z3.Sum(*(z3.If(self.predicate(value,item),item,0) for item in sorted(domain)))
 
     def emit(self, solver):
-        import z3
+        """Send the reduced Boolean constraints through one native parser call."""
         from itertools import product
         self.propagate()
         if self.failed:solver.add(False);return
+        statements=[]
+
+        def predicate(value, item):
+            domain=self.domain(value)
+            if item not in domain:return 'false'
+            if len(domain)==1:return 'true'
+            return f'q{value.index}_{item}'
+
+        def negate(flag):
+            return {'true':'false','false':'true'}.get(flag, f'(not {flag})')
+
+        def clause(flags):
+            if 'true' in flags:return
+            flags=[flag for flag in flags if flag!='false']
+            expression=(f"(or {' '.join(flags)})" if len(flags)>1
+                        else flags[0] if flags else 'false')
+            statements.append(f'(assert {expression})')
+
         for i,domain in enumerate(self.domains):
             if len(domain)>1:
-                solver.add(z3.PbEq([(self.predicate(Choice(i),v),1) for v in sorted(domain)],1))
+                flags=[predicate(Choice(i),v) for v in sorted(domain)]
+                statements.extend(f'(declare-fun {flag} () Bool)' for flag in flags)
+                statements.append(f"(assert ((_ pbeq 1 {' '.join('1' for _ in flags)}) {' '.join(flags)}))")
         for kind,values,data in self.constraints:
             if kind in ('table','action'):
                 # A local implication per input tuple avoids asking the solver
@@ -208,23 +228,26 @@ class FiniteConstraints:
                 for row in self.action_rows(values,data) if kind=='action' else data:
                     supported.setdefault(row[:-1],set()).add(row[-1])
                 for inputs in product(*(sorted(self.domain(v)) for v in values[:-1])):
-                    premise=[z3.Not(self.predicate(v,x)) for v,x in zip(values[:-1],inputs)]
-                    outputs=[self.predicate(values[-1],x) for x in sorted(supported.get(inputs,()))]
-                    solver.add(z3.Or(*premise,*outputs))
+                    premise=[negate(predicate(v,x)) for v,x in zip(values[:-1],inputs)]
+                    outputs=[predicate(values[-1],x) for x in sorted(supported.get(inputs,()))]
+                    clause(premise+outputs)
             elif kind=='lookup':
                 selector,output=values
                 for item in sorted(self.domain(selector)):
                     entry=data[item]
                     for result in sorted(self.domain(output)|self.domain(entry)):
-                        solver.add(z3.Implies(self.predicate(selector,item),
-                            self.predicate(output,result)==self.predicate(entry,result)))
+                        left,right=predicate(output,result),predicate(entry,result)
+                        if left!=right:
+                            statements.append(f'(assert (=> {predicate(selector,item)} (= {left} {right})))')
             else:
                 for item in sorted(set().union(*(self.domain(v) for v in values))):
-                    flags=[self.predicate(v,item) for v in values]
-                    fixed=sum(flag is True for flag in flags)
-                    choices=[flag for flag in flags if not isinstance(flag,bool)]
-                    if fixed>1:solver.add(False)
-                    elif choices:solver.add(z3.PbLe([(flag,1) for flag in choices],1-fixed))
+                    flags=[predicate(v,item) for v in values]
+                    fixed=flags.count('true')
+                    choices=[flag for flag in flags if flag not in ('true','false')]
+                    if fixed>1:statements.append('(assert false)')
+                    elif choices:
+                        statements.append(f"(assert ((_ at-most {1-fixed}) {' '.join(choices)}))")
+        solver.from_string('\n'.join(statements))
 
     def components(self):
         """Separate only choices with no remaining shared constraint."""
@@ -279,7 +302,7 @@ class FiniteConstraints:
                 chosen=_component_cache[key];_component_cache.move_to_end(key)
                 if chosen is None:return z3.unsat,None,stats
             else:
-                solver=z3.Solver();component.emit(solver)
+                solver=z3.SolverFor('QF_FD');component.emit(solver)
                 remaining=deadline-time.perf_counter()
                 if remaining<=0:return z3.unknown,None,stats
                 solver.set(timeout=max(1,int(remaining*1000)))

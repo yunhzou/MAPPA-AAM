@@ -337,5 +337,6 @@ def test_image_only_compilation_absorbs_only_discovery_closed_self_actions(fixtu
         solver.add(*(system.predicate(compiled.images[a][0], p) for a,p in zip(value.source_atoms, images)))
         if solver.check() == z3.sat:
             actual.add(images)
+            assert compiled.realize(solver.model()) == dict(zip(value.source_atoms, images))
         solver.pop()
     assert actual == expected

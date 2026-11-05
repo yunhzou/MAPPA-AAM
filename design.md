@@ -587,6 +587,11 @@ placements and endpoint equivalence. These bounds cannot establish acceptance;
 survivors retain every joint constraint. Reuse shared immutable action preparation
 and stop work once absence is proven. Construct physical output expressions only
 for callers that need a mapping or an event query.
+Membership queries may absorb a self action only when it is certified to preserve
+every discovery constraint. The returned mapping still carries a valid discovery
+and symmetry witness. Reduced finite constraints are transferred to the native
+solver in one batch; this changes query execution, not the retained mapping
+relation or the reference-equivalence policy.
 
 Matcher acceptance requires independent mapping-relation checks, meaningful
 branch and cap checks, and Python/native agreement. Critical cases include C6
