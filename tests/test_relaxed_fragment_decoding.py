@@ -115,7 +115,8 @@ def test_global_placement_composes_local_choices_and_scores_original_boundaries(
 
 def test_earlier_global_placement_moves_later_anchor_continuation_jointly():
     from growth_cases import saved_fragment
-    from test_event_patterns import saved_path
+    from mappa.mappa_core.core.search.branching.construction import _Branch
+    from mappa.mappa_core.core.search.graph import SearchContext, SearchGraphBuilder
     triangle = [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)]
     matrix = weights(6, triangle + [(a + 3, b + 3, w) for a, b, w in triangle])
     endpoints = problem(matrix, matrix)
@@ -123,20 +124,26 @@ def test_earlier_global_placement_moves_later_anchor_continuation_jointly():
                            iso_tolerance=0.)
     later = saved_fragment(endpoints, source_atoms=(1, 2), anchors=((1, 1),),
                            accepted_edges=((1, 2),), iso_tolerance=0.)
-    path = saved_path(endpoints, (first, later))
-    graph = replace(path.graph, transitions=(replace(path.graph.transitions[0],
-                    placement_generators=((3, 4, 5, 0, 1, 2),)), path.graph.transitions[1]))
+    builder = SearchGraphBuilder(SearchContext(tuple(range(6)), tuple(range(6)), (0,), iso_tolerance=0.))
+    branch = _Branch(builder)
+    branch.commit(first, placement_generators=((3, 4, 5, 0, 1, 2),))
+    branch.commit(later)
+    builder.stop(branch, 'objective_met')
+    graph = builder.finish()
     path = next(graph.paths())
     decoded = decode_events(FinalBranchCatalogue(endpoints).add_graph(graph))
     assert tuple(kind for kind, _ in decoded.catalogue.families[0].actions) == (
-        'relation', 'relation', 'group')
+        'relation', 'group')
+    fragment, = decoded.inventory.fragments
+    assert fragment.source_atoms == fragment.target_atoms == (0, 1, 2)
+    assert fragment.fixed_assignments == ()
     observed = set()
     for image, word in product(((0, 1), (1, 0)), ((), (1,))):
-        selection = (None, dict(discovery=dict(zip((0, 1), image))), word)
+        selection = (dict(discovery={0: image[0], 1: image[1], 2: 2}), word)
         result = assert_counts(decoded, selection)
         expected = tuple(atom + (3 if word else 0) for atom in (*image, 2))
         assert result == expected
-        realized = dict(path.realize({0: selection[1]}, {0: word}).mapping)
+        realized = dict(path.realize({0: dict(discovery=dict(zip((0, 1), image)))}, {0: word}).mapping)
         assert tuple(realized[r] for r in range(3)) == expected
         observed.add(result)
     assert len(observed) == 4

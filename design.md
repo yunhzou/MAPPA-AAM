@@ -97,7 +97,8 @@ separates independent symmetry components only when event terms do not join
 them, and skips operations only when they preserve those responses. It retains
 one actual witness and explicit completion status, with bounded search and
 caches. No complete permutation group or Cartesian mapping table is materialized.
-The symmetry of one discovery witness does not replace other discovery choices.
+Raw search retains discovery alternatives. Completed atom-set fragments retain
+their potential correspondences, while decoding selects one starting orbit.
 Event optimization may deliberately examine only a bounded subset of starting
 correspondences. Its result is best found unless a valid lower bound is attained
 or complete coverage is certified. This does not narrow the saved mapping
@@ -106,28 +107,35 @@ is established. Exhausted search limits remain incomplete, never exact minima.
 
 ### Bounded starting-correspondence improvement
 
-One candidate still identifies one source/target atom-set placement. Accepted
-growth edges can admit distinct correspondences on that placement which the
-completed fragments' binary symmetries cannot connect. Retain those discovery
-constraints compactly; do not create additional hierarchy branches or require
-exhaustive discovery-class enumeration for event optimization.
+One candidate identifies one source/target atom-set placement. Different starting
+correspondences on that placement need not be connected by binary symmetry.
+Search for a useful starting correspondence within a fixed budget; do not turn
+growth routes into additional completed fragments or enumerate all starting classes.
 
-Use the saved valid discovery as the incumbent. First obtain a lower bound by
+Completed fragments are identified by their reactant/product atom-set pair,
+within the fixed endpoint problem and policy. Growth witnesses and accepted
+edges do not create additional completed fragments. Raw search archives retain
+that evidence for replay and search validation. Explicit endpoint anchors remain
+constraints; temporary locks inherited during growth do not become permanent
+anchors of the completed fragment.
+
+Use a saved element-compatible correspondence as the incumbent. First obtain a lower bound by
 matching the original pair-weight multisets within element-pair types, including
 zero weights and subthreshold contacts, while relaxing atom consistency. Improve
 the incumbent through the shared binary-symmetry event core. If needed, search
-the original discovery constraints for a better starting correspondence and
-apply that same event core to it. All retained witnesses preserve their explicit
-discovery and symmetry proofs. Partial original-weight event bounds guide the
-discovery search; they do not prove absence of better unexplored symmetry choices.
+the completed atom sets for a better element-compatible, injective starting
+correspondence, respecting explicit endpoint anchors, and apply that same event
+core to it. Original growth edges do not restrict this search. Partial
+original-weight event bounds account for injective occupancy of the remaining
+atoms through a linear assignment; bonds between two unassigned atoms contribute
+zero to that bound. These bounds guide the search; they do not prove absence of
+better unexplored symmetry choices.
 
 The default is one five-second wall-clock search deadline per unique fragment,
 shared by preparation, discovery improvement and symmetry optimization. It is a
 maximum allowance, not a target runtime. Stop immediately on an attained lower
-bound. When the growth graph uses every target binary edge, target symmetry can
-certify coverage of every discovery; a completed symmetry search then establishes
-the full minimum without repeating discovery work. Otherwise retain one best
-actual witness and explicit incomplete optimality. Time-limited answers may vary
+bound. Otherwise retain one best actual witness and explicit incomplete optimality.
+Time-limited answers may vary
 with hardware; record the allowance, elapsed time, bound and work counts.
 
 Core checks deadlines between operations and retains a valid incumbent. An
@@ -155,15 +163,16 @@ construct the complete compressed placements when growth saturates.
 
 ### Fragment records and ownership
 
-`FragmentGrowth` owns the changing search state. `Fragment` is the completed
-source-to-target piece consumed directly by branches and decoding: the fragment
-itself is one candidate placement. There is no additional candidate or
+`FragmentGrowth` owns the changing search state. `Fragment` stores one
+source-to-target placement. Raw search records also carry its growth proof;
+reduction creates the shared final atom-set record consumed by decoding.
+There is no additional candidate or
 `FragmentMatch` wrapper, or separate one-sided fragment record.
 
 | Record | Logical fields |
 |---|---|
 | `FragmentGrowth` | `source_atoms`, `accepted_edges`, `deferred_edges`, `frontier`, `witness` |
-| `Fragment` | `source_atoms`, `target_atoms`, `accepted_edges`, `source_symmetry`, `target_symmetry`, `relation` |
+| `Fragment` | `source_atoms`, `target_atoms`, initial `witness`, explicit anchors, `source_symmetry`, `target_symmetry`, `relation`; raw search fragments additionally retain `accepted_edges` |
 
 The growth subgraph is exactly `source_atoms` with `accepted_edges`; no duplicate
 subgraph representation is retained. Deferred edges are rejected extension
@@ -173,7 +182,7 @@ assignments and the anchor/lock context. Original molecular bonds remain in the
 reaction data, separate from the accepted growth subgraph.
 
 At saturation, source self-automorph preparation is shared across placements.
-Each retained representative target atom set produces one completed `Fragment`, with its
+Each retained representative target atom set produces one search `Fragment`, with its
 anchor-aware binary target symmetry and complete compressed relaxed
 source-to-target relation. That relation owns its witness, anchor pairs and joint
 mapping constraints. Accepted edges retain the discovery evidence separately
@@ -276,10 +285,12 @@ an event after rearrangement. Decoding counts and classifies those changes under
 the original endpoint WBOs. Its bounded starting-correspondence selection and
 event window restrict the decoded response, not the saved matching relation.
 
-A completed fragment preserves its allowed injective mapping relation through
-complete discovery constraints and both anchor-aware self relationships. Equal atom sets,
-equal orbit labels or equal witnesses alone do not prove that two relations are
-identical. Independent atom choices must not introduce forbidden combinations.
+A completed fragment is one atom-set pair. Its potential starting mappings are
+element-compatible bijections respecting explicit endpoint anchors. Decoding
+retains the bounded search's selected starting correspondence and its correlated
+binary symmetry response. Potential catalogue membership and membership in a
+selected decoded response are different measures; report them separately.
+Independent atom choices must not introduce forbidden combinations.
 
 Matching preserves valid mappings, accepted/deferred bonds, locks and
 legitimate compressed branch choices. Duplicate records and intermediate merge
@@ -406,12 +417,20 @@ records. Live continuation contexts
 cannot be discarded merely because their final atom-set groups coincide.
 
 One catalogue per endpoint problem and direction reduces all supplied seeds and
-cuts. Its family key includes matching policies, the representative mapping and the
-ordered complete fragment and placement relationships, including their discovery
-and self constraints. Only proven
-commuting actions may be reordered. Distinct constraints or correlations remain
-distinct even when witnesses coincide. This is conservative representation-based
-reduction, not a general semantic normal form for all equivalent mapping sets.
+cuts. Intern each final reactant/product atom-set pair once under the fixed
+policy and explicit anchors. Deduplicate branch compositions by their fragment
+pairs. Intermediate overlapping growth fragments and accepted-edge histories
+do not become additional completed fragments or family identities.
+
+Retain ordered global placement alternatives as branch context: they move whole
+continuations and must not permit independent overlapping occupancy. Such
+alternatives can share one atom-set branch and its local fragment responses.
+An initial placement that preserves every final target atom set and explicit
+anchor is already included in the local binary symmetries and can be omitted.
+After any placement moves an atom set, preserve the remaining action order.
+Reduction performs structural key lookups and provenance aggregation. It does
+not solve symmetry, search for starting maps or count events. Binary symmetry
+preparation is deferred until a consumer needs it.
 
 The catalogue preserves source histories, cut provenance and alternative fragment
 partitions. Raw paths, public atom-set branches and catalogue families are separate
@@ -425,14 +444,14 @@ prepared transition actions; each saved path still contributes its provenance.
 
 ## Decoding: shared fragment responses and branch queries
 
-First inventory every unique saved Fragment and every branch, partition and
-sweep reference. The matching catalogue retains its full discovery relation.
+First inventory every unique completed Fragment and every branch, partition and
+sweep reference. The matching catalogue records potential atom-set placements.
 For decoding, select one starting correspondence per unique Fragment using the
 bounded improvement above, then retain both sides' element- and anchor-preserving
-binary symmetries. For equal connectivity, one side suffices. When growth and
-completed connectivity differ, other discoveries need not lie in this selected
+binary symmetries. For an aligned equal-connectivity pair, one side suffices.
+Other starting correspondences need not lie in this selected
 symmetry orbit: this is an explicit coverage restriction, not exhaustive decoding
-of the original relation.
+of every potential correspondence on the atom-set pair.
 
 The shared core response stores compact correlated generators, a fixed event
 contribution and sparse variable original-WBO event terms. Independent symmetry
@@ -452,14 +471,11 @@ flowchart LR
     Branch --> Window[Retained branches with a queryable event window]
 ```
 
-Branches remain unique compositions referencing shared responses. Historical
-fragments can overlap: retain the saved order of fragment and placement actions,
-and bind shared actions to the same choice. Final partition pieces own disjoint
-internal bond contributions; they do not replace the historical fragment
-permissions. Compose compatible local witnesses directly. Where an ordered
-history joins their choices, the same core operates on the affected sparse costs;
-it must not combine incompatible local minima or replace an ordered action
-sequence by unrestricted group closure.
+Branches remain unique compositions referencing shared final fragment responses.
+Final fragments own disjoint internal bond contributions. Compose their local
+choices and retain the saved global placement order, binding a shared placement
+to one joint choice. Never replace an ordered placement sequence by unrestricted
+group closure or allow two fragments to occupy the same target atoms.
 
 Assembly binds the prepared cost projections to their original shared choices;
 it does not expand them back into raw bond terms. Weight-preserving placement
@@ -580,11 +596,19 @@ source writers and gives destination workers disjoint ownership.
 
 Reference verification queries the retained mapping relation under an explicit
 atom subset and endpoint-equivalence policy. One witness, element sets or event
-counts cannot establish coverage of every compressed choice. Heavy-atom
+counts cannot establish coverage of every compressed choice. Completed catalogue
+membership means the reference fits a retained atom-set composition and its
+joint placements; it does not establish membership in the selected decoded
+symmetry orbit or event window. Report those metrics separately when comparing
+reduction semantics. Heavy-atom
 references leave hydrogen correspondence unspecified. Unknown, timeout, capped
 search and missing work remain distinct from proven absence.
 
-Verification first rejects references outside conservative per-atom bounds of
+For a completed atom-set composition, verification first tries to construct a
+full injective correspondence containing the annotated reference, including
+unannotated atoms. Acceptance requires validation through the saved relation.
+References needing global placements or endpoint equivalence use the joint query.
+That query first rejects references outside conservative per-atom bounds of
 the complete ordered relation, including both local self-relationships,
 placements and endpoint equivalence. These bounds cannot establish acceptance;
 survivors retain every joint constraint. Reuse shared immutable action preparation

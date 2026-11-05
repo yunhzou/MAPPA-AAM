@@ -9,7 +9,8 @@ from growth_cases import saved_fragment
 from test_event_patterns import problem, saved_path
 from mappa import decode_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
-from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, canonical_actions
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+from mappa.mappa_core.core.symmetry.actions import canonical_actions
 from mappa.mappa_core.core.search.queries.family import query_path
 
 
@@ -59,43 +60,94 @@ def test_different_target_pairs_remain_separate_and_overlap_is_not_lost():
     assert not recovered(first, value).intersection(recovered(second, value))
 
 
-def test_overlapping_relations_keep_order_and_are_not_absorbed():
+def test_raw_overlapping_relations_keep_their_order():
     value = problem('CCC', [], [])
     a = saved_fragment(value, source_atoms=(0, 1), target_atoms=(0, 1))
     b = saved_fragment(value, source_atoms=(1, 2), target_atoms=(1, 2))
     left, right = saved_path(value, (a, b)), saved_path(value, (b, a))
-    saved = FinalBranchCatalogue(value).add_graph(left.graph).add_graph(right.graph)
-    assert len(saved.families) == 2
     assert canonical_actions((('relation', a), ('relation', a))) == (('relation', a), ('relation', a))
     assert recovered(left, value) != recovered(right, value)
-    for path, family in zip((left, right), saved.families):
-        assert recovered(path, value) == recovered(family.as_path(value), value)
 
 
-def test_discovery_and_self_constraints_are_part_of_family_identity():
+def test_growth_constraints_do_not_split_a_completed_atom_set_fragment():
     value = problem('CCC', [(0, 1, 1.)], [(0, 1, 1.)])
     free = saved_fragment(value)
     constrained = saved_fragment(value, accepted_edges=((0, 1),), iso_tolerance=0.)
     saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (free,)).graph)
     saved.add_graph(saved_path(value, (constrained,)).graph)
-    assert saved.branch_count == 1 and len(saved.families) == 2
+    assert saved.branch_count == len(saved.families) == 1
+    assert len(saved._completed_fragments) == 1
+    assert saved.families[0].fragments[0].accepted_edges == ()
+    assert len(saved.families[0].provenance) == 2
     assert len(recovered(saved.families[0].as_path(value), value)) == 6
-    assert len(recovered(saved.families[1].as_path(value), value)) == 2
 
 
-def test_anchors_remain_attached_to_the_local_relation():
+def test_explicit_endpoint_anchors_remain_fixed_after_reduction():
     value = problem('HHHH', [], [])
     fragment = saved_fragment(value, anchors=((0, 0), (1, 1)))
-    saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    graph = saved_path(value, (fragment,)).graph
+    graph = replace(graph, contexts=(replace(graph.contexts[0], anchors=((0, 0), (1, 1))),))
+    saved = FinalBranchCatalogue(value).add_graph(graph)
     assert saved.families[0].fixed_assignments == ((0, 0), (1, 1))
     assert recovered(saved.families[0].as_path(value), value) == {(0, 1, 2, 3), (0, 1, 3, 2)}
+
+
+def test_reduction_shares_final_pairs_without_symmetry_or_starting_search(monkeypatch):
+    from mappa.mappa_core.core.symmetry import structure, optimization
+    from mappa.mappa_core.core.search.branching.construction import _Branch
+    from mappa.mappa_core.core.search.graph import SearchGraphBuilder
+
+    value = problem('CCC', [(0, 1, 1.), (1, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    builder = SearchGraphBuilder(SearchContext((0, 1, 2), (0, 1, 2), (0,), iso_tolerance=1.))
+    branch = _Branch(builder)
+    branch.commit(saved_fragment(value, source_atoms=(0, 1), accepted_edges=((0, 1),)))
+    branch.commit(saved_fragment(value, source_atoms=(1, 2), anchors=((1, 1),), accepted_edges=((1, 2),)))
+    builder.stop(branch, 'objective_met')
+    graph = builder.finish()
+    other = saved_path(value, (saved_fragment(value, witness={0: 2, 1: 1, 2: 0}),)).graph
+    def forbidden(*args, **kwargs):
+        pytest.fail('Reduction must only aggregate records, not solve a fragment')
+    with monkeypatch.context() as guard:
+        guard.setattr(structure, 'structural_generators', forbidden)
+        guard.setattr(optimization, 'optimize_fragment', forbidden)
+        saved = FinalBranchCatalogue(value).add_graph(graph).add_graph(other)
+    assert saved.path_count == 2 and saved.branch_count == len(saved.families) == 1
+    fragment, = saved.families[0].fragments
+    assert fragment.atom_sets == ((0, 1, 2), (0, 1, 2))
+    assert fragment.fixed_assignments == ()  # The temporary join lock is not a user anchor.
+    assert len(saved._completed_fragments) == 1
+    from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
+    answer = optimize_fragment(fragment)
+    assert answer.complete and answer.event_count == 0
+
+
+@pytest.mark.parametrize('seed', range(32))
+@pytest.mark.parametrize('mixed', [False, True])
+def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed, mixed):
+    import numpy as np
+    from mappa import search_aam, AAMSearchConfig
+    from growth_cases import represented
+    rng = np.random.default_rng(seed)
+    pairs = [(a, b) for a in range(4) for b in range(a + 1, 4)]
+    source = [(a, b, float(rng.choice([0., 1., 2.]))) for a, b in pairs]
+    target = [(a, b, float(rng.choice([0., 1., 2.]))) for a, b in pairs]
+    value = problem('CCOH' if mixed else 'CCCC', source, target)
+    anchors = ((2, 2),) if mixed and seed % 2 else ()
+    original = search_aam(value, AAMSearchConfig(seed_count=2, iso_tolerance=2., branch_limit=100,
+                                              anchors=anchors))
+    saved = FinalBranchCatalogue(value).add_aam(original)
+    before = represented(original.graph)
+    after = set().union(*(represented(family.as_path(value)) for family in saved.families))
+    assert before <= after
+    assert len({fragment.atom_sets for family in saved.families for fragment in family.fragments}) == len(saved._completed_fragments)
 
 
 def test_discarded_history_pruning_preserves_catalogue_and_boundary_counts():
     from mappa.mappa_core.core.search.branching.construction import _Branch
     from mappa.mappa_core.core.search.graph import SearchGraphBuilder
     value = problem('CCC', [(0, 1, 1.)], [(0, 2, 1.)])
-    builder = SearchGraphBuilder(SearchContext((0, 1, 2), (0, 1, 2), (0,), cuts=((0, 1),)))
+    builder = SearchGraphBuilder(SearchContext((0, 1, 2), (0, 1, 2), (0,),
+        cuts=((0, 1),), anchors=((0, 0),)))
     root = _Branch(builder)
     discarded = root.fork()
     discarded.commit(saved_fragment(value, source_atoms=(0,), target_atoms=(1,), witness={0: 1}))

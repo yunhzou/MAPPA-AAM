@@ -1,12 +1,5 @@
 # Critical fragment matching cases
 
-`golden-625-fragment-v1.bundle` is the original, trusted fragment/1 catalogue
-for Golden case 625 forward (27 families, 36 unique fragments). Its 8,338-byte
-compressed payload contains no operational paths. `test_catalogue_migration.py`
-checks the explicit binary-symmetry conversion against an independent record
-export from producing revision `d30a935`; ordinary runtime loading does not
-silently convert historical symmetry policies.
-
 Run `python -m pytest -q -s tests/test_fragment_matching_contract.py`.
 These acceptance tests check one-witness growth, direct compressed completion,
 and exact saved mapping relations in both Python and native execution.

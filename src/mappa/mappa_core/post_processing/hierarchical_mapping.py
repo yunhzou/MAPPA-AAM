@@ -10,7 +10,8 @@ from itertools import chain, product
 import time
 from .decoder.events import SignedEventIndex
 from mappa.mappa_core.core.search.branching.construction import find_islands
-from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily, canonical_actions
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
+from mappa.mappa_core.core.symmetry.actions import canonical_actions
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa.mappa_core.core.matching.policy import BondTolerance

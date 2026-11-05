@@ -3,6 +3,7 @@ from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
 from functools import cached_property
 import sys
+import heapq
 from numbers import Integral
 
 import numpy as np
@@ -87,9 +88,60 @@ class _PreparedAction(tuple):
             return frozenset(a for generator in value for a, b in enumerate(generator) if a != b)
         raise ValueError(f'unsupported action: {kind}')
 
+    @cached_property
+    def moves(self):
+        """Changed endpoint pairs of a structural placement, shared across uses."""
+        kind, generators = self
+        if kind != 'group':
+            raise ValueError('only structural placements have generator moves')
+        return tuple({(a, b) for generator in generators for a, b in enumerate(generator) if a != b})
+
     def __reduce__(self):
         """Publish scientific tuples; owners rebuild derived preparation."""
         return tuple, (tuple(self),)
+
+
+def _support(action):
+    return (action if isinstance(action, _PreparedAction) else _PreparedAction(action)).support
+
+
+def decision_blocks(actions):
+    """Keep a local relation and its following placement action together."""
+    blocks = []
+    for action in actions:
+        if action[0] == 'group' and blocks and blocks[-1][-1][0] == 'relation':
+            blocks[-1] += (action,)
+        else:
+            blocks.append((action,))
+    return tuple(blocks)
+
+
+def _block_key(block):
+    return tuple((kind, value.key if kind == 'relation' else value) for kind, value in block)
+
+
+def canonical_actions(actions):
+    """Normalize independent decisions without separating their local/placement order."""
+    blocks = decision_blocks(actions)
+    support = tuple(frozenset().union(*(_support(a) for a in block)) for block in blocks)
+    outgoing = [[] for _ in blocks]
+    incoming = [0] * len(blocks)
+    for j in range(len(blocks)):
+        for i in range(j):
+            if support[i] & support[j]:
+                outgoing[i].append(j)
+                incoming[j] += 1
+    ready = [(_block_key(blocks[i]), i) for i, degree in enumerate(incoming) if not degree]
+    heapq.heapify(ready)
+    result = []
+    while ready:
+        _, i = heapq.heappop(ready)
+        result.extend(blocks[i])
+        for j in outgoing[i]:
+            incoming[j] -= 1
+            if not incoming[j]:
+                heapq.heappush(ready, (_block_key(blocks[j]), j))
+    return tuple(result)
 
 
 class _ActionSequence(tuple):

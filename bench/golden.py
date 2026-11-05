@@ -94,6 +94,11 @@ def verify_catalogue(catalogue, reference, *, reverse=False):
         features, generators = features[::-1], generators[::-1]
     unknown = False
     for number, family in enumerate(catalogue.families):
+        evidence = _atom_set_reference(family, catalogue.problem, mapping, features[0]['heavy'])
+        if evidence is not None:
+            return dict(status='recovered', family=number, evidence=evidence,
+                        heavy_atoms=len(mapping), policy=REFERENCE_POLICY)
+    for number, family in enumerate(catalogue.families):
         status, evidence = query_path(family.as_path(catalogue.problem), catalogue.problem,
             mapping, source_atoms=tuple(features[0]['heavy']), source_generators=generators[0],
             target_generators=generators[1], complete_reference=True, timeout_ms=10000)
@@ -103,6 +108,84 @@ def verify_catalogue(catalogue, reference, *, reverse=False):
         unknown |= status == 'unknown'
     return dict(status='unknown' if unknown else 'not_recovered',
                 heavy_atoms=len(mapping), policy=REFERENCE_POLICY)
+
+
+def _atom_set_reference(family, problem, reference, heavy):
+    """Construct and validate a direct proof on disjoint completed atom sets.
+
+    Unspecified atoms are filled injectively by element. A failed construction
+    says nothing about membership through global placement or endpoint symmetry;
+    those choices still require the ordinary joint query.
+    """
+    if set(dict(family.mapping)).intersection(heavy) != set(reference):
+        return None
+    discoveries, occupied = {}, set()
+    for fragment in family.fragments:
+        if fragment.accepted_edges or occupied.intersection(fragment.source_atoms):
+            return None
+        occupied.update(fragment.source_atoms)
+        mapping = dict(fragment.fixed_assignments)
+        for atom in fragment.source_atoms:
+            if atom in reference:
+                if atom in mapping and mapping[atom] != reference[atom]:
+                    return None
+                mapping[atom] = reference[atom]
+        if len(set(mapping.values())) != len(mapping) or not set(mapping.values()) <= set(fragment.target_atoms):
+            return None
+        remaining = {}
+        for atom in reversed(fragment.target_atoms):
+            if atom not in mapping.values():
+                remaining.setdefault(problem.product.elements[atom], []).append(atom)
+        for atom in fragment.source_atoms:
+            if atom not in mapping:
+                options = remaining.get(problem.reactant.elements[atom])
+                if not options:
+                    return None
+                mapping[atom] = options.pop()
+        if not fragment.relation.allows_discovery(mapping):
+            return None
+        discoveries[fragment] = dict(discovery=mapping)
+    path = family.as_path(problem)
+    choices = {edge: discoveries[path.graph.transitions[edge].match] for edge in path.transitions
+               if path.graph.transitions[edge].match is not None}
+    realized = path.realize(choices)
+    actual = dict(realized.mapping)
+    if (len(set(actual.values())) != len(actual) or any(actual.get(r) != p for r, p in reference.items())):
+        return None
+    return dict(mapping=realized.mapping, fragment_choices=realized.fragment_choices,
+                placement_choices=realized.placement_choices, scope='full_explicit',
+                certificate='validated_atom_set_correspondence')
+
+
+def verify_decoded(decoded, reference, *, reverse=False, seconds=10.):
+    """Test exact annotated indices in the retained event window, separately from catalogue membership.
+
+    This diagnostic does not relax reference indices by endpoint symmetry.
+    The shared query enforces local symmetry, occupancy and the event window.
+    """
+    mapping = dict(reference['mapping'])
+    feature = reference['features'][int(reverse)]
+    if reverse:
+        mapping = {p: r for r, p in mapping.items()}
+    contexts = decoded.window.contexts
+    started = time.perf_counter()
+    unknown = False
+    for family, partition, cut in contexts:
+        mapped = dict(decoded.catalogue.families[family].mapping)
+        if set(mapped).intersection(feature['heavy']) != set(mapping):
+            continue
+        remaining = seconds - (time.perf_counter() - started)
+        if remaining <= 0:
+            unknown = True
+            break
+        answer = decoded.select(family, partition=partition, cut=cut).find(
+            assignments=mapping, seconds=remaining)
+        if answer.status == 'found':
+            return dict(status='recovered', event_count=answer.event_count,
+                        policy='exact annotated indices in selected decoded window')
+        unknown |= answer.status == 'unknown'
+    return dict(status='unknown' if unknown else 'not_recovered',
+                policy='exact annotated indices in selected decoded window')
 
 
 def prepare(inputs, manifest, output, *, batches=5):

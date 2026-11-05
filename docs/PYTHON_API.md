@@ -22,7 +22,12 @@ physical_events = decoded.evaluate(0)
 record = decoded_events_record(decoded)
 ```
 
-Decoding inventories all unique saved fragments, improves one starting mapping
+Reduction shares each final reactant/product atom-set pair once within the fixed
+reaction, policy and explicit anchors. Growth routes and temporary locks remain
+in the search archive. Branches retain their compositions, ordered global
+placements and sweep provenance. Reduction performs no symmetry or event search.
+
+Decoding inventories those unique completed fragments, improves one starting mapping
 within `fragment_seconds` (default five seconds), and shares its binary-symmetry
 event response across branch uses. The original matching catalogue remains
 intact. The decoded response covers the selected start's symmetry orbit; it need
@@ -348,10 +353,10 @@ discovery witness with identity self rearrangements. A choice dictionary can sup
 `target_permutation` in the respective fragment-local index frames.
 
 For a global placement action, supply a word of signed 1-based generator
-numbers; `None` or `()` selects identity. The family program applies each local
-relation before its placement action, with later fragment decisions applied
-first. This moves later assignments and their shared anchors together. A saved
-path exposes the same choices by transition ID:
+numbers; `None` or `()` selects identity. The completed family applies its
+disjoint local fragment choices, then the saved joint placement sequence.
+Raw search paths retain chronological growth decisions and expose their original
+choices by transition ID:
 
 ```python
 realized = path.realize(
@@ -360,7 +365,7 @@ realized = path.realize(
 )
 ```
 
-The decoder validates discovery constraints and checks each self rearrangement
+The decoder validates element compatibility, explicit anchors and each self rearrangement
 against its own original fragment. It applies target rearrangement composed with
 discovery composed with inverse source rearrangement, once. The resulting mapping
 may exceed discovery tolerance; explicit physical evaluation uses original WBOs.
@@ -382,10 +387,10 @@ Without `categories=True`, `counts` retains decrease/increase counts.
 
 `events.inventory.fragments` contains the unique saved Fragment objects.
 `events.inventory.uses[family_id]` identifies the disjoint pieces owning internal
-bonds in each final partition; historical fragments can overlap those pieces.
-Inventory construction precedes response preparation. Reuse also requires the
-same mapping, local constraints, ordered actions and endpoint context; matching
-atom sets alone are insufficient.
+bonds in each final partition. Inventory construction precedes response preparation.
+Equal atom-set pairs share a local response under the same endpoint problem,
+policy and explicit anchors. Global placement order and sweep context remain
+branch-level information; they do not create more local fragments.
 
 `events.tables(family_id)` exposes the conditional fragment and boundary data.
 Responses preserve local correlations and action order. The branch composition

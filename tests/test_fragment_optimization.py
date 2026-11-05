@@ -55,6 +55,66 @@ def test_triangle_leaves_two_event_starting_class_and_attains_zero():
     assert_witness(value, answer)
 
 
+@pytest.mark.parametrize('case', ['triangle_tail', 'ring_chain', 'continuous', 'anchored'])
+def test_completed_atom_sets_find_an_optimum_without_growth_history(case):
+    from mappa import AAMProblem, MolecularEndpoint, decode_events
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from test_event_patterns import saved_path
+
+    source = weights(4, [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.), (3, 0, 1.)])
+    target = weights(4, [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.)])
+    if case in ('triangle_tail', 'anchored'):
+        source = target = triangle().relation.source.weights
+    if case == 'continuous':
+        target = weights(4, [(0, 1, 1.7), (1, 2, 1.), (2, 3, 2.2)])
+    elements = ('C',) * 4
+    endpoint = lambda matrix: MolecularEndpoint(elements, np.zeros((4, 3)), matrix)
+    problem = AAMProblem(endpoint(source), endpoint(target))
+    anchors = ((0, 1),) if case == 'anchored' else ()
+    value = Fragment.from_atom_sets(problem, range(4), range(4),
+        enumerate((1, 0, 3, 2)), anchors=anchors)
+    objective = FragmentObjective(value)
+    allowed = [image for image in permutations(range(4))
+               if all(image[r] == p for r, p in anchors)]
+    expected = min(objective.count(np.asarray(image)) for image in allowed)
+    answer = optimize_fragment(value)
+    assert answer.event_count == expected
+    assert_witness(value, answer)
+    # Actual decoding shares the same selected response and counts original WBOs.
+    graph = saved_path(problem, (value,)).graph
+    graph = replace(graph, contexts=(replace(graph.contexts[0], anchors=anchors),))
+    decoded = decode_events(FinalBranchCatalogue(problem).add_graph(graph))
+    assert len(decoded.fragments) == 1
+    assert decoded.minimum_events == expected
+    mapping = decoded.realize(0)
+    assert all(mapping[r] == p for r, p in anchors)
+
+
+@pytest.mark.parametrize('seed', range(32))
+def test_starting_bound_matches_exhaustive_injective_fixed_bond_cost(seed):
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.mappa_core.core.symmetry.optimization import _StartingMappings
+    from mappa.mappa_core.core.symmetry.minimum import SymmetryWork
+    rng = np.random.default_rng(seed)
+    def matrix():
+        upper = np.triu(rng.choice([0., .2, .5, 1., 1.4, 2.], (5, 5)), 1)
+        return upper + upper.T
+    elements = ('C', 'C', 'C', 'O', 'O')
+    left, right = matrix(), matrix()
+    endpoint = lambda x: MolecularEndpoint(elements, np.zeros((5, 3)), x)
+    value = Fragment.from_atom_sets(AAMProblem(endpoint(left), endpoint(right)),
+                                    range(5), range(5), enumerate(range(5)))
+    objective = FragmentObjective(value)
+    domains = [(i,) if rng.random() < .4 else tuple(j for j in range(5)
+        if elements[i] == elements[j] and (i == j or rng.random() < .7)) for i in range(5)]
+    fixed = {i for i, values in enumerate(domains) if len(values) == 1}
+    expected = min(sum(abs(left[i, j]-right[image[i], image[j]]) > .5
+                       for i in range(5) for j in range(i+1, 5) if i in fixed or j in fixed)
+        for image in permutations(range(5)) if all(image[i] in domains[i] for i in range(5)))
+    search = _StartingMappings(value, objective, time.perf_counter()+5., 100, SymmetryWork())
+    assert search._bound(domains) == expected
+
+
 def test_double_triangle_continuous_weights_improve_three_to_two():
     source = weights(4, [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.)])
     target = weights(4, [(0, 1, 2.), (0, 2, 1.), (0, 3, 1.), (1, 2, 1.), (1, 3, 1.)])

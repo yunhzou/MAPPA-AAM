@@ -62,13 +62,15 @@ class RelaxedIsomorphism:
     def __post_init__(self):
         witness, anchors = _pairs(self.witness), _pairs(self.anchors)
         domains = tuple((atom, tuple(values)) for atom, values in _pairs(self.domains))
+        unique_domains = set(values for _, values in domains)
         target_edges = tuple(tuple(edge) for edge in self.target_edges)
         if len(self.source_atoms) != len(self.target_atoms):
             raise ValueError('a fragment relation requires equal source and target atom counts')
         if not math.isfinite(self.graph_floor) or self.graph_floor < 0:
             raise ValueError('discovery graph floor must be finite and nonnegative')
         indices = (atom for pair in anchors for atom in pair)
-        domain_indices = (atom for r, values in domains for atom in (r, *values))
+        domain_indices = (*[r for r, _ in domains],
+                          *(atom for values in unique_domains for atom in values))
         edge_indices = (atom for edge in target_edges for atom in edge)
         if any(not isinstance(atom, Integral) for values in (indices, domain_indices, edge_indices)
                for atom in values):
@@ -81,7 +83,7 @@ class RelaxedIsomorphism:
         source_atoms, target_atoms = set(self.source_atoms), set(self.target_atoms)
         if (len(domains) != len(source_atoms) or {r for r, _ in domains} != source_atoms
                 or any(not values or len(values) != len(set(values))
-                       or not set(values) <= target_atoms for _, values in domains)):
+                       or not set(values) <= target_atoms for values in unique_domains)):
             raise ValueError('discovery domains must cover each source atom within the fixed target set')
         edges = tuple(self.accepted_edges)
         if (len({edge.atoms for edge in edges}) != len(edges)
@@ -92,7 +94,8 @@ class RelaxedIsomorphism:
             raise ValueError('active target edges must stay within the fixed target set')
         object.__setattr__(self, 'witness', tuple(sorted(witness)))
         object.__setattr__(self, 'anchors', tuple(sorted(anchors)))
-        object.__setattr__(self, 'domains', tuple(sorted((r, tuple(sorted(values))) for r, values in domains)))
+        ordered_domains = {values: tuple(sorted(values)) for values in unique_domains}
+        object.__setattr__(self, 'domains', tuple(sorted((r, ordered_domains[values]) for r, values in domains)))
         object.__setattr__(self, 'accepted_edges', tuple(sorted(edges, key=lambda edge: edge.atoms)))
         object.__setattr__(self, 'target_edges', tuple(sorted({tuple(sorted(edge)) for edge in target_edges})))
         object.__setattr__(self, 'graph_floor', float(self.graph_floor))

@@ -207,14 +207,15 @@ def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, rever
     events = decode_events(catalogue)
     for i, family in enumerate(catalogue.families):
         family.validate_representative(problem)
-        assert len(family.required_edges) == 5
+        assert family.required_edges == ()
+        assert family.fragments[0].atom_sets == (tuple(range(6)), tuple(range(6)))
         result = events.contributions(i)
         assert result['total'] == 1
         assert result['counts']['forming' if reverse else 'breaking'] == 1
         assert sum(sum(v.values()) for v in result['boundary'].values()) == 0
 
 
-def test_equal_atom_sets_keep_distinct_growth_constraints():
+def test_equal_atom_sets_merge_distinct_growth_constraints_after_search():
     from dataclasses import replace
     from mappa import AAMProblem, MolecularEndpoint
     from mappa.mappa_core.core.search.branching.construction import find_islands
@@ -232,7 +233,9 @@ def test_equal_atom_sets_keep_distinct_growth_constraints():
     changed = with_edges(((0, 1), (1, 2)))
     other = with_edges(((0, 1), (0, 2)))
     cat = FinalBranchCatalogue(AAMProblem(endpoint, endpoint)).add_graph(changed).add_graph(other)
-    assert len(cat.families) == 2
+    assert len(cat.families) == 1
+    assert len(cat.families[0].provenance) == 2
+    assert cat.families[0].fragments[0].accepted_edges == ()
 
 
 def image_query(source, target, atoms, bonds, *, locked=None, tolerance=.2):
@@ -390,7 +393,7 @@ def weighted_star_self():
     prepared = binary_symmetry(['O','C','C','C'], target.graph['wbo_matrix'])
     # These two structural generators each exchange adjacent weights. Their
     # composition can move the endpoint weights farther than either exchange.
-    return target, replace(prepared, generators=((0,2,1,3), (0,1,3,2)))
+    return target, replace(prepared, _generators=((0,2,1,3), (0,1,3,2)))
 
 
 def test_global_pruning_preserves_the_actual_discovery_support_predicate():

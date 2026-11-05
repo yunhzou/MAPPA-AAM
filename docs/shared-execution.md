@@ -10,9 +10,10 @@ catalogue = deduplicate(matched)
 decoded = decode_events(catalogue)
 ```
 
-`deduplicate` uses MAPPA's existing family catalogue. It groups results across
-seeds and cuts while preserving fragment partitions, ordered actions, constraints
-and provenance. Decoding prepares local fragment and boundary responses from
+`deduplicate` shares completed fragments by reactant/product atom-set pairs and
+groups their branch compositions across seeds and cuts. It preserves explicit
+anchors, ordered global placements and sweep provenance; intermediate growth
+proofs stay in the raw matching archive. Decoding prepares local fragment and boundary responses from
 that catalogue. A cut is a matching work unit, not an independent decoding input.
 
 ## Many reactions on a computer

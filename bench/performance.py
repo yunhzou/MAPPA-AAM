@@ -45,6 +45,59 @@ def peak_rss():
         1 if sys.platform == 'darwin' else 1024)
 
 
+def saved_matching_worker(args, case):
+    """Compare postprocessing revisions on identical immutable cut results."""
+    from mappa import decode_events
+    from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+    from golden import verify_catalogue, verify_decoded
+
+    phases = {}
+    def measure(name, operation):
+        cpu, wall = time.process_time(), time.perf_counter()
+        result = operation()
+        value = phases.setdefault(name, dict(cpu_seconds=0., wall_seconds=0.))
+        value['cpu_seconds'] += time.process_time() - cpu
+        value['wall_seconds'] += time.perf_counter() - wall
+        return result
+
+    with tempfile.TemporaryDirectory(prefix='mappa-reduction-comparison-') as scratch:
+        matching = read_blob(Blob(**case['matching']), scratch)
+        source = read_blob(matching.input, scratch)
+        if json.loads(json.dumps(asdict(source.config))) != case['config']:
+            raise ValueError('Saved matching configuration differs')
+        reference = read_blob(Blob(**case['reference']), scratch)
+        catalogue = FinalBranchCatalogue(source.problem)
+        for number, cut in enumerate(matching.cuts):
+            graph = measure('loading', lambda: read_blob(cut, scratch)).graph
+            measure('reduction', lambda: catalogue.add_graph(graph, archive=f'cut/{number}'))
+            del graph
+        emit(dict(kind='stage', stage='reduction', state='finished', **phases['reduction']))
+        verified = measure('verification', lambda: verify_catalogue(catalogue, reference,
+                                                                   reverse=case['reversed']))
+        def prepare_decoding():
+            decoded = decode_events(catalogue, **case['decode_config'])
+            _ = decoded.window
+            return decoded
+        decoded = measure('decoding', prepare_decoding)
+        selected = measure('decoded_reference', lambda: verify_decoded(decoded, reference,
+                                                                      reverse=case['reversed']))
+        record = measure('export', lambda: decoded_events_record(decoded))
+        binary = measure('serialization', lambda: pickle.dumps(record, protocol=5))
+        restored = measure('restoration', lambda: pickle.loads(binary))
+        if restored != record:
+            raise ValueError('Decoded output changed during transport')
+        emit(dict(kind='result', phases=phases, matching_repeated=False,
+            cuts=len(matching.scope), seed_searches=sum(len(c.seeds) for c in matching.scope),
+            branches=catalogue.branch_count, families=len(catalogue.families),
+            fragments=len(decoded.inventory.fragments), paths=catalogue.path_count,
+            branch_composition_sha256=canonical_digest(sorted(catalogue.branches))[0],
+            catalogue_reference=verified['status'], decoded_reference=selected,
+            minimum_events=decoded.minimum_events, minimum_proven=decoded.minimum_proven,
+            serialized_bytes=len(binary), process_lifetime_peak_rss_bytes=peak_rss()))
+
+
 def worker(args, case):
     root = args.revision.resolve()
     if os.environ.get('PYTHONPATH') != str(root / 'src'):
@@ -71,6 +124,19 @@ def worker(args, case):
     if identity != args.identity:
         raise ValueError('Selected source or native engine changed before execution')
     emit(dict(kind='identity', source_identity=identity, modules=modules))
+    if 'matching' in case:
+        profiler = cProfile.Profile() if args.profile else None
+        if profiler:
+            profiler.enable()
+        try:
+            saved_matching_worker(args, case)
+        finally:
+            if profiler:
+                profiler.disable()
+                profiler.dump_stats(str(args.profile))
+        if source_identity(root) != identity:
+            raise ValueError('Source changed during saved-matching comparison')
+        return
     profiler = cProfile.Profile() if args.profile else None
     with tempfile.TemporaryDirectory(prefix='mappa-performance-') as scratch:
         problem = problem_from_record(read_blob(Blob(**case['input']), scratch))
@@ -216,6 +282,22 @@ def compare(args, cases):
                 report['runs'].append(run)
                 save(args.output, report)
                 emit({key: run[key] for key in ('revision', 'case', 'repetition', 'status')})
+                if run['status'] != 'ok':
+                    return 1
+            if 'matching' in case:
+                paired = {run['revision']: next(r for r in run['records'] if r['kind'] == 'result')
+                          for run in report['runs'][-2:]}
+                before, after = paired['baseline'], paired['candidate']
+                regression = (before['branch_composition_sha256'] != after['branch_composition_sha256']
+                    or (before['catalogue_reference'] == 'recovered' and after['catalogue_reference'] != 'recovered')
+                    or (before['decoded_reference']['status'] == 'recovered'
+                        and after['decoded_reference']['status'] != 'recovered')
+                    or any(after['phases'][phase]['cpu_seconds'] > max(.1, 1.25 * before['phases'][phase]['cpu_seconds'])
+                           for phase in ('reduction', 'decoding')))
+                if regression:
+                    report['stopped_for_investigation'] = case['name']
+                    save(args.output, report)
+                    return 1
     return int(any(run['status'] != 'ok' for run in report['runs']))
 
 

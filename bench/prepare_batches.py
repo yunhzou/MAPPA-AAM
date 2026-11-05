@@ -81,7 +81,7 @@ def _direction_rows(index):
     return rows
 
 
-def _decoding_catalogues(source, owners, config_factory=AAMSearchConfig):
+def _decoding_catalogues(source, owners):
     """Read a complete frozen campaign and its small archived attempt records."""
     from enzymemap import recovery_owner
 
@@ -89,7 +89,7 @@ def _decoding_catalogues(source, owners, config_factory=AAMSearchConfig):
     manifest = json.loads(raw)
     launch_raw = (source/'launch.json').read_bytes()
     launch = json.loads(launch_raw)
-    config = asdict(config_factory(**manifest['config']))
+    config = asdict(AAMSearchConfig(**manifest['config']))
     policy = decoding_policy(manifest)
     expected, source_indexes = {}, []
     for origin in manifest['sources']:
@@ -99,7 +99,7 @@ def _decoding_catalogues(source, owners, config_factory=AAMSearchConfig):
         if digest != origin['sha256']:
             raise ValueError('Original source index checksum differs')
         index = json.loads(index_raw)
-        if asdict(config_factory(**index['config'])) != config or decoding_policy(index) != policy:
+        if asdict(AAMSearchConfig(**index['config'])) != config or decoding_policy(index) != policy:
             raise ValueError('Original source configuration differs')
         rows = _direction_rows(index)
         if expected.keys() & rows.keys():
@@ -126,7 +126,7 @@ def _decoding_catalogues(source, owners, config_factory=AAMSearchConfig):
         digest = hashlib.sha256(index_raw).hexdigest()
         if (digest != batch['index_sha256'] or digest != plan['input_index_sha256']
                 or index['config'] != plan['config']
-                or asdict(config_factory(**index['config'])) != config
+                or asdict(AAMSearchConfig(**index['config'])) != config
                 or decoding_policy(index) != policy or decoding_policy(plan) != policy):
             raise ValueError('Original campaign input or configuration differs')
         if progress['source'] != launch['source_identity']:
@@ -184,8 +184,7 @@ def _decoding_catalogues(source, owners, config_factory=AAMSearchConfig):
     return config, policy, selected, memory_failures, provenance
 
 
-def prepare_decoding(source, output, workers, *, memory_failures_workers=(), decode_config=None,
-                     binary_symmetry=False):
+def prepare_decoding(source, output, workers, *, memory_failures_workers=(), decode_config=None):
     """Prepare a fresh decode pass from every saved catalogue, importing no result rows."""
     if not workers or any(count <= 0 for count in (*workers, *memory_failures_workers)):
         raise ValueError('Each batch requires a positive worker count')
@@ -195,24 +194,11 @@ def prepare_decoding(source, output, workers, *, memory_failures_workers=(), dec
     if output.exists():
         raise FileExistsError(output)
     with ExitStack() as owners:
-        factory = AAMSearchConfig
-        if binary_symmetry:
-            from catalogue_migration import search_config, convert_rows
-            factory = lambda **record: search_config(record)
-        config, original_policy, selected, failures, provenance = _decoding_catalogues(source, owners, factory)
+        config, original_policy, selected, failures, provenance = _decoding_catalogues(source, owners)
         policy = decode_config or original_policy
         if not isinstance(policy, EventDecodeConfig):
             raise TypeError('decode_config must be EventDecodeConfig')
         output.mkdir(parents=True)
-        if binary_symmetry:
-            original = json.loads((source/'manifest.json').read_bytes())['config']
-            selected, evidence = convert_rows(selected, output/'catalogues', original)
-            raw = json.dumps(evidence).encode()
-            (output/'conversion.json').write_bytes(raw)
-            provenance.update(original_search_config=original, conversion=dict(
-                policy='fragment/1 to fragment/2: binary symmetry, no self-tolerance filter',
-                evidence_sha256=hashlib.sha256(raw).hexdigest(),
-                matching_repeated=False, original_catalogues_unchanged=True))
         metadata = dict(config=config, decode_config=asdict(policy), decoding_source=provenance)
         groups = [('ordinary', workers, selected)]
         if memory_failures_workers:
@@ -292,8 +278,6 @@ if __name__ == '__main__':
     decoding.add_argument('source'); decoding.add_argument('output')
     decoding.add_argument('--workers', type=int, nargs='+', required=True)
     decoding.add_argument('--memory-failures-workers', type=int, nargs='+', default=[])
-    decoding.add_argument('--binary-symmetry', action='store_true',
-        help='Explicitly convert fragment/1 catalogues to the approved binary-symmetry policy')
     resume = commands.add_parser('resume', help='Repartition completed results from a stopped campaign')
     resume.add_argument('index'); resume.add_argument('previous'); resume.add_argument('output')
     resume.add_argument('--count',type=int,default=40)
@@ -304,8 +288,7 @@ if __name__ == '__main__':
         print(json.dumps({key: value for key, value in result.items() if key != 'sources'}))
     elif args.operation == 'decoding':
         result = prepare_decoding(args.source, args.output, args.workers,
-                                  memory_failures_workers=args.memory_failures_workers,
-                                  binary_symmetry=args.binary_symmetry)
+                                  memory_failures_workers=args.memory_failures_workers)
         print(json.dumps({key: value for key, value in result.items()
                           if key not in ('decoding_source', 'prior_memory_failure_directions')}))
     else:

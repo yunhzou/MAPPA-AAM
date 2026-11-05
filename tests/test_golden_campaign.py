@@ -18,6 +18,56 @@ from mappa.execution import BundleStore
 from test_enzymemap_campaign import prepared_index
 
 
+def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
+    from mappa import decode_events
+    from golden import verify_catalogue, verify_decoded
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.core.matching.representation.records import Fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    bonds = [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)]
+    endpoints = problem('CCCC', bonds, bonds)
+    fragment = Fragment.from_atom_sets(endpoints, range(4), range(4), enumerate(range(4)))
+    catalogue = FinalBranchCatalogue(endpoints).add_graph(saved_path(endpoints, (fragment,)).graph)
+    decoded = decode_events(catalogue)
+    reference = dict(mapping=list(enumerate((1, 0, 3, 2))),
+                     features=[dict(heavy=list(range(4)))]*2, generators=[(), ()])
+    assert verify_catalogue(catalogue, reference)['status'] == 'recovered'
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    reference['mapping'] = list(enumerate(range(4)))
+    assert verify_decoded(decoded, reference)['status'] == 'recovered'
+
+
+def test_atom_set_reference_constructs_a_full_injective_proof_without_solver(monkeypatch):
+    import golden
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from test_final_branches import independent_path
+    from test_event_patterns import problem
+    value = problem('HHHH', [], [])
+    catalogue = FinalBranchCatalogue(value).add_graph(independent_path((0, 1)).graph)
+    reference = dict(mapping=[(0, 1), (2, 3)], features=[dict(heavy=[0, 2])]*2, generators=[(), ()])
+    def forbidden(*args, **kwargs):
+        pytest.fail('A validated complete atom-set proof needs no assignment solver')
+    monkeypatch.setattr(golden, 'query_path', forbidden)
+    result = golden.verify_catalogue(catalogue, reference)
+    assert result['status'] == 'recovered'
+    actual = dict(result['evidence']['mapping'])
+    assert actual == {0: 1, 1: 0, 2: 3, 3: 2}
+    assert len(set(actual.values())) == 4
+
+
+def test_atom_set_certificate_does_not_replace_joint_global_placement_query():
+    from golden import verify_catalogue, _atom_set_reference
+    from test_final_branches import placed_fragment_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value, path = placed_fragment_path()
+    catalogue = FinalBranchCatalogue(value).add_graph(path.graph)
+    reference = dict(mapping=[(0, 2), (1, 3)], features=[dict(heavy=[0, 1])]*2, generators=[(), ()])
+    assert _atom_set_reference(catalogue.families[0], value, dict(reference['mapping']), (0, 1)) is None
+    result = verify_catalogue(catalogue, reference)
+    assert result['status'] == 'recovered'
+    assert dict(result['evidence']['mapping']) == {0: 2, 1: 3}
+
+
 def test_reference_view_preserves_selected_native_atoms_and_unmatched_boundaries(tmp_path, monkeypatch):
     import mappa
     import golden

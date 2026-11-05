@@ -40,6 +40,23 @@ stages to check exact output preservation. Run this audit separately from memory
 measurements because hashing expands the record temporarily. Keep input paths
 and raw reports in a private area when necessary.
 
+For a postprocessing comparison, each case instead supplies a `matching` blob
+containing a `MatchingResult`, a `reference` blob, `reversed`, the original
+`config`, and `decode_config`. Both revisions read the same immutable matching
+outputs; matching is not repeated. Loading, reduction, catalogue verification,
+decoding, decoded-window reference queries and publication preparation are timed
+separately. Decoding includes lazy window construction. The decoded reference
+check uses exact annotated atom indices, independently of the catalogue's
+endpoint-equivalence policy.
+
+These comparisons stop on task errors, changed branch compositions, lost
+reference recovery, or reduction/decoding CPU exceeding both 0.1 seconds and
+1.25 times the paired baseline. Report smaller slowdowns too; this stop threshold
+is a diagnostic guard, not proof that every case is faster. Saved-matching mode
+checks decoded record transport equality and branch-composition hashes; it does
+not claim complete decoded-output equality across revisions. The process timeout
+is a wall-clock watchdog, not a memory allowance.
+
 `enzymemap.py` runs matching, per-reaction/direction deduplication, original-space
 decoding and reference verification as separate passes through the public MAPPA
 work pool. It contains no matching or decoding algorithm. Matching or reduction

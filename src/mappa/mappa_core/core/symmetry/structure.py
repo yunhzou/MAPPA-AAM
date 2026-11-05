@@ -32,14 +32,23 @@ class BinarySymmetry:
     elements: tuple[str, ...]
     anchors: tuple[int, ...]
     bond_threshold: float
-    generators: tuple[tuple[int, ...], ...]
+    _generators: tuple[tuple[int, ...], ...] | None
     weights: np.ndarray = field(repr=False)
     edges: tuple[tuple[int, int], ...] = field(repr=False)
 
     @cached_property
     def key(self):
         return (self.atoms, self.elements, self.anchors, self.bond_threshold,
-                self.generators, self.weights.tobytes())
+                self.weights.tobytes())
+
+    @property
+    def generators(self):
+        if self._generators is None:
+            colors = [(element, atom if atom in self.anchors else None)
+                      for atom, element in zip(self.atoms, self.elements)]
+            object.__setattr__(self, '_generators',
+                structural_generators(len(self.atoms), self.edges, colors))
+        return self._generators
 
     def __reduce__(self):
         return type(self)._from_binary, tuple(getattr(self, item.name) for item in fields(self))
@@ -70,7 +79,7 @@ class BinarySymmetry:
         generators = tuple(tuple(g) for g in record['generators'])
         threshold = float(record['bond_threshold'])
         key = (tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
-               threshold, generators, weights.tobytes())
+               threshold, weights.tobytes())
         if pool is not None and key in pool:
             return pool[key]
         edges = tuple((int(a), int(b)) for a, b in zip(*np.nonzero(np.triu(weights > threshold, 1))))
@@ -134,6 +143,4 @@ def binary_symmetry(elements, weights, *, bond_threshold=0.2, atoms=None, anchor
     local.setflags(write=False)
     labels = tuple(elements[a] for a in atoms)
     edges = tuple((int(a), int(b)) for a, b in zip(*np.nonzero(np.triu(local > bond_threshold, 1))))
-    colors = [(element, atom if atom in anchors else None) for atom, element in zip(atoms, labels)]
-    generators = structural_generators(len(atoms), edges, colors)
-    return BinarySymmetry(atoms, labels, anchors, float(bond_threshold), generators, local, edges)
+    return BinarySymmetry(atoms, labels, anchors, float(bond_threshold), None, local, edges)

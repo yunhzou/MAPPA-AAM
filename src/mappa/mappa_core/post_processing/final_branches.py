@@ -1,17 +1,14 @@
-"""Unordered final fragment pairs with a lossless union of mapping families.
+"""Unique final atom-set fragments and their branch compositions.
 
-Branch identity excludes growth history. Families retain complete local fragment
-relationships and global placement actions in their composition order. Only
-disjoint decisions may be reordered; a constrained local relationship is never
-absorbed as a placement group.
+Growth proofs remain in the search archive. A completed fragment owns the
+internal mapping search; ordered global placements remain branch context.
 """
 from collections import defaultdict
 from dataclasses import dataclass, field
-import heapq
 import hashlib
 import json
 
-from mappa.mappa_core.core.symmetry.actions import _PreparedAction
+from mappa.mappa_core.core.symmetry.actions import _PreparedAction, decision_blocks
 
 
 def _problem_fingerprint(problem):
@@ -34,49 +31,6 @@ def final_fragment_pairs(state):
                         for atoms in groups.values()))
 
 
-def _support(action):
-    return (action if isinstance(action, _PreparedAction) else _PreparedAction(action)).support
-
-
-def _decision_blocks(actions):
-    """Keep a local relation and its following placement action together."""
-    blocks = []
-    for action in actions:
-        if action[0] == 'group' and blocks and blocks[-1][-1][0] == 'relation':
-            blocks[-1] += (action,)
-        else:
-            blocks.append((action,))
-    return tuple(blocks)
-
-
-def _block_key(block):
-    return tuple((kind, value.key if kind == 'relation' else value) for kind, value in block)
-
-
-def canonical_actions(actions):
-    """Normalize independent decisions without separating their local/placement order."""
-    blocks = _decision_blocks(actions)
-    support = tuple(frozenset().union(*(_support(a) for a in block)) for block in blocks)
-    outgoing = [[] for _ in blocks]
-    incoming = [0] * len(blocks)
-    for j in range(len(blocks)):
-        for i in range(j):
-            if support[i] & support[j]:
-                outgoing[i].append(j)
-                incoming[j] += 1
-    ready = [(_block_key(blocks[i]), i) for i, degree in enumerate(incoming) if not degree]
-    heapq.heapify(ready)
-    result = []
-    while ready:
-        _, i = heapq.heappop(ready)
-        result.extend(blocks[i])
-        for j in outgoing[i]:
-            incoming[j] -= 1
-            if not incoming[j]:
-                heapq.heappush(ready, (_block_key(blocks[j]), j))
-    return tuple(result)
-
-
 @dataclass
 class FinalFamily:
     mapping: tuple
@@ -90,7 +44,7 @@ class FinalFamily:
         """Read direct anchors from the saved, already conditioned actions."""
         moving = set()
         for action in self.actions:
-            moving.update(_support(action))
+            moving.update(_PreparedAction(action).support)
         return tuple((r, p) for r, p in self.mapping if p not in moving)
 
     def validate_representative(self, problem):
@@ -113,7 +67,7 @@ class FinalFamily:
         """Chronological local/placement blocks, including explicit placement-only actions."""
         return tuple((next((value for kind, value in block if kind == 'relation'), None),
                       next((value for kind, value in block if kind == 'group'), ()))
-                     for block in reversed(_decision_blocks(self.actions)))
+                     for block in reversed(decision_blocks(self.actions)))
 
     def as_path(self, problem, source_edges=None):
         """Expose the saved local/placement program through the hierarchy API."""
@@ -121,11 +75,15 @@ class FinalFamily:
         floor, iso = self.policy
         cuts = tuple(sorted({tuple(pair) for origin in self.provenance
                              for pair in origin.get('cuts', ())}))
+        anchors = tuple(sorted(pair for fragment in self.fragments
+                               for pair in fragment.fixed_assignments))
         context = SearchContext(tuple(range(problem.source_atom_count)),
-            tuple(range(problem.target_atom_count)), (), cuts=cuts,
+            tuple(range(problem.target_atom_count)), (), cuts=cuts, anchors=anchors,
             graph_floor=floor, iso_tolerance=iso, objective='saved_family')
         decisions = self.decisions
-        states = tuple(SearchState(i, 0, self.mapping, (), ()) for i in range(len(decisions) + 1))
+        islands = tuple(sorted((atom, i) for i, fragment in enumerate(self.fragments)
+                               for atom in fragment.source_atoms))
+        states = tuple(SearchState(i, 0, self.mapping, islands, ()) for i in range(len(decisions) + 1))
         edges = tuple(FragmentTransition(i, i, i + 1, None, (i, 0), fragment, i,
                                         placement_generators=generators)
                       for i, (fragment, generators) in enumerate(decisions))
@@ -153,7 +111,7 @@ class FinalFamily:
 
 class FinalBranchCatalogue:
     """One problem, many saved searches; all histories remain as references."""
-    schema = 'mappa.final_fragment_branches/v3'
+    schema = 'mappa.final_fragment_branches/v4'
 
     def __init__(self, problem):
         self.problem = problem
@@ -167,9 +125,11 @@ class FinalBranchCatalogue:
         self._fragments = {}
         self._placements = {}
         self._actions = {}
+        self._self_pool = {}
+        self._completed_fragments = {}
         self.path_count = 0
         self.incomplete_paths = 0
-        self.mode = 'lossless_saved_family_union'
+        self.mode = 'final_atom_set_compositions'
         self.reconstruction = {}
 
     def _intern(self, cache, value):
@@ -223,7 +183,25 @@ class FinalBranchCatalogue:
             family.required_edges = self._intern(self._required, tuple(
                 self._intern(pairs, pair) for pair in family.required_edges))
             family.actions = self._intern(self._programs, self.intern_actions(family.actions))
-            self._family_ids[family.policy, family.mapping, family.actions] = index
+            composition = tuple(sorted(fragment.atom_sets for fragment in family.fragments))
+            groups = tuple(action for action in family.actions if action[0] == 'group')
+            anchors = tuple(sorted(pair for fragment in family.fragments
+                                   for pair in fragment.fixed_assignments))
+            self._family_ids[family.policy, composition, anchors, groups] = index
+            for fragment in family.fragments:
+                self._completed_fragments[family.policy, anchors, fragment.atom_sets] = fragment
+
+    def _composition(self, policy, pairs, anchors, mapping):
+        from mappa.mappa_core.core.matching.representation.records import Fragment
+        fragments = []
+        for source, target in pairs:
+            key = policy, anchors, (source, target)
+            if key not in self._completed_fragments:
+                fragment = Fragment.from_atom_sets(self.problem, source, target, mapping,
+                    anchors=anchors, graph_floor=policy[0], self_pool=self._self_pool)
+                self._completed_fragments[key] = fragment
+            fragments.append(self._completed_fragments[key])
+        return tuple(fragments)
 
     def add_aam(self, aam, archive='in_memory'):
         if _problem_fingerprint(aam.problem) != self.problem_sha256:
@@ -231,40 +209,53 @@ class FinalBranchCatalogue:
         return self.add_graph(aam.graph, archive)
 
     def add_graph(self, graph, archive='in_memory', *, paths=None):
-        pairs, decisions = {}, {}
+        compositions, placements = {}, {}
         for path in graph.paths() if paths is None else paths:
             state = graph.states[path.terminal]
             self.path_count += 1
             context = path.context
             policy = context.graph_floor, context.iso_tolerance
-            if path.terminal not in pairs:
-                pairs[path.terminal] = final_fragment_pairs(state)
-            branch = self.branches.setdefault((policy, pairs[path.terminal]), set())
-            program = []
+            anchors = tuple(sorted(context.anchors))
+            if path.terminal not in compositions:
+                pairs = final_fragment_pairs(state)
+                fragments = self._composition(policy, pairs, anchors, state.mapping)
+                owners = [-1] * self.problem.target_atom_count
+                for owner, (_, target) in enumerate(pairs):
+                    for atom in target:
+                        owners[atom] = owner
+                for _, atom in anchors:
+                    owners[atom] = len(pairs) + atom
+                compositions[path.terminal] = pairs, fragments, owners
+            pairs, fragments, owners = compositions[path.terminal]
+            branch = self.branches.setdefault((policy, pairs), set())
+            groups = []
             for eid in reversed(path.transitions):
-                if eid not in decisions:
+                if eid not in placements:
                     transition = graph.transitions[eid]
-                    actions = []
-                    if transition.match is not None:
-                        actions.append(('relation', transition.match))
-                    if transition.placement_generators:
-                        actions.append(('group', transition.placement_generators))
-                    decisions[eid] = self.intern_actions(actions)
-                program.extend(decisions[eid])
-            program = self._intern(self._programs, canonical_actions(program))
-            mapping = tuple(sorted(state.mapping))
-            key = policy, mapping, program
+                    placements[eid] = self.intern_actions(
+                        (('group', transition.placement_generators),)
+                        if transition.placement_generators else ())
+                groups.extend(placements[eid])
+            groups = tuple(groups)
+            # Before a placement moves a whole atom set, operations confined to
+            # its pieces already belong to their target binary symmetries.
+            first = 0
+            while first < len(groups) and all(owners[a] == owners[b] for a, b in groups[first].moves):
+                first += 1
+            groups = groups[first:]
+            key = policy, pairs, anchors, groups
             if key not in self._family_ids:
-                required = self._intern(self._required, tuple(sorted({edge
-                    for kind, fragment in program if kind == 'relation' for edge in fragment.accepted_edges})))
+                program = self._intern(self._programs,
+                    self.intern_actions(tuple(('relation', fragment) for fragment in fragments)) + groups)
+                mapping = tuple(sorted(pair for fragment in fragments for pair in fragment.witness))
                 self._family_ids[key] = len(self.families)
-                self.families.append(FinalFamily(mapping, required, program, policy))
+                self.families.append(FinalFamily(mapping, (), program, policy))
             family_id = self._family_ids[key]
             branch.add(family_id)
             self.families[family_id].provenance.append(dict(
                 archive=str(archive), context=state.context, terminal=path.terminal,
                 transitions=path.transitions, cuts=context.cuts,
-                fragment_partition=tuple(rs for rs, _ in pairs[path.terminal])))
+                fragment_partition=tuple(rs for rs, _ in pairs)))
         return self
 
     @property
@@ -278,7 +269,7 @@ class FinalBranchCatalogue:
         result = cls(problem)
         if record.get('problem_sha256') != result.problem_sha256:
             raise ValueError('Final branches belong to a different endpoint problem')
-        result.mode = record.get('mode', 'lossless_saved_family_union')
+        result.mode = record['mode']
         result.path_count = int(record['input_paths'])
         result.incomplete_paths = int(record.get('incomplete_paths', 0))
         result.reconstruction = dict(record.get('reconstruction', {}))

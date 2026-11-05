@@ -8,6 +8,7 @@ from math import isfinite
 from time import perf_counter
 
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 from .constraints import FiniteConstraints, compile_discovery
 from .minimum import (FragmentMinimum, FragmentSymmetryEvents, SearchDeadlineReached,
@@ -44,17 +45,33 @@ class _StartingMappings:
                 for r in self.relation.source_atoms]
 
     def _bound(self, domains):
-        cost = 0
+        """Count fixed pairs and relax the remaining fixed-to-free bonds jointly.
+
+        Every completion assigns distinct remaining targets. A linear assignment
+        therefore bounds these bond events without enumerating free/free choices.
+        """
         data = self.objective
-        for i, j in data.pairs:
-            # Unfixed pairs contribute zero. Fixed/unfixed terms use their best
-            # remaining endpoint, without assuming those separate choices agree.
-            if len(domains[i]) == 1 or len(domains[j]) == 1:
-                values = data.target[np.ix_(domains[i], domains[j])]
-                cost += int(np.all(np.abs(data.source[i, j] - values) > data.thresholds[i, j]))
-                if cost >= self.ceiling:
-                    break
-        return cost
+        fixed = [i for i, values in enumerate(domains) if len(values) == 1]
+        if not fixed:
+            return 0
+        images = [domains[i][0] for i in fixed]
+        source, target = data.source[np.ix_(fixed, fixed)], data.target[np.ix_(images, images)]
+        cost = int(np.count_nonzero(np.triu(np.abs(source-target) > data.thresholds[np.ix_(fixed, fixed)], 1)))
+        free = [i for i, values in enumerate(domains) if len(values) > 1]
+        if not free or cost >= self.ceiling:
+            return cost
+        targets = sorted(set(range(data.size)).difference(images))
+        costs = np.zeros((len(free), len(targets)))
+        for atom, image in zip(fixed, images):
+            costs += (np.abs(data.source[free, atom, None] - data.target[targets, image][None, :])
+                      > data.thresholds[free, atom, None])
+        for row, atom in enumerate(free):
+            costs[row, [column for column, image in enumerate(targets) if image not in domains[atom]]] = np.inf
+        try:
+            rows, columns = linear_sum_assignment(costs)
+        except ValueError:  # No injective completion of these domains exists.
+            return self.ceiling
+        return cost + int(costs[rows, columns].sum())
 
     def _search(self, system):
         self.check()
