@@ -344,6 +344,31 @@ Reduction uses **36.1% less CPU**. Decoding totals 39.124 versus 39.247 seconds
 serialization and restoration together fall from 7.021 to 6.341 seconds.
 The full phase breakdown, wall times and individual observations are saved.
 
+A subsequent measurement separates reduction itself on the same five saved
+seed-ten directions, using three alternating-order repetitions with and without
+timing instrumentation. Five once-per-cut line boundaries are observed through
+CPython's local monitoring API; callbacks on other lines are disabled. The core
+source and algorithm are unchanged. Mean CPU totals across the five directions:
+
+| Reduction operation | CPU seconds |
+|---|---:|
+| Extract atom sets and identify unique keys | 0.555 |
+| Construct shared fragment records and translate composition IDs | 0.475 |
+| Group/deduplicate branches and construct their records | 1.114 |
+| Collect shared histories and ordered placement programs | 0.516 |
+| Return and release temporary records | 0.012 |
+| **Total** | **2.672** |
+
+Thus collecting unique fragments including their records costs 1.031 seconds.
+The branch stage includes composition construction, ordered placement handling,
+family creation and provenance attachment; it is not an isolated hash-insertion
+measurement. Loading, decoding, verification, publication and comparison hashes
+are excluded. Uninstrumented controls total 2.722 seconds, versus 2.672 with
+boundary timing; these small run differences do not establish negative timing
+overhead. Branch hashes and all path/branch/family/fragment counts agree with the
+earlier comparison in all 30 observations. Per-case stages, wall times and raw
+observations are included in the same comparison evidence.
+
 All catalogue-content hashes match in both repetitions after normalizing only
 the storage schema and compact history encoding. This includes fragment values,
 representative mappings, action order, branch membership and every original

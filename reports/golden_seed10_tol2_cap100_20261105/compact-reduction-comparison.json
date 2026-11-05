@@ -1495,5 +1495,839 @@
     "affected_suite_passed": 139,
     "paired_cases": 5,
     "paired_repetitions": 2
+  },
+  "stage_breakdown": {
+    "source_identity": "8a0777c3c4538dcbc3d9bfbe0d76ca4cb7eb903572e45f4912d6e98a0bb2c42e",
+    "repetitions": 3,
+    "method": "CPython 3.12 local line monitoring at five once-per-cut boundaries; other line locations disabled after first notification. Paired uninstrumented controls. No source changes.",
+    "boundaries": {
+      "from mappa._group_ops import fragment_compositions": "history_and_placement_programs",
+      "conditions, context_ids = {}, []": "atom_set_extraction_and_unique_keys",
+      "local_ids = []": "unique_fragment_records_and_composition_ids",
+      "compositions, placements = {}, {}": "branch_deduplication_and_records",
+      "return self": null
+    },
+    "runs": [
+      {
+        "case": "00000/forward",
+        "repetition": 0,
+        "instrumented": false,
+        "cpu_seconds": 1.8570050000000005,
+        "wall_seconds": 1.858320624101907,
+        "stages": {},
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00000/forward",
+        "repetition": 0,
+        "instrumented": true,
+        "cpu_seconds": 1.8016929999999958,
+        "wall_seconds": 1.8021011264063418,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.4231149999999948,
+            "wall_seconds": 0.4233986255712807
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.41135400000000466,
+            "wall_seconds": 0.4115486254449934
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.1331939999999987,
+            "wall_seconds": 0.13320262427441776
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.8274750000000024,
+            "wall_seconds": 0.8276403315830976
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.0065549999999952036,
+            "wall_seconds": 0.0063109195325523615
+          }
+        },
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 0,
+        "instrumented": false,
+        "cpu_seconds": 0.3364780000000067,
+        "wall_seconds": 0.3366447885055095,
+        "stages": {},
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 0,
+        "instrumented": true,
+        "cpu_seconds": 0.35822799999999866,
+        "wall_seconds": 0.35881254193373024,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.050309999999997856,
+            "wall_seconds": 0.05052908789366484
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.06865299999999408,
+            "wall_seconds": 0.06876345537602901
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.06433500000000691,
+            "wall_seconds": 0.06454316643066704
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.173076,
+            "wall_seconds": 0.17326483665965497
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.0018539999999998003,
+            "wall_seconds": 0.0017119955737143755
+          }
+        },
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 0,
+        "instrumented": false,
+        "cpu_seconds": 0.004964999999993225,
+        "wall_seconds": 0.004965751897543669,
+        "stages": {},
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 0,
+        "instrumented": true,
+        "cpu_seconds": 0.004831999999996839,
+        "wall_seconds": 0.004826087038964033,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.0007339999999995683,
+            "wall_seconds": 0.0007422075141221285
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.0009339999999991022,
+            "wall_seconds": 0.0009260843507945538
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.00230999999999959,
+            "wall_seconds": 0.002315459307283163
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.0007700000000010476,
+            "wall_seconds": 0.0007684167940169573
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 8.39999999975305e-05,
+            "wall_seconds": 7.391907274723053e-05
+          }
+        },
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 0,
+        "instrumented": false,
+        "cpu_seconds": 0.029484000000001842,
+        "wall_seconds": 0.02950458345003426,
+        "stages": {},
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 0,
+        "instrumented": true,
+        "cpu_seconds": 0.029398999999997955,
+        "wall_seconds": 0.029392501804977655,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.0040329999999961785,
+            "wall_seconds": 0.004035457037389278
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.003685000000002603,
+            "wall_seconds": 0.003688374999910593
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.01634199999999808,
+            "wall_seconds": 0.016361205372959375
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.005084000000001865,
+            "wall_seconds": 0.0050650041084736586
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.00025499999999922807,
+            "wall_seconds": 0.00024246028624475002
+          }
+        },
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 0,
+        "instrumented": false,
+        "cpu_seconds": 0.44558699999999973,
+        "wall_seconds": 0.4457360010128468,
+        "stages": {},
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 0,
+        "instrumented": true,
+        "cpu_seconds": 0.4509460000000125,
+        "wall_seconds": 0.451163295423612,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.03856900000000252,
+            "wall_seconds": 0.03865771135315299
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.0655470000000058,
+            "wall_seconds": 0.06559944688342512
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.25200699999997944,
+            "wall_seconds": 0.25223954883404076
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.09243600000000995,
+            "wall_seconds": 0.09245820599608123
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.002387000000014794,
+            "wall_seconds": 0.0022083823569118977
+          }
+        },
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      },
+      {
+        "case": "00000/forward",
+        "repetition": 1,
+        "instrumented": true,
+        "cpu_seconds": 1.830548999999987,
+        "wall_seconds": 1.831189875723794,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.42289600000000505,
+            "wall_seconds": 0.4232297863345593
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.4185330000000036,
+            "wall_seconds": 0.41868679667823017
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.13834200000000862,
+            "wall_seconds": 0.13838979601860046
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.844068999999994,
+            "wall_seconds": 0.8445045361295342
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.006708999999975873,
+            "wall_seconds": 0.006378960562869906
+          }
+        },
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00000/forward",
+        "repetition": 1,
+        "instrumented": false,
+        "cpu_seconds": 1.8890939999999894,
+        "wall_seconds": 1.8903127096127719,
+        "stages": {},
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 1,
+        "instrumented": true,
+        "cpu_seconds": 0.3353880000000018,
+        "wall_seconds": 0.33560882904566824,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.04727900000001384,
+            "wall_seconds": 0.04752516420558095
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.06544700000000248,
+            "wall_seconds": 0.0655136271379888
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.059595999999988436,
+            "wall_seconds": 0.059605540009215474
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.16165000000000518,
+            "wall_seconds": 0.16165566723793745
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.0014159999999918682,
+            "wall_seconds": 0.0013088304549455643
+          }
+        },
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 1,
+        "instrumented": false,
+        "cpu_seconds": 0.34892300000000276,
+        "wall_seconds": 0.34951608697883785,
+        "stages": {},
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 1,
+        "instrumented": true,
+        "cpu_seconds": 0.00527199999999084,
+        "wall_seconds": 0.005265373503789306,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.0008270000000010214,
+            "wall_seconds": 0.000829747412353754
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.0010320000000021423,
+            "wall_seconds": 0.0010342944879084826
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.002473999999988763,
+            "wall_seconds": 0.002472121734172106
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.0008400000000072794,
+            "wall_seconds": 0.0008423766121268272
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 9.899999999163356e-05,
+            "wall_seconds": 8.683325722813606e-05
+          }
+        },
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 1,
+        "instrumented": false,
+        "cpu_seconds": 0.004956999999993883,
+        "wall_seconds": 0.004976791795343161,
+        "stages": {},
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 1,
+        "instrumented": true,
+        "cpu_seconds": 0.03264399999999412,
+        "wall_seconds": 0.03270245622843504,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.004349000000004821,
+            "wall_seconds": 0.004365083063021302
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.004091999999978668,
+            "wall_seconds": 0.004093043273314834
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.01824700000000945,
+            "wall_seconds": 0.018308040220290422
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.005621999999995353,
+            "wall_seconds": 0.005621873773634434
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.00033400000000582963,
+            "wall_seconds": 0.00031441589817404747
+          }
+        },
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 1,
+        "instrumented": false,
+        "cpu_seconds": 0.031125000000002956,
+        "wall_seconds": 0.031213499838486314,
+        "stages": {},
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 1,
+        "instrumented": true,
+        "cpu_seconds": 0.4655449999999739,
+        "wall_seconds": 0.466545790201053,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.03976899999998906,
+            "wall_seconds": 0.03997450228780508
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.0672860000000064,
+            "wall_seconds": 0.06741403276100755
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.2601730000000053,
+            "wall_seconds": 0.2609332981519401
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.09555400000003189,
+            "wall_seconds": 0.09567262209020555
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.002762999999941229,
+            "wall_seconds": 0.002551334910094738
+          }
+        },
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 1,
+        "instrumented": false,
+        "cpu_seconds": 0.4666010000000256,
+        "wall_seconds": 0.4672590447589755,
+        "stages": {},
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      },
+      {
+        "case": "00000/forward",
+        "repetition": 2,
+        "instrumented": false,
+        "cpu_seconds": 1.909340999999948,
+        "wall_seconds": 1.9117222931236029,
+        "stages": {},
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00000/forward",
+        "repetition": 2,
+        "instrumented": true,
+        "cpu_seconds": 1.8598539999999844,
+        "wall_seconds": 1.861455833306536,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.4229450000000057,
+            "wall_seconds": 0.42354983114637434
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.4206619999999859,
+            "wall_seconds": 0.4209760054945946
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.14093199999998518,
+            "wall_seconds": 0.14103270741179585
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.8669150000000059,
+            "wall_seconds": 0.8677797506097704
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.00840000000000174,
+            "wall_seconds": 0.008117538644000888
+          }
+        },
+        "counts": {
+          "paths": 40216,
+          "branches": 31106,
+          "families": 32986,
+          "fragments": 1840
+        },
+        "cuts": 69,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 2,
+        "instrumented": false,
+        "cpu_seconds": 0.33948599999998663,
+        "wall_seconds": 0.3396578363608569,
+        "stages": {},
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00044/forward",
+        "repetition": 2,
+        "instrumented": true,
+        "cpu_seconds": 0.3470339999999794,
+        "wall_seconds": 0.3472886262461543,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.048469000000004314,
+            "wall_seconds": 0.048556665889918804
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.06698699999999747,
+            "wall_seconds": 0.06702974904328585
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.06300300000000192,
+            "wall_seconds": 0.06307450216263533
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.16689699999999164,
+            "wall_seconds": 0.16706195916049182
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.0016779999999840811,
+            "wall_seconds": 0.001565749989822507
+          }
+        },
+        "counts": {
+          "paths": 7934,
+          "branches": 6254,
+          "families": 6405,
+          "fragments": 892
+        },
+        "cuts": 49,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 2,
+        "instrumented": false,
+        "cpu_seconds": 0.006178999999995938,
+        "wall_seconds": 0.006252376362681389,
+        "stages": {},
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "00625/forward",
+        "repetition": 2,
+        "instrumented": true,
+        "cpu_seconds": 0.005585000000010609,
+        "wall_seconds": 0.005597042152658105,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.0008509999999972706,
+            "wall_seconds": 0.0008630841039121151
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.0010570000000029722,
+            "wall_seconds": 0.001064706826582551
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.0027440000000140685,
+            "wall_seconds": 0.0027458774857223034
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.0008299999999721308,
+            "wall_seconds": 0.0008280407637357712
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.00010300000002416709,
+            "wall_seconds": 9.533297270536423e-05
+          }
+        },
+        "counts": {
+          "paths": 270,
+          "branches": 22,
+          "families": 22,
+          "fragments": 31
+        },
+        "cuts": 15,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 2,
+        "instrumented": false,
+        "cpu_seconds": 0.031388999999997225,
+        "wall_seconds": 0.03144424967467785,
+        "stages": {},
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01000/forward",
+        "repetition": 2,
+        "instrumented": true,
+        "cpu_seconds": 0.03148000000000195,
+        "wall_seconds": 0.03150466992519796,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.004226000000016938,
+            "wall_seconds": 0.0042370816227048635
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.004014999999995439,
+            "wall_seconds": 0.004028789699077606
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.017592999999990866,
+            "wall_seconds": 0.01762367016635835
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.00533100000002662,
+            "wall_seconds": 0.005335915368050337
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.0003149999999720876,
+            "wall_seconds": 0.00027921306900680065
+          }
+        },
+        "counts": {
+          "paths": 673,
+          "branches": 252,
+          "families": 292,
+          "fragments": 265
+        },
+        "cuts": 25,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 2,
+        "instrumented": false,
+        "cpu_seconds": 0.4667090000000229,
+        "wall_seconds": 0.46935404534451663,
+        "stages": {},
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      },
+      {
+        "case": "01361/forward",
+        "repetition": 2,
+        "instrumented": true,
+        "cpu_seconds": 0.4581250000000381,
+        "wall_seconds": 0.4584095822647214,
+        "stages": {
+          "history_and_placement_programs": {
+            "cpu_seconds": 0.03934299999997393,
+            "wall_seconds": 0.0394523786380887
+          },
+          "atom_set_extraction_and_unique_keys": {
+            "cpu_seconds": 0.06687100000005586,
+            "wall_seconds": 0.0669624141883105
+          },
+          "unique_fragment_records_and_composition_ids": {
+            "cpu_seconds": 0.2545269999999462,
+            "wall_seconds": 0.25473167072050273
+          },
+          "branch_deduplication_and_records": {
+            "cpu_seconds": 0.09468500000004099,
+            "wall_seconds": 0.09476862545125186
+          },
+          "function_return_and_temporary_release": {
+            "cpu_seconds": 0.002699000000021101,
+            "wall_seconds": 0.002494493266567588
+          }
+        },
+        "counts": {
+          "paths": 4737,
+          "branches": 2894,
+          "families": 3074,
+          "fragments": 1463
+        },
+        "cuts": 97,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577"
+      }
+    ],
+    "stage_means": {
+      "history_and_placement_programs": {
+        "cpu_seconds": 0.515905000000001,
+        "wall_seconds": 0.5166488046913097
+      },
+      "atom_set_extraction_and_unique_keys": {
+        "cpu_seconds": 0.5553850000000123,
+        "wall_seconds": 0.5557764822151512
+      },
+      "unique_fragment_records_and_composition_ids": {
+        "cpu_seconds": 0.47527299999997386,
+        "wall_seconds": 0.4758597427668671
+      },
+      "branch_deduplication_and_records": {
+        "cpu_seconds": 1.1137446666666955,
+        "wall_seconds": 1.1144227207793544
+      },
+      "function_return_and_temporary_release": {
+        "cpu_seconds": 0.011883666666638723,
+        "wall_seconds": 0.011246793282528719
+      }
+    },
+    "control_cpu_seconds": 2.7224409999999892,
+    "instrumented_cpu_seconds": 2.672191333333321,
+    "measurement_scope": "Same five saved seed-ten forward directions; loading, hashing, decoding, verification and publication excluded. Three alternating-order paired repetitions. Boundary callbacks verified once per cut. Branch grouping stage includes record construction, placement handling and provenance attachment, not just hash-table probes."
   }
 }
