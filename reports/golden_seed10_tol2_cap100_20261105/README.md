@@ -369,6 +369,27 @@ overhead. Branch hashes and all path/branch/family/fragment counts agree with th
 earlier comparison in all 30 observations. Per-case stages, wall times and raw
 observations are included in the same comparison evidence.
 
+To isolate dictionary deduplication, capture the actual key sequence passed to
+each of the reducer's three registries and replay it into a fresh dictionary,
+checking membership and assigning an integer ID for each new key. Thirty repeats
+per case give the following mean CPU totals across the same five directions:
+
+| Lookup operation | Input keys | Unique keys | CPU milliseconds |
+|---|---:|---:|---:|
+| Fragment atom-set pairs | 18,767 | 4,491 | 2.920 |
+| Branch fragment-ID compositions | 53,830 | 40,528 | 10.740 |
+| Compositions with ordered placement variants | 53,830 | 42,779 | 50.432 |
+
+These use actual emitted keys, including production sharing and prepared hashes,
+with a fresh dictionary on every repetition. They exclude constructing keys,
+scientific records, provenance, loading and publication. The captured run retains
+the earlier branch hashes and path counts; replay yields the original registry
+sizes. All three lookup kernels total approximately 64 milliseconds. This shows
+that dictionary deduplication itself is a small part of the measured reduction
+cost. It does not establish a 64-millisecond runtime for the complete stage:
+producing keys and output records remains necessary work in the current dataflow.
+The lookup measurements and individual repetitions are saved in the same evidence.
+
 All catalogue-content hashes match in both repetitions after normalizing only
 the storage schema and compact history encoding. This includes fragment values,
 representative mappings, action order, branch membership and every original
