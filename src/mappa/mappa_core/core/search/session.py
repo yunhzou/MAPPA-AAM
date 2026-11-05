@@ -87,7 +87,7 @@ class SearchSession:
             order = orders[index]
             graphs.append(matcher(source, target, order,
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
-                max_branches=config.branch_limit, self_tolerance=config.self_tolerance,
+                max_branches=config.branch_limit,
                 anchor_map=dict(config.anchors),
                 profile=profile, cuts=cut, fragment_cache=view, random_seed=config.random_seed))
         graph = AAMSearchGraph.combine(graphs)

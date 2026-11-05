@@ -25,11 +25,10 @@ def network(elements, bonds=()):
 
 
 def iso(mapping):
-    from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry.structure import binary_symmetry
     from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
     source, target = tuple(sorted(mapping)), tuple(sorted(mapping.values()))
-    base = relaxed_automorphism(('C',) * len(source), np.zeros((len(source), len(source))),
-                                 tolerance=1.0)
+    base = binary_symmetry(('C',) * len(source), np.zeros((len(source), len(source))))
     return Fragment(RelaxedIsomorphism(replace(base, atoms=source), replace(base, atoms=target),
         tuple(mapping.items()), (), tuple((atom, target) for atom in source), (), (), .2))
 
@@ -338,7 +337,7 @@ def test_tiny_exact_symmetry_matches_exhaustive_ring_automorphisms():
     result = find_islands(graph, graph, [0], iso_tol=.5)
     path = next(result.paths())
     edge = next(e for e in result.transitions if e.match is not None)
-    generators = edge.match.target_self_automorph.generators
+    generators = edge.match.target_symmetry.generators
     orbit = {tuple(path.mapping[a] for a in range(4))}
     queue = list(orbit)
     for mapping in queue:
@@ -384,13 +383,13 @@ def test_serial_and_workers_produce_identical_search_graphs():
 
 
 def test_local_relation_choices_transport_witnesses_and_preserve_anchors():
-    from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry.structure import binary_symmetry
     from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
     graph = network(['C'] * 4)
     recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 2)))
     branch = _Branch(recorder)
     branch.commit(iso({0: 0, 1: 1}))
-    anchored = relaxed_automorphism(('C',) * 4, np.zeros((4, 4)), tolerance=1., anchors=(0, 1))
+    anchored = binary_symmetry(('C',) * 4, np.zeros((4, 4)),  anchors=(0, 1))
     later = Fragment(RelaxedIsomorphism(anchored, anchored, tuple(enumerate(range(4))),
         ((0, 0), (1, 1)), ((0, (0,)), (1, (1,)), (2, (2, 3)), (3, (2, 3))), (), (), .2))
     branch.commit(later)

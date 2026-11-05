@@ -44,7 +44,7 @@ def test_target_local_actions_fix_fragment_anchors():
                          locked={0: 0})
     assert fragments.matches
     for fragment in fragments.matches:
-        relation = fragment.target_self_automorph
+        relation = fragment.target_symmetry
         anchor = relation.atoms.index(0)
         assert all(action[anchor] == anchor for action in relation.generators)
 
@@ -197,7 +197,7 @@ def test_placement_group_preserves_original_weights_not_only_binary_structure(na
         edges += [(0, 4, .05), (2, 4, .15)]
     target = graph(elements, edges)
     result = match_fragment(source, target, seed=0,
-        config=FragmentMatchConfig(iso_tolerance=.5, self_tolerance=1., branch_limit=2))
+        config=FragmentMatchConfig(iso_tolerance=.5,  branch_limit=2))
     assert not result.capped and len(result.matches) == 2
     assert represented(result) == {((0, 0), (1, 1)), ((0, 2), (1, 3))}
 
@@ -205,23 +205,23 @@ def test_placement_group_preserves_original_weights_not_only_binary_structure(na
 def test_full_discovery_on_one_image_is_not_replaced_by_a_witness_orbit():
     source = graph(['C'] * 4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
     result = complete(source, source, tuple(source), ((0, 1), (1, 2), (0, 3)),
-                      tolerance=0., self_tolerance=0.)
+                      tolerance=0.)
     assert len(result.matches) == 1
     assert len(discovered(result)) == 4
     assert len(represented(result)) == 6
 
 
 @pytest.mark.parametrize('native', ['0', '1'])
-def test_global_placement_does_not_close_nontransitive_local_self_choices(native, monkeypatch):
+def test_local_binary_symmetry_does_not_imply_global_weighted_placement(native, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
     star = graph(['O', 'C', 'C', 'C'], [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
     result = match_fragment(star, star, seed=0,
-        config=FragmentMatchConfig(iso_tolerance=0., self_tolerance=.7, branch_limit=1))
+        config=FragmentMatchConfig(iso_tolerance=0.,  branch_limit=1))
     assert not result.capped and len(result.matches) == 1
     assert not result.placement_generators
     choices = represented(result)
-    assert len(choices) == 5
-    assert ((0, 0), (1, 3), (2, 2), (3, 1)) not in choices
+    assert len(choices) == 6
+    assert ((0, 0), (1, 3), (2, 2), (3, 1)) in choices
 
 
 def test_set_orbit_uses_correlated_motion_and_true_pointwise_stabilizers():

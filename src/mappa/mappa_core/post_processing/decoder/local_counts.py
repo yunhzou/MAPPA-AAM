@@ -1,15 +1,11 @@
-"""Shared fragment event counts and endpoint-conditioned sweep responses.
-
-Counts are contracted from the original joint choices. The window consumes
-these responses; it never constructs feasibility queries or probes event totals.
-"""
+"""Shared binary symmetry responses and their endpoint-conditioned queries."""
 from collections import defaultdict
+from dataclasses import replace
 from functools import cached_property
 
 import numpy as np
 
-from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
-from mappa.mappa_core.core.symmetry.event_counts import EventCountProgram
+from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 
 
@@ -24,8 +20,9 @@ def count_bounds(index, response):
 
 class FragmentCountIndex:
     """Reaction-owned certificates and weight bags, shared across fragment uses."""
-    def __init__(self, index):
+    def __init__(self, index, decoder):
         self.index = index
+        self.decoder = decoder
         self.groups = {}
         self.bags = {}
 
@@ -120,70 +117,80 @@ class FragmentCountIndex:
 
 
 class FragmentEventCounts:
-    """One local correlated response, reused for counts and sweep endpoints."""
+    """An event projection shared by all uses of one contextual fragment.
+
+    A simple completed fragment uses its prepared response directly. Historical
+    overlapping actions retain their order in the same core symmetry search.
+    Neither representation builds a full attainable-count table.
+    """
     def __init__(self, owner, response):
         self.owner, self.response = owner, response
-        self.bounds = count_bounds(owner.index, response)
-        self.lower = self.bounds[0]
-        if self.lower != self.bounds[1]:
-            self.lower = max(self.lower, owner.aggregate_bound(response))
+        self.lower = max(count_bounds(owner.index, response)[0], owner.aggregate_bound(response))
         self._endpoints = {}
-        self._endpoint_bounds = {}
 
     @cached_property
-    def minimum(self):
-        if self.lower == self.bounds[1]:
-            return self.lower
-        totals = self.project(())
-        if not totals:
-            raise ValueError('Saved fragment relationship has no attainable event count')
-        return totals[()]
+    def direct(self):
+        actions = self.response.actions
+        if len(actions) != 1 or actions[0][0] != 'relation':
+            return False
+        fragment = actions[0][1]
+        return (self.response.mapping == fragment.witness
+                and self.response.piece.source_atoms == fragment.source_atoms)
 
     @cached_property
     def program(self):
-        response, index = self.response, self.owner.index
-        system = FiniteConstraints()
-        current = {a: system.constant(p) for a, p in response.mapping}
-        for position, (kind, data) in enumerate(response.actions):
-            if kind == 'relation':
-                compiled = compile_relaxed_relation(system, data.relation, position, images_only=True)
-                transport = {p: compiled.images[r] for r, p in data.witness}
-                current = {a: system.lookup(value, transport) for a, value in current.items()}
-            elif kind == 'group':
-                current = dict(zip(current, system.act(list(current.values()), data, position)))
-            else:
-                raise ValueError(f'Unknown fragment action: {kind}')
-        system.propagate()
-        costs = []
-        for term in response.terms:
-            a, b = term.atoms
-            left, right = current[a][0], current[b][0]
-            rows = {(x, y): int(abs(float(index.p[x, y]) - term.response.source_weight)
-                                > term.response.threshold)
-                    for x in system.domain(left) for y in system.domain(right)}
-            costs.append((left, right, rows))
-        return EventCountProgram(system, costs), {a: value[0] for a, value in current.items()}
+        owner, response = self.owner, self.response
+        if self.direct:
+            return owner.decoder.prepare(response.actions[0][1]).response
+        actions = tuple((action, owner.decoder.prepare(action[1]).response if action[0] == 'relation' else None)
+                        for action in response.actions)
+        terms = tuple((term.atoms, term.response.source_weight, term.response.threshold,
+                       term.response.constant) for term in response.terms)
+        return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, terms, response.atom_actions)
 
-    def project(self, atoms):
-        program, images = self.program
-        return program.project(tuple(images[a] for a in atoms))
+    @cached_property
+    def bounds(self):
+        data = self.program
+        prefix = np.arange(data.size)
+        return self.lower, data.fixed_events + int(data.score(prefix, data.pairs))
 
-    def endpoint(self, atom):
-        if atom not in self._endpoints:
-            self._endpoints[atom] = {images[0]: count for images, count in self.project((atom,)).items()}
-        return self._endpoints[atom]
+    @cached_property
+    def minimum_result(self):
+        if self.direct:
+            prepared = self.owner.decoder.prepare(self.response.actions[0][1])
+            return prepared.optimization
+        return self.program.solve(seconds=self.owner.decoder.fragment_seconds)
+
+    @property
+    def minimum(self):
+        return self.minimum_result.event_count
+
+    @property
+    def minimum_proven(self):
+        return self.minimum_result.complete
+
+    @property
+    def minimum_choices(self):
+        result = self.minimum_result
+        if self.direct:
+            return (dict(discovery=dict(result.discovery_witness),
+                source_permutation=result.source_operation, target_permutation=result.target_operation),)
+        return result.choices
+
+    @property
+    def constant(self):
+        return self.program.fixed_events if not self.program.pairs else None
+
+    def find(self, lower, upper=None, *, assignments=None, seconds=None):
+        answer = self.program.select(lower, upper).find(assignments=assignments,
+            seconds=self.owner.decoder.fragment_seconds if seconds is None else seconds)
+        if self.direct and answer.status == 'found':
+            answer = replace(answer, choices=(answer.choices,))
+        return answer
 
     def endpoint_bounds(self, atom):
-        if atom not in self._endpoint_bounds:
-            self._endpoint_bounds[atom] = self.owner.endpoint_bounds(self.response, atom, self.lower)
-        return self._endpoint_bounds[atom]
+        return self.owner.endpoint_bounds(self.response, atom, self.lower)
 
     def witness_endpoints(self, atom):
-        """Attained counts from the saved choice and its exact placement orbits."""
-        reached = {dict(self.response.mapping)[atom]}
-        for action in self.response.actions:
-            if action[0] != 'group' or not self.owner.preserves_weights(action):
-                continue
-            domains = self.owner.index.action_domains(action)
-            reached = {q for p in reached for q in domains[p]}
-        return {image: self.bounds[1] for image in reached}
+        answer = self.minimum_result
+        return {dict(answer.witness)[atom]: answer.event_count}

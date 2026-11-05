@@ -38,7 +38,7 @@ def correlated_branches():
     ep = endpoint('CCCC', [(0, 1, 1.), (2, 3, 1.), (0, 2, 1.8), (1, 3, .2)])
     problem = AAMProblem(ep, ep)
     joint = saved_fragment(problem, accepted_edges=((0, 1), (0, 2), (2, 3)),
-                           iso_tolerance=0., self_tolerance=0.)
+                           iso_tolerance=0.)
     pair = saved_fragment(problem, source_atoms=(1, 2))
     fixed_pair = saved_fragment(problem, source_atoms=(1, 2), anchors=((1, 1), (2, 2)))
     actions = (('relation', joint), ('relation', pair))
@@ -217,7 +217,7 @@ def test_shared_fragment_results_bind_original_branch_action_positions(shift_act
 def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
     source = two_branches()
     constrained = saved_fragment(source.problem, source_atoms=(0, 1, 2),
-        anchors=((0, 0),), accepted_edges=((0, 1),), iso_tolerance=.1, self_tolerance=.1)
+        anchors=((0, 0),), accepted_edges=((0, 1),), iso_tolerance=.1)
     source.families[1] = replace(source.families[1], mapping=source.families[0].mapping,
         actions=(('relation', constrained), source.families[1].actions[1]),
         provenance=[dict(cuts=(cut,), fragment_partition=((0, 1, 2), (3, 4, 5)))

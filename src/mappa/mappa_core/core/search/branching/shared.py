@@ -82,8 +82,7 @@ Identical growth output is never expanded into bijections.
         # Multiple policies use this context; edge.step records policy/pass/position.
         self.builder = _SharedGraphBuilder(SearchContext(tuple(sorted(self.source)),
             tuple(sorted(self.target)), (), cuts=condition.cuts, graph_floor=config.graph_floor,
-            iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit, random_seed=config.random_seed,
-            self_tolerance=config.self_tolerance))
+            iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit, random_seed=config.random_seed))
         self.root = _Branch(self.builder)
         self.branches = {self.root.state_key():self.root}
         self.decisions = {}
@@ -128,7 +127,7 @@ Identical growth output is never expanded into bijections.
                 fragment_cache=self.condition.fragment_cache),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
-                random_seed=self.config.random_seed, self_tolerance=self.config.self_tolerance),
+                random_seed=self.config.random_seed),
             profile=self.profile)
         edges = []
         if result.capped:

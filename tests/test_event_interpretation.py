@@ -457,16 +457,16 @@ def test_decoder_session_reuses_relation_preparation(threshold, monkeypatch):
     source = saved(ep, ep, dict(enumerate(range(3))), fragments=(fragment,))
     session = EventDecodeSession(source.problem, EventDecodeConfig(threshold, None))
     first, second = session.decode(source), session.decode(source)
-    assert first.family_actions[0][0] is second.family_actions[0][0]
+    assert first.local.prepare(fragment) is second.local.prepare(fragment)
     assert decoded_events_record(first) == decoded_events_record(second)
-    assert first.family_actions[0][0].generators is None
+    assert first.local.prepare(fragment).response.fragment.source_atoms == (1, 2)
     other = saved(endpoint('CC', []), endpoint('CC', []), {0: 0, 1: 1})
     with pytest.raises(ValueError, match='different endpoints'):
         session.decode(other)
 
 
 def test_ordered_overlapping_relations_preserve_inverse_words_and_joint_choices():
-    from test_relaxed_automorphism import broad_words
+    from test_binary_symmetry import broad_words
     ep = endpoint('CCC', [(0, 1, .8), (0, 2, .8), (1, 2, 1.6)])
     value = AAMProblem(ep, ep)
     pair = saved_fragment(value, source_atoms=(1, 2))
@@ -479,7 +479,7 @@ def test_ordered_overlapping_relations_preserve_inverse_words_and_joint_choices(
     selections = [[None, None], [swap(pair), None],
                   [None, dict(target_word=inverse)], [swap(pair), dict(target_word=inverse)]]
     check_contributions(decoded, selections)
-    assert len(decoded.family_actions[0]) == 2
+    assert len(decoded.catalogue.families[0].actions) == 2
     assert decoded.realize(0, selections[-1]) == {0: 2, 1: 1, 2: 0}
     with pytest.raises(ValueError, match='biject'):
         decoded.realize(0, [dict(discovery={1: 1, 2: 1}), None])
@@ -531,7 +531,8 @@ def test_binary_matching_uses_original_wbo_and_preserves_complete_relation_on_ro
     record = decoded_events_record(decoded)
     stored = json.loads(json.dumps(record))
     restored_catalogue = FinalBranchCatalogue.from_record(problem_from_record(stored['problem']), stored['catalogue'])
-    restored = decode_events(restored_catalogue, event_problem=problem_from_record(stored['event_problem']))
+    from mappa import decoded_events_from_record
+    restored = decoded_events_from_record(stored)
     assert decoded_events_record(restored) == record
     assert record['matching_problem_sha256'] != record['event_problem_sha256']
     assert source.to_record() == restored_catalogue.to_record()

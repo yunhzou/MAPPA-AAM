@@ -80,11 +80,8 @@ def self_actions(value):
             for g in group.generate_schreier_sims()} == structural
     actions = []
     for permutation in structural:
-        moved = value.weights[np.ix_(permutation, permutation)]
-        allowed = bool(np.all(np.abs(value.weights - moved) <= value.tolerance))
-        assert value.contains(permutation) == allowed
-        if allowed:
-            actions.append({atom: value.atoms[permutation[i]] for i, atom in enumerate(value.atoms)})
+        assert value.contains(permutation)
+        actions.append({atom: value.atoms[permutation[i]] for i, atom in enumerate(value.atoms)})
     return actions
 
 
@@ -110,8 +107,8 @@ def represented_local(fragments):
     """Expand tiny relations by independent discovery and two-sided self oracles."""
     result = set()
     for fragment in fragments:
-        source = self_actions(fragment.source_self_automorph)
-        target = self_actions(fragment.target_self_automorph)
+        source = self_actions(fragment.source_symmetry)
+        target = self_actions(fragment.target_symmetry)
         for pairs in discovery_mappings(fragment):
             discovery = dict(pairs)
             for alpha in source:
@@ -171,17 +168,17 @@ def raw(source,target,seed,mapping,cut,*,replay=None,cap=100,tol=1.,islands=None
 
 def saved_fragment(problem, *, source_atoms=None, target_atoms=None, witness=None,
                    anchors=(), domains=None, accepted_edges=(),
-                   iso_tolerance=1., self_tolerance=1.):
+                   iso_tolerance=1.):
     """Construct an actual fixed-image relation with explicit scientific constraints."""
     from mappa.mappa_core.core.matching.representation.records import Fragment
-    from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, binary_symmetry
     source_atoms = tuple(range(problem.source_atom_count)) if source_atoms is None else tuple(source_atoms)
     target_atoms = source_atoms if target_atoms is None else tuple(target_atoms)
     witness = tuple(zip(source_atoms, target_atoms)) if witness is None else tuple(sorted(dict(witness).items()))
-    source = relaxed_automorphism(problem.reactant.elements, problem.reactant.wbo,
-        atoms=source_atoms, anchors=tuple(r for r, _ in anchors), tolerance=self_tolerance)
-    target = relaxed_automorphism(problem.product.elements, problem.product.wbo,
-        atoms=target_atoms, anchors=tuple(p for _, p in anchors), tolerance=self_tolerance)
+    source = binary_symmetry(problem.reactant.elements, problem.reactant.wbo,
+        atoms=source_atoms, anchors=tuple(r for r, _ in anchors))
+    target = binary_symmetry(problem.product.elements, problem.product.wbo,
+        atoms=target_atoms, anchors=tuple(p for _, p in anchors))
     if domains is None:
         domains = tuple((r, tuple(p for p in target_atoms
             if problem.reactant.elements[r] == problem.product.elements[p])) for r in source_atoms)

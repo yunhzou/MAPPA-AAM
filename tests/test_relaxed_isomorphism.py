@@ -6,16 +6,16 @@ import numpy as np
 import pytest
 
 from mappa.mappa_core.core.symmetry import (
-    DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism)
-from test_relaxed_automorphism import broad_words, permitted, weights
+    DiscoveryEdge, RelaxedIsomorphism, binary_symmetry)
+from test_binary_symmetry import broad_words, permitted, weights
 
 
-def relation(source, target, accepted, *, tolerance=0., self_tolerance=0.,
+def relation(source, target, accepted, *, tolerance=0.,
              anchors=(), domains=None, inclusive=True, target_edges=None, floor=.2):
     n = len(source)
-    source_self = relaxed_automorphism('C' * n, source, tolerance=self_tolerance,
+    source_self = binary_symmetry('C' * n, source,
                                       anchors=tuple(r for r, _ in anchors))
-    target_self = relaxed_automorphism('C' * n, target, tolerance=self_tolerance,
+    target_self = binary_symmetry('C' * n, target,
                                       anchors=tuple(p for _, p in anchors))
     edges = tuple(DiscoveryEdge((a, b), source[a, b], tolerance, inclusive)
                   for a, b in accepted)
@@ -56,7 +56,7 @@ def self_oracle(value):
     positions = {atom: i for i, atom in enumerate(value.atoms)}
     anchors = tuple(positions[atom] for atom in value.anchors)
     return tuple(p for p in permutations(range(len(value.atoms)))
-                 if permitted(value.elements, value.weights, p, value.tolerance,
+                 if permitted(value.elements, value.weights, p,
                               value.bond_threshold, anchors))
 
 
@@ -109,9 +109,9 @@ def test_source_inverse_precedes_discovery_and_target_action():
         0: 0, 1: 2, 2: 1}
 
 
-def test_self_tolerance_is_checked_jointly_and_relation_is_not_repeated_closure():
+def test_discovery_stays_weighted_while_both_binary_self_actions_compose():
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
     assert discovery_oracle(value) == {(0, 1, 2, 3)}
     words = broad_words(value.source.generators, 4)
     left, right = words[(0, 2, 1, 3)], words[(0, 1, 3, 2)]
@@ -120,19 +120,18 @@ def test_self_tolerance_is_checked_jointly_and_relation_is_not_repeated_closure(
     with pytest.raises(ValueError, match='accepted edge'):
         value.realize(moved)
     for options in (dict(source_word=(*left, *right)), dict(target_word=(*left, *right))):
-        with pytest.raises(ValueError, match='self tolerance'):
-            value.realize(**options)
+        assert tuple(value.realize(**options).values()) in represented(value)
     choices = represented(value)
-    assert len(choices) == 5
-    assert (0, 3, 2, 1) not in choices
+    assert len(choices) == 6
+    assert (0, 3, 2, 1) in choices
 
 
 def test_sparse_indices_anchors_and_cut_adjacency_use_their_own_frames():
     source_matrix = weights(8, [(2, 5, 1.), (2, 7, 1.1)])
     target_matrix = weights(9, [(1, 4, 1.1), (1, 8, 1.2)])
-    source = relaxed_automorphism('C' * 8, source_matrix, tolerance=.2,
+    source = binary_symmetry('C' * 8, source_matrix,
                                  atoms=(2, 5, 7), anchors=(2,))
-    target = relaxed_automorphism('C' * 9, target_matrix, tolerance=.2,
+    target = binary_symmetry('C' * 9, target_matrix,
                                  atoms=(1, 4, 8), anchors=(1,))
     value = RelaxedIsomorphism(source, target, ((2, 1), (5, 4), (7, 8)), ((2, 1),),
         ((2, (1,)), (5, (4, 8)), (7, (4, 8))),
@@ -191,7 +190,7 @@ def test_active_target_edge_and_floor_are_both_required():
 
 def test_constructor_retains_constraints_without_rematching_or_expanding_self(monkeypatch):
     matrix = weights(15, [(0, atom, 1.) for atom in range(1, 15)])
-    source = relaxed_automorphism('C' * 15, matrix, tolerance=0.)
+    source = binary_symmetry('C' * 15, matrix)
     def forbidden(*args, **kwargs):
         raise AssertionError('construction must not expand self choices')
     monkeypatch.setattr(type(source), 'realize', forbidden)
@@ -227,11 +226,11 @@ def test_compiled_triangle_tail_membership_matches_all_twenty_four_bijections():
             assert choice['target_permutation'] in self_oracle(value.target)
 
 
-def test_compiler_does_not_turn_nontransitive_self_tolerance_into_a_group():
+def test_compiler_retains_all_binary_arm_exchanges_with_exact_discovery():
     import z3
     from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
     for tail in permutations((1, 2, 3)):
         images = (0, *tail)
         system = FiniteConstraints()
@@ -239,7 +238,7 @@ def test_compiler_does_not_turn_nontransitive_self_tolerance_into_a_group():
         for atom, image in enumerate(images):
             system.restrict(compiled.images[atom][0], {image})
         status, model, _ = system.solve(2000)
-        assert (status == z3.sat) == (images != (0, 3, 2, 1))
+        assert status == z3.sat
         assert status != z3.unknown
         if status == z3.sat:
             assert compiled.realize(model) == dict(enumerate(images))
@@ -273,10 +272,10 @@ def test_compiler_reuses_source_factor_choices_for_their_inverse():
 def test_compiler_preserves_sparse_original_indices_and_fixed_anchors():
     import z3
     from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
-    source = relaxed_automorphism('C' * 8, weights(8, [(2, 5, 1.), (2, 7, 1.1)]),
-                                 tolerance=.2, atoms=(2, 5, 7), anchors=(2,))
-    target = relaxed_automorphism('C' * 9, weights(9, [(1, 4, 1.1), (1, 8, 1.2)]),
-                                 tolerance=.2, atoms=(1, 4, 8), anchors=(1,))
+    source = binary_symmetry('C' * 8, weights(8, [(2, 5, 1.), (2, 7, 1.1)]),
+                                  atoms=(2, 5, 7), anchors=(2,))
+    target = binary_symmetry('C' * 9, weights(9, [(1, 4, 1.1), (1, 8, 1.2)]),
+                                  atoms=(1, 4, 8), anchors=(1,))
     value = RelaxedIsomorphism(source, target, ((2, 1), (5, 4), (7, 8)), ((2, 1),),
         ((2, (1,)), (5, (4, 8)), (7, (4, 8))),
         (DiscoveryEdge((2, 5), 1., .2),), ((1, 4),), .2)
@@ -313,10 +312,10 @@ def test_large_symmetric_relation_uses_factors_without_generating_group_elements
 @pytest.mark.parametrize('fixture', ['unrestricted', 'partial_edges', 'weighted', 'domains'])
 def test_image_only_compilation_absorbs_only_discovery_closed_self_actions(fixture):
     from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
-    from mappa.mappa_core.core.symmetry.event_counts import EventCountProgram
+    import z3
     if fixture == 'weighted':
         matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-        value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+        value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
         assert value.absorbed_self_actions == (False, False)
     else:
         matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
@@ -330,6 +329,13 @@ def test_image_only_compilation_absorbs_only_discovery_closed_self_actions(fixtu
     expected = represented(value)
     system = FiniteConstraints()
     compiled = compile_relaxed_relation(system, value, fixture, images_only=True)
-    actual = EventCountProgram(system).project(tuple(compiled.images[a][0] for a in value.source_atoms))
-    assert set(actual) == expected
-    assert set(actual.values()) == {0}
+    solver = z3.Solver()
+    system.emit(solver)
+    actual = set()
+    for images in permutations(value.target_atoms):
+        solver.push()
+        solver.add(*(system.predicate(compiled.images[a][0], p) for a,p in zip(value.source_atoms, images)))
+        if solver.check() == z3.sat:
+            actual.add(images)
+        solver.pop()
+    assert actual == expected

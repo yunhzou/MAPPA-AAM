@@ -16,6 +16,7 @@ class EventDecodeConfig:
     threshold: float = 0.5
     metal_threshold: float | None = 0.3
     event_slack: int = 6
+    fragment_seconds: float = 5.
 
     def __post_init__(self):
         import math
@@ -26,22 +27,13 @@ class EventDecodeConfig:
             raise ValueError('event thresholds must be finite and positive')
         if isinstance(self.event_slack, bool) or not isinstance(self.event_slack, int) or self.event_slack < 0:
             raise ValueError('event_slack must be a nonnegative integer')
+        if not math.isfinite(self.fragment_seconds) or self.fragment_seconds <= 0:
+            raise ValueError('fragment_seconds must be finite and positive')
 
     def __setstate__(self, state):
         validated = type(self)(**state)
         for name, value in vars(validated).items():
             object.__setattr__(self, name, value)
-
-
-@dataclass(frozen=True)
-class SymmetryEventResponse:
-    """One original action, annotated without expanding or removing it."""
-    action: tuple
-    generators: tuple | None  # None means no response-invariance certificate.
-
-    @property
-    def response_invariant(self):
-        return self.generators is not None and all(preserves for preserves, _ in self.generators)
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,7 +55,7 @@ class BondEventTerm:
 
 @dataclass
 class EventInterpretation:
-    """Bond responses attached to the unchanged, ordered saved mapping space.
+    """Selected fragment responses beside the unchanged matching catalogue.
 
     Local conditional responses compose with fixed ordinary boundaries and one
     sweep correction. The minimum and window belong to this approximate model,
@@ -71,7 +63,6 @@ class EventInterpretation:
     """
     catalogue: FinalBranchCatalogue
     index: SignedEventIndex
-    family_actions: tuple[tuple[SymmetryEventResponse, ...], ...]
     inventory: FragmentInventory
     local: FragmentDecoder
     event_problem_sha256: str
@@ -129,6 +120,32 @@ class EventInterpretation:
     def event_window(self):
         return self.window.maximum
 
+    @property
+    def minimum_proven(self):
+        return self.window.minimum_proven
+
+    @property
+    def minimum_lower_bound(self):
+        return self.window.lower_bound
+
+    @property
+    def fragments(self):
+        """Prepared fragment responses retained by this decoding window."""
+        _ = self.window
+        return tuple(self.local.prepared[fragment.key] for fragment in self.inventory.fragments
+                     if fragment.key in self.local.prepared)
+
+    def select(self, family_id, lower=None, upper=None, *, partition=0, cut=0):
+        """Retain a branch's choices inside a requested count or inclusive window."""
+        if lower is None:
+            lower = self.minimum_lower_bound
+            upper = self.event_window if upper is None else upper
+        return self.tables(family_id, partition, cut=cut).program.select(lower, upper)
+
+    def minimum(self, family_id, *, partition=0, cut=0):
+        """Return a best actual branch witness and its scoped proof status."""
+        return self.tables(family_id, partition, cut=cut).minimum_result
+
     def _table_key(self, family_id, partition, cut=0):
         family = self.catalogue.families[family_id]
         fragments = self.fragment_partitions[family_id][partition]
@@ -171,16 +188,16 @@ class EventInterpretation:
         """Compose internal and boundary categories for one permitted choice."""
         vector = self.index.vector(self.realize(family_id, choices))
         result = self.tables(family_id, partition, cut=cut).evaluate(vector, include_events=include_events)
-        result['within_window'] = self.minimum_events <= result['total'] <= self.event_window
+        result['within_window'] = self.minimum_lower_bound <= result['total'] <= self.event_window
         return result
 
     def realize(self, family_id, choices=None):
         """Apply ordered local choices and joint global placement words.
 
-        A relation choice names discovery and source/target self rearrangements;
-        a placement choice names signed generator numbers. None retains the
-        witness. Discovery predicates constrain D; they are not reapplied to the
-        two-sided relaxed alternative.
+        Explicit proofs are validated against the original matching catalogue.
+        This also permits inspecting discoveries outside the selected decoded
+        orbit; it does not assert membership in an EventSelection. An omitted
+        discovery uses the selected start. Placement choices remain joint.
         """
         family = self.catalogue.families[family_id]
         choices = (None,) * len(family.actions) if choices is None else tuple(choices)
@@ -189,6 +206,10 @@ class EventInterpretation:
         atoms = np.asarray([r for r, _ in family.mapping], dtype=int)
         images = np.asarray([p for _, p in family.mapping], dtype=int)
         for action, choice in zip(family.actions, choices):
+            if action[0] == 'relation':
+                selected = self.local.prepare(action[1]).optimization.discovery_witness
+                choice = {} if choice is None else dict(choice)
+                choice.setdefault('discovery', dict(selected))
             images = apply_action(images, action, choice, self.index.m)
         mapping = {int(r): int(p) for r, p in zip(atoms, images)}
         vector = self.index.vector(mapping)

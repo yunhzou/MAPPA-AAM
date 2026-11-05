@@ -308,24 +308,23 @@ def test_reused_older_entry_becomes_first_choice_for_next_request():
     assert after['dependency_checks']-before['dependency_checks']==10
 
 
-def test_cache_separates_self_tolerance_without_restricting_discovery():
+def test_cache_reuses_binary_symmetry_without_restricting_discovery():
     from mappa import match_fragment, FragmentMatchConfig, FragmentMatchContext
     from growth_cases import discovery_mappings, represented
     source = graph(3, [(0, 1, 1.), (0, 2, 2.)], ['O', 'C', 'C'])
     cache = FragmentRepair(source, source)
     view = cache.for_cut(())
     context = FragmentMatchContext(fragment_cache=view)
-    strict = FragmentMatchConfig(iso_tolerance=.1, self_tolerance=.1)
-    relaxed = FragmentMatchConfig(iso_tolerance=.1, self_tolerance=1.5)
+    strict = FragmentMatchConfig(iso_tolerance=.1)
+    relaxed = FragmentMatchConfig(iso_tolerance=.1)
     initial = match_fragment(view.source, source, seed=0, context=context, config=strict)
     expanded = match_fragment(view.source, source, seed=0, context=context, config=relaxed)
     assert len(initial.matches) == len(expanded.matches) == 1
     assert discovery_mappings(initial.matches[0]) == discovery_mappings(expanded.matches[0]) == {
         ((0, 0), (1, 1), (2, 2))}
-    assert represented(initial) == {((0, 0), (1, 1), (2, 2))}
-    assert represented(expanded) == {
+    assert represented(initial) == represented(expanded) == {
         ((0, 0), (1, 1), (2, 2)), ((0, 0), (1, 2), (2, 1))}
-    assert cache.stats()['full_hits'] == 0
+    assert cache.stats()['full_hits'] == 1
     restored = FragmentRepair(source, source)
     restored.loads(cache.dumps())
     restored_view = restored.for_cut(())

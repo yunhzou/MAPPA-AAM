@@ -7,19 +7,19 @@ import numpy as np
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
 from mappa.mappa_core.core.matching.policy import _edge_wbo, ElementNodeMatchPolicy
 from mappa.mappa_core.core.matching.representation.records import Fragment, FragmentMatchResult, IslandBranchLimitExceeded
-from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
+from mappa.mappa_core.core.symmetry.structure import binary_symmetry
 from mappa.mappa_core.core.symmetry.relations import DiscoveryEdge, RelaxedIsomorphism
 
 
-def _prepare_self(graph, atoms, anchors, tolerance, threshold, labels):
+def _prepare_self(graph, atoms, anchors, threshold, labels):
     """Original internal WBOs define self relationships, including cut bonds."""
     atoms = tuple(sorted(atoms))
     anchors = tuple(anchors)
     positions = {atom: index for index, atom in enumerate(atoms)}
     weights = np.asarray([[_edge_wbo(graph, a, b) for b in atoms] for a in atoms])
-    prepared = relaxed_automorphism(
+    prepared = binary_symmetry(
         tuple(labels[a] for a in atoms), weights,
-        tolerance=tolerance, bond_threshold=threshold,
+        bond_threshold=threshold,
         anchors=tuple(positions[a] for a in anchors))
     return replace(prepared, atoms=atoms, anchors=tuple(sorted(anchors)))
 
@@ -42,12 +42,12 @@ def _self_labels(source, target, node_policy):
     return tuple(result)
 
 
-def _global_self(target, labels, tolerance):
+def _global_self(target, labels):
     """Reuse one original-WBO preparation within its owning endpoint graph."""
     threshold = target.graph.get('bond_cut', .2)
-    key = threshold, tolerance, tuple(sorted(labels.items()))
+    key = threshold, tuple(sorted(labels.items()))
     weights = target.graph.get('wbo_matrix')
-    cached = target.graph.get('_relaxed_global')
+    cached = target.graph.get('_binary_global')
     if cached is not None and cached[0] is target and cached[1] is weights and cached[2] == key:
         prepared = cached[3]
         # SearchSession owns read-only endpoint matrices. Explicitly mutable
@@ -62,8 +62,8 @@ def _global_self(target, labels, tolerance):
                 np.ix_(prepared.atoms, prepared.atoms)]
         if np.array_equal(current, prepared.weights):
             return prepared
-    prepared = _prepare_self(target, target, (), tolerance, threshold, labels)
-    target.graph['_relaxed_global'] = target, weights, key, prepared
+    prepared = _prepare_self(target, target, (), threshold, labels)
+    target.graph['_binary_global'] = target, weights, key, prepared
     return prepared
 
 
@@ -72,7 +72,7 @@ def _placement_generators(target, prepared, locked, fixed_targets=()):
 
     The broad preparation's labels preserve all source-node compatibility.
     Whole-matrix equality, including subthreshold contacts, makes composition
-    safe independently of both discovery and relaxed-self tolerances.
+    safe independently of discovery tolerance.
     """
     from mappa._group_ops import SetOrbit
     edges = frozenset(tuple(sorted(edge)) for edge in target.edges)
@@ -102,7 +102,7 @@ def _placement_generators(target, prepared, locked, fixed_targets=()):
     return tuple(map(tuple, group.stabilizer(sorted(fixed))))
 
 
-def complete_fragment(growth, source, target, locked, *, tolerance, self_tolerance,
+def complete_fragment(growth, source, target, locked, *, tolerance,
                       node_policy, branch_limit, bond_tolerance=None, profile=None,
                       placement_fixed_targets=()):
     """One Fragment per placement orbit; retain its joint continuation transport."""
@@ -111,7 +111,7 @@ def complete_fragment(growth, source, target, locked, *, tolerance, self_toleran
                           locked, node_policy, tolerance, bond_tolerance)
     source_labels, target_labels = _self_labels(source, target, node_policy)
     fixed = set(locked.values()) | set(placement_fixed_targets)
-    global_self = (_global_self(target, target_labels, self_tolerance)
+    global_self = (_global_self(target, target_labels)
                    if not set(target).issubset(fixed) and query.needs_global_symmetry() else None)
     generators = (() if global_self is None else
                   _placement_generators(target, global_self, locked, placement_fixed_targets))
@@ -128,7 +128,7 @@ def complete_fragment(growth, source, target, locked, *, tolerance, self_toleran
     if len(witnesses) > branch_limit:
         raise IslandBranchLimitExceeded(len(witnesses), branch_limit)
     anchors = tuple(sorted((r, locked[r]) for r in query.atoms if r in locked))
-    source_self = _prepare_self(source, query.atoms, dict(anchors), self_tolerance,
+    source_self = _prepare_self(source, query.atoms, dict(anchors),
                                 source.graph.get('bond_cut', .2), source_labels)
     edges = tuple(DiscoveryEdge((a, b), _edge_wbo(source, a, b),
                 tolerance if bond_tolerance is None else bond_tolerance.limit(a, b),
@@ -141,7 +141,7 @@ def complete_fragment(growth, source, target, locked, *, tolerance, self_toleran
         if not query._reduce(domains):
             raise RuntimeError('a proven target image lost its discovery support')
         target_self = _prepare_self(target, image, (p for _, p in anchors),
-                                    self_tolerance, target.graph.get('bond_cut', .2), target_labels)
+                                     target.graph.get('bond_cut', .2), target_labels)
         relation = RelaxedIsomorphism(source_self, target_self, tuple(witness.items()), anchors,
             tuple(domains.items()),
             edges, tuple((a, b) for a, b in target.edges if a in image and b in image),

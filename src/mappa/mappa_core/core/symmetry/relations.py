@@ -1,11 +1,11 @@
-"""Complete discovery constraints with one permitted self action on each side."""
+"""Complete discovery constraints with binary symmetry on both fragment sides."""
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from functools import cached_property
 import math
 from numbers import Integral
 
-from .relaxed import RelaxedAutomorphism
+from .structure import BinarySymmetry
 
 
 def _pairs(values):
@@ -38,16 +38,16 @@ class DiscoveryEdge:
 
 @dataclass(frozen=True, eq=False)
 class RelaxedIsomorphism:
-    """All valid discovery bijections, with independently constrained self actions.
+    """All valid discovery bijections, with both sides' binary symmetry actions.
 
     The complete relation is beta o discovery o alpha^-1. Discovery is described
     by domains, injectivity, anchors and accepted edges, never by a list of maps.
-    Each self action is checked against its own original endpoint; the resulting
-    relation is not closed repeatedly. Atom indices in this record are original
+    Each self action preserves its own internal graph and anchors. Atom indices
+    in this record are original
     endpoint indices; self generators use their existing local frames.
     """
-    source: RelaxedAutomorphism
-    target: RelaxedAutomorphism
+    source: BinarySymmetry
+    target: BinarySymmetry
     witness: tuple[tuple[int, int], ...]
     anchors: tuple[tuple[int, int], ...]
     domains: tuple[tuple[int, tuple[int, ...]], ...]
@@ -127,13 +127,29 @@ class RelaxedIsomorphism:
                      if p in left and q in right and self._allows_edge(edge, p, q))
 
     @cached_property
+    def discovery_in_witness_orbit(self):
+        """Certify that target symmetry connects all permitted discoveries.
+
+        When growth uses every target binary edge, every discovery is a full
+        binary correspondence to that target. Composing it with the inverse of
+        the saved witness is then a target symmetry, with anchors and labels
+        preserved. A witness agreeing with connectivity alone is insufficient.
+        """
+        if (len(self.accepted_edges) != len(self.target.edges)
+                or not set(self.target_edges).issubset(self.target.edges)):
+            return False
+        positions = self._target_positions
+        witness = dict(self.witness)
+        return all(all(self.target.elements[positions[p]] ==
+                       self.target.elements[positions[witness[r]]] for p in domain)
+                   for r, domain in self.domains)
+
+    @cached_property
     def absorbed_self_actions(self):
         """Sides whose structural action already preserves all discovery maps.
 
-        Discovery contains every satisfying map, so composing such an action
-        cannot add a map. Checking all structural generators is stronger than
-        checking the permitted relaxed subset and remains valid when that subset
-        is not closed under composition.
+        Discovery contains every satisfying map, so composing an action which
+        preserves those predicates cannot add a map.
         """
         domains = {r: frozenset(values) for r, values in self.domains}
         domains.update((r, frozenset((p,))) for r, p in self.anchors)
@@ -204,9 +220,9 @@ class RelaxedIsomorphism:
         alpha = tuple(range(len(self.source_atoms))) if source_permutation is None else source_permutation
         beta = tuple(range(len(self.target_atoms))) if target_permutation is None else target_permutation
         if not self.source.contains(alpha):
-            raise ValueError('source rearrangement violates relaxed self tolerance or structural constraints')
+            raise ValueError('source rearrangement violates binary symmetry or anchors')
         if not self.target.contains(beta):
-            raise ValueError('target rearrangement violates relaxed self tolerance or structural constraints')
+            raise ValueError('target rearrangement violates binary symmetry or anchors')
         inverse = {self.source_atoms[int(image)]: atom for atom, image in zip(self.source_atoms, alpha)}
         beta = {atom: self.target_atoms[int(image)] for atom, image in zip(self.target_atoms, beta)}
         return {atom: beta[discovery[inverse[atom]]] for atom in self.source_atoms}

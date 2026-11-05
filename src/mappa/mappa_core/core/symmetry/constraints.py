@@ -11,9 +11,9 @@ import time
 
 @lru_cache(maxsize=512)
 def group_factors(generators):
-    from sympy.combinatorics import Permutation,PermutationGroup
+    from .groups import permutation_group
     if not generators:return ()
-    group=PermutationGroup([Permutation(list(g)) for g in generators])
+    group=permutation_group(generators, len(generators[0]))
     return tuple(tuple(tuple(p(i) for i in range(group.degree)) for p in level.values())
                  for level in reversed(group.basic_transversals) if len(level)>1)
 
@@ -142,7 +142,7 @@ class FiniteConstraints:
                 if q in allowed:
                     yield p,c,q
 
-    def propagate(self):
+    def propagate(self, check=None):
         neighbors=[set() for _ in self.domains]
         for n,(kind,values,data) in enumerate(self.constraints):
             for value in (*values,*(data.values() if kind=='lookup' else ())):
@@ -150,6 +150,7 @@ class FiniteConstraints:
         # Reference assignments are attached last: propagate them backwards first.
         queue=deque(reversed(range(len(self.constraints))));queued=set(queue)
         while queue and not self.failed:
+            if check is not None:check()
             n=queue.popleft();queued.remove(n)
             kind,values,data=self.constraints[n];changed=set()
             if kind in ('table','action'):
@@ -334,23 +335,10 @@ class CompiledRelation:
 
 
 def _compile_self(system, relation, label):
-    """One structural action, constrained jointly against original weights."""
+    """One correlated binary action, preserving elements and fixed anchors."""
     start = len(system.program)
     action = tuple(system.act([system.constant(i) for i in range(len(relation.atoms))],
                               relation.generators, label))
-    tables = {}
-    for constraint in relation.constraints:
-        weight, tolerance = constraint.response.source_weight, constraint.response.threshold
-        for a, b in constraint.pairs:
-            left, right = action[a], action[b]
-            key = weight, tolerance, left[1], right[1]
-            if key not in tables:
-                # Cartesian domains can contain pairs outside this pair orbit.
-                # Compare their original weights directly; group choices retain
-                # the joint structural restriction and forbid impossible pairs.
-                tables[key] = tuple((p, q) for p in sorted(left[1]) for q in sorted(right[1])
-                    if p != q and abs(float(relation.weights[p, q]) - weight) <= tolerance)
-            system.relation((left[0], right[0]), tables[key])
     return action, tuple(system.program[start:])
 
 
@@ -368,23 +356,30 @@ def _inverse_action(system, program, degree):
     return values
 
 
-def compile_relaxed_relation(system, relation, label, *, images_only=False):
-    """Compile beta o D o alpha^-1 without expanding discovery maps or groups.
-
-    Returned images use original endpoint indices. Both self actions use their
-    compact structural factors and their own joint original-weight constraints.
-    Only local edge tables are materialized; injectivity remains one shared
-    constraint over the discovery choices. Image-only consumers may absorb
-    actions already closed within discovery; callers querying action provenance
-    retain the original factor variables.
-    """
+def compile_discovery(system, relation, check=None):
+    """Shared domains, occupancy, anchors and accepted weighted growth edges."""
     discovery = {r: system.symbol(domain) for r, domain in relation.domains}
     system.distinct(value[0] for value in discovery.values())
     for r, p in relation.anchors:
         system.restrict(discovery[r][0], {p})
     for edge in relation.accepted_edges:
+        if check is not None:check()
         system.relation(tuple(discovery[r][0] for r in edge.atoms),
                         relation.discovery_pairs(edge))
+    return discovery
+
+
+def compile_relaxed_relation(system, relation, label, *, images_only=False):
+    """Compile beta o D o alpha^-1 without expanding discovery maps or groups.
+
+    Returned images use original endpoint indices. Both self actions use their
+    compact structural factors, element labels and anchors.
+    Only local edge tables are materialized; injectivity remains one shared
+    constraint over the discovery choices. Image-only consumers may absorb
+    actions already closed within discovery; callers querying action provenance
+    retain the original factor variables.
+    """
+    discovery = compile_discovery(system, relation)
     source_absorbed, target_absorbed = relation.absorbed_self_actions if images_only else (False, False)
     source_action, source_program = (
         (tuple(system.constant(i) for i in range(len(relation.source_atoms))), ())

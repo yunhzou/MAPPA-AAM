@@ -25,6 +25,24 @@ def prepare(endpoints, actions, mapping, atoms=None):
     return local, response
 
 
+def project(counts, atoms):
+    # Tiny test oracle: condition every requested image; production retains a
+    # queryable relation instead of materializing this Cartesian output table.
+    result = {}
+    for images in product(*(counts.response.atom_domains[a] for a in atoms)):
+        for count in range(len(counts.response.piece.source_atoms)**2):
+            answer = counts.find(count, assignments=dict(zip(atoms, images)))
+            assert answer.status != 'unknown'
+            if answer.status == 'found':
+                result[images] = count
+                break
+    return result
+
+
+def endpoints_for(counts, atom):
+    return {images[0]: cost for images,cost in project(counts,(atom,)).items()}
+
+
 def literal_count(endpoints, mapping, atoms):
     return sum(abs(endpoints.reactant.wbo[a, b] - endpoints.product.wbo[mapping[a], mapping[b]]) > .5
                for i, a in enumerate(atoms) for b in atoms[i + 1:])
@@ -66,7 +84,7 @@ def test_joint_cycle_minimum_is_two_when_each_pair_individually_allows_zero(monk
     assert count_bounds(local.index, response) == (0, 2)
     assert all(0 in term.response.categories for term in response.terms)
     assert response.event_counts.minimum == 2
-    assert set(response.event_counts.project(response.piece.source_atoms).values()) == {2}
+    assert set(project(response.event_counts, response.piece.source_atoms).values()) == {2}
 
 
 def test_prepared_response_retains_only_attainable_correlated_counts():
@@ -74,8 +92,8 @@ def test_prepared_response_retains_only_attainable_correlated_counts():
     assert {literal_count(local.index.problem, choice, response.piece.source_atoms)
             for choice in choices} == {2}
     expected = {tuple(choice[a] for a in response.piece.source_atoms): 2 for choice in choices}
-    assert response.event_counts.project(response.piece.source_atoms) == expected
-    assert response.event_counts.endpoint(1) == {1: 2, 2: 2, 3: 2}
+    assert project(response.event_counts, response.piece.source_atoms) == expected
+    assert endpoints_for(response.event_counts, 1) == {1: 2, 2: 2, 3: 2}
 
 
 def test_repeated_branch_uses_share_bounds_and_complete_binding(monkeypatch):
@@ -102,16 +120,16 @@ def test_repeated_branch_uses_share_bounds_and_complete_binding(monkeypatch):
 
 
 @pytest.mark.parametrize('atoms', [(0, 1, 2, 3), (0, 1)])
-def test_two_sided_nontransitive_relation_matches_all_tiny_permutations(atoms):
+def test_two_sided_binary_relation_matches_all_tiny_permutations(atoms):
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
     expected = represented(value)
-    assert len(expected) == 5 and (0, 3, 2, 1) not in expected
+    assert len(expected) == 6 and (0, 3, 2, 1) in expected
     endpoints = problem(matrix, matrix)
     local, response = prepare(endpoints, (('relation', Fragment(value)),), dict(value.witness), atoms)
     projections = {tuple(images[a] for a in atoms):
                    literal_count(endpoints, dict(enumerate(images)), atoms) for images in expected}
-    assert response.event_counts.project(atoms) == projections
+    assert project(response.event_counts, atoms) == projections
     assert response.event_counts.minimum == min(projections.values())
 
 
@@ -122,7 +140,7 @@ def test_endpoint_conditioned_counts_compose_without_losing_internal_correlation
                    + literal_count(local.index.problem, b, response.piece.source_atoms)
                    + rows[a[1], b[1]] for a, b in product(choices, repeat=2))
     assert expected == 3
-    endpoint = response.event_counts.endpoint(1)
+    endpoint = endpoints_for(response.event_counts, 1)
     actual = min(left_count + right_count + rows[left, right]
                  for left, left_count in endpoint.items() for right, right_count in endpoint.items())
     assert actual == expected
@@ -143,7 +161,7 @@ def test_local_relation_then_placement_retains_the_original_action_order():
         (('relation', Fragment(value)), ('group', (placement,))), dict(value.witness))
     expected_counts = {images: literal_count(endpoints, dict(enumerate(images)), tuple(range(4)))
                        for images in expected}
-    assert response.event_counts.project(tuple(range(4))) == expected_counts
+    assert project(response.event_counts, tuple(range(4))) == expected_counts
 
 
 def assert_bounds_cover_mappings(local, response, mappings):
@@ -179,7 +197,8 @@ def test_weight_bag_certifies_nonzero_minimum_without_event_contraction(monkeypa
     target = weights(3, [(0, 1, 1.), (1, 2, 1.)])
     endpoints = problem(source, target)
     fragment = saved_fragment(endpoints)
-    monkeypatch.setattr(FragmentEventCounts, 'project',
+    from mappa.mappa_core.core.symmetry.minimum import _Search
+    monkeypatch.setattr(_Search, '_solve',
                         lambda *_: pytest.fail('The pair-weight bags already certify one event'))
     local, response = prepare(endpoints, (('relation', fragment),), dict(fragment.witness))
     assert count_bounds(local.index, response) == (0, 1)
@@ -200,7 +219,8 @@ def test_incident_weight_bags_strengthen_only_the_conditioned_endpoint():
     # Mapping a bonded endpoint onto the isolated atom forces two changes.
     mappings = [dict(enumerate(images)) for images in permutations(range(3))]
     assert_bounds_cover_mappings(local, response, mappings)
-    assert response.event_counts.endpoint(0) == {0: 0, 1: 0, 2: 2}
+    # The selected binary orbit cannot move a bonded atom onto an isolated atom.
+    assert endpoints_for(response.event_counts, 0) == {0: 0, 1: 0}
 
 
 def test_weight_preserving_placement_can_move_the_entire_fragment_atom_set():
@@ -217,6 +237,33 @@ def test_weight_preserving_placement_can_move_the_entire_fragment_atom_set():
                 for images in permutations(atoms)]
     assert_bounds_cover_mappings(local, response, mappings)
     assert response.event_counts.endpoint_bounds(0) == dict.fromkeys(range(6), 1)
+
+
+def test_count_only_contraction_excludes_weight_preserving_placement_choices(monkeypatch):
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
+    source = weights(6, [(0, 1, 1.), (1, 2, 1.)])
+    target = weights(6, [(0, 1, 1.), (1, 2, 1.), (3, 4, 1.), (4, 5, 1.)])
+    endpoints = problem(source, target)
+    fragment = saved_fragment(endpoints, source_atoms=(0, 1, 2),
+                              witness=((0, 1), (1, 0), (2, 2)))
+    placement = ('group', ((3, 4, 5, 0, 1, 2), (2, 1, 0, 3, 4, 5)))
+    _, response = prepare(endpoints, (('relation', fragment), placement), dict(fragment.witness))
+    assert response.event_counts.bounds == (0, 0)
+    monkeypatch.setattr(FiniteConstraints, 'act',
+        lambda *_: pytest.fail('Weight-preserving placement entered the count contraction'))
+    counts = response.event_counts
+    assert counts.minimum == 0
+    assert endpoints_for(counts, 1) == {1: 0, 4: 0}
+
+
+def test_weight_preserving_placements_transport_correlated_images_in_order():
+    matrix = weights(3, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.)])
+    endpoints = problem(matrix, matrix)
+    actions = (('group', ((1, 0, 2),)), ('group', ((0, 2, 1),)))
+    _, response = prepare(endpoints, actions, {0: 0, 1: 1})
+    assert project(response.event_counts, (0, 1)) == {
+        (0, 1): 0, (1, 0): 0, (0, 2): 0, (2, 0): 0}
+    assert endpoints_for(response.event_counts, 0) == {0: 0, 1: 0, 2: 0}
 
 
 def test_placement_certificate_uses_event_weights_instead_of_matching_weights():
@@ -241,7 +288,8 @@ def test_weight_bag_certificate_respects_metal_and_ordinary_thresholds(monkeypat
     endpoints = AAMProblem(endpoint(elements, [(0, 1, 1.), (0, 2, 1.), (1, 2, .4)]),
                            endpoint(elements, [(0, 1, 1.), (0, 2, 1.4)]))
     fragment = saved_fragment(endpoints)
-    monkeypatch.setattr(FragmentEventCounts, 'project',
+    from mappa.mappa_core.core.symmetry.minimum import _Search
+    monkeypatch.setattr(_Search, '_solve',
                         lambda *_: pytest.fail('The element-specific weight bags certify one event'))
     local, response = prepare(endpoints, (('relation', fragment),), dict(fragment.witness))
     assert count_bounds(local.index, response) == (0, 1)

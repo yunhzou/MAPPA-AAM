@@ -261,7 +261,7 @@ def compete_fragments(a, config=None):
                     context=FragmentMatchContext(placement_fixed_targets=tuple(sorted(target))),
                     config=FragmentMatchConfig(
                         graph_floor=cfg.graph_floor,
-                        iso_tolerance=cfg.iso_tolerance, self_tolerance=cfg.self_tolerance,
+                        iso_tolerance=cfg.iso_tolerance,
                         branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,
                         allow_mapped_seed=False,
                     ),
@@ -358,7 +358,7 @@ def compete_fragments(a, config=None):
                     graph_floor=cfg.graph_floor,
                     iso_tol=cfg.iso_tolerance,
                     max_branches=cfg.branch_limit,
-                    self_tolerance=cfg.self_tolerance,
+
                     cuts=effective_cuts,
                     anchor_map=anchors,
                 )

@@ -9,7 +9,7 @@ class FragmentRepair {
     std::vector<Pair> active_cuts;
     size_t budget, resident=0, peak_resident=0;
     struct SharedPreparation {
-        std::shared_ptr<const PreparedSelf> value;
+        std::shared_ptr<const PreparedSymmetry> value;
         size_t owners=0, bytes=0;
     };
     std::unordered_map<std::string,SharedPreparation> preparations;
@@ -27,7 +27,7 @@ class FragmentRepair {
         std::vector<int> mapping, placement_fixed_targets;
         std::vector<Pair> islands, cuts, deferred, pair_reads;
         std::vector<uint8_t> row_reads;
-        std::vector<std::pair<std::string,std::shared_ptr<const PreparedSelf>>> preparations;
+        std::vector<std::pair<std::string,std::shared_ptr<const PreparedSymmetry>>> preparations;
         size_t bytes=0;
         size_t placement_hash=0;
         bool in_snapshot=false;
@@ -55,19 +55,19 @@ class FragmentRepair {
     template<class Value> static void append(std::string& key,const Value& value) {
         key.append(reinterpret_cast<const char*>(&value),sizeof(value));
     }
-    static std::string self_key(const PreparedSelf& value,bool target_side) {
+    static std::string self_key(const PreparedSymmetry& value,bool target_side) {
         // Endpoint weights and elements belong to this immutable reaction.
         // Cuts alter discovery topology, never these original self weights.
         std::string key;
-        append(key,target_side);append(key,value.bond_threshold);append(key,value.tolerance);
+        append(key,target_side);append(key,value.bond_threshold);
         append(key,value.atoms.size());append(key,value.anchors.size());
         for (int atom:value.atoms) append(key,atom);
         for (int atom:value.anchors) append(key,atom);
         return key;
     }
-    static size_t self_bytes(const std::string& key,const PreparedSelf& value) {
+    static size_t self_bytes(const std::string& key,const PreparedSymmetry& value) {
         size_t out=sizeof(SharedPreparation)+sizeof(std::string)+key.capacity()+1+256
-            +sizeof(PreparedSelf)+(value.atoms.capacity()+value.anchors.capacity())*sizeof(int)
+            +sizeof(PreparedSymmetry)+(value.atoms.capacity()+value.anchors.capacity())*sizeof(int)
             +value.weights.capacity()*sizeof(double)+value.elements.capacity()*sizeof(std::string)
             +value.generators.capacity()*sizeof(std::vector<int>)+32;
         for (const auto& element:value.elements) out+=element.capacity()+1;
@@ -89,7 +89,7 @@ class FragmentRepair {
     }
     void share_results(Entry& entry) {
         std::unordered_map<std::string,size_t> positions;
-        auto share=[&](const std::shared_ptr<const PreparedSelf>& value,bool target_side) {
+        auto share=[&](const std::shared_ptr<const PreparedSymmetry>& value,bool target_side) {
             auto key=self_key(*value,target_side);
             auto [position,added]=positions.emplace(key,entry.preparations.size());
             if (added) {
@@ -294,7 +294,7 @@ public:
     }
     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0,
+                    const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42,
                     const std::vector<int>& placement_fixed_targets={}) {
         const std::vector<Pair> empty_islands;
         const auto& islands=islands_ptr ? *islands_ptr : empty_islands;
@@ -323,7 +323,7 @@ public:
             }
             std::string key;
             append(key,random_seed);append(key,seed);append(key,graph_floor);append(key,iso_tol);
-            append(key,self_tolerance);append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
+            append(key,min_lock_size);append(key,max_branches);append(key,allow_mapped_seed);
             append(key,fixed_targets.size());
             for (int p:fixed_targets) append(key,p);
             std::vector<uint8_t> occupied(target.n,0);
@@ -363,7 +363,7 @@ public:
                 SourceReads reads(base.n);
                 entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,
                     max_branches,islands_ptr,prior_deferred,allow_mapped_seed,random_seed,
-                    nullptr,&entry.dependencies,&reads,self_tolerance,fixed_targets);
+                    nullptr,&entry.dependencies,&reads,fixed_targets);
                 entry.key=std::move(key);entry.mapping=mapping;
                 entry.placement_fixed_targets=std::move(fixed_targets);
                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;
@@ -387,7 +387,7 @@ public:
     }
     py::object grow(const std::vector<Pair>& cuts,int seed,const std::vector<int>& mapping,
                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,
-                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42,double self_tolerance=1.0,
+                    py::object islands_obj,const std::vector<Pair>& deferred,bool allow_mapped_seed, uint64_t random_seed=42,
                     const std::vector<int>& placement_fixed_targets={}) {
         std::vector<Pair> islands;
         const std::vector<Pair>* islands_ptr=nullptr;
@@ -396,7 +396,7 @@ public:
         {
             py::gil_scoped_release release;
             computed=compute(cuts,seed,mapping,graph_floor,iso_tol,min_lock_size,max_branches,
-                             islands_ptr,deferred,allow_mapped_seed,random_seed,self_tolerance,placement_fixed_targets);
+                             islands_ptr,deferred,allow_mapped_seed,random_seed,placement_fixed_targets);
         }
         auto out=grow_result_dict(computed.first).cast<py::dict>();
         out["reused_extensions"]=computed.second;
@@ -427,7 +427,7 @@ void register_fragment_repair(py::module_& mod) {
         .def("load",&FragmentRepair::load)
         .def("grow",&FragmentRepair::grow,py::arg("cuts"),py::arg("seed"),py::arg("mapping"),
              py::arg("graph_floor"),py::arg("iso_tol"),py::arg("min_lock_size"),py::arg("max_branches"),
-             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42,py::arg("self_tolerance")=1.0,
+             py::arg("islands"),py::arg("prior_deferred_edges"),py::arg("allow_mapped_seed"),py::arg("random_seed")=42,
              py::arg("placement_fixed_targets")=std::vector<int>{})
         .def("stats",&FragmentRepair::stats);
 }

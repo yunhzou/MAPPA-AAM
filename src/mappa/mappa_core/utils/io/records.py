@@ -102,9 +102,7 @@ def decoded_events_record(result):
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, responses, response_ids = [], [], {}
-    families = [dict(family_id=fid, tables=[],
-        action_responses=[r.generators for r in actions])
-        for fid, actions in enumerate(result.family_actions)]
+    families = [dict(family_id=fid, tables=[]) for fid in range(len(result.catalogue.families))]
     term_records, term_lists, group_records = {}, {}, {}
     component_records = {}
 
@@ -139,6 +137,8 @@ def decoded_events_record(result):
         return rows
 
     for fid, number, table in result._export_tables():
+        for fragment in result.catalogue.families[fid].fragments:
+            result.local.prepare(fragment)
         if table is not None:
             tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
                 internal=groups_record(table.internal, 'fragment'),
@@ -152,14 +152,26 @@ def decoded_events_record(result):
                 statistics=table.statistics))
         families[fid]['tables'].append(number)
         del table
-    record = dict(schema='mappa.decoded_events/v11', method='independent_fragment_events',
-        scope='Independent fragment event model over the retained catalogue',
+    from dataclasses import asdict
+    fragment_ids = {fragment.key:i for i,fragment in enumerate(result.inventory.fragments)}
+    prepared = [dict(fragment=fragment_ids[key], optimization={name:item
+                        for name,item in asdict(value.optimization).items()
+                        if name not in ('search_seconds', 'elapsed_seconds', 'work')},
+                     response=value.response.to_record())
+                for key,value in result.local.prepared.items() if key in fragment_ids]
+    record = dict(schema='mappa.decoded_events/v12', method='binary_fragment_events',
+        scope='Independent ordinary boundaries with selected fragment starting correspondences and binary symmetry',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
             reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
             product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
         families=families, tables=tables, responses=responses,
+        fragment_responses=prepared, fragment_seconds=result.local.fragment_seconds,
+        retained_contexts=result.window.contexts,
+        window=result.window.to_record(),
         mapping_space_preserved=True,
+        decoded_coverage='selected_start_binary_symmetry',
+        minimum_proven=result.minimum_proven, minimum_lower_bound=result.minimum_lower_bound,
         event_counts_approximate=True, minimum_events=result.minimum_events,
         event_slack=result.event_slack, event_window=result.event_window,
         minimum_scope='independent_fragment_model',
@@ -172,6 +184,41 @@ def decoded_events_record(result):
                 reactant=endpoint_record(result.event_problem.reactant, array_lists=True),
                 product=endpoint_record(result.event_problem.product, array_lists=True)))
     return record
+
+
+def decoded_events_from_record(record):
+    """Restore saved response decisions without rerunning discovery optimization."""
+    from dataclasses import replace
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.post_processing.decoder.api import EventDecodeSession
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+    from mappa.mappa_core.post_processing.decoder.fragments import DecodedFragment
+    from mappa.mappa_core.core.symmetry.minimum import FragmentMinimum, FragmentSymmetryEvents, SymmetryWork
+    if record['schema'] != 'mappa.decoded_events/v12':
+        raise ValueError('require a saved binary-fragment event response')
+    problem = problem_from_record(record['problem'])
+    events = problem_from_record(record['event_problem']) if 'event_problem' in record else problem
+    catalogue = FinalBranchCatalogue.from_record(problem,record['catalogue'])
+    policy = record['event_policy']
+    config = EventDecodeConfig(policy['threshold'],policy['metal_threshold'],record['event_slack'],record['fragment_seconds'])
+    result = EventDecodeSession(problem,config,event_problem=events).decode(catalogue)
+    for saved in record['fragment_responses']:
+        fragment = result.inventory.fragments[saved['fragment']]
+        values = dict(saved['optimization'])
+        for name in ('witness','discovery_witness'):
+            values[name] = tuple(tuple(pair) for pair in values[name])
+        for name in ('source_operation','target_operation'):
+            values[name] = tuple(values[name])
+        values.update(work=SymmetryWork(), search_seconds=0., elapsed_seconds=0.)
+        minimum = FragmentMinimum(**values)
+        selected = replace(fragment,relation=replace(fragment.relation,witness=minimum.discovery_witness))
+        response = FragmentSymmetryEvents.from_record(selected,saved['response'],event_problem=events,
+            threshold=config.threshold,metal_threshold=config.metal_threshold)
+        result.local.prepared[fragment.key] = DecodedFragment(fragment,minimum,response)
+    result.local.frozen = True
+    from mappa.mappa_core.post_processing.decoder.window import EventWindow
+    result.window = EventWindow.from_record(record['window'])
+    return result
 
 
 def reaction_record(reaction: ReactionContext):

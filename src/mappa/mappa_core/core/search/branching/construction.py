@@ -168,7 +168,7 @@ def find_islands(g_R, g_P, seed_order,
                  node_policy=None,
                  anchor_map=None,
                  profile=None, cuts=(), fragment_cache=None, random_seed=42,
-                 bond_tolerance=None, self_tolerance=1.0):
+                 bond_tolerance=None):
     """Run growth over a single seed ordering, branching on
     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
 
@@ -195,7 +195,7 @@ def find_islands(g_R, g_P, seed_order,
         tuple(cuts), tuple(sorted(core_R or ())), tuple(sorted(anchor_map.items())),
         float(graph_floor), float(iso_tol), int(max_branches),
         objective='requested_core' if stop_when_core_mapped and core_R else 'full_source',
-        random_seed=random_seed, self_tolerance=self_tolerance))
+        random_seed=random_seed))
     if not _anchor_nodes_compatible(anchor_map, g_R, g_P, node_policy):
         branch = _Branch.from_anchor_map({}, graph)
         graph.stop(branch, 'incompatible_anchors')
@@ -278,7 +278,7 @@ def find_islands(g_R, g_P, seed_order,
                             branch_limit=max_branches, node_policy=node_policy,
                             random_seed=random_seed,
                             allow_mapped_seed=seed_is_mapped_anchor,
-                            bond_tolerance=bond_tolerance, self_tolerance=self_tolerance),
+                            bond_tolerance=bond_tolerance),
                         events=ev_arg,
                         profile=profile,
                         profile_context={

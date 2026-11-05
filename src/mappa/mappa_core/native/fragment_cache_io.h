@@ -2,14 +2,14 @@
 #include <type_traits>
 
 namespace fragment_cache_io {
-inline const std::string schema="mappa.fragment-cache/11";
+inline const std::string schema="mappa.fragment-cache/12";
 
 struct Writer {
     std::string data;
-    std::unordered_map<const PreparedSelf*,uint64_t> prepared;
+    std::unordered_map<const PreparedSymmetry*,uint64_t> prepared;
     std::unordered_map<const Fragment*,uint64_t> fragments;
     std::unordered_map<const PlacementGenerators*,uint64_t> placements;
-    void write(const std::shared_ptr<const PreparedSelf>& value);
+    void write(const std::shared_ptr<const PreparedSymmetry>& value);
     void write(const std::shared_ptr<const Fragment>& value);
     void write(const PlacementGroup& value);
     template<class... Values> void operator()(const Values&... values) { (write(values), ...); }
@@ -33,10 +33,10 @@ struct Writer {
 struct Reader {
     const std::string& data;
     size_t position=0;
-    std::vector<std::shared_ptr<const PreparedSelf>> prepared;
+    std::vector<std::shared_ptr<const PreparedSymmetry>> prepared;
     std::vector<std::shared_ptr<const Fragment>> fragments;
     std::vector<PlacementGroup> placements;
-    void read(std::shared_ptr<const PreparedSelf>& value);
+    void read(std::shared_ptr<const PreparedSymmetry>& value);
     void read(std::shared_ptr<const Fragment>& value);
     void read(PlacementGroup& value);
     explicit Reader(const std::string& bytes): data(bytes) {}
@@ -74,20 +74,20 @@ struct Reader {
 };
 
 template<class IO, class T> void self(IO& io,T& v) {
-    io(v.atoms,v.anchors,v.elements,v.bond_threshold,v.tolerance,v.weights,v.generators);
+    io(v.atoms,v.anchors,v.elements,v.bond_threshold,v.weights,v.generators);
 }
-template<class IO> void fields(IO& io,PreparedSelf& v) { self(io,v); }
-template<class IO> void fields(IO& io,const PreparedSelf& v) { self(io,v); }
-inline void Writer::write(const std::shared_ptr<const PreparedSelf>& value) {
+template<class IO> void fields(IO& io,PreparedSymmetry& v) { self(io,v); }
+template<class IO> void fields(IO& io,const PreparedSymmetry& v) { self(io,v); }
+inline void Writer::write(const std::shared_ptr<const PreparedSymmetry>& value) {
     auto [entry,added]=prepared.emplace(value.get(),prepared.size());
     write(entry->second);
     if (added) write(*value);
 }
-inline void Reader::read(std::shared_ptr<const PreparedSelf>& value) {
+inline void Reader::read(std::shared_ptr<const PreparedSymmetry>& value) {
     uint64_t index;read(index);
     if (index>prepared.size()) throw std::invalid_argument("Invalid shared fragment self reference");
     if (index==prepared.size()) {
-        auto item=std::make_shared<PreparedSelf>();read(*item);prepared.push_back(std::move(item));
+        auto item=std::make_shared<PreparedSymmetry>();read(*item);prepared.push_back(std::move(item));
     }
     value=prepared[index];
 }

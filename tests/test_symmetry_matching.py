@@ -231,7 +231,7 @@ def test_core_projection_includes_tolerated_local_rearrangement_without_exact_sy
     assert {assignment.pairs for assignment in result.assignments} == {
         ((1, 1), (2, 2)), ((1, 2), (2, 1))}
     path = result.branches[0].search_path
-    assert any(fragment.target_self_automorph.generators for fragment in path.fragments)
+    assert any(fragment.target_symmetry.generators for fragment in path.fragments)
     with pytest.raises(branch_mod.BranchLimitExceeded) as exc_info:
         project_path_assignments(path, AAMProblem(endpoint, endpoint), [1, 2],
                                  assignment_limit=1)

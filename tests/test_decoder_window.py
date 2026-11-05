@@ -57,8 +57,6 @@ def test_sweep_endpoint_choice_preserves_its_fragment_internal_cost(monkeypatch)
     from mappa.mappa_core.post_processing.decoder.local_counts import FragmentEventCounts
     monkeypatch.setattr(z3.Solver, 'check',
                         lambda *_: pytest.fail('Sweep assembly must use endpoint-conditioned counts'))
-    monkeypatch.setattr(FragmentEventCounts, 'project',
-                        lambda *_: pytest.fail('Incident pair bounds and the saved witness certify this sweep'))
     r = endpoint('CCCC', [(0, 1, 1.), (1, 3, 1.)])
     p = endpoint('CCCC', [(0, 2, 1.), (1, 3, 1.)])
     fragment = saved_fragment(AAMProblem(r, p), source_atoms=(1, 2, 3), anchors=((3, 3),))
@@ -115,20 +113,11 @@ def test_initial_sweep_window_uses_local_minima_before_the_reporting_window(monk
             source.families.extend(row.families)
             next(iter(source.branches.values())).add(len(source.families) - 1)
 
-    resolved = []
-    resolve = EventWindow._sweep_minimum
-
-    def within_initial_window(decoded, table, minima, upper):
-        lower = table.boundary_events.lower + sum(minima)
-        resolved.append(lower)
-        assert lower <= 2, 'a composition outside L + 2 entered sweep minimization'
-        assert upper <= 2, 'the initial sweep query exceeded L + 2'
-        return resolve(decoded, table, minima, upper)
-
-    monkeypatch.setattr(EventWindow, '_sweep_minimum', staticmethod(within_initial_window))
     result = decode_events(source, event_slack=4)
     assert result.minimum_events == 0 and result.event_window == 4
-    assert resolved and 0 in resolved
+    assert result.window.initial_lower == 0
+    assert result.window.initial_maximum <= 2
+    assert all(result.window.bounds[key] <= 2 for key in result.window.results)
     assert result.window.contexts == ((0, 0, 0), (1, 0, 0), (2, 0, 0))
     # The lower-4 composition was excluded from minimum finding, but belongs
     # to the larger reporting window. The lower-6 composition belongs to neither.
@@ -155,8 +144,11 @@ def test_incompatible_local_minima_do_not_invent_a_feasible_initial_window():
     table = result.tables(0)
     assert table.boundary_events.lower == 0
     assert [response.event_counts.minimum for response, _ in table.fragment_responses] == [0, 0]
-    with pytest.raises(ValueError, match='No attainable event count.*lower-bound'):
-        _ = result.minimum_events
+    assert result.minimum_events == 4
+    answer = result.minimum(0)
+    assert answer.complete and answer.event_count == 4
+    assert len(set(dict(answer.witness).values())) == 8
+    assert result.contributions(0, answer.choices)['total'] == 4
 
 
 def test_reporting_window_reuses_prepared_fragment_counts_without_solver_queries(monkeypatch):

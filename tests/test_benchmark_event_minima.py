@@ -26,7 +26,7 @@ def rearrangement(*, hydrogen_constraint=False):
     fragment = saved_fragment(problem, source_atoms=(1, 2, 3) if hydrogen_constraint else (1, 2),
         anchors=((3, 3),) if hydrogen_constraint else (),
         accepted_edges=((1, 3),) if hydrogen_constraint else (),
-        iso_tolerance=.1, self_tolerance=.1)
+        iso_tolerance=.1)
     return saved(reactant, product, dict(enumerate(range(4))), fragments=(fragment,))
 
 

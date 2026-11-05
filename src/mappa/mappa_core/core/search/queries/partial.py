@@ -47,7 +47,7 @@ def search_core_assignments(
             max_branches=config.branch_limit,
             core_R=core,
             stop_when_core_mapped=True,
-            graph_floor=config.graph_floor, self_tolerance=config.self_tolerance,
+            graph_floor=config.graph_floor,
             random_seed=config.random_seed, anchor_map=dict(config.anchors),
         )
         capped += int(graph.capped)

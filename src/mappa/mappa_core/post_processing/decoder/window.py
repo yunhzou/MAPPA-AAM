@@ -1,9 +1,16 @@
-"""Select additive fragment compositions before resolving their sweep bond."""
+"""Bound branch preparation by attained witnesses; retain incomplete minima."""
+from dataclasses import replace
+
 from .events import prepare_boundary_events
 
 
 class EventWindow:
-    """Minimum and inclusive window of the independent-fragment event model."""
+    """Window of the retained binary-symmetry, independent-boundary model.
+
+    Local witnesses establish an attained upper bound. When their minima compose,
+    it lies within the smallest pre-sweep count plus two. An unfinished local
+    search instead keeps its honest lower bound and the attained upper bound.
+    """
     def __init__(self, decoded):
         candidates = []
         for fid, partitions in enumerate(decoded.cut_contexts):
@@ -11,127 +18,72 @@ class EventWindow:
                 for cut, bonds in enumerate(cuts):
                     boundary = prepare_boundary_events(decoded.index, decoded.catalogue.families[fid].mapping,
                         decoded.inventory.uses[fid][partition], bonds)
-                    candidates.append((boundary.lower, fid, partition, cut))
-        ordered = sorted(candidates)
-        bounds = {}
-        lower_minimum = None
-        unresolved = []
-        witness_minimum = None
-        for lower, fid, partition, cut in ordered:
-            if lower_minimum is not None and lower >= lower_minimum:
-                break
-            table = self._table(decoded, fid, partition, cut)
-            if lower_minimum is not None and table.count_bounds[0] >= lower_minimum:
-                del table
+                    candidates.append((boundary.lower, (fid, partition, cut)))
+        bounds, witnesses = {}, {}
+        upper = None
+        for cheap, key in sorted(candidates):
+            if upper is not None and cheap > upper + decoded.event_slack:
+                bounds[key] = cheap
                 continue
-            lower = table.count_bounds[0]
-            bounds[fid, partition, cut] = lower
-            witness_minimum = (table.count_bounds[1] if witness_minimum is None else
-                               min(witness_minimum, table.count_bounds[1]))
-            if all(response.event_counts.lower == response.event_counts.bounds[1]
-                   for response, _ in table.fragment_responses):
-                lower_minimum = lower if lower_minimum is None else min(lower_minimum, lower)
-            else:
-                unresolved.append((lower, fid, partition, cut))
+            table = self._table(decoded, *key)
+            bound = table.boundary_events.lower
+            for response, _ in table.fragment_responses:
+                counts = response.event_counts
+                bound += counts.minimum if counts.minimum_proven else counts.lower
+            bounds[key] = bound
+            witness = table.composed_minimum()
+            if witness is None:
+                import numpy as np
+                program = table.program
+                prefix = np.arange(program.size)
+                count = program.fixed_events + int(program.score(prefix, program.pairs))
+                mapping, choices = program.query_result(prefix, count, 0., None)
+                witness = count, mapping, choices
+            assert bound <= witness[0], 'a local lower bound exceeded an attained branch count'
+            witnesses[key] = witness
+            upper = witness[0] if upper is None else min(upper, witness[0])
             del table
-        for lower, fid, partition, cut in sorted(unresolved):
-            if lower_minimum is not None and lower >= lower_minimum:
-                break
-            table = self._table(decoded, fid, partition, cut)
-            lower = table.boundary_events.lower + sum(self._local_minima(decoded, table))
-            bounds[fid, partition, cut] = lower
-            lower_minimum = lower if lower_minimum is None else min(lower_minimum, lower)
-            del table
-        initial_maximum = None if lower_minimum is None else lower_minimum + 2
-        best = (witness_minimum if witness_minimum is not None and
-                witness_minimum <= initial_maximum else None)
-        for lower, fid, partition, cut in ordered:
-            if lower > initial_maximum or (best is not None and lower >= best):
-                break
-            table = self._table(decoded, fid, partition, cut)
-            upper = initial_maximum if best is None else min(initial_maximum, best - 1)
-            if bounds.get((fid, partition, cut), table.count_bounds[0]) > upper:
-                del table
+        self.initial_lower = min(bounds.values(), default=None)
+        self.initial_maximum = upper
+        self.results = {}
+        best = upper
+        for key in sorted(witnesses, key=lambda key: (bounds[key], key)):
+            if bounds[key] >= best:
                 continue
-            minima = self._local_minima(decoded, table)
-            lower = table.boundary_events.lower + sum(minima)
-            bounds[fid, partition, cut] = lower
-            if lower <= upper:
-                value = (lower if table.sweep_cut is None else
-                         self._sweep_minimum(decoded, table, minima, upper))
-                if value is not None:
-                    best = value if best is None else min(best, value)
+            table = self._table(decoded, *key)
+            answer = table.minimum_result
+            known, mapping, choices = witnesses[key]
+            if known < answer.event_count:
+                answer = replace(answer, event_count=known, witness=mapping, choices=choices,
+                                 complete=known == bounds[key])
+            self.results[key] = answer
+            bounds[key] = answer.event_count if answer.complete else max(bounds[key], answer.lower_bound)
+            best = min(best, answer.event_count)
             del table
-            if best == lower_minimum:
-                break
-        if candidates and best is None:
-            raise ValueError('No attainable event count in the initial lower-bound + 2 window')
         self.minimum = best
+        self.lower_bound = min(bounds.values(), default=None)
+        self.minimum_proven = best is not None and self.lower_bound == best
         self.maximum = None if best is None else best + decoded.event_slack
-        self.contexts = []
-        self.bounds = {}
-        for lower, fid, partition, cut in candidates:
-            if lower > self.maximum:
-                continue
-            key = fid, partition, cut
-            if key not in bounds:
-                table = self._table(decoded, fid, partition, cut)
-                # Reporting keeps conditional responses, so it needs a safe
-                # exclusion bound rather than another minimum query.
-                bounds[key] = table.count_bounds[0]
-                del table
-            lower = bounds[key]
-            if lower <= self.maximum:
-                self.contexts.append(key)
-                self.bounds[key] = lower
-        self.contexts = tuple(self.contexts)
+        self.contexts = tuple(key for _, key in candidates if bounds[key] <= self.maximum)
+        self.bounds = {key: bounds[key] for key in self.contexts}
+
+    @staticmethod
+    def from_record(record):
+        window = EventWindow.__new__(EventWindow)
+        for name in ('minimum', 'maximum', 'lower_bound', 'minimum_proven',
+                     'initial_lower', 'initial_maximum'):
+            setattr(window, name, record[name])
+        window.bounds = {tuple(key): value for key, value in record['bounds']}
+        window.contexts = tuple(tuple(key) for key in record['contexts'])
+        window.results = {}
+        return window
+
+    def to_record(self):
+        return {**{name: getattr(self, name) for name in (
+            'minimum', 'maximum', 'lower_bound', 'minimum_proven', 'initial_lower', 'initial_maximum')},
+            'bounds': tuple(self.bounds.items()), 'contexts': self.contexts}
 
     @staticmethod
     def _table(decoded, fid, partition, cut):
         key = decoded._table_key(fid, partition, cut)
         return decoded._prepare_table(fid, partition, key)
-
-    @staticmethod
-    def _local_minima(decoded, table):
-        return tuple(response.event_counts.minimum for response, _ in table.fragment_responses)
-
-    @staticmethod
-    def _sweep_minimum(decoded, table, minima, upper):
-        """Resolve only the sweep endpoints inside the initial count window."""
-        boundary = table.boundary_events
-        responses = tuple(response for response, _ in table.fragment_responses)
-        lower = boundary.lower + sum(minima)
-        a, b = table.sweep_cut
-        left, right = int(table.owners[a]), int(table.owners[b])
-        selected = responses[left], responses[right]
-        term = next(iter(table.boundary.values()))[0]
-        costs = {(p, q): (int(abs(float(decoded.index.p[p, q]) - term.response.source_weight)
-                                 > term.response.threshold)
-                 - int(tuple(sorted((p, q))) in table.product_boundary_set)) if p != q else 0
-                 for p in selected[0].atom_domains[a] for q in selected[1].atom_domains[b]
-                 }
-        reserve = boundary.sweep_removed - int(boundary.source_cut_counted)
-        # Fixed sweep responses need only the already prepared local counts.
-        lower += reserve + min(cost for (p, q), cost in costs.items() if p != q)
-        if lower > upper:
-            return None
-        if lower == table.count_bounds[1]:
-            return lower
-        base = boundary.lower + sum(value for i, value in enumerate(minima) if i not in (left, right))
-        def compose(xs, ys):
-            return min((base + reserve + cx + cy + costs[x, y]
-                        for x, cx in xs.items() for y, cy in ys.items() if x != y), default=None)
-        # A retained valid choice can certify the lower endpoint without any
-        # endpoint contraction. Otherwise use the shared conditional responses.
-        attained = compose(selected[0].event_counts.witness_endpoints(a),
-                           selected[1].event_counts.witness_endpoints(b))
-        if attained == lower:
-            return attained
-        lower = compose(selected[0].event_counts.endpoint_bounds(a),
-                        selected[1].event_counts.endpoint_bounds(b))
-        if lower is None or lower > upper:
-            return None
-        if attained == lower:
-            return attained
-        value = compose(selected[0].event_counts.endpoint(a), selected[1].event_counts.endpoint(b))
-        return value if value is not None and value <= upper else None

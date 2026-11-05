@@ -2,7 +2,7 @@
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder combines shared fragment responses under an independent-fragment event-count approximation. The original mapping constraints remain intact, and requested realizations can be checked against the original bond weights.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder combines shared fragment responses under an independent-fragment event-count approximation. The matching catalogue retains its original constraints. Decoding selects an improved starting correspondence per fragment and keeps its binary symmetry as a queryable event response; explicit realizations can be checked against original bond weights.
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
@@ -95,7 +95,7 @@ aam = search_aam(problem)       # Retained seed/cut search histories
 catalogue = deduplicate(aam)    # Families across all retained seeds and cuts
 decoded = decode_events(catalogue, event_slack=6)
 
-print(decoded.minimum_events, decoded.event_window)  # Approximate model counts
+print(decoded.minimum_events, decoded.minimum_proven, decoded.event_window)
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
@@ -244,6 +244,13 @@ print(decoded.minimum_events, decoded.event_window)
 mapping = decoded.realize(0)       # Validates the saved mapping constraints
 physical = decoded.evaluate(0)    # Explicit original-WBO check for this mapping
 ```
+
+`minimum_proven` distinguishes an established model minimum from the best count
+found within the fragment search budget (default five seconds per unique
+fragment). `minimum_lower_bound` remains available for incomplete searches.
+`decoded.select(family_id, lower, upper).find()` queries the selected branch
+response and returns a joint witness, absence, or explicit unknown. The selected
+fragment orbit need not include every discovery in the matching catalogue.
 
 `minimum_events`, `event_window`, `contributions` and `counts` use the approximate
 composition model. `evaluate` reports physical events for one valid realization;

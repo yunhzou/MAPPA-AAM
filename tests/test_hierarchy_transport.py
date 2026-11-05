@@ -28,9 +28,9 @@ def test_lazy_transport_preserves_every_mapping_in_each_atom_frame():
             assert 'materialized' not in view.__dict__
         transported = view.fragments[0]
         assert view.fragments[1] is transported
-        assert transported.source_self_automorph is original.source_self_automorph
-        assert transported.target_self_automorph.generators is original.target_self_automorph.generators
-        assert transported.target_self_automorph.weights is original.target_self_automorph.weights
+        assert transported.source_symmetry is original.source_symmetry
+        assert transported.target_symmetry.generators is original.target_symmetry.generators
+        assert transported.target_symmetry.weights is original.target_symmetry.weights
         assert represented((transported,)) == {
             tuple((r, images[p]) for r, p in pairs) for pairs in expected}
         assert transported.witness == tuple((r, images[p]) for r, p in original.witness)
@@ -46,7 +46,7 @@ def test_composed_views_flatten_and_keep_sparse_augmentation_frames():
     combined = {a: second[first[a]] for a in first}
     assert view.to_record() == hierarchy._materialize_target(combined).to_record()
     assert set(view.fragments[0].target_atoms) == {1, 4}
-    assert view.fragments[0].target_self_automorph.generators == ((1, 0),)
+    assert view.fragments[0].target_symmetry.generators == ((1, 0),)
 
 
 def test_saved_hierarchy_keeps_correlated_frames_after_module_relocation():

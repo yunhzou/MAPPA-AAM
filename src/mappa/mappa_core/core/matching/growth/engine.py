@@ -22,7 +22,7 @@ def grow_island(g_R, g_P, seed, mapping,
                 node_policy=None,
                 allow_mapped_seed=False,
                 profile=None,
-                profile_context=None, fragment_cache=None, random_seed=42, bond_tolerance=None, self_tolerance=1.0,
+                profile_context=None, fragment_cache=None, random_seed=42, bond_tolerance=None,
                 placement_fixed_targets=()):
     """
     Grow a fragment from `seed` by uniformly sampling the live boundary atoms.
@@ -50,14 +50,14 @@ def grow_island(g_R, g_P, seed, mapping,
             prior_deferred_edges=prior_deferred_edges,
             allow_mapped_seed=allow_mapped_seed, profile=profile,
             profile_context=profile_context, fragment_cache=fragment_cache, random_seed=random_seed,
-            bond_tolerance=bond_tolerance, self_tolerance=self_tolerance,
+            bond_tolerance=bond_tolerance,
             placement_fixed_targets=placement_fixed_targets)
     if fragment_cache is not None:
         raise ValueError('Fragment cache requires explicit native execution')
     return grow_island_python(g_R, g_P, seed, mapping, graph_floor, iso_tol,
         min_lock_size, max_branches, events, islands_R,
         prior_deferred_edges, node_policy, allow_mapped_seed, profile,
-        profile_context, random_seed, bond_tolerance, self_tolerance, placement_fixed_targets)
+        profile_context, random_seed, bond_tolerance,  placement_fixed_targets)
 
 
 def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
@@ -65,7 +65,7 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
                       islands_R=None,
                       prior_deferred_edges=None, node_policy=None,
                       allow_mapped_seed=False, profile=None, profile_context=None,
-                      random_seed=42, bond_tolerance=None, self_tolerance=1.0,
+                      random_seed=42, bond_tolerance=None,
                       placement_fixed_targets=()):
     """Explicit Python growth, also used by diagnostic trajectory replay."""
     node_policy = as_node_match_policy(node_policy)
@@ -341,7 +341,7 @@ def grow_island_python(g_R, g_P, seed, mapping, graph_floor=.2, iso_tol=.5,
         return result()
     try:
         completed = complete_fragment(growth, g_R, g_P, mapping,
-            tolerance=iso_tol, self_tolerance=self_tolerance, node_policy=node_policy,
+            tolerance=iso_tol,  node_policy=node_policy,
             branch_limit=max_branches, bond_tolerance=bond_tolerance, profile=prof,
             placement_fixed_targets=placement_fixed_targets)
     except IslandBranchLimitExceeded as exc:

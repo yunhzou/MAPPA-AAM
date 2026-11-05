@@ -488,6 +488,7 @@ class FragmentEventTables:
     def __init__(self, local, family, fragments, cut_bonds=(), *, boundary=None):
         index = local.index
         self.index = index
+        self.local, self.family = local, family
         self.fragments = tuple(piece.source_atoms for piece in fragments)
         mapping = dict(family.mapping)
         boundary = boundary or prepare_boundary_events(index, mapping, fragments, cut_bonds)
@@ -541,6 +542,55 @@ class FragmentEventTables:
             upper -= int(boundary.source_cut_counted)
             upper -= int(tuple(sorted((mapping[a], mapping[b]))) in self.product_boundary_set)
         self.count_bounds = int(lower), int(upper)
+
+    @cached_property
+    def program(self):
+        """Bind shared fragment costs; only the sweep adds a boundary choice."""
+        from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+        local, family = self.local, self.family
+        actions = tuple((action, local.prepare(action[1]).response if action[0] == 'relation' else None)
+                        for action in family.actions)
+        terms = []
+        fixed = self.boundary_events.lower
+        for response, _ in self.fragment_responses:
+            count = response.event_counts.constant
+            if count is not None:
+                fixed += count
+            else:
+                terms.extend((term.atoms, term.response.source_weight, term.response.threshold,
+                              term.response.constant) for term in response.terms)
+        sweep = None
+        if self.sweep_cut is not None:
+            a, b = self.sweep_cut
+            tau = bond_event_threshold(self.index.elements, a, b,
+                default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+            reserve = self.sweep_removed - int(self.boundary_events.source_cut_counted)
+            sweep = self.sweep_cut, float(self.index.r[a,b]), tau, reserve, self.product_boundary_set
+        return OrderedSymmetryEvents(family.mapping, actions, self.index.p, terms,
+            self.atom_actions, fixed_events=fixed, sweep=sweep)
+
+    @cached_property
+    def minimum_result(self):
+        return self.program.solve(seconds=self.local.fragment_seconds)
+
+    def composed_minimum(self):
+        """Compose saved local witnesses, checking shared choices agree."""
+        from mappa.mappa_core.core.symmetry.actions import apply_action
+        choices = {}
+        for response, binding in self.fragment_responses:
+            for position, choice in zip(binding, response.event_counts.minimum_choices):
+                if position in choices and choices[position] != choice:
+                    return None
+                choices[position] = choice
+        selections = tuple(choices.get(i, dict(discovery=dict(self.local.prepare(action[1]).optimization.discovery_witness))
+            if action[0] == 'relation' else None) for i, action in enumerate(self.family.actions))
+        images = np.asarray([p for _, p in self.family.mapping])
+        for action, choice in zip(self.family.actions, selections):
+            images = apply_action(images, action, choice, self.index.m)
+        mapping = tuple((a, int(p)) for (a, _), p in zip(self.family.mapping, images))
+        program = self.program
+        count = program.fixed_events + program.count_terms(dict(mapping), program.pairs)
+        return count, mapping, selections
 
     @cached_property
     def _evaluation(self):

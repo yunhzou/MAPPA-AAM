@@ -474,3 +474,12 @@ additional allocation memory for its supervisor/coordinator processes. Repeated
 `--index` arguments combine manifests. For a normal computer, add `--local` to
 either Python runner; `--workers` then means total local workers. Build and test
 before launching a pilot, using the checks in the repository's main README.
+
+## Replay fragment event responses
+
+`python -m bench.fragment_events INPUT.json.gz OUTPUT.json.gz` measures saved
+Fragment response preparation, bounded count queries and shared serialization.
+The input schema and measured original/xTB fixtures are in
+[the integration report](../reports/fragment_optimization_20261104/README.md).
+`--reference /path/to/symmetry-event-lab` interleaves preparation with the accepted
+beta; this optional benchmark dependency is outside production MAPPA.

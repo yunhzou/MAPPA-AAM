@@ -19,6 +19,7 @@ from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMS
 from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
 from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
 from mappa.mappa_core.utils.io.records import aam_record, aam_from_record, reaction_from_record, reaction_record
+from mappa.mappa_core.utils.io.records import decoded_events_record, decoded_events_from_record
 from mappa.presentation.viewers import write_aam_bundle
 from mappa.mappa_workflow.ts_analytics.serialization import ts_record, write_ts_record
 from .mappa_core.domain import (
@@ -37,6 +38,7 @@ __all__ = [
     "query_path", "convert_fragments", "FragmentConversion", "decode_events",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
+    "decoded_events_record", "decoded_events_from_record",
     "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "Fragment",
     "AAMSearchGraph", "SearchState", "FragmentTransition", "SearchPath", "SearchBranch",
     "SearchContext", "SearchStop",

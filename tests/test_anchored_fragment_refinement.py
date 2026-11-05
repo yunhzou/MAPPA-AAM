@@ -19,11 +19,11 @@ def graph(elements, edges):
     return make_graph(len(elements), edges, elements)
 
 
-def anchored_match(source, target, tolerance, *, self_tolerance=1.):
+def anchored_match(source, target, tolerance):
     return match_fragment(
         source, target, seed=0,
         context=FragmentMatchContext(locked_mapping={0: 0}, islands={0: 0}),
-        config=FragmentMatchConfig(iso_tolerance=tolerance, self_tolerance=self_tolerance,
+        config=FragmentMatchConfig(iso_tolerance=tolerance,
                                    allow_mapped_seed=True, branch_limit=100))
 
 
@@ -45,25 +45,24 @@ def test_anchored_three_atom_rematch(native, monkeypatch):
     identity = ((0, 0), (1, 1), (2, 2))
     swapped = ((0, 0), (1, 2), (2, 1))
     outcomes = []
-    for tolerance, self_tolerance, expected in [
-            (1., 1., {identity, swapped}), (.5, 1., {identity, swapped}), (.5, .5, {identity})]:
+    for tolerance in (1., .5):
         cpu = time.process_time()
-        result = anchored_match(source, target, tolerance, self_tolerance=self_tolerance)
+        result = anchored_match(source, target, tolerance)
         elapsed_cpu = time.process_time() - cpu
         assert not result.capped
         assert all(match.source_atoms == (0, 1, 2) for match in result.matches)
         actual = represented(result.matches)
         discovery = set().union(*(discovery_mappings(fragment) for fragment in result.matches))
         assert discovery == ({identity, swapped} if tolerance == 1. else {identity})
-        assert actual == expected
+        assert actual == {identity, swapped}
         assert all(dict(mapping)[0] == 0 for mapping in actual)
-        outcomes.append(dict(tolerance=tolerance, self_tolerance=self_tolerance, branches=len(result.matches),
+        outcomes.append(dict(tolerance=tolerance,  branches=len(result.matches),
                              mappings=sorted(actual),
                              events=sorted(event_count(source, target, dict(m)) for m in actual),
                              wall_seconds=result.elapsed_seconds, cpu_seconds=elapsed_cpu))
-    # Tight discovery and tight self constraints retain only the identity;
-    # loose self constraints above retain both without splitting the fragment.
-    tight = find_islands(source, target, [0, 1, 2], iso_tol=.5, self_tolerance=.5,
+    # Tight discovery still selects the original witness. Its retained binary
+    # symmetry contains both choices without splitting the fragment.
+    tight = find_islands(source, target, [0, 1, 2], iso_tol=.5,
                          anchor_map={0: 0}, max_branches=100)
     tight_paths = list(tight.paths())
     assert tight_paths

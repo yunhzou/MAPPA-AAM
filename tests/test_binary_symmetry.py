@@ -1,11 +1,11 @@
-"""Independent mapping oracles for constrained broad structural shuffles."""
+"""Independent mapping oracles for binary structural shuffles."""
 from collections import deque
 from itertools import permutations
 
 import numpy as np
 import pytest
 
-from mappa.mappa_core.core.symmetry import relaxed_automorphism
+from mappa.mappa_core.core.symmetry import binary_symmetry
 
 
 def weights(size, edges):
@@ -15,7 +15,7 @@ def weights(size, edges):
     return matrix
 
 
-def permitted(elements, matrix, permutation, tolerance, threshold=.2, anchors=()):
+def permitted(elements, matrix, permutation, threshold=.2, anchors=()):
     """Dense definition, independent of generators, responses and projections."""
     if any(elements[a] != elements[p] for a, p in enumerate(permutation)):
         return False
@@ -26,8 +26,6 @@ def permitted(elements, matrix, permutation, tolerance, threshold=.2, anchors=()
             before = matrix[a, b]
             after = matrix[permutation[a], permutation[b]]
             if (before > threshold) != (after > threshold):
-                return False
-            if abs(before - after) > tolerance:
                 return False
     return True
 
@@ -48,101 +46,84 @@ def broad_words(generators, size):
     return words
 
 
-def compare_complete_relation(relation, elements, matrix, tolerance, *, anchors=()):
-    broad = broad_words(relation.generators, len(elements))
-    expected_broad, expected_allowed = set(), set()
-    for permutation in permutations(range(len(elements))):
-        if permitted(elements, matrix, permutation, np.inf, anchors=anchors):
-            expected_broad.add(permutation)
-        expected = permitted(elements, matrix, permutation, tolerance, anchors=anchors)
-        assert relation.contains(permutation) == expected, permutation
-        if expected:
-            expected_allowed.add(permutation)
-    assert set(broad) == expected_broad
-    for permutation, word in broad.items():
-        expected = permutation in expected_allowed
-        assert relation.allows(word) == expected
-        inverse_word = tuple(-number for number in reversed(word))
-        assert relation.allows(inverse_word) == expected
-        if expected:
-            assert relation.realize(word) == {
-                relation.atoms[a]: relation.atoms[p] for a, p in enumerate(permutation)}
-        else:
-            with pytest.raises(ValueError):
-                relation.realize(word)
-    return broad, expected_allowed
+def compare_complete_relation(relation, elements, matrix, *, anchors=()):
+    words = broad_words(relation.generators, len(elements))
+    expected = {p for p in permutations(range(len(elements)))
+                if permitted(elements, matrix, p, anchors=anchors)}
+    assert set(words) == expected
+    for p in permutations(range(len(elements))):
+        assert relation.contains(p) == (p in expected)
+    for permutation, word in words.items():
+        assert relation.realize(word) == {
+            relation.atoms[a]: relation.atoms[p] for a, p in enumerate(permutation)}
+    return words, expected
 
 
-def test_permitted_swaps_do_not_imply_permitted_composition():
+def test_binary_swaps_compose_regardless_of_original_weight_differences():
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    relation = relaxed_automorphism('CHHH', matrix, tolerance=.7)
-    words, allowed = compare_complete_relation(relation, 'CHHH', matrix, .7)
+    relation = binary_symmetry('CHHH', matrix)
+    words, allowed = compare_complete_relation(relation, 'CHHH', matrix)
+    assert len(allowed) == 6
     left, right = (0, 2, 1, 3), (0, 1, 3, 2)
-    assert allowed == {tuple(range(4)), left, right}
-    assert len(words) == 6
-    assert relation.allows(words[left]) and relation.allows(words[right])
-    assert not relation.allows((*words[left], *words[right]))
+    combined = relation.realize((*words[left], *words[right]))
+    assert tuple(combined.values()) in allowed
+    assert not hasattr(relation, 'tolerance') and not hasattr(relation, 'constraints')
 
 
-@pytest.mark.parametrize('tolerance,expected', [(0., 6), (.2, 12)])
-def test_ring_retains_correlated_rotations_and_reflections(tolerance, expected):
-    matrix = weights(6, [(a, (a + 1) % 6, 1.1 if a % 2 else 1.2)
-                         for a in range(6)])
-    relation = relaxed_automorphism('CCCCCC', matrix, tolerance=tolerance)
-    words, allowed = compare_complete_relation(relation, 'CCCCCC', matrix, tolerance)
-    assert len(words) == 12
-    assert len(allowed) == expected
+def test_ring_retains_correlated_rotations_and_reflections():
+    matrix = weights(6, [(a, (a + 1) % 6, 1.1 if a % 2 else 1.2) for a in range(6)])
+    relation = binary_symmetry('CCCCCC', matrix)
+    words, allowed = compare_complete_relation(relation, 'CCCCCC', matrix)
+    assert len(words) == len(allowed) == 12
     assert not relation.contains((1, 0, 2, 3, 4, 5))
-    if tolerance == .2:
-        assert relation.statistics['response_terms'] == 0
-        assert relation.statistics['constrained_pairs'] == 0
 
 
 def test_fragment_self_relationship_ignores_external_attachment_but_respects_anchors():
     # O-H-C-H has no global exchange. Inside H-C-H, the two H atoms can exchange.
     matrix = weights(4, [(0, 1, 1.), (1, 2, 1.1), (2, 3, 1.2)])
-    global_relation = relaxed_automorphism('OHCH', matrix, tolerance=.2)
-    _, global_allowed = compare_complete_relation(global_relation, 'OHCH', matrix, .2)
+    global_relation = binary_symmetry('OHCH', matrix)
+    _, global_allowed = compare_complete_relation(global_relation, 'OHCH', matrix)
     assert global_allowed == {tuple(range(4))}
 
     for atoms in ((1, 2, 3), (3, 2, 1)):
-        local = relaxed_automorphism('OHCH', matrix, tolerance=.2, atoms=atoms, anchors=(2,))
+        local = binary_symmetry('OHCH', matrix,  atoms=atoms, anchors=(2,))
         local_elements = tuple('OHCH'[a] for a in local.atoms)
         local_weights = matrix[np.ix_(local.atoms, local.atoms)]
         center = local.atoms.index(2)
         words, allowed = compare_complete_relation(local, local_elements, local_weights,
-                                                   .2, anchors=(center,))
+                                                   anchors=(center,))
         assert len(allowed) == 2
         swap = next(permutation for permutation in allowed if permutation != tuple(range(3)))
         assert local.realize(words[swap]) == {1: 3, 2: 2, 3: 1}
 
-        anchored = relaxed_automorphism('OHCH', matrix, tolerance=.2,
+        anchored = binary_symmetry('OHCH', matrix,
                                        atoms=atoms, anchors=(1, 2))
         assert len(broad_words(anchored.generators, 3)) == 1
         assert anchored.realize() == {a: a for a in atoms}
 
 
-@pytest.mark.parametrize('other,accepted', [(1.5, True), (np.nextafter(1.5, np.inf), False)])
-def test_tolerance_includes_boundary_without_rounding(other, accepted):
+@pytest.mark.parametrize('other', [1.5, np.nextafter(1.5, np.inf), 3.])
+def test_original_weight_variation_does_not_filter_binary_symmetry(other):
     matrix = weights(3, [(0, 1, 1.), (0, 2, other)])
-    relation = relaxed_automorphism('CHH', matrix, tolerance=.5)
-    _, allowed = compare_complete_relation(relation, 'CHH', matrix, .5)
-    assert ((0, 2, 1) in allowed) == accepted
+    relation = binary_symmetry('CHH', matrix)
+    _, allowed = compare_complete_relation(relation, 'CHH', matrix)
+    assert (0, 2, 1) in allowed
 
 
-def test_bond_presence_and_weight_tolerance_remain_distinct():
+def test_bond_presence_uses_the_strict_threshold():
     matrix = weights(3, [(0, 1, .2), (0, 2, np.nextafter(.2, np.inf))])
-    relation = relaxed_automorphism('CHH', matrix, tolerance=1.)
-    _, allowed = compare_complete_relation(relation, 'CHH', matrix, 1.)
+    relation = binary_symmetry('CHH', matrix)
+    _, allowed = compare_complete_relation(relation, 'CHH', matrix)
     assert allowed == {(0, 1, 2)}
 
 
-def test_original_subthreshold_weights_still_constrain_relaxed_membership():
+def test_subthreshold_contacts_remain_available_without_restricting_symmetry():
     matrix = weights(3, [(0, 1, .05), (0, 2, .1), (1, 2, .15)])
-    relation = relaxed_automorphism('CCC', matrix, tolerance=.025)
-    words, allowed = compare_complete_relation(relation, 'CCC', matrix, .025)
+    relation = binary_symmetry('CCC', matrix)
+    words, allowed = compare_complete_relation(relation, 'CCC', matrix)
     assert len(words) == 6
-    assert allowed == {(0, 1, 2)}
+    assert len(allowed) == 6
+    assert np.array_equal(relation.weights, matrix)
 
 
 @pytest.mark.parametrize('seed', range(12))
@@ -150,19 +131,17 @@ def test_small_weighted_graphs_match_complete_independent_relation(seed):
     rng = np.random.default_rng(seed)
     matrix = weights(5, [(a, b, float(rng.choice((0., .1, .25, 1., 1.25))))
                          for a in range(5) for b in range(a + 1, 5)])
-    tolerance = (0., .25, 1.)[seed % 3]
-    relation = relaxed_automorphism('CCCCH', matrix, tolerance=tolerance)
-    compare_complete_relation(relation, 'CCCCH', matrix, tolerance)
+    relation = binary_symmetry('CCCCH', matrix)
+    compare_complete_relation(relation, 'CCCCH', matrix)
 
 
 @pytest.mark.parametrize('atoms,anchors', [((), ()), ((2,), ()), ((2,), (2,))])
 def test_empty_and_single_atom_fragments(atoms, anchors):
     matrix = weights(3, [(0, 1, 1.), (1, 2, 1.1)])
-    relation = relaxed_automorphism('CCC', matrix, tolerance=.2, atoms=atoms, anchors=anchors)
+    relation = binary_symmetry('CCC', matrix,  atoms=atoms, anchors=anchors)
     assert relation.atoms == atoms
     assert not relation.generators
     assert relation.contains(tuple(range(len(atoms))))
-    assert relation.allows()
     assert relation.realize() == {atom: atom for atom in atoms}
 
 
@@ -171,9 +150,8 @@ def test_dendrimer_joint_words_match_dense_original_weight_checks():
     # complete choices without expanding that group in either test or production.
     matrix = weights(40, [((child - 1) // 3, child, 1.) for child in range(1, 40)])
     matrix[12, 39] = matrix[39, 12] = 1.8
-    relation = relaxed_automorphism('C' * 40, matrix, tolerance=.5, anchors=(0,))
-    assert relation.statistics['projected_pair_states'] <= 40 * 39
-    assert relation.statistics['constrained_pairs'] <= 40 * 39 // 2
+    relation = binary_symmetry('C' * 40, matrix,  anchors=(0,))
+    assert len(relation.generators) < 40
     rng = np.random.default_rng(83)
     words = [(), *((number,) for number in range(1, len(relation.generators) + 1))]
     words += [tuple(int(number) * int(sign) for number, sign in zip(
@@ -187,8 +165,7 @@ def test_dendrimer_joint_words_match_dense_original_weight_checks():
             if number < 0:
                 generator = tuple(np.argsort(generator))
             permutation = tuple(generator[a] for a in permutation)
-        expected = permitted('C' * 40, matrix, permutation, .5, anchors=(0,))
+        expected = permitted('C' * 40, matrix, permutation, anchors=(0,))
         assert relation.contains(permutation) == expected
-        assert relation.allows(word) == expected
         outcomes.add(expected)
-    assert outcomes == {False, True}
+    assert outcomes == {True}

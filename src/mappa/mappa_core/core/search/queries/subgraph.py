@@ -70,7 +70,7 @@ def match_weighted_subgraph(query, target, *,
                             graph_floor=0.2,
                             iso_tol=1.0,
                             seed_order=None,
-                            self_tolerance=1.0,
+
                             max_branches=1_000_000):
     """Find query placements inside target with a replaceable node rule.
 
@@ -96,7 +96,7 @@ def match_weighted_subgraph(query, target, *,
         max_branches=max_branches,
         core_R=tuple(sorted(query_nodes)),
         stop_when_core_mapped=True,
-        self_tolerance=self_tolerance,
+
         node_policy=policy,
         anchor_map=anchor_map,
     )

@@ -5,7 +5,7 @@ import numpy as np
 from mappa import AAMProblem,AAMSearchConfig,search_aam,query_path
 from mappa.mappa_core.domain import MolecularEndpoint
 from mappa.mappa_core.core.matching.representation.records import Fragment
-from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism
+from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, binary_symmetry
 from mappa.mappa_core.post_processing.final_branches import FinalFamily
 
 
@@ -15,14 +15,13 @@ def endpoint(elements,edges):
     return MolecularEndpoint(tuple(elements),np.zeros((len(elements),3)),w)
 
 
-def fragment_path(problem, *, atoms=None, targets=None, anchors=(), accepted=(),
-                  self_tolerance=0.):
+def fragment_path(problem, *, atoms=None, targets=None, anchors=(), accepted=()):
     atoms = tuple(range(problem.source_atom_count)) if atoms is None else atoms
     targets = atoms if targets is None else targets
-    source = relaxed_automorphism(problem.reactant.elements, problem.reactant.wbo,
-        atoms=atoms, anchors=tuple(r for r, _ in anchors), tolerance=self_tolerance)
-    target = relaxed_automorphism(problem.product.elements, problem.product.wbo,
-        atoms=targets, anchors=tuple(p for _, p in anchors), tolerance=self_tolerance)
+    source = binary_symmetry(problem.reactant.elements, problem.reactant.wbo,
+        atoms=atoms, anchors=tuple(r for r, _ in anchors))
+    target = binary_symmetry(problem.product.elements, problem.product.wbo,
+        atoms=targets, anchors=tuple(p for _, p in anchors))
     witness = tuple(zip(atoms, targets))
     domains = tuple((r, tuple(p for p in targets
         if problem.reactant.elements[r] == problem.product.elements[p])) for r in atoms)
@@ -349,7 +348,7 @@ def test_reference_bounds_include_both_self_actions_around_fixed_discovery():
     assert {tuple(mapping[r] for r in range(3)) for mapping in projected} == expected
 
 
-def test_reference_and_projection_keep_nontransitive_two_sided_relations():
+def test_reference_and_projection_retain_all_binary_symmetries():
     from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
 
     molecule = endpoint('CCCC', [(0, 1), (0, 2), (0, 3)])
@@ -358,25 +357,25 @@ def test_reference_and_projection_keep_nontransitive_two_sided_relations():
         weights[0, atom] = weights[atom, 0] = weight
     molecule = MolecularEndpoint(molecule.elements, molecule.coordinates, weights)
     problem = AAMProblem(molecule, molecule)
-    path = fragment_path(problem, accepted=((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    path = fragment_path(problem, accepted=((0, 1), (0, 2), (0, 3)))
     fragment = Fragment(replace(path.fragments[0].relation,
                                 domains=tuple((atom, (atom,)) for atom in range(4))))
     path = FinalFamily(tuple(enumerate(range(4))), ((0, 1), (0, 2), (0, 3)),
                        (('relation', fragment),), (.2, 0.)).as_path(problem)
-    # Exact discovery fixes each weighted arm. Each self-side may swap adjacent
-    # weights, once. Together they give five permutations, not their six-element closure.
-    expected = {(0, *tail) for tail in permutations((1, 2, 3)) if tail != (3, 2, 1)}
+    # Exact discovery fixes each weighted arm; binary self-symmetry permits all
+    # six arm exchanges while preserving the central atom.
+    expected = {(0, *tail) for tail in permutations((1, 2, 3))}
     for images in permutations(range(4)):
         status, witness = query_path(path, problem, dict(enumerate(images)),
                                      source_atoms=tuple(range(4)))
         assert status == ('recovered' if images in expected else 'not_recovered')
         if status == 'recovered':
             assert dict(witness['mapping']) == dict(enumerate(images))
-    projected = project_path_assignments(path, problem, range(4), assignment_limit=5)
+    projected = project_path_assignments(path, problem, range(4), assignment_limit=6)
     assert {tuple(mapping[r] for r in range(4)) for mapping in projected} == expected
 
     # Reference equivalence is chemical endpoint normalization, not a further
-    # physical self rearrangement. Either endpoint may normalize the sixth reference.
+    # physical self rearrangement. Either endpoint may normalize the reference.
     reference = {0: 0, 1: 3, 2: 2, 3: 1}
     for side in ('source_generators', 'target_generators'):
         status, witness = query_path(path, problem, reference, source_atoms=tuple(range(4)),

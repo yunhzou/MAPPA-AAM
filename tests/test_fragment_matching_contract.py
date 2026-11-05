@@ -377,7 +377,7 @@ def test_custom_policy_survives_completed_relations_and_records(policy_kind, mon
         config=FragmentMatchConfig(node_policy=policy, branch_limit=1))
     assert not result.capped and len(result.matches) == 1
     assert represented(result) == expected
-    assert all(fragment.target_self_automorph.generators == () for fragment in result.matches)
+    assert all(fragment.target_symmetry.generators == () for fragment in result.matches)
 
     search = find_islands(source, target, [0], iso_tol=.5, node_policy=policy,
                           max_branches=1)

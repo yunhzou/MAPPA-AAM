@@ -97,7 +97,7 @@ def test_completion_returns_each_ring_atom_set_once(native, different_environmen
         assert tuple(fragment.source_atoms)==tuple(range(6))
         assert len(fragment.accepted_edges)==5
     if different_environments:
-        assert result.matches[0].source_self_automorph is result.matches[1].source_self_automorph
+        assert result.matches[0].source_symmetry is result.matches[1].source_symmetry
     capped=match_fragment(source,target,seed=0,
         config=FragmentMatchConfig(branch_limit=1,iso_tolerance=.5))
     assert capped.capped == different_environments

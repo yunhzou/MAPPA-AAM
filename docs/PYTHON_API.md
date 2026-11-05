@@ -22,24 +22,25 @@ physical_events = decoded.evaluate(0)
 record = decoded_events_record(decoded)
 ```
 
-Decoding first inventories all unique fragments and shares their conditional
-internal responses. Its **independent-fragment event model** fixes ordinary
-boundary contributions and resolves only the single sweep correction. Local
-minima and fixed boundaries give composition lower bounds. If their smallest is
-`L`, decoding first resolves sweep contributions only within `L + 2` to find the
-model minimum. The default window extends through `minimum_events + 6`; change
-its width with a nonnegative integer `event_slack`. `event_window` is the
-inclusive upper count.
-Saved conditional tables retain that window predicate without
-enumerating all attainable event counts or complete mappings.
+Decoding inventories all unique saved fragments, improves one starting mapping
+within `fragment_seconds` (default five seconds), and shares its binary-symmetry
+event response across branch uses. The original matching catalogue remains
+intact. The decoded response covers the selected start's symmetry orbit; it need
+not cover every other discovery on the same atom sets.
 
-`minimum_events`, `event_window`, `contributions` and `counts` use this approximate
-model. `realize` still validates the original mapping constraints; `evaluate`
-reports physical original-WBO events for one requested valid realization.
-Physical counts may differ from model counts and do not redefine their bins.
-The model minimum is not a global physical minimum. Partial mappings omit bonds
-wholly inside unmatched material. Ordinary and metal event thresholds treat
-equality as unchanged.
+`minimum_events` is an attained model count. Check `minimum_proven` and
+`minimum_lower_bound` before treating it as exact. The default window ends at
+`minimum_events + 6`. With attained compatible local minima, the initial sweep
+window is at most the smallest composition lower bound plus two. Otherwise the
+attained upper bound is used, so unfinished local work cannot discard a better
+possible count.
+
+Ordinary boundaries use the declared independence approximation; the single
+sweep correction preserves its endpoint/internal-event dependence. `evaluate`
+reports physical original-WBO events for an explicitly requested mapping.
+Physical counts may differ from the model. `realize` validates explicit proofs
+against the complete catalogue, so inspection can also cover discoveries outside
+the selected decoded orbit. Neither operation asserts event-selection membership.
 
 For explicit matching/deduplication/decoding passes over many reactions, see the
 [persistent local and Slurm pool](shared-execution.md). Its RAM and bundle storage
@@ -56,6 +57,31 @@ This separate operation rematches fragment pairs at tighter tolerances. It can
 change the retained mapping space. It remains available for hierarchical mapping
 experiments and is never called by the normal decoder. The historical tutorial
 notebooks currently demonstrate this explicitly named experimental operation.
+
+## Bounded fragment witness improvement
+
+This core operation accepts an actual saved `Fragment`. It improves one valid
+internal bond-event witness while preserving the complete saved relation. It is
+used by `decode_events` once per unique saved fragment.
+
+```python
+from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
+
+answer = optimize_fragment(fragment, time_limit=5.0)
+print(answer.witness, answer.event_count, answer.lower_bound, answer.complete)
+print(answer.elapsed_seconds, answer.reason)
+```
+
+The deadline covers preparation, starting-map improvement and shared binary
+symmetry optimization. Easy fragments stop early. `complete=True` certifies this
+fragment's minimum; otherwise `event_count` is the actual count of a best-found
+mapping, with `lower_bound` reported separately. The returned discovery witness
+and source/target operations retain its membership proof. Original event weights
+can be supplied through `event_problem`; the ordinary and metal thresholds
+default to 0.5 and 0.3. This does not compute boundary events or all event bins.
+
+Deadline checks are cooperative. An opaque native call can overrun until it
+returns; a strict wall-clock cutoff requires the execution layer's watchdog.
 
 ## Inspect growth directly from a result
 
@@ -138,18 +164,18 @@ reject unsupported trace events and custom node policies. Select `MAPPA_NATIVE=0
 
 | API/configuration | Controls |
 |---|---|
-| `AAMSearchConfig` | `iso_tolerance=1.0`; `self_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
+| `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
-| `decode_events` / `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3`; `event_slack=6` above the approximate model minimum |
+| `decode_events` / `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3`; `event_slack=6` above the best attained model count; `fragment_seconds=5.0` for starting-map improvement |
 | `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
-| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `self_tolerance=1.0`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
+| `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `fragment_cache`; `placement_fixed_targets=()` |
 | `CompetitionConfig` | `operation_budget=128`; `seconds=270`; `parent_limit=8`; `depth_limit=2`; `queue_limit=512`; `dependent_component_limit=8` |
 
-Discovery tolerance constrains matching between endpoints. `self_tolerance`
-independently constrains rearrangements within each original fragment; it is not
-the event threshold.
+Discovery tolerance constrains matching between endpoints. Fragment symmetry
+preserves binary connectivity, elements and anchors. Original WBO differences
+are evaluated as events; there is no separate self-tolerance filter.
 
 `placement_fixed_targets` is an expert context constraint for callers whose
 later operation distinguishes particular target labels. Those labels are fixed
@@ -259,7 +285,7 @@ names. Rebuild the native engine after updating: the unused experimental
 `FragmentChoices` export has been removed. Shared seed search and optional
 fragment competition remain supported.
 
-## Interpret events without rematching
+## Query shared fragment and branch responses
 
 ```python
 from mappa import decode_events
@@ -279,11 +305,27 @@ fragment separation alone does not imply an event. The model treats ordinary
 fragment boundaries independently; it does not solve correlations across the
 whole branch to recover a physical minimum.
 
-Add shared local minima to fixed boundaries to obtain each composition's lower
-bound. Let `L` be the smallest. The initial sweep resolution includes only
-compositions with lower bounds at most `L + 2`, and finds `minimum_events` within
-that window. The final window retains conditional choices up to
-`minimum_events + event_slack`, with a default slack of six.
+Use `events.select(family_id, lower, upper)` to retain a count interval without
+expanding mappings. Omit `upper` for an exact count, or omit both bounds for the
+computed window. A targeted lookup returns `found`, `absent` or `unknown` under
+its deadline; an unknown answer is never absence.
+
+```python
+selection = events.select(0, 2)                 # Exact model event count
+answer = selection.find(seconds=5.0)           # One joint witness, if found
+if answer.status == "found":
+    mapping = dict(answer.witness)
+    assert events.contributions(0, answer.choices)["total"] == 2
+
+fragment = events.fragments[0]                 # Shared actual Fragment response
+local = fragment.response.select(0, 2)
+answer = local.find(assignments={source_atom: target_atom}, seconds=5.0)
+```
+
+The stored selection retains every allowed choice satisfying its predicate;
+`find()` returns one witness rather than replacing the relation by that witness.
+Minimization and target queries reuse the same core symmetry operations. No
+complete attainable-count or bijection table is constructed.
 
 Numeric bounds and local minima are computed lazily and reused. Cheap boundary
 bounds exclude compositions before local preparation when possible. The decoder
@@ -339,8 +381,9 @@ Without `categories=True`, `counts` retains decrease/increase counts.
 
 ### Shared responses and persistence
 
-`events.inventory.fragments` contains the unique source/target fragment atom-set
-pairs; `events.inventory.uses[family_id]` links each saved partition to them.
+`events.inventory.fragments` contains the unique saved Fragment objects.
+`events.inventory.uses[family_id]` identifies the disjoint pieces owning internal
+bonds in each final partition; historical fragments can overlap those pieces.
 Inventory construction precedes response preparation. Reuse also requires the
 same mapping, local constraints, ordered actions and endpoint context; matching
 atom sets alone are insufficient.
@@ -353,9 +396,11 @@ Mapped/unmapped boundaries follow this same convention. Physical evaluation
 counts each original bond touching mapped atoms once and omits bonds wholly
 inside unmatched material.
 
-`decoded_events_record(events)` uses `mappa.decoded_events/v11` and retains the original catalogue, shared conditional
+`decoded_events_record(events)` uses `mappa.decoded_events/v12` and retains the original catalogue, shared conditional
 responses, model minimum/window and upper-window predicate. It does not export
 an eager list of all count bins or repeat derived per-atom maps for every family.
+`decoded_events_from_record(record)` restores the selected starts, responses and
+window decisions without rerunning optimization or symmetry preparation.
 Normal decoding performs no whole-reaction event-pattern deduplication. For
 optional pattern comparison, `evaluate` includes a canonical event ID for the
 requested physical realization.

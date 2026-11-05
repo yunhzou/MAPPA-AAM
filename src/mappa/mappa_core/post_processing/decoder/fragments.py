@@ -1,5 +1,7 @@
 """Collect unique fragments, then share their conditional local event results."""
 from dataclasses import dataclass, replace
+from mappa.mappa_core.core.symmetry.minimum import FragmentSymmetryEvents
+from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
 
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
@@ -75,17 +77,42 @@ class FragmentResponse:
     event_counts: object = None
 
 
+@dataclass(frozen=True)
+class DecodedFragment:
+    """Saved discovery relation plus its selected, queryable binary orbit."""
+    fragment: object
+    optimization: object
+    response: FragmentSymmetryEvents
+
+
 class FragmentDecoder:
     """Owned decoded results shared by fragment uses and boundary references."""
-    def __init__(self, index, inventory):
+    def __init__(self, index, inventory, *, fragment_seconds=5., prepared=None):
         self.index, self.inventory = index, inventory
+        self.fragment_seconds = fragment_seconds
+        self.prepared = {} if prepared is None else prepared
+        self.frozen = False
         self.programs = PreparedActionPrograms(index)
         self.fragments = {}
         self.bonds = {}
         self.terms = {}
         self.bindings = {}
-        self.counts = FragmentCountIndex(index)
+        self.counts = FragmentCountIndex(index, self)
         self._bound_terms = {}
+
+    def prepare(self, fragment):
+        if fragment.key not in self.prepared:
+            if self.frozen:
+                raise ValueError('fragment was outside the saved decoding window; decode the catalogue with the requested window')
+            minimum = optimize_fragment(fragment, time_limit=self.fragment_seconds,
+                event_problem=self.index.problem, threshold=self.index.threshold,
+                metal_threshold=self.index.metal_threshold)
+            selected = replace(fragment, relation=replace(fragment.relation,
+                               witness=minimum.discovery_witness))
+            response = FragmentSymmetryEvents(selected, event_problem=self.index.problem,
+                threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+            self.prepared[fragment.key] = DecodedFragment(fragment, minimum, response)
+        return self.prepared[fragment.key]
 
     def bounds(self, response):
         """Reuse the local bound and saved-witness count across branch uses."""

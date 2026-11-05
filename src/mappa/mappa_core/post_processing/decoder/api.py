@@ -1,24 +1,22 @@
-"""Event interpretation on the original compressed atom mappings."""
-from collections import OrderedDict
+"""Queryable binary-symmetry responses attached to retained matching catalogues."""
 import numpy as np
-from .records import EventDecodeConfig, EventInterpretation, SymmetryEventResponse
+from .records import EventDecodeConfig, EventInterpretation
 from .events import SignedEventIndex
 from .fragments import FragmentInventory, FragmentDecoder
 from ..final_branches import FinalBranchCatalogue
 
 
 def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
-                  event_slack=6, event_problem=None):
+                  event_slack=6, fragment_seconds=5., event_problem=None):
     """Prepare the independent-fragment event model and its minimum+n window.
 
-    Unique fragments share preparation. Their joint discovery and self
-    constraints remain attached; no fragment rematches, complete mappings or
-    Cartesian combinations are enumerated. Ordinary boundary counts are fixed;
-    only the selected sweep correction couples fragment endpoints.
-    event_problem may supply different scoring weights for the same indexed
-    atoms; the catalogue's matching constraints remain unchanged.
+    Unique fragments share bounded starting-map improvement and binary-symmetry
+    responses. The original matching catalogue remains intact; event selections
+    cover the chosen starts' symmetry orbits. Ordinary boundaries are fixed;
+    the selected sweep correction retains its endpoint dependence. Original
+    scoring weights may be supplied for the same indexed atoms in event_problem.
     """
-    config = config or EventDecodeConfig(threshold, metal_threshold, event_slack)
+    config = config or EventDecodeConfig(threshold, metal_threshold, event_slack, fragment_seconds)
     catalogue = (aam if isinstance(aam, FinalBranchCatalogue)
                  else FinalBranchCatalogue(aam.problem).add_aam(aam))
     return EventDecodeSession(catalogue.problem, config,
@@ -47,7 +45,7 @@ class EventDecodeSession:
             self.event_problem_sha256 = FinalBranchCatalogue(event_problem).problem_sha256
         self.index = SignedEventIndex(event_problem, threshold=config.threshold,
                                      metal_threshold=config.metal_threshold)
-        self.actions = OrderedDict()
+        self.fragments = {}
 
     def decode(self, catalogue):
         if catalogue.problem_sha256 != self.problem_sha256:
@@ -55,26 +53,7 @@ class EventDecodeSession:
         if self.event_problem_sha256 != self.problem_sha256:
             _validate_atom_identity(catalogue.problem, self.index.problem)
         inventory = FragmentInventory(catalogue)
-        local = FragmentDecoder(self.index, inventory)
-        families = []
-        for family in catalogue.families:
-            responses = []
-            for original, action in zip(family.actions, local.programs.program(family.actions)):
-                if action not in self.actions:
-                    # Self generators do not describe all D alternatives and
-                    # therefore cannot certify the entire relation invariant.
-                    if action[0] == 'relation':
-                        responses_for_action = None
-                    elif action[0] == 'group':
-                        responses_for_action = self.index.target_action_responses(action[1])
-                    else:
-                        raise ValueError('decoding requires fragment relations or placement groups')
-                    self.actions[action] = SymmetryEventResponse(original, responses_for_action)
-                    if len(self.actions) > 1024:
-                        self.actions.popitem(last=False)
-                self.actions.move_to_end(action)
-                responses.append(self.actions[action])
-            families.append(tuple(responses))
-        return EventInterpretation(catalogue, self.index, tuple(families),
-                                   inventory, local, self.event_problem_sha256,
+        local = FragmentDecoder(self.index, inventory, fragment_seconds=self.config.fragment_seconds,
+                                prepared=self.fragments)
+        return EventInterpretation(catalogue, self.index, inventory, local, self.event_problem_sha256,
                                    self.config.event_slack)

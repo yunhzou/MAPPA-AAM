@@ -167,7 +167,7 @@ def test_fresh_decoding_batches_preserve_full_scope_and_prior_memory_failures(tm
     assert manifest['cases'] == 3 and manifest['directions'] == 6
     assert manifest['imported_stage_results'] == 0 and manifest['reused_catalogues'] == 6
     assert manifest['prior_memory_failure_directions'] == ['00000/forward', '00001/reverse', '00002/reverse']
-    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4, event_slack=6)
+    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4, event_slack=6, fragment_seconds=5.)
     assert manifest['decoding_source']['source_commit'] == 'a'*40
     assert manifest['decoding_source']['source_identity'] == 'c'*64
     batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(3)]
@@ -354,7 +354,7 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == 'mappa.decoded_events/v11'
+            assert record['schema'] == 'mappa.decoded_events/v12'
             assert record['event_counts_approximate']
             assert record['minimum_events'] == 1
             assert record['event_slack'] == 6 and record['event_window'] == 7
@@ -536,7 +536,7 @@ def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(t
 
     index = prepared_index(tmp_path)
     data = json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5, fragment_seconds=5.)
     index.write_text(json.dumps(data))
     baseline = tmp_path/'baseline'
     prepare_fresh([index], baseline, [1])
@@ -606,8 +606,8 @@ def test_decoding_audit_plans_missing_baseline_outputs_and_rejects_incomplete_ca
     original_plan = (output/'plan.json').read_text()
     for field, value, message in (
             ('decoder_source', 'f'*64, 'decoder identities differ'),
-            ('decode_config', dict(threshold=.7, metal_threshold=.4, event_slack=6), 'decoding policies differ'),
-            ('decode_config', dict(threshold=.5, metal_threshold=.3, event_slack=3), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.7, metal_threshold=.4, event_slack=6, fragment_seconds=5.), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3, event_slack=3, fragment_seconds=5.), 'decoding policies differ'),
             ('decode_config', dict(threshold=.5, metal_threshold=.3), 'decoding policies differ')):
         changed_plan = json.loads(original_plan); changed_plan[field] = value
         (output/'plan.json').write_text(json.dumps(changed_plan))

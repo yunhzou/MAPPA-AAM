@@ -35,7 +35,6 @@ class SearchContext:
     objective: str = 'full_source'
     random_seed: int = 42
     growth_policy: str = 'growth_edge_splitmix64_v2'
-    self_tolerance: float = 1.0
 
 
 
@@ -317,7 +316,7 @@ class AAMSearchGraph:
         context = SearchContext(tuple(sorted(source)), tuple(sorted(target)),
             (int(seed),), graph_floor=config.graph_floor,
             iso_tolerance=config.iso_tolerance, branch_limit=config.branch_limit,
-            self_tolerance=config.self_tolerance,
+
             objective='seeded_fragment')
         states = [SearchState(0, 0, (), (), ())]
         edges, stops = [], []

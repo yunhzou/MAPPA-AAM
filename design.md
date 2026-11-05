@@ -47,22 +47,20 @@ fragment retains its locked assignments and earlier constraints.
 indices, seed order, random settings and the full search scope. An indivisible
 cut backend cannot be split into independently reseeded searches.
 
-## Relaxed relationships and shared symmetry core
+## Binary symmetry and shared event core
 
-A **relaxed global automorph** describes permitted rearrangements of one whole
-endpoint. An **anchor-aware relaxed fragment self-automorph** describes permitted
-rearrangements inside a selected fragment, with its anchors fixed. A **relaxed
-isomorph** describes a source-to-target mapping. Discovery tolerance, relaxed-self
-tolerance and event thresholds have distinct responsibilities.
+A **global symmetry** describes rearrangements of one whole endpoint. A
+**fragment symmetry** describes rearrangements of the fragment's own internal
+graph, with its anchors fixed. A **relaxed isomorph** describes a source-to-target
+mapping. Discovery tolerance controls growth; event thresholds classify original
+bond-weight changes. There is no separate self-tolerance filter.
 
-Construct a relaxed self-relationship from a hyper-relaxed binary graph: bonds
+Construct each symmetry from a binary graph: bonds
 above the declared presence threshold share one structural label, elements are
 preserved, and each anchor is fixed. Nauty supplies compact correlated structural
-generators. Retain those broad generators together with joint original-WBO
-constraints; every internal pair must remain within the declared self tolerance.
-Compare a final rearrangement against the original structure. The relaxed
-relationship is symmetric but need not be transitive, so individually permitted
-operations cannot be composed without checking the resulting arrangement.
+generators. Every composition of those generators is permitted. Original WBOs
+remain attached for discovery constraints and event counting; numerical weight
+differences do not restrict a binary self-rearrangement.
 
 Global construction uses the whole endpoint; fragment construction uses the
 selected fragment's internal graph. External attachments do not become local
@@ -71,22 +69,64 @@ weight comparisons also retain internal subthreshold contacts. Accepted growth
 edges remain separate discovery constraints. Neither the binary graph nor its
 generators alone establish the complete relaxed source-to-target relation.
 
-`core/symmetry/` owns ordered shuffle programs, joint endpoint-pair projection,
-original-weight bond responses and relaxed self-relationship construction.
+`core/symmetry/` owns binary symmetry construction, ordered shuffle programs,
+joint endpoint-pair projection and original-weight event computation.
 It has no dependency on matching, catalogue records or postprocessing. Global
 and fragment-local construction use this same owner. Decoder-specific inventory,
 boundary bookkeeping and branch-event assembly consume its shared responses.
 Pair projections are local response domains; choices across different pairs
-remain correlated through the original joint action. No complete permutation
-group is materialized.
+remain correlated through the original joint action. Minimum-event computation
+separates independent symmetry components only when event terms do not join
+them, and skips operations only when they preserve those responses. It retains
+one actual witness and explicit completion status, with bounded search and
+caches. No complete permutation group or Cartesian mapping table is materialized.
+The symmetry of one discovery witness does not replace other discovery choices.
+Event optimization may deliberately examine only a bounded subset of starting
+correspondences. Its result is best found unless a valid lower bound is attained
+or complete coverage is certified. This does not narrow the saved mapping
+relation. An orbit minimum is not a minimum over a larger relation unless coverage
+is established. Exhausted search limits remain incomplete, never exact minima.
+
+### Bounded starting-correspondence improvement
+
+One candidate still identifies one source/target atom-set placement. Accepted
+growth edges can admit distinct correspondences on that placement which the
+completed fragments' binary symmetries cannot connect. Retain those discovery
+constraints compactly; do not create additional hierarchy branches or require
+exhaustive discovery-class enumeration for event optimization.
+
+Use the saved valid discovery as the incumbent. First obtain a lower bound by
+matching the original pair-weight multisets within element-pair types, including
+zero weights and subthreshold contacts, while relaxing atom consistency. Improve
+the incumbent through the shared binary-symmetry event core. If needed, search
+the original discovery constraints for a better starting correspondence and
+apply that same event core to it. All retained witnesses preserve their explicit
+discovery and symmetry proofs. Partial original-weight event bounds guide the
+discovery search; they do not prove absence of better unexplored symmetry choices.
+
+The default is one five-second wall-clock search deadline per unique fragment,
+shared by preparation, discovery improvement and symmetry optimization. It is a
+maximum allowance, not a target runtime. Stop immediately on an attained lower
+bound. When the growth graph uses every target binary edge, target symmetry can
+certify coverage of every discovery; a completed symmetry search then establishes
+the full minimum without repeating discovery work. Otherwise retain one best
+actual witness and explicit incomplete optimality. Time-limited answers may vary
+with hardware; record the allowance, elapsed time, bound and work counts.
+
+Core checks deadlines between operations and retains a valid incumbent. An
+opaque native operation can finish after its deadline; hard preemption belongs
+to the execution layer's external watchdog. No scheduler or per-fragment worker
+creation belongs in the scientific core. Bounded witness optimization does not
+establish all event bins, endpoint-conditioned responses or a whole-reaction
+minimum. Decoder assembly must preserve that distinction when consuming it.
 
 ```mermaid
 flowchart TD
-    Structural[Binary structure, elements and anchors] --> Relaxed[Relaxed self-relationship]
-    Weights[Original WBOs and declared tolerance] --> Relaxed
-    Core[Core correlated shuffles and bond responses] --> Relaxed
-    Relaxed --> Global[Global placement acceleration]
-    Relaxed --> Local[Fragment-local compressed relationships]
+    Structural[Binary structure, elements and anchors] --> Symmetry[Compact symmetry generators]
+    Symmetry --> Global[Certified global placement acceleration]
+    Symmetry --> Local[Fragment-local relationships]
+    Weights[Original WBOs and event thresholds] --> Core[Shared symmetry event computation]
+    Local --> Core
     Core --> Decoder[Local and boundary event decoding]
     Local --> Decoder
 ```
@@ -106,7 +146,7 @@ itself is one candidate placement. There is no additional candidate or
 | Record | Logical fields |
 |---|---|
 | `FragmentGrowth` | `source_atoms`, `accepted_edges`, `deferred_edges`, `frontier`, `witness` |
-| `Fragment` | `source_atoms`, `target_atoms`, `accepted_edges`, `source_self_automorph`, `target_self_automorph`, `relation` |
+| `Fragment` | `source_atoms`, `target_atoms`, `accepted_edges`, `source_symmetry`, `target_symmetry`, `relation` |
 
 The growth subgraph is exactly `source_atoms` with `accepted_edges`; no duplicate
 subgraph representation is retained. Deferred edges are rejected extension
@@ -117,7 +157,7 @@ reaction data, separate from the accepted growth subgraph.
 
 At saturation, source self-automorph preparation is shared across placements.
 Each retained representative target atom set produces one completed `Fragment`, with its
-anchor-aware relaxed target self-automorph and complete compressed relaxed
+anchor-aware binary target symmetry and complete compressed relaxed
 source-to-target relation. That relation owns its witness, anchor pairs and joint
 mapping constraints. Accepted edges retain the discovery evidence separately
 from the constraints governing retained relaxed alternatives.
@@ -175,14 +215,14 @@ only when a saved global relationship proves their remaining search problems
 equivalent. Every represented placement remains recoverable through that
 relationship. Overlapping sets remain eligible.
 
-Placement compression uses a certified subgroup of the relaxed global
-relationship. It preserves the full target WBO matrix, active connectivity and
+Placement compression uses a certified subgroup of the global binary symmetry.
+It preserves the full target WBO matrix, active connectivity and
 all source-to-target node compatibility, and fixes every prior locked target
 pointwise. Thus every later matching constraint is preserved under composition.
 Callers whose continuation depends on additional target labels declare those
 labels fixed for placement compression; this does not occupy them for matching.
-General non-transitive relaxed relationships do not establish this stronger
-condition. Uncertified rearrangements never justify dropping a continuation.
+Binary connectivity alone does not establish this stronger condition.
+Uncertified rearrangements never justify dropping a continuation.
 
 Discover one representative per target-set orbit. Compact orbit exclusions and
 conditioned symmetry pruning participate in search; do not enumerate all orbit
@@ -199,24 +239,22 @@ order. Retain that order through caches, checkpoints, reduction, mapping queries
 and decoding, including unmatched and cut-boundary events.
 
 Each candidate retains its complete compressed internal mapping relationship,
-using anchor-aware relaxed fragment self-automorph information. Global symmetry
+using anchor-aware fragment binary symmetry. Global symmetry
 does not substitute for the fragment's own relationship. Free pools are a special
 case derived from that relationship, not an independent compression rule.
 One witness and one structural action are not assumed to cover every permitted
 mapping on a target set. The representation must establish complete coverage
 while preserving correlations and avoiding full-bijection expansion.
 
-The discovery witness satisfies the source-to-target `iso_tol`. Saved relaxed
-alternatives retain their own declared constraints and may exceed that discovery
-tolerance; original-WBO decoding evaluates their events. Records must distinguish
-discovery evidence from constraints on the retained relationship.
+The discovery witness satisfies the source-to-target `iso_tol`. Binary symmetry
+alternatives may exceed that discovery tolerance; original-WBO decoding evaluates
+their events. Records distinguish discovery evidence from the retained symmetry.
 
 For one fixed source/target atom-set pair, let D contain every mapping satisfying
 the accepted discovery constraints. Retain both source and target permitted
 self-rearrangements: each final mapping is beta composed with d composed with
-alpha inverse, where d belongs to D and alpha/beta each satisfy their own original
-fragment's self constraints. This is one two-sided expansion, not repeated
-closure of a non-transitive relationship. An accepted discovery bond can become
+alpha inverse, where d belongs to D and alpha/beta each preserve their own
+fragment's binary graph, elements and anchors. An accepted discovery bond can become
 an event after rearrangement. Decoding counts and classifies those changes under
 the original endpoint WBOs; it does not rank or select mappings.
 
@@ -364,107 +402,85 @@ catalogue and provenance still consume memory.
 Restoring a catalogue shares equal immutable mapping, constraint and action
 records while preserving every family's values, action order and provenance.
 
-## Decoding: unique fragments first
+## Decoding: shared fragment responses and branch queries
 
-For one reaction and direction, first collect **all unique saved fragments** from
-the completed catalogue, together with every branch occurrence, partition,
-constraint, action and boundary reference. Complete this inventory before
-computing event responses. Prepare each distinct contextual fragment once and
-share its conditional event responses across every use. Identity includes its
-mapping, constraints, relevant ordered actions and endpoint context; atom sets
-alone do not establish interchangeable responses.
+First inventory every unique saved Fragment and every branch, partition and
+sweep reference. The matching catalogue retains its full discovery relation.
+For decoding, select one starting correspondence per unique Fragment using the
+bounded improvement above, then retain both sides' element- and anchor-preserving
+binary symmetries. For equal connectivity, one side suffices. When growth and
+completed connectivity differ, other discoveries need not lie in this selected
+symmetry orbit: this is an explicit coverage restriction, not exhaustive decoding
+of the original relation.
+
+The shared core response stores compact correlated generators, a fixed event
+contribution and sparse variable original-WBO event terms. Independent symmetry
+components are separated only when no variable event or requested endpoint joins
+them. Operations with identical event effects can share computation. Neither a
+complete permutation list nor a table of every attainable event count is stored.
+A query retains the response and a count interval; finding a member returns a
+valid witness or explicit absence/unknown within its compute allowance. Endpoint
+conditions preserve occupancy and their correlation with internal event counts.
 
 ```mermaid
 flowchart LR
-    Catalogue[Completed catalogue] --> Inventory[Unique fragments and branch references]
-    Inventory --> Local[Shared conditional fragment responses and local minima]
-    Inventory --> Boundary[Fixed ordinary boundary contribution]
-    Inventory --> Sweep[Single sweep correction]
-    Local --> Lower[Smallest composition lower bound L]
-    Boundary --> Lower
-    Lower --> Initial[Resolve only compositions within L plus 2]
-    Sweep --> Initial
-    Initial --> Minimum[Model minimum M]
-    Minimum --> Window[Decode through M plus n]
-    Catalogue --> Realize[Validate requested mapping against original constraints]
+    Catalogue[Matching catalogue] --> Inventory[Unique fragments and branch references]
+    Inventory --> Start[Bounded starting-map improvement]
+    Start --> Response[Shared binary-symmetry event responses]
+    Response --> Branch[Ordered branch composition and sweep correction]
+    Branch --> Window[Retained branches with a queryable event window]
 ```
 
-The event-count model uses an explicitly accepted **independent-fragment
-approximation**. A composition adds the conditional internal response of each
-fragment and a fixed ordinary boundary contribution, including ordinary
-mapped/unmapped boundaries. It does not recompute those ordinary boundaries for
-every combination of fragment choices. Internal responses preserve each
-fragment's own conditional relationship; independence is an approximation in
-branch event composition, not permission to change the saved mapping relation.
+Branches remain unique compositions referencing shared responses. Historical
+fragments can overlap: retain the saved order of fragment and placement actions,
+and bind shared actions to the same choice. Final partition pieces own disjoint
+internal bond contributions; they do not replace the historical fragment
+permissions. Compose compatible local witnesses directly. Where an ordered
+history joins their choices, the same core operates on the affected sparse costs;
+it must not combine incompatible local minima or replace an ordered action
+sequence by unrestricted group closure.
 
-The single sweep cut is the only coupled boundary correction. Keep its residual
-contribution separate from the fixed boundary count and resolve only the
-relevant endpoint choices. Its residual is zero, one or two events. Count it
-once; neither cutting a bond nor separating fragments proves that an event
-occurred. Alternative saved partitions are alternative decompositions, not
-additional contributions to sum.
+The event model uses the accepted **independent ordinary-boundary approximation**.
+Add local internal events to a fixed ordinary boundary contribution, including
+mapped/unmapped boundaries. Do not recompute ordinary boundaries for each choice.
+The single sweep correction retains its joint endpoint/internal-event dependence
+and contributes a residual from zero to two events. Count it once. Alternative
+partitions and sweep histories are alternative compositions, never additive ones.
 
-Each composition's lower bound is its fixed boundary contribution plus its
-shared local fragment minima, before the sweep residual. Let `L` be the smallest
-such bound. First consider only compositions whose lower bound is at most
-`L + 2`, resolving their sweep endpoints within that initial window to find the
-model minimum `M`. Then decode through `M + n`, with `n=6` by default.
+For window selection, let L be the smallest composition lower bound before the
+sweep residual. When attained local minima compose, an attained branch upper
+bound U is at most L+2: resolve only compositions that can improve U, then retain
+those potentially within the best attained count plus the requested slack n
+(default six). If a local search is unfinished or local minima conflict, retain
+its honest lower bound and use an attained U instead; a loose lower bound plus
+two is not a valid ceiling. Report whether the model minimum is proved. An
+unfinished search never becomes absence or an exact minimum. Branch queries
+preserve the surviving choices rather than exporting one chosen bijection.
 
-The shared fragment response owns its event count and endpoint-conditioned
-counts. Preserve the correlation between an endpoint choice and the fragment's
-internal count when assembling the sweep; independently minimizing those two
-contributions is incorrect. Reuse these responses across compositions. Window
-assembly consumes them and must not launch separate feasibility or minimum
-solver queries.
+Events use **original endpoint WBOs**, not cut search graphs. The ordinary
+threshold defaults to 0.5 and the metal threshold to 0.3; an event requires a
+strictly larger weight change. Breaking, forming, strengthening and weakening
+are exclusive categories. Growth tolerance is separate. Count changes touching
+mapped atoms, including mapped/unmapped boundaries; omit bonds wholly inside
+unmatched material. Invent no correspondence for unmatched atoms.
 
-Aggregate original-weight responses can establish a local minimum when a saved
-valid choice attains their lower bound. Otherwise contract the fragment's shared
-choice tables, keeping the correlations and any requested sweep endpoint.
-Absorb a self action into discovery only when discovery already contains every
-resulting mapping; retain explicit action provenance for callers requesting it.
-A cheap boundary bound can exclude a composition before its local responses
-need preparation. Resolve only responses that can affect the initial window;
-keep the remaining conditional responses for reporting through `M + n`.
-Do not enumerate every attainable count or bin, solve whole-branch correlations,
-expand complete atom bijections, or replace `M` with an unattained lower bound.
+When matching uses transformed weights, `event_problem` supplies original weights
+for the same indexed atoms and coordinates. Discovery permissions remain tied to
+the matching problem. Output retains both problems when their weights differ.
 
-`minimum_events`, `event_window`, `contributions` and `counts` describe this
-approximate model over the retained catalogue. They do not certify a global
-physical minimum or exhaustive matching coverage. Original discovery and self
-constraints, occupancy, anchors and ordered placement actions remain attached
-to the mappings and are validated when a realization is requested. Explicit
-`evaluate` reports physical original-WBO events for that valid realization.
-This separate check may differ from its model count; it does not reassign the
-realization to another model bin or redefine the model minimum.
+`EventDecodeSession` shares fragment preparation across uses. `EventInterpretation`
+retains branches, responses, minimum/proof status and window. Explicit catalogue
+proof evaluation remains available for inspection, including discoveries outside
+the selected decoded orbit; it does not assert membership in a stored event
+selection. Physical whole-reaction evaluation may differ from the approximate
+boundary model and does not silently reassign model bins.
 
-Events use **original endpoint WBOs**, not cut search graphs. A cut or fragment
-boundary does not itself imply an event. The ordinary threshold defaults to 0.5
-and the metal threshold to 0.3; an event requires a strictly larger WBO change.
-Breaking, forming, strengthening and weakening are exclusive categories.
-Matching tolerance is separate. Count changes touching mapped atoms, including
-mapped/unmapped boundaries, and omit bonds wholly inside unmatched material.
-No correspondence is invented for unmatched atoms.
-
-When matching uses transformed bond weights, `event_problem` supplies the
-original endpoints for event counting. Both problems must retain the same
-indexed atoms and coordinates. Discovery and self constraints remain tied to the matching
-problem; event responses use the original event problem. Saved results identify and
-retain both endpoint problems when their weights differ.
-
-`EventDecodeSession` owns reusable endpoint preparation and bounded caches.
-`EventInterpretation` owns the inventory, shared conditional responses, model
-minimum/window and family/partition views. Branch assembly binds shared fragment
-preparation rather than replaying the whole symmetry sequence per atom. Shared
-preparation remains bounded and does not retain intermediate symmetry histories
-or complete working tables for every branch.
-
-Saved output retains the original catalogue, shared responses and conditional
-window representation without merging families or repeating derived per-atom
-maps. Binary export preserves sharing; explicit JSON may expand it. Release
-reaction-specific working state after publication. The retained catalogue and
-output still consume memory, so transient-table release is not a total memory
-bound. Whole-reaction event-pattern comparison and experimental rematching are
-separate operations.
+Saved results retain the unchanged matching catalogue, each selected starting
+correspondence, shared response and window decisions. Loading reconstructs query
+objects without rerunning starting-map optimization or symmetry preparation.
+Working branch tables are released after publication. Persist only compact
+relations and sparse costs; their size is still not a bound on total reaction
+memory. Scheduling and hard resource watchdogs remain outside the scientific core.
 
 ## Local and distributed execution
 

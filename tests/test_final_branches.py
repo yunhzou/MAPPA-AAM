@@ -75,7 +75,7 @@ def test_overlapping_relations_keep_order_and_are_not_absorbed():
 def test_discovery_and_self_constraints_are_part_of_family_identity():
     value = problem('CCC', [(0, 1, 1.)], [(0, 1, 1.)])
     free = saved_fragment(value)
-    constrained = saved_fragment(value, accepted_edges=((0, 1),), iso_tolerance=0., self_tolerance=0.)
+    constrained = saved_fragment(value, accepted_edges=((0, 1),), iso_tolerance=0.)
     saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (free,)).graph)
     saved.add_graph(saved_path(value, (constrained,)).graph)
     assert saved.branch_count == 1 and len(saved.families) == 2
@@ -154,7 +154,7 @@ def test_fragment_record_restoration_shares_source_preparation():
     pool = {}
     left = Fragment.from_record(json.loads(json.dumps(a.to_record())), self_pool=pool)
     right = Fragment.from_record(json.loads(json.dumps(b.to_record())), self_pool=pool)
-    assert left.source_self_automorph is right.source_self_automorph
+    assert left.source_symmetry is right.source_symmetry
     assert left.target_atoms != right.target_atoms
 
 
@@ -162,11 +162,10 @@ def shared_source_catalogue():
     from mappa.mappa_core.core.matching.representation.records import Fragment
     value = problem('CCCCCC', [(0, 1, 1.), (0, 2, 2.), (3, 4, 1.), (3, 5, 2.)],
                     [(0, 1, 1.), (0, 2, 2.), (3, 4, 1.), (3, 5, 2.)])
-    first = saved_fragment(value, source_atoms=(0, 1, 2), accepted_edges=((0, 1), (0, 2)),
-                           self_tolerance=.5)
+    first = saved_fragment(value, source_atoms=(0, 1, 2), accepted_edges=((0, 1), (0, 2)))
     second = saved_fragment(value, source_atoms=(0, 1, 2), target_atoms=(3, 4, 5),
-        witness={0: 3, 1: 4, 2: 5}, accepted_edges=((0, 1), (0, 2)), self_tolerance=.5)
-    second = Fragment(replace(second.relation, source=first.source_self_automorph))
+        witness={0: 3, 1: 4, 2: 5}, accepted_edges=((0, 1), (0, 2)))
+    second = Fragment(replace(second.relation, source=first.source_symmetry))
     return FinalBranchCatalogue(value).add_graph(saved_path(value, (first,)).graph).add_graph(
         saved_path(value, (second,)).graph)
 
@@ -177,31 +176,31 @@ def test_binary_catalogue_preserves_shared_preparation_without_record_expansion(
     from mappa import AAMSearchConfig
     from mappa.execution import BundleStore
     from mappa.mappa_core.core.scheduler.results import CatalogueResult
-    import mappa.mappa_core.core.symmetry.relaxed as relaxed
+    import mappa.mappa_core.core.symmetry.structure as structure
 
     saved = shared_source_catalogue()
     expected = json.loads(json.dumps(saved.to_record()))
-    original = ref(saved.families[0].fragments[0].source_self_automorph)
-    assert original().constraints
-    assert original() is saved.families[1].fragments[0].source_self_automorph
+    original = ref(saved.families[0].fragments[0].source_symmetry)
+    assert original().generators
+    assert original() is saved.families[1].fragments[0].source_symmetry
     def forbidden(*args, **kwargs):
         pytest.fail('binary transport must preserve prepared objects without JSON or re-preparation')
     store = BundleStore(tmp_path / 'bundles', scratch=tmp_path)
     with monkeypatch.context() as guard:
         guard.setattr(FinalBranchCatalogue, 'to_record', forbidden)
-        guard.setattr(relaxed, '_constraints', forbidden)
+        guard.setattr(structure, 'structural_generators', forbidden)
         reference = store.put(CatalogueResult('shared', saved, (), (), AAMSearchConfig(), 'native'))
         del saved
         gc.collect()
         assert original() is None
         restored = store.load(reference).catalogue
     first, second = (family.fragments[0] for family in restored.families)
-    assert first.source_self_automorph is second.source_self_automorph
+    assert first.source_symmetry is second.source_symmetry
     assert first.target_atoms != second.target_atoms
-    assert not first.source_self_automorph.weights.flags.writeable
-    assert not first.target_self_automorph.weights.flags.writeable
+    assert not first.source_symmetry.weights.flags.writeable
+    assert not first.target_symmetry.weights.flags.writeable
     assert json.loads(json.dumps(restored.to_record())) == expected
-    assert '_evaluation' not in vars(first.source_self_automorph)
+    assert '_evaluation' not in vars(first.source_symmetry)
     assert len(restored._family_ids) == len(restored.families) == 2
     decoded = decode_events(restored)
     for fid, fragment in enumerate((first, second)):
@@ -231,7 +230,7 @@ def test_decoded_record_and_bundle_share_self_payloads_across_distinct_fragments
 def placed_fragment_path():
     value = problem('CCCC', [(0, 1, 1.)], [(0, 1, 1.), (2, 3, 1.)])
     fragment = saved_fragment(value, source_atoms=(0, 1), accepted_edges=((0, 1),),
-                              iso_tolerance=0., self_tolerance=0.)
+                              iso_tolerance=0.)
     path = saved_path(value, (fragment,))
     graph = replace(path.graph, transitions=(replace(path.graph.transitions[0],
                     placement_generators=((2, 3, 0, 1),)),))

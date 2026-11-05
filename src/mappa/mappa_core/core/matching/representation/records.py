@@ -6,7 +6,7 @@ from functools import cached_property
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
 from mappa.mappa_core.core.symmetry.relations import DiscoveryEdge
-from mappa.mappa_core.core.symmetry.relaxed import RelaxedAutomorphism
+from mappa.mappa_core.core.symmetry.structure import BinarySymmetry
 
 
 @dataclass
@@ -62,11 +62,11 @@ class Fragment:
         return tuple(edge.atoms for edge in self.relation.accepted_edges)
 
     @property
-    def source_self_automorph(self):
+    def source_symmetry(self):
         return self.relation.source
 
     @property
-    def target_self_automorph(self):
+    def target_symmetry(self):
         return self.relation.target
 
     @property
@@ -108,7 +108,7 @@ class Fragment:
 
     def to_record(self, *, self_pool=None):
         relation = self.relation
-        return dict(schema='mappa.fragment/1', source=relation.source.to_record(pool=self_pool),
+        return dict(schema='mappa.fragment/2', source=relation.source.to_record(pool=self_pool),
                     target=relation.target.to_record(pool=self_pool), witness=relation.witness,
                     anchors=relation.anchors, domains=relation.domains,
                     accepted_edges=tuple(asdict(edge) for edge in relation.accepted_edges),
@@ -116,11 +116,11 @@ class Fragment:
 
     @classmethod
     def from_record(cls, record, *, self_pool=None):
-        if record.get('schema') != 'mappa.fragment/1':
+        if record.get('schema') != 'mappa.fragment/2':
             raise ValueError('unsupported fragment record; historical choices cannot be reinterpreted')
         return cls(RelaxedIsomorphism(
-            RelaxedAutomorphism.from_record(record['source'], pool=self_pool),
-            RelaxedAutomorphism.from_record(record['target'], pool=self_pool),
+            BinarySymmetry.from_record(record['source'], pool=self_pool),
+            BinarySymmetry.from_record(record['target'], pool=self_pool),
             tuple(tuple(pair) for pair in record['witness']),
             tuple(tuple(pair) for pair in record['anchors']),
             tuple((r, tuple(values)) for r, values in record['domains']),
@@ -133,7 +133,7 @@ def fragment_from_native(record, source_nodes, target_nodes, self_pool):
     def prepared(data, nodes, side):
         key = side, int(data['self_id'])
         if key not in self_pool:
-            self_pool[key] = RelaxedAutomorphism.from_record({**data,
+            self_pool[key] = BinarySymmetry.from_record({**data,
                 'atoms': tuple(nodes[int(a)] for a in data['atoms']),
                 'anchors': tuple(nodes[int(a)] for a in data['anchors'])})
         return self_pool[key]
@@ -183,7 +183,6 @@ class FragmentMatchConfig:
     allow_mapped_seed: bool = False
     random_seed: int = 42
     bond_tolerance: BondTolerance | None = None
-    self_tolerance: float = 1.0
 
 
 @dataclass(frozen=True)

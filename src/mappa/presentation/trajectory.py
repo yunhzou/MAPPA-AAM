@@ -37,7 +37,7 @@ def replay(source, target, state, after, edge, context):
     result = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
         graph_floor=context.graph_floor, iso_tol=context.iso_tolerance,
         max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
-        islands_R=dict(state.islands), self_tolerance=context.self_tolerance,
+        islands_R=dict(state.islands),
         prior_deferred_edges=state.deferred_edges)
     isos = result.matches
     matching = [fragment for fragment in isos if fragment.key == edge.match.key]
@@ -227,7 +227,7 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
             context=context_id,seed_order=list(c.seed_order),cuts=list(c.cuts),paths=paths,
             default_terminal=selection.get('default_terminal',terminals[0]),focus=selection.get('focus'),
             config=dict(graph_floor=c.graph_floor,iso_tolerance=c.iso_tolerance,branch_limit=c.branch_limit,
-                        self_tolerance=c.self_tolerance,
+
                         growth_policy=getattr(c,"growth_policy","legacy_wbo_priority"),
                         random_seed=getattr(c,"random_seed",42),
                         event_tolerance=event_tolerance,metal_event_tolerance=metal_event_tolerance),

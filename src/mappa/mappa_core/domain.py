@@ -384,10 +384,9 @@ class AAMSearchConfig:
     seed_selection: str = 'random'
     random_seed: int = 42
     sweep_cuts: bool = True
-    self_tolerance: float = 1.0
 
     def __post_init__(self):
-        for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'self_tolerance', 'event_threshold'):
+        for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):
             if not math.isfinite(getattr(self, name)):
                 raise ValueError(f'{name} must be finite')
         if self.metal_event_threshold is not None and (
@@ -403,8 +402,6 @@ class AAMSearchConfig:
             raise ValueError("graph and cut floors must be positive")
         if self.iso_tolerance <= 0:
             raise ValueError("isomorphism tolerance must be positive")
-        if self.self_tolerance < 0:
-            raise ValueError('relaxed self tolerance must be nonnegative')
         if self.event_threshold <= 0:
             raise ValueError("event threshold must be positive")
         if self.seed_count < 1 or self.branch_limit < 1:

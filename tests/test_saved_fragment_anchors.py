@@ -8,7 +8,7 @@ from mappa import BondTolerance, FragmentMatchConfig, FragmentMatchContext, matc
 from mappa.mappa_core.domain import AAMHierarchy
 from mappa.mappa_core.core.matching.growth import native
 from mappa.mappa_core.core.matching.representation.records import Fragment
-from mappa.mappa_core.core.symmetry.relaxed import relaxed_automorphism
+from mappa.mappa_core.core.symmetry.structure import binary_symmetry
 from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism, DiscoveryEdge
 from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.mappa_core.core.search.branching.construction import find_islands
@@ -33,7 +33,7 @@ def saved_fragment(mapping, *, anchors=(), source=None, target=None):
         weights = (np.zeros((len(selected), len(selected))) if graph is None else
                    graph.graph['wbo_matrix'][np.ix_(selected, selected)])
         elements = tuple('C' if graph is None else graph.nodes[a]['element'] for a in selected)
-        value = relaxed_automorphism(elements, weights, tolerance=1.5,
+        value = binary_symmetry(elements, weights,
             anchors=tuple(selected.index(atom) for atom in fixed))
         return replace(value, atoms=selected, anchors=tuple(fixed))
     left = prepare(source, atoms, tuple(r for r, _ in anchors))

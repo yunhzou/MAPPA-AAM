@@ -24,7 +24,7 @@ def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatc
     output = tmp_path / 'events'
     main([*endpoints(tmp_path), '--output', str(output)])
     record = json.loads((output / 'events.json').read_text())
-    assert record['schema'] == 'mappa.decoded_events/v11'
+    assert record['schema'] == 'mappa.decoded_events/v12'
     assert record['mapping_space_preserved']
     assert record['event_counts_approximate']
     assert record['minimum_events'] == 0

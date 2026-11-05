@@ -109,7 +109,7 @@ def validate_inputs(node_policy, events):
 
 def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 max_branches, islands_R, prior_deferred_edges,
-                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None, self_tolerance=1.0,
+                allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None,
                 placement_fixed_targets=()):
     """Run the selected native engine or report unsupported inputs explicitly."""
     if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentRepair):
@@ -155,10 +155,10 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                  int(min_lock_size), int(max_branches), islands, deferred, bool(allow_mapped_seed), int(random_seed) & ((1<<64)-1))
     if fragment_cache is None:
         out = _engine.grow_island(source_view.graph, target_view.graph, *arguments,
-                                 self_tolerance=self_tolerance, placement_fixed_targets=fixed_targets)
+                                  placement_fixed_targets=fixed_targets)
     else:
         out = fragment_cache.engine.grow(fragment_cache.cuts, *arguments,
-                                       self_tolerance=self_tolerance, placement_fixed_targets=fixed_targets)
+                                        placement_fixed_targets=fixed_targets)
     elapsed = time.perf_counter() - started
     if profile is not None:
         prof = {'seed': int(seed)}

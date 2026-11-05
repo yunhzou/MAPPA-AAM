@@ -8,7 +8,7 @@ import pytest
 
 from mappa import AAMProblem, MolecularEndpoint, decode_events
 from mappa.mappa_core.core.matching.representation.records import Fragment
-from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, relaxed_automorphism
+from mappa.mappa_core.core.symmetry import DiscoveryEdge, RelaxedIsomorphism, binary_symmetry
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from mappa.mappa_core.utils.io.records import decoded_events_record
 from test_event_interpretation import model_events
@@ -101,15 +101,15 @@ def test_global_placement_composes_local_choices_and_scores_original_boundaries(
         weights(4, [(0, 1, 1.), (2, 3, 1.8), (1, 2, .7)]))
     decoded = decode_events(saved, event_problem=scoring)
     assert len(decoded.inventory.fragments) == 1
-    assert decoded.family_actions[0][0].generators is None
-    assert not decoded.family_actions[0][1].response_invariant
+    assert decoded.fragments[0].response.fragment.source_atoms == decoded.inventory.fragments[0].source_atoms
+    assert not decoded.local.counts.preserves_weights(saved.families[0].actions[1])
     seen = set()
     for image, word in product(((0, 1), (1, 0)), ((), (1,))):
         choice = dict(discovery=dict(zip((0, 1), image)))
         seen.add(assert_counts(decoded, (choice, word)))
     assert seen == {(0, 1), (1, 0), (2, 3), (3, 2)}
     ordinary = decode_events(saved)
-    assert ordinary.family_actions[0][1].response_invariant
+    assert ordinary.local.counts.preserves_weights(saved.families[0].actions[1])
     assert all(ordinary.contributions(0, (None, word))['total'] == 0 for word in ((), (1,)))
 
 
@@ -120,9 +120,9 @@ def test_earlier_global_placement_moves_later_anchor_continuation_jointly():
     matrix = weights(6, triangle + [(a + 3, b + 3, w) for a, b, w in triangle])
     endpoints = problem(matrix, matrix)
     first = saved_fragment(endpoints, source_atoms=(0, 1), accepted_edges=((0, 1),),
-                           iso_tolerance=0., self_tolerance=0.)
+                           iso_tolerance=0.)
     later = saved_fragment(endpoints, source_atoms=(1, 2), anchors=((1, 1),),
-                           accepted_edges=((1, 2),), iso_tolerance=0., self_tolerance=0.)
+                           accepted_edges=((1, 2),), iso_tolerance=0.)
     path = saved_path(endpoints, (first, later))
     graph = replace(path.graph, transitions=(replace(path.graph.transitions[0],
                     placement_generators=((3, 4, 5, 0, 1, 2),)), path.graph.transitions[1]))
@@ -167,25 +167,25 @@ def test_all_six_relaxed_triangle_tail_choices_decode_without_discovery_refilter
     assert len(terms) == len(set(terms))
     assert decoded.inventory.fragments == (fragment,)
     assert decoded.inventory.fragments[0] is fragment
-    assert decoded.family_actions[0][0].generators is None
-    assert not decoded.family_actions[0][0].response_invariant
-    assert decoded_events_record(decoded)['families'][0]['action_responses'] == [None]
+    assert decoded.fragments[0].response.fragment.source_atoms == decoded.inventory.fragments[0].source_atoms
+    assert decoded.fragments[0].response.fixed_events == 0
+    assert decoded_events_record(decoded)['decoded_coverage'] == 'selected_start_binary_symmetry'
+    assert len(decoded.fragments) == 1
     selections = [[choice] for choice in choices(value)]
     actual = list(decoded.counts(0, selections, categories=True, batch_size=3))
     expected = [list(decoded.contributions(0, selection)['counts'].values()) for selection in selections]
     assert np.array_equal(actual, expected)
 
 
-def test_self_tolerance_remains_joint_and_uses_matching_weights_with_separate_scoring():
+def test_binary_symmetry_is_preserved_with_separate_event_weights():
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
     binary = (matrix > .2).astype(float)
     decoded = decode_events(catalogue(problem(matrix, matrix), (Fragment(value),)),
                             event_problem=problem(binary, binary))
     seen = {assert_counts(decoded, [choice]) for choice in choices(value)}
-    assert len(seen) == 5 and (0, 3, 2, 1) not in seen
-    with pytest.raises(ValueError, match='self tolerance'):
-        decoded.realize(0, [dict(target_permutation=(0, 3, 2, 1))])
+    assert len(seen) == 6 and (0, 3, 2, 1) in seen
+    assert decoded.realize(0, [dict(target_permutation=(0, 3, 2, 1))]) == {0: 0, 1: 3, 2: 2, 3: 1}
     with pytest.raises(ValueError, match='biject'):
         decoded.realize(0, [dict(discovery={0: 0, 1: 1, 2: 1, 3: 3})])
 
@@ -193,7 +193,7 @@ def test_self_tolerance_remains_joint_and_uses_matching_weights_with_separate_sc
 def test_shared_history_keeps_final_partition_bond_ownership_and_joint_occupancy():
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
     whole = Fragment(relation(matrix, matrix, ((0, 1), (1, 2), (0, 3))))
-    local = relaxed_automorphism('CCCC', matrix, atoms=(0, 1), tolerance=0.)
+    local = binary_symmetry('CCCC', matrix, atoms=(0, 1))
     previous = Fragment(RelaxedIsomorphism(local, local, ((0, 0), (1, 1)), (),
         ((0, (0, 1)), (1, (0, 1))), (DiscoveryEdge((0, 1), 1., 0.),), ((0, 1),), .2))
     saved = catalogue(problem(matrix, matrix), (whole, previous), cuts=((0, 2),))
@@ -202,7 +202,7 @@ def test_shared_history_keeps_final_partition_bond_ownership_and_joint_occupancy
     next(iter(saved.branches.values())).add(1)
     decoded = decode_events(saved)
     assert decoded.inventory.fragments == (previous, whole)
-    assert decoded.family_actions[0][0] is decoded.family_actions[1][0]
+    assert decoded.local.prepare(whole) is decoded.local.prepare(decoded.catalogue.families[1].actions[0][1])
     common = decoded.fragment_partitions[0].index(decoded.fragment_partitions[1][0])
     assert decoded.tables(0, common) is decoded.tables(1, 0)
     assert len(decoded.fragment_partitions[0]) == 2
@@ -219,8 +219,8 @@ def test_shared_history_keeps_final_partition_bond_ownership_and_joint_occupancy
 def test_sparse_fixed_image_preserves_anchors_and_counts_unmatched_boundaries():
     source = weights(5, [(0, 2, 1.), (2, 4, 1.4), (1, 3, 2.), (0, 1, .8)])
     target = weights(6, [(1, 3, 1.), (3, 5, 1.6), (0, 2, 2.), (3, 4, 1.1)])
-    left = relaxed_automorphism('C' * 5, source, atoms=(0, 2, 4), anchors=(0,), tolerance=.7)
-    right = relaxed_automorphism('C' * 6, target, atoms=(1, 3, 5), anchors=(1,), tolerance=.7)
+    left = binary_symmetry('C' * 5, source, atoms=(0, 2, 4), anchors=(0,))
+    right = binary_symmetry('C' * 6, target, atoms=(1, 3, 5), anchors=(1,))
     value = RelaxedIsomorphism(left, right, ((0, 1), (2, 3), (4, 5)), ((0, 1),),
         ((0, (1,)), (2, (3, 5)), (4, (3, 5))),
         (DiscoveryEdge((0, 2), 1., .5),), ((1, 3), (3, 5)), .2)
@@ -237,17 +237,16 @@ def test_sparse_fixed_image_preserves_anchors_and_counts_unmatched_boundaries():
 
 def test_relation_pair_inspection_is_lazy_and_does_not_claim_independent_permissions():
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.6), (0, 3, 2.2)])
-    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)), self_tolerance=.7)
+    value = relation(matrix, matrix, ((0, 1), (0, 2), (0, 3)))
     decoded = decode_events(catalogue(problem(matrix, matrix), (Fragment(value),)))
     term = next(iter(decoded.tables(0).internal[0]))
     pairs = term.target_pairs
     assert iter(pairs) is pairs
     assert len(tuple(pairs)) > 0
-    # Conservative lookup domains include an atom motion that the joint self
-    # constraint forbids; no independent shuffle permission is inferred.
+    # Pair bounds do not permit non-bijective combinations of arm choices.
     assert 3 in decoded.tables(0).atom_domains[1]
-    with pytest.raises(ValueError, match='self tolerance'):
-        decoded.realize(0, [dict(source_permutation=(0, 3, 2, 1))])
+    with pytest.raises(ValueError, match='binary symmetry'):
+        decoded.realize(0, [dict(source_permutation=(0, 3, 3, 1))])
 
 
 def test_large_symmetric_fragment_prepares_without_solver_or_permutation_expansion(monkeypatch):
@@ -302,5 +301,5 @@ def test_search_graph_restores_shared_source_preparation_across_distinct_fragmen
     graph = AAMSearchGraph.from_record(json.loads(json.dumps(path.graph.to_record())))
     first, second = (edge.match for edge in graph.transitions)
     assert first.witness != second.witness
-    assert first.source_self_automorph is second.source_self_automorph
-    assert first.target_self_automorph is second.target_self_automorph
+    assert first.source_symmetry is second.source_symmetry
+    assert first.target_symmetry is second.target_symmetry

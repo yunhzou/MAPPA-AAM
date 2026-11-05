@@ -41,6 +41,17 @@ def apply_action(images, action, choice, degree):
         permutation[list(data)] = selected
         return permutation[images]
     if kind == 'group':
+        if isinstance(choice, Mapping):
+            from .groups import permutation_group
+            from sympy.combinatorics import Permutation
+            if set(choice) != {'permutation'}:
+                raise ValueError('placement choice must supply one permutation or a generator word')
+            selected = tuple(choice['permutation'])
+            if (len(selected) != degree or any(not isinstance(p, Integral) for p in selected)
+                    or sorted(selected) != list(range(degree))
+                    or not permutation_group(data, degree).contains(Permutation(list(selected)))):
+                raise ValueError('placement permutation is outside the saved group')
+            return np.asarray(selected)[images]
         for number in choice:
             if not isinstance(number, Integral) or not 1 <= abs(number) <= len(data):
                 raise ValueError('group word must use signed 1-based generator numbers')

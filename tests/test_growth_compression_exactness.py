@@ -35,7 +35,7 @@ def explicit(source, target, atoms, tolerance, edges=None):
 
 
 def complete(source, target, fragment, bonds, tolerance=.2, *, locked=None,
-             bond_tolerance=None, self_tolerance=1.):
+             bond_tolerance=None):
     """Complete a proven explicit accepted graph; impossible queries return no result."""
     from mappa.mappa_core.core.matching.growth.completion import complete_fragment
     from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
@@ -46,7 +46,7 @@ def complete(source, target, fragment, bonds, tolerance=.2, *, locked=None,
     if witness is None:
         return FragmentMatchResult((), False, 0, 1000000, 0.)
     return complete_fragment(FragmentGrowth(set(fragment), witness, set(bonds)), source, target,
-        locked or {}, tolerance=tolerance, self_tolerance=self_tolerance,
+        locked or {}, tolerance=tolerance,
         node_policy=DEFAULT_NODE_POLICY, branch_limit=1000000, bond_tolerance=bond_tolerance)
 
 
@@ -354,9 +354,9 @@ def image_orbits(images, generators, degree):
 
 
 def test_global_image_orbits_share_discovery_without_losing_distinct_arms():
-    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import binary_symmetry
     source, target = repeated_arms()
-    prepared = relaxed_automorphism(['O'] + ['C'] * 8, target.graph['wbo_matrix'], tolerance=1.)
+    prepared = binary_symmetry(['O'] + ['C'] * 8, target.graph['wbo_matrix'])
     query = image_query(source, target, tuple(source), tuple(source.edges))
     generators = certified_group(target, prepared)
     witnesses = query.images(5, placement_generators=generators)
@@ -371,10 +371,10 @@ def test_global_image_orbits_share_discovery_without_losing_distinct_arms():
 
 
 def test_global_image_orbits_stop_at_cap_evidence():
-    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import binary_symmetry
     source = graph(['C'] * 3, [(0,1,1.), (1,2,1.)])
     target = graph(['C'] * 10, [(a,b,1.) for a in range(10) for b in range(a+1,10)])
-    prepared = relaxed_automorphism(['C'] * 10, target.graph['wbo_matrix'], tolerance=1.)
+    prepared = binary_symmetry(['C'] * 10, target.graph['wbo_matrix'])
     query = image_query(source, target, tuple(source), tuple(source.edges))
     witnesses = query.images(2, preferred={0:0,1:1,2:2},
                              placement_generators=certified_group(target, prepared))
@@ -383,18 +383,18 @@ def test_global_image_orbits_stop_at_cap_evidence():
     assert query.nodes < 10
 
 
-def weighted_star_self(tolerance):
+def weighted_star_self():
     from dataclasses import replace
-    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import binary_symmetry
     target = graph(['O','C','C','C'], [(0,1,1.), (0,2,1.4), (0,3,1.8)])
-    prepared = relaxed_automorphism(['O','C','C','C'], target.graph['wbo_matrix'], tolerance=tolerance)
+    prepared = binary_symmetry(['O','C','C','C'], target.graph['wbo_matrix'])
     # These two structural generators each exchange adjacent weights. Their
     # composition can move the endpoint weights farther than either exchange.
     return target, replace(prepared, generators=((0,2,1,3), (0,1,3,2)))
 
 
 def test_global_pruning_preserves_the_actual_discovery_support_predicate():
-    target, prepared = weighted_star_self(1.)
+    target, prepared = weighted_star_self()
     source = graph(['O','C'], [(0,1,1.)])
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=.5)
     generators = certified_group(target, prepared)
@@ -403,10 +403,10 @@ def test_global_pruning_preserves_the_actual_discovery_support_predicate():
     assert not generators
 
 
-def test_nontransitive_self_choices_cannot_be_used_as_an_unrestricted_group():
-    target, prepared = weighted_star_self(.5)
+def test_binary_symmetry_does_not_certify_weighted_continuation_equivalence():
+    target, prepared = weighted_star_self()
     assert all(prepared.contains(generator) for generator in prepared.generators)
-    assert not prepared.contains((0,3,2,1))
+    assert prepared.contains((0,3,2,1))
     source = graph(['O','C'], [(0,1,1.4)])
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=1.)
     generators = certified_group(target, prepared)
@@ -418,18 +418,18 @@ def test_nontransitive_self_choices_cannot_be_used_as_an_unrestricted_group():
 def test_global_pruning_matches_independent_weighted_locked_image_oracle():
     import random
     from itertools import combinations
-    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import binary_symmetry
     rng = random.Random(82351)
     for trial in range(80):
         n, k = rng.choice((4,5,6)), rng.choice((2,3))
         source = graph(['C']*k, [(a,a+1,rng.choice((1.,1.3,1.6))) for a in range(k-1)])
         target = graph(['C']*n, [(a,b,rng.choice((0.,1.,1.3,1.6))) for a,b in combinations(range(n),2)])
-        tolerance, self_tolerance = rng.choice((.2,.5,1.)), rng.choice((.2,.5,1.))
+        tolerance = rng.choice((.2,.5,1.))
         locked = {0:0} if trial % 4 == 0 else ({k:n-1} if trial % 4 == 1 else {})
         valid = {pairs for pairs in explicit(source,target,range(k),tolerance) if all(
             (dict(pairs)[r] == p if r in dict(pairs) else p not in dict(pairs).values())
             for r,p in locked.items())}
-        prepared = relaxed_automorphism(['C']*n,target.graph['wbo_matrix'],tolerance=self_tolerance)
+        prepared = binary_symmetry(['C']*n,target.graph['wbo_matrix'])
         query = image_query(source,target,range(k),tuple(source.edges),locked=locked,tolerance=tolerance)
         preferred = dict(min(valid)) if valid and trial % 2 else None
         generators = certified_group(target, prepared, locked)
@@ -454,15 +454,15 @@ def test_global_preparation_reuses_one_record_including_complete_components(monk
             preparations.append(atoms)
         return original(graph_,atoms,*args)
     monkeypatch.setattr(completion,'_prepare_self',prepare)
-    for tolerance in (1.,1.,.2):
+    for _ in range(3):
         result = match_fragment(source,target,seed=0,
-            config=FragmentMatchConfig(iso_tolerance=.2,self_tolerance=tolerance))
+            config=FragmentMatchConfig(iso_tolerance=.2))
         assert len(result.matches) == 1
-    assert len(preparations) == 2
+    assert len(preparations) == 1
     ring = graph(['C']*6, [(a,(a+1)%6,1.) for a in range(6)])
     copies = graph(['C']*12, [(6*c+a,6*c+(a+1)%6,1.) for c in range(2) for a in range(6)])
     result = match_fragment(ring,copies,seed=0,config=FragmentMatchConfig(iso_tolerance=.2))
-    assert len(result.matches) == 1 and '_relaxed_global' in copies.graph
+    assert len(result.matches) == 1 and '_binary_global' in copies.graph
 
 
 def test_public_completion_global_pruning_has_native_python_relation_parity(monkeypatch):
@@ -489,21 +489,21 @@ def test_global_preparation_rechecks_copied_and_mutable_endpoint_weights(monkeyp
     original_result = match_fragment(source,target,seed=0,config=config)
     assert len(original_result.matches) == 1
     assert len({frozenset(p for _, p in m) for m in discovered(original_result)}) == 4
-    original = target.graph['_relaxed_global'][3]
+    original = target.graph['_binary_global'][3]
     copied = target.copy()
     copied.graph['wbo_matrix'] = target.graph['wbo_matrix'].copy()
     copied.graph['wbo_matrix'][0,1] = copied.graph['wbo_matrix'][1,0] = 1.9
     changed_result = match_fragment(source,copied,seed=0,config=config)
     assert len(changed_result.matches) == 1
     assert len({frozenset(p for _, p in m) for m in discovered(changed_result)}) == 3
-    changed = copied.graph['_relaxed_global'][3]
+    changed = copied.graph['_binary_global'][3]
     assert changed is not original and changed.weights[0,1] == 1.9
-    assert target.graph['_relaxed_global'][3] is original
+    assert target.graph['_binary_global'][3] is original
     copied.graph['wbo_matrix'][0,1] = copied.graph['wbo_matrix'][1,0] = 1.
     restored_result = match_fragment(source,copied,seed=0,config=config)
     assert len(restored_result.matches) == 1
     assert len({frozenset(p for _, p in m) for m in discovered(restored_result)}) == 4
-    restored = copied.graph['_relaxed_global'][3]
+    restored = copied.graph['_binary_global'][3]
     assert restored is not changed and restored.weights[0,1] == 1.
 
 
@@ -513,11 +513,11 @@ def test_global_preparation_supports_sparse_atom_indices_without_a_matrix():
     value.add_nodes_from(((10,{'element':'O'}), (20,{'element':'C'}), (30,{'element':'C'})))
     value.add_weighted_edges_from(((10,20,1.), (10,30,1.)), weight='wbo')
     labels = {atom:value.nodes[atom]['element'] for atom in value}
-    original = _global_self(value,labels,1.)
+    original = _global_self(value,labels)
     assert original.atoms == (10,20,30)
-    assert _global_self(value,labels,1.) is original
+    assert _global_self(value,labels) is original
     value[10][30]['wbo'] = 1.9
-    changed = _global_self(value,labels,1.)
+    changed = _global_self(value,labels)
     assert changed is not original and changed.weights[0,2] == 1.9
 
 
@@ -563,14 +563,14 @@ def test_attached_rings_keep_all_eighteen_target_sets_and_complete_discovery(bac
 def test_binary_global_generators_keep_continuous_discovery_predicates(backend, tolerance, image_count, monkeypatch):
     from collections import defaultdict
     from mappa import FragmentMatchConfig, match_fragment
-    from mappa.mappa_core.core.symmetry import relaxed_automorphism
+    from mappa.mappa_core.core.symmetry import binary_symmetry
 
     monkeypatch.setenv('MAPPA_NATIVE', backend)
     source = graph(['C'] * 5, [(a, a+1, 1.) for a in range(4)])
     target = graph(['C'] * 12, [(a, (a+1) % 12, 1. if a % 6 < 4 else 1.8)
                               for a in range(12)])
     weights = target.graph['wbo_matrix']
-    global_self = relaxed_automorphism(['C'] * 12, weights, tolerance=1.)
+    global_self = binary_symmetry(['C'] * 12, weights)
     assert any(not np.array_equal(weights[np.ix_(g, g)], weights)
                for g in global_self.generators)
     # The same four accepted-edge predicates recur, but a broad structural

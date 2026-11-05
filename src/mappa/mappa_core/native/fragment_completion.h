@@ -1,9 +1,9 @@
 // Saturation discovers target atom sets and retains the full conditional relation.
-std::shared_ptr<const PreparedSelf> prepare_self(const Graph& graph,
-        std::vector<int> atoms,std::vector<int> anchors,double threshold,double tolerance) {
-    auto result=std::make_shared<PreparedSelf>();
+std::shared_ptr<const PreparedSymmetry> prepare_self(const Graph& graph,
+        std::vector<int> atoms,std::vector<int> anchors,double threshold) {
+    auto result=std::make_shared<PreparedSymmetry>();
     result->atoms=std::move(atoms);result->anchors=std::move(anchors);
-    result->bond_threshold=threshold;result->tolerance=tolerance;
+    result->bond_threshold=threshold;
     const size_t n=result->atoms.size();
     result->weights.reserve(n*n);
     std::vector<Pair> edges;
@@ -27,7 +27,7 @@ std::shared_ptr<const PreparedSelf> prepare_self(const Graph& graph,
 }
 
 void complete_fragment(const Source& source,const Target& target,const std::vector<int>& locked,
-        FragmentGrowth& growth,double threshold,double tolerance,double self_tolerance,
+        FragmentGrowth& growth,double threshold,double tolerance,
         int min_lock_size,long max_branches,GrowResult& result,GrowthObservation* observation,
         const std::vector<int>& placement_fixed_targets) {
     auto started=std::chrono::steady_clock::now();
@@ -38,10 +38,9 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
     std::sort(occupied.begin(),occupied.end());
     occupied.erase(std::unique(occupied.begin(),occupied.end()),occupied.end());
     if (occupied.size()!=size_t(target.n) && query.needs_global_symmetry()) {
-        if (!target.global_self || target.global_self->bond_threshold!=threshold ||
-            target.global_self->tolerance!=self_tolerance) {
+        if (!target.global_self || target.global_self->bond_threshold!=threshold) {
             std::vector<int> atoms(target.n);std::iota(atoms.begin(),atoms.end(),0);
-            target.global_self=prepare_self(target,std::move(atoms),{},threshold,self_tolerance);
+            target.global_self=prepare_self(target,std::move(atoms),{},threshold);
             PlacementGenerators exact_generators;
             for (const auto& generator:target.global_self->generators) {
                 bool exact=true;
@@ -75,7 +74,7 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
     } else {
         std::vector<int> anchors;
         for (int r:query.atoms) if (locked[r]>=0) anchors.push_back(r);
-        auto prepared_source=prepare_self(source,query.atoms,anchors,threshold,self_tolerance);
+        auto prepared_source=prepare_self(source,query.atoms,anchors,threshold);
         auto bonds=growth.accepted_edges;
         std::sort(bonds.begin(),bonds.end());
         std::vector<int> source_positions(source.n,-1);
@@ -88,7 +87,7 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
             std::sort(target_anchors.begin(),target_anchors.end());
             Fragment fragment;
             fragment.source=prepared_source;
-            fragment.target=prepare_self(target,std::move(target_atoms),std::move(target_anchors),threshold,self_tolerance);
+            fragment.target=prepare_self(target,std::move(target_atoms),std::move(target_anchors),threshold);
             fragment.inclusive=source.tolerance_inclusive;fragment.target_bond_floor=target.bond_cut;
             std::vector<int> target_positions(target.n,-1);
             for (size_t i=0;i<fragment.target->atoms.size();++i)

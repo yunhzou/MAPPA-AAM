@@ -10,7 +10,7 @@ from mappa.mappa_core.core.search.graph import SearchContext
 def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
                         max_branches=100, cuts=(),
                         anchor_map=None, core_R=None, stop_when_core_mapped=False,
-                        fragment_cache=None, profile=None, random_seed=42, self_tolerance=1.0):
+                        fragment_cache=None, profile=None, random_seed=42):
     order=list(dict.fromkeys(seed_order))
     anchors=_normalize_anchor_map(anchor_map,source,target)
     if not native.available():
@@ -31,7 +31,7 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
     context=SearchContext(tuple(sorted(source)),tuple(sorted(target)),tuple(order),tuple(cuts),
         core,tuple(sorted(anchors.items())),float(graph_floor),float(iso_tol),int(max_branches),
         objective='requested_core' if stop_when_core_mapped and core else 'full_source',
-        random_seed=random_seed, self_tolerance=self_tolerance)
+        random_seed=random_seed)
     cpu=time.process_time() if profile is not None else 0.
     wall=time.perf_counter() if profile is not None else 0.
     enabled = gc.isenabled()
@@ -43,7 +43,7 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
             float(graph_floor),float(iso_tol),int(max_branches),
             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
             [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,
-            int(random_seed) & ((1<<64)-1), float(self_tolerance))
+            int(random_seed) & ((1<<64)-1))
         native_cpu=time.process_time()-cpu if profile is not None else 0.
         native_wall=time.perf_counter()-wall if profile is not None else 0.
     finally:

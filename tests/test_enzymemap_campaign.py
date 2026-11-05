@@ -35,7 +35,7 @@ def prepared_index(tmp_path, *, corrupt=False):
 def test_full_passes_and_resume_preserve_results_without_old_operations(tmp_path):
     index=prepared_index(tmp_path)
     data = json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=5)
+    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=5, fragment_seconds=5.)
     index.write_text(json.dumps(data))
     output=tmp_path/'result'
     status=run(index,output,local=True,workers=2,window=2)
@@ -335,7 +335,7 @@ def test_batches_are_disjoint_reuse_results_and_stop_before_decoding(tmp_path):
     from prepare_batches import prepare
     index=prepared_index(tmp_path)
     data=json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5, fragment_seconds=5.)
     data['directions'] += [dict(row,case=1) for row in data['directions']]
     index.write_text(json.dumps(data))
     baseline=tmp_path/'baseline'
@@ -356,7 +356,7 @@ def test_fresh_batches_preserve_inputs_and_import_no_old_results(tmp_path):
     from prepare_batches import prepare_fresh
     index = prepared_index(tmp_path)
     data = json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5, fragment_seconds=5.)
     data['directions'] = [dict(row, case=case) for case in range(8)
                           for row in data['directions']]
     index.write_text(json.dumps(data))
@@ -465,7 +465,7 @@ def test_fresh_decoding_uses_all_catalogues_with_new_budgets_and_preserves_sourc
     source, _ = failed_decode_campaign(tmp_path)
     index = fresh_decoding_index(source, tmp_path/'decode-index.json')
     data = json.loads(index.read_text())
-    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=6)
+    data['decode_config'] = dict(threshold=.75, metal_threshold=None, event_slack=6, fragment_seconds=5.)
     index.write_text(json.dumps(data))
     source_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     def forbidden(*args, **kwargs):
@@ -529,7 +529,7 @@ def test_fresh_decoding_preserves_new_failures_without_retry_or_other_stages(tmp
     assert sorted(row[2] for row in records) == ['complete', 'complete', 'complete', 'error']
     assert {row[1] for row in records} == {'decoding'}
     plan = json.loads((output/'plan.json').read_text())
-    assert plan['decode_config'] == dict(threshold=.5, metal_threshold=.3, event_slack=6)
+    assert plan['decode_config'] == dict(threshold=.5, metal_threshold=.3, event_slack=6, fragment_seconds=5.)
     with pytest.raises(RuntimeError, match='decoding contains failed directions'):
         run(index, output, resume=True, **options)
     with sqlite3.connect(output/'ledger.sqlite') as ledger:
@@ -550,7 +550,7 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
     from mappa.mappa_core.core.scheduler.bundles import Blob
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 
-    policy = dict(threshold=.5, metal_threshold=.3, event_slack=5)
+    policy = dict(threshold=.5, metal_threshold=.3, event_slack=5, fragment_seconds=5.)
     source, selected = failed_decode_campaign(tmp_path, decode_config=policy)
     original_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     output = tmp_path/'recovery'

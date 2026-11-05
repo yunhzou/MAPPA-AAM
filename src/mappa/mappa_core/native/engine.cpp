@@ -66,17 +66,17 @@ inline bool growth_edge_supported(double w_R, double w_P, double iso_tol, double
     return w_P >= floor && (inclusive ? difference <= iso_tol : difference < iso_tol);
 }
 
-struct PreparedSelf {
+struct PreparedSymmetry {
     std::vector<int> atoms, anchors;
     std::vector<std::string> elements;
-    double bond_threshold=0.2, tolerance=1.0;
+    double bond_threshold=0.2;
     std::vector<double> weights;
     std::vector<std::vector<int>> generators;
 };
 
 struct Target : Graph {
     std::vector<std::vector<int>> same_element;
-    mutable std::shared_ptr<const PreparedSelf> global_self;
+    mutable std::shared_ptr<const PreparedSymmetry> global_self;
     mutable PlacementGroup placement_generators;
     mutable std::unique_ptr<permutation_native::SetOrbit> placement_orbits;
 };
@@ -210,7 +210,7 @@ struct BranchCap {
 };
 
 struct Fragment {
-    std::shared_ptr<const PreparedSelf> source, target;
+    std::shared_ptr<const PreparedSymmetry> source, target;
     std::vector<std::vector<int>> domains;
     std::vector<int> witness;
     std::vector<Pair> anchors, accepted_edges, target_edges;
@@ -238,7 +238,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
                        bool allow_mapped_seed, uint64_t random_seed = 42,
                        GrowthObservation* observation = nullptr,
                        GrowthDependencies* dependencies = nullptr,
-                       SourceReads* source_reads = nullptr, double self_tolerance = 1.0,
+                       SourceReads* source_reads = nullptr,
                        const std::vector<int>& placement_fixed_targets = {}) {
     SourceReadScope dependency_scope(R, source_reads);
     GrowResult result;
@@ -338,7 +338,7 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     prof.feasibility_calls=growth.witness.calls;prof.feasibility_nodes=growth.witness.nodes;
     prof.feasibility_searches=growth.witness.searches;
     if (dependencies) dependencies->boundary(growth.source_atoms);
-    complete_fragment(R,P,mapping,growth,graph_floor,iso_tol,self_tolerance,
+    complete_fragment(R,P,mapping,growth,graph_floor,iso_tol,
                       min_lock_size,max_branches,result,observation,placement_fixed_targets);
     return result;
 }
@@ -414,7 +414,7 @@ struct PyTarget {
 };
 
 class FragmentExport {
-    std::unordered_map<const PreparedSelf*,py::dict> prepared;
+    std::unordered_map<const PreparedSymmetry*,py::dict> prepared;
     std::unordered_map<const PlacementGenerators*,py::tuple> placements;
     std::map<std::vector<int>,py::tuple> generator_rows;
 public:
@@ -436,14 +436,14 @@ public:
         placements.emplace(value.get(),result);
         return result;
     }
-    py::dict self(const std::shared_ptr<const PreparedSelf>& value) {
+    py::dict self(const std::shared_ptr<const PreparedSymmetry>& value) {
         auto found=prepared.find(value.get());
         if (found!=prepared.end()) return found->second;
         py::dict out;
         out["self_id"]=prepared.size();
         out["atoms"]=value->atoms;out["anchors"]=value->anchors;
         out["elements"]=value->elements;
-        out["bond_threshold"]=value->bond_threshold;out["tolerance"]=value->tolerance;
+        out["bond_threshold"]=value->bond_threshold;
         out["generators"]=value->generators;
         const size_t n=value->atoms.size();
         py::array_t<double> weights({(py::ssize_t)n,(py::ssize_t)n});
@@ -511,7 +511,7 @@ py::object grow_result_dict(const GrowResult& res) {
 py::object py_grow_island(const PySource& source, const PyTarget& target, int seed,
                           const std::vector<int>& mapping, double graph_floor, double iso_tol,
                           int min_lock_size, long max_branches, py::object islands_obj,
-                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe, double self_tolerance,
+                          const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,
                           const std::vector<int>& placement_fixed_targets) {
     std::vector<Pair> islands;
     const std::vector<Pair>* islands_ptr = nullptr;
@@ -525,7 +525,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          random_seed,observe ? &observation : nullptr,nullptr,nullptr,self_tolerance,placement_fixed_targets);
+                          random_seed,observe ? &observation : nullptr,nullptr,nullptr,placement_fixed_targets);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -609,7 +609,7 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("grow_island", &py_grow_island, py::arg("source"), py::arg("target"), py::arg("seed"),
             py::arg("mapping"), py::arg("graph_floor"), py::arg("iso_tol"),
             py::arg("min_lock_size"), py::arg("max_branches"), py::arg("islands"),
-            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false, py::arg("self_tolerance")=1.0,
+            py::arg("prior_deferred_edges"), py::arg("allow_mapped_seed"), py::arg("random_seed")=42, py::arg("observe")=false,
             py::arg("placement_fixed_targets")=std::vector<int>{});
     mod.def("find_fragment_witness", &py_find_fragment_witness,
             py::arg("source"), py::arg("target"), py::arg("atoms"), py::arg("bonds"),
