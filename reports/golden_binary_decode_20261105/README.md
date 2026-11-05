@@ -184,3 +184,15 @@ only when needed and is not duplicated in persisted records. The correlated-arm
 test checks structural invariance, dependence without stabilizer construction,
 and a valid two-event query. The final unchanged source passed all **1,099 tests
 in 157.84 seconds**. Point validation is still required.
+
+Repeating the same pilot with fragment graph reuse alone again completed 23/36
+directions; thirteen reached the 120-second diagnostic limit. A bounded trace
+then isolated a 104-position global placement whose factorization still lacked
+structural information. The next change also supplies a placement's internal
+weight matrix when its generators preserve that matrix. Otherwise no structural
+certificate is inferred; the original group and event solver remain intact.
+Factorization metadata is now separate from point-selection metadata, preserving
+the established search ordering. Both local and placement correlated-arm tests
+check the reused certificate, with non-preserving choices retained unchanged.
+The final fixed-source suite passed **1,100 tests in 162.29 seconds**; the 126
+focused symmetry, query and decoder tests also passed.

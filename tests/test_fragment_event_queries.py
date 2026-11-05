@@ -82,15 +82,41 @@ def test_composed_arm_dependence_uses_the_prepared_graph(monkeypatch):
         projections=((prepared, (0,)),))
     for generator in response.group.generators:
         image = generator.array_form
-        assert np.array_equal(response.binary, response.binary[np.ix_(image, image)])
+        assert np.array_equal(response.factor_graph, response.factor_graph[np.ix_(image, image)])
 
     def unnecessary_stabilizer(*args, **kwargs):
         pytest.fail('the arm graph already proves the carbon/hydrogen orbits are correlated')
     with monkeypatch.context() as patch:
         patch.setattr(PermutationGroup, 'pointwise_stabilizer', unnecessary_stabilizer)
-        factors = independent_factors(response.group, response.binary)
+        factors = independent_factors(response.group, response.factor_graph)
     assert len(factors) == 1
     assert response.select(2).find().event_count == 2
+
+
+def test_composed_placement_reuses_only_a_preserved_graph(monkeypatch):
+    from sympy.combinatorics import PermutationGroup
+    from mappa.mappa_core.core.symmetry.groups import independent_factors
+
+    value = arms()
+    graph = (value.target_symmetry.weights > .2).astype(float)
+    action = ('group', value.target_symmetry.generators)
+    response = OrderedSymmetryEvents(value.witness, ((action, None),), graph, ())
+    def unnecessary_stabilizer(*args, **kwargs):
+        pytest.fail('the preserved placement graph already proves the arm dependence')
+    with monkeypatch.context() as patch:
+        patch.setattr(PermutationGroup, 'pointwise_stabilizer', unnecessary_stabilizer)
+        assert len(independent_factors(response.group, response.factor_graph)) == 1
+    assert response.binary is None  # Preserve the established branch search ordering.
+    for generator in response.group.generators:
+        image = generator.array_form
+        assert np.array_equal(response.factor_graph, response.factor_graph[np.ix_(image, image)])
+
+    # Variable bond weights are not a placement certificate, but their complete
+    # original permutation group remains available to the same event solver.
+    variable = OrderedSymmetryEvents(value.witness, ((action, None),),
+                                     value.target_symmetry.weights, ())
+    assert not np.any(variable.factor_graph)
+    assert variable.group.equals(response.group)
 
 
 def test_arm_occupancy_internal_exchanges_and_query_storage():

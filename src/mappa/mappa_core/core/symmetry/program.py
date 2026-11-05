@@ -63,6 +63,7 @@ class OrderedSymmetryEvents:
         self.actions = tuple(actions)
         self.target = target_weights
         self.deadline = None
+        self.binary = None
         frames, size = [], 0
         for (kind, data), prepared in actions:
             if kind == 'relation':
@@ -104,17 +105,25 @@ class OrderedSymmetryEvents:
         self.pairs = tuple(pairs)
 
     @cached_property
-    def binary(self):
+    def factor_graph(self):
         """Retain structural dependence inside each prepared action frame.
 
         Every choice preserves this disjoint graph. Its adjacency can therefore
         rule out impossible independent factors without rebuilding stabilizers.
-        Placement frames have no additional structural certificate here.
+        A placement can reuse its weights only when its generators preserve
+        them. This certificate guides factorization, not search ordering.
         """
-        graph = np.zeros((self.size, self.size), dtype=bool)
-        for (_, prepared), (start, _, degree) in zip(self.actions, self.frames):
+        graph = np.zeros((self.size, self.size))
+        for ((kind, data), prepared), (start, atoms, degree) in zip(self.actions, self.frames):
             if prepared is not None:
-                graph[start:start + degree, start:start + degree] = prepared.binary
+                local = prepared.factor_graph
+            else:
+                positions = {atom: i for i, atom in enumerate(atoms)}
+                local = self.target[np.ix_(atoms, atoms)]
+                images = [[positions[g[a]] for a in atoms] for g in data]
+                if any(not np.array_equal(local, local[np.ix_(image, image)]) for image in images):
+                    continue
+            graph[start:start + degree, start:start + degree] = local
         return graph
 
     def _endpoint_scopes(self):
@@ -191,7 +200,7 @@ class OrderedSymmetryEvents:
 
     def __getstate__(self):
         return {k:v for k,v in self.__dict__.items()
-                if k not in ('group', 'invariant_group', 'binary', 'deadline')}
+                if k not in ('group', 'invariant_group', 'factor_graph', 'deadline')}
 
     def __setstate__(self, state):
         self.__dict__.update(state)

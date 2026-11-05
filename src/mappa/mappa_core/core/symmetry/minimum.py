@@ -304,6 +304,10 @@ class FragmentSymmetryEvents:
         self.binary[:n, :n], self.binary[n:, n:] = source_binary, self.target_binary
         self.size = 2*n
 
+    @property
+    def factor_graph(self):
+        return self.binary
+
     def solve(self, *, max_nodes=10000, cache_entries=2048):
         if (max_nodes is not None and max_nodes < 0) or cache_entries < 0:
             raise ValueError('budgets must be nonnegative')
@@ -364,7 +368,7 @@ class _Search:
         key = group_key(group)
         if key not in self.groups:
             moved = support(group)
-            factors = independent_factors(group, self.data.binary)
+            factors = independent_factors(group, self.data.factor_graph)
             orbits = [orbit for orbit in group.orbits() if len(orbit) > 1]
             point = min((i for orbit in orbits for i in orbit),
                 key=lambda i: (next(len(orbit) for orbit in orbits if i in orbit),
