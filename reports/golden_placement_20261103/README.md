@@ -1,5 +1,16 @@
 # Full Golden benchmark with placement compression
 
+This historical report measures decoder revision `119dca4` on tolerance-1,
+cap-2,000 catalogues. The [current decoder validation](../golden_binary_decode_20261105/README.md)
+uses a later algorithm and tolerance-2, cap-200 catalogues; the scopes differ.
+References to the latest decoder below mean the revision measured on November 3.
+
+That decoder completed **all 3,702 directions / 1,851 reactions**
+from these saved catalogues, including all 47 decoding failures from the original
+run. The [fresh decoding measurement](#full-measurement-of-the-latest-decoder)
+below replaces the old decoder timings; original stage records remain unchanged.
+This measurement does not repeat matching, reduction or reference verification.
+
 A fresh full Golden rerun was submitted at **2026-11-03 06:19:04 UTC** for
 [`1710f69`](https://github.com/yunhzou/MAPPA-AAM/commit/1710f690f5c49b34d11de69782aa54b1f4d79304).
 The first campaign exposed a slow symmetry-membership check and was intentionally
@@ -13,14 +24,14 @@ provenance. At **08:03:31 UTC**, the frozen pass has **3,655 successful decodes 
 remaining memory-limit errors**. Reference verification has **3,696 completed
 results and six timeouts** out of 3,702. All required direction-stage records are
 terminal, with no active task attempts or original finish allocations remaining.
-The pass has ended with unresolved failures; it is not a successfully completed
-benchmark. Final audited resource and reference comparisons remain pending.
+The frozen pass ended with unresolved failures; it was not a successfully completed
+benchmark. The later decoding and reference investigations below retain its records.
 
 The separate reference-recovery investigation is complete: tolerance 2 recovers
 four of the 20 unresolved reactions with one seed and another nine with ten
 seeds, all at cap 2,000. The selected recovery union is **1,844/1,851 (99.62%)**;
 seven reactions remain unrecovered. All 32 ten-seed direction checks now have
-conclusive outcomes. This does not resolve the frozen full run's decoding errors.
+conclusive outcomes. That investigation is separate from the decoding measurement.
 
 ## Scope and settings
 
@@ -138,14 +149,14 @@ ranks; the median averages the two middle values for an even sample.
 
 ## Full measurement of the latest decoder
 
-A separate decoding-only measurement was submitted on **2026-11-03 at
-22:09:50 UTC**, using
+A separate decoding-only measurement completed on **2026-11-03**, using
 [`119dca4`](https://github.com/yunhzou/MAPPA-AAM/commit/119dca46af5d911071b656edba8998afef78ad7d).
 It includes the later shared-preparation decoder repair and reuses all **3,702
 completed catalogues**, covering **1,851 reactions** at the original seed 1,
-cap 2,000 and tolerance 1 settings. Matching, reduction and reference verification
-are not repeated. Every catalogue passed a compressed-range checksum audit;
-all original stage ledgers remain unchanged.
+cap 2,000 and tolerance 1 settings. **All 3,702 directions succeeded on their first
+attempt**, including all 47 previously unresolved directions. Matching, reduction
+and reference verification were not repeated. Every catalogue passed a
+compressed-range checksum audit; all original stage ledgers remain unchanged.
 
 The new measurement has independent outputs and explicit fresh 1,800-second
 compute budgets per direction. Ordinary directions use a **4 GiB worker guard**;
@@ -153,24 +164,72 @@ all 63 directions with any historical decoding memory failure, including the
 16 that subsequently succeeded, use **8 GiB**. These allowances do not change
 the retained mapping relation or event thresholds.
 
-The initial large requests were cancelled before any task started and replaced
-with smaller allocations that fit available resources. The replacement requests
-**194 compute workers across ten disjoint pools**. At **22:14:58 UTC**, nine pools
-had registered **181 workers**; the final 13-worker pool was still pending.
-This is startup evidence, not completion or proof that every worker was busy.
+The initial requests were replaced before any task started with allocations that
+fit available resources. All **194 compute workers across ten disjoint pools**
+registered and performed work; a queue snapshot confirmed 194 simultaneous
+running tasks. The measured span from the first task start to the last task finish
+was **27m39.85s** (22:14:32.979–22:42:12.826 UTC), excluding queue wait before the
+first task and the separate output audit. Later pool startup waits fall within
+that span. All pools finished and released ownership, with no retries
+or overlapping direction ownership.
+
+![Golden mapping and latest-decoder timing distributions](decoder-rerun.png)
+
+The distribution covers every reaction and sums forward plus reverse computation
+CPU. Mapping includes final family aggregation/deduplication from the unchanged
+saved run. These are CPU-work distributions, not per-reaction waiting times.
+
+| CPU seconds per reaction | Median | 90th percentile | 95th percentile | 99th percentile | Maximum |
+|---|---:|---:|---:|---:|---:|
+| Mapping + deduplication, 1,851 reactions | 3.63 | 32.80 | 63.27 | 151.41 | 297.00 |
+| Latest decoding, 1,851 reactions | 12.28 | 137.17 | 264.62 | 547.76 | 1,533.63 |
+
+On the same **3,655 previously successful directions**, computation CPU fell from
+**91,822.40 to 78,024.48 seconds: 15.03% less**. Publication CPU rose from
+1,523.01 to 1,662.99 seconds (9.19%); total worker CPU still fell by **14.63%**.
+For the **1,812 reactions with both directions previously successful**, computation
+CPU fell by **14.70%**, and the median fell from **13.90 to 11.49 seconds**.
+That paired comparison excludes the 39 reactions affected by the 47 old failures.
+It is an aggregate improvement, not a claim that every reaction became faster:
+1,328 paired reactions used less CPU and 484 used more in these single runs.
+
+Across all newly completed directions, computation used **96,467.96 CPU seconds**
+and publication **1,957.02 CPU seconds**. The 47 directions without a successful
+baseline account for 18,443.48 computation CPU seconds; including them in a raw
+old/new total would compare different completed scopes. The largest sampled
+process-tree RSS was **5.21 GiB during computation** and **6.42 GiB during
+publication**, with no memory-limit failures or sampled guard crossings.
+Memory was sampled every 0.2 seconds for 3,391
+tasks; 311 short tasks had no sample and are not reported as zero-memory tasks.
+The ten allocations consumed **37.27 allocated CPU-hours**, counting allocations
+once and excluding duplicate child-step accounting. Recorded worker tasks used
+**27.34 CPU-hours**, or 73.36% of that capacity; coordinator and startup CPU are
+outside the task measurements. The peak allocation of 224 CPUs included overhead
+for the 194 compute workers. Actual task CPU averaged 59.30 CPUs across the full
+elapsed span as completed pools released resources and the slow tail finished.
+
+Per-direction and per-reaction measurements, paired comparisons and provenance
+are in [decoder-rerun.json](decoder-rerun.json); the figure is also available as
+[SVG](decoder-rerun.svg). The old [timing distribution](timing-distribution.json)
+is retained as the frozen baseline. Percentiles use empirical nearest ranks;
+the median averages the two middle values for an even sample. Different worker
+counts and memory allowances prevent interpreting the elapsed-run difference as
+a controlled decoder speedup.
 
 The runner executes only decoding from saved catalogue references. Local
 validation passed **37 campaign tests**, **12 preparation tests** and **26 smoke
 tests**. Linux validation passed **19 decoding-only checks** and **26 smoke
 tests**; the unrelated publication-test module was excluded from Linux collection
-because its optional PDF dependency was absent. No core algorithm was changed
-to launch this measurement.
+because its optional PDF dependency was absent. The separate output-audit tool
+passed seven focused tests on both Mac and Linux. No core algorithm was changed
+to launch this measurement or compare saved results.
 
-Full timing and output comparison remain pending. The fair speed comparison uses
-the same previously successful directions and reports computation and publication
-separately. The 47 previously unsuccessful directions have no successful baseline
-output and will be reported separately. Output-content validation is outside the
-timed decoding stage.
+At the time of this report, full saved-output comparison was running outside
+the timed decoding stage. Its scope was complete decoded records and scientific
+metadata for all 3,655 baseline outputs, plus the declared scope of all 3,702 new
+outputs. This report does not establish completion of that historical audit.
+The 47 previously unsuccessful directions have no successful baseline output
+to compare.
 
 ## Matching repair and local validation
 
