@@ -440,6 +440,14 @@ history joins their choices, the same core operates on the affected sparse costs
 it must not combine incompatible local minima or replace an ordered action
 sequence by unrestricted group closure.
 
+Assembly binds the prepared cost projections to their original shared choices;
+it does not expand them back into raw bond terms. Weight-preserving placement
+actions retain those internal costs while moving the endpoints. The sweep adds
+only its endpoint-pair correction, with endpoint dependencies traced through the
+saved action order. Reuse local event-invariant compression only when it also
+preserves every affected endpoint and other contribution. Accept an attained
+lower bound immediately rather than searching again for the same minimum.
+
 The event model uses the accepted **independent ordinary-boundary approximation**.
 Add local internal events to a fixed ordinary boundary contribution, including
 mapped/unmapped boundaries. Do not recompute ordinary boundaries for each choice.

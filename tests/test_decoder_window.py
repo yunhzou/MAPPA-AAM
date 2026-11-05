@@ -1,6 +1,7 @@
 """The window uses local constraints and only the selected sweep coupling."""
 import pytest
 import z3
+from dataclasses import replace
 
 from mappa import AAMProblem, decode_events
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder
@@ -75,6 +76,57 @@ def test_sweep_endpoint_choice_preserves_its_fragment_internal_cost(monkeypatch)
     moved = result.contributions(0, [dict(discovery={1: 2, 2: 1, 3: 3})])
     assert original['total'] == moved['total'] == 2
     assert not original['internal'] and not moved['boundary']
+
+
+def test_sweep_reuses_constant_fragment_costs_after_placement(monkeypatch):
+    from mappa.mappa_core.core.symmetry.minimum import _Search
+
+    # The 12-atom ring has many internal pair responses, but every rotation
+    # costs zero. Only its attachment to the outside O can change the count.
+    n = 12
+    ring = [(i, 1 + i % n, 1.) for i in range(1, n + 1)]
+    r = endpoint('O' + 'C' * n, ring + [(0, 1, 1.)])
+    p = endpoint('O' + 'C' * n, ring + [(0, 2, 1.)])
+    fragment = saved_fragment(AAMProblem(r, p), source_atoms=range(1, n + 1))
+    source = saved(r, p, dict(enumerate(range(n + 1))), fragments=(fragment,),
+        pairs=(((0,), (0,)), (tuple(range(1, n + 1)), tuple(range(1, n + 1)))))
+    reflection = tuple(0 if i == 0 else 1 + (3 - i) % n for i in range(n + 1))
+    source.families[0] = replace(source.families[0],
+        actions=source.families[0].actions + (('group', (reflection,)),),
+        provenance=[dict(cuts=((0, 1),))])
+    solve = _Search.run
+    searches = []
+    def checked(self):
+        if hasattr(self.data, 'actions'):
+            assert len(self.data.pairs) <= 2, 'sweep reopened internal fragment costs'
+            searches.append(len(self.data.pairs))
+        return solve(self)
+    monkeypatch.setattr(_Search, 'run', checked)
+    result = decode_events(source, event_slack=0)
+    assert result.minimum_events == 0 and result.minimum_proven
+    table = result.tables(0)
+    local = table.fragment_responses[1][0].event_counts
+    assert local.constant == 0 and not local.program.pairs
+    assert searches == [2]
+    answer = result.select(0, 0).find()
+    assert answer.status == 'found'
+    assert result.contributions(0, answer.choices)['total'] == 0
+
+
+def test_attained_contextual_bound_does_not_repeat_minimum_search(monkeypatch):
+    from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+
+    r = endpoint('CCC', [(0, 1, 1.), (1, 2, 1.)])
+    p = endpoint('CCC', [(0, 1, 1.)])
+    fragment = saved_fragment(AAMProblem(r, p))
+    source = saved(r, p, dict(enumerate(range(3))), fragments=(fragment,),
+        pairs=(((0, 1), (0, 1)), ((2,), (2,))))
+    result = decode_events(source)
+    counts = result.tables(0).fragment_responses[0][0].event_counts
+    assert not counts.direct and counts.bounds == (0, 0)
+    monkeypatch.setattr(OrderedSymmetryEvents, 'solve',
+        lambda *a, **k: pytest.fail('a valid witness already attains the lower bound'))
+    assert counts.minimum_result.complete and counts.minimum == 0
 
 
 def test_minimum_at_initial_upper_endpoint_is_retained():

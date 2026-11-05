@@ -464,12 +464,16 @@ class _Search:
                 cost += answer.cost
                 complete = complete and answer.complete
             return self._remember(answer_key, _Answer(cost, tuple(sorted(images.items())), complete))
-        if key not in self.steps:
+        affected = moved_set.intersection(atom for pair in active for atom in pair)
+        if affected and point not in affected:
+            point = min(affected)
+        step_key = key, point
+        if step_key not in self.steps:
             representatives = group.orbit_transversal(point, pairs=True)
             representatives.sort(key=lambda item: (item[0] != point, item[0]))
-            self.steps[key] = group.stabilizer(point), representatives
+            self.steps[step_key] = group.stabilizer(point), representatives
             self.work.group_steps_prepared += 1
-        subgroup, representatives = self.steps[key]
+        subgroup, representatives = self.steps[step_key]
         complete = True
         for _, operation in self._representatives(prefix, representatives, moved):
             next_prefix = prefix[np.asarray(operation.array_form[:self.data.size])]

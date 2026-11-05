@@ -1,6 +1,7 @@
 """Independent small-graph oracles for retained symmetry/event selections."""
 from collections import Counter
 from itertools import permutations, product
+from dataclasses import replace
 import json
 import pickle
 
@@ -9,8 +10,11 @@ import pytest
 
 from mappa import decode_events, decoded_events_record, decoded_events_from_record
 from mappa.mappa_core.core.symmetry.minimum import FragmentSymmetryEvents
+from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
 from test_fragment_optimization import fragment, weights
 from test_event_interpretation import saved, endpoint
+from growth_cases import saved_fragment
+from mappa import AAMProblem
 
 
 def automorphs(matrix, elements, anchors=()):
@@ -43,13 +47,16 @@ def test_target_queries_and_endpoint_conditions_against_complete_oracle(seed):
     value = fragment(left, right, (), range(4))
     expected = oracle(value)
     data = FragmentSymmetryEvents(value)
-    for count in range(7):
-        for image in range(4):
-            answer = data.select(count).find(assignments={0: image})
-            allowed = {p for p, cost in expected.items() if cost == count and p[0] == image}
-            assert answer.status == ('found' if allowed else 'absent')
-            if allowed:
-                assert tuple(dict(answer.witness)[a] for a in range(4)) in allowed
+    bound = OrderedSymmetryEvents(value.witness, ((('relation', value), data),), right, (),
+                                  projections=((data, (0,)),))
+    for response in (data, bound):
+        for count in range(7):
+            for image in range(4):
+                answer = response.select(count).find(assignments={0: image})
+                allowed = {p for p, cost in expected.items() if cost == count and p[0] == image}
+                assert answer.status == ('found' if allowed else 'absent')
+                if allowed:
+                    assert tuple(dict(answer.witness)[a] for a in range(4)) in allowed
 
 
 def arms():
@@ -149,3 +156,47 @@ def test_restored_window_keeps_only_prepared_fragments():
     assert len(restored.fragments) == 1
     assert restored.minimum_events == 0
     assert restored.select(0,0).find().status == 'found'
+
+
+@pytest.mark.parametrize('seed', range(12))
+def test_ordered_fragment_projection_and_sweep_against_all_small_choices(seed):
+    # Empty matching connectivity permits all shuffles. Event weights are
+    # deliberately different, so a placement cannot reuse constant costs.
+    rng = np.random.default_rng(seed)
+    matching = endpoint('CCCC', [])
+    value = saved_fragment(AAMProblem(matching, matching), source_atoms=(0, 1, 2))
+    catalogue = saved(matching, matching, dict(enumerate(range(4))), fragments=(value,),
+                      pairs=(((0, 1), (0, 1)), ((2, 3), (2, 3))))
+    shifts = ((2, 3, 0, 1), (0, 2, 1, 3))
+    catalogue.families[0] = replace(catalogue.families[0],
+        actions=catalogue.families[0].actions + tuple(('group', (g,)) for g in shifts),
+        provenance=[dict(cuts=((0, 2),))])
+    endpoints = [endpoint('CCCC', [(a, b, float(rng.choice((0., .2, .8, 1.6))))
+                 for a in range(4) for b in range(a + 1, 4)]) for _ in range(2)]
+    decoded = decode_events(catalogue, event_problem=AAMProblem(*endpoints), event_slack=20)
+    table, expected = decoded.tables(0), {}
+    for local, move1, move2 in product(permutations(range(3)), (False, True), (False, True)):
+        images = list(local) + [3]
+        for move, shift in zip((move1, move2), shifts):
+            if move:
+                images = [shift[p] for p in images]
+        # Independent scalar oracle for the agreed ordinary-boundary model.
+        total = table.boundary_count
+        for a, b in ((0, 1), (2, 3), (0, 2)):
+            total += abs(endpoints[0].wbo[a, b] - endpoints[1].wbo[images[a], images[b]]) > .5
+        total -= int(endpoints[0].wbo[0, 2] > .5)
+        total -= int(tuple(sorted((images[0], images[2]))) in table.product_boundary_set)
+        expected[tuple(images)] = int(total)
+    program = table.program
+    for operation in program.group.generate_schreier_sims():
+        prefix = np.asarray(operation.array_form)
+        images = tuple(program.mapping(prefix)[a] for a in range(4))
+        assert program.fixed_events + program.score(prefix, program.pairs) == expected[images]
+    assert decoded.minimum_events == min(expected.values()) and decoded.minimum_proven
+    for count in range(max(expected.values()) + 2):
+        for image in range(4):
+            answer = decoded.select(0, count).find(assignments={0: image})
+            allowed = {p for p, cost in expected.items() if cost == count and p[0] == image}
+            assert answer.status == ('found' if allowed else 'absent')
+            if allowed:
+                assert tuple(dict(answer.witness)[a] for a in range(4)) in allowed

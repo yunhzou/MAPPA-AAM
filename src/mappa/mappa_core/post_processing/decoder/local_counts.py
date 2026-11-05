@@ -6,6 +6,7 @@ from functools import cached_property
 import numpy as np
 
 from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+from mappa.mappa_core.core.symmetry.minimum import SymmetryWork
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 
 
@@ -144,9 +145,18 @@ class FragmentEventCounts:
             return owner.decoder.prepare(response.actions[0][1]).response
         actions = tuple((action, owner.decoder.prepare(action[1]).response if action[0] == 'relation' else None)
                         for action in response.actions)
+        # A whole fragment followed only by weight-preserving placements has
+        # exactly its prepared internal costs. Placements still move endpoints.
+        if actions and actions[0][0][0] == 'relation':
+            fragment = actions[0][0][1]
+            if (response.mapping == fragment.witness
+                    and response.piece.source_atoms == fragment.source_atoms
+                    and all(owner.preserves_weights(action) for action in response.actions[1:])):
+                return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, (),
+                    projections=((actions[0][1], (0,)),))
         terms = tuple((term.atoms, term.response.source_weight, term.response.threshold,
                        term.response.constant) for term in response.terms)
-        return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, terms, response.atom_actions)
+        return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, terms)
 
     @cached_property
     def bounds(self):
@@ -159,6 +169,9 @@ class FragmentEventCounts:
         if self.direct:
             prepared = self.owner.decoder.prepare(self.response.actions[0][1])
             return prepared.optimization
+        lower, attained = self.bounds
+        if lower == attained:
+            return self.program.result(np.arange(self.program.size), attained, True, 0., SymmetryWork())
         return self.program.solve(seconds=self.owner.decoder.fragment_seconds)
 
     @property

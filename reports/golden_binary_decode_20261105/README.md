@@ -54,13 +54,64 @@ why removing only the first redundant search does not resolve the integration
 bottleneck. These diagnostics do not establish that local minima can be added
 without checking their shared choices or endpoint conditions.
 
-The production scientific implementation remains unchanged. Investigation now
-uses bounded local point tests. Full validation will not continue while this
-performance issue is unresolved. The fragment-level beta measurements do not
-establish full branch-decoding performance.
+At that stopping point, production scientific code was unchanged. The subsequent
+repair and bounded local validation are recorded below. Fragment-level beta
+measurements alone do not establish full branch-decoding performance.
 
 Conversion and campaign validation passed 66 local tests; Linux preflight passed
 44 tests. The reusable timing summary was checked against actual worker outputs
 in one further integration test. It remains available for a later completed pass
 as `python bench/performance.py decoding-timings CAMPAIGN OUTPUT.json`; it refuses
 an undrained or incomplete pass. No full-set timing distribution is reported here.
+
+## Prepared-response reuse repair
+
+The repair accepts an attained local lower bound immediately. Branch assembly
+now references prepared fragment cost projections instead of expanding them
+back into raw bond terms. Weight-preserving placements retain internal costs;
+they still move endpoints. Endpoint dependencies follow the ordered actions and
+contain only positions that can determine their images. Local event-invariant
+compression is reused only after protecting the possible images read by other
+costs, including the sweep. Shared actions and injective occupancy remain joint.
+No event model, allowed mapping relation, tolerance, time allowance or cap was
+changed, and no alternative decoder was added.
+
+All six formerly timed-out directions completed full local decoding and record
+construction with a 60-second point-test watchdog. These are sequential Mac
+measurements, including the minimum/window preparation and output record, but
+excluding the separately measured explicit input conversion and save/load check.
+
+| Direction | Conversion (s) | Decoding and record (s) | Model minimum |
+|---|---:|---:|---:|
+| 569 forward | 0.041 | 5.868 | 7 |
+| 569 reverse | 0.104 | 2.313 | 7 |
+| 1361 forward | 0.176 | 24.616 | 7 |
+| 1361 reverse | 0.633 | 9.579 | 7 |
+| 575 reverse | 0.566 | 2.910 | 11 |
+| 837 forward | 0.039 | 4.941 | 6 |
+
+Success is **6/6**, with no point-test timeout; the measured maximum is **24.616 s**
+on 1361 forward. Each model minimum was proved within the retained decoded orbit.
+All six matching catalogue records remained unchanged, and decoded record
+save/load/save equality passed. Process peak RSS reached 784.3 MiB across the
+sequential process, including periods retaining both original and restored
+outputs; this is not a separate per-direction peak or an enforced memory guard.
+
+The directly comparable pre-repair 569-forward test exceeded 240 seconds on the
+same converted input; it now takes 5.868 seconds, over 40 times faster than that
+timeout lower bound. The earlier six cluster timeouts used the former decoder
+and symmetry policy, so their 600-second limits are not an isolated speedup
+baseline for this repair. No full Golden maximum, recovery result or universal
+no-regression claim follows from these six cases.
+
+Critical tests require a ring's sweep search to contain only the two endpoint
+costs, retain an attained contextual minimum without another search, and check
+all small ordered fragment/placement choices against independent scalar event
+counts. Queries retain endpoint/internal dependence, occupancy, unattainable
+count gaps, differing source/target connectivity and saved-response restoration.
+
+The final fixed-source repository suite passed **1,091 tests in 162.61 seconds**.
+An earlier interrupted suite is excluded: editing a core file during that run
+caused its execution-layer source/cache identity checks to reject worker tasks.
+The affected test passed independently, and the complete suite above ran with
+unchanged source. No full cluster decoding run was restarted.

@@ -550,15 +550,9 @@ class FragmentEventTables:
         local, family = self.local, self.family
         actions = tuple((action, local.prepare(action[1]).response if action[0] == 'relation' else None)
                         for action in family.actions)
-        terms = []
         fixed = self.boundary_events.lower
-        for response, _ in self.fragment_responses:
-            count = response.event_counts.constant
-            if count is not None:
-                fixed += count
-            else:
-                terms.extend((term.atoms, term.response.source_weight, term.response.threshold,
-                              term.response.constant) for term in response.terms)
+        projections = tuple((response.event_counts.program, binding)
+                            for response, binding in self.fragment_responses)
         sweep = None
         if self.sweep_cut is not None:
             a, b = self.sweep_cut
@@ -566,8 +560,8 @@ class FragmentEventTables:
                 default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
             reserve = self.sweep_removed - int(self.boundary_events.source_cut_counted)
             sweep = self.sweep_cut, float(self.index.r[a,b]), tau, reserve, self.product_boundary_set
-        return OrderedSymmetryEvents(family.mapping, actions, self.index.p, terms,
-            self.atom_actions, fixed_events=fixed, sweep=sweep)
+        return OrderedSymmetryEvents(family.mapping, actions, self.index.p, (),
+            fixed_events=fixed, sweep=sweep, projections=projections)
 
     @cached_property
     def minimum_result(self):
@@ -588,8 +582,16 @@ class FragmentEventTables:
         for action, choice in zip(self.family.actions, selections):
             images = apply_action(images, action, choice, self.index.m)
         mapping = tuple((a, int(p)) for (a, _), p in zip(self.family.mapping, images))
-        program = self.program
-        count = program.fixed_events + program.count_terms(dict(mapping), program.pairs)
+        count = self.boundary_events.lower + sum(
+            response.event_counts.minimum for response, _ in self.fragment_responses)
+        if self.sweep_cut is not None:
+            a, b = self.sweep_cut
+            images = dict(mapping)
+            pair = tuple(sorted((images[a], images[b])))
+            term = next(iter(self.boundary.values()))[0]
+            count += int(term.response.lookup(self.index.p[pair]) != 0)
+            count += self.sweep_removed - int(self.boundary_events.source_cut_counted)
+            count -= int(pair in self.product_boundary_set)
         return count, mapping, selections
 
     @cached_property

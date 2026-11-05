@@ -28,6 +28,18 @@ class EventTerm:
 
 
 @dataclass(frozen=True)
+class BoundEventTerm:
+    """One prepared cost, referencing the same choices in a larger program."""
+    response: object
+    term: object
+    positions: tuple
+    scope: tuple
+
+    def __iter__(self):
+        return iter(self.scope)
+
+
+@dataclass(frozen=True)
 class ProgramMinimum:
     witness: tuple
     choices: tuple
@@ -45,8 +57,8 @@ class OrderedSymmetryEvents:
     Only variable pair terms enter search. No discovery variables or complete
     atom-assignment tables are reconstructed here.
     """
-    def __init__(self, mapping, actions, target_weights, terms, dependencies,
-                 *, fixed_events=0, sweep=None):
+    def __init__(self, mapping, actions, target_weights, terms,
+                 *, fixed_events=0, sweep=None, projections=()):
         self.base = tuple(mapping)
         self.actions = tuple(actions)
         self.target = target_weights
@@ -64,9 +76,7 @@ class OrderedSymmetryEvents:
             frames.append((size, *frame))
             size += frame[1]
         self.frames, self.size = tuple(frames), size
-        scopes = {atom: tuple(i for action in ids
-                             for i in range(self.frames[action][0], self.frames[action][0] + self.frames[action][2]))
-                  for atom, ids in dependencies.items()}
+        scopes = self._endpoint_scopes()
         self.scopes = scopes
         self.fixed_events = fixed_events
         pairs = []
@@ -76,6 +86,16 @@ class OrderedSymmetryEvents:
             else:
                 scope = tuple(sorted(set(scopes[atoms[0]]) | set(scopes[atoms[1]])))
                 pairs.append(EventTerm(atoms, weight, threshold, scope))
+        self.projections = []
+        for response, binding in projections:
+            local_frames = (response.frames if isinstance(response, OrderedSymmetryEvents)
+                            else ((0, (), response.size),))
+            positions = tuple(self.frames[outer][0] + i for outer, (_, _, degree)
+                              in zip(binding, local_frames) for i in range(degree))
+            self.fixed_events += response.fixed_events
+            self.projections.append((response, positions))
+            pairs.extend(BoundEventTerm(response, term, positions,
+                                       tuple(positions[i] for i in term)) for term in response.pairs)
         if sweep is not None:
             atoms, weight, threshold, reserve, boundary_pairs = sweep
             scope = tuple(sorted(set(scopes[atoms[0]]) | set(scopes[atoms[1]])))
@@ -83,6 +103,39 @@ class OrderedSymmetryEvents:
             if reserve:
                 pairs.append(EventTerm(atoms, 0., 0., scope, boundary_pairs))
         self.pairs = tuple(pairs)
+
+    def _endpoint_scopes(self):
+        """Trace just the positions that can determine each endpoint image."""
+        from .actions import _action_orbits
+        rows = []
+        for ((kind, data), prepared), (start, atoms, _) in zip(self.actions, self.frames):
+            if kind == 'group':
+                orbits = _action_orbits((kind, data), len(self.target))
+                rows.append({atom: ((start + i,), orbits[atom]) for i, atom in enumerate(atoms)})
+            else:
+                n = len(prepared.witness)
+                row = {}
+                for atom, image in data.witness:
+                    i = prepared.fragment.source_atoms.index(atom)
+                    origins = prepared.source_group.orbit(i) if prepared.two_sided else (i,)
+                    offset = n if prepared.two_sided else 0
+                    reached = {p - offset for j in origins for p in prepared.group.orbit(offset + j)}
+                    targets = {prepared.fragment.target_atoms[prepared.witness[p]] for p in reached}
+                    scope = tuple(start + p for p in prepared.condition_scope(atom))
+                    row[image] = scope, targets
+                rows.append(row)
+        scopes = {}
+        for atom, image in self.base:
+            domain, scope = {image}, set()
+            for row in rows:
+                reached = set()
+                for p in domain:
+                    positions, images = row.get(p, ((), (p,)))
+                    scope.update(positions)
+                    reached.update(images)
+                domain = reached
+            scopes[atom] = tuple(sorted(scope))
+        return scopes
 
     @cached_property
     def group(self):
@@ -101,9 +154,27 @@ class OrderedSymmetryEvents:
 
     @cached_property
     def invariant_group(self):
-        # An action preserving its own costs may change a later action's input.
-        # The individual fragment response still uses its stronger certificate.
-        return permutation_group((), self.size)
+        # Reuse a local certificate only after fixing every possible image
+        # read by other costs. This stays valid after any earlier choice.
+        generators = []
+        orbits = {i: orbit for orbit in self.group.orbits() for i in orbit}
+        for response, positions in self.projections:
+            other_scope = {i for term in self.pairs if not (
+                isinstance(term, BoundEventTerm) and term.response is response
+                and term.positions == positions) for i in term}
+            protected = set().union(*(orbits[i] for i in other_scope))
+            fixed = [i for i, position in enumerate(positions) if position in protected]
+            invariant = response.invariant_group
+            if fixed:
+                invariant = invariant.pointwise_stabilizer(fixed, incremental=False)
+            for g in invariant.generators:
+                if g.is_Identity:
+                    continue
+                operation = list(range(self.size))
+                for i, position in enumerate(positions):
+                    operation[position] = positions[g(i)]
+                generators.append(operation)
+        return permutation_group(generators, self.size)
 
     def __getstate__(self):
         return {k:v for k,v in self.__dict__.items() if k not in ('group','invariant_group','deadline')}
@@ -140,7 +211,18 @@ class OrderedSymmetryEvents:
     def score(self, prefix, terms):
         if not terms:
             return 0
-        return self.count_terms(self.mapping(prefix), terms)
+        raw, projected = [], {}
+        for term in terms:
+            if isinstance(term, BoundEventTerm):
+                projected.setdefault((term.response, term.positions), []).append(term.term)
+            else:
+                raw.append(term)
+        count = self.count_terms(self.mapping(prefix), raw) if raw else 0
+        for (response, positions), costs in projected.items():
+            inverse = {position: i for i, position in enumerate(positions)}
+            local = np.asarray([inverse[int(prefix[i])] for i in positions])
+            count += response.score(local, costs)
+        return int(count)
 
     def count_terms(self, images, terms):
         count = 0
