@@ -47,7 +47,7 @@ Evidence: [baseline record](decoder-baseline-digest.jsonl),
 [refactored record](decoder-refactored-digest.jsonl),
 [publication replay](decoder-refactored-publication.jsonl),
 [original failure diagnosis](decoder-memory.md). The same
-[profile tool](profile_decoder.py) performs both record hashing (`--digest-only`)
+[profile tool](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/golden_pool_20261101/profile_decoder.py) performs both record hashing (`--digest-only`)
 and publication measurement. Input provenance is in
 [decoder-memory-source.json](decoder-memory-source.json).
 

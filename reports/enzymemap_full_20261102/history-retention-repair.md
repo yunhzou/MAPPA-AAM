@@ -73,7 +73,7 @@ EnzymeMap accuracy benchmark were not rerun.
 [Raw phase traces, comparisons and source identity](history-retention-repair.json)
 contain all twelve measurements. Input provenance is unchanged from the
 [initial diagnosis](mac-diagnosis.md). Measurements use the existing
-[phase probe](../native_transport_20261031/memory_probe.py) and installed repaired
+[phase probe](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/memory_probe.py) and installed repaired
 engine. The previous binary is an ignored benchmark artifact, selected only by
 the probe's existing engine override; it is not a production fallback.
 Both binaries run through the same current Python probe and record classes;

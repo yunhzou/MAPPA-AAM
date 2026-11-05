@@ -261,29 +261,28 @@ Historical benchmark proofs apply only to their recorded source revisions; they 
 ### Matching implementation ownership
 
 `mappa.match_fragment` and its public configuration/result types remain available.
-Their implementation is now under `mappa.mappa_core.core.matching`, together with
-fragment growth and compressed symmetry. Old internal `fragment`, `matcher` and
-`growth` import paths are removed. The checkpoint reader explicitly relocates
-saved class names to their new modules; it does not retain a second implementation.
+Their implementation is under `mappa.mappa_core.core.matching`; shared symmetry
+operations belong to `mappa.mappa_core.core.symmetry`. The checkpoint reader
+explicitly relocates unchanged saved class names; it rejects incompatible
+scientific schemas rather than retaining a second implementation.
 
 ### Search implementation ownership
 
 Public `mappa.search_aam`, `search_aam_checkpoints`, direction planning, partial
-mapping and subgraph APIs retain their signatures. Implementations now live under
+mapping and subgraph APIs retain their signatures. Implementations live under
 `mappa.mappa_core.core.search`: `api`, `planning`, `session` and `graph`, with branch construction under
-`branching/` and partial/subgraph objectives under `queries/`.
-Old internal search module paths are removed. Local workers use
+`branching/` and partial/subgraph objectives under `queries/`. The same `queries/`
+owner compiles saved paths for `query_path` and assignment projection; workflow
+analytics consumes it without reversing the dependency into core. Local workers use
 `mappa.mappa_core.core.scheduler.search`; the shared task queue retains its current API.
 
 `search_core_assignments` projects the requested atoms through the saved ordered
-fragment discovery constraints and both-sided relaxed self relationships. It uses the optional symbolic-query
-dependency installed with MAPPA, enumerates only distinct requested tuples,
+fragment discovery constraints and both sides' binary symmetries. It uses the
+symbolic-query dependency installed with MAPPA, enumerates only distinct requested tuples,
 and enforces `assignment_limit` without expanding complete atom mappings.
 
 Trusted checkpoint and bundle readers explicitly relocate saved search class
-names. Rebuild the native engine after updating: the unused experimental
-`FragmentChoices` export has been removed. Shared seed search and optional
-fragment competition remain supported.
+names. Shared seed search and optional fragment competition remain supported.
 
 ## Query shared fragment and branch responses
 

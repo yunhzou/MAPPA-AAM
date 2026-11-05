@@ -18,7 +18,7 @@ def extract_path_events(path, search_problem, index, *, max_events=None, seconds
     its returned references are retained in the family report.
     """
     import z3
-    from mappa.mappa_workflow.mapping_analytics.family import compile_path
+    from mappa.mappa_core.core.search.queries.family import compile_path
     from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
     if (not math.isfinite(seconds) or seconds < 0 or
             (max_patterns is not None and

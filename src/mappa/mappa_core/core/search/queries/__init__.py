@@ -1,1 +1,1 @@
-"""Partial and subgraph searches over the shared branch engine."""
+"""Partial searches and queries over saved correlated branch relationships."""

@@ -8,6 +8,8 @@ from mappa.mappa_core.utils.io.records import aam_json
 from .interpolation import proper_align_coordinates
 
 import html
+import base64
+import gzip
 import json
 from pathlib import Path
 import re
@@ -44,6 +46,44 @@ def style_document(document, family='reaction', layout='standard'):
 
 def _json(value):
     return json.dumps(value, separators=(',', ':'), default=lambda x: x.tolist()).replace('</', '<\\/')
+
+
+def embedded_collection_html(cases, *, title, summary):
+    """Pack saved viewers with one shared library and one navigation layout.
+
+    Each case supplies its id, display metadata and complete HTML as bytes in
+    ``document``. The first inline script must be the same library in every case.
+    Molecular data and scripts are retained verbatim.
+    """
+    def compress(value):
+        return base64.b64encode(gzip.compress(value, compresslevel=9, mtime=0)).decode('ascii')
+
+    marker = b'<!-- MAPPA_SHARED_LIBRARY -->'
+    common, records = None, []
+    for case in cases:
+        document = case['document']
+        start = document.find(b'<script>')
+        end = document.find(b'</script>', start)
+        if start < 0 or end < 0:
+            raise ValueError(f"Case {case['id']} lacks its inline library")
+        end += len(b'</script>')
+        library = document[start:end]
+        if common is None:
+            common = library
+        elif library != common:
+            raise ValueError(f"Shared library differs for {case['id']}")
+        body = document[:start] + marker + document[end:]
+        records.append({key: value for key, value in case.items() if key != 'document'}
+                       | dict(payload=compress(body)))
+    if not records:
+        raise ValueError('No case viewers supplied')
+    template = (ASSETS / 'batch_viewer.html').read_text()
+    document = (template.replace('__TITLE__', html.escape(title))
+                .replace('__SUMMARY__', html.escape(summary))
+                .replace('__MARKER__', marker.decode())
+                .replace('__COMMON__', compress(common))
+                .replace('__CASES__', _json(records)))
+    return style_document(document, 'batch', 'batch')
 
 
 def viewer_style(family='reaction', layout='standard'):

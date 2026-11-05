@@ -159,7 +159,7 @@ def test_large_invariant_fragment_never_enters_solver(monkeypatch):
     path = saved_path(value, (saved_fragment(value),))
     def forbidden(*args, **kwargs):
         raise AssertionError('invariant pool must remain compressed')
-    monkeypatch.setattr('mappa.mappa_workflow.mapping_analytics.family.compile_path', forbidden)
+    monkeypatch.setattr('mappa.mappa_core.core.search.queries.family.compile_path', forbidden)
     decoded = decode_events(FinalBranchCatalogue(value).add_graph(path.graph))
     assert decoded.contributions(0)['total'] == 0
     assert decoded.tables(0).statistics['projected_pair_states'] == 0

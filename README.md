@@ -6,7 +6,9 @@ MAPPA is a Python library for atom–atom matching (AAM) between molecular struc
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
-**Latest full Golden rerun: 98.87% reference coverage (1,830 / 1,851; one seed).** This measures recovery among the returned alternatives.
+**Current decoder: all 3,702 saved Golden directions completed without failures.**
+This validates decoding of saved catalogues; reference-recovery measurements below
+belong to their recorded historical revisions.
 
 [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
@@ -14,11 +16,18 @@ Use MAPPA to map reactants to products, analyze how molecular structures differ,
 
 **Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
 
-The [latest completed full rerun](reports/golden_retest_20261101/README.md) used
+The [November 1 completed full rerun](reports/golden_retest_20261101/README.md) used
 source commit `096a010961f53944ddd4ddc433bd8d56f282a2f2`, one seed, branch cap 100
 and both search directions. All 1,851 reactions completed matching, reduction,
 decoding and verification. Its 1,830 recovered references are the result recorded
 for that revision; later changes require their own full-run validation.
+
+The later [tolerance-1, cap-2,000 study](reports/golden_placement_20261103/README.md)
+recorded 1,831/1,851 recovered reactions (98.92%). Its decoding repairs and selected
+higher-budget recovery experiments are separate measurements. The
+[current decoder validation](reports/golden_binary_decode_20261105/README.md)
+completed all 3,702 saved tolerance-2, cap-200 directions in a 305-second allocation
+with 32 workers, without repeating matching or external reference verification.
 
 ### Historical September comparison
 
@@ -388,9 +397,11 @@ which tests ran; passing smoke checks does not mean the full suite passed.
 |---|---|
 | `src/mappa/` | `mappa_core` algorithms/I/O, `mappa_workflow` analytics, and `presentation` |
 | `docs/` | Executed notebooks and public API documentation |
+| `bench/` | Maintained, portable experiment runners and campaign audits |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
-| `tests/`, `tools/` | Functional checks and user utilities |
+| `tests/` | Contract checks and independent scientific oracles |
+| `tools/` | Input/output utilities using the shared source modules |
 | `skills/` | Reusable viewer instructions |
 
 The architecture and ownership rules are in [design.md](design.md). Historical

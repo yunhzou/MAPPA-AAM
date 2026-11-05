@@ -6,6 +6,23 @@ compressed completion, and separate matching, reduction and decoding stages.
 Implementation status, measurements and repair history belong in `reports/`;
 usage details belong in `docs/`.
 
+## Design principles
+
+- Keep scientific operations separate: growth, completion, reduction and decoding
+  have explicit inputs and outputs. External reference verification evaluates
+  saved results; it does not participate in mapping.
+- Store each scientific relationship once. Share immutable fragments and
+  correlated symmetry actions; do not reconstruct competing representations or
+  expand complete bijection tables for transport or presentation.
+- Put reusable mathematics in core. Workflows, execution, viewers and benchmark
+  adapters consume core operations; core never imports their orchestration.
+- Keep one implementation owner per responsibility. Remove superseded code,
+  modes and repair scripts after replacement. Git preserves historical source.
+- Preserve explicit incompleteness. Resource limits, bounded optimization and
+  the ordinary-boundary approximation cannot become exact scientific claims.
+- Optimize without changing the declared mapping relation. Validate scientific
+  changes against independent small examples and measure comparable work.
+
 ## Scientific pipeline
 
 ```mermaid
@@ -256,14 +273,15 @@ self-rearrangements: each final mapping is beta composed with d composed with
 alpha inverse, where d belongs to D and alpha/beta each preserve their own
 fragment's binary graph, elements and anchors. An accepted discovery bond can become
 an event after rearrangement. Decoding counts and classifies those changes under
-the original endpoint WBOs; it does not rank or select mappings.
+the original endpoint WBOs. Its bounded starting-correspondence selection and
+event window restrict the decoded response, not the saved matching relation.
 
 A completed fragment preserves its allowed injective mapping relation through
 complete discovery constraints and both anchor-aware self relationships. Equal atom sets,
 equal orbit labels or equal witnesses alone do not prove that two relations are
 identical. Independent atom choices must not introduce forbidden combinations.
 
-The replacement preserves valid mappings, accepted/deferred bonds, locks and
+Matching preserves valid mappings, accepted/deferred bonds, locks and
 legitimate compressed branch choices. Duplicate records and intermediate merge
 history are not scientific requirements. Regrouping choices requires the
 placement-equivalence proof above; similar events, witnesses or atom labels
@@ -597,20 +615,42 @@ Paths below are relative to `src/mappa/`.
 | Fragment growth, existence and completion | `mappa_core/core/matching/` |
 | Relaxed relationships, correlated shuffles and bond responses | `mappa_core/core/symmetry/` |
 | Seed/cut planning, locking and hierarchy branching | `mappa_core/core/search/` |
+| Saved-path relation compilation and assignment queries | `mappa_core/core/search/queries/` |
 | Branch grouping and family reduction | `mappa_core/post_processing/final_branches.py` |
 | Unique-fragment inventory and event decoding | `mappa_core/post_processing/decoder/` |
 | Persistent local/Slurm pool API | `execution/` |
 | Scheduling, task handoffs, recovery and storage | `mappa_core/core/scheduler/` |
-| Mapping and event-membership queries | `mappa_workflow/mapping_analytics/` |
+| Mapping analytics and external event/reference evaluation | `mappa_workflow/mapping_analytics/` |
 | Native scientific implementation and transport | `mappa_core/native/` |
 | Versioned persistence | `mappa_core/utils/io/` |
 | Explicit reaction-to-TS analysis | `mappa_workflow/ts_analytics/` |
 | Saved-result and growth views | `presentation/` |
 
-Schedulers, CLIs, viewers and benchmark adapters consume these owners rather than
-implementing competing algorithms. Matching does not depend on presentation or
-benchmark orchestration. Display alignment does not change scientific atom
-correspondence. Superseded implementations belong in Git, not fallback paths.
+```mermaid
+flowchart BT
+    Core[Core matching, symmetry and saved-path queries]
+    Post[Reduction and decoding] --> Core
+    Workflow[Mapping and TS analytics] --> Core
+    Workflow --> Post
+    Execution[Persistent execution and storage] --> Core
+    Execution --> Post
+    Presentation[Viewers and CLI] --> Workflow
+    Presentation --> Post
+    Bench[Benchmark adapters] --> Execution
+    Bench --> Workflow
+```
+
+Arrows mean dependency. Schedulers, CLIs, viewers and benchmark adapters consume
+these owners rather than implementing competing algorithms. Presentation owns
+rendering, offline packaging and navigation; tools only adapt inputs and write
+outputs. Display alignment does not change scientific atom correspondence.
+
+This document is the current design contract. `docs/` describes supported usage;
+`bench/` owns maintained experiment runners; `reports/` preserves measurements
+and provenance, with historical scripts linked to their producing Git revision.
+Historical results do not establish current-method accuracy. Explicit persistence
+relocations preserve unchanged records; incompatible scientific schemas are
+rejected. Superseded implementations belong in Git, not fallback paths.
 
 Usage guides: [Python API](docs/PYTHON_API.md),
 [shared execution](docs/shared-execution.md), and [viewers](docs/VIEWERS.md).

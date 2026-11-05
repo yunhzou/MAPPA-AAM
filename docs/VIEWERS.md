@@ -8,11 +8,8 @@ adapter; they do not introduce another stylesheet or benchmark-specific skin.
 | `reaction` | R/P comparison, TS structures/modes, mapping diagnostics and recorded growth | `src/mappa/presentation/static/reaction_viewer.css`; original R/P/TS layout in `reaction_viewer.html` |
 | `batch` | AAM and TS result navigation | `src/mappa/presentation/static/batch_viewer.css` |
 
-The molecular presentation restores the original white panels, yellow mechanism
-buttons, thin molecular sticks, R-order/spatial-alignment controls and TS mode
-animation from `stable/legacy-aam:src/rxn_core/pipeline.py`. The separate dark
-`elementary_comparison_viewer.html` skin and its derived missing-pattern viewer
-were rejected and removed. Its reports now use the shared original renderer.
+The molecular presentation uses white panels, yellow mechanism buttons, thin
+molecular sticks, R-order/spatial-alignment controls and TS mode animation.
 
 `mappa.presentation.viewers.reaction_html` renders one reaction; `collection_html` adds a
 case selector with one shared copy of the renderer and libraries. Existing
@@ -23,6 +20,12 @@ stereochemistry, and retain them separately from the scientific inputs. Rigid
 placement of separate molecules is a display choice, not a predicted complex.
 Batch layouts retain their existing result-navigation behavior.
 Different layouts and chemical highlight colors are not independent skins.
+
+`embedded_collection_html` packs existing per-case HTML viewers with one shared
+inline library and the navigation template in `presentation/static/batch_viewer.html`.
+The AAM and typed-TS batch tools adapt their different saved input formats to this
+renderer. Packaging preserves molecular documents; the AAM tool's explicit
+`--compact` option only trims display diagnostics and coordinate precision.
 
 The reusable **algorithm search trajectory** pipeline is documented in
 [SEARCH_TRAJECTORIES.md](SEARCH_TRAJECTORIES.md). Use `from mappa.presentation.viewers import aam_growth_html` for direct in-memory

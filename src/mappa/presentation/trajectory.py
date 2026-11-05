@@ -227,9 +227,8 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
             context=context_id,seed_order=list(c.seed_order),cuts=list(c.cuts),paths=paths,
             default_terminal=selection.get('default_terminal',terminals[0]),focus=selection.get('focus'),
             config=dict(graph_floor=c.graph_floor,iso_tolerance=c.iso_tolerance,branch_limit=c.branch_limit,
-
-                        growth_policy=getattr(c,"growth_policy","legacy_wbo_priority"),
-                        random_seed=getattr(c,"random_seed",42),
+                        growth_policy=c.growth_policy,
+                        random_seed=c.random_seed,
                         event_tolerance=event_tolerance,metal_event_tolerance=metal_event_tolerance),
             graph=dict(states=[dict(id=s.id,assigned=len(s.mapping)) for s in nodes],
                 transitions=[dict(id=eid,source=g.transitions[eid].source,target=g.transitions[eid].target,

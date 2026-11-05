@@ -20,7 +20,7 @@ from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_core.post_processing.decoder.api import _validate_atom_identity
 from mappa.mappa_core.utils.io.records import problem_from_record
 from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint
-from mappa.mappa_workflow.mapping_analytics.family import compile_path
+from mappa.mappa_core.core.search.queries.family import compile_path
 
 
 def heavy_event_index(problem, *, threshold=.5, metal_threshold=.3):

@@ -46,7 +46,8 @@ _CHECKPOINT_MODULES = {
     ('mappa.final_branches', 'FinalBranchCatalogue'): 'mappa.mappa_core.post_processing.final_branches',
     ('mappa.family_query', 'SymbolicActions'): 'mappa.mappa_core.core.symmetry.constraints',
     ('mappa.mappa_workflow.mapping_analytics.family', 'SymbolicActions'): 'mappa.mappa_core.core.symmetry.constraints',
-    ('mappa.family_query', 'CompiledFamily'): 'mappa.mappa_workflow.mapping_analytics.family',
+    ('mappa.family_query', 'CompiledFamily'): 'mappa.mappa_core.core.search.queries.family',
+    ('mappa.mappa_workflow.mapping_analytics.family', 'CompiledFamily'): 'mappa.mappa_core.core.search.queries.family',
     ('mappa.reference_constraints', 'Choice'): 'mappa.mappa_core.core.symmetry.constraints',
     ('mappa.mappa_workflow.mapping_analytics.constraints', 'Choice'): 'mappa.mappa_core.core.symmetry.constraints',
 

@@ -1,4 +1,4 @@
-"""Reference membership in the complete saved fragment relationships."""
+"""Compile saved fragment relationships for membership and assignment queries."""
 from functools import lru_cache, cached_property
 from dataclasses import dataclass
 import time
@@ -67,7 +67,8 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
 
     Every local discovery and both self rearrangements remain joint choices.
     Endpoint equivalence normalizes reference identity only, never the returned
-    physical mapping. Decoding does not call this reference query.
+    physical mapping. Partial matching and external analytics share this compiler;
+    ordinary event decoding uses its prepared local responses instead.
     """
     from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
     started = time.perf_counter()

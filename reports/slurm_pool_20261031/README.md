@@ -113,4 +113,4 @@ A ready-pool API should await all requested workers and report startup separatel
 This diagnostic adds telemetry only; it has not yet changed that startup behavior.
 
 `readiness.json` retains worker-ready times, runnable backlog at readiness and all
-claim/completion timestamps. `readiness.py` contains the controlled comparison.
+claim/completion timestamps. [The historical readiness probe](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/slurm_pool_20261031/readiness.py) contains the controlled comparison.

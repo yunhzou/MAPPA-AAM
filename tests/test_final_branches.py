@@ -10,7 +10,7 @@ from test_event_patterns import problem, saved_path
 from mappa import decode_events
 from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, canonical_actions
-from mappa.mappa_workflow.mapping_analytics.family import query_path
+from mappa.mappa_core.core.search.queries.family import query_path
 
 
 def independent_path(order, mapping=None, labels=(7, 19)):

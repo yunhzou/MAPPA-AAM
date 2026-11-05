@@ -291,3 +291,26 @@ component with its current fixed choices; it requires a generator certificate
 that the remaining group factors across ordered action frames. Other components
 keep their choices, and cross-action constraints remain joint. Small complete
 coset oracles and a variable weighted-ring example test these conditions.
+
+## Subsequent repository cleanup
+
+The November 5 structural cleanup preserves this experiment's scientific
+algorithm and measurements. It removes twelve unused matching/presentation
+helpers, seven retired diagnostic scripts and the obsolete root refactoring
+plan. Historical script sources remain linked in Git. Shared saved-path queries
+now belong to core search; workflow analytics consumes that owner. Batch viewer
+adapters share packaging, navigation and one layout. Current design principles
+and module responsibilities are recorded in `design.md`; the manuscript and
+saved benchmark data are unchanged.
+
+The full local regression suite passed **1,133 tests in 209.41 seconds**.
+After removing the unused batch-layout CSS, all **15 viewer tests** passed again.
+These include document reconstruction, navigation and both batch input adapters.
+Retained matching helpers, interpolation routines and relocated query logic
+were also checked for unchanged syntax trees, excluding documentation.
+Changed-document links and publication-privacy checks passed; core has no
+imports from workflow or presentation. No scientific benchmark was rerun.
+
+An initial test run was invalidated by a source edit during execution: workers
+correctly rejected the coordinator's earlier source identity. The final full
+suite above ran against frozen Python sources and had no failures.

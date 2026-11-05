@@ -22,8 +22,6 @@ def test_report_generators_do_not_define_independent_skins():
     root = Path(__file__).resolve().parents[1]
     for folder in ('bench', 'tools'):
         for path in (root / folder).glob('*.py'):
-            if path.name == 'sync_viewer_styles.py':
-                continue  # Recognizes existing style tags; it does not define CSS.
             assert not re.search(r'<style(?:>|\s)', path.read_text()), path
     for name in ('elementary_comparison_viewer.html', 'missing_patterns_viewer.html'):
         assert not (root / 'bench' / name).exists()
@@ -43,14 +41,95 @@ def test_display_fit_is_a_proper_rigid_transform():
     assert np.sign(np.linalg.det(fitted[1:] - fitted[0])) == np.sign(np.linalg.det(mirrored[1:] - mirrored[0]))
 
 
-def test_batch_style_keeps_navigation_without_precursor_catalog():
+def test_batch_style_has_one_navigation_layout():
     css = stylesheet('batch')
     assert 'data-viewer-layout="batch"' in css
-    assert 'data-viewer-layout="typed_batch"' in css
+    assert 'data-viewer-layout="typed_batch"' not in css
     assert 'data-viewer-layout="catalog"' not in css
     assert 'data-viewer-layout="precursor"' not in css
     with pytest.raises(ValueError):
         stylesheet('catalog')
+
+
+def test_embedded_navigation_restores_documents_and_switches_cases():
+    if not shutil.which('node'):
+        pytest.skip('Node is needed to execute the viewer interactions')
+    from mappa.presentation.viewers import embedded_collection_html
+    # Dollar replacement tokens must survive library insertion literally.
+    library = '<script>const labels = "$& $` $\'";</script>'
+    documents = [f'<html><head>{library}</head><body>Case {i} — C–O</body></html>'
+                 for i in range(2)]
+    cases = [dict(id=str(i), atoms=i+2, badge='small', meta='saved', detail=f'Case {i}',
+                  document=value.encode()) for i, value in enumerate(documents)]
+    page = embedded_collection_html(cases, title='Saved <cases>', summary='Two cases')
+    assert '<title>Saved &lt;cases&gt;</title>' in page
+    script = re.search(r'<script>\s*const CASES=.*?</script>', page, re.S).group()[8:-9]
+    harness = '''
+const nodes=new Map();
+const document={
+ getElementById(id){if(!nodes.has(id))nodes.set(id,{children:[],classList:{add(){},remove(){}},
+  replaceChildren(){this.children=[]},appendChild(value){this.children.push(value)}});return nodes.get(id)},
+ createElement(){return {children:[],appendChild(value){this.children.push(value)}}}
+};
+const location={hash:''},window={open(){}};
+'''
+    checks = '''
+await openCase(CASES[1]);
+const second=frame.srcdoc;
+document.getElementById('search').oninput({target:{value:'0'}});
+await list.children[0].onclick();
+console.log(JSON.stringify({second,first:frame.srcdoc,count:list.children.length,
+ enabled:!standalone.disabled,detail:current.textContent,hash:location.hash}));
+'''
+    result = subprocess.run(['node', '-'], input='(async()=>{'+harness+script+checks+'})()',
+                            text=True, capture_output=True, check=True)
+    value = json.loads(result.stdout)
+    assert value == dict(second=documents[1], first=documents[0], count=1,
+                         enabled=True, detail='Case 0', hash='0')
+
+
+def test_embedded_collection_rejects_different_libraries():
+    from mappa.presentation.viewers import embedded_collection_html
+    cases = [dict(id=str(i), document=f'<script>library{i}</script>'.encode()) for i in range(2)]
+    with pytest.raises(ValueError, match='Shared library differs for 1'):
+        embedded_collection_html(cases, title='Cases', summary='')
+
+
+@pytest.mark.parametrize('typed', [False, True])
+def test_batch_adapters_preserve_saved_case_payloads(tmp_path, typed):
+    import base64
+    import gzip
+    from importlib import import_module
+    source = b'<html><head><script>shared library</script></head><body>saved case</body></html>'
+    case = tmp_path / 'cases' / 'case1'
+    case.mkdir(parents=True)
+    if typed:
+        (case / 'ts_scores.json').write_text(json.dumps(dict(case='case1', atom_count=2, rankings=[])))
+        (case / 'view.html').write_bytes(source)
+        module = 'build_typed_ts_integrated_viewer'
+    else:
+        (tmp_path / 'inventory.json').write_text('{"case_count":1}')
+        (tmp_path / 'batch_summary.json').write_text('{"error_count":0,"total_elapsed_case_seconds":1}')
+        (tmp_path / 'manifests').mkdir()
+        for tier in ('small', 'medium', 'large'):
+            records = [dict(source_index=0, step_id='case1', atom_count=2)] if tier == 'small' else []
+            (tmp_path / 'manifests' / f'{tier}.json').write_text(json.dumps(dict(cases=records)))
+        (case / 'summary.json').write_text('{"elapsed_seconds":1}')
+        (case / 'rp_stage.json').write_text('{"mechanisms":[]}')
+        view = tmp_path / 'views' / 'case1'
+        view.mkdir(parents=True)
+        (view / 'view.html').write_bytes(source)
+        module = 'build_integrated_batch_viewer'
+    output = tmp_path / 'view.html'
+    result = import_module(f'tools.{module}').build(tmp_path, output)
+    page = output.read_text()
+    records = json.loads(re.search(r'const CASES=(.*);', page).group(1))
+    library = re.search(r'COMMON_B64="([^"]+)"', page).group(1)
+    body = gzip.decompress(base64.b64decode(records[0]['payload']))
+    restored = body.replace(b'<!-- MAPPA_SHARED_LIBRARY -->', gzip.decompress(base64.b64decode(library)), 1)
+    assert restored == source
+    assert records[0]['id'] == 'case1' and records[0]['atoms'] == 2
+    assert result['cases'] == 1
 
 
 def _partial_comparison():

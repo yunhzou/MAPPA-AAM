@@ -61,7 +61,7 @@ def test_decoding_keeps_fragment_atom_sets_and_later_occupancy():
     from test_event_interpretation import model_events
     from test_relaxed_fragment_decoding import dense_events
     from mappa.mappa_core.core.search.branching.construction import find_islands
-    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    from mappa.mappa_core.core.search.queries.family import project_path_assignments
     from test_family_query import endpoint
 
     source = graph(['C'] * 4, [(0, 1, 1), (1, 2, 1), (2, 0, 1)])
@@ -109,7 +109,7 @@ def test_locked_ring_then_free_hydrogen_preserves_all_joint_choices():
     import z3
     from mappa import AAMProblem
     from mappa.mappa_core.core.search.branching.construction import find_islands
-    from mappa.mappa_workflow.mapping_analytics.family import compile_path
+    from mappa.mappa_core.core.search.queries.family import compile_path
     from test_family_query import endpoint
 
     cycle = [(i, (i + 1) % 3, 1) for i in range(3)]

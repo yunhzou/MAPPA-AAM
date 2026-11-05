@@ -107,8 +107,8 @@ No production source, installed engine, benchmark configuration, running job or
 
 Evidence: [memory-followup.json](memory-followup.json), including raw phase
 measurements, cache contents and all six full-graph comparison assertions.
-Reproduction uses [memory_probe.py](memory_probe.py),
-[instrument_memory.py](instrument_memory.py), and the existing
+Reproduction uses [memory_probe.py](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/memory_probe.py),
+[instrument_memory.py](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/instrument_memory.py), and the existing
 `mac-point-input.pkl.gz` fixture. Build the instrumented engine into a temporary
 directory, then supply its path explicitly with `--instrumented-engine`.
 Use `--memo-entries 512 --share-deferred` only for the controlled experiment.

@@ -29,7 +29,7 @@ the demonstrated regression in a supported reused session. No new full suite or
 downstream decoder comparison was completed after this performance gate failed.
 
 Raw events and exact graph comparisons: [cache-regression.json](cache-regression.json).
-Reproduce using `memory_probe.py` with `--cuts 147 147`, first with the
+Reproduce at the measured revision using [the historical memory probe](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/memory_probe.py) with `--cuts 147 147`, first with the
 instrumented accepted cache, then with `--memo-entries 512 --share-deferred`.
 
 The user chose a resource increase instead: **4 GiB per benchmark worker**.

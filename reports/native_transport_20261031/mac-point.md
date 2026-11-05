@@ -57,7 +57,7 @@ sweep. No scientific result difference was observed.
 Raw timings, comparison assertions and machine metadata:
 [mac-point.json](mac-point.json). The exact small input artifact is
 `mac-point-input.pkl.gz`; it contains trusted internal records. The diagnostic
-runner is [mac_point.py](mac_point.py), which now runs only the approved version.
+runner is [mac_point.py](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/mac_point.py), which now runs only the approved version.
 Historical build preparation and import selection are retained in Git at
 `246aa3d`, under this report directory. Those switches and the temporary old
 native build were removed after acceptance; the comparison data remain saved.

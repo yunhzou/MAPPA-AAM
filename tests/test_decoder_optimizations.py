@@ -8,7 +8,7 @@ import z3
 
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _event_count_constraint
-from mappa.mappa_workflow.mapping_analytics.family import compile_path
+from mappa.mappa_core.core.search.queries.family import compile_path
 from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 from mappa.mappa_core.utils.bonds import is_metal_element

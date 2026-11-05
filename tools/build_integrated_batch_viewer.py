@@ -2,37 +2,16 @@
 """Build one offline HTML navigator containing every batch case viewer."""
 from __future__ import annotations
 
-from mappa.presentation.viewers import style_document
+from mappa.presentation.viewers import embedded_collection_html
 
 import argparse
-import base64
-import gzip
 import hashlib
 import json
 from pathlib import Path
 
 
-COMMON_MARKER = b"<!-- RXN_CORE_SHARED_3DMOL -->"
-
-
 def _read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _gzip64(data: bytes) -> str:
-    return base64.b64encode(
-        gzip.compress(data, compresslevel=9, mtime=0)).decode("ascii")
-
-
-def _split_shared_script(document: bytes):
-    start = document.find(b"<script>")
-    if start < 0:
-        raise ValueError("case viewer has no inline script")
-    end = document.find(b"</script>", start)
-    if end < 0:
-        raise ValueError("case viewer has an unterminated inline script")
-    end += len(b"</script>")
-    return document[start:end], document[:start] + COMMON_MARKER + document[end:]
 
 
 def _rounded(value, digits=6):
@@ -110,70 +89,32 @@ def build(batch_root: Path, output: Path, compact: bool = False):
     inventory = _read_json(batch_root / "inventory.json")
     batch_summary = _read_json(batch_root / "batch_summary.json")
     cases = []
-    common_script = None
 
-    for _source_index, tier, case in _case_records(batch_root):
-        step = str(case["step_id"])
-        summary = _read_json(batch_root / "cases" / step / "summary.json")
-        rp = _read_json(batch_root / "cases" / step / "rp_stage.json")
-        view_path = batch_root / "views" / step / "view.html"
-        document = view_path.read_bytes()
-        shared, stripped = _split_shared_script(document)
-        if common_script is None:
-            common_script = shared
-        elif shared != common_script:
-            raise ValueError(f"shared 3Dmol script differs for {step}")
-        reconstructed = stripped.replace(COMMON_MARKER, common_script, 1)
-        if reconstructed != document:
-            raise RuntimeError(f"viewer reconstruction failed for {step}")
-        if compact:
-            stripped = _compact_view_document(stripped)
-        mechanisms = rp.get("mechanisms") or []
-        cases.append({
-            "id": step,
-            "tier": tier,
-            "atoms": int(case["atom_count"]),
-            "mechanisms": len(mechanisms),
-            "seconds": round(float(summary.get("elapsed_seconds", 0.0)), 3),
-            "violations": sum(int(
-                (mechanism.get("index_chirality") or {}).get(
-                    "selected_index_chirality_violation_count", 0)
-            ) for mechanism in mechanisms),
-            "sha256": hashlib.sha256(document).hexdigest(),
-            "payload": _gzip64(stripped),
-        })
+    def documents():
+        for _source_index, tier, case in _case_records(batch_root):
+            step = str(case["step_id"])
+            summary = _read_json(batch_root / "cases" / step / "summary.json")
+            rp = _read_json(batch_root / "cases" / step / "rp_stage.json")
+            document = (batch_root / "views" / step / "view.html").read_bytes()
+            mechanisms = rp.get("mechanisms") or []
+            atoms = int(case['atom_count'])
+            seconds = round(float(summary.get('elapsed_seconds', 0.0)), 3)
+            violations = sum(int((mechanism.get('index_chirality') or {}).get(
+                'selected_index_chirality_violation_count', 0)) for mechanism in mechanisms)
+            record = dict(id=step, tier=tier, atoms=atoms, mechanisms=len(mechanisms),
+                seconds=seconds, violations=violations, sha256=hashlib.sha256(document).hexdigest(),
+                badge=tier, meta=f'{atoms} atoms · {len(mechanisms)} mechanisms · {seconds:.1f} s',
+                detail=f'{step} — {atoms} atoms, {len(mechanisms)} mechanisms, violations={violations}')
+            cases.append(record)
+            yield record | dict(document=_compact_view_document(document) if compact else document)
 
-    if common_script is None:
-        raise ValueError("batch contains no case viewers")
-    data = json.dumps(cases, separators=(",", ":")).replace("</", "<\\/")
-    common = _gzip64(common_script)
-    title = f"AAM integrated viewer — {len(cases)} cases"
-    total_mechanisms = sum(case["mechanisms"] for case in cases)
-    html = f"""<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title}</title>
-</head>
-<body><header><h1>{title}</h1><div class="stats"><span><b>{inventory['case_count']}</b> cases</span><span><b>{total_mechanisms}</b> mechanisms</span><span><b>{batch_summary['error_count']}</b> errors</span><span><b>{batch_summary['total_elapsed_case_seconds']:.1f}</b> case-seconds</span></div><div class="actions"><button id="prev">Previous</button><button id="next">Next</button><button id="standalone" disabled>Open standalone</button></div></header>
-<main><aside><input id="search" type="search" placeholder="Filter cases…"><div id="current">Select a case</div><div id="list"></div></aside><section id="stage"><div id="loading">Loading embedded viewer…</div><iframe id="viewer" title="Selected reaction viewer"></iframe></section></main>
-<script>
-const CASES={data};
-const COMMON_B64="{common}";
-const MARKER="{COMMON_MARKER.decode()}";
-const list=document.getElementById('list'),frame=document.getElementById('viewer'),loading=document.getElementById('loading'),current=document.getElementById('current');
-let filtered=CASES.slice(),selected=null,currentHTML=null,loadToken=0;
-function decode64(value){{const raw=atob(value),out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}}
-async function gunzip64(value){{if(!('DecompressionStream' in window))throw new Error('This browser lacks DecompressionStream support. Use a current Chrome, Firefox, Edge, or Safari.');const stream=new Blob([decode64(value)]).stream().pipeThrough(new DecompressionStream('gzip'));return await new Response(stream).text()}}
-const commonPromise=gunzip64(COMMON_B64);
-function renderList(){{list.innerHTML='';for(const c of filtered){{const b=document.createElement('button');b.className='case'+(selected&&selected.id===c.id?' active':'');b.innerHTML='<span class="name"></span><span class="badge"></span><span class="meta"></span>';b.querySelector('.name').textContent=c.id;b.querySelector('.badge').textContent=c.tier;b.querySelector('.meta').textContent=`${{c.atoms}} atoms · ${{c.mechanisms}} mechanism${{c.mechanisms===1?'':'s'}} · ${{c.seconds.toFixed(1)}} s`;b.onclick=()=>openCase(c);list.appendChild(b)}}}}
-async function openCase(c){{const token=++loadToken;selected=c;currentHTML=null;document.getElementById('standalone').disabled=true;renderList();loading.classList.add('show');current.textContent=`${{c.id}} — ${{c.atoms}} atoms, ${{c.mechanisms}} mechanisms, violations=${{c.violations}}`;location.hash=encodeURIComponent(c.id);try{{const [common,body]=await Promise.all([commonPromise,gunzip64(c.payload)]);if(token!==loadToken)return;const html=body.replace(MARKER,common);currentHTML=html;frame.srcdoc=html;document.getElementById('standalone').disabled=false}}catch(error){{frame.srcdoc='<pre style="color:#b91c1c;padding:20px">'+String(error)+'</pre>'}}finally{{if(token===loadToken)loading.classList.remove('show')}}}}
-function move(delta){{if(!selected||!filtered.length)return;const i=filtered.findIndex(c=>c.id===selected.id);openCase(filtered[(i+delta+filtered.length)%filtered.length])}}
-document.getElementById('prev').onclick=()=>move(-1);document.getElementById('next').onclick=()=>move(1);
-document.getElementById('standalone').onclick=()=>{{if(!currentHTML)return;const url=URL.createObjectURL(new Blob([currentHTML],{{type:'text/html'}}));window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000)}};
-document.getElementById('search').oninput=e=>{{const q=e.target.value.trim().toLowerCase();filtered=CASES.filter(c=>c.id.toLowerCase().includes(q)||c.tier.includes(q)||String(c.atoms)===q);renderList()}};
-renderList();const requested=decodeURIComponent(location.hash.slice(1));openCase(CASES.find(c=>c.id===requested)||CASES[0]);
-</script></body></html>"""
+    html = embedded_collection_html(documents(),
+        title=f"AAM integrated viewer — {inventory['case_count']} cases",
+        summary=(f"{inventory['case_count']} cases · {batch_summary['error_count']} errors · "
+                 f"{batch_summary['total_elapsed_case_seconds']:.1f} case-seconds"))
+    total_mechanisms = sum(case['mechanisms'] for case in cases)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(style_document(html, 'batch', 'batch'), encoding="utf-8")
+    output.write_text(html, encoding="utf-8")
     return {
         "output": str(output),
         "cases": len(cases),

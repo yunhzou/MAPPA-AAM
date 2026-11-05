@@ -147,9 +147,6 @@ class ResolvedBondTolerance:
         return [(index[a], index[b], value) for (a, b), value in self.values.items()]
 
 
-SYM_SUPPORT_MAX_STATES = 4096
-
-
 def _edge_wbo(g, a, b):
     """WBO for any atom pair in the complete weighted graph."""
     if a == b:
@@ -174,11 +171,3 @@ def _growth_edge_supported(w_R, w_P, iso_tol, graph_floor=0.2, *, inclusive=True
     w_P = float(w_P)
     difference = abs(float(w_R) - w_P)
     return w_P >= graph_floor and (difference <= iso_tol if inclusive else difference < iso_tol)
-
-
-def _wbo_bucket(w):
-    return int(round(float(w) * 5))
-
-
-def _orbit_id(orbits, node):
-    return orbits[node] if orbits is not None else node

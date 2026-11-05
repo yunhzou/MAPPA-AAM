@@ -21,6 +21,14 @@ def test_previous_package_checkpoint_global_resolves_to_mappa():
     assert _CheckpointUnpickler(stream).load() is mappa.AAMResult
 
 
+@pytest.mark.parametrize('module', ['mappa.family_query', 'mappa.mappa_workflow.mapping_analytics.family'])
+def test_saved_path_query_class_resolves_after_core_move(module):
+    from mappa.mappa_core.core.search.queries.family import CompiledFamily
+    from mappa.mappa_core.utils.io.checkpoints import _CheckpointUnpickler
+    stream = io.BytesIO(f'c{module}\nCompiledFamily\n.'.encode())
+    assert _CheckpointUnpickler(stream).load() is CompiledFamily
+
+
 def test_archived_bond_response_keeps_values_and_sharing_after_core_move():
     import numpy as np
     from mappa.mappa_core.core.symmetry.responses import BondResponse

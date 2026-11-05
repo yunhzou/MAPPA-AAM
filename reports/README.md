@@ -2,42 +2,41 @@
 
 ## Current implementation
 
-[Relaxed fragment integration](relaxed_fragments_20261102/README.md) records the
-current algorithm's full regression suite, independent relation/event checks,
-local speed and publication-memory measurements.
+[Full Golden decoding with binary fragment symmetry](golden_binary_decode_20261105/README.md)
+records the completed decoder at `deadf374`: **3,702/3,702 directions**, zero
+failures or retries, a **305-second allocation with 32 workers**, and a maximum
+individual decoding time of **137.192 seconds**. The 1,127-test repository suite
+and Linux preflight passed. This decodes converted saved tolerance-2, cap-200
+catalogues; it does not repeat matching or external reference verification.
+The reported minima use the declared independent ordinary-boundary model.
 
-[Full Golden with placement compression](golden_placement_20261103/README.md)
-records the stopped diagnostic run and a fresh full rerun submitted on
-scientific revision `1710f69`, with all 1,851 reactions / 3,702 directions,
-one seed and the user-selected cap 2,000. Five repaired point probes complete,
-and a complex saved result has exact decoded-output parity. All 141 matching
-workers registered; all 3,702 matching and reduction directions are complete,
-including two reduction publication failures recovered with preserved budgets.
-The frozen pass has ended with 3,655 successful decodes and 47 memory errors.
-Reference verification has 3,696 results and six timeouts. These unresolved
-failures prevent successful full-benchmark completion. The
-implementation and cap differ from the completed
-cap-100 baseline below; these local checks are not full accuracy or throughput
-evidence.
+The current scientific contract is [design.md](../design.md). Historical reports
+below describe their measured algorithms and settings; they are not alternative
+current design documents.
 
-[Latest complete Golden validation](golden_retest_20261101/README.md) records
-**1,830 / 1,851 recovered reactions (98.87%)**, using one seed and the full cut
-sweep at revision `096a010961f53944ddd4ddc433bd8d56f282a2f2`. All 3,702 directions
-completed matching, reduction, decoding and verification. These remain historical
-results for their producing revision while the new full run is evaluated.
+## Historical full-run and recovery evidence
 
-[Completed EnzymeMap campaign](enzymemap_history_pruned_20261102/README.md) covers
-47,974 reactions / 95,948 directions, including recovery of all 84 original
-decoding failures. It recovered 47,500 references (99.01%); four directional
-reference checks remain unknown. These results belong to its recorded revision.
+- [Golden tolerance 1, cap 2,000](golden_placement_20261103/README.md):
+  **1,831/1,851 recovered reactions (98.92%)**. The later decoder revision
+  `119dca4` completed all 3,702 saved directions, including the original decode
+  failures. Selected higher-tolerance/higher-seed recovery trials in that report
+  are a separate experiment, not a single full-run accuracy score.
+- [Golden tolerance 1, cap 100](golden_retest_20261101/README.md):
+  **1,830/1,851 recovered reactions (98.87%)** at `096a010`. All directions
+  completed matching, reduction, decoding and verification under that revision.
+- [EnzymeMap campaign](enzymemap_history_pruned_20261102/README.md):
+  **47,500/47,974 recovered reactions (99.01%)**, with all 95,948 directions
+  decoded after recovery of 84 failures. Four directional reference checks
+  remained unknown. This predates the current fragment/decoder design.
+- [Relaxed-fragment integration](relaxed_fragments_20261102/README.md):
+  independent relation/event checks and local performance for that intermediate
+  implementation, before binary fragment symmetry replaced self-tolerance.
 
-The [October EnzymeMap report](enzymemap_20261008/README.md) and the
-[September coordinate baseline](published_baseline_20260915/README.md) are
-historical studies. Their protocols and results remain distinct from the current
-implementation. The September [end-to-end timing](final_end_to_end_20260916/README.md)
-and [decoder optimization](decoder_optimization_20260916/README.md) describe
-that historical pipeline. Numerical evidence is retained without claiming that
-old experiments were rerun on current code.
+The [October EnzymeMap report](enzymemap_20261008/README.md),
+[September coordinate baseline](published_baseline_20260915/README.md),
+[end-to-end timing](final_end_to_end_20260916/README.md), and
+[decoder optimization](decoder_optimization_20260916/README.md) retain their
+original protocols. Their numerical evidence does not imply a current-code rerun.
 
 ## Archived evidence
 
@@ -151,7 +150,7 @@ indices. Use the saved inputs to resolve chemical structures.
   `golden_pattern_benchmark_20260908/case1033/viewer.html.gz`.
   Git stores the compressed `.html.gz` version; decompress before opening.
 
-## Definitions that must accompany paper claims
+## Definitions for the September comparison
 
 - Recovery means the exact reference heavy-atom mapping relation, including
   unmatched atoms, modulo endpoint chemical symmetry. It does not measure hydrogen
@@ -164,7 +163,7 @@ indices. Use the saved inputs to resolve chemical structures.
 - Timeouts, missing archives and invalid outputs remain in accuracy denominators.
   Reference checks are evaluation, not part of blind candidate generation.
 
-## Timing: query stages separately
+## September timing: query stages separately
 
 For AAM, use search compute, baseline ranking/merge, then additional collection
 compute. Collection reused prior rankings: it is neither a fresh full search nor
@@ -186,9 +185,12 @@ it is not a publication-ready matched-budget speedup claim.
 
 ## Reproduction and historical work
 
-See the [script guide](../bench/README.md). Use each recorded revision and scientific configuration for historical
-reproduction, supplying site configuration privately; current code can change. All other `golden_*` reports here are exploratory or
-stage-specific history unless explicitly identified above. In particular, the
+Current experiment commands belong in the [benchmark guide](../bench/README.md).
+Retired one-off diagnostic scripts are preserved in
+[Git history](https://github.com/yunhzou/MAPPA-AAM/tree/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports),
+with source links in their reports. Run them with the scientific revision they
+measured, supplying site configuration privately. Other `golden_*` reports are
+exploratory or stage-specific history unless explicitly identified above. The
 SLAP `golden_slap_budget_20260908` cluster pilot is not the completed expanded run.
 
 Final public-pipeline timing: [fresh 140-reaction end-to-end pass](final_end_to_end_20260916/README.md), including search, event decoding, and explicitly reported watchdog interruptions.

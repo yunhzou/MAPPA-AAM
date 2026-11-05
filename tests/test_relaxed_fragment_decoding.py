@@ -271,7 +271,7 @@ def test_large_symmetric_fragment_prepares_without_solver_or_permutation_expansi
 def test_saved_path_replays_compiled_two_sided_choices_after_json_roundtrip():
     import json
     from mappa.mappa_core.core.search.graph import AAMSearchGraph
-    from mappa.mappa_workflow.mapping_analytics.family import query_path
+    from mappa.mappa_core.core.search.queries.family import query_path
     from test_event_patterns import saved_path
 
     matrix = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])

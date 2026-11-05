@@ -72,7 +72,7 @@ tables and dictionary export, and bounding serialization bookkeeping. This repor
 does not implement a new storage format or lower a scientific cap. Streaming
 compressed bytes alone cannot solve the object-materialization cost.
 
-Reproduce with [profile_decoder.py](profile_decoder.py) and the source range/hash
+Reproduce with [profile_decoder.py](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/golden_pool_20261101/profile_decoder.py) and the source range/hash
 in [decoder-memory-source.json](decoder-memory-source.json). The profile calls the
 current decoder and export function, wrapping table creation and serializer writes
 only to record RSS and counts. A parent samples RSS every 20 ms and kills the

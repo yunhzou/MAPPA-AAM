@@ -65,6 +65,13 @@ You may provide architectural choices, tradeoffs, and recommendations, but the u
 
 Code must never have fallback options. Duplicate functionality is unacceptable. After refactoring, remove the superseded code and options completely from the repository. Leave no obsolete code behind.
 
+Keep `design.md` as the single current architecture and scientific contract.
+Update affected usage guides when interfaces change; remove conflicting plans.
+Reusable operations belong in their existing source owner, portable experiment
+runners in `bench/`, and input/output utilities in `tools/`. Reports retain
+evidence and source revisions, not executable copies of retired diagnostics.
+Historical claims must identify their measured revision and scope.
+
 When you observe multiple fragmented pieces of code in the repository, treat this as a clear signal that it needs cleaning and refactoring. Follow principle 2.
 
 For example, if several quickly written scripts exist in the repository and the user has confirmed that their functionality is useful, refactor that functionality into reusable core modules instead of leaving it in standalone scripts. Modularity and reusability must be enforced.

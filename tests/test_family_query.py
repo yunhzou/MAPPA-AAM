@@ -156,7 +156,7 @@ def test_placement_program_keeps_later_choices_correlated_with_earlier_moves():
     from mappa.mappa_core.core.search.graph import (
         AAMSearchGraph, FragmentTransition, SearchContext, SearchState, SearchStop,
     )
-    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    from mappa.mappa_core.core.search.queries.family import project_path_assignments
     source = endpoint('CCCC', [(0, 1), (2, 3)])
     target = endpoint('CCCCCC', [(0, 1), (2, 3), (4, 5)])
     problem = AAMProblem(source, target)
@@ -293,7 +293,7 @@ def test_reference_rejects_cross_fragment_images_before_relation_compilation(mon
 
 
 def test_reference_endpoint_equivalence_preserves_partial_and_unmatched_atoms(monkeypatch):
-    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    from mappa.mappa_core.core.search.queries.family import project_path_assignments
 
     molecule = endpoint('CCCC', [(0, 1), (2, 3)])
     problem = AAMProblem(molecule, molecule)
@@ -326,7 +326,7 @@ def test_reference_endpoint_equivalence_preserves_partial_and_unmatched_atoms(mo
 
 
 def test_reference_bounds_include_both_self_actions_around_fixed_discovery():
-    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    from mappa.mappa_core.core.search.queries.family import project_path_assignments
 
     problem = AAMProblem(endpoint('CCC', [(0, 1), (0, 2)]),
                          endpoint('CCC', [(0, 1), (1, 2)]))
@@ -349,7 +349,7 @@ def test_reference_bounds_include_both_self_actions_around_fixed_discovery():
 
 
 def test_reference_and_projection_retain_all_binary_symmetries():
-    from mappa.mappa_workflow.mapping_analytics.family import project_path_assignments
+    from mappa.mappa_core.core.search.queries.family import project_path_assignments
 
     molecule = endpoint('CCCC', [(0, 1), (0, 2), (0, 3)])
     weights = molecule.wbo.copy()

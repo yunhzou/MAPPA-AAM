@@ -9,7 +9,7 @@ from mappa.mappa_core.post_processing.hierarchical_mapping import convert_fragme
 from mappa.mappa_core.post_processing.decoder.api import decode_events
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig, EventInterpretation
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, deduplicate_final_branches as deduplicate
-from mappa.mappa_workflow.mapping_analytics.family import query_path
+from mappa.mappa_core.core.search.queries.family import query_path
 from mappa.mappa_core.core.matching.policy import BondTolerance
 from mappa.mappa_core.core.matching.api import match_fragment
 from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, Fragment

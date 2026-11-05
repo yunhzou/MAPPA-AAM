@@ -66,9 +66,9 @@ storage counts. Graph inspection ran separately from the timed measurements.
 The isolated build preserved state/transition counts and cache statistics; it did
 not replace the installed engine. Its timing is not used for the main table.
 
-The existing [phase probe](../native_transport_20261031/memory_probe.py) was reused,
+The existing [phase probe](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/memory_probe.py) was reused,
 removing allocating graph inspections from its timed path. The existing
-[instrumentation builder](../native_transport_20261031/instrument_memory.py) now
+[instrumentation builder](https://github.com/yunhzou/MAPPA-AAM/blob/f10999c75d7b232e8996cedf996f4d9b3a5e94ef/reports/native_transport_20261031/instrument_memory.py) now
 counts current native history rather than retired certificate-cache fields.
 No new production diagnostic mode or algorithm was introduced.
 
@@ -76,6 +76,7 @@ From the checkout, with the project environment and the archived local fixtures:
 
 ```sh
 PYTHONPATH=src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+# Historical command; use the linked script and measured source revision.
 python reports/native_transport_20261031/memory_probe.py \
   out/enzymemap_37270_mac_20261102/37270-forward-compute.pkl.gz \
   out/enzymemap_37270_mac_20261102/reproduce432 \
