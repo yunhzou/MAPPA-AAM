@@ -164,3 +164,23 @@ The unchanged follow-up source passed 1,098 repository tests: 1,037 in the first
 suite and 61 worker tests rerun with process/socket access after macOS sandbox
 permission failures. The 108 focused symmetry/decoder tests also passed. Full
 catalogue point validation and a completed full-set pass remain outstanding.
+
+The stopped restart ultimately drained with 291 completed directions and thirteen
+600-second compute timeouts; the other 3,398 directions were never admitted.
+There were no memory-limit failures or retries. A separate 36-direction pilot
+of the pair/identity fix completed 23 directions and reached its stricter
+120-second watchdog in thirteen. Case 862 finished in 47.915 / 33.493 seconds;
+the largest completed pilot direction was 1654 reverse at 73.394 seconds.
+Pilot failures are censored at 120 seconds, not failures of the original
+600-second allowance. The full pass stayed stopped.
+
+A subsequent 45-second profile of 1264 forward spent 15.017 seconds rediscovering
+independent symmetry factors. Ordered branch programs had discarded the binary
+graphs already attached to their fragment responses. The follow-up carries
+those graphs into their separate action frames, allowing the existing core to
+reject impossible factor splits directly. Each allowed generator preserves this
+graph; event terms still join dependent choices. This derived graph is prepared
+only when needed and is not duplicated in persisted records. The correlated-arm
+test checks structural invariance, dependence without stabilizer construction,
+and a valid two-event query. The final unchanged source passed all **1,099 tests
+in 157.84 seconds**. Point validation is still required.

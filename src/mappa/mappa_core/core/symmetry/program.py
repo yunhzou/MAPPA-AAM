@@ -63,7 +63,6 @@ class OrderedSymmetryEvents:
         self.actions = tuple(actions)
         self.target = target_weights
         self.deadline = None
-        self.binary = None
         frames, size = [], 0
         for (kind, data), prepared in actions:
             if kind == 'relation':
@@ -103,6 +102,20 @@ class OrderedSymmetryEvents:
             if reserve:
                 pairs.append(EventTerm(atoms, 0., 0., scope, boundary_pairs))
         self.pairs = tuple(pairs)
+
+    @cached_property
+    def binary(self):
+        """Retain structural dependence inside each prepared action frame.
+
+        Every choice preserves this disjoint graph. Its adjacency can therefore
+        rule out impossible independent factors without rebuilding stabilizers.
+        Placement frames have no additional structural certificate here.
+        """
+        graph = np.zeros((self.size, self.size), dtype=bool)
+        for (_, prepared), (start, _, degree) in zip(self.actions, self.frames):
+            if prepared is not None:
+                graph[start:start + degree, start:start + degree] = prepared.binary
+        return graph
 
     def _endpoint_scopes(self):
         """Trace just the positions that can determine each endpoint image."""
@@ -177,7 +190,8 @@ class OrderedSymmetryEvents:
         return permutation_group(generators, self.size)
 
     def __getstate__(self):
-        return {k:v for k,v in self.__dict__.items() if k not in ('group','invariant_group','deadline')}
+        return {k:v for k,v in self.__dict__.items()
+                if k not in ('group', 'invariant_group', 'binary', 'deadline')}
 
     def __setstate__(self, state):
         self.__dict__.update(state)
