@@ -87,6 +87,7 @@ def search_batch(payload, workspace):
             raise ValueError('Task cache input, settings or code identity differs')
     workspace.cache.use(session.repair)
     graph, counts = session.search_cut(payload['cut'], seed_indices=payload['indices'])
+    workspace.measurements['search'] = counts
     if tuple(context.seed_order for context in graph.contexts) != payload['orders']:
         raise ValueError('Executed seed orders differ from the planned orders')
     return SeedBatchResult(graph, payload['indices'], counts)

@@ -28,6 +28,7 @@ class Workspace:
         self.prepared_key, self.prepared_value = None, None
         self.resources = {}
         self.dependencies = {}
+        self.measurements = {}
         self.cache = WorkerCache()
         self.cache.begin(None)
 
@@ -64,6 +65,7 @@ def _compute(connection, scratch, bundles, store=None):
             break
         task, dependencies, cache = work
         workspace.dependencies = dependencies
+        workspace.measurements = {}
         workspace.cache.begin(cache)
         cpu, wall = time.process_time(), time.perf_counter()
         try:
@@ -72,6 +74,8 @@ def _compute(connection, scratch, bundles, store=None):
             output = operation(task.payload, workspace)
             metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall,
                            compute_pid=os.getpid())
+            if workspace.measurements:
+                metrics['measurements'] = workspace.measurements
             # Stop the work deadline at the compute boundary; allow evidence to publish.
             connection.send(('publishing', dict(metrics, cache_update=workspace.cache.proposal())))
             cache_plan = connection.recv()

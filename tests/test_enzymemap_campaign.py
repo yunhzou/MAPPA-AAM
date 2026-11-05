@@ -72,6 +72,37 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
 
 
+def test_seed_batch_is_saved_and_changes_task_count_without_changing_scope(tmp_path):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['config']['seed_count'] = 10
+    index.write_text(json.dumps(data))
+    output = tmp_path/'result'
+    run(index, output, local=True, workers=2, seed_batch=10, stop_after='matching')
+    assert json.loads((output/'plan.json').read_text())['seed_batch'] == 10
+    store = BundleStore(output/'bundles')
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        for reference, audit in db.execute("SELECT reference,audit FROM results WHERE stage='matching'"):
+            matched = store.load(Blob(**json.loads(reference)))
+            history = store.load(Blob(**json.loads(audit)))
+            assert len(history['tasks']) == len(matched.scope)
+            for task in history['tasks']:
+                specification = _loads_checkpoint(task[1])
+                assert specification.operation.endswith(':search_complete_cut')
+                assert specification.payload['indices'] == tuple(range(10))
+            for attempt in history['attempts']:
+                measured = _loads_checkpoint(attempt[-1])['measurements']['search']
+                assert [r['index'] for r in measured['seeds']] == list(range(10))
+            for ref in matched.cuts:
+                cut = store.load(ref)
+                assert cut.seeds == 10
+                assert [r['index'] for r in cut.search_counts[0]['seeds']] == list(range(10))
+    with pytest.raises(ValueError, match='Resume input/configuration differs'):
+        run(index, output, local=True, workers=1, resume=True, seed_batch=1)
+
+
 @pytest.mark.parametrize('verify_only, stop_after, verification_failed', [
     (True, None, False),
     (True, None, True),

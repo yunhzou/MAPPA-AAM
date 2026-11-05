@@ -45,6 +45,11 @@ the indivisible `shared_policies` backend.
 policy. A cut with several batches has one dependent task that combines them
 in their original seed order. If all its seeds fit in one batch, the worker
 publishes the completed cut directly. There is no intermediate scheduling or storage round trip for that cut.
+Matching counts retain each seed's index, matcher CPU/wall time and cache
+call/hit/dependency-check deltas. These small measurements also accompany the
+task audit, so timing analysis need not deserialize its search graph. Task
+totals separately include preparation and graph combination; cache transport
+and publication remain separately measured by the worker.
 Workers prefer their current reaction/direction, then an unassigned one. If only
 already assigned reactions have ready tasks, workers take those tasks too, so a
 single reaction or a long tail can still use the full pool. This is a scheduling

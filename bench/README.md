@@ -48,6 +48,13 @@ continues from the catalogues in the same pool, even if decoding failed; those
 failures remain recorded and prevent overall success. An explicit stop after
 decoding still stops there. Caps and solver unknowns remain scientific metadata.
 
+`--seed-batch N` selects the number of original seed orders executed together
+for each cut (default one). Use the full seed count to reuse the worker's cache
+directly across seeds and avoid an extra cut-combination task. This changes
+scheduling granularity, not seed selection or branch caps. Nondefault batching
+is saved in the run plan and must match on resume. Task audits include per-seed
+CPU/wall time and cache counters alongside total cut-task and publication costs.
+
 The full EnzymeMap input contains 47,974 reactions in both directions. Its
 manifest fixes the scientific settings: one-witness growth, one seed, branch cap
 100, tolerance 1.0, random seed 42 and the full cut sweep. Verification asks for

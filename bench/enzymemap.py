@@ -310,7 +310,10 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
-        retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False):
+        retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False,
+        seed_batch=1):
+    if seed_batch < 1:
+        raise ValueError('Seed batch must be positive')
     if decode_only and (verify_only or recover_decoding or retry_memory_limits
                         or stop_after not in (None, 'decoding')):
         raise ValueError('Fresh decoding cannot select another pass or retry policy')
@@ -350,6 +353,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 config=asdict(config), decode_config=asdict(decoding_config),
                 cases=len({r['case'] for r in rows}), directions=len(rows),
                 reference_policy=reference_policy)
+            if seed_batch != 1:
+                requested['seed_batch'] = seed_batch
             if decode_only:
                 if not rows or not isinstance(index.get('decoding_source'), dict) or not index['decoding_source']:
                     raise ValueError('Fresh decoding requires saved catalogue provenance and nonempty scope')
@@ -471,7 +476,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                         references={name: Blob(**row['catalogue'])})
                                     result = pool.decode(saved, decoding_config)
                                 elif stage == 'matching':
-                                    result = pool.search({name: prepared_problem(row)}, config, seed_batch=1)
+                                    result = pool.search({name: prepared_problem(row)}, config, seed_batch=seed_batch)
                                 else:
                                     prior = ledger.get(name, previous)
                                     if prior is None or prior[0] != 'complete':
@@ -544,6 +549,8 @@ def main():
     parser.add_argument('--workers',type=int,default=32)
     parser.add_argument('--memory-gib',type=float,default=4.,help='Memory limit per compute worker (GiB)')
     parser.add_argument('--window',type=int,default=128)
+    parser.add_argument('--seed-batch',type=int,default=1,
+                        help='Seeds per cut task; preserves the full original seed plan')
     parser.add_argument('--limit',type=int)
     parser.add_argument('--local',action='store_true')
     parser.add_argument('--resume',action='store_true')
@@ -562,6 +569,7 @@ def main():
     args=parser.parse_args()
     status = run(args.index,args.output,workers=args.workers,memory_bytes=int(args.memory_gib*2**30),window=args.window,limit=args.limit,
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
+        seed_batch=args.seed_batch,
         retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding,
         decode_only=args.decode_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):

@@ -307,7 +307,7 @@ def diagnose(indices, output, *, cases, seeds, cache, branch_limit, direction_se
         config=asdict(replace(config, branch_limit=branch_limit)),
         direction_seconds=direction_seconds, run_seconds=run_seconds, memory_guard_bytes=memory_bytes,
         reference_policy=REFERENCE_POLICY, complete=False, results=[], comparisons=[],
-        catalogue_signature='catalogue-signature/v2' if audit_catalogue else None,
+        catalogue_signature='catalogue-signature/v4' if audit_catalogue else None,
         input_indexes_sha256=[hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in indices],
         input_sha256=[dict(case=r['case'], reversed=r['reversed'], input=r['input']['sha256'],
                            reference=r['reference']['sha256']) for r in rows],

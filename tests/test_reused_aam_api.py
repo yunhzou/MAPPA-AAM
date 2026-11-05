@@ -34,6 +34,23 @@ def test_partial_composition_anchors_and_distinct_cut_floor(sizes):
     assert search_aam(case,config,execution='reference').graph==search_aam(case,config).graph
 
 
+def test_seed_measurements_preserve_batched_graph_and_account_for_cache_work():
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    from mappa.mappa_core.core.search.session import SearchSession
+    config = AAMSearchConfig(seed_count=10, branch_limit=100, iso_tolerance=2.)
+    session = SearchSession(problem(), config)
+    graph, counts = session.search_cut(())
+    split = SearchSession(problem(), config)
+    parts = [split.search_cut((), seed_indices=(i,))[0] for i in range(10)]
+    assert graph == AAMSearchGraph.combine(parts)
+    assert [row['index'] for row in counts['seeds']] == list(range(10))
+    assert all(row['cpu_seconds'] >= 0 and row['wall_seconds'] >= 0 for row in counts['seeds'])
+    assert sum(row['wall_seconds'] for row in counts['seeds']) <= counts['search_seconds']
+    for key in ('calls', 'full_hits', 'dependency_checks'):
+        assert sum(row['cache'][key] for row in counts['seeds']) == session.repair.stats()[key]
+    assert counts['seeds'][-1]['cache']['full_hits'] > 0
+
+
 @pytest.mark.parametrize('workers',[1,2])
 def test_cross_backend_checkpoint_resume_requires_no_mapping_rerun(tmp_path,monkeypatch,workers):
     import mappa.mappa_core.core.scheduler.search as module

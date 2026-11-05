@@ -77,22 +77,35 @@ class SearchSession:
             finally:
                 if gc_enabled:
                     gc.enable()
-        graphs, profile = [], _GrowthCounts()
+        graphs, seed_metrics, profile = [], [], _GrowthCounts()
         orders = tuple(_generate_seed_orders(source, n_trials=config.seed_count,
             rng_seed=cut_seed(cut, config.random_seed), seed_selection=config.seed_selection))
         indices = tuple(range(len(orders))) if seed_indices is None else tuple(seed_indices)
         if not indices or tuple(sorted(set(indices))) != indices or any(i < 0 or i >= len(orders) for i in indices):
             raise ValueError('Seed indices must be a nonempty ordered subset of the original seed plan')
+        cache_before = self.repair.stats() if self.repair is not None else None
         for index in indices:
             order = orders[index]
+            seed_started, seed_cpu = time.perf_counter(), time.process_time()
             graphs.append(matcher(source, target, order,
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
                 max_branches=config.branch_limit,
                 anchor_map=dict(config.anchors),
                 profile=profile, cuts=cut, fragment_cache=view, random_seed=config.random_seed))
+            measured = dict(index=index, wall_seconds=time.perf_counter()-seed_started,
+                            cpu_seconds=time.process_time()-seed_cpu)
+            if self.repair is not None:
+                cache_after = self.repair.stats()
+                measured['cache'] = {key: cache_after[key]-cache_before[key]
+                                     for key in ('calls', 'full_hits', 'dependency_checks')}
+                measured['cache'].update(retained_bytes=cache_after['resident_bytes'],
+                                         entries=cache_after['entries'])
+                cache_before = cache_after
+            seed_metrics.append(measured)
         graph = AAMSearchGraph.combine(graphs)
         return graph, {
             'search_seconds': time.perf_counter() - started,
             'max_live_branches': max((len(g.terminals) for g in graphs), default=0),
             'max_growth_candidates': profile.maximum,
+            'seeds': tuple(seed_metrics),
         }
