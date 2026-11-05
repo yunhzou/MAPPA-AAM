@@ -196,3 +196,21 @@ the established search ordering. Both local and placement correlated-arm tests
 check the reused certificate, with non-preserving choices retained unchanged.
 The final fixed-source suite passed **1,100 tests in 162.29 seconds**; the 126
 focused symmetry, query and decoder tests also passed.
+
+The placement-certificate pilot still completed 23/36 directions, with thirteen
+120-second timeouts and no memory failures. Its maximum completed direction was
+862 forward at 90.652 seconds. Completed-scope CPU time was 578.234 seconds,
+versus 568.161 seconds for the first pilot; this was not an overall speedup.
+
+A low-overhead 120-second stack sample of 1264 forward then identified the
+remaining repeated work. After local preparation, the branch window attempted
+thousands of symmetry search states for programs containing only two sweep
+costs. Each unresolved branch could consume another five seconds. The following
+repair reuses the native joint endpoint projection and retains one ordered
+permutation proof for the best reachable pair. Internal costs that vary remain
+in the existing correlated event calculation; only a purely endpoint-dependent
+cost uses this direct projection. Fixed changes of starting discovery occur once,
+and successive actions retain their order. No complete permutation group or
+mapping table is expanded. Independent small-graph enumeration validates counts
+and witnesses for both-sided symmetry, changed discoveries, occupancy and ordered
+placements; the ring test now forbids a full symmetry search for its sweep.

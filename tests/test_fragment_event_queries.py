@@ -119,6 +119,72 @@ def test_composed_placement_reuses_only_a_preserved_graph(monkeypatch):
     assert variable.group.equals(response.group)
 
 
+@pytest.mark.parametrize('seed', range(24))
+def test_pair_minimum_reuses_ordered_binary_choices_without_group_search(seed, monkeypatch):
+    from mappa.mappa_core.core.symmetry.actions import apply_action
+    from mappa.mappa_core.core.symmetry.minimum import _Search
+
+    rng = np.random.default_rng(seed)
+    left, right = [weights(4, [(a,b,float(rng.choice((0., 1., 2.))))
+                              for a in range(4) for b in range(a+1,4)]) for _ in range(2)]
+    saved_value = fragment(left, right, (), range(4))
+    # Preparation may choose another discovery. It is a fixed change of the
+    # starting map, not an extra group whose closure is permitted.
+    prepared_value = replace(saved_value, relation=replace(saved_value.relation,
+        witness=tuple(enumerate(map(int, rng.permutation(4))))))
+    prepared = FragmentSymmetryEvents(prepared_value)
+    moves = ((1,0,2,3), (0,2,1,3))
+    actions = ((('relation', saved_value), prepared),) + tuple(
+        (('group', (move,)), None) for move in moves)
+    excluded = frozenset(((0,1), (2,3)))
+    response = OrderedSymmetryEvents(saved_value.witness, actions, right, (),
+        fixed_events=3, sweep=((0,2),1.,.5,1,excluded))
+    expected = {}
+    for images, first, second in product(oracle(prepared_value), (False,True), (False,True)):
+        for selected, move in zip((first,second), moves):
+            if selected:
+                images = tuple(move[p] for p in images)
+        pair = tuple(sorted((images[0], images[2])))
+        expected[images] = 3 + int(abs(1. - right[pair]) > .5) + int(pair not in excluded)
+
+    monkeypatch.setattr(_Search, 'run', lambda *args: pytest.fail('sweep rebuilt a full symmetry search'))
+    answer = response.solve()
+    images = tuple(dict(answer.witness)[a] for a in range(4))
+    assert answer.complete and answer.event_count == answer.lower_bound == min(expected.values())
+    assert expected[images] == answer.event_count
+    assert answer.work.nodes <= 5 * 4 * 3
+    realized = np.arange(4)
+    for (action, _), choice in zip(actions, answer.choices):
+        realized = apply_action(realized, action, choice, 4)
+    assert tuple(realized) == images
+
+
+def test_native_pair_minimum_preserves_pool_occupancy_and_fixed_action_order():
+    from mappa._group_ops import PairAction, EndpointPairProgram
+    pool = (0,1,2)
+    fixed = (1,2,3,0)
+    group = (0,1,3,2)
+    program = EndpointPairProgram(4, [PairAction.pool(4,pool),
+        PairAction.permutation(fixed), PairAction.group(4,[group])])
+    costs = np.array([[3,2,1,0], [0,3,2,1], [1,0,3,2], [2,1,0,3]], dtype=np.int32)
+    for a,b in product(range(4), repeat=2):
+        expected = set()
+        for permutation, selected in product(permutations(pool), (False,True)):
+            p = tuple(permutation) + (3,)
+            images = [fixed[p[a]], fixed[p[b]]]
+            if selected:
+                images = [group[p] for p in images]
+            expected.add(tuple(images))
+        assert set(program.project((a,b))) == expected
+        cost, choices, visited = program.minimum((a,b),costs)
+        images = (a,b)
+        for choice in choices:
+            assert sorted(choice) == list(range(4))
+            images = tuple(choice[p] for p in images)
+        assert images in expected and cost == costs[images] == min(costs[p] for p in expected)
+        assert visited <= 3 * 4 * 4
+
+
 def test_arm_occupancy_internal_exchanges_and_query_storage():
     data = FragmentSymmetryEvents(arms())
     counts = Counter()

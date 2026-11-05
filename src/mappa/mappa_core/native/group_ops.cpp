@@ -1,6 +1,7 @@
 // Exact permutation bookkeeping. Search choices and chemical semantics live in Python.
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -207,6 +208,15 @@ public:
     Images pool;
     std::vector<unsigned char> member;
     std::vector<Images> generators;
+    Images fixed;
+
+    static std::shared_ptr<PairAction> from_permutation(const Images& images) {
+        check_permutation(images);
+        auto action = std::make_shared<PairAction>(images.size());
+        action->fixed = images;
+        action->fixed.push_back(images.size());
+        return action;
+    }
 
     static std::shared_ptr<PairAction> from_pool(int degree, const Images& atoms) {
         auto action = std::make_shared<PairAction>(degree);
@@ -243,6 +253,113 @@ public:
 class EndpointPairProgram {
     int degree;
     std::vector<std::shared_ptr<PairAction>> actions;
+    struct Predecessor { size_t pair; int generator; };
+    struct Projection {
+        std::vector<size_t> pairs;
+        std::vector<std::vector<Predecessor>> history;
+        size_t visited = 0;
+    };
+
+    Projection project_states(Bond pair, bool trace) const {
+        for (int atom : {pair.first, pair.second})
+            if (atom < -1 || atom >= degree) throw std::invalid_argument("endpoint outside frame");
+        Projection result;
+        const size_t width = static_cast<size_t>(degree)+1;
+        std::vector<unsigned char> seen(width*width, false);
+        result.pairs = {static_cast<size_t>(pair.first < 0 ? degree : pair.first)*width
+                       + (pair.second < 0 ? degree : pair.second)};
+        for (const auto& action : actions) {
+            std::fill(seen.begin(), seen.end(), false);
+            std::vector<size_t> next;
+            if (trace) result.history.emplace_back(width*width);
+            auto add = [&](int a, int b, size_t previous, int generator = -1) {
+                const size_t key = static_cast<size_t>(a)*width+b;
+                if (!seen[key]) {
+                    seen[key] = true;
+                    next.push_back(key);
+                    if (trace) result.history.back()[key] = {previous, generator};
+                }
+            };
+            if (!action->fixed.empty()) {
+                for (size_t key : result.pairs)
+                    add(action->fixed[key/width], action->fixed[key%width], key);
+            } else if (!action->pool.empty()) {
+                bool both_expanded[2] = {false, false};
+                std::vector<unsigned char> rows(width, false), columns(width, false);
+                for (size_t key : result.pairs) {
+                    const int a = key/width, b = key%width;
+                    const bool left = action->member[a], right = action->member[b];
+                    if (left && right) {
+                        const bool diagonal = a == b;
+                        if (both_expanded[diagonal]) continue;
+                        both_expanded[diagonal] = true;
+                        for (int x : action->pool) for (int y : action->pool)
+                            if ((x == y) == diagonal) add(x, y, key);
+                    } else if (left) {
+                        if (columns[b]) continue;
+                        columns[b] = true;
+                        for (int x : action->pool) add(x, b, key);
+                    } else if (right) {
+                        if (rows[a]) continue;
+                        rows[a] = true;
+                        for (int y : action->pool) add(a, y, key);
+                    } else {
+                        add(a, b, key);
+                    }
+                }
+            } else {
+                for (size_t key : result.pairs) add(key/width, key%width, key);
+                for (size_t i = 0; i < next.size(); ++i) {
+                    const size_t key = next[i];
+                    const int a = key/width, b = key%width;
+                    for (size_t j = 0; j < action->generators.size(); ++j) {
+                        const auto& g = action->generators[j];
+                        add(g[a], g[b], key, j);
+                    }
+                }
+            }
+            result.visited += next.size();
+            result.pairs.swap(next);
+        }
+        return result;
+    }
+
+    std::vector<Images> realize(size_t key, const Projection& projection) const {
+        const size_t width = static_cast<size_t>(degree)+1;
+        std::vector<Images> choices(actions.size(), Images(degree));
+        for (size_t layer = actions.size(); layer-- > 0;) {
+            const auto& action = actions[layer];
+            auto& choice = choices[layer];
+            std::iota(choice.begin(), choice.end(), 0);
+            const auto& history = projection.history[layer];
+            if (!action->fixed.empty()) {
+                choice.assign(action->fixed.begin(), action->fixed.begin()+degree);
+                key = history[key].pair;
+            } else if (!action->pool.empty()) {
+                const size_t previous = history[key].pair;
+                std::map<int, int> selected;
+                for (const auto& [a, b] : {Bond(previous/width, key/width), Bond(previous%width, key%width)})
+                    if (action->member[a]) selected[a] = b;
+                std::set<int> unused(action->pool.begin(), action->pool.end());
+                for (const auto& [a, b] : selected) { choice[a] = b; unused.erase(b); }
+                for (int a : action->pool) if (!selected.count(a)) {
+                    choice[a] = *unused.begin();
+                    unused.erase(unused.begin());
+                }
+                key = previous;
+            } else {
+                Images word;
+                while (history[key].generator >= 0) {
+                    word.push_back(history[key].generator);
+                    key = history[key].pair;
+                }
+                key = history[key].pair;
+                for (auto i = word.rbegin(); i != word.rend(); ++i)
+                    for (int& image : choice) image = action->generators[*i][image];
+            }
+        }
+        return choices;
+    }
 public:
     EndpointPairProgram(int n, std::vector<std::shared_ptr<PairAction>> program)
         : degree(n), actions(std::move(program)) {
@@ -252,58 +369,13 @@ public:
     }
 
     py::tuple project(Bond pair) const {
-        for (int atom : {pair.first, pair.second})
-            if (atom < -1 || atom >= degree) throw std::invalid_argument("endpoint outside frame");
         std::vector<Bond> pairs;
         {
             py::gil_scoped_release release;
             const size_t width = static_cast<size_t>(degree)+1;
-            std::vector<unsigned char> seen(width*width, false);
-            std::vector<size_t> states{static_cast<size_t>(pair.first < 0 ? degree : pair.first)*width
-                                      + (pair.second < 0 ? degree : pair.second)};
-            for (const auto& action : actions) {
-                if (action->pool.empty() && action->generators.empty()) continue;
-                std::fill(seen.begin(), seen.end(), false);
-                std::vector<size_t> next;
-                auto add = [&](int a, int b) {
-                    const size_t key = static_cast<size_t>(a)*width+b;
-                    if (!seen[key]) { seen[key] = true; next.push_back(key); }
-                };
-                if (!action->pool.empty()) {
-                    bool both_expanded[2] = {false, false};
-                    std::vector<unsigned char> rows(width, false), columns(width, false);
-                    for (size_t key : states) {
-                        const int a = key/width, b = key%width;
-                        const bool left = action->member[a], right = action->member[b];
-                        if (left && right) {
-                            const bool diagonal = a == b;
-                            if (both_expanded[diagonal]) continue;
-                            both_expanded[diagonal] = true;
-                            for (int x : action->pool) for (int y : action->pool)
-                                if ((x == y) == diagonal) add(x, y);
-                        } else if (left) {
-                            if (columns[b]) continue;
-                            columns[b] = true;
-                            for (int x : action->pool) add(x, b);
-                        } else if (right) {
-                            if (rows[a]) continue;
-                            rows[a] = true;
-                            for (int y : action->pool) add(a, y);
-                        } else {
-                            add(a, b);
-                        }
-                    }
-                } else {
-                    for (size_t key : states) add(key/width, key%width);
-                    for (size_t i = 0; i < next.size(); ++i) {
-                        const int a = next[i]/width, b = next[i]%width;
-                        for (const auto& g : action->generators) add(g[a], g[b]);
-                    }
-                }
-                states.swap(next);
-            }
-            pairs.reserve(states.size());
-            for (size_t key : states) {
+            const auto projection = project_states(pair, false);
+            pairs.reserve(projection.pairs.size());
+            for (size_t key : projection.pairs) {
                 const int a = key/width, b = key%width;
                 pairs.emplace_back(a == degree ? -1 : a, b == degree ? -1 : b);
             }
@@ -314,6 +386,29 @@ public:
             result[i] = py::make_tuple(pairs[i].first, pairs[i].second);
         return result;
     }
+
+    py::tuple minimum(Bond pair, py::array_t<int, py::array::c_style | py::array::forcecast> costs) const {
+        if (pair.first < 0 || pair.second < 0)
+            throw std::invalid_argument("minimum requires two mapped endpoints");
+        if (costs.ndim() != 2 || costs.shape(0) != degree || costs.shape(1) != degree)
+            throw std::invalid_argument("pair costs differ from the action frame");
+        int best;
+        size_t visited;
+        std::vector<Images> choices;
+        {
+            py::gil_scoped_release release;
+            const auto projection = project_states(pair, true);
+            const size_t width = static_cast<size_t>(degree)+1;
+            const int* values = costs.data();
+            auto value = [&](size_t key) { return values[(key/width)*degree + key%width]; };
+            const size_t selected = *std::min_element(projection.pairs.begin(), projection.pairs.end(),
+                [&](size_t a, size_t b) { return value(a) < value(b); });
+            best = value(selected);
+            visited = projection.visited;
+            choices = realize(selected, projection);
+        }
+        return py::make_tuple(best, choices, visited);
+    }
 };
 
 PYBIND11_MODULE(_group_ops, m) {
@@ -323,10 +418,12 @@ PYBIND11_MODULE(_group_ops, m) {
         .def("stabilizer", &permutation_native::SetOrbit::stabilizer);
     py::class_<PairAction, std::shared_ptr<PairAction>>(m, "PairAction")
         .def_static("pool", &PairAction::from_pool)
+        .def_static("permutation", &PairAction::from_permutation)
         .def_static("group", &PairAction::from_group);
     py::class_<EndpointPairProgram>(m, "EndpointPairProgram")
         .def(py::init<int, std::vector<std::shared_ptr<PairAction>>>())
-        .def("project", &EndpointPairProgram::project);
+        .def("project", &EndpointPairProgram::project)
+        .def("minimum", &EndpointPairProgram::minimum);
 
     m.def("occupation_orbit", &occupation_orbit,
           py::arg("witness"), py::arg("degree"), py::arg("stages"),

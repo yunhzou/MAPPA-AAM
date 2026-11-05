@@ -95,11 +95,9 @@ def test_sweep_reuses_constant_fragment_costs_after_placement(monkeypatch):
         actions=source.families[0].actions + (('group', (reflection,)),),
         provenance=[dict(cuts=((0, 1),))])
     solve = _Search.run
-    searches = []
     def checked(self):
         if hasattr(self.data, 'actions'):
-            assert len(self.data.pairs) <= 2, 'sweep reopened internal fragment costs'
-            searches.append(len(self.data.pairs))
+            pytest.fail('the sweep must project its two endpoints, not search complete choices')
         return solve(self)
     monkeypatch.setattr(_Search, 'run', checked)
     result = decode_events(source, event_slack=0)
@@ -107,7 +105,7 @@ def test_sweep_reuses_constant_fragment_costs_after_placement(monkeypatch):
     table = result.tables(0)
     local = table.fragment_responses[1][0].event_counts
     assert local.constant == 0 and not local.program.pairs
-    assert searches == [2]
+    assert len(table.program.pairs) == 2
     answer = result.select(0, 0).find()
     assert answer.status == 'found'
     assert result.contributions(0, answer.choices)['total'] == 0

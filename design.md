@@ -444,7 +444,10 @@ Assembly binds the prepared cost projections to their original shared choices;
 it does not expand them back into raw bond terms. Weight-preserving placement
 actions retain those internal costs while moving the endpoints. The sweep adds
 only its endpoint-pair correction, with endpoint dependencies traced through the
-saved action order. Reuse local event-invariant compression only when it also
+saved action order. When internal costs are constant, resolve the sweep directly
+over jointly reachable endpoint pairs, retaining one valid ordered choice as its
+witness. This must not enumerate complete symmetry assignments. Variable internal
+costs retain their dependence on the endpoints. Reuse local event-invariant compression only when it also
 preserves every affected endpoint and other contribution. Accept an attained
 lower bound immediately rather than searching again for the same minimum.
 
