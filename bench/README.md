@@ -61,6 +61,17 @@ manifest fixes the scientific settings: one-witness growth, one seed, branch cap
 exact annotated heavy-atom indices with hydrogens unconstrained, without
 endpoint-symmetry relaxation or a claim of stereochemical validation.
 
+`--reduce-only` accepts a fresh index whose directions contain `case`, `reversed`,
+`matching` and original `catalogue` blob references, plus `config` and a
+`reduction_source` provenance object. It runs three separate measured passes in
+one pool: republish unchanged matching records into current binary transport,
+reduce through `WorkPool.deduplicate`, and compare every catalogue's complete
+scientific values and provenance. No matching, decoding or reference queries run.
+Conversion and equality checking are excluded from reduction time. Outputs use
+a new directory; original ledgers and bundles are read-only. Any failed task
+stops further admission. Resume preserves completed passes, settings, source and
+runner identity and requires a drained queue.
+
 ## Prepare fresh inputs
 
 `prepare_batches.py fresh OUTPUT INDEX... --workers COUNT...` creates disjoint

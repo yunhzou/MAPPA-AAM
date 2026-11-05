@@ -1,7 +1,7 @@
 """Fresh EnzymeMap passes over prepared inputs, using one persistent MAPPA pool."""
 import argparse
 from contextlib import ExitStack, closing
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import fcntl
 import hashlib
 import json
@@ -38,6 +38,58 @@ def prepared_problem(row):
     preparation = read_blob(Blob(**row['blob']), None)
     source = read_blob(preparation[0].payload['input'], None)
     return problem_from_record(source)
+
+
+def republish_matching(payload, workspace):
+    """Convert saved transport once; reuse every original search result."""
+    saved = workspace.load(payload['matching'])
+    source = workspace.load(saved.input)
+    if asdict(source.config) != payload['config'] or saved.case != payload['case']:
+        raise ValueError('Saved matching scope or settings differ from the reduction plan')
+    cuts = tuple(workspace.writer.put(workspace.load(reference)) for reference in saved.cuts)
+    return replace(saved, cuts=cuts)
+
+
+def catalogue_fingerprint(saved):
+    """Hash complete saved values without expanding shared fragments per family."""
+    catalogue = saved.catalogue
+    digest = hashlib.sha256()
+    fragments, placements = {}, {}
+
+    def encoded(value):
+        return json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+
+    def append(value):
+        digest.update(encoded(value) + b'\n')
+
+    append(('reduction-comparison/v1', saved.case, asdict(saved.search_config),
+            saved.execution, tuple(asdict(scope) for scope in saved.scope), saved.stops,
+            catalogue.schema, catalogue.problem_sha256, catalogue.mode,
+            catalogue.path_count, catalogue.incomplete_paths, catalogue.reconstruction))
+    for family in catalogue.families:
+        actions = []
+        for kind, value in family.actions:
+            inventory = fragments if kind == 'relation' else placements
+            if value not in inventory:
+                record = value.to_record() if kind == 'relation' else value
+                inventory[value] = hashlib.sha256(encoded(record)).hexdigest()
+            actions.append((kind, inventory[value]))
+        append((family.policy, family.mapping, family.required_edges, actions, family.provenance))
+    for key, ids in sorted(catalogue.branches.items()):
+        append(('branch', key, sorted(ids)))
+    for family, partitions in sorted(catalogue.coupled_branches.items()):
+        append(('coupled', family, sorted(partitions)))
+    return digest.hexdigest(), dict(paths=catalogue.path_count, families=len(catalogue.families),
+        branches=catalogue.branch_count, fragments=len(fragments), placements=len(placements))
+
+
+def compare_reduction(payload, workspace):
+    """Compare complete catalogues sequentially, retaining neither after hashing."""
+    before = catalogue_fingerprint(workspace.load(payload['original']))
+    after = catalogue_fingerprint(workspace.load(payload['catalogue']))
+    if before != after:
+        raise ValueError('Reduction changed the saved scientific catalogue or provenance')
+    return dict(equal=True, sha256=after[0], counts=after[1])
 
 
 def verify(payload, workspace):
@@ -311,9 +363,12 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
         retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False,
-        seed_batch=1):
+        seed_batch=1, reduce_only=False):
     if seed_batch < 1:
         raise ValueError('Seed batch must be positive')
+    if reduce_only and (decode_only or verify_only or recover_decoding or retry_memory_limits
+                        or stop_after is not None):
+        raise ValueError('Fresh reduction cannot select another pass or retry policy')
     if decode_only and (verify_only or recover_decoding or retry_memory_limits
                         or stop_after not in (None, 'decoding')):
         raise ValueError('Fresh decoding cannot select another pass or retry policy')
@@ -343,6 +398,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             index = json.loads(raw)
             if 'decoding_source' in index and not decode_only:
                 raise ValueError('A saved catalogue index requires --decode-only')
+            if 'reduction_source' in index and not reduce_only:
+                raise ValueError('A saved matching index requires --reduce-only')
             config = AAMSearchConfig(**index['config'])
             decoding_config = decoding_policy(index)
             verification = index.get('verification', 'enzymemap:verify')
@@ -363,6 +420,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 requested.update(mode='decode_only', decoding_source=index['decoding_source'],
                     decoder_source=code_identity(),
                     directions_to_decode=catalogues, memory_bytes=memory_bytes, case_seconds=case_seconds)
+            if reduce_only:
+                if not rows or not isinstance(index.get('reduction_source'), dict) or not index['reduction_source']:
+                    raise ValueError('Fresh reduction requires saved matching provenance and nonempty scope')
+                comparisons = [dict(case=row['case'], reversed=row['reversed'],
+                    matching=asdict(Blob(**row['matching'])),
+                    catalogue=asdict(Blob(**row['catalogue']))) for row in rows]
+                requested.update(mode='reduce_only', reduction_source=index['reduction_source'],
+                    reduction_code=code_identity(),
+                    runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    directions_to_reduce=comparisons, memory_bytes=memory_bytes, case_seconds=case_seconds)
         identities = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}" for row in rows}
         if len(identities) != len(rows):
             raise ValueError('Duplicate reaction/direction inputs')
@@ -375,7 +442,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
             if saved_plan != requested:
                 raise ValueError('Resume input/configuration differs')
-            if decode_only:
+            if decode_only or reduce_only:
                 require_drained(output)
         else:
             if plan.exists():
@@ -402,12 +469,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             status['decoding_recovery'] = True
         if decode_only:
             status['decoding_only'] = True
+        if reduce_only:
+            status['reduction_only'] = True
         if verify_only:
             if json.loads((output/'progress.json').read_text())['source'] != status['source']:
                 raise ValueError('MAPPA source or compiled engine differs from the saved campaign')
             require_drained(output)
             status['verification_only'] = True
-        stages = ([('decoding', None)] if recover_decoding or decode_only else
+        stages = ([('snapshot', None), ('deduplication', 'snapshot'),
+                   ('reduction_validation', 'deduplication')] if reduce_only else
+                  [('decoding', None)] if recover_decoding or decode_only else
                   [('verification', 'deduplication')] if verify_only else
                   [('matching', None), ('deduplication', 'matching'),
                    ('decoding', 'deduplication'), ('verification', 'deduplication')])
@@ -468,7 +539,21 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                         active[name] = result
                                 continue
                             try:
-                                if recover_decoding:
+                                if reduce_only and stage != 'deduplication':
+                                    key = f'{uuid.uuid4().hex}/{name}/{stage}'
+                                    if stage == 'snapshot':
+                                        operation = 'enzymemap:republish_matching'
+                                        payload = dict(matching=Blob(**row['matching']), case=name,
+                                                       config=asdict(config))
+                                    else:
+                                        operation = 'enzymemap:compare_reduction'
+                                        prior = ledger.get(name, previous)
+                                        payload = dict(original=Blob(**row['catalogue']),
+                                                       catalogue=Blob(**json.loads(prior[1])))
+                                    pool.queue.add([Task(key, operation, payload, case=key,
+                                        case_seconds=case_seconds, memory_bytes=memory_bytes)])
+                                    result = StageResults(stage, store, pool=pool, tasks={name:(key,)})
+                                elif recover_decoding:
                                     result = pool.retry_decoding(name, Blob(**row['audit']),
                                                                  catalogue=Blob(**row['catalogue']))
                                 elif decode_only:
@@ -481,7 +566,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                     prior = ledger.get(name, previous)
                                     if prior is None or prior[0] != 'complete':
                                         raise RuntimeError('Previous pass did not complete')
-                                    prior_results = StageResults(previous, store, references={name:Blob(**json.loads(prior[1]))})
+                                    prior_results = StageResults('matching' if previous == 'snapshot' else previous,
+                                        store, references={name:Blob(**json.loads(prior[1]))})
                                     if stage == 'deduplication':
                                         result = pool.deduplicate(prior_results)
                                     elif stage == 'decoding':
@@ -497,6 +583,9 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                 active[name] = result
                             except Exception as error:
                                 ledger.put(name,stage,'error',error=repr(error))
+                                if reduce_only:
+                                    stop = True
+                                    status['stopped_on_failure'] = True
                         all_keys = [key for result in active.values() for group in result.tasks.values() for key in group]
                         states = pool.queue.states(all_keys)
                         for name,result in list(active.items()):
@@ -509,6 +598,9 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                             audit = pool.queue.archive_case(keys[0],store)
                             ledger.put(name,stage,'error' if failed else 'complete',reference,audit,failed)
                             del active[name]
+                            if reduce_only and failed:
+                                stop = True
+                                status['stopped_on_failure'] = True
                         if time.monotonic() >= next_checkpoint:
                             checkpoint(stage,active)
                             next_checkpoint = time.monotonic()+30
@@ -532,8 +624,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                         status['pass_finished'] = stage
                         checkpoint(stage,{})
                         return status
-                if verify_only or recover_decoding or decode_only:
-                    stage = 'verification' if verify_only else 'decoding'
+                if verify_only or recover_decoding or decode_only or reduce_only:
+                    stage = 'reduction_validation' if reduce_only else 'verification' if verify_only else 'decoding'
                     status['pass_finished'] = stage
                     checkpoint(stage,{})
                 else:
@@ -560,6 +652,8 @@ def main():
                         help='Read an original campaign or its latest terminal recovery and retry decoding memory failures into separate output, preserving guards and remaining budgets')
     parser.add_argument('--decode-only',action='store_true',
                         help='Decode every saved catalogue in a prepared index into fresh output, with fresh recorded budgets')
+    parser.add_argument('--reduce-only',action='store_true',
+                        help='Republish saved matching, rerun reduction and compare original catalogues in separate measured passes')
     parser.add_argument('--retry-memory-limits',action='store_true',
                         help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
@@ -571,7 +665,7 @@ def main():
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
         seed_batch=args.seed_batch,
         retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding,
-        decode_only=args.decode_only,case_seconds=args.case_seconds)
+        decode_only=args.decode_only,reduce_only=args.reduce_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):
         raise SystemExit(75)
 

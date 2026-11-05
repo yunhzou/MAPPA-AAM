@@ -63,6 +63,57 @@ def test_full_passes_and_resume_preserve_results_without_old_operations(tmp_path
         run(index, output, local=True, workers=1, resume=True)
 
 
+def test_reduction_only_preserves_full_results_without_search_or_decoding(tmp_path, monkeypatch):
+    from mappa.execution import WorkPool
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    index = prepared_index(tmp_path)
+    source = tmp_path/'original'
+    assert run(index, source, local=True, workers=1, stop_after='deduplication')['pass_finished'] == 'deduplication'
+    data = json.loads(index.read_text())
+    original_bytes = (source/'ledger.sqlite').read_bytes()
+    with sqlite3.connect(source/'ledger.sqlite') as db:
+        refs = {(name, stage): json.loads(reference) for name, stage, reference in
+                db.execute('SELECT case_name,stage,reference FROM results')}
+    data['directions'] = [dict(case=0, reversed=reverse,
+        matching=refs[f"00000/{'reverse' if reverse else 'forward'}", 'matching'],
+        catalogue=refs[f"00000/{'reverse' if reverse else 'forward'}", 'deduplication'])
+        for reverse in (False, True)]
+    data['reduction_source'] = dict(source_identity='original', ledger_sha256='recorded')
+    index = tmp_path/'reduce-index.json'; index.write_text(json.dumps(data))
+    def forbidden(*args, **kwargs):
+        pytest.fail('Reduction-only execution must not run matching or decoding')
+    monkeypatch.setattr(WorkPool, 'search', forbidden)
+    monkeypatch.setattr(WorkPool, 'decode', forbidden)
+    output = tmp_path/'reduced'; options = dict(local=True, workers=2, window=2,
+        reduce_only=True, memory_bytes=2**30, case_seconds=123.)
+    assert run(index, output, **options)['pass_finished'] == 'reduction_validation'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        records = db.execute('SELECT * FROM results ORDER BY case_name,stage').fetchall()
+        assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall() == [
+            ('deduplication', 'complete', 2), ('reduction_validation', 'complete', 2), ('snapshot', 'complete', 2)]
+    store = BundleStore(output/'bundles')
+    for name, stage, state, reference, audit, error in records:
+        if stage == 'reduction_validation':
+            assert store.load(Blob(**json.loads(reference)))['equal']
+        history = store.load(Blob(**json.loads(audit)))
+        assert len(history['tasks']) == len(history['attempts']) == 1
+        assert history['case'][1] == 123.
+    assert (source/'ledger.sqlite').read_bytes() == original_bytes
+    assert run(index, output, resume=True, **options)['pass_finished'] == 'reduction_validation'
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results ORDER BY case_name,stage').fetchall() == records
+    # An atom-set-equal catalogue with a changed permission must fail the audit.
+    from dataclasses import replace
+    from enzymemap import compare_reduction
+    from mappa.mappa_core.core.scheduler.runtime import Workspace
+    original = Blob(**data['directions'][0]['catalogue'])
+    saved = store.load(original)
+    family = saved.catalogue.families[0]
+    saved.catalogue.families[0] = replace(family, actions=())
+    with pytest.raises(ValueError, match='changed the saved scientific catalogue'):
+        compare_reduction(dict(original=original, catalogue=store.put(saved)), Workspace(tmp_path, store=store))
+
+
 def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
     index=prepared_index(tmp_path,corrupt=True)
     output=tmp_path/'result'
