@@ -1,6 +1,6 @@
 # Full Golden decoding with binary fragment symmetry
 
-This study tests the integrated decoder from `4759d25` on the saved full Golden
+This study tests the repaired integrated decoder from `4d2e0d7` on the saved full Golden
 matching catalogue: 1,851 reactions, 3,702 directions, discovery tolerance 2,
 one seed, branch cap 200 and the full single-edge sweep. Matching is not repeated.
 
@@ -114,4 +114,20 @@ The final fixed-source repository suite passed **1,091 tests in 162.61 seconds**
 An earlier interrupted suite is excluded: editing a core file during that run
 caused its execution-layer source/cache identity checks to reject worker tasks.
 The affected test passed independently, and the complete suite above ran with
-unchanged source. No full cluster decoding run was restarted.
+unchanged source.
+
+## Full-set restart
+
+The user authorized a fresh decoding pass with the repaired version. Linux
+preflight passed **80 tests in 6.89 seconds**. The restart covers all 1,851
+reactions / 3,702 directions, with 32 compute workers and the same 2 GiB
+per-worker guard, 600-second direction allowance and minimum-plus-5 window.
+The source and engine remain fixed throughout the run. Output goes into a
+fresh campaign; the original matching catalogues and stopped attempt are kept.
+
+The allocation started on 2026-11-05 at approximately 07:40 UTC. Explicit input
+conversion precedes worker startup; reserved worker capacity is not decoding
+utilization during that preparation. The pass is currently in progress. Final
+counts, output integrity and timing distributions will be audited after it
+drains. An observed decoding failure stops admission for investigation, rather
+than being silently retried or given a larger resource allowance.
