@@ -312,6 +312,63 @@ removed. [Paired evidence](atom-set-comparison.json) records source/engine hashe
 input checksums, policies and all phase timings. Cluster execution remains on
 the earlier revision; no campaign was silently resumed.
 
+## Compact reduction and publication
+
+The next repair follows atom-set identity with integer fragment-ID compositions.
+It projects each completed state's atom sets in one native call, shares prepared
+fragment actions and keeps growth histories as parent links. Reduction and
+publication no longer unfold those histories. Ordered global placements,
+explicit anchors, sweep provenance and every scientific catalogue field remain
+unchanged. The catalogue uses storage schema v5; saved raw matching graphs can
+be reduced directly into this format.
+
+The paired baseline is `1e4f384e4fba092479e769f3455ed2dfe4ca06b3`; the candidate
+is `57aa2387c2f9b4b30c4360369d8da3ea6b6f69fb`. Source/engine identities are recorded in
+[the comparison](compact-reduction-comparison.json). This is a local comparison
+of five immutable saved matching results, **ten seeds, cap 100, tolerance 2,
+forward directions**, with two repetitions in alternating order. Matching was
+not repeated. Decoding keeps the same minimum-plus-five window and five-second
+fragment allowance. Values below are mean CPU seconds across the repetitions.
+
+| Golden case | Reduction before | Reduction after | Speedup |
+|---|---:|---:|---:|
+| 0 | 3.0668 | 1.8049 | 1.70× |
+| 44 | 0.5029 | 0.3623 | 1.39× |
+| 625 | 0.0056 | 0.0054 | 1.03× |
+| 1000 | 0.0335 | 0.0312 | 1.07× |
+| 1361 | 0.5506 | 0.4537 | 1.21× |
+| **Total** | **4.1594** | **2.6576** | **1.57×** |
+
+Reduction uses **36.1% less CPU**. Decoding totals 39.124 versus 39.247 seconds
+(0.3% higher); this measurement does not show a decoding speedup. Export,
+serialization and restoration together fall from 7.021 to 6.341 seconds.
+The full phase breakdown, wall times and individual observations are saved.
+
+All catalogue-content hashes match in both repetitions after normalizing only
+the storage schema and compact history encoding. This includes fragment values,
+representative mappings, action order, branch membership and every original
+provenance record. Counts remain 53,830 input paths, 40,528 branches, 42,779
+families and 4,491 unique fragments summed across the five directions. Reference
+recovery remains **5/5** both in the catalogue and in the decoded window.
+Reference event counts remain 11, 4, 3, 3 and 7; model minima remain 9, 4, 3, 3
+and 7. These checks do not exhaustively compare every decoded query answer.
+
+A critical test represents **1,048,576 growth histories with one final branch**.
+It forbids history unfolding during reduction, binary/JSON publication,
+restoration and decoding, while retaining the full count and compact references.
+Its serialized catalogue stays below 10 KB. Additional tests compare native
+atom-set projection with independent set grouping, preserve joined and explicitly
+selected histories, and check placement order and distributed transport.
+The final full suite passes **1,256 tests** in 245.20 seconds.
+
+This comparison does not replace the full Golden timing results above. The
+earlier complete seed-ten workload contains 27,936,113 raw paths and 19,194,449
+final branches across 3,702 directions; it is larger than a one-million-key
+set-insertion example. Full Golden has not been rerun under this repair, and
+seed-one versus seed-ten scaling is not remeasured here. The largest measured
+process RSS is 3.209 GiB before and 3.199 GiB after, including explicit output
+audits. These local checks do not establish operation under a 2 GiB guard.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**

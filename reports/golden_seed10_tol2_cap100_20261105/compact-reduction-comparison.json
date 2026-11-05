@@ -1,0 +1,1499 @@
+{
+  "runner_sha256": "26e6138e96e717a4f1b3e923067a9349283c5deccd2356c1b9b1532a96732952",
+  "manifest_sha256": "d885e259609c567b40c894c6d9adc04721c47f442a0107bfc8a5abb5d8fc4911",
+  "repetitions": 2,
+  "warm_repeats": 0,
+  "timeout_seconds": 120.0,
+  "profiled": false,
+  "audited_output": true,
+  "schema": "mappa.compact_reduction_comparison/1",
+  "revisions": {
+    "baseline": {
+      "revision": "1e4f384e4fba092479e769f3455ed2dfe4ca06b3",
+      "source_identity": "9f263772d8965b81bf471b37bf887faf30c51effad6e89c3dc9dd0ed25346f77"
+    },
+    "candidate": {
+      "revision": "57aa2387c2f9b4b30c4360369d8da3ea6b6f69fb",
+      "source_identity": "8a0777c3c4538dcbc3d9bfbe0d76ca4cb7eb903572e45f4912d6e98a0bb2c42e"
+    }
+  },
+  "cases": [
+    {
+      "name": "00000/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "b3b1a6b75d609a2d4c617939334ba555030305229ad9dc1b054aac64afaa7430",
+      "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+      "reversed": false
+    },
+    {
+      "name": "00044/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "b02bb18904756f3bff8984448d84e2d06e83f62b9ac8eac0652055100c02d0bd",
+      "reference_sha256": "5ebc801725ab2acccf8a6093a76982d2e31ca0c71b27e48ba2f62f940eb09437",
+      "reversed": false
+    },
+    {
+      "name": "00625/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "dd76baf8d17fe91636b46502d7e1546797877b59c5d860f18d4a6d2decd92124",
+      "reference_sha256": "6b9e1c02382631a7f279d30f58a03696797b1ec9f7af535c52a2a35641aa0adf",
+      "reversed": false
+    },
+    {
+      "name": "01000/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "2719979498644e9366a8d19b7dd61758f9b643c28b46300efa65c02b8d2bb251",
+      "reference_sha256": "9e6302eac3f1ddc7e9d6f7a679ecb285f6a15b1099d9941cd312e3ee8d2cc93d",
+      "reversed": false
+    },
+    {
+      "name": "01361/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "ec8335f00bac29c963131932a91c188e0960a54f381ae38895e7bdd838f3a41b",
+      "reference_sha256": "7f15ee5a71b1586b5aa8bc8a53d63815b6f86797c0162ecec7349a1ec2a6a92c",
+      "reversed": false
+    }
+  ],
+  "runs": [
+    {
+      "revision": "baseline",
+      "case": "00000/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 23.01818862487562,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.9921140000000013,
+            "wall_seconds": 1.9984561258461326
+          },
+          "reduction": {
+            "cpu_seconds": 3.043257,
+            "wall_seconds": 3.0508172505069524
+          },
+          "verification": {
+            "cpu_seconds": 0.043262000000000356,
+            "wall_seconds": 0.04326704191043973
+          },
+          "decoding": {
+            "cpu_seconds": 5.006906,
+            "wall_seconds": 5.010970833012834
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10080400000000012,
+            "wall_seconds": 0.10080908285453916
+          },
+          "export": {
+            "cpu_seconds": 1.0101019999999998,
+            "wall_seconds": 1.0101766660809517
+          },
+          "serialization": {
+            "cpu_seconds": 0.5731330000000003,
+            "wall_seconds": 0.5733304580207914
+          },
+          "restoration": {
+            "cpu_seconds": 0.3937590000000011,
+            "wall_seconds": 0.39402329199947417
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 45051746,
+        "process_lifetime_peak_rss_bytes": 1200537600
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00000/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 21.73825762490742,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.9994789999999998,
+            "wall_seconds": 2.0002585395704955
+          },
+          "reduction": {
+            "cpu_seconds": 1.8033209999999995,
+            "wall_seconds": 1.803994370624423
+          },
+          "verification": {
+            "cpu_seconds": 0.04359599999999997,
+            "wall_seconds": 0.0436042919754982
+          },
+          "decoding": {
+            "cpu_seconds": 5.080639000000001,
+            "wall_seconds": 5.084750750102103
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10358599999999996,
+            "wall_seconds": 0.10360008315183222
+          },
+          "export": {
+            "cpu_seconds": 1.0054809999999996,
+            "wall_seconds": 1.0069512501358986
+          },
+          "serialization": {
+            "cpu_seconds": 0.3200310000000002,
+            "wall_seconds": 0.32046116702258587
+          },
+          "restoration": {
+            "cpu_seconds": 0.24131500000000017,
+            "wall_seconds": 0.2417877500411123
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 959414272
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "00044/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 6.749379416927695,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.36404399999999926,
+            "wall_seconds": 0.36499845841899514
+          },
+          "reduction": {
+            "cpu_seconds": 0.5149339999999996,
+            "wall_seconds": 0.5155021732207388
+          },
+          "verification": {
+            "cpu_seconds": 0.01315899999999992,
+            "wall_seconds": 0.013167332857847214
+          },
+          "decoding": {
+            "cpu_seconds": 2.194185,
+            "wall_seconds": 2.1986370000522584
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.1541920000000001,
+            "wall_seconds": 0.1543580840807408
+          },
+          "export": {
+            "cpu_seconds": 0.29332400000000014,
+            "wall_seconds": 0.29337958293035626
+          },
+          "serialization": {
+            "cpu_seconds": 0.10276700000000005,
+            "wall_seconds": 0.10277624987065792
+          },
+          "restoration": {
+            "cpu_seconds": 0.08703800000000061,
+            "wall_seconds": 0.08710679202340543
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 11367353,
+        "process_lifetime_peak_rss_bytes": 448413696
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00044/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 6.643534125061706,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.3582379999999997,
+            "wall_seconds": 0.3590387476142496
+          },
+          "reduction": {
+            "cpu_seconds": 0.3721359999999999,
+            "wall_seconds": 0.37280791555531323
+          },
+          "verification": {
+            "cpu_seconds": 0.013170000000000126,
+            "wall_seconds": 0.013211250072345138
+          },
+          "decoding": {
+            "cpu_seconds": 2.174473,
+            "wall_seconds": 2.1780460830777884
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.1568909999999999,
+            "wall_seconds": 0.15768262511119246
+          },
+          "export": {
+            "cpu_seconds": 0.3085549999999997,
+            "wall_seconds": 0.3098720000125468
+          },
+          "serialization": {
+            "cpu_seconds": 0.07046099999999988,
+            "wall_seconds": 0.07054370897822082
+          },
+          "restoration": {
+            "cpu_seconds": 0.06892799999999966,
+            "wall_seconds": 0.06902941595762968
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 400818176
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "00625/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 1.167429249966517,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.0087919999999998,
+            "wall_seconds": 0.008939207531511784
+          },
+          "reduction": {
+            "cpu_seconds": 0.005613999999999675,
+            "wall_seconds": 0.0056229995097965
+          },
+          "verification": {
+            "cpu_seconds": 0.00027800000000000047,
+            "wall_seconds": 0.0002781250514090061
+          },
+          "decoding": {
+            "cpu_seconds": 0.04348200000000002,
+            "wall_seconds": 0.04378745798021555
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00026399999999993096,
+            "wall_seconds": 0.0002580410800874233
+          },
+          "export": {
+            "cpu_seconds": 0.004804999999999948,
+            "wall_seconds": 0.0048439581878483295
+          },
+          "serialization": {
+            "cpu_seconds": 0.0007000000000000339,
+            "wall_seconds": 0.000699375057592988
+          },
+          "restoration": {
+            "cpu_seconds": 0.0007629999999999582,
+            "wall_seconds": 0.0007633331697434187
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 122550,
+        "process_lifetime_peak_rss_bytes": 135151616
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00625/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 1.2479460001923144,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.00882499999999986,
+            "wall_seconds": 0.009002333972603083
+          },
+          "reduction": {
+            "cpu_seconds": 0.005367000000000233,
+            "wall_seconds": 0.005380915943533182
+          },
+          "verification": {
+            "cpu_seconds": 0.0002889999999999837,
+            "wall_seconds": 0.00028916611336171627
+          },
+          "decoding": {
+            "cpu_seconds": 0.04055799999999998,
+            "wall_seconds": 0.04077570792287588
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0002510000000000012,
+            "wall_seconds": 0.00025145895779132843
+          },
+          "export": {
+            "cpu_seconds": 0.004390000000000005,
+            "wall_seconds": 0.004396250005811453
+          },
+          "serialization": {
+            "cpu_seconds": 0.0006659999999999444,
+            "wall_seconds": 0.0006663750391453505
+          },
+          "restoration": {
+            "cpu_seconds": 0.0007850000000000357,
+            "wall_seconds": 0.000784166855737567
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 134873088
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "01000/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 1.9390981250908226,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.06265200000000037,
+            "wall_seconds": 0.06280095432884991
+          },
+          "reduction": {
+            "cpu_seconds": 0.03499000000000019,
+            "wall_seconds": 0.03514987789094448
+          },
+          "verification": {
+            "cpu_seconds": 0.0004509999999999792,
+            "wall_seconds": 0.0004502090159803629
+          },
+          "decoding": {
+            "cpu_seconds": 0.330187,
+            "wall_seconds": 0.3311748330015689
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.000476000000000143,
+            "wall_seconds": 0.000476666959002614
+          },
+          "export": {
+            "cpu_seconds": 0.06088999999999989,
+            "wall_seconds": 0.06091241701506078
+          },
+          "serialization": {
+            "cpu_seconds": 0.005274000000000001,
+            "wall_seconds": 0.005275625037029386
+          },
+          "restoration": {
+            "cpu_seconds": 0.005484000000000044,
+            "wall_seconds": 0.005484499968588352
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 974831,
+        "process_lifetime_peak_rss_bytes": 162054144
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "01000/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 1.6191174159757793,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.06307499999999988,
+            "wall_seconds": 0.06337549956515431
+          },
+          "reduction": {
+            "cpu_seconds": 0.03218599999999994,
+            "wall_seconds": 0.032321875216439366
+          },
+          "verification": {
+            "cpu_seconds": 0.0005109999999999282,
+            "wall_seconds": 0.0005115838721394539
+          },
+          "decoding": {
+            "cpu_seconds": 0.33449799999999996,
+            "wall_seconds": 0.3356982080731541
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0004750000000000032,
+            "wall_seconds": 0.00047787511721253395
+          },
+          "export": {
+            "cpu_seconds": 0.06632800000000016,
+            "wall_seconds": 0.06640895805321634
+          },
+          "serialization": {
+            "cpu_seconds": 0.00507000000000013,
+            "wall_seconds": 0.0050807499792426825
+          },
+          "restoration": {
+            "cpu_seconds": 0.005449999999999955,
+            "wall_seconds": 0.0054523327853530645
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 161660928
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "01361/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 46.07642558310181,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8421959999999985,
+            "wall_seconds": 0.844658374087885
+          },
+          "reduction": {
+            "cpu_seconds": 0.551428,
+            "wall_seconds": 0.5525556271895766
+          },
+          "verification": {
+            "cpu_seconds": 0.0009149999999999991,
+            "wall_seconds": 0.000914667034521699
+          },
+          "decoding": {
+            "cpu_seconds": 31.546503,
+            "wall_seconds": 31.580928874900565
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.03736099999999709,
+            "wall_seconds": 0.037363708950579166
+          },
+          "export": {
+            "cpu_seconds": 2.367381999999999,
+            "wall_seconds": 2.368450124980882
+          },
+          "serialization": {
+            "cpu_seconds": 1.2698279999999968,
+            "wall_seconds": 1.2705472910311073
+          },
+          "restoration": {
+            "cpu_seconds": 0.798099999999998,
+            "wall_seconds": 0.7982639579568058
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 113053004,
+        "process_lifetime_peak_rss_bytes": 3445456896
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "01361/forward",
+      "repetition": 0,
+      "status": "ok",
+      "process_wall_seconds": 44.65384720778093,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8065030000000005,
+            "wall_seconds": 0.807034702738747
+          },
+          "reduction": {
+            "cpu_seconds": 0.45420799999999995,
+            "wall_seconds": 0.4544228366576135
+          },
+          "verification": {
+            "cpu_seconds": 0.0008719999999999839,
+            "wall_seconds": 0.0008719591423869133
+          },
+          "decoding": {
+            "cpu_seconds": 31.745357,
+            "wall_seconds": 31.78995529212989
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.03851399999999927,
+            "wall_seconds": 0.03853841684758663
+          },
+          "export": {
+            "cpu_seconds": 2.344338999999998,
+            "wall_seconds": 2.344897875096649
+          },
+          "serialization": {
+            "cpu_seconds": 1.089295,
+            "wall_seconds": 1.0895389169454575
+          },
+          "restoration": {
+            "cpu_seconds": 0.8068059999999946,
+            "wall_seconds": 0.80696304095909
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3435413504
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00000/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 21.58445466705598,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.998406000000001,
+            "wall_seconds": 1.9994705789722502
+          },
+          "reduction": {
+            "cpu_seconds": 1.806506000000001,
+            "wall_seconds": 1.807526039192453
+          },
+          "verification": {
+            "cpu_seconds": 0.044150000000000134,
+            "wall_seconds": 0.04448741697706282
+          },
+          "decoding": {
+            "cpu_seconds": 5.071558,
+            "wall_seconds": 5.080756583949551
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10379900000000042,
+            "wall_seconds": 0.10384750016964972
+          },
+          "export": {
+            "cpu_seconds": 0.9600629999999999,
+            "wall_seconds": 0.9610858750529587
+          },
+          "serialization": {
+            "cpu_seconds": 0.31149699999999925,
+            "wall_seconds": 0.3140356249641627
+          },
+          "restoration": {
+            "cpu_seconds": 0.24887499999999996,
+            "wall_seconds": 0.2511022079270333
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 963231744
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "00000/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 23.701437749899924,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 2.0499610000000015,
+            "wall_seconds": 2.056470625801012
+          },
+          "reduction": {
+            "cpu_seconds": 3.0903620000000016,
+            "wall_seconds": 3.09879999817349
+          },
+          "verification": {
+            "cpu_seconds": 0.04411400000000043,
+            "wall_seconds": 0.04414308303967118
+          },
+          "decoding": {
+            "cpu_seconds": 5.143374,
+            "wall_seconds": 5.150437542004511
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10252400000000073,
+            "wall_seconds": 0.10252591618336737
+          },
+          "export": {
+            "cpu_seconds": 1.007340000000001,
+            "wall_seconds": 1.00744012510404
+          },
+          "serialization": {
+            "cpu_seconds": 0.6149350000000009,
+            "wall_seconds": 0.6150587080046535
+          },
+          "restoration": {
+            "cpu_seconds": 0.4515639999999994,
+            "wall_seconds": 0.4516346249729395
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 45051746,
+        "process_lifetime_peak_rss_bytes": 1198915584
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00044/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 6.543162500020117,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.3420120000000011,
+            "wall_seconds": 0.3422347530722618
+          },
+          "reduction": {
+            "cpu_seconds": 0.35255300000000045,
+            "wall_seconds": 0.35274591646157205
+          },
+          "verification": {
+            "cpu_seconds": 0.012875999999999888,
+            "wall_seconds": 0.012876541819423437
+          },
+          "decoding": {
+            "cpu_seconds": 2.1230610000000003,
+            "wall_seconds": 2.1236580840777606
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.14837500000000015,
+            "wall_seconds": 0.14837825018912554
+          },
+          "export": {
+            "cpu_seconds": 0.295725,
+            "wall_seconds": 0.29572895797900856
+          },
+          "serialization": {
+            "cpu_seconds": 0.062303,
+            "wall_seconds": 0.062307124957442284
+          },
+          "restoration": {
+            "cpu_seconds": 0.06312999999999969,
+            "wall_seconds": 0.06313275010325015
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 399196160
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "00044/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 6.667603415902704,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.33311199999999985,
+            "wall_seconds": 0.3332906209398061
+          },
+          "reduction": {
+            "cpu_seconds": 0.49082400000000026,
+            "wall_seconds": 0.49093749816529453
+          },
+          "verification": {
+            "cpu_seconds": 0.01268199999999986,
+            "wall_seconds": 0.012682375032454729
+          },
+          "decoding": {
+            "cpu_seconds": 2.068869,
+            "wall_seconds": 2.069551542168483
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.14799099999999976,
+            "wall_seconds": 0.14799512503668666
+          },
+          "export": {
+            "cpu_seconds": 0.2877040000000002,
+            "wall_seconds": 0.28770687500946224
+          },
+          "serialization": {
+            "cpu_seconds": 0.09727400000000053,
+            "wall_seconds": 0.09727824991568923
+          },
+          "restoration": {
+            "cpu_seconds": 0.08364199999999933,
+            "wall_seconds": 0.0836469589266926
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 11367353,
+        "process_lifetime_peak_rss_bytes": 448921600
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "00625/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 1.2849396669771522,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.00897899999999996,
+            "wall_seconds": 0.009114252869039774
+          },
+          "reduction": {
+            "cpu_seconds": 0.005400000000000071,
+            "wall_seconds": 0.00540925282984972
+          },
+          "verification": {
+            "cpu_seconds": 0.0002809999999999757,
+            "wall_seconds": 0.00028379191644489765
+          },
+          "decoding": {
+            "cpu_seconds": 0.0409830000000001,
+            "wall_seconds": 0.0411981251090765
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0002489999999999437,
+            "wall_seconds": 0.0002493751235306263
+          },
+          "export": {
+            "cpu_seconds": 0.0044079999999999675,
+            "wall_seconds": 0.004411957925185561
+          },
+          "serialization": {
+            "cpu_seconds": 0.0006850000000000467,
+            "wall_seconds": 0.000684875063598156
+          },
+          "restoration": {
+            "cpu_seconds": 0.0007430000000000492,
+            "wall_seconds": 0.0007437081076204777
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 134856704
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "00625/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 1.2882413750048727,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.008462999999999776,
+            "wall_seconds": 0.00855808425694704
+          },
+          "reduction": {
+            "cpu_seconds": 0.005528000000000088,
+            "wall_seconds": 0.005541704827919602
+          },
+          "verification": {
+            "cpu_seconds": 0.00027800000000000047,
+            "wall_seconds": 0.00027833390049636364
+          },
+          "decoding": {
+            "cpu_seconds": 0.03996999999999995,
+            "wall_seconds": 0.04013516707345843
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00023899999999998922,
+            "wall_seconds": 0.0002392090391367674
+          },
+          "export": {
+            "cpu_seconds": 0.00415500000000002,
+            "wall_seconds": 0.004156332928687334
+          },
+          "serialization": {
+            "cpu_seconds": 0.0006570000000000187,
+            "wall_seconds": 0.0006577910389751196
+          },
+          "restoration": {
+            "cpu_seconds": 0.0007700000000000484,
+            "wall_seconds": 0.0007695418316870928
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 122550,
+        "process_lifetime_peak_rss_bytes": 134512640
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "01000/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 1.7843853330705315,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.059205000000000285,
+            "wall_seconds": 0.05933195538818836
+          },
+          "reduction": {
+            "cpu_seconds": 0.03031399999999984,
+            "wall_seconds": 0.030359462834894657
+          },
+          "verification": {
+            "cpu_seconds": 0.00046199999999996244,
+            "wall_seconds": 0.0004610000178217888
+          },
+          "decoding": {
+            "cpu_seconds": 0.3191029999999999,
+            "wall_seconds": 0.31943641719408333
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0005070000000000352,
+            "wall_seconds": 0.0005072089843451977
+          },
+          "export": {
+            "cpu_seconds": 0.0638209999999999,
+            "wall_seconds": 0.06386412493884563
+          },
+          "serialization": {
+            "cpu_seconds": 0.005206000000000044,
+            "wall_seconds": 0.0052070829551666975
+          },
+          "restoration": {
+            "cpu_seconds": 0.005410000000000137,
+            "wall_seconds": 0.0054102500434964895
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 161824768
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "01000/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 1.5160529168788344,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.057689999999999575,
+            "wall_seconds": 0.057902834145352244
+          },
+          "reduction": {
+            "cpu_seconds": 0.03203699999999987,
+            "wall_seconds": 0.03207925125025213
+          },
+          "verification": {
+            "cpu_seconds": 0.0004250000000000087,
+            "wall_seconds": 0.00042512500658631325
+          },
+          "decoding": {
+            "cpu_seconds": 0.31609299999999985,
+            "wall_seconds": 0.31663833395577967
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0004610000000000447,
+            "wall_seconds": 0.0004613329656422138
+          },
+          "export": {
+            "cpu_seconds": 0.05972400000000011,
+            "wall_seconds": 0.05972708389163017
+          },
+          "serialization": {
+            "cpu_seconds": 0.005203999999999986,
+            "wall_seconds": 0.005204624962061644
+          },
+          "restoration": {
+            "cpu_seconds": 0.005518000000000134,
+            "wall_seconds": 0.0055188750848174095
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 974831,
+        "process_lifetime_peak_rss_bytes": 161005568
+      }
+    },
+    {
+      "revision": "candidate",
+      "case": "01361/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 44.393721292028204,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8011450000000008,
+            "wall_seconds": 0.8015748288016766
+          },
+          "reduction": {
+            "cpu_seconds": 0.4532750000000003,
+            "wall_seconds": 0.4534357893280685
+          },
+          "verification": {
+            "cpu_seconds": 0.0008899999999998354,
+            "wall_seconds": 0.0008899171371012926
+          },
+          "decoding": {
+            "cpu_seconds": 31.563026999999998,
+            "wall_seconds": 31.717845916980878
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.03827500000000583,
+            "wall_seconds": 0.03828654205426574
+          },
+          "export": {
+            "cpu_seconds": 2.424742000000002,
+            "wall_seconds": 2.4274004159960896
+          },
+          "serialization": {
+            "cpu_seconds": 1.1050710000000024,
+            "wall_seconds": 1.1830954998731613
+          },
+          "restoration": {
+            "cpu_seconds": 0.7928080000000008,
+            "wall_seconds": 0.7940624998882413
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3435216896
+      }
+    },
+    {
+      "revision": "baseline",
+      "case": "01361/forward",
+      "repetition": 1,
+      "status": "ok",
+      "process_wall_seconds": 45.01953983283602,
+      "result": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8339289999999987,
+            "wall_seconds": 0.8361416687257588
+          },
+          "reduction": {
+            "cpu_seconds": 0.5497650000000005,
+            "wall_seconds": 0.5502862106077373
+          },
+          "verification": {
+            "cpu_seconds": 0.0008629999999998361,
+            "wall_seconds": 0.0008624580223113298
+          },
+          "decoding": {
+            "cpu_seconds": 31.557439000000002,
+            "wall_seconds": 31.583605834050104
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.03752500000000225,
+            "wall_seconds": 0.03752654208801687
+          },
+          "export": {
+            "cpu_seconds": 2.4864610000000056,
+            "wall_seconds": 2.492542790947482
+          },
+          "serialization": {
+            "cpu_seconds": 1.1914100000000047,
+            "wall_seconds": 1.1931092089507729
+          },
+          "restoration": {
+            "cpu_seconds": 0.7725059999999999,
+            "wall_seconds": 0.7733117081224918
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 113053004,
+        "process_lifetime_peak_rss_bytes": 3442933760
+      }
+    }
+  ],
+  "interpretation": {
+    "scope": "Five locally saved Golden matching results, ten seeds, forward directions, two alternating-order repetitions per revision.",
+    "comparison": "Every catalogue field is hashed after expanding provenance for the audit and omitting only storage schema and shared-history encoding. Audit expansion is outside stage timings.",
+    "matching_repeated": false,
+    "full_golden_rerun": false,
+    "resource_limits": "120-second process watchdog per measurement; no 2 GiB guard. Process peak RSS includes explicit comparison audits.",
+    "scientific_changes": false
+  },
+  "means": {
+    "baseline": {
+      "loading": {
+        "cpu_seconds": 3.2764764999999993,
+        "wall_seconds": 3.2861084770411253
+      },
+      "reduction": {
+        "cpu_seconds": 4.159369500000001,
+        "wall_seconds": 4.168646295671351
+      },
+      "verification": {
+        "cpu_seconds": 0.058213500000000196,
+        "wall_seconds": 0.058234375435858965
+      },
+      "decoding": {
+        "cpu_seconds": 39.123504000000004,
+        "wall_seconds": 39.16293370909989
+      },
+      "decoded_reference": {
+        "cpu_seconds": 0.2909185000000001,
+        "wall_seconds": 0.2910068546188995
+      },
+      "export": {
+        "cpu_seconds": 3.790943500000003,
+        "wall_seconds": 3.7946679785382003
+      },
+      "serialization": {
+        "cpu_seconds": 1.9305910000000017,
+        "wall_seconds": 1.9319687909446657
+      },
+      "restoration": {
+        "cpu_seconds": 1.2995719999999993,
+        "wall_seconds": 1.3002617920283228
+      }
+    },
+    "candidate": {
+      "loading": {
+        "cpu_seconds": 3.2229335000000017,
+        "wall_seconds": 3.225218096282333
+      },
+      "reduction": {
+        "cpu_seconds": 2.6576330000000006,
+        "wall_seconds": 2.65920218732208
+      },
+      "verification": {
+        "cpu_seconds": 0.05854849999999989,
+        "wall_seconds": 0.05874345952179283
+      },
+      "decoding": {
+        "cpu_seconds": 39.2466285,
+        "wall_seconds": 39.35606058430858
+      },
+      "decoded_reference": {
+        "cpu_seconds": 0.29546100000000275,
+        "wall_seconds": 0.295909667853266
+      },
+      "export": {
+        "cpu_seconds": 3.7389259999999997,
+        "wall_seconds": 3.742508832598105
+      },
+      "serialization": {
+        "cpu_seconds": 1.485142500000001,
+        "wall_seconds": 1.5258105628890917
+      },
+      "restoration": {
+        "cpu_seconds": 1.1171249999999975,
+        "wall_seconds": 1.1192340613342822
+      }
+    }
+  },
+  "validation": {
+    "full_suite_passed": 1256,
+    "full_suite_seconds": 245.2,
+    "affected_suite_passed": 139,
+    "paired_cases": 5,
+    "paired_repetitions": 2
+  }
+}
