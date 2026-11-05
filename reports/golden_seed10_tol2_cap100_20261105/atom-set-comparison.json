@@ -1,0 +1,794 @@
+{
+  "schema": "mappa.atom_set_reduction_comparison/1",
+  "revisions": {
+    "baseline": {
+      "revision": "530062480e99fa0b76343f17dd35a84fd9817ed5",
+      "source_identity": "b679d47739873af86fed3fbf18b96bf1ff9ee92095aff55cfd4e63a0817e4dc7"
+    },
+    "candidate": {
+      "revision": "b26e2ee103cb77c1d95bbfb54436170e5e0031ec",
+      "source_identity": "9f263772d8965b81bf471b37bf887faf30c51effad6e89c3dc9dd0ed25346f77"
+    }
+  },
+  "runner_sha256": "2c72dbb2e9990bcc8a65693448c5bee244e07c2bfda478edb11b23b1dda46251",
+  "manifest_sha256": "d885e259609c567b40c894c6d9adc04721c47f442a0107bfc8a5abb5d8fc4911",
+  "cases": [
+    {
+      "name": "00000/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "b3b1a6b75d609a2d4c617939334ba555030305229ad9dc1b054aac64afaa7430",
+      "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+      "reversed": false
+    },
+    {
+      "name": "00044/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "b02bb18904756f3bff8984448d84e2d06e83f62b9ac8eac0652055100c02d0bd",
+      "reference_sha256": "5ebc801725ab2acccf8a6093a76982d2e31ca0c71b27e48ba2f62f940eb09437",
+      "reversed": false
+    },
+    {
+      "name": "00625/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "dd76baf8d17fe91636b46502d7e1546797877b59c5d860f18d4a6d2decd92124",
+      "reference_sha256": "6b9e1c02382631a7f279d30f58a03696797b1ec9f7af535c52a2a35641aa0adf",
+      "reversed": false
+    },
+    {
+      "name": "01000/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "2719979498644e9366a8d19b7dd61758f9b643c28b46300efa65c02b8d2bb251",
+      "reference_sha256": "9e6302eac3f1ddc7e9d6f7a679ecb285f6a15b1099d9941cd312e3ee8d2cc93d",
+      "reversed": false
+    },
+    {
+      "name": "01361/forward",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "event_slack": 5,
+        "fragment_seconds": 5.0,
+        "threshold": 0.5,
+        "metal_threshold": 0.3
+      },
+      "matching_sha256": "ec8335f00bac29c963131932a91c188e0960a54f381ae38895e7bdd838f3a41b",
+      "reference_sha256": "7f15ee5a71b1586b5aa8bc8a53d63815b6f86797c0162ecec7349a1ec2a6a92c",
+      "reversed": false
+    }
+  ],
+  "repetitions": 1,
+  "timeout_seconds": 120.0,
+  "platform": "macOS arm64",
+  "compute_threads": 1,
+  "memory_guard_bytes": null,
+  "matching_repeated": false,
+  "full_golden_rerun": false,
+  "full_test_suite": {
+    "passed": 1237,
+    "seconds": 246.1
+  },
+  "runs": [
+    {
+      "revision": "baseline",
+      "case": "00000/forward",
+      "repetition": 0,
+      "process_wall_seconds": 17.224106583045796,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 2.346021000000002,
+          "wall_seconds": 2.3607370408717543
+        },
+        "reduction": {
+          "cpu_seconds": 4.459278000000003,
+          "wall_seconds": 4.4613260412588716
+        },
+        "verification": {
+          "cpu_seconds": 0.5384820000000001,
+          "wall_seconds": 0.5709492089226842
+        },
+        "decoding": {
+          "cpu_seconds": 4.38734,
+          "wall_seconds": 4.393608957994729
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.10286200000000001,
+          "wall_seconds": 0.10289479210041463
+        },
+        "export": {
+          "cpu_seconds": 1.1312819999999988,
+          "wall_seconds": 1.1313914589118212
+        },
+        "serialization": {
+          "cpu_seconds": 0.5979650000000003,
+          "wall_seconds": 0.5981826251372695
+        },
+        "restoration": {
+          "cpu_seconds": 0.3696749999999991,
+          "wall_seconds": 0.3697813330218196
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 69,
+      "seed_searches": 690,
+      "branches": 31106,
+      "families": 37965,
+      "fragments": 2134,
+      "paths": 40216,
+      "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 11,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 9,
+      "minimum_proven": true,
+      "serialized_bytes": 47378389,
+      "process_lifetime_peak_rss_bytes": 1242267648
+    },
+    {
+      "revision": "candidate",
+      "case": "00000/forward",
+      "repetition": 0,
+      "process_wall_seconds": 15.201839708024636,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 1.8999649999999986,
+          "wall_seconds": 1.9068966258782893
+        },
+        "reduction": {
+          "cpu_seconds": 2.9503519999999996,
+          "wall_seconds": 2.9513355400413275
+        },
+        "verification": {
+          "cpu_seconds": 0.04363600000000023,
+          "wall_seconds": 0.04364691604860127
+        },
+        "decoding": {
+          "cpu_seconds": 5.042429,
+          "wall_seconds": 5.043880000011995
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.10069499999999998,
+          "wall_seconds": 0.10070287506096065
+        },
+        "export": {
+          "cpu_seconds": 0.9172750000000001,
+          "wall_seconds": 0.9175005410797894
+        },
+        "serialization": {
+          "cpu_seconds": 0.5541499999999999,
+          "wall_seconds": 0.5543742501176894
+        },
+        "restoration": {
+          "cpu_seconds": 0.35219500000000004,
+          "wall_seconds": 0.35234404099173844
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 69,
+      "seed_searches": 690,
+      "branches": 31106,
+      "families": 32986,
+      "fragments": 1840,
+      "paths": 40216,
+      "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 11,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 9,
+      "minimum_proven": true,
+      "serialized_bytes": 45051746,
+      "process_lifetime_peak_rss_bytes": 1191067648
+    },
+    {
+      "revision": "baseline",
+      "case": "00044/forward",
+      "repetition": 0,
+      "process_wall_seconds": 7.188415916869417,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.3483160000000008,
+          "wall_seconds": 0.34948058309964836
+        },
+        "reduction": {
+          "cpu_seconds": 0.6961160000000006,
+          "wall_seconds": 0.6963379175867885
+        },
+        "verification": {
+          "cpu_seconds": 0.22192599999999985,
+          "wall_seconds": 0.22228037496097386
+        },
+        "decoding": {
+          "cpu_seconds": 3.884019,
+          "wall_seconds": 3.8860180410556495
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.12302200000000063,
+          "wall_seconds": 0.12304170778952539
+        },
+        "export": {
+          "cpu_seconds": 0.36066299999999973,
+          "wall_seconds": 0.3607131668832153
+        },
+        "serialization": {
+          "cpu_seconds": 0.10374799999999951,
+          "wall_seconds": 0.10375966597348452
+        },
+        "restoration": {
+          "cpu_seconds": 0.08490300000000062,
+          "wall_seconds": 0.08494595903903246
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 49,
+      "seed_searches": 490,
+      "branches": 6254,
+      "families": 7222,
+      "fragments": 1171,
+      "paths": 7934,
+      "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 4,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 4,
+      "minimum_proven": true,
+      "serialized_bytes": 10877387,
+      "process_lifetime_peak_rss_bytes": 460128256
+    },
+    {
+      "revision": "candidate",
+      "case": "00044/forward",
+      "repetition": 0,
+      "process_wall_seconds": 5.130340541014448,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.3603419999999996,
+          "wall_seconds": 0.36137503827922046
+        },
+        "reduction": {
+          "cpu_seconds": 0.5207689999999997,
+          "wall_seconds": 0.5210468366276473
+        },
+        "verification": {
+          "cpu_seconds": 0.01287499999999997,
+          "wall_seconds": 0.01287470804527402
+        },
+        "decoding": {
+          "cpu_seconds": 2.138375,
+          "wall_seconds": 2.139505249913782
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.14885700000000002,
+          "wall_seconds": 0.1488740830682218
+        },
+        "export": {
+          "cpu_seconds": 0.29254500000000005,
+          "wall_seconds": 0.29259354108944535
+        },
+        "serialization": {
+          "cpu_seconds": 0.10187200000000018,
+          "wall_seconds": 0.10189633397385478
+        },
+        "restoration": {
+          "cpu_seconds": 0.0821190000000005,
+          "wall_seconds": 0.08212266606278718
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 49,
+      "seed_searches": 490,
+      "branches": 6254,
+      "families": 6405,
+      "fragments": 892,
+      "paths": 7934,
+      "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 4,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 4,
+      "minimum_proven": true,
+      "serialized_bytes": 11367353,
+      "process_lifetime_peak_rss_bytes": 447856640
+    },
+    {
+      "revision": "baseline",
+      "case": "00625/forward",
+      "repetition": 0,
+      "process_wall_seconds": 0.9144967079628259,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.008656999999999915,
+          "wall_seconds": 0.008749251021072268
+        },
+        "reduction": {
+          "cpu_seconds": 0.005643000000000176,
+          "wall_seconds": 0.0056551676243543625
+        },
+        "verification": {
+          "cpu_seconds": 0.029679999999999984,
+          "wall_seconds": 0.03157487511634827
+        },
+        "decoding": {
+          "cpu_seconds": 0.128836,
+          "wall_seconds": 0.1291150830220431
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.0002709999999999102,
+          "wall_seconds": 0.00027199997566640377
+        },
+        "export": {
+          "cpu_seconds": 0.012419999999999987,
+          "wall_seconds": 0.01242266595363617
+        },
+        "serialization": {
+          "cpu_seconds": 0.0012720000000000509,
+          "wall_seconds": 0.0012720830272883177
+        },
+        "restoration": {
+          "cpu_seconds": 0.001471,
+          "wall_seconds": 0.0014720829203724861
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 15,
+      "seed_searches": 150,
+      "branches": 22,
+      "families": 127,
+      "fragments": 84,
+      "paths": 270,
+      "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 3,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 3,
+      "minimum_proven": true,
+      "serialized_bytes": 219606,
+      "process_lifetime_peak_rss_bytes": 130121728
+    },
+    {
+      "revision": "candidate",
+      "case": "00625/forward",
+      "repetition": 0,
+      "process_wall_seconds": 1.02609712514095,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.008298999999999945,
+          "wall_seconds": 0.008431331254541874
+        },
+        "reduction": {
+          "cpu_seconds": 0.005375000000000019,
+          "wall_seconds": 0.005415586056187749
+        },
+        "verification": {
+          "cpu_seconds": 0.00025999999999992696,
+          "wall_seconds": 0.0002602080348879099
+        },
+        "decoding": {
+          "cpu_seconds": 0.041879,
+          "wall_seconds": 0.04198204097338021
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.0002569999999999517,
+          "wall_seconds": 0.0002582909073680639
+        },
+        "export": {
+          "cpu_seconds": 0.004465000000000052,
+          "wall_seconds": 0.004465792095288634
+        },
+        "serialization": {
+          "cpu_seconds": 0.0006830000000001002,
+          "wall_seconds": 0.0006829591002315283
+        },
+        "restoration": {
+          "cpu_seconds": 0.0007859999999999534,
+          "wall_seconds": 0.0007862080819904804
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 15,
+      "seed_searches": 150,
+      "branches": 22,
+      "families": 22,
+      "fragments": 31,
+      "paths": 270,
+      "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 3,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 3,
+      "minimum_proven": true,
+      "serialized_bytes": 122550,
+      "process_lifetime_peak_rss_bytes": 134430720
+    },
+    {
+      "revision": "baseline",
+      "case": "01000/forward",
+      "repetition": 0,
+      "process_wall_seconds": 1.805595374898985,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.07109699999999997,
+          "wall_seconds": 0.07122262520715594
+        },
+        "reduction": {
+          "cpu_seconds": 0.03289200000000014,
+          "wall_seconds": 0.03294449835084379
+        },
+        "verification": {
+          "cpu_seconds": 0.06824800000000009,
+          "wall_seconds": 0.08231854205951095
+        },
+        "decoding": {
+          "cpu_seconds": 0.6570980000000001,
+          "wall_seconds": 0.6651148330420256
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.000552000000000108,
+          "wall_seconds": 0.0005514170043170452
+        },
+        "export": {
+          "cpu_seconds": 0.07347100000000006,
+          "wall_seconds": 0.07355683390051126
+        },
+        "serialization": {
+          "cpu_seconds": 0.010229000000000044,
+          "wall_seconds": 0.01023025019094348
+        },
+        "restoration": {
+          "cpu_seconds": 0.009471000000000007,
+          "wall_seconds": 0.009474541060626507
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 25,
+      "seed_searches": 250,
+      "branches": 252,
+      "families": 540,
+      "fragments": 410,
+      "paths": 673,
+      "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 3,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 3,
+      "minimum_proven": true,
+      "serialized_bytes": 1540984,
+      "process_lifetime_peak_rss_bytes": 180207616
+    },
+    {
+      "revision": "candidate",
+      "case": "01000/forward",
+      "repetition": 0,
+      "process_wall_seconds": 1.7103170829359442,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.06274700000000033,
+          "wall_seconds": 0.06304987706243992
+        },
+        "reduction": {
+          "cpu_seconds": 0.03507099999999996,
+          "wall_seconds": 0.03513891855254769
+        },
+        "verification": {
+          "cpu_seconds": 0.00045399999999995444,
+          "wall_seconds": 0.0004539170768111944
+        },
+        "decoding": {
+          "cpu_seconds": 0.3436609999999999,
+          "wall_seconds": 0.3448865001555532
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.000616000000000172,
+          "wall_seconds": 0.0006218329071998596
+        },
+        "export": {
+          "cpu_seconds": 0.06604799999999988,
+          "wall_seconds": 0.06614545895718038
+        },
+        "serialization": {
+          "cpu_seconds": 0.005268999999999968,
+          "wall_seconds": 0.0052701670210808516
+        },
+        "restoration": {
+          "cpu_seconds": 0.005890000000000173,
+          "wall_seconds": 0.005910709034651518
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 25,
+      "seed_searches": 250,
+      "branches": 252,
+      "families": 292,
+      "fragments": 265,
+      "paths": 673,
+      "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 3,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 3,
+      "minimum_proven": true,
+      "serialized_bytes": 974831,
+      "process_lifetime_peak_rss_bytes": 163168256
+    },
+    {
+      "revision": "baseline",
+      "case": "01361/forward",
+      "repetition": 0,
+      "process_wall_seconds": 62.16213337494992,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 1.0587440000000004,
+          "wall_seconds": 1.0643581307958812
+        },
+        "reduction": {
+          "cpu_seconds": 0.5608899999999992,
+          "wall_seconds": 0.5619244249537587
+        },
+        "verification": {
+          "cpu_seconds": 0.2843749999999998,
+          "wall_seconds": 0.28871166706085205
+        },
+        "decoding": {
+          "cpu_seconds": 52.920513,
+          "wall_seconds": 52.974621291970834
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.09895900000000069,
+          "wall_seconds": 0.09896516590379179
+        },
+        "export": {
+          "cpu_seconds": 2.3215180000000046,
+          "wall_seconds": 2.32237616693601
+        },
+        "serialization": {
+          "cpu_seconds": 0.9879359999999977,
+          "wall_seconds": 0.989388374844566
+        },
+        "restoration": {
+          "cpu_seconds": 0.7889819999999972,
+          "wall_seconds": 0.7914555422030389
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 97,
+      "seed_searches": 970,
+      "branches": 2894,
+      "families": 4595,
+      "fragments": 2460,
+      "paths": 4737,
+      "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 7,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 115908931,
+      "process_lifetime_peak_rss_bytes": 3631710208
+    },
+    {
+      "revision": "candidate",
+      "case": "01361/forward",
+      "repetition": 0,
+      "process_wall_seconds": 39.502459708135575,
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.8597579999999997,
+          "wall_seconds": 0.867277585202828
+        },
+        "reduction": {
+          "cpu_seconds": 0.548677,
+          "wall_seconds": 0.5490665901452303
+        },
+        "verification": {
+          "cpu_seconds": 0.0008980000000002875,
+          "wall_seconds": 0.0008982080034911633
+        },
+        "decoding": {
+          "cpu_seconds": 30.710476000000003,
+          "wall_seconds": 30.71761112497188
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.03739099999999951,
+          "wall_seconds": 0.03739804099313915
+        },
+        "export": {
+          "cpu_seconds": 2.422062000000004,
+          "wall_seconds": 2.422623167047277
+        },
+        "serialization": {
+          "cpu_seconds": 0.9832800000000006,
+          "wall_seconds": 0.9835320829879493
+        },
+        "restoration": {
+          "cpu_seconds": 0.7058230000000023,
+          "wall_seconds": 0.7059127918910235
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 97,
+      "seed_searches": 970,
+      "branches": 2894,
+      "families": 3074,
+      "fragments": 1463,
+      "paths": 4737,
+      "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 7,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 113053004,
+      "process_lifetime_peak_rss_bytes": 3442212864
+    }
+  ],
+  "total_cpu_seconds": {
+    "baseline": {
+      "loading": 3.8328350000000033,
+      "reduction": 5.754819000000003,
+      "verification": 1.1427109999999998,
+      "decoding": 61.977806,
+      "decoded_reference": 0.32566600000000134,
+      "export": 3.8993540000000033,
+      "serialization": 1.7011499999999975,
+      "restoration": 1.254501999999997
+    },
+    "candidate": {
+      "loading": 3.1911109999999985,
+      "reduction": 4.060243999999999,
+      "verification": 0.05812300000000037,
+      "decoding": 38.27682,
+      "decoded_reference": 0.2878159999999996,
+      "export": 3.702395000000004,
+      "serialization": 1.6452540000000009,
+      "restoration": 1.146813000000003
+    }
+  },
+  "comparison": {
+    "reference_catalogue_recovery": {
+      "baseline": 5,
+      "candidate": 5,
+      "total": 5
+    },
+    "reference_decoded_window_recovery": {
+      "baseline": 5,
+      "candidate": 5,
+      "total": 5
+    },
+    "branch_compositions_equal": true,
+    "reference_event_counts_equal": true,
+    "model_minimum_counts_equal": true,
+    "reduction_speedup": 1.4173579223317625,
+    "decoding_speedup": 1.6191994528281084,
+    "combined_reduction_decoding_speedup": 1.5998422800409589
+  },
+  "benchmark_cleanup_tests": {
+    "passed": 28,
+    "seconds": 14.48
+  }
+}

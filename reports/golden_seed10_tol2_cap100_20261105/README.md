@@ -217,6 +217,101 @@ passed 169 affected checks and 26 smoke checks; these are reported test scopes,
 not a claim of exhaustive chemistry validation. The benchmark remains stopped;
 this reduction repair does not resolve its 12 decode memory failures.
 
+### Completed full reduction rerun: unchanged scientific records
+
+The earlier bookkeeping repair has now completed **all 3,702 directions** from
+the saved ten-seed matching results. All 3,702 complete catalogue/provenance
+comparisons passed, preserving 177,552 cuts and 1,775,520 seed searches. No
+matching was repeated and the original ledger remained unchanged. This measured
+revision `53006248`, with scientific revision `cb2a4005`; it precedes the atom-set
+identity change described below.
+
+Reduction CPU fell from **14,952.54 to 10,010.65 seconds (1.49×)**. Median
+direction CPU fell from 2.027 to 1.367 seconds, p99 from 29.550 to 19.820 seconds,
+and maximum from 64.732 to 47.159 seconds. There were 242 individually slower
+directions. Reduction publication used a further 1,361.70 CPU-seconds.
+
+All 32 workers registered, with peak task overlap 32. The reduction stage spanned
+367.04 seconds; the whole pool took 1,099.35 seconds, including separate snapshot
+conversion and full-record comparison passes. Every pass retained the 2 GiB
+guard; there were no failures or retries. The largest sampled reduction process
+used 1.64 GiB. There were 86 short reduction tasks without a memory sample.
+[Summary](reduction-rerun-summary.json) and
+[direction records](reduction-rerun-directions.json.gz) retain the audited scope.
+
+### Completed fragment identity: atom-set pairs
+
+Revision [`b26e2ee`](https://github.com/yunhzou/MAPPA-AAM/commit/b26e2ee103cb77c1d95bbfb54436170e5e0031ec)
+interns each completed reactant/product atom-set pair once,
+within the fixed problem, policy and explicit anchors. Branches share these
+fragments. Growth witnesses, temporary locks and accepted-edge histories remain
+in raw matching archives and no longer split completed fragments. Reduction
+performs composition lookup and provenance aggregation without symmetry solving
+or starting-map search. Ordered global placements retain joint occupancy; an
+initial action already contained within local binary symmetries is omitted.
+
+Decoding uses the existing bounded starting-correspondence improvement and
+binary symmetry response. Its partial event bound now accounts for injective
+occupancy, reducing redundant search. Catalogue verification can construct and
+validate an annotated correspondence directly on completed atom sets; cases
+requiring global placement still use the joint query.
+
+This changes the saved relation: completed atom sets permit element-compatible,
+explicit-anchor-preserving starting correspondences, without historical growth
+edge constraints. Decoding still selects one bounded-best starting orbit. Thus
+catalogue recovery and recovery inside the selected decoded window are separate
+metrics; a catalogue hit alone is not a decoded accuracy result. The catalogue
+schema is v4 and does not silently reinterpret older catalogue records.
+
+Five local forward directions compare identical saved matching results against
+revision `53006248`: cases **0, 44, 625, 1000 and 1361**. These are exploratory
+point tests including a known slow case, not a full Golden accuracy study. Each
+uses ten seeds, tolerance 2, branch cap 100, random seed 42, full single-cut sweep,
+the original bond matrices, a five-second allowance per unique fragment and
+decoder slack five. Matching was performed once and was not part of the paired
+timings. Each revision has one cold observation, one compute thread and a
+120-second process watchdog. Postprocessing had no process memory guard.
+
+| Case, forward | Reduction before → after CPU (s) | Decoding before → after CPU (s) | Unique fragments before → after |
+|---|---:|---:|---:|
+| 0 | 4.459 → 2.950 | 4.387 → 5.042 | 2,134 → 1,840 |
+| 44 | 0.696 → 0.521 | 3.884 → 2.138 | 1,171 → 892 |
+| 625 | 0.006 → 0.005 | 0.129 → 0.042 | 84 → 31 |
+| 1000 | 0.033 → 0.035 | 0.657 → 0.344 | 410 → 265 |
+| 1361 | 0.561 → 0.549 | 52.921 → 30.710 | 2,460 → 1,463 |
+| **Total** | **5.755 → 4.060 (1.42×)** | **61.978 → 38.277 (1.62×)** | **6,259 → 4,491** |
+
+Reference recovery is **5/5 before and after**, both in the catalogue and under
+exact annotated-index queries inside the selected decoded window. Reference
+event counts remain **11, 4, 3, 3 and 7**, respectively; reported model minima
+remain **9, 4, 3, 3 and 7**. All branch-composition hashes, 40,528 public branches
+and 53,830 input paths are unchanged. Retained families decrease from 50,449 to
+42,779. These checks do not establish equality of every decoded alternative.
+
+Combined reduction/decoding CPU improves **1.60×**. Case 0 decoding remains
+0.655 seconds slower (14.9%), while its combined reduction/decoding falls from
+8.847 to 7.993 seconds. Case 1000 reduction is 0.002 seconds slower. All other
+paired reduction/decoding observations are faster. Catalogue verification totals
+1.143 versus 0.058 CPU-seconds; separate decoded-window queries total 0.326 versus
+0.288 seconds. Decoding includes lazy window construction, while loading,
+export, serialization and restoration are recorded separately.
+
+The largest process lifetime RSS, including export and restored records, is
+3.382 GiB before and 3.206 GiB after, both on case 1361. These measurements do not
+demonstrate successful decoding under the campaign's 2 GiB guard. Full Golden
+has not been rerun under the new fragment identity.
+
+Validation passes **1,237 tests**, followed by 28 passing benchmark checks after
+removing the last unused conversion hook. This includes 64 actual small greedy searches
+whose previously represented mappings remain covered, four exhaustive event
+oracles (triangle-tail, ring-chain, continuous weights and explicit anchors),
+32 injective-bound oracles, joint placements, sweep handling, persistence and
+work-pool checks. A test forbids symmetry solving and starting-map optimization
+during reduction. Obsolete catalogue-conversion code and its fixture were
+removed. [Paired evidence](atom-set-comparison.json) records source/engine hashes,
+input checksums, policies and all phase timings. Cluster execution remains on
+the earlier revision; no campaign was silently resumed.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
