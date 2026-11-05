@@ -2,6 +2,12 @@
 
 ## Current implementation
 
+A [fresh full Golden run at tolerance 2 and cap 100](golden_tol2_cap100_20261105/README.md)
+recovers **1,834/1,851 reactions (99.08%)**. All 3,702 directions completed matching,
+reduction and decoding: **7m36s for matching/reduction and 98s for decoding**, with
+a maximum individual decode of **56.1s**. External verification ended with three
+timeouts and one unknown; their opposite directions recovered the reference.
+
 [Full Golden decoding with binary fragment symmetry](golden_binary_decode_20261105/README.md)
 records the completed decoder at `deadf374`: **3,702/3,702 directions**, zero
 failures or retries, a **305-second allocation with 32 workers**, and a maximum
