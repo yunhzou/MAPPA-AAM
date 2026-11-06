@@ -95,7 +95,56 @@ Evidence: [audit summary](decoded-verification-summary.json),
 Operational configuration and molecular certificates remain private. The reusable
 audit is documented in [bench/README.md](../../bench/README.md).
 
-## Earlier measurements
+### Reference-conditioned event filter
+
+The external verifier at `b6d8c08` counts events already forced by the reference
+before constructing a symmetry query. It rejects only contexts whose lower
+bound exceeds the saved window, preserves the ordinary-boundary model and sweep
+correction, and reuses the boundary preparation for surviving queries. It does
+not optimize a minimum or change matching, reduction, decoding or acceptance.
+The event-filter helper changes the source fingerprint; the producing scientific
+identity and every saved input/output hash remain unchanged.
+
+The final full audit completed **3,702 directions in 63.515 seconds**, using
+**1,555.881 compute CPU seconds**, with 32 workers and the original ten-second
+query / 2 GiB worker limits. The entire allocation, including startup and shutdown,
+took 74 seconds and 1,619.479 CPU seconds. No worker or certificate failures
+occurred. The filter rejected **2,707 of 21,991 examined contexts** before their
+symmetry queries. Filter-stage time totalled 28.924 seconds across directions;
+this includes the boundary preparation subsequently reused by surviving queries.
+
+Reaction results remain **1,830 recovered, 16 absent and 5 unknown**. This pass
+returned 3,588 positive directions, 80 absent and 34 unknown. Three previously
+positive directions—737 reverse, 823 forward and 1777 reverse—reached the query
+limit. Work stopped for investigation: their existing certificates were replayed
+with the current code and independently recounted. All three remain valid and
+pass the filter; none became an absence result. Their forced bounds are 11, 17
+and 4 against window maxima 15, 21 and 8. The new pass retains these three unknown
+query outcomes rather than silently substituting the earlier certificates.
+This establishes preserved witnesses, not identical time-bounded query behavior.
+
+The earlier full pass took 71.766 seconds / 1,816.574 CPU seconds, but that
+comparison also includes the previously added catalogue-family ordering hint.
+For the same 49 difficult directions already tested with that hint, CPU time
+changed only from 366.339 to 360.348 seconds: this filter does not resolve the
+hardest symmetry queries. A useful negative example is **1228 reverse**: it
+still reports absence, skips 209 of 294 contexts, and changes from 1.331 to
+0.464 CPU seconds. Case 741 reverse skips 252 of 602 contexts and changes from
+1.939 to 1.411 CPU seconds, also retaining absence. These are single-run timing
+observations, not a controlled hardware-normalized speed guarantee.
+
+The preliminary filter pass took 67.221 seconds / 1,638.832 CPU seconds. Inspection
+identified duplicate boundary preparation, removed before the final pass.
+Both measurements and their consumed resources remain recorded separately.
+Validation passed **134 affected tests and 26 smoke tests**, including independent
+small-graph enumeration, partial references, strict/metal thresholds, unmatched
+boundaries and ordered sweep choices. All final positive certificates passed
+the existing replay and scalar-count audit.
+
+Evidence: [filter summary and replay checks](decoded-event-filter-summary.json),
+[full direction measurements](decoded-event-filter-directions.json.gz).
+
+## Earlier measurements of the scientific pipeline
 
 This paired full-dataset study measures revision
 [`27b18ab`](https://github.com/yunhzou/MAPPA-AAM/commit/27b18abad691648cf2a87d2e5ae43db117d80b66),

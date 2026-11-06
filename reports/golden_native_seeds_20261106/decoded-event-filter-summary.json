@@ -1,0 +1,440 @@
+{
+  "schema": "mappa.decoded_event_filter_audit/v1",
+  "final": {
+    "code_revision": "b6d8c086cf92583d099509c7c7078daaf3cfc0af",
+    "code_identity": "dd32be60adae663324e806d2087bc9b06eac4a61c8cdb3889b1d06ee9d8d46bf",
+    "verifier_sha256": "53ea521c946a3a54c2fc5866c05bc245a162eddb27c00e1d731683f0b96413c5",
+    "scientific_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+    "complete": true,
+    "source_unchanged": true,
+    "certificate_failures": 0,
+    "original_hashes": {
+      "index.json": "f95c7fe8e3b2e65f8b54bdf8ba09dad091d633978d17aca74398ef5f8c1be31f",
+      "result/plan.json": "e74bef4718e9d324335243dabd0f41e79457d1ebeca6f9e8d262d4bf25c00218",
+      "result/ledger.sqlite": "420352e2a4f70a79acad4b92123ff622f64856ab6c94b12e7bd4c334bcd4ca05"
+    },
+    "resources": {
+      "workers": 32,
+      "query_seconds": 10.0,
+      "task_seconds": 60.0,
+      "memory_bytes": 2147483648
+    },
+    "elapsed_seconds": 63.51523645687848,
+    "cpu_seconds": 1555.8807690169972,
+    "compute_seconds": 1566.0793084409088,
+    "status_counts": {
+      "recovered": 3588,
+      "not_recovered": 80,
+      "unknown": 34
+    },
+    "reaction_counts": {
+      "recovered": 1830,
+      "unknown": 5,
+      "not_recovered": 16
+    },
+    "changes": [
+      {
+        "name": "00823/forward",
+        "before": "recovered",
+        "after": "unknown"
+      },
+      {
+        "name": "00737/reverse",
+        "before": "recovered",
+        "after": "unknown"
+      },
+      {
+        "name": "01777/reverse",
+        "before": "recovered",
+        "after": "unknown"
+      }
+    ],
+    "regressions": [
+      {
+        "name": "00823/forward",
+        "before": "recovered",
+        "after": "unknown"
+      },
+      {
+        "name": "00737/reverse",
+        "before": "recovered",
+        "after": "unknown"
+      },
+      {
+        "name": "01777/reverse",
+        "before": "recovered",
+        "after": "unknown"
+      }
+    ],
+    "filter": {
+      "contexts": 21991,
+      "rejected": 2707,
+      "symmetry_queries": 19284,
+      "seconds": 28.92390224058181
+    },
+    "earlier_full": {
+      "elapsed_seconds": 71.76586955692619,
+      "cpu_seconds": 1816.574251484002,
+      "status_counts": {
+        "recovered": 3573,
+        "not_recovered": 80,
+        "unknown": 49
+      }
+    },
+    "common_followup": {
+      "directions": 49,
+      "before_cpu_seconds": 366.3394607020001,
+      "after_cpu_seconds": 360.347716407,
+      "before_compute_seconds": 366.73404146078974,
+      "after_compute_seconds": 360.64358322811313,
+      "before_status": {
+        "recovered": 18,
+        "unknown": 31
+      },
+      "after_status": {
+        "recovered": 17,
+        "unknown": 32
+      }
+    },
+    "filtered_examples": [
+      {
+        "name": "00607/reverse",
+        "before_cpu_seconds": 11.401862893,
+        "after_cpu_seconds": 11.066551601,
+        "status": "unknown",
+        "event_filter": {
+          "contexts": 1359,
+          "rejected": 258,
+          "symmetry_queries": 1101,
+          "seconds": 0.228529253276065
+        }
+      },
+      {
+        "name": "00741/reverse",
+        "before_cpu_seconds": 1.9394978260000002,
+        "after_cpu_seconds": 1.4107388249999957,
+        "status": "not_recovered",
+        "event_filter": {
+          "contexts": 602,
+          "rejected": 252,
+          "symmetry_queries": 350,
+          "seconds": 0.08265959424898028
+        }
+      },
+      {
+        "name": "01228/reverse",
+        "before_cpu_seconds": 1.3314047990000049,
+        "after_cpu_seconds": 0.46421438000000137,
+        "status": "not_recovered",
+        "event_filter": {
+          "contexts": 294,
+          "rejected": 209,
+          "symmetry_queries": 85,
+          "seconds": 0.028207712341099977
+        }
+      },
+      {
+        "name": "00850/reverse",
+        "before_cpu_seconds": 2.3172729830000023,
+        "after_cpu_seconds": 1.8251763270000012,
+        "status": "recovered",
+        "event_filter": {
+          "contexts": 218,
+          "rejected": 207,
+          "symmetry_queries": 11,
+          "seconds": 0.055464378790929914
+        }
+      },
+      {
+        "name": "00181/forward",
+        "before_cpu_seconds": 6.073826030999996,
+        "after_cpu_seconds": 5.9638923219999995,
+        "status": "not_recovered",
+        "event_filter": {
+          "contexts": 812,
+          "rejected": 186,
+          "symmetry_queries": 626,
+          "seconds": 0.139574171975255
+        }
+      },
+      {
+        "name": "00881/reverse",
+        "before_cpu_seconds": 2.712956173000002,
+        "after_cpu_seconds": 2.4495410549999974,
+        "status": "not_recovered",
+        "event_filter": {
+          "contexts": 744,
+          "rejected": 144,
+          "symmetry_queries": 600,
+          "seconds": 0.11885718628764153
+        }
+      },
+      {
+        "name": "00184/reverse",
+        "before_cpu_seconds": 0.8648347110000003,
+        "after_cpu_seconds": 0.7501805160000004,
+        "status": "recovered",
+        "event_filter": {
+          "contexts": 181,
+          "rejected": 144,
+          "symmetry_queries": 37,
+          "seconds": 0.03054838627576828
+        }
+      },
+      {
+        "name": "00511/reverse",
+        "before_cpu_seconds": 8.487646633000004,
+        "after_cpu_seconds": 6.076202393000003,
+        "status": "recovered",
+        "event_filter": {
+          "contexts": 116,
+          "rejected": 113,
+          "symmetry_queries": 3,
+          "seconds": 0.011305002262815833
+        }
+      },
+      {
+        "name": "01599/reverse",
+        "before_cpu_seconds": 11.195853353,
+        "after_cpu_seconds": 10.895476725999998,
+        "status": "unknown",
+        "event_filter": {
+          "contexts": 93,
+          "rejected": 91,
+          "symmetry_queries": 2,
+          "seconds": 0.03456545271910727
+        }
+      },
+      {
+        "name": "01028/reverse",
+        "before_cpu_seconds": 3.718772726000001,
+        "after_cpu_seconds": 4.145467552000003,
+        "status": "recovered",
+        "event_filter": {
+          "contexts": 837,
+          "rejected": 90,
+          "symmetry_queries": 747,
+          "seconds": 0.16165390401147306
+        }
+      }
+    ],
+    "slow_comparison": [
+      {
+        "name": "00852/forward",
+        "before_cpu_seconds": 18.404623237,
+        "after_cpu_seconds": 13.510865742999998,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 81,
+          "rejected": 0,
+          "symmetry_queries": 81,
+          "seconds": 0.07535576028749347
+        }
+      },
+      {
+        "name": "01586/reverse",
+        "before_cpu_seconds": 16.558714275,
+        "after_cpu_seconds": 12.449966074999999,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 1,
+          "rejected": 0,
+          "symmetry_queries": 1,
+          "seconds": 0.024097707821056247
+        }
+      },
+      {
+        "name": "00852/reverse",
+        "before_cpu_seconds": 12.791901929,
+        "after_cpu_seconds": 12.500226772000001,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 74,
+          "rejected": 0,
+          "symmetry_queries": 74,
+          "seconds": 0.057936123106628656
+        }
+      },
+      {
+        "name": "01028/forward",
+        "before_cpu_seconds": 11.880109673,
+        "after_cpu_seconds": 12.235052364000005,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 1,
+          "rejected": 0,
+          "symmetry_queries": 1,
+          "seconds": 0.03958585322834551
+        }
+      },
+      {
+        "name": "01606/reverse",
+        "before_cpu_seconds": 11.806220992999998,
+        "after_cpu_seconds": 12.948994226000002,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 424,
+          "rejected": 0,
+          "symmetry_queries": 424,
+          "seconds": 0.09834701521322131
+        }
+      },
+      {
+        "name": "00709/forward",
+        "before_cpu_seconds": 11.600181702,
+        "after_cpu_seconds": 11.393784958,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 1,
+          "rejected": 0,
+          "symmetry_queries": 1,
+          "seconds": 0.02052689203992486
+        }
+      },
+      {
+        "name": "01799/reverse",
+        "before_cpu_seconds": 11.528868416,
+        "after_cpu_seconds": 11.944140246,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 1,
+          "rejected": 0,
+          "symmetry_queries": 1,
+          "seconds": 0.010397732956334949
+        }
+      },
+      {
+        "name": "00607/reverse",
+        "before_cpu_seconds": 11.401862893,
+        "after_cpu_seconds": 11.066551601,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 1359,
+          "rejected": 258,
+          "symmetry_queries": 1101,
+          "seconds": 0.228529253276065
+        }
+      },
+      {
+        "name": "01351/reverse",
+        "before_cpu_seconds": 11.258391937999999,
+        "after_cpu_seconds": 11.308103444,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 20,
+          "rejected": 0,
+          "symmetry_queries": 20,
+          "seconds": 0.029802124248817563
+        }
+      },
+      {
+        "name": "01599/reverse",
+        "before_cpu_seconds": 11.195853353,
+        "after_cpu_seconds": 10.895476725999998,
+        "before_status": "unknown",
+        "after_status": "unknown",
+        "event_filter": {
+          "contexts": 93,
+          "rejected": 91,
+          "symmetry_queries": 2,
+          "seconds": 0.03456545271910727
+        }
+      }
+    ]
+  },
+  "previous_witness_replay": [
+    {
+      "name": "00823/forward",
+      "valid_certificate": true,
+      "filter_rejects": false,
+      "forced_lower": 17,
+      "event_count": 19,
+      "window": [
+        16,
+        21
+      ],
+      "proof_family": 284,
+      "catalogue_hint": 282,
+      "context_position": 153,
+      "elapsed_seconds": 0.4763094447553158,
+      "certificate_sha256": "90954652d09588020ea0624461efd7d23c2c852ac61e70eec37930b8807eb3bd",
+      "filter_seconds": 0.04214531905017793
+    },
+    {
+      "name": "00737/reverse",
+      "valid_certificate": true,
+      "filter_rejects": false,
+      "forced_lower": 11,
+      "event_count": 11,
+      "window": [
+        10,
+        15
+      ],
+      "proof_family": 1786,
+      "catalogue_hint": 1659,
+      "context_position": 69,
+      "elapsed_seconds": 0.4166647121310234,
+      "certificate_sha256": "01f26ba4a00db3fbbc11f6ca6833cbd74374e06aa0eb668ddd0f41e8bba44030",
+      "filter_seconds": 0.026664536679163575
+    },
+    {
+      "name": "01777/reverse",
+      "valid_certificate": true,
+      "filter_rejects": false,
+      "forced_lower": 4,
+      "event_count": 6,
+      "window": [
+        3,
+        8
+      ],
+      "proof_family": 161,
+      "catalogue_hint": 159,
+      "context_position": 15,
+      "elapsed_seconds": 0.5978235080838203,
+      "certificate_sha256": "8782756bf877046954c09b482f61fc2108f18f1fe0755642033629dd603c1369",
+      "filter_seconds": 0.06624433165416121
+    }
+  ],
+  "validation": {
+    "affected_tests": 134,
+    "smoke_tests": 26
+  },
+  "allocation": {
+    "completed": true,
+    "elapsed_seconds": 74,
+    "allocated_cpus": 40,
+    "compute_workers": 32,
+    "total_cpu_seconds": 1619.479
+  },
+  "preliminary": {
+    "code_revision": "432cde8ad28395127d4170baae662bda8db3c1e0",
+    "elapsed_seconds": 67.22116093407385,
+    "cpu_seconds": 1638.8324429009995,
+    "status_counts": {
+      "recovered": 3587,
+      "not_recovered": 80,
+      "unknown": 35
+    },
+    "reaction_counts": {
+      "recovered": 1830,
+      "unknown": 5,
+      "not_recovered": 16
+    },
+    "filter": {
+      "contexts": 21716,
+      "rejected": 2707,
+      "symmetry_queries": 19009,
+      "seconds": 30.76940932031721
+    }
+  },
+  "interpretation": "No scientific stage rerun. Final audit preserves prior reaction outcomes; three prior positive direction queries are time-limited, and their existing certificates replay and pass the filter. Timing comparisons with the first full audit also include the previously added catalogue-family ordering hint."
+}
