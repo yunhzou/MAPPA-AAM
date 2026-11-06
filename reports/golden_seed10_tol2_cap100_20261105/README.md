@@ -415,6 +415,58 @@ seed-one versus seed-ten scaling is not remeasured here. The largest measured
 process RSS is 3.209 GiB before and 3.199 GiB after, including explicit output
 audits. These local checks do not establish operation under a 2 GiB guard.
 
+### Reusing shared state during projection
+
+Revision `a6bb8bb1b41a470f9f446edef27085a5bec49aef` reads immutable search-state
+blocks directly in native projection, converting each shared block or sequence
+once per input graph. Its temporary conversion table is released when projection
+returns. Combined branch mappings use the existing fragment witness pieces with
+a compiled iterator. Matching, fragment identity, placement order, provenance,
+catalogue schema and decoding are unchanged.
+
+The initial experiment found that flattening and sorting prepared witness pieces
+for case 0's 31,106 compositions took 0.097 CPU seconds; the compiled iterator
+took 0.072 seconds. Mapping assembly alone therefore offers a small saving.
+Lazy construction was not adopted: the decoder's inventory reads every family's
+mapping, so deferral would move that work downstream.
+
+Against `4958d5d285e43a023fc2d714717fb3f231e0217d`, two repetitions in alternating
+revision order on the same five saved ten-seed directions give these mean CPU
+seconds. Loading, decoding, publication and audit hashing are excluded from
+reduction. Full observations and source identities are in the existing
+[comparison evidence](compact-reduction-comparison.json), under
+`shared_state_projection`.
+
+| Golden case | Reduction before | Reduction after |
+|---|---:|---:|
+| 0 | 1.2543 | 1.1136 |
+| 44 | 0.2575 | 0.2409 |
+| 625 | 0.0034 | 0.0034 |
+| 1000 | 0.0203 | 0.0213 |
+| 1361 | 0.3248 | 0.3128 |
+| **Total** | **1.8603** | **1.6921** |
+
+Reduction uses **9.0% less CPU** (1.10× speedup). Case 1000 averages one
+millisecond slower, with the timing difference reversing between repetitions.
+Decoding totals 27.628 versus 27.416 seconds; this small difference does not
+establish a decoding speedup. Reduction plus decoding totals 29.488 versus 29.108
+seconds, so the whole measured pipeline gain is modest. Export, serialization
+and restoration total 4.506 versus 4.477 seconds. These paired timings should not
+be compared directly with the earlier, separately measured timings above.
+
+Every complete catalogue hash, branch hash, count, serialized size, model minimum
+and minimum-proof status matches across both revisions and repetitions. All five
+references remain recovered in both the catalogue and decoded window, with
+unchanged event counts. Peak process RSS, including explicit output auditing, is
+3.202 GiB before and 3.201 GiB after. This is not a full Golden rerun or a test
+under a 2 GiB guard.
+
+Validation passes **26 smoke tests and 157 affected tests**, including an explicit
+test that native projection handles shared, unsorted, partial states without
+expanding their Python sequences. Thirteen pool tests initially encountered
+sandbox restrictions on local sockets/process monitoring; those tests passed
+with the required permissions. No scientific test failed.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**

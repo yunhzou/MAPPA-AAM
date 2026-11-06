@@ -4298,5 +4298,1505 @@
         "unique_keys": 42779
       }
     }
+  },
+  "shared_state_projection": {
+    "schema": "mappa.shared_state_projection_comparison/v1",
+    "revisions": {
+      "baseline": {
+        "revision": "4958d5d285e43a023fc2d714717fb3f231e0217d",
+        "source_identity": "8a0777c3c4538dcbc3d9bfbe0d76ca4cb7eb903572e45f4912d6e98a0bb2c42e"
+      },
+      "candidate": {
+        "revision": "a6bb8bb1b41a470f9f446edef27085a5bec49aef",
+        "source_identity": "388303f0e0852a8cbe16773061fec7b7a1abbd1631b109aeacac76d5531b30eb"
+      }
+    },
+    "runner_sha256": "26e6138e96e717a4f1b3e923067a9349283c5deccd2356c1b9b1532a96732952",
+    "manifest_sha256": "d885e259609c567b40c894c6d9adc04721c47f442a0107bfc8a5abb5d8fc4911",
+    "repetitions": 2,
+    "timeout_seconds": 120,
+    "scope": "Five saved forward Golden directions; ten seeds, cap 100, tolerance 2. Matching was not repeated. Local single-process timings with one numerical thread; no memory guard.",
+    "methodology": "Alternate baseline/candidate order between repetitions; hash complete catalogue contents and compare branch counts, mapping records, actions and expanded provenance. Query reference membership in the catalogue and selected decoded window. Matching, file loading, output auditing and publication are outside reduction timing.",
+    "cases": [
+      {
+        "name": "00000/forward",
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "event_slack": 5,
+          "fragment_seconds": 5.0,
+          "threshold": 0.5,
+          "metal_threshold": 0.3
+        },
+        "reversed": false,
+        "matching_sha256": "b3b1a6b75d609a2d4c617939334ba555030305229ad9dc1b054aac64afaa7430",
+        "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+        "mean_cpu_seconds": {
+          "baseline": {
+            "loading": 1.3798869999999992,
+            "reduction": 1.2542535000000006,
+            "verification": 0.030957500000000193,
+            "decoding": 3.4918395,
+            "decoded_reference": 0.07107949999999974,
+            "export": 0.6906909999999997,
+            "serialization": 0.2244830000000002,
+            "restoration": 0.18085149999999972
+          },
+          "candidate": {
+            "loading": 1.3557194999999984,
+            "reduction": 1.1135964999999999,
+            "verification": 0.030902500000000055,
+            "decoding": 3.500116,
+            "decoded_reference": 0.07236049999999983,
+            "export": 0.690795,
+            "serialization": 0.2248714999999999,
+            "restoration": 0.18306500000000003
+          }
+        }
+      },
+      {
+        "name": "00044/forward",
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "event_slack": 5,
+          "fragment_seconds": 5.0,
+          "threshold": 0.5,
+          "metal_threshold": 0.3
+        },
+        "reversed": false,
+        "matching_sha256": "b02bb18904756f3bff8984448d84e2d06e83f62b9ac8eac0652055100c02d0bd",
+        "reference_sha256": "5ebc801725ab2acccf8a6093a76982d2e31ca0c71b27e48ba2f62f940eb09437",
+        "mean_cpu_seconds": {
+          "baseline": {
+            "loading": 0.25759000000000004,
+            "reduction": 0.2575115000000001,
+            "verification": 0.009643500000000027,
+            "decoding": 1.5484134999999999,
+            "decoded_reference": 0.10544500000000001,
+            "export": 0.215449,
+            "serialization": 0.052615499999999926,
+            "restoration": 0.05266649999999995
+          },
+          "candidate": {
+            "loading": 0.25817700000000016,
+            "reduction": 0.24094249999999998,
+            "verification": 0.00883299999999998,
+            "decoding": 1.5491319999999997,
+            "decoded_reference": 0.10719699999999999,
+            "export": 0.21687500000000015,
+            "serialization": 0.052153000000000116,
+            "restoration": 0.05563349999999989
+          }
+        }
+      },
+      {
+        "name": "00625/forward",
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "event_slack": 5,
+          "fragment_seconds": 5.0,
+          "threshold": 0.5,
+          "metal_threshold": 0.3
+        },
+        "reversed": false,
+        "matching_sha256": "dd76baf8d17fe91636b46502d7e1546797877b59c5d860f18d4a6d2decd92124",
+        "reference_sha256": "6b9e1c02382631a7f279d30f58a03696797b1ec9f7af535c52a2a35641aa0adf",
+        "mean_cpu_seconds": {
+          "baseline": {
+            "loading": 0.005594999999999961,
+            "reduction": 0.0033865000000000145,
+            "verification": 0.0001915000000000111,
+            "decoding": 0.027395000000000003,
+            "decoded_reference": 0.00016650000000001386,
+            "export": 0.0030254999999999865,
+            "serialization": 0.0004595000000000016,
+            "restoration": 0.0005439999999999612
+          },
+          "candidate": {
+            "loading": 0.005729500000000165,
+            "reduction": 0.003387000000000029,
+            "verification": 0.0001885000000000081,
+            "decoding": 0.027353500000000003,
+            "decoded_reference": 0.0001724999999999921,
+            "export": 0.0030870000000000064,
+            "serialization": 0.00045050000000002033,
+            "restoration": 0.0005435000000000023
+          }
+        }
+      },
+      {
+        "name": "01000/forward",
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "event_slack": 5,
+          "fragment_seconds": 5.0,
+          "threshold": 0.5,
+          "metal_threshold": 0.3
+        },
+        "reversed": false,
+        "matching_sha256": "2719979498644e9366a8d19b7dd61758f9b643c28b46300efa65c02b8d2bb251",
+        "reference_sha256": "9e6302eac3f1ddc7e9d6f7a679ecb285f6a15b1099d9941cd312e3ee8d2cc93d",
+        "mean_cpu_seconds": {
+          "baseline": {
+            "loading": 0.04256850000000012,
+            "reduction": 0.02031250000000001,
+            "verification": 0.00031950000000000034,
+            "decoding": 0.22619699999999998,
+            "decoded_reference": 0.0003169999999999562,
+            "export": 0.04633100000000001,
+            "serialization": 0.003762500000000002,
+            "restoration": 0.003945000000000032
+          },
+          "candidate": {
+            "loading": 0.0438754999999999,
+            "reduction": 0.021334000000000047,
+            "verification": 0.00033400000000000096,
+            "decoding": 0.225286,
+            "decoded_reference": 0.00032650000000000734,
+            "export": 0.04846650000000002,
+            "serialization": 0.003846000000000016,
+            "restoration": 0.003988000000000047
+          }
+        }
+      },
+      {
+        "name": "01361/forward",
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "event_slack": 5,
+          "fragment_seconds": 5.0,
+          "threshold": 0.5,
+          "metal_threshold": 0.3
+        },
+        "reversed": false,
+        "matching_sha256": "ec8335f00bac29c963131932a91c188e0960a54f381ae38895e7bdd838f3a41b",
+        "reference_sha256": "7f15ee5a71b1586b5aa8bc8a53d63815b6f86797c0162ecec7349a1ec2a6a92c",
+        "mean_cpu_seconds": {
+          "baseline": {
+            "loading": 0.617402,
+            "reduction": 0.32479550000000035,
+            "verification": 0.0006490000000001217,
+            "decoding": 22.334204999999997,
+            "decoded_reference": 0.02647949999999888,
+            "export": 1.710302500000001,
+            "serialization": 0.7809540000000013,
+            "restoration": 0.5399769999999986
+          },
+          "candidate": {
+            "loading": 0.6056035000000006,
+            "reduction": 0.312813,
+            "verification": 0.0006500000000000394,
+            "decoding": 22.113979999999998,
+            "decoded_reference": 0.026667500000000288,
+            "export": 1.7141135000000016,
+            "serialization": 0.7613325,
+            "restoration": 0.517752999999999
+          }
+        }
+      }
+    ],
+    "observations": [
+      {
+        "revision": "baseline",
+        "case": "00000/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.4041620000000008,
+            "wall_seconds": 1.4051545863039792
+          },
+          "reduction": {
+            "cpu_seconds": 1.2461870000000006,
+            "wall_seconds": 1.246770746074617
+          },
+          "verification": {
+            "cpu_seconds": 0.030877000000000265,
+            "wall_seconds": 0.03087712498381734
+          },
+          "decoding": {
+            "cpu_seconds": 3.477467,
+            "wall_seconds": 3.4837539999280125
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.07055899999999937,
+            "wall_seconds": 0.07057175016961992
+          },
+          "export": {
+            "cpu_seconds": 0.6872439999999997,
+            "wall_seconds": 0.6873017090838403
+          },
+          "serialization": {
+            "cpu_seconds": 0.22413400000000028,
+            "wall_seconds": 0.22417783294804394
+          },
+          "restoration": {
+            "cpu_seconds": 0.1806169999999998,
+            "wall_seconds": 0.1806304999627173
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 962871296
+      },
+      {
+        "revision": "candidate",
+        "case": "00000/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.3480639999999984,
+            "wall_seconds": 1.348786628805101
+          },
+          "reduction": {
+            "cpu_seconds": 1.1242119999999995,
+            "wall_seconds": 1.1245428761467338
+          },
+          "verification": {
+            "cpu_seconds": 0.03095900000000018,
+            "wall_seconds": 0.031017457833513618
+          },
+          "decoding": {
+            "cpu_seconds": 3.5117939999999996,
+            "wall_seconds": 3.5154351249802858
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.07374499999999973,
+            "wall_seconds": 0.07375887501984835
+          },
+          "export": {
+            "cpu_seconds": 0.6847859999999999,
+            "wall_seconds": 0.6848733751103282
+          },
+          "serialization": {
+            "cpu_seconds": 0.22902099999999947,
+            "wall_seconds": 0.22903800010681152
+          },
+          "restoration": {
+            "cpu_seconds": 0.18049599999999977,
+            "wall_seconds": 0.1805332088842988
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 964755456
+      },
+      {
+        "revision": "baseline",
+        "case": "00044/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.2471840000000004,
+            "wall_seconds": 0.2500449172221124
+          },
+          "reduction": {
+            "cpu_seconds": 0.2527500000000004,
+            "wall_seconds": 0.25293300044722855
+          },
+          "verification": {
+            "cpu_seconds": 0.00961500000000004,
+            "wall_seconds": 0.00961600011214614
+          },
+          "decoding": {
+            "cpu_seconds": 1.4980129999999998,
+            "wall_seconds": 1.4986077090725303
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10338700000000012,
+            "wall_seconds": 0.10339875007048249
+          },
+          "export": {
+            "cpu_seconds": 0.2134990000000001,
+            "wall_seconds": 0.21377920801751316
+          },
+          "serialization": {
+            "cpu_seconds": 0.04985799999999996,
+            "wall_seconds": 0.04992620786651969
+          },
+          "restoration": {
+            "cpu_seconds": 0.05045499999999992,
+            "wall_seconds": 0.0504764998331666
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 398966784
+      },
+      {
+        "revision": "candidate",
+        "case": "00044/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.2749679999999999,
+            "wall_seconds": 0.2754099180456251
+          },
+          "reduction": {
+            "cpu_seconds": 0.253669,
+            "wall_seconds": 0.2544672137591988
+          },
+          "verification": {
+            "cpu_seconds": 0.008529999999999927,
+            "wall_seconds": 0.008530209073796868
+          },
+          "decoding": {
+            "cpu_seconds": 1.518587,
+            "wall_seconds": 1.520275249844417
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.10438999999999998,
+            "wall_seconds": 0.10439987503923476
+          },
+          "export": {
+            "cpu_seconds": 0.2125140000000001,
+            "wall_seconds": 0.21257812483236194
+          },
+          "serialization": {
+            "cpu_seconds": 0.04856000000000016,
+            "wall_seconds": 0.048571666004136205
+          },
+          "restoration": {
+            "cpu_seconds": 0.053058999999999745,
+            "wall_seconds": 0.05308541702106595
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 400588800
+      },
+      {
+        "revision": "baseline",
+        "case": "00625/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.005512000000000017,
+            "wall_seconds": 0.00588775216601789
+          },
+          "reduction": {
+            "cpu_seconds": 0.0033210000000000184,
+            "wall_seconds": 0.0033233757130801678
+          },
+          "verification": {
+            "cpu_seconds": 0.00018800000000002148,
+            "wall_seconds": 0.00018874998204410076
+          },
+          "decoding": {
+            "cpu_seconds": 0.026899000000000006,
+            "wall_seconds": 0.027081333100795746
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00015700000000001824,
+            "wall_seconds": 0.00015833298675715923
+          },
+          "export": {
+            "cpu_seconds": 0.002956000000000014,
+            "wall_seconds": 0.002959083067253232
+          },
+          "serialization": {
+            "cpu_seconds": 0.0004609999999999892,
+            "wall_seconds": 0.0004611250478774309
+          },
+          "restoration": {
+            "cpu_seconds": 0.0005139999999999589,
+            "wall_seconds": 0.0005169168580323458
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 134463488
+      },
+      {
+        "revision": "candidate",
+        "case": "00625/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.005944000000000171,
+            "wall_seconds": 0.006032000062987208
+          },
+          "reduction": {
+            "cpu_seconds": 0.0034359999999999946,
+            "wall_seconds": 0.0034463354386389256
+          },
+          "verification": {
+            "cpu_seconds": 0.00019299999999999873,
+            "wall_seconds": 0.00019333302043378353
+          },
+          "decoding": {
+            "cpu_seconds": 0.027532,
+            "wall_seconds": 0.027657167054712772
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00017800000000001148,
+            "wall_seconds": 0.00017837504856288433
+          },
+          "export": {
+            "cpu_seconds": 0.003159000000000023,
+            "wall_seconds": 0.0031666250433772802
+          },
+          "serialization": {
+            "cpu_seconds": 0.00045800000000001395,
+            "wall_seconds": 0.0004586251452565193
+          },
+          "restoration": {
+            "cpu_seconds": 0.0005499999999999949,
+            "wall_seconds": 0.0005479578394442797
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 136069120
+      },
+      {
+        "revision": "baseline",
+        "case": "01000/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.0417550000000001,
+            "wall_seconds": 0.04188316874206066
+          },
+          "reduction": {
+            "cpu_seconds": 0.020049000000000095,
+            "wall_seconds": 0.02007837500423193
+          },
+          "verification": {
+            "cpu_seconds": 0.00030999999999997696,
+            "wall_seconds": 0.0003099590539932251
+          },
+          "decoding": {
+            "cpu_seconds": 0.22436499999999998,
+            "wall_seconds": 0.22466754098422825
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0003069999999999462,
+            "wall_seconds": 0.00030779209919273853
+          },
+          "export": {
+            "cpu_seconds": 0.04323900000000003,
+            "wall_seconds": 0.04324179096147418
+          },
+          "serialization": {
+            "cpu_seconds": 0.003703000000000012,
+            "wall_seconds": 0.003704959060996771
+          },
+          "restoration": {
+            "cpu_seconds": 0.003909000000000051,
+            "wall_seconds": 0.003912332933396101
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 161660928
+      },
+      {
+        "revision": "candidate",
+        "case": "01000/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.047314999999999885,
+            "wall_seconds": 0.047549418872222304
+          },
+          "reduction": {
+            "cpu_seconds": 0.022778000000000076,
+            "wall_seconds": 0.022824418265372515
+          },
+          "verification": {
+            "cpu_seconds": 0.00034600000000001296,
+            "wall_seconds": 0.0003468750510364771
+          },
+          "decoding": {
+            "cpu_seconds": 0.22907,
+            "wall_seconds": 0.2292560418136418
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0003309999999999702,
+            "wall_seconds": 0.00033170892857015133
+          },
+          "export": {
+            "cpu_seconds": 0.04889399999999999,
+            "wall_seconds": 0.0488974591717124
+          },
+          "serialization": {
+            "cpu_seconds": 0.003986999999999963,
+            "wall_seconds": 0.003988792188465595
+          },
+          "restoration": {
+            "cpu_seconds": 0.0040640000000000676,
+            "wall_seconds": 0.004066416062414646
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 162578432
+      },
+      {
+        "revision": "baseline",
+        "case": "01361/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6096679999999994,
+            "wall_seconds": 0.6151666673831642
+          },
+          "reduction": {
+            "cpu_seconds": 0.32243900000000014,
+            "wall_seconds": 0.32264916715212166
+          },
+          "verification": {
+            "cpu_seconds": 0.0006380000000001385,
+            "wall_seconds": 0.0006368339527398348
+          },
+          "decoding": {
+            "cpu_seconds": 22.432997,
+            "wall_seconds": 22.46615095809102
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.02636399999999739,
+            "wall_seconds": 0.026371082989498973
+          },
+          "export": {
+            "cpu_seconds": 1.7073370000000025,
+            "wall_seconds": 1.7076142497826368
+          },
+          "serialization": {
+            "cpu_seconds": 0.7856440000000013,
+            "wall_seconds": 0.7858305000700057
+          },
+          "restoration": {
+            "cpu_seconds": 0.5474679999999985,
+            "wall_seconds": 0.5477446250151843
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3436986368
+      },
+      {
+        "revision": "candidate",
+        "case": "01361/forward",
+        "repetition": 0,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6093950000000008,
+            "wall_seconds": 0.6115270422305912
+          },
+          "reduction": {
+            "cpu_seconds": 0.3158159999999993,
+            "wall_seconds": 0.3160647542681545
+          },
+          "verification": {
+            "cpu_seconds": 0.0006490000000001217,
+            "wall_seconds": 0.0006497909780591726
+          },
+          "decoding": {
+            "cpu_seconds": 22.034122,
+            "wall_seconds": 22.037475207820535
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.026710000000001344,
+            "wall_seconds": 0.026710125152021646
+          },
+          "export": {
+            "cpu_seconds": 1.6732460000000025,
+            "wall_seconds": 1.6734123330097646
+          },
+          "serialization": {
+            "cpu_seconds": 0.736539999999998,
+            "wall_seconds": 0.7366776659619063
+          },
+          "restoration": {
+            "cpu_seconds": 0.5140619999999991,
+            "wall_seconds": 0.5142114160116762
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3437166592
+      },
+      {
+        "revision": "candidate",
+        "case": "00000/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.3633749999999982,
+            "wall_seconds": 1.3637864596676081
+          },
+          "reduction": {
+            "cpu_seconds": 1.1029810000000002,
+            "wall_seconds": 1.1032160869799554
+          },
+          "verification": {
+            "cpu_seconds": 0.03084599999999993,
+            "wall_seconds": 0.030846458161249757
+          },
+          "decoding": {
+            "cpu_seconds": 3.488438,
+            "wall_seconds": 3.4892665420193225
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.07097599999999993,
+            "wall_seconds": 0.07097791694104671
+          },
+          "export": {
+            "cpu_seconds": 0.6968040000000002,
+            "wall_seconds": 0.6969657910522074
+          },
+          "serialization": {
+            "cpu_seconds": 0.2207220000000003,
+            "wall_seconds": 0.22075145808048546
+          },
+          "restoration": {
+            "cpu_seconds": 0.1856340000000003,
+            "wall_seconds": 0.18567070900462568
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 964984832
+      },
+      {
+        "revision": "baseline",
+        "case": "00000/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.3556119999999976,
+            "wall_seconds": 1.3566550808027387
+          },
+          "reduction": {
+            "cpu_seconds": 1.2623200000000006,
+            "wall_seconds": 1.2628818294033408
+          },
+          "verification": {
+            "cpu_seconds": 0.03103800000000012,
+            "wall_seconds": 0.031037000007927418
+          },
+          "decoding": {
+            "cpu_seconds": 3.506212,
+            "wall_seconds": 3.5071487079840153
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.07160000000000011,
+            "wall_seconds": 0.0716030839830637
+          },
+          "export": {
+            "cpu_seconds": 0.6941379999999997,
+            "wall_seconds": 0.6942521671298891
+          },
+          "serialization": {
+            "cpu_seconds": 0.22483200000000014,
+            "wall_seconds": 0.22486137482337654
+          },
+          "restoration": {
+            "cpu_seconds": 0.18108599999999964,
+            "wall_seconds": 0.18110712501220405
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 69,
+        "seed_searches": 690,
+        "branches": 31106,
+        "families": 32986,
+        "fragments": 1840,
+        "paths": 40216,
+        "branch_composition_sha256": "2f2d52d80f5c5ece2af4094f145e77eb4d816607a67f8f811510e0803202fdc0",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 11,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "08e188509dc21d1072ea81b4c6e81c22c72f666ef894914a695411a4170506d7",
+        "minimum_events": 9,
+        "minimum_proven": true,
+        "serialized_bytes": 33772329,
+        "process_lifetime_peak_rss_bytes": 963493888
+      },
+      {
+        "revision": "candidate",
+        "case": "00044/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.24138600000000043,
+            "wall_seconds": 0.24160483689047396
+          },
+          "reduction": {
+            "cpu_seconds": 0.22821599999999997,
+            "wall_seconds": 0.2284013326279819
+          },
+          "verification": {
+            "cpu_seconds": 0.009136000000000033,
+            "wall_seconds": 0.00913633406162262
+          },
+          "decoding": {
+            "cpu_seconds": 1.5796769999999998,
+            "wall_seconds": 1.5866459999233484
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.11000399999999999,
+            "wall_seconds": 0.11011275020428002
+          },
+          "export": {
+            "cpu_seconds": 0.2212360000000002,
+            "wall_seconds": 0.22152362507767975
+          },
+          "serialization": {
+            "cpu_seconds": 0.05574600000000007,
+            "wall_seconds": 0.05585029209032655
+          },
+          "restoration": {
+            "cpu_seconds": 0.05820800000000004,
+            "wall_seconds": 0.058973874896764755
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 401063936
+      },
+      {
+        "revision": "baseline",
+        "case": "00044/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.2679959999999997,
+            "wall_seconds": 0.26851308066397905
+          },
+          "reduction": {
+            "cpu_seconds": 0.26227299999999987,
+            "wall_seconds": 0.2625964598264545
+          },
+          "verification": {
+            "cpu_seconds": 0.009672000000000014,
+            "wall_seconds": 0.00969183281995356
+          },
+          "decoding": {
+            "cpu_seconds": 1.598814,
+            "wall_seconds": 1.6049077499192208
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.1075029999999999,
+            "wall_seconds": 0.10769516695290804
+          },
+          "export": {
+            "cpu_seconds": 0.2173989999999999,
+            "wall_seconds": 0.21785520808771253
+          },
+          "serialization": {
+            "cpu_seconds": 0.055372999999999895,
+            "wall_seconds": 0.055514875100925565
+          },
+          "restoration": {
+            "cpu_seconds": 0.05487799999999998,
+            "wall_seconds": 0.05517479218542576
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 49,
+        "seed_searches": 490,
+        "branches": 6254,
+        "families": 6405,
+        "fragments": 892,
+        "paths": 7934,
+        "branch_composition_sha256": "9a38aea6c2fc80fa7551c86643f34ac95c8bd156405326dfee729d1fc8a3ca64",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 4,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "dd6bacac7d498301c2f0ad368710a1aa38e22c9b3fc8e35c3365adfa824ffde9",
+        "minimum_events": 4,
+        "minimum_proven": true,
+        "serialized_bytes": 9777308,
+        "process_lifetime_peak_rss_bytes": 402341888
+      },
+      {
+        "revision": "candidate",
+        "case": "00625/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.005515000000000159,
+            "wall_seconds": 0.00563470833003521
+          },
+          "reduction": {
+            "cpu_seconds": 0.003338000000000063,
+            "wall_seconds": 0.003346665995195508
+          },
+          "verification": {
+            "cpu_seconds": 0.00018400000000001748,
+            "wall_seconds": 0.00018400000408291817
+          },
+          "decoding": {
+            "cpu_seconds": 0.027175000000000005,
+            "wall_seconds": 0.027313125086948276
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00016699999999997273,
+            "wall_seconds": 0.00016762502491474152
+          },
+          "export": {
+            "cpu_seconds": 0.00301499999999999,
+            "wall_seconds": 0.0030159580055624247
+          },
+          "serialization": {
+            "cpu_seconds": 0.0004430000000000267,
+            "wall_seconds": 0.00044345809146761894
+          },
+          "restoration": {
+            "cpu_seconds": 0.0005370000000000097,
+            "wall_seconds": 0.0005377091001719236
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 134807552
+      },
+      {
+        "revision": "baseline",
+        "case": "00625/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.005677999999999905,
+            "wall_seconds": 0.005823041778057814
+          },
+          "reduction": {
+            "cpu_seconds": 0.0034520000000000106,
+            "wall_seconds": 0.0034700375981628895
+          },
+          "verification": {
+            "cpu_seconds": 0.00019500000000000073,
+            "wall_seconds": 0.00019470788538455963
+          },
+          "decoding": {
+            "cpu_seconds": 0.027891,
+            "wall_seconds": 0.02815812500193715
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00017600000000000948,
+            "wall_seconds": 0.0001767908688634634
+          },
+          "export": {
+            "cpu_seconds": 0.003094999999999959,
+            "wall_seconds": 0.003095499938353896
+          },
+          "serialization": {
+            "cpu_seconds": 0.00045800000000001395,
+            "wall_seconds": 0.00045766704715788364
+          },
+          "restoration": {
+            "cpu_seconds": 0.0005739999999999634,
+            "wall_seconds": 0.0005734998267143965
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 15,
+        "seed_searches": 150,
+        "branches": 22,
+        "families": 22,
+        "fragments": 31,
+        "paths": 270,
+        "branch_composition_sha256": "0b7c79d62aff29f0fecce90661f1da76f5c29e1988bd82db2b005ae1f5be77fd",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "70b6425b5b7034a6b41bd8d60f93eac2135ebc574255761166286d46dc7270e4",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 119452,
+        "process_lifetime_peak_rss_bytes": 135888896
+      },
+      {
+        "revision": "candidate",
+        "case": "01000/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.040435999999999916,
+            "wall_seconds": 0.040567583637312055
+          },
+          "reduction": {
+            "cpu_seconds": 0.01989000000000002,
+            "wall_seconds": 0.01992075052112341
+          },
+          "verification": {
+            "cpu_seconds": 0.00032199999999998896,
+            "wall_seconds": 0.00032233307138085365
+          },
+          "decoding": {
+            "cpu_seconds": 0.22150199999999998,
+            "wall_seconds": 0.22184958308935165
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00032200000000004447,
+            "wall_seconds": 0.00032279198057949543
+          },
+          "export": {
+            "cpu_seconds": 0.048039000000000054,
+            "wall_seconds": 0.04804325010627508
+          },
+          "serialization": {
+            "cpu_seconds": 0.0037050000000000693,
+            "wall_seconds": 0.0037065830547362566
+          },
+          "restoration": {
+            "cpu_seconds": 0.003912000000000027,
+            "wall_seconds": 0.00391362514346838
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 161628160
+      },
+      {
+        "revision": "baseline",
+        "case": "01000/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.04338200000000014,
+            "wall_seconds": 0.04351554485037923
+          },
+          "reduction": {
+            "cpu_seconds": 0.020575999999999928,
+            "wall_seconds": 0.02062970888800919
+          },
+          "verification": {
+            "cpu_seconds": 0.0003290000000000237,
+            "wall_seconds": 0.00032899994403123856
+          },
+          "decoding": {
+            "cpu_seconds": 0.22802899999999998,
+            "wall_seconds": 0.22845924994908273
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0003269999999999662,
+            "wall_seconds": 0.0003301671240478754
+          },
+          "export": {
+            "cpu_seconds": 0.049422999999999995,
+            "wall_seconds": 0.04942579194903374
+          },
+          "serialization": {
+            "cpu_seconds": 0.003821999999999992,
+            "wall_seconds": 0.0038229580968618393
+          },
+          "restoration": {
+            "cpu_seconds": 0.003981000000000012,
+            "wall_seconds": 0.003980832872912288
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 25,
+        "seed_searches": 250,
+        "branches": 252,
+        "families": 292,
+        "fragments": 265,
+        "paths": 673,
+        "branch_composition_sha256": "23f9957c4227f894069c1a9297d62d61e2ab39d590e05636553fe029270c737b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 3,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "685a2b6d64eae85b7678d123817de7b6cbb20a491eaead0ff656968a113e5f62",
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 940896,
+        "process_lifetime_peak_rss_bytes": 161890304
+      },
+      {
+        "revision": "candidate",
+        "case": "01361/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6018120000000005,
+            "wall_seconds": 0.6025504518765956
+          },
+          "reduction": {
+            "cpu_seconds": 0.30981000000000075,
+            "wall_seconds": 0.31006003823131323
+          },
+          "verification": {
+            "cpu_seconds": 0.0006509999999999572,
+            "wall_seconds": 0.0006503330077975988
+          },
+          "decoding": {
+            "cpu_seconds": 22.193838,
+            "wall_seconds": 22.20611199992709
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.026624999999999233,
+            "wall_seconds": 0.026632291032001376
+          },
+          "export": {
+            "cpu_seconds": 1.7549810000000008,
+            "wall_seconds": 1.7573377499356866
+          },
+          "serialization": {
+            "cpu_seconds": 0.786125000000002,
+            "wall_seconds": 0.7866229999344796
+          },
+          "restoration": {
+            "cpu_seconds": 0.5214439999999989,
+            "wall_seconds": 0.5217414998915046
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3436609536
+      },
+      {
+        "revision": "baseline",
+        "case": "01361/forward",
+        "repetition": 1,
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6251360000000005,
+            "wall_seconds": 0.6257254187949002
+          },
+          "reduction": {
+            "cpu_seconds": 0.3271520000000005,
+            "wall_seconds": 0.327348789665848
+          },
+          "verification": {
+            "cpu_seconds": 0.000660000000000105,
+            "wall_seconds": 0.0006607910618185997
+          },
+          "decoding": {
+            "cpu_seconds": 22.235412999999998,
+            "wall_seconds": 22.238564625149593
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.02659500000000037,
+            "wall_seconds": 0.026598208118230104
+          },
+          "export": {
+            "cpu_seconds": 1.7132679999999993,
+            "wall_seconds": 1.7134338750038296
+          },
+          "serialization": {
+            "cpu_seconds": 0.7762640000000012,
+            "wall_seconds": 0.776333374902606
+          },
+          "restoration": {
+            "cpu_seconds": 0.5324859999999987,
+            "wall_seconds": 0.5350609589368105
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 97,
+        "seed_searches": 970,
+        "branches": 2894,
+        "families": 3074,
+        "fragments": 1463,
+        "paths": 4737,
+        "branch_composition_sha256": "41e1ff714d1a4546f0274b521d2f039f00db95e99d031c5733d3bcc91729c577",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 7,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": "fa0e3d7e02d132e5f608fa0842babde21fc4e3b20223eda7cc26ab942cdb2f33",
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 111624165,
+        "process_lifetime_peak_rss_bytes": 3437674496
+      }
+    ],
+    "mean_cpu_seconds": {
+      "baseline": {
+        "loading": 2.303042499999999,
+        "reduction": 1.860259500000001,
+        "verification": 0.04176100000000035,
+        "decoding": 27.628049999999998,
+        "decoded_reference": 0.2034874999999986,
+        "export": 2.6657990000000007,
+        "serialization": 1.0622745000000013,
+        "restoration": 0.7779839999999982
+      },
+      "candidate": {
+        "loading": 2.2691049999999993,
+        "reduction": 1.692073,
+        "verification": 0.04090800000000008,
+        "decoding": 27.4158675,
+        "decoded_reference": 0.2067240000000001,
+        "export": 2.673337000000002,
+        "serialization": 1.0426535000000001,
+        "restoration": 0.760982999999999
+      }
+    },
+    "peak_rss_bytes": {
+      "baseline": 3437674496,
+      "candidate": 3437166592
+    },
+    "validation": {
+      "smoke_passed": 26,
+      "affected_passed": 157,
+      "scientific_catalogues_equal": true,
+      "catalogue_reference_recovery": "5/5",
+      "decoded_reference_recovery": "5/5",
+      "full_golden_rerun": false,
+      "note": "Thirteen local-pool tests initially hit sandbox socket/process-monitor restrictions and passed with those permissions. Tests do not establish exhaustive equality of every decoded query."
+    },
+    "mapping_assembly_experiment": {
+      "case": "00000/forward",
+      "compositions": 31106,
+      "repetitions": 6,
+      "method": "Flatten and sort already prepared fragment witness tuples. Both implementations produce exactly the same combined mappings; preparation, record construction and decoding are excluded.",
+      "generator_cpu_seconds": [
+        0.096294,
+        0.095657,
+        0.094911,
+        0.096519,
+        0.099202,
+        0.097661
+      ],
+      "chain_cpu_seconds": [
+        0.072136,
+        0.072177,
+        0.073074,
+        0.070587,
+        0.071536,
+        0.071501
+      ]
+    }
   }
 }
