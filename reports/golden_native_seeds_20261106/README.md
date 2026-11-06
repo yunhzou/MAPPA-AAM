@@ -7,11 +7,12 @@ including the native reduction and event kernels and the incident-bond event bou
 reference verification and reaction caches start empty in both arms. Only
 immutable prepared endpoint and reference inputs are reused.
 
-**Status: the one-seed run is complete and independently audited. The ten-seed
-run stopped admission after decoding exceeded its unchanged 2 GiB memory guard.
-Its workers have drained, and a separate verification-only pass completed all
-reference checks. Ten-seed decoding remains incomplete.** Historical
-accuracy and selected-case speedups are not results of this new full run.
+**Status: both matching, reduction and reference-verification arms are complete.
+Fresh one-seed decoding at `a5f1f65` completed all 3,702 directions. Fresh ten-seed
+decoding stopped admission after compute timeouts and has drained: 732 successful
+outputs, six timeouts and 2,964 unattempted directions. Ten-seed decoding remains
+incomplete.** Earlier memory failures and all consumed budgets remain preserved.
+The window remains model minimum through **minimum + 5**.
 
 ## Protocol
 
@@ -168,7 +169,113 @@ only to contexts excluded by the completed event window, preserving selected
 responses and all saved starting-map solutions. Its **94 affected tests passed
 in 1.35 seconds**, including a test that discards an excluded context while
 reusing the selected response and preserving later explicit inspection.
-Cluster validation of this last change and full updated decoding measurements
-remain pending. Unit tests alone do not establish the resource repair or its
-full-dataset performance. Original failures, artifacts and consumed budgets are
+Seven of the nine original failures completed after this change; 862 reverse
+failed during computation and 1264 forward during publication. Releasing the
+completed worker session in `2aa91ee` did not resolve the latter. These remained
+partial repairs, not evidence of a completed full decoding run. Original failures, artifacts and consumed budgets are
 preserved; these are separate new-revision diagnostic passes at the same guard.
+
+
+### Shared core response validation
+
+A bounded profile of 862 reverse found that 1,104,872 of 1,108,858 contextual
+bond-term uses (99.64%) belonged to contexts already represented by shared core
+fragment costs. This is a sampled intermediate state, not a complete decode.
+Revision `a5f1f65` removes those duplicate detailed lookups from normal assembly
+and persistence. It saves the selected fragment responses and branch references
+directly in schema 14. Explicit bond inspection builds details only when
+requested; genuinely joint contexts retain the terms required by their ordered
+cost. Mapping permissions, event thresholds, sweep coupling, the event model
+and the five-second fragment allowance are unchanged.
+
+All **1,300 local tests passed in 118.53 seconds**, and **109 Linux decoder tests
+passed in 6.05 seconds**. Independent scalar event checks, ordered placement
+and sweep cases, save/load queries and a test forbidding duplicate bond-table
+construction during shared-response decoding passed. All nine former memory failures completed at the unchanged **2 GiB** guard,
+including output publication, with one attempt each. Their compute CPU ranged
+from 10.155 to 272.652 seconds; the largest sampled process-tree peak was
+1.904 GiB. The saved matching catalogues and original failed ledgers remained
+unchanged. [Resource validation](decoder-storage-validation.json) preserves the
+per-direction measurements and preceding unsuccessful repairs.
+
+### Updated decoding measurement
+
+The separate full one-seed decoding pass at `a5f1f65` completed **3,702/3,702
+directions**, with zero failures or retries. All saved-catalogue references and
+output checksums were audited. It used 13,817.891 compute CPU seconds and 89.859
+publication CPU seconds; elapsed pool time was **501.986 seconds (8m22s)**.
+Median directional decoding CPU was 0.492 seconds, p99 was 85.741 seconds and
+the maximum was **322.575 seconds for 873 forward**. Sampled/lifetime peak memory
+was 0.400 GiB. Compared with the previous pass on identical saved catalogues,
+compute CPU decreased 14.4%; this comparison isolates the subsequent shared-response
+cleanup, not the earlier native port or atom-set reduction change.
+[Audited direction and reaction timings](seeds1-decoding-timings.json.gz) retain
+full scope and separate publication measurements.
+
+The ten-seed pass stopped admission after its first compute timeout, then let
+already admitted work drain. It finished with **732 successes and six 600-second
+compute timeouts**: 817 reverse, 869 reverse, 411 forward, 873 forward, 902 reverse
+and 545 forward. The other 2,964 directions were not attempted. There were no
+retries or restored budgets. These six directions previously completed in
+22.877, 29.123, 38.570, 121.074, 27.658 and 24.172 CPU seconds, respectively,
+in the `b51661d` ten-seed study. The measured regression crosses both a completed-
+fragment representation change and the native port; those causes require
+separate controlled comparisons.
+
+Both new decoding passes used 32 workers, the unchanged 2 GiB guard and minimum
++ 5 window. They reuse audited matching catalogues; matching, reduction and
+verification retain their original measured stages. These are staged measurements,
+not a new uninterrupted end-to-end wall time. No complete ten-seed speedup or
+regression-free release is claimed.
+
+## Controlled regression diagnosis
+
+The earlier fast ten-seed results used `b51661d`, before atom-set reduction
+(`b26e2ee`) and the C++ port (`040f817`). Comparing those results with the new
+benchmark therefore cannot isolate the native port. Controlled tests now locate
+one concrete failure mechanism in the completed-fragment representation change.
+
+On **256 small cases**, the native and immediately preceding Python assignment
+search produced identical sequences of improving mappings. Both agreed with
+independently enumerated minima. The 173 affected optimizer, native group,
+fragment-response and decoder-window tests passed in 10.09 seconds. These checks
+do not establish equality of every hardware-dependent, time-limited result.
+
+Four representative fragments from 817 reverse, 869 reverse, 411 forward and
+873 forward were then tested on the same compute host, with the same source and
+target weights, initial mapping and anchors. The historical catalogue was read
+using its producing revision's reader; no schema was silently reinterpreted.
+The current and old Python optimizers were compared on identical fragment inputs.
+No production source, scientific ledger or failed-stage budget was changed.
+
+| Case / direction | Atoms | Native, original constraints (s CPU) | Native, broader domains only (s CPU) | Broader domains and no growth edges (s wall) |
+|---|---:|---:|---:|---:|
+| 817 reverse | 57 | 0.0119 | 0.0139 | 5.0007 |
+| 869 reverse | 42 | 0.0073 | 0.0087 | 5.0005 |
+| 411 forward | 54 | 0.0091 | 0.0126 | 5.0007 |
+| 873 forward | 70 | 0.0156 | 0.0232 | 5.0011 |
+
+Removing growth edges alone also remained fast in the separate control. Removing
+those constraints **and** replacing prior per-atom partner sets with every
+same-element target reproduced the expensive search. In the 54-atom example,
+prior partner sets contained one to three targets; most new sets contain 26 or
+27 targets. Source/target WBOs, saved witnesses and anchors were unchanged.
+The historical Python optimizer also uses its five-second allowance on these
+new broad inputs, while the native optimizer is faster on the original inputs.
+Thus this demonstrated mechanism comes from the earlier semantic broadening,
+not slower C++ execution. Its whole-dataset contribution has not been separately
+measured. Initial fragment selection was targeted, not a random speed sample.
+
+The broadened search can change the selected response: one 869 reverse fragment
+returned six events instead of ten. This is not evidence of an accuracy loss,
+but it disproves treating the representation change as output-identical cleanup.
+Deduplication identity and starting-map permissions are separate decisions.
+
+The **minimum + 5** setting is unchanged in both benchmark configurations.
+Starting-map preparation precedes the final event-window selection, so the
+requested window does not by itself prevent this extra search. The uncommitted
+experimental residual bound was removed from the active checkout and its native
+module rebuilt. No replacement search policy has been implemented or deployed.
+The regression is diagnosed; the full ten-seed study remains stopped pending a
+repair that respects the agreed scientific contract. Full controls, work counts,
+incumbents and limits are in [logic-validation.json](logic-validation.json).
