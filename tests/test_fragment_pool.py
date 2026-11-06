@@ -25,6 +25,17 @@ def test_completed_fragment_proves_different_starting_atom_and_subset():
     assert pool.stats()['entries'] == 1
 
 
+@pytest.mark.parametrize('elements,target_size', [(('C', 'C', 'C'), 2), (('C', 'Xe'), 1)])
+def test_exhausted_element_supply_rejects_without_cache_or_matching(elements, target_size):
+    source = graph(len(elements), [(r, r+1) for r in range(len(elements)-1)], elements)
+    target = graph(target_size, [(r, r+1) for r in range(target_size-1)])
+    pool = FragmentPool(source, target)
+    result = pool.engine.grow([], 0, [-1]*len(elements), .2, 1., 1, 100, None, [], False)
+    assert result['profile']['final_fragment_size'] == target_size
+    assert result['profile']['deferred'] == 1
+    assert result['profile']['feasibility_searches'] == pool.stats()['existence_queries'] == 0
+
+
 def test_previous_other_fragment_lock_does_not_make_a_branch_cache_key():
     source = graph(6, [(0, 1), (2, 3), (3, 4), (4, 5)])
     pool = FragmentPool(source, source)
@@ -59,6 +70,47 @@ def test_tolerance_is_checked_on_the_proposed_edges():
     assert pool.engine.exists([0, 1], [(0, 1)], [-1]*3, 1.)
     assert not pool.engine.exists([0, 1], [(0, 1)], [-1]*3, .5)
     assert pool.stats()['fragment_hits'] == before+1
+    # Changing policy back must restore the indexed proof, including after load.
+    restored = FragmentPool(source, target)
+    restored.loads(pool.dumps())
+    assert not restored.engine.exists([0, 1], [(0, 1)], [-1]*3, .5)
+    assert restored.engine.exists([0, 1], [(0, 1)], [-1]*3, 1.)
+    assert restored.stats()['fragment_hits'] == 1
+
+
+def test_containment_across_multiple_bitset_blocks():
+    source = graph(140, [(a, a+1) for a in range(0, 140, 2)])
+    pool = FragmentPool(source, source)
+    for a in range(0, 140, 2):
+        fill(pool, a)
+    assert pool.stats()['entries'] == 70
+    before = pool.stats()['fragment_hits']
+    for a in (0, 126, 128, 138):
+        assert pool.engine.exists([a, a+1], [(a, a+1)], [-1]*140, 1.)
+    assert pool.stats()['fragment_hits'] == before+4
+    # Atom containment is across one stored fragment, not the union of records.
+    before = pool.stats()['fragment_hits']
+    assert pool.engine.exists([0, 138], [], [-1]*140, 1.)
+    assert pool.stats()['fragment_hits'] == before
+    assert pool.stats()['peak_resident_bytes'] <= pool.stats()['cache_budget_bytes']
+
+
+def test_sparse_block_index_grows_past_one_word_and_restores():
+    star = graph(14, [(0, r) for r in range(1, 14)], ['O']+['H']*13)
+    pool = FragmentPool(star, star)
+    # The last two source sets introduce atom 13 in block 64 (index word 1).
+    for mask in range(1, 4098):
+        cut = [(0, r) for r in range(1, 14) if not mask & (1 << (r-1))]
+        fill(pool, cut=cut)
+    assert pool.stats()['entries'] == 4097
+    restored = FragmentPool(star, star)
+    restored.loads(pool.dumps())
+    assert restored.engine.exists([0, 1, 13], [(0, 1), (0, 13)], [-1]*14, 1.)
+    assert restored.stats()['fragment_hits'] == 1
+    # These atoms occur in separate records, which cannot be combined as a proof.
+    assert restored.engine.exists([0, 2, 13], [(0, 2), (0, 13)], [-1]*14, 1.)
+    assert restored.stats()['fragment_hits'] == 1
+    assert restored.stats()['peak_resident_bytes'] <= restored.stats()['cache_budget_bytes']
 
 
 def test_snapshot_transfers_unique_fragments_and_preserves_local_knowledge():

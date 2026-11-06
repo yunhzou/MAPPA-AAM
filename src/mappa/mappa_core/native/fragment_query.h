@@ -358,31 +358,6 @@ public:
     }
 };
 
-std::vector<int> FragmentPool::find(const FragmentQuery& query) {
-    ++lookups;
-    if (query.atoms.empty()) return {};
-    int rare=query.atoms.front();
-    for (int atom:query.atoms)
-        if (by_atom[atom].size()<by_atom[rare].size()) rare=atom;
-    for (auto* entry:by_atom[rare]) {
-        ++checks;
-        const auto& image=entry->image;
-        bool valid=true;
-        for (int atom:query.atoms)
-            if (image[atom]<0 || !contains(query.domains[atom],image[atom])) {valid=false;break;}
-        if (!valid) continue;
-        for (const auto& edge:query.edges)
-            if (!query.supports(edge,image[edge.a],image[edge.b])) {valid=false;break;}
-        if (!valid) continue;
-        ++hits;
-        entries.splice(entries.end(),entries,index.at(entry->key));
-        std::vector<int> witness(base.n,-1);
-        for (int atom:query.atoms) witness[atom]=image[atom];
-        return witness;
-    }
-    return {};
-}
-
 // One concrete assignment during growth. It is not a compressed candidate:
 // accepted extensions update only new atoms; old edges remain proven.
 class WitnessGrowth {
@@ -444,13 +419,21 @@ public:
                 if (!used[p] && !occupied[p] && target.ecode[p]==source.ecode[atom] && supports(p)) {
                     assign(atom,p);++nodes;return true;
                 }
+            // Rearranging the growing witness cannot create another element slot.
+            int element=source.ecode[atom];
+            if (element<0 || element>=int(target.same_element.size())) return false;
+            const auto& compatible=target.same_element[element];
+            if (std::none_of(compatible.begin(),compatible.end(),
+                            [&](int p){return !used[p] && !occupied[p];})) return false;
         }
         auto enlarged=fragment;enlarged[atom]=1;
         for (int r:added) enlarged[r]=1;
         auto edges=bonds;edges.push_back({anchor,atom});
-        FragmentQuery query(source,target,enlarged,edges,locked,tolerance);
-        auto next=pool ? pool->find(query) : std::vector<int>{};
-        if (next.empty()) {++searches;next=query.find();nodes+=query.nodes;}
+        auto next=pool ? pool->find(enlarged,edges,locked,tolerance) : std::vector<int>{};
+        if (next.empty()) {
+            FragmentQuery query(source,target,enlarged,edges,locked,tolerance);
+            ++searches;next=query.find();nodes+=query.nodes;
+        }
         if (next.empty()) return false;
         image=std::move(next);
         std::fill(used.begin(),used.end(),0);

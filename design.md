@@ -390,13 +390,22 @@ target atom-set pair. Keep one original fragment per pair. Its discovery witness
 can prove that a smaller temporary fragment has at least one match. This reuse
 works across branches, seeds and cuts; it does not reuse a completed growth path.
 
-First try the cheap extension of the current witness. Otherwise consult the
+First try the cheap extension of the current witness. If no unoccupied target
+atom of the required element remains, reject the extension immediately: rearranging
+the witness cannot increase that element's available count. Otherwise consult the
 fragment pool: the stored witness must cover the proposed atoms, respect current
 locks and target availability, and satisfy every currently required edge at the
 current tolerance. Atom-set inclusion alone is insufficient. A valid restriction
 answers **yes** immediately. A pool miss makes no claim about absence; the same
 existence solver then answers the query normally. No symmetry or bijection
 enumeration is needed to test a stored witness.
+
+Use an inverted bitset index for atom containment, supported edges and fixed
+assignments. Intersect these sets to select a valid stored witness instead of
+validating saved witnesses one record at a time. Prepare edge support when a
+fragment is inserted, rebuilding it only if the tolerance policy changes. Hits bypass matcher
+query construction. Index storage shares the pool's retention budget, and eviction
+removes its proof bits. Measure lookup overhead as well as the work it avoids.
 
 For example, after finding `R{1,2,3,4} → P{a,b,c,d}`, a later proposal for
 `R{2,3}` can use `2→b, 3→c` if those targets remain available and its required

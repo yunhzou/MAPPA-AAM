@@ -274,6 +274,64 @@ size was 8.72 MiB at ten seeds; process lifetime peak RSS stayed below 407 MiB.
 The complete evidence is under `pipeline_validation` in
 [the cache report](cache-review.json). No scientific code changed for this test.
 
+### Indexed containment during extension
+
+The native pool now intersects indexed atom, edge and assignment sets rather
+than checking saved witnesses individually. It skips groups with no proof of
+the rarest required atom or edge, reuses query buffers and builds the ordinary
+matcher query only on a miss. Locks, target occupancy and edge tolerance still
+apply. Index storage shares the 64 MiB retention budget; snapshots retain the
+original fragments and rebuild the derived index on load.
+
+A cheap growth rejection also avoids both operations when the proposed atom's
+element has no unoccupied target position. Rearranging the current witness cannot
+create another position of that element. No negative cache or growth replay was
+introduced; completion, branch pruning, reduction and decoding are unchanged.
+
+The same three reactions and six directions were measured with one and ten seeds,
+tolerance 2, cap 100 and every cut. Final timings use three cold pool-on repetitions
+and one zero-retention control, with the 2 GiB guard on the same Apple M4 Pro.
+The previous implementation has one fresh baseline measurement.
+
+| Seeds | Previous matching CPU (s) | Indexed matching CPU, median (s) | Indexed range (s) | Zero-retention CPU (s) |
+|---|---:|---:|---:|---:|
+| 1 | 0.696 | 0.678 | 0.677–0.687 | 1.008 |
+| 10 | 7.920 | 7.075 | 7.018–7.076 | 10.477 |
+
+These are matching CPU sums across six directions, excluding reduction,
+verification, audits and publication. The earlier previous-implementation
+measurement was 7.505 s at ten seeds. The new median is 5.7% below that observation
+and 10.7% below the fresh baseline; this small sample does not establish a
+full-dataset speedup. Ten-seed matching still scales roughly with seed count.
+The zero-retention comparison removes immutable-record sharing as well as
+existence reuse, so its roughly 1.48× total benefit is not lookup savings alone.
+
+Temporary native instrumentation measured the lookup separately. On the ten-seed
+sample, an unsuccessful cache check averaged **0.18 microseconds**, followed by
+**1.25 microseconds** for ordinary query preparation and matching. A hit averaged
+**0.32 microseconds**, versus **3.65 microseconds** to answer the same question
+with the ordinary matcher. All 26,415 hit queries were independently confirmed
+by that matcher. The instrumentation was removed before final timings.
+
+The first bitset attempt spent 0.169 s on lookup to avoid only 0.099 s of matching;
+that version did not justify its lookup overhead. The final version spends
+**0.049 s** on all lookups while avoiding **0.096 s** through hits. The availability
+check separately eliminates **128,921** cache/matcher queries, retaining every
+hit. Remaining requests are 250,381, with 26,415 hits (10.55%). These phase numbers
+are instrumented wall times, not the uninstrumented CPU measurements above.
+
+All **48 final direction runs** completed and matched the previous catalogue
+fingerprints, cut/seed scope, graph counts and cap outcomes exactly. All selected
+references were recovered (3/3 reactions and 6/6 directions in each setting).
+No decoding was rerun in this timing study. There were no failures or evictions;
+maximum accounted pool retention was **9.52 MiB** and peak process RSS was
+**279.5 MiB**. See `indexed_containment` in [the evidence](cache-review.json) for
+per-repetition results, identities, parity checks and the profiling method.
+Full regression validation: **1,318 tests passed in 147.69 s**, including the
+4,097-record index boundary, eviction/snapshot checks, independent matching
+oracles and local work-pool execution. No diagnostic timers or shadow searches
+remain in the production implementation.
+
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:
 the earlier successful fragment had no accepted-edge constraints. Its accepted

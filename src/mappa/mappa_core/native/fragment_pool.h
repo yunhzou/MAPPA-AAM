@@ -2,24 +2,37 @@
 // No growth trajectory, deferred boundary or branch outcome is cached here.
 #include "fragment_cache_io.h"
 
-class FragmentQuery;
 class FragmentPool {
-    struct Entry;
-    using Posting = std::list<Entry*>;
     struct Entry {
         std::string key;
         std::shared_ptr<const Fragment> fragment;
         std::vector<int> image;
-        std::vector<Posting::iterator> positions;
+        size_t block=0;
+        int slot=0;
         size_t bytes=0;
         bool imported=false;
+    };
+    // Each bit names one stored witness. Intersections test 64 fragments at once.
+    struct Block {
+        uint64_t live=0;
+        Entry* entries[64]{};
+        std::vector<uint64_t> atoms, edges, assignments;
+        Block(size_t source, size_t target, size_t bonds)
+            :atoms(source),edges(bonds),assignments(source*target) {}
     };
     using Entries=std::list<Entry>;
     Entries entries;
     std::unordered_map<std::string,Entries::iterator> index;
-    std::vector<Posting> by_atom;
+    std::vector<std::unique_ptr<Block>> blocks;
+    std::vector<Pair> bonds;
+    std::vector<int> bond_index;
+    std::vector<size_t> atom_counts,edge_counts;
+    std::vector<uint64_t> atom_blocks,edge_blocks;
+    size_t block_words=0,index_bytes=0;
+    std::vector<int> query_atoms,query_edges,query_outside;
+    std::optional<double> indexed_tolerance;
     size_t budget, resident=0, peak=0;
-    long lookups=0,hits=0,checks=0,evictions=0,oversized=0;
+    long lookups=0,hits=0,block_checks=0,evictions=0,oversized=0;
     uint64_t revision=0;
 
     template<class T> static void append(std::string& key,const T& value) {
@@ -59,10 +72,63 @@ class FragmentPool {
             && a.target->bond_threshold==b.target->bond_threshold
             && a.source->anchors==b.source->anchors && a.target->anchors==b.target->anchors;
     }
+    size_t block_bytes() const {
+        return sizeof(Block)+128+sizeof(uint64_t)*(base.n+bonds.size()+size_t(base.n)*target.n);
+    }
+    size_t available_block() const {
+        for (size_t i=0;i<blocks.size();++i)
+            if (!blocks[i] || blocks[i]->live!=~uint64_t(0)) return i;
+        return blocks.size();
+    }
+    // Charge vector growth capacity as well as occupied index words.
+    size_t index_word_bytes() const {return 2*(size_t(base.n)+bonds.size())*sizeof(uint64_t);}
+    void grow_index() {
+        ++block_words;
+        atom_blocks.resize(size_t(base.n)*block_words);
+        edge_blocks.resize(bonds.size()*block_words);
+        resident+=index_word_bytes();index_bytes+=index_word_bytes();
+    }
+    void index_edges(const Entry& entry) {
+        if (!indexed_tolerance) return;
+        auto& block=*blocks[entry.block];
+        uint64_t bit=uint64_t(1)<<entry.slot;
+        for (size_t i=0;i<bonds.size();++i) {
+            auto [a,b]=bonds[i];
+            int p=entry.image[a],q=entry.image[b];
+            if (p>=0 && q>=0 && target.has_edge(p,q) && growth_edge_supported(
+                    base.wbo(a,b),target.wbo(p,q),base.tolerance(a,b,*indexed_tolerance),
+                    target.bond_cut,base.tolerance_inclusive)) {
+                block.edges[i]|=bit;++edge_counts[i];
+                edge_blocks[(entry.block/64)*bonds.size()+i]|=uint64_t(1)<<(entry.block%64);
+            }
+        }
+    }
+    void prepare_tolerance(double tolerance) {
+        if (indexed_tolerance && *indexed_tolerance==tolerance) return;
+        indexed_tolerance=tolerance;
+        std::fill(edge_counts.begin(),edge_counts.end(),0);
+        std::fill(edge_blocks.begin(),edge_blocks.end(),0);
+        for (auto& block:blocks) if (block) std::fill(block->edges.begin(),block->edges.end(),0);
+        for (const auto& entry:entries) index_edges(entry);
+    }
     void remove_oldest() {
         auto& entry=entries.front();
-        for (size_t i=0;i<entry.fragment->source->atoms.size();++i)
-            by_atom[entry.fragment->source->atoms[i]].erase(entry.positions[i]);
+        auto& block=*blocks[entry.block];
+        uint64_t keep=~(uint64_t(1)<<entry.slot);
+        for (int r:entry.fragment->source->atoms) {
+            block.atoms[r]&=keep;
+            --atom_counts[r];
+            if (!block.atoms[r]) atom_blocks[(entry.block/64)*base.n+r]&=~(uint64_t(1)<<(entry.block%64));
+            block.assignments[size_t(r)*target.n+entry.image[r]]&=keep;
+        }
+        for (size_t i=0;i<bonds.size();++i) {
+            if (block.edges[i]&~keep) --edge_counts[i];
+            block.edges[i]&=keep;
+            if (!block.edges[i]) edge_blocks[(entry.block/64)*bonds.size()+i]&=~(uint64_t(1)<<(entry.block%64));
+        }
+        block.entries[entry.slot]=nullptr;
+        block.live&=keep;
+        if (!block.live) {blocks[entry.block].reset();resident-=block_bytes();}
         resident-=entry.bytes;index.erase(entry.key);entries.pop_front();++evictions;
     }
 public:
@@ -70,7 +136,14 @@ public:
     const Target& target;
     std::vector<Pair> active_cuts;
     FragmentPool(const Source& source,const Target& target,size_t budget)
-        :by_atom(source.n),budget(budget),base(source),active_source(source),target(target) {}
+        :bond_index(size_t(source.n)*source.n,-1),atom_counts(source.n),budget(budget),
+         base(source),active_source(source),target(target) {
+        for (int a=0;a<base.n;++a) for (int b:base.adj[a]) if (a<b) {
+            bond_index[size_t(a)*base.n+b]=bond_index[size_t(b)*base.n+a]=int(bonds.size());
+            bonds.push_back({a,b});
+        }
+        edge_counts.resize(bonds.size());
+    }
 
     std::shared_ptr<const Fragment> remember(std::shared_ptr<const Fragment> fragment) {
         auto identity=key(*fragment);
@@ -81,24 +154,101 @@ public:
             // locks and accepted edges even when its atom-set identity repeats.
             return same_record(*found->second->fragment,*fragment) ? found->second->fragment : fragment;
         }
-        size_t charge=bytes(*fragment)+2*(identity.capacity()+1)+base.n*sizeof(int)
-            +fragment->source->atoms.size()*(sizeof(Posting::iterator)+64);
-        if (charge>budget) {++oversized;return fragment;}
-        while (!entries.empty() && resident+charge>budget) remove_oldest();
+        size_t charge=bytes(*fragment)+2*(identity.capacity()+1)+base.n*sizeof(int);
+        if (charge+block_bytes()+std::max(index_bytes,index_word_bytes())>budget) {++oversized;return fragment;}
+        size_t number;
+        while (true) {
+            number=available_block();
+            size_t extra=number==blocks.size() || !blocks[number] ? block_bytes() : 0;
+            if (number/64>=block_words) extra+=index_word_bytes();
+            if (resident+charge+extra<=budget) break;
+            remove_oldest();
+        }
+        if (number/64>=block_words) grow_index();
+        if (number==blocks.size()) blocks.emplace_back();
+        if (!blocks[number]) {
+            blocks[number]=std::make_unique<Block>(base.n,target.n,bonds.size());
+            resident+=block_bytes();
+        }
+        auto& block=*blocks[number];
         entries.emplace_back();auto entry=std::prev(entries.end());
         entry->key=std::move(identity);entry->fragment=fragment;entry->bytes=charge;
+        entry->block=number;entry->slot=__builtin_ctzll(~block.live);
+        uint64_t bit=uint64_t(1)<<entry->slot;
+        block.live|=bit;block.entries[entry->slot]=&*entry;
         entry->image.assign(base.n,-1);
         for (size_t i=0;i<fragment->source->atoms.size();++i) {
             int atom=fragment->source->atoms[i];
             entry->image[atom]=fragment->target->atoms[fragment->witness[i]];
-            by_atom[atom].push_back(&*entry);
-            entry->positions.push_back(std::prev(by_atom[atom].end()));
+            block.atoms[atom]|=bit;
+            ++atom_counts[atom];
+            atom_blocks[(number/64)*base.n+atom]|=uint64_t(1)<<(number%64);
+            block.assignments[size_t(atom)*target.n+entry->image[atom]]|=bit;
         }
+        index_edges(*entry);
         index.emplace(entry->key,entry);resident+=charge;peak=std::max(peak,resident);++revision;
         return fragment;
     }
 
-    std::vector<int> find(const FragmentQuery& query);
+    std::vector<int> find(const std::vector<uint8_t>& selected,const std::vector<Pair>& edges,
+                          const std::vector<int>& locked,double tolerance) {
+        ++lookups;
+        if (entries.empty()) return {};
+        prepare_tolerance(tolerance);
+        query_atoms.clear();query_edges.clear();query_outside.clear();
+        size_t least=entries.size()+1;
+        int rare_atom=-1,rare_edge=-1;
+        for (auto [a,b]:edges) {
+            int edge=bond_index[size_t(a)*base.n+b];
+            if (edge<0 || !edge_counts[edge]) return {};
+            query_edges.push_back(edge);
+            if (edge_counts[edge]<least) {least=edge_counts[edge];rare_edge=edge;}
+        }
+        for (int r=0;r<base.n;++r) {
+            if (selected[r]) {
+                if (!atom_counts[r]) return {};
+                query_atoms.push_back(r);
+                if (atom_counts[r]<least) {least=atom_counts[r];rare_atom=r;rare_edge=-1;}
+            } else if (locked[r]>=0) query_outside.push_back(locked[r]);
+        }
+        if (query_atoms.empty()) return {};
+        const auto& active=rare_edge>=0 ? edge_blocks : atom_blocks;
+        size_t feature=rare_edge>=0 ? rare_edge : rare_atom;
+        size_t width=rare_edge>=0 ? bonds.size() : size_t(base.n);
+        for (size_t word=0;word<(blocks.size()+63)/64;++word) {
+            uint64_t pending=active[word*width+feature];
+            while (pending) {
+                size_t number=64*word+__builtin_ctzll(pending);pending&=pending-1;
+                const auto& block=blocks[number];
+                ++block_checks;
+                uint64_t candidates=rare_edge>=0 ? block->edges[rare_edge] : block->atoms[rare_atom];
+                if (!candidates) continue;
+                for (int edge:query_edges) {candidates&=block->edges[edge];if (!candidates) break;}
+                if (!candidates) continue;
+                for (int r:query_atoms) {candidates&=block->atoms[r];if (!candidates) break;}
+                if (!candidates) continue;
+                // Anchors intersect assignment sets; occupied targets exclude them.
+                // Injectivity of each stored witness handles locks inside the query.
+                for (int r:query_atoms) if (locked[r]>=0) {
+                    candidates&=block->assignments[size_t(r)*target.n+locked[r]];
+                    if (!candidates) break;
+                }
+                if (!candidates) continue;
+                for (int r:query_atoms) {
+                    for (int p:query_outside) candidates&=~block->assignments[size_t(r)*target.n+p];
+                    if (!candidates) break;
+                }
+                if (!candidates) continue;
+                auto* entry=block->entries[__builtin_ctzll(candidates)];
+                ++hits;
+                entries.splice(entries.end(),entries,index.at(entry->key));
+                std::vector<int> witness(base.n,-1);
+                for (int r:query_atoms) witness[r]=entry->image[r];
+                return witness;
+            }
+        }
+        return {};
+    }
 
     void cut(std::vector<Pair> cuts) {
         for (auto& [a,b]:cuts) if (a>b) std::swap(a,b);
@@ -163,7 +313,7 @@ public:
     }
     py::dict stats() const {
         py::dict out;
-        out["existence_queries"]=lookups;out["fragment_hits"]=hits;out["witness_checks"]=checks;
+        out["existence_queries"]=lookups;out["fragment_hits"]=hits;out["set_blocks_checked"]=block_checks;
         out["entries"]=entries.size();out["resident_bytes"]=resident;out["peak_resident_bytes"]=peak;
         out["cache_budget_bytes"]=budget;out["evictions"]=evictions;out["oversized_results"]=oversized;
         out["revision"]=revision;

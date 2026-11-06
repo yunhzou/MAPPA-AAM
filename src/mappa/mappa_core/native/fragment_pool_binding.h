@@ -39,7 +39,8 @@ void register_fragment_pool(py::module_& mod) {
             for (auto [a,b]:edges) if (!selected.at(a) || !selected.at(b))
                 throw std::invalid_argument("Growth edge outside fragment");
             py::gil_scoped_release release;
+            if (!pool.find(selected,edges,locked,tolerance).empty()) return true;
             FragmentQuery query(pool.base,pool.target,selected,edges,locked,tolerance);
-            return !pool.find(query).empty() || !query.find().empty();
+            return !query.find().empty();
         },py::arg("atoms"),py::arg("edges"),py::arg("locked"),py::arg("tolerance"));
 }

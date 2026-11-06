@@ -46,7 +46,7 @@ def test_seed_measurements_preserve_batched_graph_and_account_for_cache_work():
     assert [row['index'] for row in counts['seeds']] == list(range(10))
     assert all(row['cpu_seconds'] >= 0 and row['wall_seconds'] >= 0 for row in counts['seeds'])
     assert sum(row['wall_seconds'] for row in counts['seeds']) <= counts['search_seconds']
-    for key in ('existence_queries', 'fragment_hits', 'witness_checks'):
+    for key in ('existence_queries', 'fragment_hits', 'set_blocks_checked'):
         assert sum(row['cache'][key] for row in counts['seeds']) == session.fragments.stats()[key]
     assert session.fragments.stats()['entries'] > 0
 

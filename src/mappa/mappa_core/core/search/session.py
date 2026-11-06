@@ -97,7 +97,7 @@ class SearchSession:
             if self.fragments is not None:
                 cache_after = self.fragments.stats()
                 measured['cache'] = {key: cache_after[key]-cache_before[key]
-                                     for key in ('existence_queries', 'fragment_hits', 'witness_checks')}
+                                     for key in ('existence_queries', 'fragment_hits', 'set_blocks_checked')}
                 measured['cache'].update(retained_bytes=cache_after['resident_bytes'],
                                          entries=cache_after['entries'])
                 cache_before = cache_after
