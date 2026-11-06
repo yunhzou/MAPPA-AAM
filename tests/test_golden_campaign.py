@@ -176,7 +176,8 @@ def test_decoded_reference_respects_joint_placement_partial_mapping_and_reverse(
     assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
 
 
-def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_source(tmp_path):
+@pytest.mark.parametrize('catalogue_state', ['complete', 'error', 'missing'])
+def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_source(tmp_path, catalogue_state):
     from types import SimpleNamespace
     from mappa import decode_events
     from golden import audit_decoding
@@ -204,9 +205,11 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
         db.executemany('INSERT INTO results VALUES (?,?,?,?)',
             [(f'00000/{direction}', 'decoding', 'complete', json.dumps(asdict(saved)))
              for direction in ('forward', 'reverse')])
-        db.executemany('INSERT INTO results VALUES (?,?,?,?)',
-            [(f'00000/{direction}', 'verification', 'complete', json.dumps(asdict(catalogue_check)))
-             for direction in ('forward', 'reverse')])
+        if catalogue_state != 'missing':
+            db.executemany('INSERT INTO results VALUES (?,?,?,?)',
+                [(f'00000/{direction}', 'verification', catalogue_state,
+                  json.dumps(asdict(catalogue_check)) if catalogue_state == 'complete' else None)
+                 for direction in ('forward', 'reverse')])
     before = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
     report = audit_decoding(source, tmp_path/'audit', workers=1)
     assert report['complete'] and report['certificate_failures'] == 0

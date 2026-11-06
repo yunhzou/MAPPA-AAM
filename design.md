@@ -48,6 +48,9 @@ ordinary-boundary model count separately from the physical whole-reaction count;
 membership in an approximate bin is not proof of that physical event count.
 State whether reference indices are exact or normalized by endpoint chemical
 symmetry. Resource-limited verification remains unknown.
+An available catalogue certificate can prioritize a decoded query's search, but
+is neither a prerequisite nor proof of decoded membership. Its absence or failure
+must not block an independent audit of successfully saved decoded responses.
 
 Before a decoded membership query, count the events already forced by the
 annotated assignments, using the same fixed ordinary boundaries and conservative

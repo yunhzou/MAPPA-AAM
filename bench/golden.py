@@ -305,9 +305,11 @@ def audit_saved_decoding(payload, workspace):
     original = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
     if FinalBranchCatalogue(original).problem_sha256 != decoded.matching_problem_sha256:
         raise ValueError('Decoded record belongs to different prepared endpoints')
-    catalogue_check = read_blob(Blob(**row['verification']), workspace.scratch)
+    preferred_family = None
+    if row['verification'] is not None:
+        preferred_family = read_blob(Blob(**row['verification']), workspace.scratch).get('family')
     result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
-                            preferred_family=catalogue_check.get('family'))
+                            preferred_family=preferred_family)
     result.update(decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'],
                   input_sha256=row['input']['sha256'])
     return result
@@ -351,15 +353,14 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
         state, reference = records[name, 'decoding']
         if state != 'complete':
             raise ValueError('Audit requires a saved successful decoding for ' + name)
-        verification_state, verification = records[name, 'verification']
-        if verification_state != 'complete':
-            raise ValueError('Audit requires a saved catalogue check for ' + name)
+        verification_state, verification = records.get((name, 'verification'), ('missing', None))
         decoded = json.loads(reference)
         if previous is not None and any(unresolved[name][key+'_sha256'] != value['sha256']
             for key, value in (('decoded', decoded), ('reference', row['reference']), ('input', row['input']))):
             raise ValueError('Continuation input identity differs')
         rows.append(dict(case=row['case'], reversed=row['reversed'], reference=row['reference'], input=row['input'],
-                         decoded=decoded, verification=json.loads(verification), name=name))
+                         decoded=decoded, verification=json.loads(verification) if verification_state == 'complete'
+                         else None, name=name))
     if not rows or len({r['name'] for r in rows}) != len(rows):
         raise ValueError('Require unique, nonempty direction scope')
     if cases is not None and set(cases) != {r['case'] for r in rows}:
