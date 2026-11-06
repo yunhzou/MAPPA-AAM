@@ -234,6 +234,46 @@ caught and verified the correction of an explicit-path-subset reduction bug:
 excluded paths cannot supply the retained fragment. The final source identity
 and the timing run's earlier identity are recorded separately in the evidence.
 
+### Full-pipeline validation of `465ee34`
+
+Fresh local runs of the same three cases used **two workers**, the **2 GiB**
+guard, tolerance 2, cap 100, both directions, every cut and **minimum + 5**
+decoding. One and ten seeds each completed all six directions in all four
+stages. The independent saved-decoder audit recovered **3/3 reactions and 6/6
+directions in each arm**, replaying concrete witnesses with zero certificate
+failures or unknowns.
+
+| Measurement | One seed | Ten seeds |
+|---|---:|---:|
+| Completed cut searches | 270 | 270 |
+| Completed seed/cut searches | 270 | 2,700 |
+| Matching worker CPU (s) | 0.802 | 7.482 |
+| Reduction worker CPU (s) | 0.423 | 4.886 |
+| Decoding worker CPU (s) | 1.355 | 8.024 |
+| Catalogue verification worker CPU (s) | 0.331 | 1.806 |
+| Complete pipeline wall time (s) | 3.476 | 15.455 |
+| Separate decoded-reference audit wall time (s) | 0.593 | 2.939 |
+| Slowest direction's decoding CPU (s) | 0.671 | 2.627 |
+
+CPU values sum work across six directions; they are not parallel elapsed time.
+Worker stages include artifact loading, and decoding includes record preparation.
+Publication is separate. The aggregate evidence retains publication costs,
+per-direction measurements and narrower matching-only CPU (0.682/6.981 s).
+These are single observations, not a claim of a full-dataset speedup.
+
+All **12 catalogues**, matching scopes, graph counts and cap outcomes matched
+the earlier sequential, zero-retention controls exactly. Both workers registered;
+two tasks actually overlapped in every stage. Audited timestamps preserved each
+global stage barrier. There were **no failures or retries**.
+
+Shared snapshots were actually loaded: 3,287 bytes in the one-seed arm and
+79,621 bytes at ten seeds. The ten-seed workers reported 26,244 fragment hits;
+combined snapshot load/save time was 0.043 s. Storage retained exactly **six
+cache files for three reactions** in each arm. Maximum accounted resident pool
+size was 8.72 MiB at ten seeds; process lifetime peak RSS stayed below 407 MiB.
+The complete evidence is under `pipeline_validation` in
+[the cache report](cache-review.json). No scientific code changed for this test.
+
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:
 the earlier successful fragment had no accepted-edge constraints. Its accepted
