@@ -1860,6 +1860,492 @@
         "scope": "Full suite, including independent matching oracles, containment across 4,097 records, locks, tolerance changes, eviction, snapshots, Python/native parity and work-pool execution.",
         "temporary_profiling_removed": true
       }
+    },
+    "matching_time_breakdown": {
+      "scientific_source_commit": "7ece54e24def187833343c19ad1b81c6f9c6d549",
+      "scope": {
+        "cases": [
+          895,
+          1261,
+          1841
+        ],
+        "directions": [
+          "forward",
+          "reverse"
+        ],
+        "seeds": [
+          1,
+          10
+        ],
+        "tolerance": 2,
+        "branch_cap": 100,
+        "full_cut_sweep": true,
+        "memory_guard_bytes": 2147483648,
+        "cpu_model": "Apple M4 Pro"
+      },
+      "method": [
+        "Temporary nested native wall-clock scopes charge each elapsed interval to exactly one phase; no overlapping cumulative timings in the grouped breakdown.",
+        "Python seed-graph combination is timed separately. Residual includes cut/seed planning, adapters, bookkeeping, object cleanup and instrumentation overhead outside native scopes.",
+        "Separate cProfile run profiles matching only; its inclusive call times identify Python hotspots but must not be added to the exclusive phase table.",
+        "Every task is a cold direction process retaining its pool across the full cut sweep. One and ten seeds are compared on identical six-direction scope.",
+        "All temporary source changes were restored byte-for-byte, the normal native engine rebuilt, and twelve uninstrumented comparison runs completed."
+      ],
+      "runtime_identities": {
+        "exclusive_profile": "1a8cbb6a0117bd8ce24a201fd67acd0d6a2fe8356b1534388de659b23e2a8632",
+        "python_profile": "1a8cbb6a0117bd8ce24a201fd67acd0d6a2fe8356b1534388de659b23e2a8632",
+        "restored": "81993b2f488c41b87ce86264998713bf5fdeddc33d97ee80dc3da172fe7f6043"
+      },
+      "source_restoration_sha256": {
+        "src/mappa/mappa_core/native/engine.cpp": "53dd6b113d7c079e48a449370f1d95d7f1dc506a04a1eaff97a653373d9279c2",
+        "src/mappa/mappa_core/native/fragment_pool.h": "96c57d5c9b39b9eff7e0a4d1d1f0686e73afaf1b1e804bb3bc03ca8005896541",
+        "src/mappa/mappa_core/native/fragment_query.h": "5e3db88ffb94f3d15ecf5650406d187f07573ac677243ef083484efdb5af4ff6",
+        "src/mappa/mappa_core/native/fragment_completion.h": "3901eeeb5f719ad24797a8eb3c06b437b4581c72359d426de323806ef6ad1e22",
+        "src/mappa/mappa_core/native/fragment_scheduler.h": "4d1048a94b161a7e4ab45b89778e465530eda9f113039872b05eb4d2d5310c88",
+        "src/mappa/mappa_core/native/fragment_scheduler_binding.h": "ce85f85fdff8e79515f17c01e70c7b21eb0226fe4b8637c328e6c492429d10c4",
+        "src/mappa/mappa_core/core/search/session.py": "6d4a4ef8fe390bef25c9f8f1434d16dfb074f46274bfd80b9562e99152088381",
+        "bench/golden.py": "35bb2078553ff5249df6fab36f24fa7d2d6c4cd047d9b026a2f5447e1fe59082"
+      },
+      "summaries": {
+        "1": {
+          "instrumented_matching_cpu_seconds": 0.7154700000000003,
+          "instrumented_matching_wall_seconds": 0.7168444476556033,
+          "grouped_exclusive_wall_seconds": {
+            "cache_lookup": 0.0034075129999999363,
+            "growth_and_existence": 0.07230717199999437,
+            "cache_retention": 0.006215620000000268,
+            "completion": 0.17771214300000035,
+            "branch_handling": 0.09775118499999445,
+            "python_record_construction": 0.23317120499999494,
+            "seed_graph_combination": 0.025898366468027234,
+            "other_python_planning_and_native_cleanup": 0.10038124318759167
+          },
+          "native_exclusive_wall_seconds": {
+            "native_boundary": 0.0013440430000000005,
+            "branch_handling": 0.021782819999994135,
+            "growth_frontier": 0.03317784999999377,
+            "direct_extension": 0.006825952000000648,
+            "cache_lookup": 0.0034075129999999363,
+            "cache_retention": 0.006215620000000268,
+            "existence_search": 0.032303369999999956,
+            "completion_setup": 0.027049801000000036,
+            "global_placement_symmetry": 0.024526255999999805,
+            "target_placement_search": 0.0716345300000016,
+            "fragment_construction": 0.02519526999999853,
+            "binary_symmetry": 0.029306286000000396,
+            "branch_commit": 0.0662682740000003,
+            "branch_pruning": 0.009700091000000017,
+            "python_graph_transport": 0.07509337299999994,
+            "python_fragment_transport": 0.154952161999995,
+            "python_graph_inventory": 0.0031256699999999997
+          },
+          "native_phase_calls": {
+            "native_boundary": 270,
+            "branch_handling": 270,
+            "growth_frontier": 111190,
+            "direct_extension": 52660,
+            "cache_lookup": 23714,
+            "cache_retention": 51885,
+            "existence_search": 21490,
+            "completion_setup": 25576,
+            "global_placement_symmetry": 15262,
+            "target_placement_search": 25576,
+            "fragment_construction": 25576,
+            "binary_symmetry": 77467,
+            "branch_commit": 51885,
+            "branch_pruning": 4802,
+            "python_graph_transport": 270,
+            "python_fragment_transport": 20811,
+            "python_graph_inventory": 270
+          },
+          "growth_counts": {
+            "direct_success": 17668,
+            "availability_rejections": 11278,
+            "search_success": 196,
+            "search_absent": 21294,
+            "cache_hits": 2224,
+            "retained_atom_set_pairs": 2183,
+            "successful_extensions": 20088,
+            "successful_extensions_without_new_query_percent": 99.02429311031462,
+            "cache_share_of_successful_queries_reaching_pool_percent": 91.90082644628099
+          },
+          "retained_graph_counts": {
+            "states": 21081,
+            "transitions": 20811,
+            "terminals": 6209
+          },
+          "restored_matching_cpu_seconds": 0.7100150000000003,
+          "restored_matching_wall_seconds": 0.7113584601320326
+        },
+        "10": {
+          "instrumented_matching_cpu_seconds": 7.686777000000002,
+          "instrumented_matching_wall_seconds": 7.69312982307747,
+          "grouped_exclusive_wall_seconds": {
+            "cache_lookup": 0.05274484299999922,
+            "growth_and_existence": 0.7577224949985295,
+            "cache_retention": 0.06890339599995594,
+            "completion": 2.0171830010005527,
+            "branch_handling": 1.1060126710024827,
+            "python_record_construction": 2.310853663999819,
+            "seed_graph_combination": 0.6675694908481091,
+            "other_python_planning_and_native_cleanup": 0.7121402622280222
+          },
+          "native_exclusive_wall_seconds": {
+            "native_boundary": 0.013838306999999965,
+            "branch_handling": 0.22789209800223825,
+            "growth_frontier": 0.35358871599865,
+            "direct_extension": 0.0675862509998774,
+            "cache_lookup": 0.05274484299999922,
+            "cache_retention": 0.06890339599995594,
+            "existence_search": 0.33654752800000215,
+            "completion_setup": 0.2895118340000885,
+            "global_placement_symmetry": 0.3343299669999943,
+            "target_placement_search": 0.8134644129998984,
+            "fragment_construction": 0.27534273700050516,
+            "binary_symmetry": 0.30453405000006606,
+            "branch_commit": 0.7600257260002536,
+            "branch_pruning": 0.11809484699999075,
+            "python_graph_transport": 0.7502995279999447,
+            "python_fragment_transport": 1.5298537899998743,
+            "python_graph_inventory": 0.030700345999999996
+          },
+          "native_phase_calls": {
+            "native_boundary": 2700,
+            "branch_handling": 2700,
+            "growth_frontier": 1149269,
+            "direct_extension": 565404,
+            "cache_lookup": 250381,
+            "cache_retention": 580476,
+            "existence_search": 223966,
+            "completion_setup": 272939,
+            "global_placement_symmetry": 163798,
+            "target_placement_search": 272939,
+            "fragment_construction": 272939,
+            "binary_symmetry": 853421,
+            "branch_commit": 580476,
+            "branch_pruning": 48604,
+            "python_graph_transport": 2700,
+            "python_fragment_transport": 207434,
+            "python_graph_inventory": 2700
+          },
+          "growth_counts": {
+            "direct_success": 186102,
+            "availability_rejections": 128921,
+            "search_success": 683,
+            "search_absent": 223283,
+            "cache_hits": 26415,
+            "retained_atom_set_pairs": 6116,
+            "successful_extensions": 213200,
+            "successful_extensions_without_new_query_percent": 99.6796435272045,
+            "cache_share_of_successful_queries_reaching_pool_percent": 97.47951878367407
+          },
+          "retained_graph_counts": {
+            "states": 210134,
+            "transitions": 207434,
+            "terminals": 62757
+          },
+          "restored_matching_cpu_seconds": 7.379999,
+          "restored_matching_wall_seconds": 7.385707248700783
+        }
+      },
+      "python_hotspots": [
+        {
+          "file": "src/mappa/mappa_core/core/search/branching/native.py",
+          "line": 10,
+          "function": "find_islands_native",
+          "calls": 2700,
+          "self_seconds": 0.506107429,
+          "cumulative_seconds": 9.655941889000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method mappa._engine.search_fragments>",
+          "calls": 2700,
+          "self_seconds": 4.763841339000001,
+          "cumulative_seconds": 8.914964286
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 139,
+          "function": "fragment_from_native",
+          "calls": 41407,
+          "self_seconds": 0.166145721,
+          "cumulative_seconds": 3.7636635640000007
+        },
+        {
+          "file": "<string>",
+          "line": 2,
+          "function": "__init__",
+          "calls": 41407,
+          "self_seconds": 0.045988626000000005,
+          "cumulative_seconds": 1.9274286010000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 62,
+          "function": "__post_init__",
+          "calls": 41407,
+          "self_seconds": 0.392943531,
+          "cumulative_seconds": 1.8814399750000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "calls": 546763,
+          "self_seconds": 0.21300099600000003,
+          "cumulative_seconds": 1.20963799
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 141,
+          "function": "prepared",
+          "calls": 82814,
+          "self_seconds": 0.10551535900000002,
+          "cumulative_seconds": 0.9903603990000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 435,
+          "function": "combine",
+          "calls": 270,
+          "self_seconds": 0.005049557,
+          "cumulative_seconds": 0.8986930420000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'extend' of 'list' objects>",
+          "calls": 13500,
+          "self_seconds": 0.027143162000000005,
+          "cumulative_seconds": 0.8626767850000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 72,
+          "function": "from_record",
+          "calls": 75305,
+          "self_seconds": 0.25481595700000004,
+          "cumulative_seconds": 0.8479829140000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 1828740,
+          "self_seconds": 0.18329688700000002,
+          "cumulative_seconds": 0.692136963
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 190,
+          "function": "_validate_discovery",
+          "calls": 41407,
+          "self_seconds": 0.14342411000000002,
+          "cumulative_seconds": 0.595412499
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 152,
+          "function": "<genexpr>",
+          "calls": 169729,
+          "self_seconds": 0.049751165,
+          "cumulative_seconds": 0.560990477
+        },
+        {
+          "file": "<frozen abc>",
+          "line": 117,
+          "function": "__instancecheck__",
+          "calls": 1381018,
+          "self_seconds": 0.11561238400000001,
+          "cumulative_seconds": 0.508840076
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 23,
+          "function": "__post_init__",
+          "calls": 128322,
+          "self_seconds": 0.12695746900000002,
+          "cumulative_seconds": 0.45968845300000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 75,
+          "function": "<genexpr>",
+          "calls": 660155,
+          "self_seconds": 0.09473360300000001,
+          "cumulative_seconds": 0.41547417500000006
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _abc._abc_instancecheck>",
+          "calls": 1381018,
+          "self_seconds": 0.17565648700000003,
+          "cumulative_seconds": 0.393227692
+        },
+        {
+          "file": "_twodim_base_impl.py",
+          "line": 510,
+          "function": "triu",
+          "calls": 75305,
+          "self_seconds": 0.091899465,
+          "cumulative_seconds": 0.34628916000000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 442,
+          "function": "<genexpr>",
+          "calls": 212834,
+          "self_seconds": 0.044094135,
+          "cumulative_seconds": 0.3436624410000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 444,
+          "function": "<genexpr>",
+          "calls": 210134,
+          "self_seconds": 0.051991649,
+          "cumulative_seconds": 0.30257988300000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 847994,
+          "self_seconds": 0.138126243,
+          "cumulative_seconds": 0.241545155
+        },
+        {
+          "file": "_twodim_base_impl.py",
+          "line": 389,
+          "function": "tri",
+          "calls": 75305,
+          "self_seconds": 0.058617508,
+          "cumulative_seconds": 0.23297340400000002
+        },
+        {
+          "file": "<frozen abc>",
+          "line": 121,
+          "function": "__subclasscheck__",
+          "calls": 1215198,
+          "self_seconds": 0.10012248300000001,
+          "cumulative_seconds": 0.217571205
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/planning.py",
+          "line": 99,
+          "function": "_generate_seed_orders",
+          "calls": 270,
+          "self_seconds": 0.025098942,
+          "cumulative_seconds": 0.21101242
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 192,
+          "function": "<genexpr>",
+          "calls": 380865,
+          "self_seconds": 0.03991533800000001,
+          "cumulative_seconds": 0.206463337
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/growth/native.py",
+          "line": 67,
+          "function": "source_graph",
+          "calls": 2700,
+          "self_seconds": 0.016496228,
+          "cumulative_seconds": 0.20056785500000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 447,
+          "function": "<genexpr>",
+          "calls": 69434,
+          "self_seconds": 0.013471063,
+          "cumulative_seconds": 0.18885754300000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 26,
+          "function": "<genexpr>",
+          "calls": 384966,
+          "self_seconds": 0.037076093000000004,
+          "cumulative_seconds": 0.18261675900000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/growth/native.py",
+          "line": 52,
+          "function": "_graph_inputs",
+          "calls": 2700,
+          "self_seconds": 0.022189087,
+          "cumulative_seconds": 0.17667490600000002
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1540,
+          "function": "replace",
+          "calls": 66734,
+          "self_seconds": 0.09557532700000002,
+          "cumulative_seconds": 0.175059702
+        },
+        {
+          "file": "functools.py",
+          "line": 982,
+          "function": "__get__",
+          "calls": 65643,
+          "self_seconds": 0.024168098,
+          "cumulative_seconds": 0.15184271900000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/planning.py",
+          "line": 133,
+          "function": "ambiguous_isolated",
+          "calls": 255630,
+          "self_seconds": 0.067972117,
+          "cumulative_seconds": 0.141561114
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 252,
+          "function": "__post_init__",
+          "calls": 2970,
+          "self_seconds": 0.0008939200000000001,
+          "cumulative_seconds": 0.12551514600000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/graph.py",
+          "line": 257,
+          "function": "fragments",
+          "calls": 2970,
+          "self_seconds": 0.036052029,
+          "cumulative_seconds": 0.12233585900000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 120,
+          "function": "_allows_edge",
+          "calls": 128322,
+          "self_seconds": 0.05899921700000001,
+          "cumulative_seconds": 0.11898617700000001
+        }
+      ],
+      "python_profile_matching_cpu_seconds": 10.911748,
+      "validation": {
+        "direction_runs": 30,
+        "identical_catalogue_scope_graphs_caps_and_counts": 30,
+        "reference_recovered": 30,
+        "failures": 0,
+        "scientific_source_changes": 0,
+        "temporary_instrumentation_removed": true
+      },
+      "limitations": [
+        "Three selected reactions, not a full Golden or EnzymeMap benchmark. No new decoding measurement.",
+        "One exclusive-timer repetition, one Python-profile repetition, and one restored uninstrumented repetition; timings are not confidence intervals.",
+        "Detailed timers perturb runtime. The ten-seed phase table totals 7.693 seconds wall time; the restored build totals 7.380 seconds CPU and 7.386 seconds wall time. Do not normalize these into an unmeasured exact breakdown of the earlier 7.075-second median.",
+        "Atom-set cache identity does not make every raw fragment record interchangeable: anchors, growth constraints and decision context remain attached. Counts establish repeated work, not permission to discard that information.",
+        "The earlier 97.5 percent cache success fraction concerns positive queries reaching the pool, excluding immediate direct-extension successes and proven absence.",
+        "Runtime identity includes compiled binary bytes and all package Python files; restoration is established by byte-identical scientific source and output audits, not equality to a historical binary fingerprint."
+      ]
     }
   }
 }

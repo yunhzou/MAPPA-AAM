@@ -332,6 +332,71 @@ Full regression validation: **1,318 tests passed in 147.69 s**, including the
 oracles and local work-pool execution. No diagnostic timers or shadow searches
 remain in the production implementation.
 
+### Matching time breakdown after indexed containment
+
+Revision `7ece54e` was profiled on the same three reactions (895, 1261 and
+1841), both directions, tolerance 2, cap 100 and every cut. Each direction
+started cold and retained its pool across cuts. Temporary nested native timers
+charge each interval to one phase; seed-graph combination is measured separately.
+These are **instrumented wall-time sums over six sequential directions**, not
+allocation time or an uninstrumented CPU breakdown.
+
+| Work inside matching | One seed (s) | Ten seeds (s) |
+|---|---:|---:|
+| Cache lookup | 0.003 | 0.053 |
+| Growth selection, direct extension and existence search | 0.072 | 0.758 |
+| Pool insertion and immutable-record sharing | 0.006 | 0.069 |
+| Saturation placement search, symmetry and fragment construction | 0.178 | 2.017 |
+| Branch creation, frontier handling and pruning | 0.098 | 1.106 |
+| Construction of Python fragment and search-graph records | 0.233 | 2.311 |
+| Combining and reindexing seed graphs | 0.026 | 0.668 |
+| Remaining planning, adapters, bookkeeping and cleanup | 0.100 | 0.712 |
+| **Total** | **0.717** | **7.693** |
+
+The timers perturb runtime. After restoring all source files byte-for-byte and
+rebuilding the ordinary engine, matching took **0.710 s CPU / 0.711 s wall** at
+one seed and **7.380 s CPU / 7.386 s wall** at ten seeds. These are one fresh
+repetition, separate from the earlier three-repetition median of 7.075 s CPU.
+The table must not be treated as an exact division of that earlier median.
+
+At ten seeds there were 565,404 proposed extensions. The current assignment
+directly accepted 186,102; the pool accepted 26,415; ordinary matching found
+another 683. Thus **99.68% of successful extensions required no new matching
+query**. Of successful queries reaching the pool, it supplied **97.48%**.
+The remaining proposals were rejected either by element availability (128,921)
+or ordinary matching (223,283). All 223,966 ordinary queries, including their
+preparation, took 0.337 s in this instrumented run. These are extension outcomes,
+not failed reactions.
+
+The repeated work continues after those existence answers:
+
+| Count across the six directions | One seed | Ten seeds |
+|---|---:|---:|
+| Saturation completions | 25,576 | 272,939 |
+| Constructed native fragment records offered to the pool | 51,885 | 580,476 |
+| Retained unique atom-set pairs in the pool | 2,183 | 6,116 |
+| Retained search states | 21,081 | 210,134 |
+
+A separate Python profile recorded 41,407 fragment conversions, 75,305 endpoint
+symmetry-record restorations and 41,407 relation-construction validations at ten
+seeds. Native export shares records within each seed graph; its conversion maps
+are recreated for the next export. Each cut then combines its seed graphs by
+constructing reindexed state and transition records. The pool shares identical
+native records only **after** completion has constructed them. Therefore a high
+existence hit rate does not remove completion, record conversion or branch work.
+This identifies repeated construction and validation as acceleration targets;
+it does not justify discarding distinct raw locks, growth constraints or decision
+context merely because atom sets coincide.
+
+All **30 direction runs** (12 exclusive-timer, six Python-profile, 12 restored)
+matched the prior catalogue fingerprints, seed/cut scope, graph counts, family
+counts and pruning outcomes exactly; all selected references were recovered.
+There were no task failures. No decoding or full-dataset benchmark was rerun.
+The separate Python profiler increases runtime and its inclusive timings are
+not added to the table. Temporary instrumentation was removed; no scientific
+source changes remain. See `matching_time_breakdown` in
+[the evidence](cache-review.json) for phase counts, source hashes and limitations.
+
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:
 the earlier successful fragment had no accepted-edge constraints. Its accepted
