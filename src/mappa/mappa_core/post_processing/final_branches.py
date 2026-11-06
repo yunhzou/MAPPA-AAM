@@ -5,6 +5,7 @@ internal mapping search; ordered global placements remain branch context.
 """
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from itertools import chain
 import hashlib
 import json
 
@@ -290,7 +291,7 @@ class FinalBranchCatalogue:
             fragments = tuple(self._fragment_records[index] for index in ids)
             pairs = tuple(fragment.atom_sets for fragment in fragments)
             actions = tuple(self._fragment_actions[index] for index in ids)
-            witness = tuple(sorted(pair for fragment in fragments for pair in fragment.witness))
+            witness = tuple(sorted(chain.from_iterable(fragment.witness for fragment in fragments)))
             branch = self.branches.setdefault((policy, pairs), set())
             self._compositions[key] = actions, witness, pairs, tuple(rs for rs, _ in pairs), branch
         return key, self._compositions[key]

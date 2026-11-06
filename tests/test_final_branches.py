@@ -217,6 +217,24 @@ def test_bulk_atom_sets_match_independent_partition_grouping(seed):
         assert tuple(sorted(dict(witness).values())) == target
 
 
+def test_native_projection_reads_shared_blocks_without_expanding_states(monkeypatch):
+    from mappa._group_ops import fragment_compositions
+    from mappa.mappa_core.core.search.pairs import SharedPairs
+
+    prefix = ((8, 3), (0, 7))
+    tails = (((2, 5), (6, 1)), ((2, 1), (6, 5)), ((4, 2),))
+    owners = SharedPairs((((8, 0), (0, 1)), ((2, 0), (6, 1))), 4)
+    states = [SearchState(i, i % 2, SharedPairs((prefix, tail), 2 + len(tail)), owners, ())
+              for i, tail in enumerate(tails * 2)]
+    plain = [replace(state, mapping=tuple(state.mapping), islands=tuple(state.islands))
+             for state in states]
+    expected = fragment_compositions(plain, range(len(plain)), (0, 1))
+    def forbidden(*args):
+        pytest.fail('Native projection must reuse blocks without expanding each shared sequence')
+    monkeypatch.setattr(SharedPairs, '__iter__', forbidden)
+    assert fragment_compositions(states, range(len(states)), (0, 1)) == expected
+
+
 @pytest.mark.parametrize('seed', range(32))
 @pytest.mark.parametrize('mixed', [False, True])
 def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed, mixed):

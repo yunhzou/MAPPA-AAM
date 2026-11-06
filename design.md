@@ -434,9 +434,11 @@ preparation is deferred until a consumer needs it.
 
 Project completed states to shared fragment IDs in one native operation, then
 deduplicate their compositions using those IDs. Reuse source partitions and
-prepared fragment actions. Ordered placement programs are collected once per
-shared search state. Keep growth provenance as parent links and terminal
-references, with path counts computed on the shared graph; do not unfold every
+prepared fragment actions. Consume shared immutable state blocks directly;
+temporary conversion reuse is scoped to one input graph. Ordered placement
+programs are collected once per shared search state. Keep growth provenance as
+parent links and terminal references, with path counts computed on the shared
+graph; do not unfold every
 growth path during reduction, decoding or publication. Explicit history replay
 may expand requested paths. Sweep setup reads the saved cut/partition metadata
 directly from those references.

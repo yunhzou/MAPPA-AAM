@@ -10,6 +10,7 @@
 #include <set>
 #include <stdexcept>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 #include "set_orbit.h"
 
@@ -26,6 +27,31 @@ static py::tuple atom_tuple(const Images& atoms) {
     return result;
 }
 
+// States retain immutable, shared blocks. Convert each block and sequence only
+// once during projection; the input states keep their Python identities alive.
+class SharedPairReader {
+    std::unordered_map<PyObject*, std::vector<Bond>> values;
+    py::object shared_type = py::module_::import(
+        "mappa.mappa_core.core.search.pairs").attr("SharedPairs");
+public:
+    const std::vector<Bond>& read(py::handle sequence) {
+        auto [entry, inserted] = values.try_emplace(sequence.ptr());
+        auto& result = entry->second;
+        if (inserted) {
+            if (py::isinstance(sequence, shared_type)) {
+                result.reserve(py::len(sequence));
+                for (py::handle block : sequence.attr("blocks")) {
+                    const auto& pairs = read(block);
+                    result.insert(result.end(), pairs.begin(), pairs.end());
+                }
+            } else {
+                result = py::cast<std::vector<Bond>>(sequence);
+            }
+        }
+        return result;
+    }
+};
+
 // Project completed states to interned fragment IDs in one call. This is only
 // partition bookkeeping: it performs no matching, symmetry or event search.
 static py::tuple fragment_compositions(py::sequence states, const Images& terminals,
@@ -33,25 +59,23 @@ static py::tuple fragment_compositions(py::sequence states, const Images& termin
     using AtomSets = std::pair<Images, Images>;
     std::map<std::pair<int, AtomSets>, int> fragments;
     std::map<std::pair<std::vector<Bond>, Images>, std::vector<Images>> partitions;
+    SharedPairReader shared;
     py::list records, compositions;
     for (int terminal : terminals) {
         py::object state = states[terminal];
         const int policy = policies.at(py::cast<int>(state.attr("context")));
-        std::vector<Bond> assignments, owners;
+        const auto& assignments = shared.read(state.attr("mapping"));
         Images source_atoms;
-        for (py::handle item : py::iterable(state.attr("mapping"))) {
-            const auto pair = py::cast<Bond>(item);
-            if (pair.first < 0 || pair.second < 0)
+        source_atoms.reserve(assignments.size());
+        for (const auto& [atom, target] : assignments) {
+            if (atom < 0 || target < 0)
                 throw std::invalid_argument("completed atom indices must be nonnegative");
-            assignments.push_back(pair);
-            source_atoms.push_back(pair.first);
+            source_atoms.push_back(atom);
         }
         std::sort(source_atoms.begin(), source_atoms.end());
         Images mapping(source_atoms.empty() ? 0 : source_atoms.back()+1, -1);
         for (const auto& [atom, target] : assignments) mapping[atom] = target;
-        for (py::handle item : py::iterable(state.attr("islands"))) {
-            owners.push_back(py::cast<Bond>(item));
-        }
+        auto owners = shared.read(state.attr("islands"));
         std::sort(owners.begin(), owners.end());
         const auto partition_key = std::make_pair(owners, source_atoms);
         auto found = partitions.find(partition_key);
