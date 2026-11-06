@@ -163,6 +163,8 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     This diagnostic does not relax reference indices by endpoint symmetry.
     The shared query enforces local symmetry, occupancy and the event window.
     """
+    from mappa.mappa_core.post_processing.decoder.events import AssignedEventBound, prepare_boundary_events
+
     mapping = dict(reference['mapping'])
     feature = reference['features'][int(reverse)]
     if reverse:
@@ -171,6 +173,8 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     # never accepted without the independent saved-decoder query and replay.
     contexts = sorted(decoded.window.contexts, key=lambda c: c[0] != preferred_family)
     started = time.perf_counter()
+    bound = AssignedEventBound(decoded.index, mapping)
+    filtering = dict(contexts=0, rejected=0, symmetry_queries=0, seconds=time.perf_counter()-started)
     unknown = False
     for family, partition, cut in contexts:
         mapped = dict(decoded.catalogue.families[family].mapping)
@@ -180,6 +184,15 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
         if remaining <= 0:
             unknown = True
             break
+        filtering['contexts'] += 1
+        filter_started = time.perf_counter()
+        boundary = prepare_boundary_events(decoded.index, mapped,
+            decoded.inventory.uses[family][partition], decoded.cut_contexts[family][partition][cut])
+        outside = bound.count(boundary) > decoded.event_window
+        filtering['seconds'] += time.perf_counter() - filter_started
+        if outside:
+            filtering['rejected'] += 1
+            continue
         # A diagnostic scan owns one working table at a time. Public select()
         # intentionally retains tables for interactive reuse, not this scan.
         key = decoded._table_key(family, partition, cut)
@@ -188,16 +201,19 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
         if remaining <= 0:
             unknown = True
             break
+        filtering['symmetry_queries'] += 1
         answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
             assignments=mapping, seconds=remaining)
         if answer.status == 'found':
             evidence = audit_decoded_witness(decoded, reference, (family, partition, cut),
                                              answer, reverse=reverse)
             return dict(status='recovered', event_count=answer.event_count, evidence=evidence,
+                        event_filter=filtering,
                         policy='exact annotated indices in selected decoded window')
         del table
         unknown |= answer.status == 'unknown'
     return dict(status='unknown' if unknown else 'not_recovered',
+                event_filter=filtering,
                 policy='exact annotated indices in selected decoded window')
 
 
@@ -381,7 +397,8 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
                     metrics={k: v for k, v in measured.items() if k.endswith(('_seconds', '_bytes', '_samples'))})
                 if state['state'] == 'complete':
                     value = store.load(measured['blob'])
-                    result.update(status=value['status'], certificate_blob=asdict(measured['blob']))
+                    result.update(status=value['status'], certificate_blob=asdict(measured['blob']),
+                                  event_filter=value['event_filter'])
                     if value['status'] == 'recovered':
                         proof = value['evidence']
                         result.update({key: proof[key] for key in (

@@ -10,7 +10,7 @@ import pytest
 
 from mappa import decode_events
 from mappa.mappa_core.post_processing.decoder.events import (
-    FragmentEventTables, SignedEventIndex, prepare_boundary_events,
+    AssignedEventBound, FragmentEventTables, SignedEventIndex, prepare_boundary_events,
 )
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder, FragmentInventory
 from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
@@ -19,6 +19,32 @@ from mappa.mappa_core.utils.io.records import decoded_events_record, decoded_eve
 from mappa import AAMProblem, EventDecodeConfig
 from growth_cases import saved_fragment
 from test_event_interpretation import dense_categories, endpoint, model_events, saved, swap
+
+
+@pytest.mark.parametrize('metal_threshold', [.3, None])
+def test_assigned_event_bound_respects_thresholds_and_unmatched_boundaries(metal_threshold):
+    import numpy as np
+    from types import SimpleNamespace
+    rng = np.random.default_rng(731)
+    pieces = [SimpleNamespace(source_atoms=atoms) for atoms in ((0, 1), (2,))]
+    representative = {0: 0, 1: 1, 2: 2}
+    for _ in range(16):
+        endpoints = [endpoint(('Fe', 'C', 'C', 'H', 'H'),
+            [(a, b, float(rng.choice((0., .2, .3, .5, .8, 1.6))))
+             for a in range(5) for b in range(a+1, 5)]) for _ in range(2)]
+        problem = AAMProblem(*endpoints)
+        index = SignedEventIndex(problem, metal_threshold=metal_threshold)
+        for cuts in ((), ((0, 2),), ((0, 1),)):
+            boundary = prepare_boundary_events(index, representative, pieces, cuts)
+            for mapping in (representative, {0: 0, 1: 2, 2: 1}):
+                expected = len(model_events(problem, representative, mapping,
+                    ((0, 1), (2,)), cuts, metal_threshold=metal_threshold))
+                for mask in range(8):
+                    partial = {a: b for a, b in mapping.items() if mask & (1 << a)}
+                    lower = AssignedEventBound(index, partial).count(boundary)
+                    assert lower <= expected
+                    if mask == 7:
+                        assert lower == expected
 
 
 def two_branches(*, shift_actions=False):

@@ -436,6 +436,41 @@ class BoundaryEvents:
         return frozenset(map(tuple, self.target_pairs))
 
 
+class AssignedEventBound:
+    """Events forced by partial assignments, without searching symmetry choices.
+
+    Count only assigned internal pairs plus the decoder's fixed boundaries.
+    Unassigned pairs contribute zero; an unresolved sweep keeps its full reserve.
+    This is a rejection bound, never evidence that a mapping is represented.
+    """
+
+    def __init__(self, index, assignments):
+        self.index, self.assignments = index, dict(assignments)
+        images = np.full(index.n, -1, dtype=int)
+        for a, b in assignments.items():
+            images[a] = b
+        known = (images[index.a] >= 0) & (images[index.b] >= 0)
+        a, b = index.a[known], index.b[known]
+        changed = abs(index.r[a, b] - index.p[images[a], images[b]]) > index.tau[known]
+        self.a, self.b = a[changed], b[changed]
+
+    def count(self, boundary):
+        owners = boundary.source_owners
+        internal = np.count_nonzero((owners[self.a] >= 0) & (owners[self.a] == owners[self.b]))
+        fixed = boundary.lower
+        if boundary.sweep_cut is not None:
+            a, b = boundary.sweep_cut
+            if a in self.assignments and b in self.assignments:
+                pair = tuple(sorted((self.assignments[a], self.assignments[b])))
+                index = self.index
+                tau = bond_event_threshold(index.elements, a, b,
+                    default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+                changed = abs(index.r[a, b] - index.p[pair]) > tau
+                fixed = (boundary.count - int(boundary.source_cut_counted)
+                         - int(pair in boundary.target_pair_set) + int(changed))
+        return int(internal + fixed)
+
+
 def prepare_boundary_events(index, mapping, pieces, cut_bonds=()):
     """Prepare fixed ordinary events without preparing any local symmetry."""
     mapping = dict(mapping)

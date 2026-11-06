@@ -49,6 +49,13 @@ membership in an approximate bin is not proof of that physical event count.
 State whether reference indices are exact or normalized by endpoint chemical
 symmetry. Resource-limited verification remains unknown.
 
+Before a decoded membership query, count the events already forced by the
+annotated assignments, using the same fixed ordinary boundaries and conservative
+sweep correction as the saved decoder. Reject a context only when that lower
+bound exceeds its event window. Unspecified atoms contribute no forced internal
+events. This filter performs no symmetry or minimum search and cannot establish
+acceptance; surviving references still require a replayable joint witness.
+
 ## Inputs and matching rules
 
 `AAMProblem` contains reactant and product `MolecularEndpoint` records: elements,

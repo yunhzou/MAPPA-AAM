@@ -523,6 +523,12 @@ before launching a pilot, using the checks in the repository's main README.
 
 ## Audit saved Golden decoded recovery
 
+Each reference first supplies a cheap lower bound on its forced model events.
+Contexts above the saved window are rejected before preparing their symmetry
+query. Unspecified atoms and sweep corrections remain conservative; a surviving
+reference still needs the complete replayed witness. Audit rows record filter
+time, examined/rejected contexts and symmetry-query counts.
+
 ```bash
 PYTHONPATH=src:bench python bench/golden.py audit-decoding /path/to/batch \
   /path/to/separate-audit --workers 4 --seconds 10 --task-seconds 60 --memory-gib 2

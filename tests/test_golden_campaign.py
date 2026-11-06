@@ -123,12 +123,39 @@ def test_decoded_reference_counts_model_and_physical_events_separately(sweep):
     catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, fragments).graph)
     if sweep:
         catalogue.families[0] = replace(catalogue.families[0], provenance=[dict(cuts=((0, 2),))])
-    decoded = decode_events(catalogue, event_slack=5)
+    decoded = decode_events(catalogue, event_slack=0)
     reference = dict(mapping=[(0, 1), (1, 0), (2, 2)], features=[dict(heavy=[0, 1, 2])]*2)
     result = verify_decoded(decoded, reference)
     assert result['status'] == 'recovered'
     assert result['evidence']['physical_event_count'] == 0
     assert result['event_count'] == (0 if sweep else 2)
+
+
+def test_decoded_reference_rejects_forced_events_before_symmetry_query(monkeypatch):
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    # Two exchangeable H have distinct WBOs. Swapping them forces two events;
+    # leaving their correspondence unspecified permits the zero-event witness.
+    bonds = [(0, 1, 1.), (0, 2, 2.)]
+    value = problem('CHH', bonds, bonds)
+    fragment = saved_fragment(value, accepted_edges=((0, 1), (0, 2)))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph),
+                            event_slack=0)
+    reference = dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2)
+    assert verify_decoded(decoded, reference)['status'] == 'recovered'
+    reference['mapping'] = [(0, 0), (1, 2), (2, 1)]
+    reference['features'] = [dict(heavy=[0, 1, 2])]*2
+    def forbidden(*args):
+        pytest.fail('Forced events outside the window require no symmetry table')
+    monkeypatch.setattr(decoded, '_prepare_table', forbidden)
+    result = verify_decoded(decoded, reference)
+    assert result['status'] == 'not_recovered'
+    assert result['event_filter']['rejected'] == 1
+    assert result['event_filter']['symmetry_queries'] == 0
 
 
 def test_decoded_reference_respects_joint_placement_partial_mapping_and_reverse():

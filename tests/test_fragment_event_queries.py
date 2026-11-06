@@ -305,6 +305,9 @@ def test_ordered_fragment_projection_and_sweep_against_all_small_choices(seed):
                  for a in range(4) for b in range(a + 1, 4)]) for _ in range(2)]
     decoded = decode_events(catalogue, event_problem=AAMProblem(*endpoints), event_slack=20)
     table, expected = decoded.tables(0), {}
+    from mappa.mappa_core.post_processing.decoder.events import AssignedEventBound, prepare_boundary_events
+    boundary = prepare_boundary_events(decoded.index, catalogue.families[0].mapping,
+        decoded.inventory.uses[0][0], ((0, 2),))
     for local, move1, move2 in product(permutations(range(3)), (False, True), (False, True)):
         images = list(local) + [3]
         for move, shift in zip((move1, move2), shifts):
@@ -317,6 +320,14 @@ def test_ordered_fragment_projection_and_sweep_against_all_small_choices(seed):
         total -= int(endpoints[0].wbo[0, 2] > .5)
         total -= int(tuple(sorted((images[0], images[2]))) in table.product_boundary_set)
         expected[tuple(images)] = int(total)
+        # Every partial reference must give a lower bound, including when
+        # either sweep endpoint is unspecified. A complete one is exact.
+        for mask in range(16):
+            assignments = {a: images[a] for a in range(4) if mask & (1 << a)}
+            bound = AssignedEventBound(decoded.index, assignments).count(boundary)
+            assert bound <= total
+            if mask == 15:
+                assert bound == total
     program = table.program
     from growth_cases import group_actions
     for operation in group_actions(program.group.generators, program.size):
