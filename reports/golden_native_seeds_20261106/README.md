@@ -7,7 +7,8 @@ including the native reduction and event kernels. Each arm contains all
 reference verification and reaction caches start empty in both arms. Only
 immutable prepared endpoint and reference inputs are reused.
 
-**Status: both 32-worker pools are running; benchmark results pending.** Historical
+**Status: the initial attempt was drained for a decoding-time investigation;
+final benchmark results remain pending.** Historical
 accuracy and selected-case speedups are not results of this new full run.
 
 ## Protocol
@@ -70,3 +71,29 @@ not by itself a cache-on versus cache-off causal experiment.
 Operational configuration, scheduler identifiers and raw logs remain in the
 Git-ignored private campaign evidence. Scientific input hashes, version identity
 and sanitized measurements accompany the report.
+
+## Initial attempt: stopped before accuracy evaluation
+
+Both pools drained without resource failures or retries. One seed completed
+3,702 matching directions, 3,702 reductions and 1,334 decodes; ten seeds completed
+2,239 matching directions. Neither arm reached reference verification. These
+partial runs are not full-dataset accuracy or timing results.
+
+Case 890 forward took 137.726 compute CPU seconds in this attempt, compared with
+3.025 seconds in the historical one-seed study. Those revisions differ in
+completed-fragment semantics as well as implementation, so this difference does
+not isolate the native port. A separate profile on the same saved matching
+confirmed 137.436 CPU seconds in decoding, with only 0.384 seconds in record
+construction. Of 180 unique fragments, 27 exhausted their five-second
+starting-correspondence allowance; two more finished without proving optimality.
+Catalogue and decoded-window reference checks both recovered the reference;
+the model minimum was ten events.
+
+A separate bound experiment used each atom's incident weight profiles, followed
+by an injective atom assignment. Half the relaxed incident cost, rounded up,
+is a valid event lower bound because each actual bond event touches two atoms.
+It met the saved witness on all 29 unproved fragments, taking 0.569 CPU seconds
+in the standalone Python experiment. This diagnoses avoidable search under the
+weaker pair-weight bound; it is not a full-decoder timing or a completed repair
+benchmark. The native integration and complete rerun require validation before
+paper results are reported.

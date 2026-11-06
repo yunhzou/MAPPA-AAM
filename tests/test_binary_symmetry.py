@@ -174,7 +174,7 @@ def test_dendrimer_joint_words_match_dense_original_weight_checks():
 @pytest.mark.parametrize('generators', [(), ((1, 2, 3, 4, 0),), ((1, 0, 3, 2, 4),)])
 @pytest.mark.parametrize('selected', [None, ((1, 4), (2, 3))])
 def test_pair_orbits_match_complete_small_group(generators, selected):
-    from mappa.mappa_core.core.symmetry.groups import pair_orbits, permutation_group
+    from mappa.mappa_core.core.symmetry.groups import permutation_group
 
     group = permutation_group(generators, 5)
     choices = broad_words(generators, 5)
@@ -182,7 +182,7 @@ def test_pair_orbits_match_complete_small_group(generators, selected):
     expected = {frozenset(tuple(sorted((choice[a], choice[b]))) for choice in choices)
                 for a, b in pairs}
     ordered = sorted(expected, key=lambda orbit: min(orbit & pairs))
-    assert list(pair_orbits(group, 5, selected)) == [tuple(sorted(orbit)) for orbit in ordered]
+    assert group.pair_orbits(selected) == [sorted(orbit) for orbit in ordered]
 
 
 def test_placement_identity_avoids_group_search_and_nonidentity_remains_checked(monkeypatch):

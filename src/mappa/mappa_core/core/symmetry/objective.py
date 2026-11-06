@@ -26,6 +26,8 @@ class FragmentObjective:
             self.thresholds[metal[:, None] | metal[None, :]] = float(metal_threshold)
         self.target_positions = {atom: i for i, atom in enumerate(target.atoms)}
         self.source_atoms = source.atoms
+        self.anchors = tuple((source.atoms.index(a), target.atoms.index(b))
+                             for a, b in fragment.fixed_assignments)
 
     def images(self, witness):
         mapping = dict(witness)
@@ -34,6 +36,20 @@ class FragmentObjective:
     def count(self, images):
         aligned = self.target[np.ix_(images, images)]
         return int(np.count_nonzero(np.triu(np.abs(self.source - aligned) > self.thresholds, 1)))
+
+    def incidence_lower_bound(self, seconds):
+        """Relax neighbor assignments, retaining injective atom occupancy.
+
+        Each complete mapping pays every bond event at both endpoints. The
+        minimum relaxed sum of incident costs, divided by two and rounded up,
+        therefore cannot exceed the actual event count. Elements and explicit
+        anchors constrain the atom assignment; zero-weight contacts are included.
+        """
+        from mappa._group_ops import incident_event_bound
+        colors = {element: i for i, element in enumerate(dict.fromkeys(self.source_elements))}
+        return incident_event_bound(self.source.tolist(), self.target.tolist(), self.thresholds.tolist(),
+            [colors[e] for e in self.source_elements], [colors[e] for e in self.target_elements],
+            self.anchors, seconds)
 
     def lower_bound(self):
         """Relax atom consistency, matching pair weights within element-pair types.

@@ -16,6 +16,128 @@ using Matrix = std::vector<std::vector<double>>;
 
 struct SearchExpired : std::exception {};
 
+// Shortest augmenting paths for integer assignment costs; forbidden entries
+// use the caller's impossible cost. Both event relaxations share this solver.
+template<class Check>
+int assignment_cost(const std::vector<std::vector<int>>& costs, int impossible, Check check) {
+    const int n = static_cast<int>(costs.size());
+    std::vector<int> row(n + 1), column(n + 1), owner(n + 1), previous(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        check();
+        owner[0] = i;
+        int current = 0;
+        std::vector<int> distance(n + 1, impossible);
+        std::vector<bool> used(n + 1, false);
+        do {
+            used[current] = true;
+            int next = 0, delta = impossible;
+            for (int j = 1; j <= n; ++j) if (!used[j]) {
+                int cost = costs[owner[current] - 1][j - 1] - row[owner[current]] - column[j];
+                if (cost < distance[j]) {distance[j] = cost; previous[j] = current;}
+                if (distance[j] < delta) {delta = distance[j]; next = j;}
+            }
+            if (!next) return impossible;
+            for (int j = 0; j <= n; ++j) {
+                if (used[j]) {row[owner[j]] += delta; column[j] -= delta;}
+                else distance[j] -= delta;
+            }
+            current = next;
+        } while (owner[current]);
+        do {
+            int next = previous[current];
+            owner[current] = owner[next];
+            current = next;
+        } while (current);
+    }
+    int total = 0;
+    for (int j = 1; j <= n; ++j) {
+        int value = costs[owner[j] - 1][j - 1];
+        if (value >= impossible) return impossible;
+        total += value;
+    }
+    return total;
+}
+
+// Relax neighbor occupancy separately for each possible atom correspondence,
+// then assign atoms injectively. Each real event touches two atoms, so half
+// this relaxed incident cost bounds the number of bond events from below.
+inline int incidence_bound(const Matrix& source, const Matrix& target, const Matrix& thresholds,
+        const std::vector<int>& source_types, const std::vector<int>& target_types,
+        const std::vector<std::pair<int, int>>& anchors, double seconds) {
+    const int n = static_cast<int>(source.size());
+    if (source_types.size() != source.size() || target_types.size() != source.size())
+        throw std::invalid_argument("event atom types differ from matrix size");
+    for (const auto* matrix : {&source, &target, &thresholds}) {
+        if (matrix->size() != source.size()) throw std::invalid_argument("event matrix sizes differ");
+        for (const auto& row : *matrix)
+            if (row.size() != source.size()) throw std::invalid_argument("event matrices must be square");
+    }
+    if (!std::isfinite(seconds) || seconds < 0)
+        throw std::invalid_argument("bound allowance must be finite and nonnegative");
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(seconds));
+    auto check = [&] {if (std::chrono::steady_clock::now() >= deadline) throw SearchExpired();};
+    check();
+    auto colors = source_types;
+    std::sort(colors.begin(), colors.end());
+    auto right_colors = target_types;
+    std::sort(right_colors.begin(), right_colors.end());
+    if (colors != right_colors) throw std::invalid_argument("fragment element multiplicities differ");
+    colors.erase(std::unique(colors.begin(), colors.end()), colors.end());
+    using Profiles = std::vector<std::vector<std::vector<double>>>;
+    auto profiles = [&](const Matrix& weights, const std::vector<int>& types) {
+        Profiles result(n, std::vector<std::vector<double>>(colors.size()));
+        for (int i = 0; i < n; ++i) {
+            check();
+            for (int j = 0; j < n; ++j) if (i != j) {
+                auto kind = std::lower_bound(colors.begin(), colors.end(), types[j]) - colors.begin();
+                result[i][kind].push_back(weights[i][j]);
+            }
+            for (auto& values : result[i]) std::sort(values.begin(), values.end());
+        }
+        return result;
+    };
+    const auto left = profiles(source, source_types), right = profiles(target, target_types);
+    Matrix limits(n, std::vector<double>(colors.size(), -1.));
+    for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j) if (i != j) {
+        auto kind = std::lower_bound(colors.begin(), colors.end(), source_types[j]) - colors.begin();
+        auto& value = limits[i][kind];
+        if (value >= 0. && value != thresholds[i][j])
+            throw std::invalid_argument("event threshold must be constant within each element pair");
+        value = thresholds[i][j];
+    }
+    std::vector<int> fixed(n, -1), occupied(n, -1);
+    for (const auto& [a, p] : anchors) {
+        if (a < 0 || a >= n || p < 0 || p >= n || fixed[a] >= 0 || occupied[p] >= 0
+                || source_types[a] != target_types[p])
+            throw std::invalid_argument("invalid event anchor");
+        fixed[a] = p; occupied[p] = a;
+    }
+    const int impossible = n * n + 1;
+    std::vector<std::vector<int>> costs(n, std::vector<int>(n, impossible));
+    for (int i = 0; i < n; ++i) {
+        check();
+        for (int p = 0; p < n; ++p) {
+            if (source_types[i] != target_types[p] || (fixed[i] >= 0 && fixed[i] != p)
+                    || (occupied[p] >= 0 && occupied[p] != i)) continue;
+            int events = 0;
+            for (size_t kind = 0; kind < colors.size(); ++kind) {
+                const auto& a = left[i][kind];
+                const auto& b = right[p][kind];
+                size_t x = 0, y = 0, matched = 0;
+                while (x < a.size() && y < b.size()) {
+                    if (std::abs(a[x] - b[y]) <= limits[i][kind]) {++x; ++y; ++matched;}
+                    else if (a[x] < b[y]) ++x;
+                    else ++y;
+                }
+                events += static_cast<int>(a.size() - matched);
+            }
+            costs[i][p] = events;
+        }
+    }
+    return (assignment_cost(costs, impossible, check) + 1) / 2;
+}
+
 class AssignmentSearch {
     struct Edge {
         int first, second;
@@ -78,47 +200,6 @@ class AssignmentSearch {
             }
         }
         return true;
-    }
-
-    // Shortest augmenting paths for the integer assignment relaxation. Only
-    // fixed/free bonds enter this matrix; free/free bonds still contribute zero.
-    int assignment_cost(const std::vector<std::vector<int>>& costs, int impossible) const {
-        const int n = static_cast<int>(costs.size());
-        std::vector<int> row(n + 1), column(n + 1), owner(n + 1), previous(n + 1);
-        for (int i = 1; i <= n; ++i) {
-            check();
-            owner[0] = i;
-            int current = 0;
-            std::vector<int> distance(n + 1, impossible);
-            std::vector<bool> used(n + 1, false);
-            do {
-                used[current] = true;
-                int next = 0, delta = impossible;
-                for (int j = 1; j <= n; ++j) if (!used[j]) {
-                    int cost = costs[owner[current] - 1][j - 1] - row[owner[current]] - column[j];
-                    if (cost < distance[j]) {distance[j] = cost; previous[j] = current;}
-                    if (distance[j] < delta) {delta = distance[j]; next = j;}
-                }
-                if (!next) return impossible;
-                for (int j = 0; j <= n; ++j) {
-                    if (used[j]) {row[owner[j]] += delta; column[j] -= delta;}
-                    else distance[j] -= delta;
-                }
-                current = next;
-            } while (owner[current]);
-            do {
-                int next = previous[current];
-                owner[current] = owner[next];
-                current = next;
-            } while (current);
-        }
-        int total = 0;
-        for (int j = 1; j <= n; ++j) {
-            int value = costs[owner[j] - 1][j - 1];
-            if (value >= impossible) return impossible;
-            total += value;
-        }
-        return total;
     }
 
     void validate_domains(const Domains& domains) const {
@@ -185,7 +266,7 @@ public:
             for (int b : fixed) value += std::abs(source[a][b] - target[p][domains[b][0]]) > thresholds[a][b];
             costs[i][j] = value;
         }
-        int remaining = assignment_cost(costs, impossible);
+        int remaining = assignment_cost(costs, impossible, [&] {check();});
         return remaining >= impossible ? ceiling : cost + remaining;
     }
 

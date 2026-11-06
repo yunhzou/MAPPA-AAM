@@ -1,5 +1,5 @@
 {
-  "status": "running",
+  "status": "initial attempt drained for decoding-time investigation; validation and fresh rerun pending",
   "arms": {
     "1": {
       "source_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
@@ -131,5 +131,21 @@
     "sampled per-task memory and process lifetime high-water mark",
     "stage elapsed, task overlap, startup, allocation accounting",
     "reaction recovery gains/losses, unknown and resource failures"
-  ]
+  ],
+  "initial_attempt": {
+    "one_seed": {
+      "matching": 3702,
+      "reduction": 3702,
+      "decoding": 1334,
+      "verification": 0
+    },
+    "ten_seeds": {
+      "matching": 2239,
+      "reduction": 0,
+      "decoding": 0,
+      "verification": 0
+    },
+    "resource_failures": 0,
+    "retries": 0
+  }
 }

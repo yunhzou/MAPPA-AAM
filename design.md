@@ -121,7 +121,11 @@ anchors of the completed fragment.
 
 Use a saved element-compatible correspondence as the incumbent. First obtain a lower bound by
 matching the original pair-weight multisets within element-pair types, including
-zero weights and subthreshold contacts, while relaxing atom consistency. Improve
+zero weights and subthreshold contacts, while relaxing atom consistency. If this
+bound does not settle the saved witness, also relax each atom's incident bond
+assignments and match the atoms injectively. Every bond event touches two atoms,
+so half that minimum incident cost, rounded up, is another valid lower bound.
+Use the stronger bound and stop immediately when it meets the witness. Improve
 the incumbent through the shared binary-symmetry event core. If needed, search
 the completed atom sets for a better element-compatible, injective starting
 correspondence, respecting explicit endpoint anchors, and apply that same event

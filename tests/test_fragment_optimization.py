@@ -144,10 +144,56 @@ def test_unattainable_pair_bound_remains_explicitly_best_found():
     target = weights(4, [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.)])
     value = fragment(source, target, ((0, 1),), (0, 1, 2, 3))
     answer = optimize_fragment(value)
-    assert answer.lower_bound == 0 and answer.event_count == 2
+    assert answer.lower_bound == 1 and answer.event_count == 2
     assert not answer.complete and not answer.work.time_limit_reached
     assert 'unproved' in answer.reason
     assert_witness(value, answer)
+
+
+def test_incidence_bound_finishes_an_optimal_witness_without_discovery_search():
+    source = weights(4, [(0, 1, 1.), (0, 2, 1.), (0, 3, 1.)])
+    target = weights(4, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.)])
+    value = fragment(source, target, (), range(4))
+    objective = FragmentObjective(value)
+    assert objective.lower_bound() == 0
+    assert objective.incidence_lower_bound(5.) == 2
+    answer = optimize_fragment(value)
+    assert answer.complete and answer.event_count == answer.lower_bound == 2
+    assert answer.work.discovery_nodes == 0
+    assert answer.witness == value.witness
+    assert_witness(value, answer)
+
+
+@pytest.mark.parametrize('seed', range(32))
+def test_incidence_bound_matches_independent_exhaustive_oracle(seed):
+    rng = np.random.default_rng(seed)
+    elements = ('C',) * 5 if seed % 2 else ('C', 'C', 'O', 'O', 'Fe')
+    def matrix():
+        upper = np.triu(rng.choice([0., .2, .3, .5, np.nextafter(.5, 1.), 1., 1.5, 2.], (5, 5)), 1)
+        return upper + upper.T
+    anchors = ((0, 1),) if seed % 3 == 0 else ()
+    start = (1, 0, 2, 3, 4) if anchors else range(5)
+    value = fragment(matrix(), matrix(), (), start, elements=elements, anchors=anchors)
+    objective = FragmentObjective(value)
+    images = [p for p in permutations(range(5)) if all(elements[i] == elements[p[i]] for i in range(5))]
+    costs = {}
+    for i in range(5):
+        for p in range(5):
+            candidates = [g for g in images if g[i] == p]
+            if candidates:
+                costs[i, p] = min(sum(abs(objective.source[i, j] - objective.target[p, g[j]])
+                    > objective.thresholds[i, j] for j in range(5) if j != i) for g in candidates)
+    permitted = [p for p in images if all(p[a] == b for a, b in anchors)]
+    expected = (min(sum(costs[i, p[i]] for i in range(5)) for p in permitted) + 1) // 2
+    actual = objective.incidence_lower_bound(5.)
+    assert actual == expected
+    assert actual <= min(objective.count(p) for p in permitted)
+
+
+def test_incidence_bound_obeys_the_existing_fragment_deadline():
+    from mappa.mappa_core.core.symmetry.minimum import SearchDeadlineReached
+    with pytest.raises(SearchDeadlineReached):
+        FragmentObjective(triangle()).incidence_lower_bound(0.)
 
 
 @pytest.mark.parametrize('difference,expected', [(.5, 0), (np.nextafter(.5, 1.), 1)])

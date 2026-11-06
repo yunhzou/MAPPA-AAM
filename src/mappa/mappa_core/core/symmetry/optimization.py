@@ -110,6 +110,9 @@ def optimize_fragment(fragment, *, time_limit=5., event_problem=None,
     try:
         check_deadline(deadline)
         lower_bound = objective.lower_bound()
+        if best.event_count > lower_bound:
+            lower_bound = max(lower_bound, objective.incidence_lower_bound(
+                max(0., deadline - perf_counter())))
         check_deadline(deadline)
         optimize_start(fragment.witness)
         if best.event_count > lower_bound:

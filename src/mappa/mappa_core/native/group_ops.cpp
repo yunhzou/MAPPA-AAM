@@ -702,6 +702,7 @@ PYBIND11_MODULE(_group_ops, m) {
             for (int factor : factors) value = value.attr("__mul__")(factor);
             return value;
         });
+    m.def("incident_event_bound", &event_native::incidence_bound, py::call_guard<py::gil_scoped_release>());
     py::class_<event_native::AssignmentSearch>(m, "AssignmentSearch")
         .def(py::init<event_native::Matrix, event_native::Matrix, event_native::Matrix,
              event_native::Matrix, event_native::Domains, std::vector<int>,
