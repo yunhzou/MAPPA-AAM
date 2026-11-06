@@ -180,15 +180,16 @@ construct the complete compressed placements when growth saturates.
 ### Fragment records and ownership
 
 `FragmentGrowth` owns the changing search state. `Fragment` stores one
-source-to-target placement. Raw search records also carry its growth proof;
-reduction creates the shared final atom-set record consumed by decoding.
+source-to-target placement and its growth evidence. Reduction groups and shares
+the existing records by final atom-set pair; it does not reconstruct their
+scientific contents.
 There is no additional candidate or
 `FragmentMatch` wrapper, or separate one-sided fragment record.
 
 | Record | Logical fields |
 |---|---|
 | `FragmentGrowth` | `source_atoms`, `accepted_edges`, `deferred_edges`, `frontier`, `witness` |
-| `Fragment` | `source_atoms`, `target_atoms`, initial `witness`, explicit anchors, `source_symmetry`, `target_symmetry`, `relation`; raw search fragments additionally retain `accepted_edges` |
+| `Fragment` | `source_atoms`, `target_atoms`, initial `witness`, recorded anchors, `source_symmetry`, `target_symmetry`, `relation`, including accepted growth edges and discovery constraints |
 
 The growth subgraph is exactly `source_atoms` with `accepted_edges`; no duplicate
 subgraph representation is retained. Deferred edges are rejected extension
@@ -301,12 +302,13 @@ an event after rearrangement. Decoding counts and classifies those changes under
 the original endpoint WBOs. Its bounded starting-correspondence selection and
 event window restrict the decoded response, not the saved matching relation.
 
-A completed fragment is one atom-set pair. Its potential starting mappings are
-element-compatible bijections respecting explicit endpoint anchors. Decoding
-retains the bounded search's selected starting correspondence and its correlated
-binary symmetry response. Potential catalogue membership and membership in a
-selected decoded response are different measures; report them separately.
-Independent atom choices must not introduce forbidden combinations.
+A completed fragment is identified by one atom-set pair and retains its original
+mapping relation and growth evidence. That identity does not replace the relation
+with unrestricted element-compatible bijections. Decoding retains the bounded
+search's selected starting correspondence and its correlated binary symmetry
+response. Potential catalogue membership and membership in a selected decoded
+response are different measures; report them separately. Independent atom
+choices must not introduce forbidden combinations.
 
 Matching preserves valid mappings, accepted/deferred bonds, locks and
 legitimate compressed branch choices. Duplicate records and intermediate merge
@@ -437,6 +439,15 @@ cuts. Intern each final reactant/product atom-set pair once under the fixed
 policy and explicit anchors. Deduplicate branch compositions by their fragment
 pairs. Intermediate overlapping growth fragments and accepted-edge histories
 do not become additional completed fragments or family identities.
+
+The atom-set pair is a deduplication key, not a replacement fragment payload.
+Reduction preserves the original witnesses, discovery domains, accepted growth
+edges, anchors and symmetry relationships through shared immutable references.
+It must not rebuild a fragment with broader mapping permissions, erase constraints
+or reinterpret growth information. When records with the same atom-set key carry
+different information, retain their original alternatives under that identity;
+grouping does not justify discarding an alternative or combining its constraints
+with another's. Preserve shared histories without expanding their paths.
 
 Retain ordered global placement alternatives as branch context: they move whole
 continuations and must not permit independent overlapping occupancy. Such

@@ -302,3 +302,10 @@ millisecond native search is not itself a large-runtime benchmark.
 
 The restriction is recorded in `design.md`; implementation remains pending.
 The min + 5 window and production algorithm are unchanged by this diagnostic.
+
+The reducer contract is now explicit: atom-set deduplication groups existing
+fragment records without changing their scientific payloads. Different original
+information remains available through shared references under the same identity.
+The current `Fragment.from_atom_sets` reconstruction violates this preservation
+rule by replacing discovery domains and omitting accepted growth edges. This
+documentation change does not repair the reducer or validate a replacement.
