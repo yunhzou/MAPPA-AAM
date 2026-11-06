@@ -561,7 +561,7 @@ def compare_decode(payload, workspace):
         reference = workspace.writer.put(result)
     return dict(decoded=asdict(reference), metrics=metrics, schema=record['schema'],
                 families=len(record['families']), tables=len(record['tables']),
-                responses=len(record['responses']), **identities)
+                fragment_responses=len(record['fragment_responses']), **identities)
 
 
 def compare_verify(payload, workspace):

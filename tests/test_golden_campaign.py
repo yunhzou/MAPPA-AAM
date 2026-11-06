@@ -406,7 +406,7 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == 'mappa.decoded_events/v13'
+            assert record['schema'] == 'mappa.decoded_events/v14'
             assert record['event_counts_approximate']
             assert record['minimum_events'] == 1
             assert record['event_slack'] == 6 and record['event_window'] == 7
@@ -415,18 +415,16 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             assert np.array_equal(event_record['product']['wbo'], original.product.wbo)
             assert record['catalogue'] == saved.catalogue.to_record()
             family = verified['verification']['family']
-            # With two distinct elements the recovered mapping is fixed. Read
-            # its saved local response directly, without invoking another decoder.
-            for number in record['families'][family]['tables']:
-                table = record['tables'][number]
-                terms = [term for region in (*table['internal'], *table['boundary'])
-                         for term in region['terms'] if tuple(term['atoms']) == (0, 1)]
-                assert len(terms) == 1
-                response = record['responses'][terms[0]['response']]
-                target_weight = float(original.product.wbo[0, 1])
-                code = response['categories'][response['target_weights'].index(target_weight)]
-                assert EVENT_CATEGORIES[code - 1] == category and code != 0
-                assert not table['product_boundary_pairs']
+            # Restore the saved shared response; this is not another decode.
+            from mappa.mappa_core.utils.io.records import decoded_events_from_record
+            restored = decoded_events_from_record(record)
+            for fid, partition, cut in restored.window.contexts:
+                if fid != family:
+                    continue
+                detail = restored.contributions(fid, partition=partition, cut=cut, include_events=True)
+                assert detail['total'] == 1
+                assert detail['events'][0]['category'] == category
+                assert tuple(detail['events'][0]['reactant_pair']) == (0, 1)
     assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in input_files} == original_hashes
 
     # An empty checkpoint may predate admitted work. Only a deliberate drain

@@ -1,5 +1,6 @@
 """Collect unique fragments, then share their conditional local event results."""
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
+from weakref import proxy
 from mappa.mappa_core.core.symmetry.minimum import FragmentSymmetryEvents
 from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
 
@@ -69,12 +70,23 @@ class FragmentResponse:
     piece: PartitionPiece
     atom_domains: dict
     atom_actions: dict
-    terms: tuple[BondEventTerm, ...]
-    projected_pair_states: int
-    neighboring_pair_count: int
     mapping: tuple[tuple[int, int], ...]
     actions: tuple
+    cut_bonds: tuple
+    decoder: 'FragmentDecoder' = field(repr=False, compare=False)
     event_counts: object = None
+
+    @property
+    def terms(self):
+        return self.decoder.fragment_bonds(self)[0]
+
+    @property
+    def projected_pair_states(self):
+        return self.decoder.fragment_bonds(self)[1]
+
+    @property
+    def neighboring_pair_count(self):
+        return self.decoder.fragment_bonds(self)[2]
 
 
 @dataclass(frozen=True)
@@ -94,6 +106,7 @@ class FragmentDecoder:
         self.frozen = False
         self.programs = PreparedActionPrograms(index)
         self.fragments = {}
+        self.details = {}
         self.bonds = {}
         self.terms = {}
         self.counts = FragmentCountIndex(index, self)
@@ -155,24 +168,33 @@ class FragmentDecoder:
             positions = {aid: i for i, aid in enumerate(binding)}
             local_domains = {a: domains[a] for a in atoms}
             local_dependencies = {a: tuple(positions[i] for i in dependencies[a]) for a in atoms}
-            neighbors = self.index.neighboring_pairs(local_domains)
-            neighbors = {(a, b) for a, b in neighbors if a in local_domains and b in local_domains}
-            neighbors.update(cuts)
+            response = FragmentResponse(piece, local_domains, local_dependencies,
+                                        pairs, local_actions, cuts, proxy(self))
+            self.fragments[key] = replace(response, event_counts=FragmentEventCounts(self.counts, response))
+        return self.fragments[key], binding
+
+    def fragment_bonds(self, response):
+        """Prepare detailed bond lookups only for inspection or a joint cost."""
+        key = response.piece, response.mapping, response.actions, response.cut_bonds
+        if key not in self.details:
+            domains, dependencies = response.atom_domains, response.atom_actions
+            mapping = dict(response.mapping)
+            neighbors = self.index.neighboring_pairs(domains)
+            neighbors = {(a, b) for a, b in neighbors if a in domains and b in domains}
+            neighbors.update(response.cut_bonds)
             terms, projected = [], 0
             sequences = {}
             for a, b in sorted(neighbors):
-                ids = tuple(sorted(set(local_dependencies[a]) | set(local_dependencies[b])))
+                ids = tuple(sorted(set(dependencies[a]) | set(dependencies[b])))
                 if ids not in sequences:
-                    sequences[ids] = self.programs.select(local_actions, ids)
+                    sequences[ids] = self.programs.select(response.actions, ids)
                 term, count = self.bond((a, b), (mapping[a], mapping[b]), sequences[ids],
-                    (local_domains[a], local_domains[b]), ids, (a, b) in cuts)
+                    (domains[a], domains[b]), ids, (a, b) in response.cut_bonds)
                 projected += count
                 if term is not None:
                     terms.append(term)
-            response = FragmentResponse(piece, local_domains,
-                local_dependencies, tuple(terms), projected, len(neighbors), pairs, local_actions)
-            self.fragments[key] = replace(response, event_counts=FragmentEventCounts(self.counts, response))
-        return self.fragments[key], binding
+            self.details[key] = tuple(terms), projected, len(neighbors)
+        return self.details[key]
 
     def bind(self, terms, binding):
         key = id(terms), binding
@@ -190,5 +212,6 @@ class FragmentDecoder:
         """Drop derived contexts outside the window; keep shared local solutions."""
         self.fragments = {key: value for key, value in self.fragments.items()
                           if id(value) in identities}
+        self.details = {key: value for key, value in self.details.items() if key in self.fragments}
         self._bound_terms.clear()
         self.release_bond_lookups()

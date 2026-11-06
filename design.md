@@ -546,10 +546,12 @@ ready, before publication. Persist only compact
 relations and sparse costs; their size is still not a bound on total reaction
 memory. Scheduling and hard resource watchdogs remain outside the scientific core.
 
-Share each local bond-term sequence across its branch uses. A branch stores one
-local-to-branch action-position map, not a relabelled copy of every bond term.
-Persistence preserves the same sharing; explicit inspection may resolve positions
-lazily without retaining a second expanded representation.
+Normal assembly and persistence consume the shared core responses directly.
+Do not also construct or save per-bond lookup tables for a fragment whose cost
+is already represented there. Explicit bond inspection derives those lookups
+when requested; ordered contexts without a whole-fragment projection prepare
+the terms needed by their joint cost. Such terms share one local sequence and
+one action-position binding per branch use, rather than relabelled copies.
 
 ## Local and distributed execution
 

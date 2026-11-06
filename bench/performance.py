@@ -209,7 +209,7 @@ def worker(args, case):
                     states=len(graph.states), transitions=len(graph.transitions),
                     terminals=len(graph.terminals), stops=[vars(stop) for stop in graph.stops],
                     families=len(catalogue.families), fragments=len(decoded.inventory.fragments),
-                    tables=len(record['tables']), responses=len(record['responses']),
+                    tables=len(record['tables']), fragment_responses=len(record['fragment_responses']),
                     output_schema=record['schema'], serialized_bytes=len(binary),
                     output_sha256=audit,
                     cache_before=cache_before, cache_after=session.repair.stats(),

@@ -500,19 +500,14 @@ class FragmentEventTables:
         self.sweep_removed, self.sweep_width = boundary.sweep_removed, boundary.sweep_width
         program = local.programs.program(family.actions)
         self.atom_domains, self.atom_actions = local.programs.bind(program, family.mapping)
-        self.internal, self.boundary = {}, {}
+        self.boundary = {}
         self.fragment_responses = tuple(local.fragment(fragment, mapping, program,
             self.atom_domains, self.atom_actions, self.cut_bonds) for fragment in fragments)
         # A branch binds shared local action positions to its original program.
         # Only these bindings and boundary relationships belong to the branch.
-        for owner, (response, binding) in enumerate(self.fragment_responses):
+        for response, _ in self.fragment_responses:
             self.atom_domains.update(response.atom_domains)
-            if response.terms:
-                self.internal[owner] = local.bind(response.terms, binding)
-        self.projected_pair_states = sum(response.projected_pair_states
-                                         for response, _ in self.fragment_responses)
-        self.neighboring_pair_count = int(self.sweep_cut is not None) + sum(
-            response.neighboring_pair_count for response, _ in self.fragment_responses)
+        self._sweep_projected = 0
         if self.sweep_cut is not None:
             a, b = self.sweep_cut
             left, right = int(self.owners[a]), int(self.owners[b])
@@ -521,10 +516,8 @@ class FragmentEventTables:
             actions = local.programs.select(program, action_ids)
             term, projected = local.bond((a, b), pair, actions,
                 (self.atom_domains[a], self.atom_domains[b]), action_ids, True)
-            self.projected_pair_states += projected
+            self._sweep_projected = projected
             self.boundary[tuple(sorted((left, right)))] = (term,)
-        # Preserve the public record order of the original sorted bond walk.
-        self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1].terms[0].atoms))
         self.components = self._dependency_components()
         lower, upper = boundary.lower, boundary.count
         for response, _ in self.fragment_responses:
@@ -538,6 +531,24 @@ class FragmentEventTables:
             upper -= int(boundary.source_cut_counted)
             upper -= int(tuple(sorted((mapping[a], mapping[b]))) in self.product_boundary_set)
         self.count_bounds = int(lower), int(upper)
+
+    @cached_property
+    def internal(self):
+        """Detailed pair responses are an explicit inspection, not assembly."""
+        groups = {owner: self.local.bind(response.terms, binding)
+                  for owner, (response, binding) in enumerate(self.fragment_responses)
+                  if response.terms}
+        return dict(sorted(groups.items(), key=lambda item: item[1].terms[0].atoms))
+
+    @property
+    def projected_pair_states(self):
+        return self._sweep_projected + sum(response.projected_pair_states
+                                           for response, _ in self.fragment_responses)
+
+    @property
+    def neighboring_pair_count(self):
+        return int(self.sweep_cut is not None) + sum(response.neighboring_pair_count
+                                                    for response, _ in self.fragment_responses)
 
     @cached_property
     def program(self):

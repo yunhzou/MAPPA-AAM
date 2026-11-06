@@ -53,20 +53,23 @@ def saved_response_bounds(record, problem, deadline):
     Correlation and required edges can restrict choices further, never invalidate
     an event whose saved local responses are all nonzero.
     """
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    decoded = decoded_events_from_record(record)
     heavy = [element != 'H' for element in problem.reactant.elements]
-    mandatory = [bool(row['categories']) and all(row['categories'])
-                 for row in record['responses']]
-    table_bounds = [0] * len(record['tables'])
+    table_bounds = {}
+    bounds = [0] * len(record['families'])
     checked = 0
-    for number, table in enumerate(record['tables']):
+    for fid, number, table in decoded._export_tables():
         if time.perf_counter() >= deadline:
             break
-        table_bounds[number] = sum(
-            heavy[term['atoms'][0]] and heavy[term['atoms'][1]] and mandatory[term['response']]
-            for kind in ('internal', 'boundary') for group in table[kind] for term in group['terms'])
-        checked += 1
-    return [max((table_bounds[i] for i in family['tables']), default=0)
-            for family in record['families']], checked
+        if table is not None:
+            table_bounds[number] = sum(
+                heavy[term.atoms[0]] and heavy[term.atoms[1]]
+                and bool(len(term.response.categories)) and bool(all(term.response.categories))
+                for group in (*table.internal.values(), *table.boundary.values()) for term in group)
+            checked += 1
+        bounds[fid] = max(bounds[fid], table_bounds[number])
+    return bounds, checked
 
 
 def minimum_events(decoded, reference, *, seconds=30.):
@@ -81,7 +84,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
 
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
-    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8', 'mappa.decoded_events/v11', 'mappa.decoded_events/v12', 'mappa.decoded_events/v13'):
+    if decoded['schema'] != 'mappa.decoded_events/v14':
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds

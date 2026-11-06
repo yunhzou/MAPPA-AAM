@@ -217,8 +217,9 @@ def model_events(problem, representative, mapping, partition, cuts=(), *, thresh
 def check_contributions(interpreted, choices):
     from collections import Counter
     from mappa.mappa_core.post_processing.decoder.events import EVENT_CATEGORIES
-    from mappa.mappa_core.utils.io.records import decoded_events_record
+    from mappa.mappa_core.utils.io.records import decoded_events_record, decoded_events_from_record
     record = json.loads(json.dumps(decoded_events_record(interpreted)))
+    restored = decoded_events_from_record(record)
     expected_counts = []
     for choice in choices:
         mapping = interpreted.realize(0,choice)
@@ -231,33 +232,18 @@ def check_contributions(interpreted, choices):
         result = interpreted.contributions(0,choice,include_events=True)
         actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
         assert actual == expected
-        # The saved local responses suffice without the derived per-atom maps.
-        # Check every saved partition against the independent scalar oracle.
-        for number in record['families'][0]['tables']:
-            table, exported = record['tables'][number], []
-            for region in (*table['internal'], *table['boundary']):
-                for term in region['terms']:
-                    images = tuple(mapping.get(a) for a in term['atoms'])
-                    weight = (0. if None in images else
-                              float(interpreted.index.problem.product.wbo[images]))
-                    response = record['responses'][term['response']]
-                    code = response['categories'][response['target_weights'].index(weight)]
-                    if code:
-                        exported.append((EVENT_CATEGORIES[code - 1], tuple(term['atoms']),
-                                         None if None in images else tuple(sorted(images))))
-            owners = {a: i for i, atoms in enumerate(table['fragments']) for a in atoms}
-            cut = next((tuple(pair) for pair in table['cut_bonds']
-                        if all(a in owners for a in pair) and owners[pair[0]] != owners[pair[1]]), None)
-            target_cut = None if cut is None else tuple(sorted(mapping[a] for a in cut))
-            exported.extend(('breaking', tuple(pair), None)
-                            for pair in table['reactant_boundary_pairs'] if tuple(pair) != cut)
-            exported.extend(('forming', None, tuple(pair))
-                            for pair in table['product_boundary_pairs']
-                            if tuple(pair) != target_cut)
+        # Restored shared core responses must preserve each partition and cut,
+        # checked against the independent scalar model rather than export shape.
+        for fid, partition, cut in restored.window.contexts:
+            if fid != 0:
+                continue
             partition_expected = model_events(interpreted.event_problem,
                 dict(interpreted.catalogue.families[0].mapping), mapping,
-                table['fragments'], tuple(map(tuple, table['cut_bonds'])),
+                restored.fragment_partitions[fid][partition], restored.cut_contexts[fid][partition][cut],
                 threshold=interpreted.index.threshold, metal_threshold=interpreted.index.metal_threshold)
+            detail = restored.contributions(fid, choice, partition=partition, cut=cut, include_events=True)
+            exported = [(event['category'], event['reactant_pair'], event['product_pair'])
+                        for event in detail['events']]
             assert sorted(exported, key=repr) == partition_expected
         counts = Counter(e[0] for e in expected)
         assert result['counts'] == {k:counts[k] for k in EVENT_CATEGORIES}
@@ -647,7 +633,7 @@ def test_normal_decoding_export_keeps_relations_without_whole_reaction_reports(m
     record = decoded_events_record(decoded)
     assert record['catalogue'] == source.to_record() and record['mapping_space_preserved']
     assert not record['exhaustive_event_patterns'] and not record['global_minimum_proven']
-    assert 'representatives' not in record and record['tables'] and record['responses']
+    assert 'representatives' not in record and record['tables'] and record['fragment_responses']
     assert decoded.contributions(0)['total'] == 0
     assert decoded.contributions(0, [swap(fragment)])['counts'] == dict(
         breaking=0, forming=0, strengthening=1, weakening=1)

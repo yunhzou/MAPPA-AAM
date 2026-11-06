@@ -129,7 +129,15 @@ class FragmentEventCounts:
     """
     def __init__(self, owner, response):
         self.owner, self.response = owner, response
-        self.lower = max(count_bounds(owner.index, response)[0], owner.aggregate_bound(response))
+
+    @cached_property
+    def lower(self):
+        # The shared core already certifies fixed events across this fragment's
+        # correlated choices. Do not rebuild per-bond domain tables for its cost.
+        prepared = self.prepared_fragment
+        local = (prepared.response.fixed_events if prepared is not None
+                 else count_bounds(self.owner.index, self.response)[0])
+        return max(local, self.owner.aggregate_bound(self.response))
 
     @cached_property
     def prepared_fragment(self):

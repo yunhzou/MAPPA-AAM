@@ -98,66 +98,21 @@ def decoded_events_record(result):
     reports and canonical event IDs are explicit queries, not part of export.
     Per-atom lookup maps are derived from the saved catalogue, not persisted.
     """
-    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation, BoundEventTerms
+    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
-    tables, responses, response_ids = [], [], {}
+    tables = []
     families = [dict(family_id=fid, tables=[]) for fid in range(len(result.catalogue.families))]
-    term_records, term_lists, term_objects, group_records = {}, {}, {}, {}
-    component_records = {}
-
-    def term_record(term):
-        response = term.response
-        if response not in response_ids:
-            response_ids[response] = len(responses)
-            responses.append(dict(source_weight=response.source_weight,
-                threshold=response.threshold, target_weights=response.target_weights.tolist(),
-                categories=response.categories.tolist()))
-        if term not in term_records:
-            term_records[term] = dict(atoms=term.atoms, action_ids=term.action_ids,
-                response=response_ids[response], initial_pair=term.initial_pair,
-                endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
-        return term_records[term]
-    def terms_record(terms):
-        identity = id(terms)
-        if identity not in term_objects:
-            if terms not in term_lists:
-                term_lists[terms] = [term_record(term) for term in terms]
-            # Keep the tuple alive: bindings share it across many branches,
-            # so hashing every term again for each use is unnecessary.
-            term_objects[identity] = terms, term_lists[terms]
-        return term_objects[identity][1]
-
-    def groups_record(groups, label):
-        rows = []
-        for region, terms in groups.items():
-            binding = terms.binding if isinstance(terms, BoundEventTerms) else None
-            if binding is not None:
-                terms = terms.terms
-            saved_terms = terms_record(terms)
-            # A branch stores the local-to-global action positions once for the
-            # whole group; its bond records remain shared with every other use.
-            key = label, region, id(saved_terms), binding
-            if key not in group_records:
-                group_records[key] = {label: region, 'terms': saved_terms,
-                                      'action_binding': binding}
-            rows.append(group_records[key])
-        return rows
-
     for fid, number, table in result._export_tables():
         for fragment in result.catalogue.families[fid].fragments:
             result.local.prepare(fragment)
         if table is not None:
             tables.append(dict(fragments=table.fragments, cut_bonds=sorted(table.cut_bonds),
-                internal=groups_record(table.internal, 'fragment'),
-                boundary=groups_record(table.boundary, 'fragments'),
                 fixed_boundary=[dict(fragments=region, counts=tuple(map(int, counts)))
                                 for region, counts in table.fixed_boundary.items()],
                 reactant_boundary_pairs=table.reactant_boundary_pairs.tolist(),
                 product_boundary_pairs=table.product_boundary_pairs.tolist(),
-                event_window=result.event_window,
-                components=component_records.setdefault(table.components, table.components),
-                statistics=table.statistics))
+                event_window=result.event_window, components=table.components))
         families[fid]['tables'].append(number)
         del table
     from dataclasses import asdict
@@ -167,13 +122,13 @@ def decoded_events_record(result):
                         if name not in ('search_seconds', 'elapsed_seconds', 'work')},
                      response=value.response.to_record())
                 for key,value in result.local.prepared.items() if key in fragment_ids]
-    record = dict(schema='mappa.decoded_events/v13', method='binary_fragment_events',
+    record = dict(schema='mappa.decoded_events/v14', method='binary_fragment_events',
         scope='Independent ordinary boundaries with selected fragment starting correspondences and binary symmetry',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
             reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
             product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
-        families=families, tables=tables, responses=responses,
+        families=families, tables=tables,
         fragment_responses=prepared, fragment_seconds=result.local.fragment_seconds,
         retained_contexts=result.window.contexts,
         window=result.window.to_record(),
@@ -202,7 +157,7 @@ def decoded_events_from_record(record):
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.post_processing.decoder.fragments import DecodedFragment
     from mappa.mappa_core.core.symmetry.minimum import FragmentMinimum, FragmentSymmetryEvents, SymmetryWork
-    if record['schema'] != 'mappa.decoded_events/v13':
+    if record['schema'] != 'mappa.decoded_events/v14':
         raise ValueError('require a saved binary-fragment event response')
     problem = problem_from_record(record['problem'])
     events = problem_from_record(record['event_problem']) if 'event_problem' in record else problem
