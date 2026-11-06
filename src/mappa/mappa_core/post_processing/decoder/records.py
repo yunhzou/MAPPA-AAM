@@ -195,8 +195,12 @@ class EventInterpretation:
         A shared table is supplied only at its first occurrence. Tables explicitly
         requested through tables() remain owned by the interpretation.
         """
+        contexts = self.window.contexts
+        # Every retained context is prepared by the window. Its responses own
+        # the terms; do not keep their construction indexes beside saved copies.
+        self.local.release_bond_lookups()
         references = {}
-        for family_id, partition, cut in self.window.contexts:
+        for family_id, partition, cut in contexts:
             key = self._table_key(family_id, partition, cut)
             if key in references:
                 yield family_id, references[key], None

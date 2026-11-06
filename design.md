@@ -541,7 +541,8 @@ boundary model and does not silently reassign model bins.
 Saved results retain the unchanged matching catalogue, each selected starting
 correspondence, shared response and window decisions. Loading reconstructs query
 objects without rerunning starting-map optimization or symmetry preparation.
-Working branch tables are released after publication. Persist only compact
+Calculation-only branch state is released when the independent saved record is
+ready, before publication. Persist only compact
 relations and sparse costs; their size is still not a bound on total reaction
 memory. Scheduling and hard resource watchdogs remain outside the scientific core.
 

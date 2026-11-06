@@ -180,3 +180,8 @@ class FragmentDecoder:
             # The view owns its source tuple, preventing identity reuse.
             self._bound_terms[key] = BoundEventTerms(terms, binding)
         return self._bound_terms[key]
+
+    def release_bond_lookups(self):
+        """Prepared responses own their terms; construction indexes can go."""
+        self.bonds.clear()
+        self.terms.clear()

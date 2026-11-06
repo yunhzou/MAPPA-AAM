@@ -2,6 +2,7 @@
 from collections import defaultdict
 from dataclasses import replace
 from functools import cached_property
+from weakref import proxy
 
 import numpy as np
 
@@ -23,7 +24,9 @@ class FragmentCountIndex:
     """Reaction-owned certificates and weight bags, shared across fragment uses."""
     def __init__(self, index, decoder):
         self.index = index
-        self.decoder = decoder
+        # The decoder owns this index. A back-reference must not keep its large
+        # working tables alive after the independent saved record is returned.
+        self.decoder = proxy(decoder)
         self.groups = {}
         self.bags = {}
 

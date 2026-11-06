@@ -167,6 +167,40 @@ def assert_all_choices(decoded):
                     assert_model_choice(decoded, fid, choice, mapping, partition, cut)
 
 
+def test_saved_record_does_not_retain_decoder_working_state():
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+
+    decoded = decode_events(two_branches())
+    record = decoded_events_record(decoded)
+    working = ref(decoded.local)
+    was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        del decoded
+        assert working() is None
+        restored = decoded_events_from_record(record)
+        assert_all_choices(restored)
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
+def test_export_releases_construction_indexes_without_rebuilding_fragments(monkeypatch):
+    decoded = decode_events(correlated_branches(), event_slack=1000)
+    _ = decoded.window
+    assert decoded.local.bonds and decoded.local.terms
+    bond = FragmentDecoder.bond
+    def check_bond(self, atoms, pair, actions, domains, action_ids, manual_cut):
+        assert manual_cut, 'export rebuilt an internal bond response'
+        return bond(self, atoms, pair, actions, domains, action_ids, manual_cut)
+    with monkeypatch.context() as patch:
+        patch.setattr(FragmentDecoder, 'bond', check_bond)
+        first = decoded_events_record(decoded)
+        second = decoded_events_record(decoded)
+    assert first == second
+    assert all(term.manual_cut for term in decoded.local.terms.values())
+
+
 def test_inventory_is_complete_before_any_event_decoding(monkeypatch):
     source = two_branches()
     collected = []
