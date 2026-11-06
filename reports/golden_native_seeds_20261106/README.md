@@ -312,6 +312,10 @@ edges. The following repair removes that reconstruction.
 
 ### Original-fragment preservation repair
 
+This measured approach at `9b6ee47` was superseded by the representative-selection
+correction below. Keeping every original record violated the intended one-record
+rule even though those records shared an atom-set branch.
+
 Reduction now retains the original immutable fragment records and their ordered
 local/placement actions. Final atom-set compositions remain the branch key;
 different original records are retained as alternatives within that branch.
@@ -367,3 +371,52 @@ stage are retained in the evidence, separately from the earlier native times.
 These are single observations, with correctness tests concurrent with some runs;
 do not treat timing differences as precise speed ratios. No failed campaign
 ledger was reset, no matching was repeated, and no cluster retry was launched.
+
+### One original fragment per atom-set pair
+
+Reduction now retains one original record per source/target atom-set pair. Its
+witness, domains, accepted growth edges, anchors and binary symmetry stay intact;
+later records on the same sets are duplicates. Branches reference that retained
+record and use its starting witness. The existing symmetry optimization and
+bounded starting-position search handle alignment. The matcher, event core,
+five-second fragment allowance and **minimum + 5** window are unchanged.
+
+Native history collection groups decisions by atom sets and placement context,
+while retaining one original decision from the supplied reachable scope. Growth
+provenance remains compact. Shared action conversion is reused within one input
+graph; duplicate witnesses do not create additional decoding work. Catalogue
+schema v7 requires re-reduction of the saved matching graphs.
+
+All **1,307 tests passed in 123.28 seconds**. Critical checks cover differing
+witnesses and constraints on the same sets, the retained witness's use across
+branches, target-frame relabelling, selected-path scope, persistence and sweep
+coupling. The triangle-tail fixture discards a second, better growth witness and
+still discovers its zero-event alignment through the existing bounded search.
+A million histories carrying different discovery records reduce without path
+expansion. The 64 tiny mapping oracles retain valid mappings and unchanged atom-set
+branches: 60 retain the same mapping union and four retain a smaller union.
+This is the declared one-representative policy, not preservation of every raw
+discovery history; it must not be presented as exhaustive coverage.
+
+The [local saved-input measurements](unique-fragment-validation.json) cover two
+directions at one and ten seeds. All four retain their branch-composition hashes,
+catalogue reference recovery and exact annotated recovery within the decoded
+window. Matching was reused; no previous implementation was rerun.
+
+| Direction / seeds | Recorded native reduction CPU (s) | Current reduction CPU (s) | Recorded native decoding CPU (s) | Current decoding CPU (s) |
+|---|---:|---:|---:|---:|
+| 1640 forward / 1 | 0.049 | 0.015 | 3.008 | 1.392 |
+| 1640 forward / 10 | 0.214 | 0.114 | 15.673 | 7.173 |
+| 1763 reverse / 1 | 0.060 | 0.127 | 3.046 | 2.461 |
+| 1763 reverse / 10 | 0.251 | 0.583 | 4.864 | 3.596 |
+
+For 1763 reverse at ten seeds, the 4,532 atom-set branches now reference **731
+unique fragments**, rather than 1,099 records. The 5,032 ordered placement contexts
+replace 33,928 witness/history records. Decoding decreases from the preceding
+repair's 16.539 to **3.596 CPU seconds**, with sampled process-tree peak **0.447
+GiB** across reduction, decoding and publication. Both current stages together
+are faster than the recorded native measurement in all four configurations;
+reduction alone remains slower for 1763. The measurements are single observations,
+using one numerical thread and the current 2 GiB guard, and do not establish
+full-dataset speed or accuracy. Full one-seed and ten-seed validation remains
+pending; no benchmark was restarted and no original ledger or budget was changed.

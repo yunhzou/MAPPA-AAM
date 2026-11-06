@@ -436,24 +436,29 @@ records. Live continuation contexts
 cannot be discarded merely because their final atom-set groups coincide.
 
 One catalogue per endpoint problem and direction reduces all supplied seeds and
-cuts. Intern each final reactant/product atom-set pair once under the fixed
-policy and explicit anchors. Deduplicate branch compositions by their fragment
-pairs. Original fragment relations may overlap and remain shared alternatives;
-their different growth records do not split the final atom-set branch.
+cuts under the fixed policy. Keep exactly one fragment record per reactant/product
+atom-set pair. Retain the first original record intact and reference it from every
+branch using that pair. Different starting witnesses, discovery domains and growth
+routes do not create additional fragment records or local decoding jobs.
+Deduplicate branch compositions by their shared fragments and ordered placement
+context, independently of the growth witness.
 
 The atom-set pair is a deduplication key, not a replacement fragment payload.
-Reduction preserves the original witnesses, discovery domains, accepted growth
-edges, anchors and symmetry relationships through shared immutable references.
+Reduction preserves the retained record's witness, discovery domains, accepted
+growth edges, anchors and symmetry relationships through shared immutable references.
 It must not rebuild a fragment with broader mapping permissions, erase constraints
-or reinterpret growth information. When records with the same atom-set key carry
-different information, retain their original alternatives under that identity;
-grouping does not justify discarding an alternative or combining its constraints
-with another's. Preserve shared histories without expanding their paths.
+or reinterpret growth information. Discard duplicate fragment records, rather
+than retaining their alternative witnesses or combining their constraints. Raw
+search archives retain the original decisions; compact provenance does not cause
+those decisions to be decoded again. The selected record supplies one starting
+correspondence; symmetry optimization and the existing bounded starting-position
+search handle alignment. This is representative selection, not preservation of
+the union of every discarded discovery relation.
 
 Retain ordered global placement alternatives as branch context: they move whole
 continuations and must not permit independent overlapping occupancy. Such
 alternatives can share one atom-set branch and its local fragment responses.
-Retain the original local relations and placements together. Reorder only
+Retain the selected local relations and placements together. Reorder only
 independent decisions; overlapping actions preserve their recorded order.
 Reduction performs structural key lookups and provenance aggregation. It does
 not solve symmetry, search for starting maps or count events. Binary symmetry

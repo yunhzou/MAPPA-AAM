@@ -520,9 +520,12 @@ public:
 PYBIND11_MODULE(_group_ops, m) {
     m.def("collect_histories", [](int states, const Images& roots, const Images& terminals,
             py::sequence transitions, std::optional<std::vector<std::pair<int, Images>>> selected) {
-        py::dict decision_ids;
+        py::dict decision_keys;
+        py::dict placements;
+        std::map<PyObject*, int> placement_objects;
         std::map<std::pair<PyObject*, PyObject*>, int> objects;
         std::vector<py::tuple> decisions;
+        std::vector<int> keys;
         std::vector<reduction_native::HistoryEdge> edges;
         for (py::handle edge : transitions) {
             py::object fragment = edge.attr("match"), generators = edge.attr("placement_generators");
@@ -534,16 +537,22 @@ PYBIND11_MODULE(_group_ops, m) {
                     if (!fragment.is_none()) actions.append(py::make_tuple("relation", fragment));
                     if (py::len(generators)) actions.append(py::make_tuple("group", generators));
                     py::tuple block(actions);
-                    if (!decision_ids.contains(block)) {
-                        decision_ids[block] = py::int_(decisions.size());
-                        decisions.push_back(block);
+                    auto [placement, unseen] = placement_objects.try_emplace(generators.ptr(), -1);
+                    if (unseen) {
+                        if (!placements.contains(generators)) placements[generators] = py::int_(placements.size());
+                        placement->second = py::cast<int>(placements[generators]);
                     }
-                    entry->second = py::cast<int>(decision_ids[block]);
+                    py::tuple key = py::make_tuple(fragment.is_none() ? py::object(py::none())
+                        : fragment.attr("atom_sets"), placement->second);
+                    if (!decision_keys.contains(key)) decision_keys[key] = py::int_(decision_keys.size());
+                    entry->second = static_cast<int>(decisions.size());
+                    decisions.push_back(block);
+                    keys.push_back(py::cast<int>(decision_keys[key]));
                 }
                 decision = entry->second;
             }
             edges.push_back({py::cast<int>(edge.attr("id")), py::cast<int>(edge.attr("source")),
-                py::cast<int>(edge.attr("target")), decision});
+                py::cast<int>(edge.attr("target")), decision, decision < 0 ? -1 : keys[decision]});
         }
         reduction_native::HistoryProjection result;
         {py::gil_scoped_release release; result = reduction_native::collect_histories(states, roots, terminals, edges, selected);}

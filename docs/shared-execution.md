@@ -11,8 +11,9 @@ decoded = decode_events(catalogue)
 ```
 
 `deduplicate` shares completed fragments by reactant/product atom-set pairs and
-groups their branch compositions across seeds and cuts. It preserves original
-fragment records, including discovery constraints and anchors, together with
+groups their branch compositions across seeds and cuts. It keeps one original
+record per atom-set pair, including its discovery constraints and anchors,
+and discards duplicate growth witnesses. Branches reference that record together with
 ordered local/global actions and sweep provenance. Decoding prepares local fragment and boundary responses from
 that catalogue. A cut is a matching work unit, not an independent decoding input.
 Catalogue transport retains shared history links and terminal references; it

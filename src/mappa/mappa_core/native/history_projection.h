@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace reduction_native {
-struct HistoryEdge {int id, source, target, decision;};
+struct HistoryEdge {int id, source, target, decision, key;};
 using Parents = std::vector<std::pair<int, int>>;
 using Choices = std::vector<std::pair<int, int>>;
 struct HistoryProjection {
@@ -26,9 +26,11 @@ inline HistoryProjection collect_histories(int states, const std::vector<int>& r
     std::map<std::pair<int, int>, int> program_ids;
     auto append = [&](int program, const HistoryEdge& edge) {
         if (edge.decision < 0) return program;
-        auto key = std::make_pair(edge.decision, program);
+        auto key = std::make_pair(edge.key, program);
         auto [entry, added] = program_ids.emplace(key, static_cast<int>(result.programs.size()));
-        if (added) result.programs.push_back(key);
+        // Keep one original reachable decision, without making its witness
+        // another program on the same atom sets and placement context.
+        if (added) result.programs.emplace_back(edge.decision, program);
         return entry->second;
     };
     auto add = [&](Parents parents) {

@@ -48,7 +48,7 @@ class Fragment:
 
     @cached_property
     def atom_sets(self):
-        return self.source_atoms, self.target_atoms
+        return tuple(sorted(self.source_atoms)), tuple(sorted(self.target_atoms))
 
     def __reduce__(self):
         return type(self), (self.relation,)

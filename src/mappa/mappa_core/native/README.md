@@ -31,6 +31,9 @@ imports are `mappa._engine` and `mappa._group_ops`.
   The bulk `fragment_compositions` projection interns final atom-set pairs and
   returns fragment-ID compositions. It performs partition bookkeeping only,
   without symmetry, event computation or changes to matching choices.
+  History projection groups atom-set and placement decisions, retaining the
+  first reachable original record. Duplicate witnesses add provenance, not
+  separate fragment programs. Selected paths cannot borrow discarded decisions.
 - `set_orbit.h` supplies compact target-set transport and pointwise stabilizers.
   It keeps correlated generator supports together without materializing the
   complete permutation group or target-set orbit.

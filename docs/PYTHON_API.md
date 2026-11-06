@@ -23,9 +23,11 @@ record = decoded_events_record(decoded)
 ```
 
 Reduction groups final reactant/product atom-set pairs within the fixed reaction
-and policy. It shares original fragment records without changing their witnesses,
-discovery constraints, anchors or symmetry. Different original alternatives stay
-under the same atom-set branch. Branches retain their ordered local/global actions
+and policy. It retains one original fragment per atom-set pair, with its witness,
+discovery constraints, anchors and symmetry intact. Different growth witnesses
+on the same sets are discarded as duplicates. Branches share the retained record
+and use its witness; later alignment belongs to decoding's bounded search.
+Branches retain their ordered local/global actions
 and sweep provenance. Reduction performs no symmetry or event search.
 Completed states are projected to shared fragment IDs in bulk. Growth histories
 remain compact parent references, including in saved catalogue records.
@@ -393,8 +395,8 @@ Without `categories=True`, `counts` retains decrease/increase counts.
 `events.inventory.fragments` contains the unique saved Fragment objects.
 `events.inventory.uses[family_id]` identifies the disjoint pieces owning internal
 bonds in each final partition. Inventory construction precedes response preparation.
-Identical original fragment records share a local response. Equal atom-set keys
-alone do not authorize replacing different recorded relationships. Global
+All uses of the same atom-set pair share the retained fragment's local response.
+Reduction does not retain a second record for a different growth witness. Global
 placement order and sweep context remain branch-level information. Original
 overlapping relations retain their order while final pieces assign bond ownership.
 

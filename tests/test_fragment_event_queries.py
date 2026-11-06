@@ -277,7 +277,7 @@ def test_saved_response_restores_without_symmetry_or_starting_search(monkeypatch
 def test_restored_window_keeps_only_prepared_fragments():
     r = endpoint('CCC', [(0,1,1.), (1,2,1.)])
     catalogue = saved(r,r,{0:0,1:1,2:2})
-    extra = saved(r,r,{0:2,1:1,2:0}, pairs=(((0,),(2,)),((1,),(1,)),((2,),(0,))))
+    extra = saved(r,r,{0:2,1:1}, pairs=(((0,),(2,)),((1,),(1,))))
     catalogue.families.extend(extra.families)
     catalogue.branches.update({key:{1} for key in extra.branches})
     result = decode_events(catalogue,event_slack=0)

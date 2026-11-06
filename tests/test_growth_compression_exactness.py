@@ -234,12 +234,11 @@ def test_equal_atom_sets_merge_distinct_growth_constraints_after_search():
     changed = with_edges(((0, 1), (1, 2)))
     other = with_edges(((0, 1), (0, 2)))
     cat = FinalBranchCatalogue(AAMProblem(endpoint, endpoint)).add_graph(changed).add_graph(other)
-    assert cat.branch_count == 1 and len(cat.families) == 2
+    assert cat.branch_count == len(cat.families) == 1
     assert sum(len(f.provenance) for f in cat.families) == 2
     assert cat.families[0].fragments[0] is changed.transitions[0].match
-    assert cat.families[1].fragments[0] is other.transitions[0].match
     assert cat.families[0].fragments[0].accepted_edges == ((0, 1), (1, 2))
-    assert cat.families[1].fragments[0].accepted_edges == ((0, 1), (0, 2))
+    assert other.transitions[0].match.accepted_edges == ((0, 1), (0, 2))
 
 
 def image_query(source, target, atoms, bonds, *, locked=None, tolerance=.2):

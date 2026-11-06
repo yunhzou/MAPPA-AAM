@@ -1,4 +1,4 @@
-"""Reduction preserves complete local relations, order, provenance and sharing."""
+"""Atom-set deduplication retains one original fragment and its shared response."""
 from dataclasses import replace
 from itertools import permutations
 import json
@@ -78,13 +78,67 @@ def test_growth_constraints_do_not_split_a_completed_atom_set_fragment():
     constrained = saved_fragment(value, accepted_edges=((0, 1),), iso_tolerance=0.)
     saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (free,)).graph)
     saved.add_graph(saved_path(value, (constrained,)).graph)
-    assert saved.branch_count == 1 and len(saved.families) == 2
+    assert saved.branch_count == len(saved.families) == 1
     assert saved.families[0].fragments == (free,)
-    assert saved.families[1].fragments == (constrained,)
-    assert saved.families[1].fragments[0] is constrained
+    assert saved.families[0].fragments[0] is free
     assert sum(len(f.provenance) for f in saved.families) == 2
-    for original, family in zip((free, constrained), saved.families):
-        assert recovered(saved_path(value, (original,)), value) == recovered(family.as_path(value), value)
+    assert recovered(saved_path(value, (free,)), value) == recovered(saved.families[0].as_path(value), value)
+
+
+def test_duplicate_starting_witness_is_discarded_and_later_search_finds_alignment():
+    from test_fragment_optimization import triangle
+    original = triangle()
+    value = problem('CCCC', [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)],
+                    [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
+    improved = replace(original, relation=replace(original.relation,
+        witness=tuple(enumerate(range(4)))))
+    record = original.to_record()
+    saved = FinalBranchCatalogue(value)
+    saved.add_graph(saved_path(value, (original,)).graph)
+    saved.add_graph(saved_path(value, (improved,)).graph)
+    assert saved.branch_count == len(saved.families) == 1
+    assert saved.families[0].fragments == (original,)
+    assert saved.families[0].fragments[0] is original
+    assert len(saved.to_record()['fragments']) == 1
+    decoded = decode_events(saved, event_slack=5)
+    assert len(decoded.inventory.fragments) == 1
+    assert decoded.minimum_events == 0
+    assert original.to_record() == record
+    answer = decoded.local.prepare(original).optimization
+    assert answer.work.discovery_improvements > 0
+
+
+@pytest.mark.parametrize('relabeled_frame', [False, True])
+def test_branches_share_one_fragment_and_use_its_retained_witness(relabeled_frame):
+    value = problem('HHHH', [], [])
+    shared = saved_fragment(value, source_atoms=(0, 1), target_atoms=(0, 1))
+    duplicate = (shared.relabel_target({0: 1, 1: 0}) if relabeled_frame else
+                 saved_fragment(value, source_atoms=(0, 1), target_atoms=(0, 1),
+                                witness={0: 1, 1: 0}))
+    together = saved_fragment(value, source_atoms=(2, 3), target_atoms=(2, 3))
+    split = tuple(saved_fragment(value, source_atoms=(i,), target_atoms=(i,)) for i in (2, 3))
+    saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (shared, together)).graph)
+    saved.add_graph(saved_path(value, (duplicate, *split)).graph)
+    assert saved.branch_count == len(saved.families) == 2
+    assert len(saved.to_record()['fragments']) == 4
+    for family in saved.families:
+        assert next(f for f in family.fragments if f.source_atoms == (0, 1)) is shared
+        assert dict(family.mapping)[0] == 0 and dict(family.mapping)[1] == 1
+        family.validate_representative(value)
+    assert len(decode_events(saved, event_slack=5).inventory.fragments) == 4
+
+
+def test_selected_scope_supplies_the_retained_fragment():
+    value = problem('CC', [], [])
+    first = saved_fragment(value)
+    second = saved_fragment(value, witness={0: 1, 1: 0})
+    graph = AAMSearchGraph.combine((saved_path(value, (first,)).graph,
+                                    saved_path(value, (second,)).graph))
+    paths = tuple(graph.paths())
+    saved = FinalBranchCatalogue(value).add_graph(graph, paths=paths[1:])
+    assert saved.families[0].fragments[0] is second
+    assert saved.families[0].mapping == second.witness
+    assert saved.path_count == 1
 
 
 def test_explicit_endpoint_anchors_remain_fixed_after_reduction():
@@ -125,14 +179,20 @@ def test_reduction_shares_final_pairs_without_symmetry_or_starting_search(monkey
         assert represented(original) == represented(family.as_path(value))
 
 
-def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatch):
+@pytest.mark.parametrize('recorded_decisions', [False, True])
+def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatch, recorded_decisions):
     import pickle
     from mappa.mappa_core.core.search.graph import SearchHistories
-    value = problem('C', [], [])
-    states = tuple(SearchState(i, 0, ((0, 0),), ((0, 1),), ()) for i in range(21))
-    edges = tuple(FragmentTransition(2*i+j, i, i+1, None, (i, j), None)
+    bonds = [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)]
+    value = problem('CCC', bonds, bonds)
+    decisions = (tuple(saved_fragment(value, accepted_edges=edges)
+                       for edges in (((0, 1), (1, 2)), ((0, 2), (1, 2))))
+                 if recorded_decisions else (None, None))
+    mapping, owners = tuple(enumerate(range(3))), tuple((a, 1) for a in range(3))
+    states = tuple(SearchState(i, 0, mapping, owners, ()) for i in range(21))
+    edges = tuple(FragmentTransition(2*i+j, i, i+1, None, (i, j), decisions[j])
                   for i in range(20) for j in range(2))
-    graph = AAMSearchGraph((SearchContext((0,), (0,), (0,)),), (0,), states,
+    graph = AAMSearchGraph((SearchContext((0, 1, 2), (0, 1, 2), (0,)),), (0,), states,
                            edges, (SearchStop(20, 'objective_met'),))
     def forbidden(*args, **kwargs):
         pytest.fail('Reduction, publication and sweep setup must not unfold growth paths')
@@ -141,6 +201,8 @@ def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatc
     catalogue = FinalBranchCatalogue(value).add_graph(graph)
     assert catalogue.path_count == 2**20
     assert catalogue.branch_count == len(catalogue.families) == 1
+    if recorded_decisions:
+        assert set(catalogue.families[0].fragments) == {decisions[0]}
     origins = catalogue.families[0].provenance
     assert len(origins) == 2**20 and len(origins.references) == 1
     assert len(origins.references[0][0].parents) == 21
@@ -253,7 +315,7 @@ def test_native_projection_reads_shared_blocks_without_expanding_states(monkeypa
 
 @pytest.mark.parametrize('seed', range(32))
 @pytest.mark.parametrize('mixed', [False, True])
-def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed, mixed):
+def test_representative_compositions_keep_valid_mappings_and_atom_set_scope(seed, mixed):
     import numpy as np
     from mappa import search_aam, AAMSearchConfig
     from growth_cases import represented
@@ -268,8 +330,14 @@ def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed,
     saved = FinalBranchCatalogue(value).add_aam(original)
     before = represented(original.graph)
     after = set().union(*(represented(family.as_path(value)) for family in saved.families))
-    assert before == after
+    # One original relation is retained per atom-set pair. The discarded
+    # discovery histories are deliberately not an exhaustive mapping union.
+    assert after and after <= before
     assert saved.branch_count == len(original.graph.branches())
+    fragments = [fragment for family in saved.families for fragment in family.fragments]
+    assert len({id(f) for f in fragments}) == len({f.atom_sets for f in fragments})
+    for family in saved.families:
+        family.validate_representative(value)
 
 
 @pytest.mark.parametrize('offset', [0, 6])

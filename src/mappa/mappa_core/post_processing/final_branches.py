@@ -1,4 +1,4 @@
-"""Atom-set branch grouping with unchanged, shared fragment relationships."""
+"""One retained fragment per atom-set pair and shared branch compositions."""
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 import hashlib
@@ -192,7 +192,7 @@ class FinalFamily:
 
 class FinalBranchCatalogue:
     """One problem, many saved searches; all histories remain as references."""
-    schema = 'mappa.final_fragment_branches/v6'
+    schema = 'mappa.final_fragment_branches/v7'
 
     def __init__(self, problem):
         self.problem = problem
@@ -208,7 +208,7 @@ class FinalBranchCatalogue:
         self._actions = {}
         self.path_count = 0
         self.incomplete_paths = 0
-        self.mode = 'preserved_fragment_compositions'
+        self.mode = 'unique_fragment_compositions'
         self.reconstruction = {}
 
     def _intern(self, cache, value):
@@ -219,7 +219,7 @@ class FinalBranchCatalogue:
         prepared = []
         for kind, value in actions:
             if kind == 'relation':
-                value = self._fragments.setdefault(value, value)
+                value = self._fragments.setdefault(value.atom_sets, value)
             elif kind == 'group':
                 # Subgraph searches retain original labels in a shorter frame.
                 if value and len(value[0]) < self.problem.target_atom_count:
@@ -257,7 +257,7 @@ class FinalBranchCatalogue:
         return result
 
     def _index_families(self):
-        """Rebuild derived lookup indexes while preserving saved joint choices."""
+        """Restore shared fragment records and their composition indexes."""
         mappings, pairs = {}, {}
         for index, family in enumerate(self.families):
             family.mapping = self._intern(mappings, tuple(
@@ -265,7 +265,9 @@ class FinalBranchCatalogue:
             family.required_edges = self._intern(self._required, tuple(
                 self._intern(pairs, pair) for pair in family.required_edges))
             family.actions = self._intern(self._programs, self.intern_actions(family.actions))
-            self._family_ids[family.policy, family.mapping, family.actions] = index
+        for (policy, pairs), ids in self.branches.items():
+            for index in ids:
+                self._family_ids[policy, pairs, self.families[index].actions] = index
 
     def add_aam(self, aam, archive='in_memory'):
         if _problem_fingerprint(aam.problem) != self.problem_sha256:
@@ -284,21 +286,33 @@ class FinalBranchCatalogue:
             tuple(dict.fromkeys(end for end, _, _ in endings)), context_ids)
         pairs_by_terminal = {end: tuple(records[index][1:3] for index in ids)
                              for end, ids in raw_compositions}
-        programs, mappings = {}, {}
+        programs, mappings, actions = {}, {}, {}
         for terminal, sequence, node in endings:
             context = graph.contexts[graph.states[terminal].context]
             policy = context.graph_floor, context.iso_tolerance
             pairs = pairs_by_terminal[terminal]
             branch = self.branches.setdefault((policy, pairs), set())
             if id(sequence) not in programs:
+                prepared = []
+                for action in sequence:
+                    key = action[0], id(action[1])
+                    if key not in actions:
+                        actions[key] = self.intern_actions((action,))[0]
+                    prepared.append(actions[key])
                 programs[id(sequence)] = self._intern(self._programs,
-                    canonical_actions(self.intern_actions(sequence)))
+                    canonical_actions(prepared))
             program = programs[id(sequence)]
-            if terminal not in mappings:
-                mappings[terminal] = tuple(sorted(graph.states[terminal].mapping))
-            witness = mappings[terminal]
-            key = policy, witness, program
+            key = policy, pairs, program
             if key not in self._family_ids:
+                # The retained fragment owns its starting correspondence. A
+                # later growth witness on the same sets is not another family.
+                if terminal not in mappings:
+                    mappings[terminal] = tuple(graph.states[terminal].mapping)
+                witness = dict(mappings[terminal])
+                for kind, fragment in reversed(program):
+                    if kind == 'relation':
+                        witness.update(fragment.witness)
+                witness = tuple(sorted(witness.items()))
                 required = self._intern(self._required, tuple(sorted({edge
                     for kind, fragment in program if kind == 'relation'
                     for edge in fragment.accepted_edges})))
@@ -338,7 +352,6 @@ class FinalBranchCatalogue:
         histories = tuple(SearchHistories.from_record(history) for history in record['histories'])
         result.families = [FinalFamily.from_record(family_record, inventory, placements, histories)
                            for family_record in record['families']]
-        result._index_families()
         atom_sets, fragment_pairs = {}, {}
         def restore_pairs(pairs):
             restored = []
@@ -355,6 +368,7 @@ class FinalBranchCatalogue:
         for ids in (*result.branches.values(), result.coupled_branches):
             if any(i < 0 or i >= len(result.families) for i in ids):
                 raise ValueError('Invalid family reference')
+        result._index_families()
         return result
 
     def to_record(self):
