@@ -196,7 +196,7 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
         # A diagnostic scan owns one working table at a time. Public select()
         # intentionally retains tables for interactive reuse, not this scan.
         key = decoded._table_key(family, partition, cut)
-        table = decoded._prepare_table(family, partition, key)
+        table = decoded._prepare_table(family, partition, key, boundary=boundary)
         remaining = seconds - (time.perf_counter() - started)
         if remaining <= 0:
             unknown = True

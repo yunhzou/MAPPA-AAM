@@ -175,12 +175,12 @@ class EventInterpretation:
         actions = self.local.programs.program(family.actions)
         return family.mapping, actions, fragments, cut_bonds
 
-    def _prepare_table(self, family_id, partition, key):
+    def _prepare_table(self, family_id, partition, key, *, boundary=None):
         from .events import FragmentEventTables
         if key in self._tables:
             return self._tables[key]
         return FragmentEventTables(self.local, self.catalogue.families[family_id],
-                                   self.inventory.uses[family_id][partition], key[-1])
+                                   self.inventory.uses[family_id][partition], key[-1], boundary=boundary)
 
     def tables(self, family_id, partition=0, *, cut=0):
         """Prepare one saved partition lazily; share bond responses across branches."""
