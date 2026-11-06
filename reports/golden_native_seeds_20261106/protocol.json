@@ -1,0 +1,135 @@
+{
+  "status": "running",
+  "arms": {
+    "1": {
+      "source_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+      "source_identity": "e66b482ec77639159e471c70c3f6796ad1ae39e143d6dff7e888eda58b7b87ea",
+      "cases": 1851,
+      "directions": 3702,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "immutable_blobs_verified": 5553,
+      "input_index_sha256": "83c2fcf23100b7ce69793103b493541182f075532c90bf31aab9cf463b56341f",
+      "seed_batch": 1,
+      "workers": 32,
+      "allocated_cpus": 40,
+      "memory_gib_per_worker": 2,
+      "case_seconds": 600,
+      "run_seconds": 9600,
+      "window": 128,
+      "shared_reaction_cache": true,
+      "completed_fragment_cache_bytes": 67108864,
+      "reused_scientific_results": 0,
+      "reused_caches": 0,
+      "global_matching_reduction_barrier": true,
+      "linux_preflight_tests": 310,
+      "linux_preflight_seconds": 38.82,
+      "submitted_utc": "2026-11-06T03:48:34.401864+00:00",
+      "hardware": {
+        "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+        "system": "Linux",
+        "release": "5.19.0-45-generic",
+        "machine": "x86_64",
+        "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+        "visible_cpus": 40,
+        "packages": {
+          "numpy": "2.2.6",
+          "sympy": "1.14.0",
+          "pynauty": "2.8.8.1",
+          "z3-solver": "5.3.3.0",
+          "psutil": "7.2.2"
+        }
+      },
+      "registered_workers": 32,
+      "startup_seconds": 2.3741007689386606
+    },
+    "10": {
+      "source_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+      "source_identity": "e66b482ec77639159e471c70c3f6796ad1ae39e143d6dff7e888eda58b7b87ea",
+      "cases": 1851,
+      "directions": 3702,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "immutable_blobs_verified": 5553,
+      "input_index_sha256": "4ab9a6c9a1838765dc2cc6761fcb7fbc1c5689f91a86316a7ffcfdd71ecfdee5",
+      "seed_batch": 10,
+      "workers": 32,
+      "allocated_cpus": 40,
+      "memory_gib_per_worker": 2,
+      "case_seconds": 600,
+      "run_seconds": 9600,
+      "window": 128,
+      "shared_reaction_cache": true,
+      "completed_fragment_cache_bytes": 67108864,
+      "reused_scientific_results": 0,
+      "reused_caches": 0,
+      "global_matching_reduction_barrier": true,
+      "linux_preflight_tests": 310,
+      "linux_preflight_seconds": 38.82,
+      "submitted_utc": "2026-11-06T03:48:34.524759+00:00",
+      "hardware": {
+        "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+        "system": "Linux",
+        "release": "5.19.0-45-generic",
+        "machine": "x86_64",
+        "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+        "visible_cpus": 40,
+        "packages": {
+          "numpy": "2.2.6",
+          "sympy": "1.14.0",
+          "pynauty": "2.8.8.1",
+          "z3-solver": "5.3.3.0",
+          "psutil": "7.2.2"
+        }
+      },
+      "registered_workers": 32,
+      "startup_seconds": 2.5308110620826483
+    }
+  },
+  "accuracy": "Golden reference catalogue membership in either direction; 1851 reaction denominator; not decoded event-window recovery",
+  "measurements": [
+    "per-seed CPU/wall and cache counters",
+    "per-cut task CPU/wall and scope",
+    "per-direction matching, reduction, decoding and external verification CPU/wall",
+    "publication and cache I/O costs",
+    "sampled per-task memory and process lifetime high-water mark",
+    "stage elapsed, task overlap, startup, allocation accounting",
+    "reaction recovery gains/losses, unknown and resource failures"
+  ]
+}
