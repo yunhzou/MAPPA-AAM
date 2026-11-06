@@ -467,6 +467,46 @@ expanding their Python sequences. Thirteen pool tests initially encountered
 sandbox restrictions on local sockets/process monitoring; those tests passed
 with the required permissions. No scientific test failed.
 
+### Slowest completed ten-seed decode
+
+**Case 1606 reverse** is the slowest of the 3,690 completed direction decodes,
+by both CPU and wall time. The 12 memory failures are excluded from this ranking
+because they have no completed runtime. Its original cluster decode task used
+521.85 CPU-seconds; that stage includes catalogue loading and output preparation,
+so it is not directly comparable with isolated local decoding.
+
+The current version (`df1c3b5`) completed a local replay from this direction's
+unchanged saved matching: 86 cuts and 860 seed searches, with the original
+tolerance 2, cap 100 and minimum + 5 window. No matching was repeated. The table
+compares one observation per revision on the same Apple M4 Pro, using the
+maintained performance runner and one numerical thread.
+
+| Phase | Original `b51661d` CPU (s) | Current CPU (s) |
+|---|---:|---:|
+| Saved-graph loading | 2.082 | 2.136 |
+| Reduction | 10.264 | 1.421 |
+| Decoding, including window construction | 116.746 | 54.002 |
+| Output record preparation | 18.492 | 18.492 |
+| Serialization and restoration | 1.686 | 1.203 |
+
+Current decoding takes **54.07 seconds wall time**, a **2.16× CPU speedup**;
+reduction is **7.22× faster**. Output preparation still takes 18.51 seconds
+separately. This comparison includes the approved atom-set fragment identity
+change and subsequent reduction improvements, not only the latest shared-state
+optimization. It is a point measurement, not a full-campaign speedup estimate.
+
+Both retain 71,199 raw paths and the same 24,523 branch compositions. Families
+decrease from 64,667 to 26,419 and unique fragments from 2,882 to 2,339. Both
+report model minimum 7 and recover the reference in the catalogue. The separate
+decoded-window reference query remains **unknown in both** after its ten-second
+allowance; catalogue recovery does not establish membership in that window.
+Complete mapping-relation equality was not asserted across the identity change.
+
+Full-process peak RSS, including queries and export, falls from 3.23 to 2.58 GiB.
+These local probes used an 8 GiB watchdog and do not establish success under the
+campaign's 2 GiB guard. [Raw evidence](longest-decoding-comparison.json) records
+input checksums, source identities, all separate phases and query outcomes.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
