@@ -40,5 +40,9 @@ def decode_catalogue(payload, workspace):
     session = workspace.prepared(('decode', saved.catalogue.problem_sha256, config),
         lambda: EventDecodeSession(saved.catalogue.problem, config))
     interpreted = session.decode(saved.catalogue)
-    return DecodingResult(saved.case, config, saved.scope, saved.stops,
-                          decoded_events_record(interpreted), saved.search_config, saved.execution)
+    result = DecodingResult(saved.case, config, saved.scope, saved.stops,
+                           decoded_events_record(interpreted), saved.search_config, saved.execution)
+    # A task decodes the whole catalogue. Its independent output owns everything
+    # needed by queries; the worker must not retain a second prepared copy.
+    workspace.release_prepared()
+    return result

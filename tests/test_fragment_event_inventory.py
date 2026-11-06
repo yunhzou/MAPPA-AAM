@@ -185,6 +185,29 @@ def test_saved_record_does_not_retain_decoder_working_state():
             gc.enable()
 
 
+def test_decode_stage_releases_session_before_publication(monkeypatch):
+    from mappa import AAMSearchConfig
+    from mappa.mappa_core.core.scheduler import decoding
+    from mappa.mappa_core.core.scheduler.results import CatalogueResult
+    from mappa.mappa_core.core.scheduler.runtime import Workspace
+    from mappa.mappa_core.core.scheduler.storage import MemoryStore
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    source = two_branches()
+    store = MemoryStore()
+    workspace = Workspace(None, store=store)
+    catalogue = store.put(CatalogueResult('example', source, (), (), AAMSearchConfig(), 'native'))
+    references = []
+    session = decoding.EventDecodeSession
+    def observe(*args, **kwargs):
+        value = session(*args, **kwargs)
+        references.extend((ref(value), ref(value.index)))
+        return value
+    monkeypatch.setattr(decoding, 'EventDecodeSession', observe)
+    output = decoding.decode_catalogue(dict(catalogue=catalogue, config=EventDecodeConfig()), workspace)
+    assert all(reference() is None for reference in references)
+    assert_all_choices(decoded_events_from_record(output.record))
+
+
 def test_export_releases_construction_indexes_without_rebuilding_fragments(monkeypatch):
     decoded = decode_events(correlated_branches(), event_slack=1000)
     _ = decoded.window

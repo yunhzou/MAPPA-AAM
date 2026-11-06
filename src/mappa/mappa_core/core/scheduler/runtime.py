@@ -34,13 +34,17 @@ class Workspace:
 
     def prepared(self, key, factory):
         if key != self.prepared_key:
-            self.prepared_value = None
-            self.prepared_key = None
-            self.resources.clear()
-            self.cache.clear()
+            self.release_prepared()
             self.prepared_value = factory()
             self.prepared_key = key
         return self.prepared_value
+
+    def release_prepared(self):
+        """End ownership of case preparation at an explicit stage boundary."""
+        self.prepared_value = None
+        self.prepared_key = None
+        self.resources.clear()
+        self.cache.clear()
 
     def resource(self, name, key, factory):
         """Keep one derived resource per stage within the current case."""
