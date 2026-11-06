@@ -6,15 +6,135 @@ The accepted reducer at `7648431` retains one original fragment per atom-set
 pair, including its discovery constraints. Its one-seed postprocessing pass
 completed all 3,702 reductions, decodes and catalogue checks: **1,834 / 1,851
 reactions recovered in the catalogue**, with 17 unrecovered and no unknowns.
-This is **catalogue recovery, not post-decoding accuracy**. The ten-seed pass is paused
-after 433 reductions, with no fresh decoded outputs in that pass.
+This is **catalogue recovery, not post-decoding accuracy**. The ten-seed pass has
+now completed all 3,702 reductions and decodes. Catalogue recovery is
+**1,843 / 1,851 reactions**; one reverse-direction catalogue query timed out,
+but that reaction has a positive forward result. The independent decoded audit
+is reported separately below.
 See [one-seed evidence](unique-seeds1-summary.json) and
-[ten-seed partial evidence](unique-seeds10-partial-summary.json).
+[completed ten-seed stage evidence](unique-seeds10-summary.json).
 
-Latest decoded verification confirms **1,832 / 1,851 reactions (98.974%)**:
+Latest one-seed decoded verification confirms **1,832 / 1,851 reactions (98.974%)**:
 16 are absent from the saved exact-index decoded response and three remain
 unresolved: **852, 1568 and 1606**. The targeted retest below recovered 607 and
 1586 with replayed witnesses. This remains a confirmed lower bound on coverage.
+
+### Completed ten-seed postprocessing and decoded audit
+
+All **1,851 reactions / 3,702 directions** have successful matching, reduction
+and decoding outputs. This continuation reused every saved matching result,
+all 3,702 transport snapshots and 433 completed reductions. Those completed rows,
+the original plan and consumed budgets remained unchanged. No matching was
+repeated, and no scientific retry allowance was added.
+
+Settings remain discovery tolerance **2**, branch cap **100**, ten seeds, random
+seed 42, both directions and the complete single-edge sweep. Decoding retains
+the **minimum + 5** window, original weights, event thresholds 0.5/0.3 and the
+five-second fragment improvement allowance. Every worker retained the **2 GiB**
+guard. The matching revision is `27b18ab`; reduction and decoding resumed their
+frozen `7b24850` revision, containing the accepted reducer at `7648431`. Later
+verifier additions do not change these mapping operations.
+
+| Evaluation | Confirmed reactions | Absent | Unresolved |
+|---|---:|---:|---:|
+| One seed: saved decoded responses | 1,832 / 1,851 (98.974%) | 16 | 3 |
+| Ten seeds: saved decoded responses | **1,841 / 1,851 (99.460%)** | **8** | **2** |
+| Ten seeds: catalogue membership | 1,843 / 1,851 (99.568%) | 8 | 0 |
+
+Decoded recovery requires exact annotated heavy-atom indices in the retained
+response and window; catalogue recovery allows endpoint chemical symmetry.
+These are distinct metrics. Ten-seed decoded unknowns are **590 and 607**.
+The eight absent reactions are **7, 19, 986, 1285, 1358, 1377, 1475 and 1553**.
+Unknowns remain inconclusive, not failures of mapping or proven absence.
+
+Ten reactions have newly confirmed decoded coverage: **20, 44, 852, 867, 964,
+1034, 1228, 1314, 1568 and 1606**. There are no proven reaction-level losses;
+**607**, previously confirmed with one seed, remains unknown in this ten-seed
+audit. Thus the confirmed total increases by nine. A bounded membership query
+cannot establish monotonic coverage across different decoded catalogues.
+
+The latest verifier at `1591a8c` checked all 3,702 directions, then gave nine
+unknown directions in five unresolved reactions an explicit 50-second follow-up,
+matching the one-seed targeted allowance. It recovered 575 and 852. Cumulative
+direction outcomes are **3,651 recovered, 30 absent and 21 unknown**. All 3,651
+positive proofs passed replay, injectivity, reference and independent event-count
+checks. There were no audit worker failures or invalid certificates. In 32
+positive directions the accepted approximate boundary model differs from the
+physical count; every returned physical witness still lies inside its saved
+numerical window. This is not a claim of exact physical event bins or global
+physical minima.
+
+One separate **catalogue** check, **1351 reverse**, exhausted its original
+600-second compute allowance, with about 0.63 GiB sampled peak memory. Its forward
+catalogue result already recovers the reaction. The timeout and its consumed
+budget remain recorded: 3,701 successful catalogue checks plus one resource
+failure, not 3,702 successful checks. The independent decoded audit now treats a
+catalogue certificate only as an optional search hint, so a failed catalogue
+check cannot block evaluation of a successful saved decode. This benchmark-runner
+correction changes neither mapping/decoding nor the decoded acceptance test.
+Validation passed **42 affected tests and 26 smoke tests**.
+
+The stage audit checked all 14,808 terminal records and all 14,807 published result
+checksums, with zero retries and an empty scientific work queue. All nine earlier
+ten-seed decoding failures completed successfully in this corrected pass. Detailed
+direction timings and replayable proofs remain with the private campaign;
+public evidence contains aggregate measurements and source hashes.
+
+### One-seed versus ten-seed timing
+
+Both studies used 32 compute workers. Matching is the previously measured,
+reused pass; reduction and decoding are the completed corrected passes. CPU time
+sums compute across workers; active elapsed time measures the parallel stage,
+including publication. The paused interval between the two ten-seed reduction
+allocations is excluded. These are stage measurements across allocations, not
+a newly measured uninterrupted end-to-end run.
+
+| Stage | One-seed compute CPU (s) | Ten-seed compute CPU (s) | One-seed active elapsed (s) | Ten-seed active elapsed (s) |
+|---|---:|---:|---:|---:|
+| Matching | 1,427.88 | 13,450.55 | 401.67 | 957.41 |
+| Reduction | 1,001.06 | 8,094.12 | 56.58 | 307.41 |
+| Decoding | 3,474.18 | 17,180.81 | 124.95 | **610.12** |
+
+Ten seeds require **9.42× matching CPU, 8.09× reduction CPU and 4.95× decoding
+CPU**, compared with one seed. This compares different amounts of retained work;
+it is not a fixed-workload acceleration measurement. Matching cache hit fractions
+were **89.94%** and **92.41%** respectively. Without a cache-disabled control,
+these ratios do not isolate the cache's causal speedup.
+
+| Per-direction decoding compute time | One seed (s) | Ten seeds (s) |
+|---|---:|---:|
+| Median | 0.476 | **1.964** |
+| 90th percentile | 2.093 | 10.428 |
+| 95th percentile | 3.299 | **17.502** |
+| 99th percentile | 7.477 | 44.601 |
+| Maximum | 52.693 | **316.459** |
+
+The ten-seed maximum is **607 forward**. Sampled decoding peak memory was
+**1.831 GiB**, with no memory-limit failures. Publication is separate from compute:
+ten-seed reduction used 1,100.26 publication CPU seconds / 1,299.72 summed worker
+wall seconds; decoding used 683.88 publication CPU seconds / 1,716.41 summed
+worker wall seconds. These worker sums are not additional parallel stage durations.
+Snapshot transport used 190.27 elapsed seconds and is not matching or reduction.
+
+External catalogue verification took **636.64 elapsed seconds**, including the
+timeout: successful tasks used 3,525.57 compute CPU seconds, and the timed-out
+task contributed another 599.70 sampled CPU seconds. The latest full decoded
+audit took **218.09 elapsed / 6,265.76 compute CPU seconds**; the targeted
+nine-direction follow-up used **66.44 elapsed / 455.56 compute CPU seconds**.
+These external evaluation costs are excluded from mapping and decoding timings.
+Query deadlines are soft; task loading and native operations can extend elapsed
+time beyond the query allowance, within the separate worker guard.
+The resumed allocation used 1,453 elapsed seconds / 27,968 total CPU seconds and
+ended with a failure exit status because of the retained catalogue timeout.
+The full and targeted decoded-audit allocations ended successfully, using
+239 seconds / 6,373 CPU seconds and 87 seconds / 461.65 CPU seconds respectively.
+Allocation accounting includes startup, supervision and shutdown; it is separate
+from the stage measurements above.
+
+Evidence: [completed stage and timing summary](unique-seeds10-summary.json),
+[decoded coverage and proof-audit summary](decoded-seeds10-summary.json).
+The earlier [433-reduction snapshot](unique-seeds10-partial-summary.json) remains
+historical evidence, not the current completion state.
 
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:
@@ -48,8 +168,8 @@ than the catalogue evaluation's endpoint-equivalence policy.
 At the end of these initial passes, the five unresolved reactions were
 **607, 852, 1568, 1586 and 1606**. They were neither recovered nor demonstrated
 absent. That verified percentage was a lower bound, not an estimate assigning
-outcomes to unknowns. Ten-seed
-post-decoding accuracy remains unmeasured.
+outcomes to unknowns. Ten-seed post-decoding accuracy had not yet been measured
+at that initial one-seed audit; the completed ten-seed evidence appears above.
 
 Every positive query retained a concrete full mapping and its ordered local and
 placement choices in the private aggregate evidence bundle. Validation replayed
