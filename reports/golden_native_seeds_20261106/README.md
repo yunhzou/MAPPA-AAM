@@ -6,7 +6,7 @@ The accepted reducer at `7648431` retains one original fragment per atom-set
 pair, including its discovery constraints. Its one-seed postprocessing pass
 completed all 3,702 reductions, decodes and catalogue checks: **1,834 / 1,851
 reactions recovered in the catalogue**, with 17 unrecovered and no unknowns.
-This is **not yet a post-decoding accuracy result**. The ten-seed pass is paused
+This is **catalogue recovery, not post-decoding accuracy**. The ten-seed pass is paused
 after 433 reductions, with no fresh decoded outputs in that pass.
 See [one-seed evidence](unique-seeds1-summary.json) and
 [ten-seed partial evidence](unique-seeds10-partial-summary.json).
@@ -26,6 +26,74 @@ model event total. Physical whole-reaction events are reported separately.
 Exact annotated-index recovery and endpoint-symmetry-normalized catalogue
 recovery are different policies and must remain labelled. Resource limits are
 unknown outcomes. Original outputs and consumed budgets remain unchanged.
+
+### Completed audit of saved one-seed decoding
+
+All **3,702 directions / 1,851 reactions** were queried at the unchanged scientific
+identity. Recovery here requires the **exact annotated heavy-atom indices**;
+unannotated hydrogens must admit a complete injective witness. This is stricter
+than the catalogue evaluation's endpoint-equivalence policy.
+
+| Outcome | Reactions, either direction | Directions |
+|---|---:|---:|
+| Verified in the saved decoded window | **1,830 (98.865%)** | **3,591** |
+| Exact-index reference absent from saved decoded response | 16 | 80 |
+| Inconclusive within the query budget | 5 | 31 |
+
+The five unresolved reactions are **607, 852, 1568, 1586 and 1606**. They are
+neither recovered nor demonstrated absent. The verified percentage is therefore
+a lower bound, not an estimate that assigns outcomes to unknowns. Ten-seed
+post-decoding accuracy remains unmeasured.
+
+Every positive query retained a concrete full mapping and its ordered local and
+placement choices in the private aggregate evidence bundle. Validation replayed
+those choices through the original fragment constraints, checked the saved
+decoder starting correspondence, injectivity, elements, anchors and exact
+reference coverage, then independently counted events from the original matrices.
+All **3,591 positive certificates passed**. All positive decoded directions also
+had positive catalogue checks. Input and result hashes remained unchanged; no
+matching, reduction, optimization or decoding was rerun by the audit.
+
+There are **90 positive directions** where the approved ordinary-boundary model
+overcounts the concrete witness: 78 by one event, seven by two, one by three and
+four by four. These are explicitly approximate bins. All returned witnesses'
+physical event counts still lie within their saved numerical window. This does
+not establish a physical global minimum or exact physical membership of every
+reported bin.
+
+Case **1654 reverse** supplies a validated reference witness at three model and
+physical events, in its saved 3–8 window. Case **19** is absent in both directions.
+Case **1553** is the only catalogue-recovered reaction with a definite negative
+exact-index decoded result. Its saved reverse catalogue certificate uses
+endpoint-equivalent reference labels and family 147, which is outside all retained
+decoded contexts. That certificate's full witness has 20 physical events, versus
+the saved 8–13 window. This establishes that the catalogue certificate cannot
+justify decoded recovery; it does not isolate reference equivalence, chosen
+starting orbit and windowing as independent causes of the difference.
+
+The first external audit used 32 workers and a ten-second query allowance per
+direction: **71.766 seconds elapsed / 1,816.574 CPU seconds**, with 49 inconclusive
+directions. An explicitly separate pass queried only those 49, prioritizing the
+saved catalogue family as a search hint and still requiring the complete decoded
+proof. Its 16 workers used another ten-second query allowance: **29.718 seconds
+elapsed / 366.339 CPU seconds**, verifying 18 more directions. Neither pass had
+worker errors or memory failures; both retained the 2 GiB guard and 60-second
+external task guard. Query deadlines are soft, and preparation/native operations
+can exceed them; actual task measurements are preserved. No scientific retry
+budget changed. The earlier 24-direction pilot took 8.001 seconds and is separate
+from these totals.
+
+Validation passed **155 affected tests and 26 smoke tests**; the final ordering and
+continuation changes passed their 12 targeted tests. Independent tiny-graph
+oracles check all 24 assignments for six ring/anchor/tail/window combinations,
+plus joint placement, unmatched atoms, forward/reverse queries, sweep handling,
+and deliberately forged certificates. The saved-file worker test confirms that
+verification preserves source artifacts and retains replayable proofs.
+
+Evidence: [audit summary](decoded-verification-summary.json),
+[direction outcomes and certificate checksums](decoded-verification-directions.json.gz).
+Operational configuration and molecular certificates remain private. The reusable
+audit is documented in [bench/README.md](../../bench/README.md).
 
 ## Earlier measurements
 

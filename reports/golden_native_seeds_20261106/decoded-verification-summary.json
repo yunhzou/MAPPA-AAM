@@ -1,0 +1,937 @@
+{
+  "schema": "mappa.decoded_reference_audit_summary/v1",
+  "cases": 1851,
+  "directions": 3702,
+  "scientific_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+  "audit_revisions": [
+    "0582ae5",
+    "7aa0e56"
+  ],
+  "reaction_counts": {
+    "recovered": 1830,
+    "not_recovered": 16,
+    "unknown": 5
+  },
+  "direction_counts": {
+    "recovered": 3591,
+    "not_recovered": 80,
+    "unknown": 31
+  },
+  "unrecovered_cases": [
+    7,
+    19,
+    20,
+    44,
+    590,
+    867,
+    964,
+    986,
+    1034,
+    1228,
+    1285,
+    1314,
+    1358,
+    1377,
+    1475,
+    1553
+  ],
+  "unknown_cases": [
+    607,
+    852,
+    1568,
+    1586,
+    1606
+  ],
+  "catalogue_recovered_decoded_not_recovered": [
+    1553
+  ],
+  "decoded_recovered_catalogue_not_recovered": [],
+  "certificate_failures": 0,
+  "source_unchanged": true,
+  "policy": "exact annotated heavy-atom indices, including unmatched atoms, in the saved decoded window",
+  "hydrogen_policy": "unannotated; must admit one complete injective witness",
+  "event_count_policy": "saved independent-fragment model; physical count reported separately",
+  "model_physical_differences": [
+    {
+      "name": "00006/reverse",
+      "event_count": 4,
+      "physical_event_count": 2,
+      "event_window": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "00014/reverse",
+      "event_count": 14,
+      "physical_event_count": 10,
+      "event_window": [
+        9,
+        14
+      ]
+    },
+    {
+      "name": "00033/forward",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00039/reverse",
+      "event_count": 14,
+      "physical_event_count": 13,
+      "event_window": [
+        10,
+        15
+      ]
+    },
+    {
+      "name": "00103/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00116/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00139/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00149/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00149/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00152/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00168/forward",
+      "event_count": 11,
+      "physical_event_count": 9,
+      "event_window": [
+        9,
+        14
+      ]
+    },
+    {
+      "name": "00175/forward",
+      "event_count": 10,
+      "physical_event_count": 9,
+      "event_window": [
+        9,
+        14
+      ]
+    },
+    {
+      "name": "00182/reverse",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00186/forward",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00187/forward",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00204/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00233/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00266/reverse",
+      "event_count": 6,
+      "physical_event_count": 5,
+      "event_window": [
+        5,
+        10
+      ]
+    },
+    {
+      "name": "00278/forward",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00278/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00315/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00381/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00390/forward",
+      "event_count": 15,
+      "physical_event_count": 13,
+      "event_window": [
+        13,
+        18
+      ]
+    },
+    {
+      "name": "00422/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "00423/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00432/forward",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00436/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00507/reverse",
+      "event_count": 6,
+      "physical_event_count": 5,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "00543/forward",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00562/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00568/reverse",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00581/forward",
+      "event_count": 10,
+      "physical_event_count": 8,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00585/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "00617/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00618/reverse",
+      "event_count": 12,
+      "physical_event_count": 11,
+      "event_window": [
+        11,
+        16
+      ]
+    },
+    {
+      "name": "00701/forward",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        5,
+        10
+      ]
+    },
+    {
+      "name": "00731/reverse",
+      "event_count": 12,
+      "physical_event_count": 9,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "00739/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00751/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00759/reverse",
+      "event_count": 11,
+      "physical_event_count": 10,
+      "event_window": [
+        10,
+        15
+      ]
+    },
+    {
+      "name": "00771/forward",
+      "event_count": 15,
+      "physical_event_count": 13,
+      "event_window": [
+        11,
+        16
+      ]
+    },
+    {
+      "name": "00816/reverse",
+      "event_count": 13,
+      "physical_event_count": 12,
+      "event_window": [
+        12,
+        17
+      ]
+    },
+    {
+      "name": "00825/forward",
+      "event_count": 17,
+      "physical_event_count": 16,
+      "event_window": [
+        14,
+        19
+      ]
+    },
+    {
+      "name": "00834/forward",
+      "event_count": 16,
+      "physical_event_count": 15,
+      "event_window": [
+        15,
+        20
+      ]
+    },
+    {
+      "name": "00837/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00847/forward",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "00847/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "00865/forward",
+      "event_count": 13,
+      "physical_event_count": 11,
+      "event_window": [
+        9,
+        14
+      ]
+    },
+    {
+      "name": "00868/forward",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00883/forward",
+      "event_count": 12,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "00906/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00910/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00922/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "00936/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "00960/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "00999/reverse",
+      "event_count": 8,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01017/reverse",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "01024/reverse",
+      "event_count": 13,
+      "physical_event_count": 12,
+      "event_window": [
+        12,
+        17
+      ]
+    },
+    {
+      "name": "01030/forward",
+      "event_count": 16,
+      "physical_event_count": 15,
+      "event_window": [
+        15,
+        20
+      ]
+    },
+    {
+      "name": "01072/forward",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01078/forward",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01078/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01094/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "01123/forward",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01125/forward",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "01146/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01148/reverse",
+      "event_count": 7,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01171/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01179/reverse",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "01180/reverse",
+      "event_count": 3,
+      "physical_event_count": 2,
+      "event_window": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "01241/reverse",
+      "event_count": 6,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01293/forward",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01315/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01339/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "01342/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01371/reverse",
+      "event_count": 5,
+      "physical_event_count": 4,
+      "event_window": [
+        4,
+        9
+      ]
+    },
+    {
+      "name": "01383/reverse",
+      "event_count": 9,
+      "physical_event_count": 8,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "01491/reverse",
+      "event_count": 6,
+      "physical_event_count": 5,
+      "event_window": [
+        5,
+        10
+      ]
+    },
+    {
+      "name": "01495/forward",
+      "event_count": 10,
+      "physical_event_count": 9,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "01531/reverse",
+      "event_count": 10,
+      "physical_event_count": 9,
+      "event_window": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "01539/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "01562/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01590/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        5,
+        10
+      ]
+    },
+    {
+      "name": "01628/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01640/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01695/reverse",
+      "event_count": 4,
+      "physical_event_count": 3,
+      "event_window": [
+        3,
+        8
+      ]
+    },
+    {
+      "name": "01770/forward",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "01773/reverse",
+      "event_count": 8,
+      "physical_event_count": 7,
+      "event_window": [
+        7,
+        12
+      ]
+    },
+    {
+      "name": "01780/reverse",
+      "event_count": 7,
+      "physical_event_count": 6,
+      "event_window": [
+        5,
+        10
+      ]
+    },
+    {
+      "name": "01800/reverse",
+      "event_count": 6,
+      "physical_event_count": 5,
+      "event_window": [
+        5,
+        10
+      ]
+    }
+  ],
+  "physical_outside_saved_window": [],
+  "passes": [
+    {
+      "directions": 3702,
+      "elapsed_seconds": 71.76586955692619,
+      "verifier_sha256": "82c196e3334bd78f21e9f2e76da82dfd6cda35f90680ac8b460319a5acf2f3e0",
+      "source_report_sha256": "cb6e667553633e785cc93c5873dcad8e0552595cc2ad7ac08b882515f78e9c13",
+      "resources": {
+        "workers": 32,
+        "query_seconds": 10.0,
+        "task_seconds": 60.0,
+        "memory_bytes": 2147483648
+      },
+      "status_counts": {
+        "recovered": 3573,
+        "not_recovered": 80,
+        "unknown": 49
+      },
+      "cpu_seconds": 1816.574251484002
+    },
+    {
+      "directions": 49,
+      "elapsed_seconds": 29.717610344057903,
+      "verifier_sha256": "bd24d9eabc303df1e0fefa0ca0ea71a62bcaf654f9a46ce395f9a3fe9fb925c9",
+      "source_report_sha256": "fe5ec10667c50de294c036d77dd54898102b0d2aeb712d43bf017f3a14acfea3",
+      "resources": {
+        "workers": 16,
+        "query_seconds": 10.0,
+        "task_seconds": 60.0,
+        "memory_bytes": 2147483648
+      },
+      "status_counts": {
+        "recovered": 18,
+        "unknown": 31
+      },
+      "cpu_seconds": 366.3394607020001
+    }
+  ],
+  "tests": {
+    "affected_passed": 155,
+    "smoke_passed": 26,
+    "ordering_and_continuation_passed": 12
+  },
+  "case1553": {
+    "case": 1553,
+    "direction": "reverse",
+    "catalogue_family": 147,
+    "exact_reference": false,
+    "window": [
+      8,
+      13
+    ],
+    "retained_family_contexts": 0,
+    "physical_count": 20,
+    "evidence_fields": [
+      "actions",
+      "checked_fragment_edges",
+      "checks",
+      "mapping",
+      "scope",
+      "seconds",
+      "timing"
+    ],
+    "catalogue_proof_replays": true,
+    "local_starts_equal": [
+      true,
+      true,
+      null,
+      true
+    ]
+  }
+}
