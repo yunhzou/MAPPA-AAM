@@ -454,5 +454,85 @@
     "assignment_oracle_cases": 256,
     "affected_tests_passed": 173,
     "uncommitted_residual_bound_active": false
+  },
+  "current_postprocessing_validation": {
+    "status": "Both pools running; all 64 workers registered. One-seed transport complete and reduction started; ten-seed transport active. No observed errors at initial running observation.",
+    "local_runner_tests": 42,
+    "linux_affected_tests": 151,
+    "linux_test_seconds": 94.11,
+    "arms": {
+      "1": {
+        "source_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+        "source_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "workers": 32,
+        "memory_bytes": 2147483648,
+        "case_seconds": 600,
+        "window": 64,
+        "run_seconds": 9600,
+        "baseline_recovered": 1841,
+        "measurement_scope": "Saved matching reused; fresh transport, reduction, decoding and verification with explicit new-version budgets. Original attempts and ledgers untouched.",
+        "submitted_utc": "2026-11-06T08:50:05.756128+00:00"
+      },
+      "10": {
+        "source_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+        "source_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "workers": 32,
+        "memory_bytes": 2147483648,
+        "case_seconds": 600,
+        "window": 64,
+        "run_seconds": 9600,
+        "baseline_recovered": 1847,
+        "measurement_scope": "Saved matching reused; fresh transport, reduction, decoding and verification with explicit new-version budgets. Original attempts and ledgers untouched.",
+        "submitted_utc": "2026-11-06T08:50:06.080064+00:00"
+      }
+    },
+    "observed_workers": {
+      "1": 32,
+      "10": 32
+    }
   }
 }

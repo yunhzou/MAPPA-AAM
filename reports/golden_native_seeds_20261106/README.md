@@ -420,3 +420,28 @@ reduction alone remains slower for 1763. The measurements are single observation
 using one numerical thread and the current 2 GiB guard, and do not establish
 full-dataset speed or accuracy. Full one-seed and ten-seed validation remains
 pending; no benchmark was restarted and no original ledger or budget was changed.
+
+### Full corrected-reducer validation
+
+Revision `7b24850` runs fresh reduction, decoding and reference verification
+from all saved matching results at one and ten seeds. The scientific repair is
+`7648431`; the later commit adds only benchmark orchestration. There are 1,851
+reactions / 3,702 directions per arm, tolerance 2, branch cap 100, the full cut
+sweep and minimum + 5 decoding. Each pool retains the 2 GiB worker guard,
+600-second direction budget and five-second fragment allowance.
+
+The maintained runner now supports `--postprocess-only`: transport conversion,
+reduction, decoding and verification run in separate measured passes, with a
+barrier between passes. It stops further admission on a failed task. Old ledgers,
+failures and consumed budgets remain unchanged; these are separate measurements
+of the corrected revision with explicitly recorded fresh stage budgets. No
+matching is rerun. Local orchestration checks passed 42 tests; Linux affected
+checks passed 151 tests in 94.11 seconds.
+
+Both full runs started with 32 registered workers each. The first running
+observation recorded all 3,702 one-seed transport tasks complete and reduction
+starting; ten-seed transport had 541 completions and 32 simultaneous running
+tasks. No task failures were observed. These are partial results.
+Reaction-level recovery will be compared against the recorded 1,841/1,851 and
+1,847/1,851 results. Saved matching time and fresh postprocessing time are
+separate measurements, not an uninterrupted end-to-end wall time.
