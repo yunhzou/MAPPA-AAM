@@ -1,0 +1,351 @@
+{
+  "utc": "2026-11-06T22:34:04.697154+00:00",
+  "status": "held_after_reduction_memory_failures",
+  "cases": 47974,
+  "directions": 95948,
+  "stage_counts": [
+    {
+      "stage": "deduplication",
+      "state": "complete",
+      "count": 6131
+    },
+    {
+      "stage": "deduplication",
+      "state": "error",
+      "count": 5
+    },
+    {
+      "stage": "matching",
+      "state": "complete",
+      "count": 7326
+    }
+  ],
+  "decoding_started": false,
+  "catalogue_verification_started": false,
+  "decoded_reference_audit_started": false,
+  "running_benchmark_pools": 0,
+  "all_started_queues_drained": true,
+  "input_indexes_unchanged": true,
+  "retries": 0,
+  "source_unchanged": true,
+  "memory_gib_per_worker": 2,
+  "failed_matching_scope": [
+    {
+      "case": "18749/reverse",
+      "atoms": [
+        524,
+        524
+      ],
+      "cuts": 528,
+      "seeds": [
+        [
+          0
+        ]
+      ],
+      "total_saved_cut_bytes": 31748896,
+      "max_saved_cut_bytes": 212132,
+      "min_saved_cut_bytes": 52344,
+      "all_cuts_present": true
+    },
+    {
+      "case": "18749/forward",
+      "atoms": [
+        524,
+        524
+      ],
+      "cuts": 528,
+      "seeds": [
+        [
+          0
+        ]
+      ],
+      "total_saved_cut_bytes": 33432521,
+      "max_saved_cut_bytes": 495910,
+      "min_saved_cut_bytes": 50060,
+      "all_cuts_present": true
+    },
+    {
+      "case": "18750/reverse",
+      "atoms": [
+        524,
+        524
+      ],
+      "cuts": 528,
+      "seeds": [
+        [
+          0
+        ]
+      ],
+      "total_saved_cut_bytes": 31745472,
+      "max_saved_cut_bytes": 210489,
+      "min_saved_cut_bytes": 52340,
+      "all_cuts_present": true
+    },
+    {
+      "case": "18750/forward",
+      "atoms": [
+        524,
+        524
+      ],
+      "cuts": 528,
+      "seeds": [
+        [
+          0
+        ]
+      ],
+      "total_saved_cut_bytes": 33425027,
+      "max_saved_cut_bytes": 495963,
+      "min_saved_cut_bytes": 50064,
+      "all_cuts_present": true
+    },
+    {
+      "case": "27769/forward",
+      "atoms": [
+        433,
+        433
+      ],
+      "cuts": 466,
+      "seeds": [
+        [
+          0
+        ]
+      ],
+      "total_saved_cut_bytes": 23551996,
+      "max_saved_cut_bytes": 809170,
+      "min_saved_cut_bytes": 36815,
+      "all_cuts_present": true
+    }
+  ],
+  "failures": [
+    {
+      "case": "18749/reverse",
+      "batch": 24,
+      "stage": "deduplication",
+      "state": "memory_limit",
+      "metrics": {
+        "peak_tree_rss_bytes": 2173087744,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2173087744,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 11.480000000000018,
+        "memory_samples": 59,
+        "phase_at_exit": "compute",
+        "monitoring_seconds": 0.02615205803886056,
+        "elapsed_seconds": 11.644965479848906
+      }
+    },
+    {
+      "case": "18749/forward",
+      "batch": 24,
+      "stage": "deduplication",
+      "state": "memory_limit",
+      "metrics": {
+        "peak_tree_rss_bytes": 2196721664,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2196721664,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 13.409999999999997,
+        "memory_samples": 69,
+        "phase_at_exit": "compute",
+        "monitoring_seconds": 0.03380265133455396,
+        "elapsed_seconds": 13.654816991183907
+      }
+    },
+    {
+      "case": "18750/reverse",
+      "batch": 25,
+      "stage": "deduplication",
+      "state": "memory_limit",
+      "metrics": {
+        "peak_tree_rss_bytes": 2170638336,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2170638336,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 12.250000000000014,
+        "memory_samples": 63,
+        "phase_at_exit": "compute",
+        "monitoring_seconds": 0.02410704013891518,
+        "elapsed_seconds": 12.443502502981573
+      }
+    },
+    {
+      "case": "18750/forward",
+      "batch": 25,
+      "stage": "deduplication",
+      "state": "memory_limit",
+      "metrics": {
+        "peak_tree_rss_bytes": 2161860608,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 2161860608,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 13.27000000000001,
+        "memory_samples": 68,
+        "phase_at_exit": "compute",
+        "monitoring_seconds": 0.031072885263711214,
+        "elapsed_seconds": 13.453087146859616
+      }
+    },
+    {
+      "case": "27769/forward",
+      "batch": 27,
+      "stage": "deduplication",
+      "state": "memory_limit",
+      "metrics": {
+        "cpu_seconds": 11.405317787000001,
+        "compute_seconds": 11.540267545729876,
+        "peak_tree_rss_bytes": 2164973568,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1924694016,
+          "publication": 2164973568
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 13.510000000000005,
+        "memory_samples": 69,
+        "phase_at_exit": "publication",
+        "monitoring_seconds": 0.031564051285386086,
+        "elapsed_seconds": 13.653655904345214
+      }
+    }
+  ],
+  "started_batches": [
+    {
+      "batch": 8,
+      "stage_counts": [
+        [
+          "matching",
+          "complete",
+          866
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": true
+    },
+    {
+      "batch": 24,
+      "stage_counts": [
+        [
+          "deduplication",
+          "complete",
+          1532
+        ],
+        [
+          "deduplication",
+          "error",
+          2
+        ],
+        [
+          "matching",
+          "complete",
+          1534
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": false
+    },
+    {
+      "batch": 25,
+      "stage_counts": [
+        [
+          "deduplication",
+          "complete",
+          1532
+        ],
+        [
+          "deduplication",
+          "error",
+          2
+        ],
+        [
+          "matching",
+          "complete",
+          1534
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": false
+    },
+    {
+      "batch": 26,
+      "stage_counts": [
+        [
+          "deduplication",
+          "complete",
+          1534
+        ],
+        [
+          "matching",
+          "complete",
+          1534
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": false
+    },
+    {
+      "batch": 27,
+      "stage_counts": [
+        [
+          "deduplication",
+          "complete",
+          1533
+        ],
+        [
+          "deduplication",
+          "error",
+          1
+        ],
+        [
+          "matching",
+          "complete",
+          1534
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": false
+    },
+    {
+      "batch": 28,
+      "stage_counts": [
+        [
+          "matching",
+          "complete",
+          171
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": true
+    },
+    {
+      "batch": 29,
+      "stage_counts": [
+        [
+          "matching",
+          "complete",
+          153
+        ]
+      ],
+      "remaining_tasks": 0,
+      "remaining_attempts": 0,
+      "allocation_drained": true
+    }
+  ]
+}
