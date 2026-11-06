@@ -185,3 +185,10 @@ class FragmentDecoder:
         """Prepared responses own their terms; construction indexes can go."""
         self.bonds.clear()
         self.terms.clear()
+
+    def retain_responses(self, identities):
+        """Drop derived contexts outside the window; keep shared local solutions."""
+        self.fragments = {key: value for key, value in self.fragments.items()
+                          if id(value) in identities}
+        self._bound_terms.clear()
+        self.release_bond_lookups()

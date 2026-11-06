@@ -188,7 +188,7 @@ def test_saved_record_does_not_retain_decoder_working_state():
 def test_export_releases_construction_indexes_without_rebuilding_fragments(monkeypatch):
     decoded = decode_events(correlated_branches(), event_slack=1000)
     _ = decoded.window
-    assert decoded.local.bonds and decoded.local.terms
+    assert decoded.local.fragments and not decoded.local.bonds and not decoded.local.terms
     bond = FragmentDecoder.bond
     def check_bond(self, atoms, pair, actions, domains, action_ids, manual_cut):
         assert manual_cut, 'export rebuilt an internal bond response'

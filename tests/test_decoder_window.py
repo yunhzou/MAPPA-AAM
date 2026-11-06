@@ -32,6 +32,34 @@ def test_boundary_bound_rejects_composition_before_local_preparation(monkeypatch
     assert record['catalogue'] == source.to_record()
 
 
+def test_window_releases_rejected_contexts_but_retains_selected_responses(monkeypatch):
+    from weakref import ref
+    ep = endpoint('CCC', [(0, 1, 1.), (1, 2, 2.)])
+    source = saved(ep, ep, {0: 1, 1: 0, 2: 2})
+    better = saved(ep, ep, {0: 0, 1: 1, 2: 2})
+    source.families.append(better.families[0])
+    next(iter(source.branches.values())).add(1)
+    prepared = []
+    make = FragmentDecoder.fragment
+    def observe(self, *args):
+        response, binding = make(self, *args)
+        prepared.append(ref(response.event_counts))
+        return response, binding
+    monkeypatch.setattr(FragmentDecoder, 'fragment', observe)
+    result = decode_events(source, event_slack=0)
+    assert result.window.contexts == ((1, 0, 0),)
+    assert len(prepared) == 2 and prepared[0]() is None
+    retained = prepared[1]()
+    assert tuple(value.event_counts for value in result.local.fragments.values()) == (retained,)
+    record = decoded_events_record(result)
+    assert result.tables(1).fragment_responses[0][0].event_counts is retained
+    assert record['minimum_events'] == 0 and result.contributions(1)['total'] == 0
+    # Explicit later inspection can rebuild a derived context without changing
+    # the saved starting correspondence or declaring it inside the window.
+    assert result.contributions(0)['total'] == 2
+    assert not result.contributions(0)['within_window']
+
+
 def test_sweep_resolves_only_its_endpoint_fragments_and_preserves_count_gaps(monkeypatch):
     monkeypatch.setattr(z3.Solver, 'check',
                         lambda *_: pytest.fail('Window construction must reuse prepared fragment counts'))

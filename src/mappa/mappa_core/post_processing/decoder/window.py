@@ -19,13 +19,14 @@ class EventWindow:
                     boundary = prepare_boundary_events(decoded.index, decoded.catalogue.families[fid].mapping,
                         decoded.inventory.uses[fid][partition], bonds)
                     candidates.append((boundary.lower, (fid, partition, cut)))
-        bounds, witnesses = {}, {}
+        bounds, witnesses, responses = {}, {}, {}
         upper = None
         for cheap, key in sorted(candidates):
             if upper is not None and cheap > upper + decoded.event_slack:
                 bounds[key] = cheap
                 continue
             table = self._table(decoded, *key)
+            responses[key] = tuple(response for response, _ in table.fragment_responses)
             bound = table.boundary_events.lower
             for response, _ in table.fragment_responses:
                 counts = response.event_counts
@@ -66,6 +67,8 @@ class EventWindow:
         self.maximum = None if best is None else best + decoded.event_slack
         self.contexts = tuple(key for _, key in candidates if bounds[key] <= self.maximum)
         self.bounds = {key: bounds[key] for key in self.contexts}
+        retained = {id(response) for key in self.contexts for response in responses[key]}
+        decoded.local.retain_responses(retained)
 
     @staticmethod
     def from_record(record):
