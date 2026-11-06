@@ -7,7 +7,57 @@ import sys
 import pytest
 
 from mappa._group_ops import (occupation_orbit, project_generators,
-                                 conjugate_generators, OccupationLimitExceeded, SetOrbit)
+                                 conjugate_generators, OccupationLimitExceeded, SetOrbit,
+                                 PermutationGroup)
+
+
+def test_native_group_chain_matches_small_exhaustive_oracle():
+    from growth_cases import group_actions
+    rng = random.Random(1703)
+    for degree in range(2, 8):
+        for _ in range(12):
+            generators = [rng.sample(range(degree), degree) for _ in range(rng.randrange(4))]
+            group = PermutationGroup(degree, generators)
+            expected = set(group_actions(generators, degree))
+            assert group.order() == len(expected)
+            for _ in range(12):
+                selected = tuple(rng.sample(range(degree), degree))
+                assert group.contains(selected) == (selected in expected)
+            fixed = rng.sample(range(degree), rng.randrange(degree + 1))
+            subgroup = group.stabilizer(fixed)
+            assert set(group_actions(subgroup.generators, degree)) == {
+                g for g in expected if all(g[p] == p for p in fixed)}
+            point = rng.randrange(degree)
+            assert set(group.orbit(point)) == {g[point] for g in expected}
+            for image, action in group.transversal(point):
+                assert action[point] == image and tuple(action) in expected
+            # Compact factor choices must cover the group with correlated
+            # permutations, including the orientation used by query compilation.
+            represented = {tuple(range(degree))}
+            for level in reversed(group.transversals()):
+                represented = {tuple(g[p] for p in previous)
+                               for previous in represented for _, g in level}
+            assert represented == expected
+
+
+def _check_large_group_chain():
+    from math import factorial
+    degree = 32
+    generators = []
+    for i in range(degree - 1):
+        action = list(range(degree))
+        action[i], action[i + 1] = action[i + 1], action[i]
+        generators.append(action)
+    group = PermutationGroup(degree, generators)
+    assert group.order() == factorial(degree)
+    assert group.contains(list(reversed(range(degree))))
+    assert group.stabilizer(range(16)).order() == factorial(16)
+
+
+def test_native_group_chain_keeps_factorial_symmetry_compact():
+    subprocess.run([sys.executable, '-c',
+        "import runpy,sys; runpy.run_path(sys.argv[1])['_check_large_group_chain']()",
+        __file__], check=True, timeout=10)
 
 
 def reference(witness, degree, stages, attachments, fragments, bonds, limit=-1):

@@ -36,6 +36,25 @@ imports are `mappa._engine` and `mappa._group_ops`.
   complete permutation group or target-set orbit.
   Residual point-orbit occupancy counts reject impossible transport early;
   equal counts still require the exact correlated check.
+- `assignment_search.h` owns bounded starting-correspondence search, domain
+  propagation and integer assignment bounds. It returns improving witnesses;
+  it retains no table of complete assignments.
+- `permutation_group.h` owns compact stabilizer chains, membership, pair orbits
+  and independent-factor checks shared by event preparation and queries.
+  `event_response.h` prepares fixed contributions, sparse variable event terms
+  and event-invariant graph colors from the original weights.
+- `action_program.h` binds ordered actions to shared atom domains and
+  dependencies, with the existing 4,096-entry / 16 MiB composition cache.
+  These domains are bounds, not independent mapping permissions.
+- `history_projection.h` collects shared ancestry, ordered placements and final
+  fragment-ID compositions. Provenance remains parent links and terminal
+  references; path counts retain arbitrary precision at the Python boundary.
+
+Python retains public records, stage orchestration, bounded event-query control,
+branch boundary ledgers and record export. These consume the native kernels
+through the same shared symmetry owner. Replaced kernels have no Python fallback.
+Native operations release the interpreter lock during self-contained work;
+record conversion and arbitrary-precision path counts require it.
 - `autgrp.h` shares the binary structural graph solver between native fragment
   preparation and the public bindings in `autgrp.cpp`.
 - `third_party/nauty/` holds the vendored dependency, separate from MAPPA code.
@@ -51,6 +70,8 @@ python src/mappa/mappa_core/native/build_engine.py
 ```
 
 Package installation builds `_group_ops` through `setup.py`.
+For an existing development environment, rebuild it with
+`python setup.py build_ext --inplace`; header dependencies are tracked.
 The engine build compiles `engine.cpp`, `autgrp.cpp` and the nauty
 core, then places `_engine.<abi>.so` in `src/mappa/`. It requires a C++17 compiler.
 Intermediate build products use a temporary directory (`TMPDIR` when set)

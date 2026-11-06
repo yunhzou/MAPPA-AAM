@@ -2,7 +2,6 @@
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
 from functools import cached_property
-import sys
 import heapq
 from numbers import Integral
 
@@ -44,7 +43,6 @@ def apply_action(images, action, choice, degree):
     if kind == 'group':
         if isinstance(choice, Mapping):
             from .groups import permutation_group
-            from sympy.combinatorics import Permutation
             if set(choice) != {'permutation'}:
                 raise ValueError('placement choice must supply one permutation or a generator word')
             selected = tuple(choice['permutation'])
@@ -55,7 +53,7 @@ def apply_action(images, action, choice, degree):
             # not reconstruct a stabilizer chain for each composed branch.
             if selected == tuple(range(degree)):
                 return images
-            if not permutation_group(data, degree).contains(Permutation(list(selected))):
+            if not permutation_group(data, degree).contains(selected):
                 raise ValueError('placement permutation is outside the saved group')
             return np.asarray(selected)[images]
         for number in choice:
@@ -150,6 +148,7 @@ class _ActionSequence(tuple):
         value = super().__new__(cls, actions)
         value._hash = tuple.__hash__(value)
         value._owner, value._number = owner, number
+        value.native = tuple(action.native for action in value)
         return value
 
     def __hash__(self):
@@ -164,9 +163,8 @@ class PreparedActionPrograms:
         self.action_references, self.program_references = {}, {}
         self.sequences = {}
         self._owner = object()
-        self._fixed_domains = tuple((image,) for image in range(index.m))
-        self._domains = OrderedDict()
-        self._domain_bytes = 0
+        from mappa._group_ops import DomainPrograms
+        self.native = DomainPrograms(index.m)
 
     def _action(self, action):
         reference = self.action_references.get(id(action))
@@ -175,6 +173,8 @@ class PreparedActionPrograms:
             if prepared not in self.actions:
                 prepared.domains = {image: tuple(sorted(domain | {image})) for image, domain in
                     enumerate(self.index.action_domains(prepared)) if len(domain) > 1}
+                from mappa._group_ops import DomainAction
+                prepared.native = DomainAction(prepared.domains)
                 self.actions[prepared] = prepared
             reference = self.action_references[id(action)] = action, self.actions[prepared]
         return reference[1]
@@ -202,54 +202,9 @@ class PreparedActionPrograms:
             self.sequences[key] = self.programs[prepared]
         return self.sequences[key]
 
-    @staticmethod
-    def _combine_domain(action, domain):
-        """Apply one relationship to the incoming bounds, without taking closure."""
-        reached = set(domain)
-        for image in domain:
-            reached.update(action.domains.get(image, ()))
-        return tuple(sorted(reached))
-
-    def _advance(self, action, domain):
-        if len(domain) == 1:
-            return action.domains[domain[0]]
-        key = action, domain
-        if key not in self._domains:
-            result = self._combine_domain(action, domain)
-            size = sys.getsizeof(key) + sys.getsizeof(domain) + sys.getsizeof(result)
-            self._domains[key] = result, size
-            self._domain_bytes += size
-            while len(self._domains) > 4096 or self._domain_bytes > 16 * 2**20:
-                _, (_, removed) = self._domains.popitem(last=False)
-                self._domain_bytes -= removed
-            return result
-        self._domains.move_to_end(key)
-        return self._domains[key][0]
-
     def bind(self, actions, mapping):
-        """Bind shared local bounds to one branch's original joint choices.
-
-        Only rows touching an action participate. Independent fragments reuse
-        their prepared rows directly; overlapping relationships share their
-        combined bounds without retaining branch histories or assignments.
-        """
-        domains, dependencies, reaching = {}, {}, {}
-        for atom, image in mapping:
-            domains[atom] = self._fixed_domains[image]
-            dependencies[atom] = []
-            reaching.setdefault(image, set()).add(atom)
-        for position, action in enumerate(self.program(actions)):
-            affected = {atom for image in action.domains for atom in reaching.get(image, ())}
-            # Freeze affected rows before updating incidence: this action is
-            # applied once, even if its relaxed relationship is non-transitive.
-            for atom in affected:
-                previous = domains[atom]
-                domains[atom] = self._advance(action, previous)
-                dependencies[atom].append(position)
-                if domains[atom] != previous:
-                    for image in set(domains[atom]).difference(previous):
-                        reaching.setdefault(image, set()).add(atom)
-        return domains, {atom: tuple(positions) for atom, positions in dependencies.items()}
+        """Bind one ordered branch using shared native domains and bounded reuse."""
+        return self.native.bind(self.program(actions).native, mapping)
 
 
 def _action_orbits(action, degree):

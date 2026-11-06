@@ -10,14 +10,13 @@ from time import perf_counter
 
 import numpy as np
 
-from .groups import (binary_group, constant_response, event_components, group_key,
-                     independent_factors, pair_orbits, permutation_group,
+from .groups import (binary_group, event_components, group_key,
+                     independent_factors, permutation_group,
                      product_group, support)
 from .objective import FragmentObjective
 
 
-class SearchDeadlineReached(Exception):
-    """An explicit search limit; the caller retains its valid incumbent."""
+from mappa._group_ops import SearchDeadlineReached
 
 
 def check_deadline(deadline):
@@ -122,7 +121,7 @@ class FragmentSymmetryEvents:
         state = dict(self.__dict__, deadline=None)
         for name in ('group', 'source_group', 'invariant_group'):
             group = state[name]
-            state[name] = group.degree, tuple(tuple(g.array_form) for g in group.generators)
+            state[name] = group.degree, tuple(tuple(g) for g in group.generators)
         return state
 
     def __setstate__(self, state):
@@ -141,8 +140,8 @@ class FragmentSymmetryEvents:
         """Store decisions and costs; endpoint matrices stay with the reaction."""
         return dict(schema='mappa.fragment_events/1', fixed_events=int(self.fixed_events),
             pairs=[tuple(map(int, pair)) for pair in self.pairs], two_sided=self.two_sided,
-            generators=[tuple(g.array_form) for g in self.group.generators],
-            invariant_generators=[tuple(g.array_form) for g in self.invariant_group.generators],
+            generators=[tuple(g) for g in self.group.generators],
+            invariant_generators=[tuple(g) for g in self.invariant_group.generators],
             pair_orbit_states=self.pair_orbit_states)
 
     @classmethod
@@ -209,96 +208,35 @@ class FragmentSymmetryEvents:
         return int(self.group.order())
 
     def _event_terms(self):
-        remaining = set(zip(*np.triu_indices(self.size, 1)))
-        constant = 0
-        variable = []
-        # A whole structural edge/nonedge class can sometimes be settled immediately.
-        for present in (False, True):
-            pairs = sorted(pair for pair in remaining if bool(self.binary[pair]) == present)
-            if not pairs:
-                continue
-            target_values = np.unique([self.target[pair] for pair in pairs])
-            for pair in pairs:
-                response = np.abs(self.source[pair] - target_values) > self.thresholds[pair]
-                if np.all(response == response[0]):
-                    constant += int(response[0])
-                    remaining.remove(pair)
-        # Orbit aggregation needs all pairs in the orbit, including any individually
-        # constant ones, so process remaining orbits against their complete membership.
-        for ordered in pair_orbits(self.group, self.size, remaining):
-            check_deadline(self.deadline)
-            self.pair_orbit_states += len(ordered)
-            targets = np.unique([self.target[pair] for pair in ordered])
-            signatures = {tuple(np.abs(self.source[pair] - targets) > self.thresholds[pair]) for pair in ordered}
-            if len(signatures) == 1:
-                # Already settled terms are counted only once.
-                constant += sum(int(abs(self.source[pair] - self.target[pair]) > self.thresholds[pair])
-                                for pair in ordered if pair in remaining)
-            else:
-                for pair in ordered:
-                    if pair not in remaining:
-                        continue
-                    response = np.abs(self.source[pair] - targets) > self.thresholds[pair]
-                    if np.all(response == response[0]):
-                        constant += int(response[0])
-                    else:
-                        variable.append(pair)
-        return constant, tuple(sorted(variable))
+        from mappa._group_ops import fragment_event_terms
+        remaining = None if self.deadline is None else max(0., self.deadline - perf_counter())
+        fixed, pairs, self.pair_orbit_states = fragment_event_terms(
+            self.source, self.target, self.thresholds, self.target_binary,
+            self.source_group, self.group, self.two_sided, remaining)
+        return fixed, tuple(tuple(pair) for pair in pairs)
 
     def _invariant_group(self, weights, other, binary, colors):
+        from mappa._group_ops import invariant_event_graph
         check_deadline(self.deadline)
-        n = len(weights)
-        values = np.unique(other[np.triu_indices(n, 1)])
-        profiles = {(i, j): (bool(binary[i, j]),
-                    tuple(np.abs(values - weights[i, j]) > self.thresholds[i, j]))
-                    for i in range(n) for j in range(i + 1, n)}
-        nonedge_profiles = {profile for pair, profile in profiles.items() if not binary[pair]}
-        graph_edges = []
-        colors = list(colors)
-        for (i, j), profile in profiles.items():
-            if not profile[0] and len(nonedge_profiles) <= 1:
-                continue
-            edge_vertex = len(colors)
-            colors.append(('pair', profile))
-            graph_edges.extend(((i, edge_vertex), (j, edge_vertex)))
-        encoded = binary_group(len(colors), graph_edges, colors)
+        remaining = None if self.deadline is None else max(0., self.deadline - perf_counter())
+        edges, labels, profiles = invariant_event_graph(weights, other, binary, self.thresholds, remaining)
+        profiles = [('pair', (bool(row[0]), tuple(map(bool, row[1:])))) for row in profiles]
+        encoded = binary_group(len(colors) + len(labels), edges,
+                               list(colors) + [profiles[i] for i in labels])
         check_deadline(self.deadline)
-        return permutation_group([g.array_form[:n] for g in encoded.generators], n)
+        return permutation_group([g[:len(weights)] for g in encoded.generators], len(weights))
 
     def _prepare_two_sided(self):
         n = self.size
-        source_binary = self.source_binary
-        source_group = self.source_group
-        target_group = self.group
-        values, orbits = [], []
-        for weights, group in ((self.source, source_group), (self.target, target_group)):
-            lookup, reachable = {}, []
-            for orbit in pair_orbits(group, n):
-                check_deadline(self.deadline)
-                self.pair_orbit_states += len(orbit)
-                lookup.update((pair, len(reachable)) for pair in orbit)
-                reachable.append(np.unique([weights[pair] for pair in orbit]))
-            values.append(reachable)
-            orbits.append(lookup)
-        self.fixed_events, terms, responses = 0, [], {}
-        for i, j in zip(*np.triu_indices(n, 1)):
-            key = orbits[0][i, j], orbits[1][i, j], self.thresholds[i, j]
-            if key not in responses:
-                responses[key] = constant_response(values[0][key[0]], values[1][key[1]], key[2])
-            response = responses[key]
-            if response is not None:
-                self.fixed_events += int(response)
-            else:
-                terms.append((i, j, n+i, n+j))
-        self.pairs = tuple(terms)
+        self.fixed_events, self.pairs = self._event_terms()
         self.invariant_group = product_group(
-            self._invariant_group(self.source, self.target, source_binary, self.colors),
-            self._invariant_group(self.target, self.source, self.target_binary, self.target_colors)) if terms else None
-        self.group = product_group(source_group, target_group)
-        if not terms:
+            self._invariant_group(self.source, self.target, self.source_binary, self.colors),
+            self._invariant_group(self.target, self.source, self.target_binary, self.target_colors)) if self.pairs else None
+        self.group = product_group(self.source_group, self.group)
+        if not self.pairs:
             self.invariant_group = self.group
         self.binary = np.zeros((2*n, 2*n), dtype=bool)
-        self.binary[:n, :n], self.binary[n:, n:] = source_binary, self.target_binary
+        self.binary[:n, :n], self.binary[n:, n:] = self.source_binary, self.target_binary
         self.size = 2*n
 
     @property
@@ -384,7 +322,7 @@ class _Search:
         return answer
 
     def _representatives(self, prefix, representatives, moved):
-        if all(g.is_Identity for g in self.data.invariant_group.generators):
+        if not self.data.invariant_group.generators:
             return representatives
         outside = tuple(sorted(int(prefix[i]) for i in range(self.data.size) if i not in moved))
         fixed = sum(1 << atom for atom in outside)
@@ -403,7 +341,7 @@ class _Search:
             moving = set(support(invariant))
             additional = [atom for atom in outside if atom in moving and not (inherited & (1 << atom))]
             if additional:
-                invariant = invariant.pointwise_stabilizer(additional, incremental=False)
+                invariant = invariant.stabilizer(additional)
             if self.cache_entries:
                 self.restrictions[fixed] = invariant
                 if len(self.restrictions) > self.cache_entries:
@@ -477,14 +415,14 @@ class _Search:
             point = min(affected)
         step_key = key, point
         if step_key not in self.steps:
-            representatives = group.orbit_transversal(point, pairs=True)
+            representatives = group.transversal(point)
             representatives.sort(key=lambda item: (item[0] != point, item[0]))
-            self.steps[step_key] = group.stabilizer(point), representatives
+            self.steps[step_key] = group.stabilizer((point,)), representatives
             self.work.group_steps_prepared += 1
         subgroup, representatives = self.steps[step_key]
         complete = True
         for _, operation in self._representatives(prefix, representatives, moved):
-            next_prefix = prefix[np.asarray(operation.array_form[:self.data.size])]
+            next_prefix = prefix[np.asarray(operation[:self.data.size])]
             answer = self._solve(subgroup, next_prefix, active)
             complete = complete and answer.complete
             cost = fixed + answer.cost

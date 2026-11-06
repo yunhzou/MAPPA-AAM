@@ -154,6 +154,18 @@ def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatc
     assert decoded_events_record(decoded)['catalogue']['input_paths'] == 2**20
 
 
+def test_native_history_counts_exceed_machine_integer_without_expansion():
+    from mappa.mappa_core.core.search.graph import SearchHistories
+    states = tuple(SearchState(i, 0, (), (), ()) for i in range(81))
+    edges = tuple(FragmentTransition(2*i+j, i, i+1, None, (), None)
+                  for i in range(80) for j in range(2))
+    graph = AAMSearchGraph((SearchContext((), (), ()),), (0,), states,
+                          edges, (SearchStop(80, 'objective_met'),))
+    histories, endings = SearchHistories.collect(graph)
+    assert len(histories.parents) == 81
+    assert histories.counts[endings[0][2]] == 2**80
+
+
 def test_compact_origins_preserve_each_path_and_selected_scope():
     from mappa.mappa_core.core.search.graph import SearchHistories
     value = problem('CC', [], [])

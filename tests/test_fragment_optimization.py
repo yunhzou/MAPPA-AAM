@@ -112,7 +112,7 @@ def test_starting_bound_matches_exhaustive_injective_fixed_bond_cost(seed):
                        for i in range(5) for j in range(i+1, 5) if i in fixed or j in fixed)
         for image in permutations(range(5)) if all(image[i] in domains[i] for i in range(5)))
     search = _StartingMappings(value, objective, time.perf_counter()+5., 100, SymmetryWork())
-    assert search._bound(domains) == expected
+    assert search.search.bound(domains, search.ceiling) == expected
 
 
 def test_double_triangle_continuous_weights_improve_three_to_two():

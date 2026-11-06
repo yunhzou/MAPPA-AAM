@@ -103,7 +103,7 @@ def decoded_events_record(result):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, responses, response_ids = [], [], {}
     families = [dict(family_id=fid, tables=[]) for fid in range(len(result.catalogue.families))]
-    term_records, term_lists, group_records = {}, {}, {}
+    term_records, term_lists, term_objects, group_records = {}, {}, {}, {}
     component_records = {}
 
     def term_record(term):
@@ -119,9 +119,14 @@ def decoded_events_record(result):
                 endpoint_case=term.endpoint_case, manual_cut=term.manual_cut)
         return term_records[term]
     def terms_record(terms):
-        if terms not in term_lists:
-            term_lists[terms] = [term_record(term) for term in terms]
-        return term_lists[terms]
+        identity = id(terms)
+        if identity not in term_objects:
+            if terms not in term_lists:
+                term_lists[terms] = [term_record(term) for term in terms]
+            # Keep the tuple alive: bindings share it across many branches,
+            # so hashing every term again for each use is unnecessary.
+            term_objects[identity] = terms, term_lists[terms]
+        return term_objects[identity][1]
 
     def groups_record(groups, label):
         rows = []

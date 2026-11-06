@@ -652,6 +652,24 @@ scientific oracles and report the actual validation scope in `reports/`.
 
 Paths below are relative to `src/mappa/`.
 
+Reduction and decoding use the existing C++ backend for bulk scientific
+operations: assignment-domain updates and event bounds, compact permutation
+operations, shared response binding and composition bookkeeping. Python owns
+the public records and stage APIs; native operations consume shared integer
+IDs and prepared arrays rather than calling Python inside atom-level loops.
+The shared symmetry core remains the single owner of the mathematics consumed
+by both fragment preparation and decoding. This execution boundary changes no
+mapping permissions, event model, action order, cache limits or completeness
+rules. Work buffers are bounded or released with their stage; scheduling and
+storage remain outside the native scientific operations.
+
+```mermaid
+flowchart LR
+    API[Python stage APIs and records] --> Native[Native reduction and event kernels]
+    Native --> Shared[Shared fragment IDs, arrays and compact generators]
+    API --> Storage[Aggregated persistence]
+```
+
 | Owner | Location |
 |---|---|
 | Shared endpoint, configuration and result records | `mappa_core/domain.py` |

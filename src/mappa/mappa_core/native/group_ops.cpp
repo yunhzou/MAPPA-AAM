@@ -1,4 +1,4 @@
-// Exact permutation bookkeeping. Search choices and chemical semantics live in Python.
+// Native kernels for shared reduction, permutation and bond-event operations.
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -13,6 +13,11 @@
 #include <unordered_map>
 #include <vector>
 #include "set_orbit.h"
+#include "assignment_search.h"
+#include "permutation_group.h"
+#include "action_program.h"
+#include "event_response.h"
+#include "history_projection.h"
 
 namespace py = pybind11;
 using Images = std::vector<int>;
@@ -20,6 +25,15 @@ using Fragment = std::pair<int, Images>;
 using Bond = std::pair<int, int>;
 using Key = std::tuple<Images, Images, std::vector<Fragment>, std::vector<Bond>>;
 using State = std::pair<Images, Images>;
+using MatrixArray = py::array_t<double, py::array::c_style | py::array::forcecast>;
+
+static event_native::Matrix matrix_values(const MatrixArray& array, int size) {
+    if (array.ndim() != 2 || array.shape(0) != size || array.shape(1) != size)
+        throw std::invalid_argument("matrix differs from its permutation frame");
+    event_native::Matrix result(size);
+    for (int i = 0; i < size; ++i) result[i].assign(array.data(i), array.data(i) + size);
+    return result;
+}
 
 static py::tuple atom_tuple(const Images& atoms) {
     py::tuple result(atoms.size());
@@ -504,6 +518,199 @@ public:
 };
 
 PYBIND11_MODULE(_group_ops, m) {
+    m.def("family_compositions", [](int degree, py::sequence states, py::sequence endings,
+            const std::vector<std::pair<int, Images>>& compositions, py::sequence fragments,
+            const Images& policies, const std::vector<Images>& anchors) {
+        std::map<int, Images> ids(compositions.begin(), compositions.end());
+        std::vector<Images> targets;
+        for (py::handle record : fragments) targets.push_back(py::cast<Images>(record[py::int_(2)]));
+        py::dict group_ids;
+        std::vector<py::object> groups;
+        std::vector<std::vector<Bond>> moves;
+        std::unordered_map<PyObject*, int> program_ids;
+        std::vector<Images> programs;
+        std::vector<reduction_native::FamilyEnding> rows;
+        for (py::handle ending : endings) {
+            auto row = py::cast<py::tuple>(ending);
+            const int terminal = py::cast<int>(row[0]);
+            const int context = py::cast<int>(states[terminal].attr("context"));
+            auto [program, fresh] = program_ids.emplace(row[1].ptr(), programs.size());
+            if (fresh) {
+                Images sequence;
+                for (py::handle group : row[1]) {
+                    if (!group_ids.contains(group)) {
+                        group_ids[group] = py::int_(groups.size());
+                        groups.push_back(py::reinterpret_borrow<py::object>(group));
+                        std::set<Bond> changed;
+                        for (const auto& action : py::cast<std::vector<Images>>(group)) {
+                            if (action.size() > static_cast<size_t>(degree)) throw std::invalid_argument("placement exceeds target frame");
+                            for (size_t a = 0; a < action.size(); ++a) if (action[a] != static_cast<int>(a)) changed.emplace(a, action[a]);
+                        }
+                        moves.emplace_back(changed.begin(), changed.end());
+                    }
+                    sequence.push_back(py::cast<int>(group_ids[group]));
+                }
+                programs.push_back(std::move(sequence));
+            }
+            rows.push_back({terminal, context, policies.at(context), program->second, py::cast<int>(row[2]), ids.at(terminal)});
+        }
+        std::vector<reduction_native::FamilyComposition> result;
+        {py::gil_scoped_release release;
+         result = reduction_native::family_compositions(degree, rows, targets, anchors, programs, moves);}
+        py::list families;
+        std::map<Images, py::tuple> shared_programs;
+        for (const auto& family : result) {
+            auto [entry, fresh] = shared_programs.try_emplace(family.program);
+            if (fresh) {
+                py::tuple sequence(family.program.size());
+                for (size_t i = 0; i < family.program.size(); ++i) sequence[i] = groups[family.program[i]];
+                entry->second = sequence;
+            }
+            families.append(py::make_tuple(family.terminal, entry->second, family.origins));
+        }
+        return families;
+    });
+    m.def("collect_histories", [](int states, const Images& roots, const Images& terminals,
+            py::sequence transitions, std::optional<std::vector<std::pair<int, Images>>> selected) {
+        py::dict group_ids;
+        std::unordered_map<PyObject*, int> objects;
+        std::vector<py::object> groups;
+        std::vector<reduction_native::HistoryEdge> edges;
+        for (py::handle edge : transitions) {
+            py::object generators = edge.attr("placement_generators");
+            int group = -1;
+            if (py::len(generators)) {
+                auto [entry, fresh] = objects.try_emplace(generators.ptr(), -1);
+                if (fresh) {
+                    if (!group_ids.contains(generators)) {
+                        group_ids[generators] = py::int_(groups.size());
+                        groups.push_back(generators);
+                    }
+                    entry->second = py::cast<int>(group_ids[generators]);
+                }
+                group = entry->second;
+            }
+            edges.push_back({py::cast<int>(edge.attr("id")), py::cast<int>(edge.attr("source")),
+                py::cast<int>(edge.attr("target")), group});
+        }
+        reduction_native::HistoryProjection result;
+        {py::gil_scoped_release release; result = reduction_native::collect_histories(states, roots, terminals, edges, selected);}
+        py::list parents, counts;
+        counts.append(py::int_(1));
+        for (size_t node = 0; node < result.parents.size(); ++node) {
+            const auto& links = result.parents[node];
+            py::tuple row(links.size());
+            py::object count = py::int_(0);
+            for (size_t i = 0; i < links.size(); ++i) {
+                auto [edge, parent] = links[i];
+                row[i] = py::make_tuple(edge < 0 ? py::object(py::none()) : py::object(py::int_(edge)), parent);
+                // Python integers preserve arbitrary path counts in compressed DAGs.
+                count = py::reinterpret_steal<py::object>(PyNumber_Add(count.ptr(), counts[parent].ptr()));
+                if (!count) throw py::error_already_set();
+            }
+            parents.append(row);
+            if (node) counts.append(count);
+        }
+        std::map<int, py::tuple> programs;
+        py::tuple endings(result.endings.size());
+        for (size_t i = 0; i < result.endings.size(); ++i) {
+            auto [terminal, program, node] = result.endings[i];
+            auto [entry, fresh] = programs.try_emplace(program);
+            if (fresh) {
+                py::list actions;
+                for (int current = program; current; current = result.programs[current].second)
+                    actions.append(groups[result.programs[current].first]);
+                entry->second = py::tuple(actions);
+            }
+            endings[i] = py::make_tuple(terminal, entry->second, node);
+        }
+        return py::make_tuple(parents, counts, endings);
+    });
+    m.def("independent_factors", [](const std::shared_ptr<permutation_native::Group>& group,
+            std::optional<MatrixArray> adjacency) {
+        auto graph = adjacency ? matrix_values(*adjacency, group->degree) : event_native::Matrix{};
+        py::gil_scoped_release release;
+        return permutation_native::independent_factors(group, adjacency ? &graph : nullptr);
+    });
+    m.def("event_components", &permutation_native::event_components, py::call_guard<py::gil_scoped_release>());
+    py::register_exception<event_native::SearchExpired>(m, "SearchDeadlineReached");
+    m.def("fragment_event_terms", [](const MatrixArray& source, const MatrixArray& target,
+            const MatrixArray& limits, const MatrixArray& binary,
+            const permutation_native::Group& source_group, const permutation_native::Group& target_group,
+            bool two_sided, std::optional<double> seconds) {
+        const int n = source_group.degree;
+        if (target_group.degree != n) throw std::invalid_argument("fragment symmetry frames differ");
+        auto left = matrix_values(source, n), right = matrix_values(target, n),
+             thresholds = matrix_values(limits, n), edges = matrix_values(binary, n);
+        event_native::EventTerms result;
+        {py::gil_scoped_release release;
+         result = event_native::event_terms(left, right, thresholds, edges, source_group, target_group, two_sided, seconds);}
+        return py::make_tuple(result.fixed, result.pairs, result.orbit_states);
+    });
+    m.def("invariant_event_graph", [](const MatrixArray& weights, const MatrixArray& other,
+            const MatrixArray& binary, const MatrixArray& limits, std::optional<double> seconds) {
+        if (weights.ndim() != 2) throw std::invalid_argument("expected a square weight matrix");
+        const int n = weights.shape(0);
+        auto left = matrix_values(weights, n), right = matrix_values(other, n),
+             edges = matrix_values(binary, n), thresholds = matrix_values(limits, n);
+        event_native::InvariantGraph result;
+        {py::gil_scoped_release release;
+         result = event_native::invariant_graph(left, right, edges, thresholds, seconds);}
+        return py::make_tuple(result.edges, result.colors, result.profiles);
+    });
+    py::class_<permutation_native::DomainAction, std::shared_ptr<permutation_native::DomainAction>>(m, "DomainAction")
+        .def(py::init<const std::map<int, Images>&>());
+    py::class_<permutation_native::DomainPrograms>(m, "DomainPrograms")
+        .def(py::init<int>())
+        .def("bind", [](permutation_native::DomainPrograms& programs,
+                        const std::vector<std::shared_ptr<permutation_native::DomainAction>>& actions,
+                        const std::vector<Bond>& mapping) {
+            permutation_native::DomainBinding bound;
+            {py::gil_scoped_release release; bound = programs.bind(actions, mapping);}
+            py::dict domains, dependencies;
+            std::unordered_map<const Images*, py::tuple> shared;
+            for (size_t i = 0; i < bound.atoms.size(); ++i) {
+                auto [entry, added] = shared.try_emplace(bound.domains[i].get());
+                if (added) entry->second = atom_tuple(*bound.domains[i]);
+                domains[py::int_(bound.atoms[i])] = entry->second;
+                dependencies[py::int_(bound.atoms[i])] = atom_tuple(bound.dependencies[i]);
+            }
+            return py::make_tuple(domains, dependencies);
+        })
+        .def("statistics", &permutation_native::DomainPrograms::statistics);
+    py::class_<permutation_native::Group, std::shared_ptr<permutation_native::Group>>(m, "PermutationGroup")
+        .def(py::init<int, permutation_native::Generators>())
+        .def_readonly("degree", &permutation_native::Group::degree)
+        .def_property_readonly("generators", [](const permutation_native::Group& group) {
+            py::tuple result(group.generators.size());
+            for (size_t i = 0; i < group.generators.size(); ++i) result[i] = atom_tuple(group.generators[i]);
+            return result;
+        })
+        .def("support", &permutation_native::Group::support, py::call_guard<py::gil_scoped_release>())
+        .def("orbit", &permutation_native::Group::orbit, py::call_guard<py::gil_scoped_release>())
+        .def("orbits", &permutation_native::Group::orbits, py::call_guard<py::gil_scoped_release>())
+        .def("pair_orbits", &permutation_native::Group::pair_orbits, py::arg("selected") = py::none(),
+             py::call_guard<py::gil_scoped_release>())
+        .def("transversal", &permutation_native::Group::transversal, py::call_guard<py::gil_scoped_release>())
+        .def("stabilizer", &permutation_native::Group::stabilizer, py::call_guard<py::gil_scoped_release>())
+        .def("contains", &permutation_native::Group::contains, py::call_guard<py::gil_scoped_release>())
+        .def("transversals", &permutation_native::Group::transversals, py::call_guard<py::gil_scoped_release>())
+        .def("order", [](const permutation_native::Group& group) {
+            std::vector<int> factors;
+            {py::gil_scoped_release release; factors = group.order_factors();}
+            py::object value = py::int_(1);
+            for (int factor : factors) value = value.attr("__mul__")(factor);
+            return value;
+        });
+    py::class_<event_native::AssignmentSearch>(m, "AssignmentSearch")
+        .def(py::init<event_native::Matrix, event_native::Matrix, event_native::Matrix,
+             event_native::Matrix, event_native::Domains, std::vector<int>,
+             const std::vector<std::tuple<int, int, std::vector<std::pair<int, int>>>>&>())
+        .def("next", &event_native::AssignmentSearch::next, py::call_guard<py::gil_scoped_release>())
+        .def("bound", &event_native::AssignmentSearch::bound, py::call_guard<py::gil_scoped_release>())
+        .def_readonly("nodes", &event_native::AssignmentSearch::nodes)
+        .def_readonly("improvements", &event_native::AssignmentSearch::improvements)
+        .def_readonly("expired", &event_native::AssignmentSearch::expired);
     m.def("fragment_compositions", &fragment_compositions);
     py::class_<permutation_native::SetOrbit>(m, "SetOrbit")
         .def(py::init<int, const permutation_native::Generators&>())

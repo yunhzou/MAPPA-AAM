@@ -14,8 +14,8 @@ def group_factors(generators):
     from .groups import permutation_group
     if not generators:return ()
     group=permutation_group(generators, len(generators[0]))
-    return tuple(tuple(tuple(p(i) for i in range(group.degree)) for p in level.values())
-                 for level in reversed(group.basic_transversals) if len(level)>1)
+    return tuple(tuple(tuple(p) for _, p in level)
+                 for level in reversed(group.transversals()) if len(level)>1)
 
 
 class SymbolicActions:

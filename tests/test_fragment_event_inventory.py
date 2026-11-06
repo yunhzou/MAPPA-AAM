@@ -309,16 +309,13 @@ def test_independent_fragments_reuse_preparation_across_distinct_family_orders(m
         prepared[action] += 1
         return action_domains(index, action)
 
-    def unnecessary_union(*args):
-        pytest.fail('independent singleton rows repeated domain composition')
-
     monkeypatch.setattr(SignedEventIndex, 'action_domains', observed)
-    monkeypatch.setattr(PreparedActionPrograms, '_combine_domain', unnecessary_union)
     decoded = decode_events(source, event_slack=1000)
     record = decoded_events_record(decoded)
     assert prepared == Counter({action: 1 for action in first.actions})
     assert len(decoded.local.fragments) == count
     assert len(record['tables']) == count and not decoded._tables
+    assert decoded.local.programs.native.statistics()[3] == 0
     shared = decoded.tables(0).fragment_responses
     for fid, family in enumerate(source.families):
         table = decoded.tables(fid)
@@ -428,35 +425,32 @@ def test_branch_assembly_does_not_prepare_ordinary_boundary_responses(monkeypatc
             assert table.statistics['neighboring_pairs'] == len(pairs)
 
 
-def test_domain_preparation_eviction_preserves_results_and_bounds_retention(monkeypatch):
+def test_domain_preparation_eviction_preserves_results_and_bounds_retention():
+    from mappa._group_ops import DomainAction
     ep = endpoint('C' * 15, [])
     problem = AAMProblem(ep, ep)
     programs = PreparedActionPrograms(SignedEventIndex(problem))
     fragment = saved_fragment(problem, source_atoms=(0, 1))
     action = programs.program((('relation', fragment),))[0]
-    prepared = Counter()
-    combine = PreparedActionPrograms._combine_domain
-
-    def observed(action, domain):
-        prepared[domain] += 1
-        return combine(action, domain)
-
-    monkeypatch.setattr(PreparedActionPrograms, '_combine_domain', staticmethod(observed))
+    def bind(domain):
+        upstream = DomainAction({0: domain})
+        domains, dependencies = programs.native.bind((upstream, action.native), ((0, 0),))
+        assert dependencies == {0: (0, 1)}
+        return domains[0]
     first = (0, 2)
-    assert programs._advance(action, first) == (0, 1, 2)
-    assert programs._advance(action, first) == (0, 1, 2)
-    assert prepared[first] == 1
+    assert bind(first) == (0, 1, 2)
+    assert bind(first) == (0, 1, 2)
+    assert programs.native.statistics()[2:] == [1, 1]
     # The same local swap sees distinct upstream bounds; their identity must
     # not depend on complete branch histories, and retention remains bounded.
     for mask in range(2, 4098):
         domain = (0,) + tuple(atom + 2 for atom in range(13) if mask & (1 << atom))
-        assert programs._advance(action, domain) == (0, 1) + domain[1:]
-    assert (action, first) not in programs._domains
-    assert programs._advance(action, first) == (0, 1, 2)
-    assert prepared[first] == 2
-    assert len(programs._domains) <= 4096
-    assert 0 < programs._domain_bytes <= 16 * 2**20
-    assert programs._domain_bytes == sum(size for _, size in programs._domains.values())
+        assert bind(domain) == (0, 1) + domain[1:]
+    misses = programs.native.statistics()[3]
+    assert bind(first) == (0, 1, 2)
+    entries, size, hits, after = programs.native.statistics()
+    assert after == misses + 1
+    assert entries <= 4096 and 0 < size <= 16 * 2**20
 
 
 def test_session_does_not_retain_released_preparation():

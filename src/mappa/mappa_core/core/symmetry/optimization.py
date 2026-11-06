@@ -8,104 +8,49 @@ from math import isfinite
 from time import perf_counter
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
 
-from .constraints import FiniteConstraints, compile_discovery
 from .minimum import (FragmentMinimum, FragmentSymmetryEvents, SearchDeadlineReached,
                       SymmetryWork, check_deadline)
 from .objective import FragmentObjective
 
 
 class _StartingMappings:
-    """Search for better discoveries with the shared growth-constraint compiler.
-
-    Partial event counts bound the unshuffled discovery objective only. They do
-    not certify unexplored symmetry classes: this is deliberate bounded witness
-    improvement, not exhaustive event decoding or a replacement growth matcher.
-    """
+    """Native bounded discoveries; only improvements cross the Python boundary."""
     def __init__(self, fragment, objective, deadline, ceiling, work):
+        from mappa._group_ops import AssignmentSearch
         self.relation = fragment.relation
-        self.objective = objective
-        self.deadline = deadline
-        self.ceiling = ceiling
-        self.work = work
-        self.system = FiniteConstraints()
-        self.values = compile_discovery(self.system, self.relation, self.check)
-        self.source_rows = np.sort(objective.source, axis=1)
-        self.target_rows = np.sort(objective.target, axis=1)
-        self.degrees = np.count_nonzero(
-            fragment.source_symmetry.weights > fragment.source_symmetry.bond_threshold, axis=1)
+        self.deadline, self.ceiling, self.work = deadline, ceiling, work
+        sources = {atom: i for i, atom in enumerate(self.relation.source_atoms)}
+        targets = objective.target_positions
+        domains = {r: tuple(sorted(targets[p] for p in values))
+                   for r, values in self.relation.domains}
+        domains.update((r, (targets[p],)) for r, p in self.relation.anchors)
+        edges = [(sources[edge.atoms[0]], sources[edge.atoms[1]],
+                  [(targets[p], targets[q]) for p, q in self.relation.discovery_pairs(edge)])
+                 for edge in self.relation.accepted_edges]
+        source_rows, target_rows = np.sort(objective.source, axis=1), np.sort(objective.target, axis=1)
+        # Keep the existing floating-point proposal order, including its ties.
+        # Only one row-sized temporary is needed, rather than an n-cubed array.
+        priorities = [np.sum(np.abs(row - target_rows), axis=1).tolist() for row in source_rows]
+        degrees = np.count_nonzero(fragment.source_symmetry.weights >
+                                  fragment.source_symmetry.bond_threshold, axis=1)
+        self.search = AssignmentSearch(objective.source.tolist(), objective.target.tolist(),
+            objective.thresholds.tolist(), priorities,
+            [domains[r] for r in self.relation.source_atoms], degrees.tolist(), edges)
 
-    def check(self):
-        check_deadline(self.deadline)
-
-    def _domains(self, system):
-        positions = self.objective.target_positions
-        return [tuple(sorted(positions[p] for p in system.domain(self.values[r][0])))
-                for r in self.relation.source_atoms]
-
-    def _bound(self, domains):
-        """Count fixed pairs and relax the remaining fixed-to-free bonds jointly.
-
-        Every completion assigns distinct remaining targets. A linear assignment
-        therefore bounds these bond events without enumerating free/free choices.
-        """
-        data = self.objective
-        fixed = [i for i, values in enumerate(domains) if len(values) == 1]
-        if not fixed:
-            return 0
-        images = [domains[i][0] for i in fixed]
-        source, target = data.source[np.ix_(fixed, fixed)], data.target[np.ix_(images, images)]
-        cost = int(np.count_nonzero(np.triu(np.abs(source-target) > data.thresholds[np.ix_(fixed, fixed)], 1)))
-        free = [i for i, values in enumerate(domains) if len(values) > 1]
-        if not free or cost >= self.ceiling:
-            return cost
-        targets = sorted(set(range(data.size)).difference(images))
-        costs = np.zeros((len(free), len(targets)))
-        for atom, image in zip(fixed, images):
-            costs += (np.abs(data.source[free, atom, None] - data.target[targets, image][None, :])
-                      > data.thresholds[free, atom, None])
-        for row, atom in enumerate(free):
-            costs[row, [column for column, image in enumerate(targets) if image not in domains[atom]]] = np.inf
-        try:
-            rows, columns = linear_sum_assignment(costs)
-        except ValueError:  # No injective completion of these domains exists.
-            return self.ceiling
-        return cost + int(costs[rows, columns].sum())
-
-    def _search(self, system):
-        self.check()
-        self.work.discovery_nodes += 1
-        system.propagate(self.check)
-        if system.failed:
-            return
-        domains = self._domains(system)
-        if self._bound(domains) >= self.ceiling:
-            return
-        moving = [i for i, values in enumerate(domains) if len(values) > 1]
-        if not moving:
-            images = tuple(values[0] for values in domains)
+    def __iter__(self):
+        while True:
+            images = self.search.next(self.ceiling, max(0., self.deadline - perf_counter()))
+            self.work.discovery_nodes = self.search.nodes
+            self.work.discovery_improvements = self.search.improvements
+            if self.search.expired:
+                raise SearchDeadlineReached
+            if images is None:
+                return
             witness = tuple((r, self.relation.target_atoms[p])
                             for r, p in zip(self.relation.source_atoms, images))
             self.relation._validate_discovery(witness)
-            self.work.discovery_improvements += 1
             yield witness
-            return
-        atom = min(moving, key=lambda i: (len(domains[i]), -int(self.degrees[i]), i))
-        # Weight profiles order proposals only; all pruning uses valid bounds.
-        choices = sorted(domains[atom], key=lambda p: (
-            float(np.sum(np.abs(self.source_rows[atom] - self.target_rows[p]))), p))
-        value = self.values[self.relation.source_atoms[atom]][0]
-        for image in choices:
-            self.check()
-            child = FiniteConstraints()
-            child.domains = [set(domain) for domain in system.domains]
-            child.constraints = list(system.constraints)
-            child.restrict(value, {self.relation.target_atoms[image]})
-            yield from self._search(child)
-
-    def __iter__(self):
-        return self._search(self.system)
 
 
 def _accumulate(total, part):

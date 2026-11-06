@@ -178,8 +178,13 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10.):
         if remaining <= 0:
             unknown = True
             break
-        answer = decoded.select(family, partition=partition, cut=cut).find(
+        # A diagnostic scan owns one working table at a time. Public select()
+        # intentionally retains tables for interactive reuse, not this scan.
+        key = decoded._table_key(family, partition, cut)
+        table = decoded._prepare_table(family, partition, key)
+        answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
             assignments=mapping, seconds=remaining)
+        del table
         if answer.status == 'found':
             return dict(status='recovered', event_count=answer.event_count,
                         policy='exact annotated indices in selected decoded window')

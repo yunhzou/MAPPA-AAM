@@ -71,8 +71,7 @@ def arms():
                     range(13), elements=elements)
 
 
-def test_composed_arm_dependence_uses_the_prepared_graph(monkeypatch):
-    from sympy.combinatorics import PermutationGroup
+def test_composed_arm_dependence_uses_the_prepared_graph():
     from mappa.mappa_core.core.symmetry.groups import independent_factors
 
     value = arms()
@@ -81,34 +80,25 @@ def test_composed_arm_dependence_uses_the_prepared_graph(monkeypatch):
         ((('relation', value), prepared),), value.target_symmetry.weights, (),
         projections=((prepared, (0,)),))
     for generator in response.group.generators:
-        image = generator.array_form
+        image = generator
         assert np.array_equal(response.factor_graph, response.factor_graph[np.ix_(image, image)])
 
-    def unnecessary_stabilizer(*args, **kwargs):
-        pytest.fail('the arm graph already proves the carbon/hydrogen orbits are correlated')
-    with monkeypatch.context() as patch:
-        patch.setattr(PermutationGroup, 'pointwise_stabilizer', unnecessary_stabilizer)
-        factors = independent_factors(response.group, response.factor_graph)
+    factors = independent_factors(response.group, response.factor_graph)
     assert len(factors) == 1
     assert response.select(2).find().event_count == 2
 
 
-def test_composed_placement_reuses_only_a_preserved_graph(monkeypatch):
-    from sympy.combinatorics import PermutationGroup
+def test_composed_placement_reuses_only_a_preserved_graph():
     from mappa.mappa_core.core.symmetry.groups import independent_factors
 
     value = arms()
     graph = (value.target_symmetry.weights > .2).astype(float)
     action = ('group', value.target_symmetry.generators)
     response = OrderedSymmetryEvents(value.witness, ((action, None),), graph, ())
-    def unnecessary_stabilizer(*args, **kwargs):
-        pytest.fail('the preserved placement graph already proves the arm dependence')
-    with monkeypatch.context() as patch:
-        patch.setattr(PermutationGroup, 'pointwise_stabilizer', unnecessary_stabilizer)
-        assert len(independent_factors(response.group, response.factor_graph)) == 1
+    assert len(independent_factors(response.group, response.factor_graph)) == 1
     assert response.binary is None  # Preserve the established branch search ordering.
     for generator in response.group.generators:
-        image = generator.array_form
+        image = generator
         assert np.array_equal(response.factor_graph, response.factor_graph[np.ix_(image, image)])
 
     # Variable bond weights are not a placement certificate, but their complete
@@ -116,7 +106,9 @@ def test_composed_placement_reuses_only_a_preserved_graph(monkeypatch):
     variable = OrderedSymmetryEvents(value.witness, ((action, None),),
                                      value.target_symmetry.weights, ())
     assert not np.any(variable.factor_graph)
-    assert variable.group.equals(response.group)
+    from growth_cases import group_actions
+    assert set(group_actions(variable.group.generators, variable.size)) == set(
+        group_actions(response.group.generators, response.size))
 
 
 @pytest.mark.parametrize('seed', range(24))
@@ -160,11 +152,12 @@ def test_pair_minimum_reuses_ordered_binary_choices_without_group_search(seed, m
 
     # A component reached after other choices were fixed must retain those
     # choices. Compare its exact coset with the independently enumerated group.
-    operations = list(response.group.generate_schreier_sims())
-    prefix = np.asarray(operations[-1].array_form)
-    subgroup = response.group.stabilizer(seed % response.size)
+    from growth_cases import group_actions
+    operations = group_actions(response.group.generators, response.size)
+    prefix = np.asarray(operations[-1])
+    subgroup = response.group.stabilizer((seed % response.size,))
     cost, selected, _ = response.project_pair(prefix, response.pairs, subgroup)
-    allowed = [prefix[np.asarray(g.array_form)] for g in subgroup.generate_schreier_sims()]
+    allowed = [prefix[np.asarray(g)] for g in group_actions(subgroup.generators, subgroup.degree)]
     counts = [response.score(p, response.pairs) for p in allowed]
     assert cost == min(counts) == response.score(selected, response.pairs)
     assert any(np.array_equal(selected, p) for p in allowed)
@@ -325,8 +318,9 @@ def test_ordered_fragment_projection_and_sweep_against_all_small_choices(seed):
         total -= int(tuple(sorted((images[0], images[2]))) in table.product_boundary_set)
         expected[tuple(images)] = int(total)
     program = table.program
-    for operation in program.group.generate_schreier_sims():
-        prefix = np.asarray(operation.array_form)
+    from growth_cases import group_actions
+    for operation in group_actions(program.group.generators, program.size):
+        prefix = np.asarray(operation)
         images = tuple(program.mapping(prefix)[a] for a in range(4))
         assert program.fixed_events + program.score(prefix, program.pairs) == expected[images]
     assert decoded.minimum_events == min(expected.values()) and decoded.minimum_proven

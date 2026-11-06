@@ -60,6 +60,7 @@ def saved_matching_worker(args, case):
         value = phases.setdefault(name, dict(cpu_seconds=0., wall_seconds=0.))
         value['cpu_seconds'] += time.process_time() - cpu
         value['wall_seconds'] += time.perf_counter() - wall
+        value['process_lifetime_peak_rss_bytes_after'] = peak_rss()
         return result
 
     with tempfile.TemporaryDirectory(prefix='mappa-reduction-comparison-') as scratch:

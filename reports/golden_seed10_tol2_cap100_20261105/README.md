@@ -639,7 +639,8 @@ limit. Both retain their reported model minima (7 and 3). Time-bounded explorati
 can change under instrumentation, so the profiles support hotspot attribution,
 not an assertion that every retained response is identical.
 
-**Proposed implementation boundary; not implemented or adopted here:** use the
+**Implementation proposal at the profiling revision** (the subsequent accepted
+implementation and measurements are recorded below): use the
 existing C++/pybind backend for the computational work, with Python retaining
 the public API, orchestration and storage. The main opportunities are:
 
@@ -683,6 +684,75 @@ cases need separate coverage/work-count comparisons. Measure the same three
 phases unprofiled on these saved inputs, including peak memory, before broadening
 the benchmark. Retire superseded production paths after validation; keep no
 Python fallback algorithm.
+
+## Native reduction and decoding acceleration
+
+The accepted implementation moves starting-correspondence search and assignment
+bounds, compact permutation operations, event-pair preparation, independent-factor
+checks, ordered action binding, shared-history traversal and family composition
+bookkeeping into the existing C++ backend. It removes the superseded Python
+kernels. Python retains stage APIs, public records, event-query control, boundary
+ledgers and export; this is not a complete rewrite of the application in C++.
+The scientific rules, thresholds, action order, search allowances and cache limits
+remain unchanged.
+
+The [six-case comparison](native-acceleration-comparison.json) replays identical
+saved matching inputs on the same Mac, with one numerical thread and a fresh
+process per observation. It compares against the recorded pre-port measurements;
+no old algorithm or matching run was repeated. All inputs use discovery tolerance
+2, branch cap 100, the full single-edge sweep and decoder minimum + 5. Times below
+are CPU seconds. Loading, external verification and serialization are separate.
+
+| Direction / seeds | Reduction: before → native | Decoding: before → native | Export: before → native | Decode speedup |
+|---|---:|---:|---:|---:|
+| 01606 / reverse / seed1 | 0.205 → 0.215 | 18.489 → 10.923 | 5.906 → 3.235 | 1.69× |
+| 01606 / reverse / seed10 | 1.421 → 1.509 | 54.002 → 28.842 | 18.492 → 10.284 | 1.87× |
+| 01640 / forward / seed1 | 0.043 → 0.049 | 11.035 → 3.008 | 0.258 → 0.239 | 3.67× |
+| 01640 / forward / seed10 | 0.200 → 0.214 | 73.598 → 15.673 | 1.151 → 1.049 | 4.70× |
+| 01763 / reverse / seed1 | 0.079 → 0.060 | 9.100 → 3.046 | 1.711 → 0.971 | 2.99× |
+| 01763 / reverse / seed10 | 0.420 → 0.251 | 13.227 → 4.864 | 3.243 → 1.820 | 2.72× |
+
+Decoding improves in every measured arm. Reduction is mixed: case 1763 improves,
+while the other observations add at most 0.09 CPU seconds. It was already a small
+fraction of total work; these results do not support claiming a large reducer
+speedup everywhere. These are single observations, not confidence intervals.
+
+All six retain the same branch-composition hashes, raw-path, branch, family and
+fragment counts, model minima/proof flags, catalogue-reference statuses and
+reported decoded-reference answers. Each record passes serialization/restoration
+equality. Cases 1640 and 1763 recover the reference inside the selected event
+window. Case 1606 remains unknown in that separate ten-second query at both seed
+counts; its catalogue reference is recovered with ten seeds and not recovered
+with one. These summary checks are complemented by independent small exhaustive
+oracles, not presented as proof of every large decoded relationship.
+
+An initial reducer batch rebuilt equal placement programs repeatedly. Measurement
+caught the slowdown; sharing those programs removed it before acceptance. The
+faster external window-reference scan also exposed accumulated branch tables.
+That diagnostic now releases each working table while preserving existing
+explicitly owned tables. On ten-seed case 1606 the complete measurement peaks at
+2.17 GiB versus the prior 2.58 GiB; its decoding phase reaches about 1.00 GiB.
+The complete measurement includes the separate query, record, serialized bytes
+and restored output, so its peak is not decoder-only memory. Other final arms
+also remain below their recorded process-lifetime peaks.
+
+Validation: the full suite passed **1,260 tests**. After the placement-sharing
+adjustment, **156 affected tests** passed; **two** checks cover reference-scan
+lifetime and query correctness. Final removal of two unused Python adapters was
+checked with **170** symmetry/optimization tests. The full suite includes the
+smoke checks. The independent tests cover continuous weights, different
+connectivity, correlated occupancy, ordered placements, sweep endpoints, cache
+eviction, limits, provenance and transport. Stress checks keep a 32! group compact
+and preserve 2⁸⁰ growth histories without expanding them. The first full-suite
+attempt was interrupted because the sandbox blocked child-process inspection;
+the successful run allowed the existing memory watchdog to inspect its workers.
+
+The evidence records measured and published runtime identities separately: the
+only postmeasurement core cleanup removes two unused Python adapters, with the
+same native binaries and executed scientific paths. Generator bases and selected
+witnesses can differ while representing the same symmetry; faster execution can
+also inspect more within a fixed deadline. No full Golden or EnzymeMap rerun, or
+cluster-throughput claim, is made by this local comparison.
 
 ## Paper analysis
 

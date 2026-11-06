@@ -129,16 +129,16 @@ class _EventSearch(_Search):
                 point = min(affected) if affected else point
                 step_key = key, point
                 if step_key not in self.steps:
-                    representatives = sorted(group.orbit_transversal(point, pairs=True),
+                    representatives = sorted(group.transversal(point),
                         key=lambda item: (item[0] != point, item[0]))
-                    self.steps[step_key] = group.stabilizer(point), representatives
+                    self.steps[step_key] = group.stabilizer((point,)), representatives
                     self.work.group_steps_prepared += 1
                 subgroup, representatives = self.steps[step_key]
                 # Count invariance alone does not preserve a requested endpoint.
                 if not active_conditions:
                     representatives = self._representatives(prefix, representatives, moved)
                 for _, operation in representatives:
-                    image = prefix[np.asarray(operation.array_form[:self.data.size])]
+                    image = prefix[np.asarray(operation[:self.data.size])]
                     answer = self.find(subgroup, image, active, low, high, active_conditions)
                     if answer is not None:
                         break

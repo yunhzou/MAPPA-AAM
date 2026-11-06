@@ -33,8 +33,10 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
                      features=[dict(heavy=list(range(4)))]*2, generators=[(), ()])
     assert verify_catalogue(catalogue, reference)['status'] == 'recovered'
     assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    assert not decoded._tables
     reference['mapping'] = list(enumerate(range(4)))
     assert verify_decoded(decoded, reference)['status'] == 'recovered'
+    assert not decoded._tables
 
 
 def test_atom_set_reference_constructs_a_full_injective_proof_without_solver(monkeypatch):

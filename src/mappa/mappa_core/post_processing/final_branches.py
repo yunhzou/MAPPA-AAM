@@ -45,12 +45,15 @@ class FamilyOrigins(Sequence):
 
     def add(self, histories, node, origin):
         terminal = origin.pop('terminal')
+        self.add_nodes(histories, [(terminal, node)], origin)
+
+    def add_nodes(self, histories, nodes, origin):
         if (self.references and self.references[-1][0] is histories
                 and self.references[-1][2] == origin):
-            self.references[-1][1].append((terminal, node))
+            self.references[-1][1].extend(nodes)
         else:
-            self.references.append((histories, [(terminal, node)], origin))
-        self.count += histories.counts[node]
+            self.references.append((histories, nodes, origin))
+        self.count += sum(histories.counts[node] for _, node in nodes)
 
     def __len__(self):
         return self.count
@@ -209,7 +212,6 @@ class FinalBranchCatalogue:
         self._fragment_records = []
         self._fragment_actions = []
         self._compositions = {}
-        self._composition_owners = {}
         self.path_count = 0
         self.incomplete_paths = 0
         self.mode = 'final_atom_set_compositions'
@@ -302,7 +304,7 @@ class FinalBranchCatalogue:
         return self.add_graph(aam.graph, archive)
 
     def add_graph(self, graph, archive='in_memory', *, paths=None):
-        from mappa._group_ops import fragment_compositions
+        from mappa._group_ops import fragment_compositions, family_compositions
         from mappa.mappa_core.core.matching.representation.records import Fragment
         from mappa.mappa_core.core.search.graph import SearchHistories
         histories, endings = SearchHistories.collect(graph, paths)
@@ -324,36 +326,18 @@ class FinalBranchCatalogue:
             local_ids.append(self._fragment_id(self._completed_fragments[key]))
         ids_by_terminal = {end: tuple(local_ids[index] for index in ids)
                            for end, ids in raw_compositions}
-        compositions, placements = {}, {}
-        for terminal, sequence, node in endings:
-            state = graph.states[terminal]
-            self.path_count += histories.counts[node]
-            context = graph.contexts[state.context]
+        reduced = family_compositions(self.problem.target_atom_count, graph.states,
+            endings, raw_compositions, records, context_ids,
+            tuple(tuple(p for _, p in anchors) for _, anchors in conditions))
+        placements = {}
+        for terminal, sequence, origins in reduced:
+            context = graph.contexts[graph.states[terminal].context]
             policy = context.graph_floor, context.iso_tolerance
-            anchors = tuple(sorted(context.anchors))
-            if terminal not in compositions:
-                compositions[terminal] = self._composition(policy, ids_by_terminal[terminal], anchors)
-            composition, (actions, witness, pairs, partition, branch) = compositions[terminal]
-            identity = id(sequence)
-            if identity not in placements:
-                placements[identity] = self.intern_actions(('group', group) for group in sequence)
-            groups = placements[identity]
-            # Before a placement moves a whole atom set, operations confined to
-            # its pieces already belong to their target binary symmetries.
-            first = 0
-            if groups:
-                if composition not in self._composition_owners:
-                    owners = [-1] * self.problem.target_atom_count
-                    for owner, (_, target) in enumerate(pairs):
-                        for atom in target:
-                            owners[atom] = owner
-                    for _, atom in anchors:
-                        owners[atom] = len(pairs) + atom
-                    self._composition_owners[composition] = owners
-                owners = self._composition_owners[composition]
-                while first < len(groups) and all(owners[a] == owners[b] for a, b in groups[first].moves):
-                    first += 1
-            groups = groups[first:]
+            composition, (actions, witness, pairs, partition, branch) = self._composition(
+                policy, ids_by_terminal[terminal], tuple(sorted(context.anchors)))
+            if id(sequence) not in placements:
+                placements[id(sequence)] = self.intern_actions(('group', group) for group in sequence)
+            groups = placements[id(sequence)]
             key = composition, groups
             if key not in self._family_ids:
                 program = self._intern(self._programs, actions + groups)
@@ -361,9 +345,13 @@ class FinalBranchCatalogue:
                 self.families.append(FinalFamily(witness, (), program, policy))
             family_id = self._family_ids[key]
             branch.add(family_id)
-            self.families[family_id].provenance.add(histories, node, dict(
-                archive=str(archive), context=state.context, terminal=terminal,
-                cuts=context.cuts, fragment_partition=partition))
+            provenance = self.families[family_id].provenance
+            previous = provenance.count
+            for context_id, nodes in origins:
+                provenance.add_nodes(histories, nodes, dict(archive=str(archive),
+                    context=context_id, cuts=graph.contexts[context_id].cuts,
+                    fragment_partition=partition))
+            self.path_count += provenance.count - previous
         return self
 
     @property

@@ -164,7 +164,7 @@ class OrderedSymmetryEvents:
         generators = []
         for ((kind, data), prepared), (start, atoms, degree) in zip(self.actions, self.frames):
             if kind == 'relation':
-                local = (g.array_form for g in prepared.group.generators)
+                local = (g for g in prepared.group.generators)
             else:
                 positions = {atom: i for i, atom in enumerate(atoms)}
                 local = ([positions[g[atom]] for atom in atoms] for g in data)
@@ -179,7 +179,7 @@ class OrderedSymmetryEvents:
         # Reuse a local certificate only after fixing every possible image
         # read by other costs. This stays valid after any earlier choice.
         generators = []
-        orbits = {i: orbit for orbit in self.group.orbits() for i in orbit}
+        orbits = {i: frozenset(orbit) for orbit in self.group.orbits() for i in orbit}
         for response, positions in self.projections:
             other_scope = {i for term in self.pairs if not (
                 isinstance(term, BoundEventTerm) and term.response is response
@@ -188,13 +188,13 @@ class OrderedSymmetryEvents:
             fixed = [i for i, position in enumerate(positions) if position in protected]
             invariant = response.invariant_group
             if fixed:
-                invariant = invariant.pointwise_stabilizer(fixed, incremental=False)
+                invariant = invariant.stabilizer(fixed)
             for g in invariant.generators:
-                if g.is_Identity:
+                if tuple(g) == tuple(range(invariant.degree)):
                     continue
                 operation = list(range(self.size))
                 for i, position in enumerate(positions):
-                    operation[position] = positions[g(i)]
+                    operation[position] = positions[g[i]]
                 generators.append(operation)
         return permutation_group(generators, self.size)
 
@@ -290,7 +290,7 @@ class OrderedSymmetryEvents:
                 owners.extend(start + i // (size // parts) * (size // parts) for i in range(size))
             restricted = {}
             for generator in group.generators:
-                images = generator.array_form
+                images = generator
                 moved = {owners[i] for i,p in enumerate(images) if i != p}
                 if len(moved) > 1:
                     return None
