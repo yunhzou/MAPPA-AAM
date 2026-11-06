@@ -507,6 +507,34 @@ These local probes used an 8 GiB watchdog and do not establish success under the
 campaign's 2 GiB guard. [Raw evidence](longest-decoding-comparison.json) records
 input checksums, source identities, all separate phases and query outcomes.
 
+### Unique fragments at one versus ten seeds
+
+For the three largest increases in completed decoding CPU, six saved catalogues
+were read without repeating matching or decoding. Fragments are counted using
+the same current definition in both runs: a unique source/target atom-set pair
+in a final branch composition. All one-seed fragments are present at ten seeds.
+
+| Case / direction | Unique fragments, 1 → 10 seeds | Increase | Branch compositions, 1 → 10 seeds | Original decode-stage CPU (s), 1 → 10 seeds |
+|---|---:|---:|---:|---:|
+| 1606 reverse | 1,087 → 2,339 | 2.15× | 5,441 → 24,523 | 53.57 → 521.85 |
+| 1640 forward | 261 → 876 | 3.36× | 186 → 1,232 | 28.28 → 360.43 |
+| 1763 reverse | 657 → 731 | 1.11× | 2,792 → 4,532 | 34.50 → 353.35 |
+
+Unique-fragment counts alone do not explain the roughly 10–13× original timing
+increase. Many fragments contain one atom; excluding those, counts grow
+143 → 459, 137 → 540 and 49 → 78, respectively. The original representation's
+family records grow 9.31×, 11.19× and 8.23×. This identifies additional work
+beyond the number of unique fragments, but does not isolate its CPU cost or
+exclude unusually difficult new fragments.
+
+The timing column describes the original cluster campaigns, including catalogue
+loading and output preparation, not the latest local decoder. In particular,
+1606's current 54.07-second isolated local decode above must not be compared
+directly with its historical 53.57-second one-seed cluster stage. The ten-seed
+atom-set count of 2,339 independently agrees with that current-version replay.
+[Count evidence](seed-fragment-comparison.json) retains catalogue checksums,
+overlap counts, fragment-size distributions and recorded timings.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
