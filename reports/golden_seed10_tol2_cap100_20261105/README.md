@@ -584,6 +584,106 @@ queries and saved-result transport. The tests marked smoke were excluded from
 the second selection. Timings above identify the measured revisions; benchmarks
 were not repeated for this removal of unused code.
 
+### Native acceleration investigation
+
+Revision `023ba5a` was profiled on two saved ten-seed directions, without changing
+source or repeating matching. Both completed. Their branch, family, fragment and
+raw-path counts, model minimum and minimum-proof status agree with the preceding
+unprofiled measurements. This is a summary check, not full decoded-relation
+equivalence or a new accuracy benchmark.
+
+The preceding **unprofiled CPU times** show the relative size of the stages:
+
+| Case / direction | Reduction (s) | Decoding (s) | Output preparation (s) |
+|---|---:|---:|---:|
+| 1640 forward | 0.200 | 73.598 | 1.151 |
+| 1606 reverse | 1.421 | 54.002 | 18.492 |
+
+New phase-isolated profiles explain where work occurs. They use the same inputs
+and settings, one numerical thread and a fresh process per direction, on the
+Apple M4 Pro. Saved-graph loading, reference verification and file serialization
+are outside these three phases. Each process has an 8 GiB watchdog and a
+600-second limit. Full profiles remain private; the
+[sanitized profile summary](native-acceleration-profile.json) retains source and
+input identities, counts, resource observations and function-level attribution.
+
+- **1640: fragment preparation dominates.** There are 876 unique fragments;
+  the selected window needs 648 prepared responses. Under profiling,
+  `optimize_fragment` accounts for 107.44 seconds cumulatively within 128.79 CPU
+  seconds of decoding. Its starting-correspondence search accounts for 91.43
+  seconds, including 141,348 domain/bound evaluations. Python bound construction
+  takes 37.27 seconds cumulatively and constraint propagation 35.36 seconds.
+  The compiled linear-assignment calls themselves take only 0.54 seconds.
+- **1606: branch assembly and group bookkeeping dominate.** The catalogue has
+  2,339 fragments and 26,419 families. Decoding prepares 1,301 fragment responses;
+  the final window retains 17,444 branch/cut contexts. Under profiling, shared
+  program solving takes 49.19 seconds cumulatively within 112.82 CPU seconds of
+  decoding. SymPy permutation construction takes 24.46 seconds cumulatively,
+  and action binding 17.86 seconds. These figures overlap with program solving
+  and must not be added. Output preparation separately takes 50.39 profiled CPU
+  seconds, including rebuilding lightweight branch bindings and writing shared
+  response references.
+- **Reduction is already partly native.** Completed-state projection and local
+  fragment-ID assignment run in C++. Remaining Python work includes history
+  aggregation, catalogue-wide interning, family/provenance bookkeeping and new
+  fragment construction. In 1640, fragment construction accounts for 0.306 of
+  0.436 profiled CPU seconds. In 1606, the native projection uses 0.223 seconds
+  cumulatively within 2.428 profiled CPU seconds; the rest is principally
+  Python bookkeeping and object preparation, not a symmetry search.
+
+Profiling adds substantial overhead. Its times are **not** new production
+timings or evidence of regression. One of 1606's fragment optimizations reaches
+its existing five-second allowance under profiling; 23 prepared fragments remain
+unproved, including that one. In 1640, 19 remain unproved and none reach the time
+limit. Both retain their reported model minima (7 and 3). Time-bounded exploration
+can change under instrumentation, so the profiles support hotspot attribution,
+not an assertion that every retained response is identical.
+
+**Proposed implementation boundary; not implemented or adopted here:** use the
+existing C++/pybind backend for the computational work, with Python retaining
+the public API, orchestration and storage. The main opportunities are:
+
+1. Move starting-correspondence domain updates, occupancy checks and event-bound
+   construction into a native operation over one prepared fragment. Preserve
+   the current search order, objective, thresholds and stopping rules. Calling
+   C++ once per scalar or atom would retain much of the Python overhead.
+2. Move the shared symmetry-event preparation and traversal into its native
+   core owner: compact generators, pair responses, independent-factor checks,
+   stabilizers and bounded caches. Native nauty construction and endpoint-pair
+   projection already exist; reuse them. Preserve correlated occupancy and
+   ordered actions rather than expanding permutations.
+3. Build branch bindings, boundary counts and sweep endpoint corrections from
+   fragment IDs in native batches. Reuse each prepared fragment response. The
+   same compact bindings should support queries and output preparation, whose
+  separate cost is material for 1606. Stream bounded batches and release working
+  tables; avoid retaining every branch table to save reconstruction time.
+4. Complete the reducer's native path for shared-history traversal, composition
+   interning and provenance references; construct validated public records in
+   batches. Preserve atom-set identity and shared histories. Reduction remains
+   a structural deduplication operation, with no event or symmetry solving.
+
+For example, a branch represented by fragment IDs `[4, 19, 27]` should pass those
+IDs and its ordered placement/sweep context to native assembly. Its shared
+fragment responses should stay resident, rather than crossing the language
+boundary again for every atom or event term. Work-pool scheduling remains outside
+this core. Release the Python interpreter lock during self-contained native work;
+do not introduce native calls that repeatedly call back into Python.
+
+The decoder is the first priority: eliminating reduction entirely would save
+only 0.200 or 1.421 seconds in these two observations. A full computational port
+is feasible, but replacing Python does not remove the underlying search or
+output volume, and these profiles establish no numerical speedup promise.
+
+Before replacing an owner, validate complete catalogue records, action order and
+provenance; use independent small symmetry/event oracles, continuous weights,
+different-connectivity fragments and sweep endpoint conditions. Compare exact
+answers on completed searches and explicitly retain incomplete status under
+limits. A faster implementation may explore more within five seconds, so budgeted
+cases need separate coverage/work-count comparisons. Measure the same three
+phases unprofiled on these saved inputs, including peak memory, before broadening
+the benchmark. Retire superseded production paths after validation; keep no
+Python fallback algorithm.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
