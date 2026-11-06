@@ -9,7 +9,7 @@ for exactly the three drained batches (8, 28 and 29). The first resumed pool
 registered 28 workers; its startup snapshot preceded task admission, so it does
 not establish concurrent compute utilization. Other pools remain queued.
 Decoding stays held until all matching and reduction results succeed. No
-scientific source changed or retry budget was reset. The stage counts below
+active-pool source changed or retry budget was reset. The stage counts below
 are the last published counts at this observation.
 
 | Stage | Successful directions | Failed directions | Full denominator |
@@ -146,3 +146,46 @@ investigation; that is not a new accuracy validation. The bulk implementation
 remains frozen, and the three diagnostic successes are not campaign retries.
 
 Sanitized measurements: [memory investigation](memory-investigation.json).
+
+## Validated storage correction
+
+Revision `170dc2a` removes the retained matrix copies from comparison keys and
+shares equal immutable assignment pairs while building the catalogue. Keys
+retain exact byte equality, hashing and ordering. Fragment identity, retained
+witnesses, constraints, ordered actions and provenance remain unchanged; matching,
+branch pruning, decoding and verification policies are unchanged.
+
+The correction passed **143 focused tests** and the **full 1,321-test suite**.
+Old/new reduction was then compared on the same saved matching inputs for the
+three directions above, in fresh serial processes on one Linux node. All three
+produced identical scientific-content digests, including complete retained
+fragment data, original matrices, constraints, mappings, action order, history,
+provenance and branch composition. All six save/reload checks preserved those
+digests. This checks retained scientific content, not merely branch counts; it
+does not claim a new full-dataset reference-recovery measurement.
+
+| Direction | Previous peak, GiB | Corrected peak, GiB | Reduction CPU, old → new, s | Publication CPU, old → new, s |
+|---|---:|---:|---:|---:|
+| 18749 forward | 2.359 | 1.440 | 9.331 → 9.315 | 3.502 → 3.118 |
+| 27769 forward | 1.993 | 1.037 | 8.614 → 8.834 | 3.241 → 2.630 |
+| 10383 forward | 2.031 | 0.660 | 14.711 → 17.637 | 4.342 → 2.014 |
+
+Peak RSS covers reduction, publication, content comparison and reloading, sampled
+every 0.1 seconds. Each process had a 4 GiB diagnostic guard and a 240-second
+watchdog; all corrected peaks were below 2 GiB. This does not establish that every
+direction will fit below 2 GiB in a persistent worker. Reduction CPU increased
+from 32.656 to 35.786 seconds across these cases, while publication decreased
+from 11.085 to 7.762 seconds. Combined CPU was essentially unchanged:
+**43.742 → 43.548 seconds**. These are single paired measurements, not a throughput
+or speedup estimate.
+
+The isolated candidate imported exactly the two changed modules from committed
+Git objects; all other modules and the native engine came from the frozen
+baseline. The recorded filesystem identity therefore identifies the baseline,
+while the candidate commit and individual module hashes identify the tested
+correction. The active benchmark checkout was not changed beneath running pools,
+and no campaign results, errors or budgets were overwritten. Deployment remains
+pending a drained execution boundary; these diagnostic successes are not retries
+of the campaign's failed reductions.
+
+Sanitized validation: [storage comparison](storage-comparison.json).

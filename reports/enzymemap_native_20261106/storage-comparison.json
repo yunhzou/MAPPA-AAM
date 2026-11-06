@@ -1,0 +1,379 @@
+{
+  "baseline_commit": "c437ed6fc5fb252c3ebc37c87048825787150678",
+  "candidate_commit": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+  "scope": "Three saved reduction-memory-failure directions; same saved matching inputs; fresh serial processes on one Linux node.",
+  "method": "Exactly the two changed Python modules loaded from committed Git objects into isolated processes. All remaining modules and the native engine came from the frozen baseline checkout. The recorded checkout identity is therefore baseline identity, not candidate identity.",
+  "memory_guard_bytes": 4294967296,
+  "seconds_per_process": 240,
+  "sampling_seconds": 0.1,
+  "peak_scope": "Full validation child: reduction, publication, content digest and persistence reload.",
+  "content_comparison": "Exact-content SHA256 includes fragment records and matrix bytes, mapping constraints, witnesses, ordered actions, history/provenance, branch composition and result settings. Equality required before and after persistence; no digest over object addresses or cached comparison keys.",
+  "same_scientific_content_directions": 3,
+  "persistence_roundtrips_passed": 6,
+  "focused_tests": {
+    "passed": 143,
+    "seconds": 4.54
+  },
+  "full_tests": {
+    "passed": 1321,
+    "seconds": 128.0
+  },
+  "campaign_outputs_changed": false,
+  "active_pool_source_changed": false,
+  "runs": [
+    {
+      "case": "18749/forward",
+      "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+      "records": {
+        "source": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "source",
+          "rss": 53043200,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "a7ea25fec2929107b3c8ff672210b5fd0710d4e2b359a1715dd4f00604888c88",
+            "mappa.mappa_core.post_processing.final_branches": "97cde88a5e44a515922a3b0f5efb852c48df7f99fbf44d5bd8526ff81687c4f3"
+          }
+        },
+        "reduction": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "reduction",
+          "rss": 2318860288,
+          "cpu_seconds": 9.331470617999999,
+          "wall_seconds": 10.047297921963036,
+          "fragments": 3041,
+          "families": 4065
+        },
+        "publication": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "publication",
+          "rss": 2338242560,
+          "cpu_seconds": 3.5015109530000004,
+          "wall_seconds": 3.5116406630259007,
+          "compressed_bytes": 16077376
+        },
+        "scientific_digest": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "scientific_digest",
+          "rss": 2338242560,
+          "sha256": "eeab659352be9e263af215770ef2bb4a0680aed1d890a996bf8a0bb5d791f2d3"
+        },
+        "roundtrip": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "roundtrip",
+          "rss": 2435391488,
+          "sha256": "eeab659352be9e263af215770ef2bb4a0680aed1d890a996bf8a0bb5d791f2d3"
+        },
+        "supervisor": {
+          "case": "18749/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 2533220352,
+          "guard": null,
+          "wall": 35.47264829999767
+        }
+      }
+    },
+    {
+      "case": "18749/forward",
+      "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+      "records": {
+        "source": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "source",
+          "rss": 53678080,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "4b9deb3c0481e5e298e21f71433078762fca01c87b3d6f1b9cfbea39343e3dae",
+            "mappa.mappa_core.post_processing.final_branches": "c206ef2b9d1edba8bc64c240924b7a76a586642b19debcfec8da14775a9efd4b"
+          }
+        },
+        "reduction": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "reduction",
+          "rss": 1459036160,
+          "cpu_seconds": 9.315322565999999,
+          "wall_seconds": 9.541198255028576,
+          "fragments": 3041,
+          "families": 4065
+        },
+        "publication": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "publication",
+          "rss": 1478860800,
+          "cpu_seconds": 3.117778403999999,
+          "wall_seconds": 3.1286215719301254,
+          "compressed_bytes": 15880738
+        },
+        "scientific_digest": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "scientific_digest",
+          "rss": 1478860800,
+          "sha256": "eeab659352be9e263af215770ef2bb4a0680aed1d890a996bf8a0bb5d791f2d3"
+        },
+        "roundtrip": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "roundtrip",
+          "rss": 1494794240,
+          "sha256": "eeab659352be9e263af215770ef2bb4a0680aed1d890a996bf8a0bb5d791f2d3"
+        },
+        "supervisor": {
+          "case": "18749/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 1545760768,
+          "guard": null,
+          "wall": 33.06737407203764
+        }
+      }
+    },
+    {
+      "case": "27769/forward",
+      "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+      "records": {
+        "source": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "source",
+          "rss": 53141504,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "a7ea25fec2929107b3c8ff672210b5fd0710d4e2b359a1715dd4f00604888c88",
+            "mappa.mappa_core.post_processing.final_branches": "97cde88a5e44a515922a3b0f5efb852c48df7f99fbf44d5bd8526ff81687c4f3"
+          }
+        },
+        "reduction": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "reduction",
+          "rss": 1926983680,
+          "cpu_seconds": 8.613599158,
+          "wall_seconds": 9.252636644989252,
+          "fragments": 3374,
+          "families": 8045
+        },
+        "publication": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "publication",
+          "rss": 1951469568,
+          "cpu_seconds": 3.2413632569999997,
+          "wall_seconds": 3.2500653479946777,
+          "compressed_bytes": 12499990
+        },
+        "scientific_digest": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "scientific_digest",
+          "rss": 1951469568,
+          "sha256": "b9e288e3757662e61c2bb0e2f20abc84b2f58342c33872d131736cd2df95e33a"
+        },
+        "roundtrip": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "roundtrip",
+          "rss": 2128781312,
+          "sha256": "b9e288e3757662e61c2bb0e2f20abc84b2f58342c33872d131736cd2df95e33a"
+        },
+        "supervisor": {
+          "case": "27769/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 2140258304,
+          "guard": null,
+          "wall": 24.75081752904225
+        }
+      }
+    },
+    {
+      "case": "27769/forward",
+      "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+      "records": {
+        "source": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "source",
+          "rss": 53649408,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "4b9deb3c0481e5e298e21f71433078762fca01c87b3d6f1b9cfbea39343e3dae",
+            "mappa.mappa_core.post_processing.final_branches": "c206ef2b9d1edba8bc64c240924b7a76a586642b19debcfec8da14775a9efd4b"
+          }
+        },
+        "reduction": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "reduction",
+          "rss": 1025003520,
+          "cpu_seconds": 8.833858226,
+          "wall_seconds": 9.029241429059766,
+          "fragments": 3374,
+          "families": 8045
+        },
+        "publication": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "publication",
+          "rss": 1046671360,
+          "cpu_seconds": 2.6300254439999993,
+          "wall_seconds": 2.6380855159368366,
+          "compressed_bytes": 12177908
+        },
+        "scientific_digest": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "scientific_digest",
+          "rss": 1046671360,
+          "sha256": "b9e288e3757662e61c2bb0e2f20abc84b2f58342c33872d131736cd2df95e33a"
+        },
+        "roundtrip": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "roundtrip",
+          "rss": 1084321792,
+          "sha256": "b9e288e3757662e61c2bb0e2f20abc84b2f58342c33872d131736cd2df95e33a"
+        },
+        "supervisor": {
+          "case": "27769/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 1113526272,
+          "guard": null,
+          "wall": 23.2477445860859
+        }
+      }
+    },
+    {
+      "case": "10383/forward",
+      "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+      "records": {
+        "source": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "source",
+          "rss": 53673984,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "a7ea25fec2929107b3c8ff672210b5fd0710d4e2b359a1715dd4f00604888c88",
+            "mappa.mappa_core.post_processing.final_branches": "97cde88a5e44a515922a3b0f5efb852c48df7f99fbf44d5bd8526ff81687c4f3"
+          }
+        },
+        "reduction": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "reduction",
+          "rss": 1353531392,
+          "cpu_seconds": 14.711302983000001,
+          "wall_seconds": 15.266632009996101,
+          "fragments": 7688,
+          "families": 29780
+        },
+        "publication": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "publication",
+          "rss": 1378402304,
+          "cpu_seconds": 4.342377231000002,
+          "wall_seconds": 4.34900495398324,
+          "compressed_bytes": 10246224
+        },
+        "scientific_digest": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "scientific_digest",
+          "rss": 1378414592,
+          "sha256": "f14cecf1bb10d25e1b7c5279099bec24ad56a75b6b0350f79c9b0d22322cca21"
+        },
+        "roundtrip": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "roundtrip",
+          "rss": 1695428608,
+          "sha256": "f14cecf1bb10d25e1b7c5279099bec24ad56a75b6b0350f79c9b0d22322cca21"
+        },
+        "supervisor": {
+          "case": "10383/forward",
+          "revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 2181181440,
+          "guard": null,
+          "wall": 82.95347152696922
+        }
+      }
+    },
+    {
+      "case": "10383/forward",
+      "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+      "records": {
+        "source": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "source",
+          "rss": 53387264,
+          "checkout_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+          "override_sha256": {
+            "mappa.mappa_core.core.symmetry.structure": "4b9deb3c0481e5e298e21f71433078762fca01c87b3d6f1b9cfbea39343e3dae",
+            "mappa.mappa_core.post_processing.final_branches": "c206ef2b9d1edba8bc64c240924b7a76a586642b19debcfec8da14775a9efd4b"
+          }
+        },
+        "reduction": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "reduction",
+          "rss": 559206400,
+          "cpu_seconds": 17.637225836,
+          "wall_seconds": 17.83591360691935,
+          "fragments": 7688,
+          "families": 29780
+        },
+        "publication": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "publication",
+          "rss": 583090176,
+          "cpu_seconds": 2.014066992,
+          "wall_seconds": 2.018950765952468,
+          "compressed_bytes": 9198818
+        },
+        "scientific_digest": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "scientific_digest",
+          "rss": 583090176,
+          "sha256": "f14cecf1bb10d25e1b7c5279099bec24ad56a75b6b0350f79c9b0d22322cca21"
+        },
+        "roundtrip": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "roundtrip",
+          "rss": 676220928,
+          "sha256": "f14cecf1bb10d25e1b7c5279099bec24ad56a75b6b0350f79c9b0d22322cca21"
+        },
+        "supervisor": {
+          "case": "10383/forward",
+          "revision": "170dc2af6229debf8535e07dbdf6385bfbc663f1",
+          "kind": "supervisor",
+          "exitcode": 0,
+          "peak_rss": 709074944,
+          "guard": null,
+          "wall": 81.86560091294814
+        }
+      }
+    }
+  ]
+}
