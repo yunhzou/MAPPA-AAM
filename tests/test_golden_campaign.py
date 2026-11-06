@@ -39,6 +39,155 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
     assert not decoded._tables
 
 
+@pytest.mark.parametrize('kind', ['ring', 'anchored_ring', 'triangle_tail'])
+@pytest.mark.parametrize('slack', [0, 5])
+def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack):
+    from itertools import combinations
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment, self_actions
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record, decoded_events_record
+
+    edges = ([(0, 1, 1.), (1, 2, 2.), (2, 3, 1.), (3, 0, 2.)]
+             if 'ring' in kind else [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
+    value = problem('CCCC', edges, edges)
+    fragment = saved_fragment(value, accepted_edges=[(a, b) for a, b, _ in edges],
+                              anchors=((0, 0),) if kind == 'anchored_ring' else ())
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decoded_events_from_record(decoded_events_record(decode_events(catalogue, event_slack=slack)))
+    selected = dict(decoded.local.prepare(fragment).optimization.discovery_witness)
+    allowed = set()
+    for alpha in self_actions(fragment.source_symmetry):
+        inverse = {b: a for a, b in alpha.items()}
+        for beta in self_actions(fragment.target_symmetry):
+            mapping = tuple(beta[selected[inverse[a]]] for a in range(4))
+            count = sum(abs(value.reactant.wbo[a, b] - value.product.wbo[mapping[a], mapping[b]]) > .5
+                        for a, b in combinations(range(4), 2))
+            if decoded.minimum_lower_bound <= count <= decoded.event_window:
+                allowed.add(mapping)
+    before = json.dumps(decoded_events_record(decoded), sort_keys=True)
+    for mapping in permutations(range(4)):
+        reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=list(range(4)))]*2)
+        result = verify_decoded(decoded, reference)
+        assert result['status'] == ('recovered' if mapping in allowed else 'not_recovered')
+        if mapping in allowed:
+            proof = result['evidence']
+            assert dict(proof['mapping']) == dict(enumerate(mapping))
+            assert proof['event_count'] == proof['physical_event_count']
+    assert json.dumps(decoded_events_record(decoded), sort_keys=True) == before
+    assert not decoded._tables
+    reference['mapping'] = [(0, 0), (1, 0), (2, 2), (3, 3)]
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    assert verify_decoded(decoded, reference, seconds=0)['status'] == 'unknown'
+
+
+def test_decoded_certificate_rejects_forged_mapping_count_and_start():
+    from dataclasses import replace
+    from mappa import decode_events
+    from golden import audit_decoded_witness
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    bonds = [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)]
+    value = problem('CCCC', bonds, bonds)
+    fragment = saved_fragment(value)
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    context = decoded.window.contexts[0]
+    reference = dict(mapping=list(enumerate(range(4))), features=[dict(heavy=list(range(4)))]*2)
+    answer = decoded.select(context[0], 0, 6).find(assignments=dict(reference['mapping']))
+    audit_decoded_witness(decoded, reference, context, answer)
+    for forged, message in [
+        (replace(answer, witness=((0, 1), (1, 0), (2, 2), (3, 3))), 'replay differs'),
+        (replace(answer, event_count=5), 'counts differ'),
+        (replace(answer, choices=(dict(answer.choices[0], discovery=dict(enumerate((1, 0, 3, 2)))),)),
+         'different starting orbit'),
+    ]:
+        with pytest.raises(ValueError, match=message):
+            audit_decoded_witness(decoded, reference, context, forged)
+
+
+@pytest.mark.parametrize('sweep', [False, True])
+def test_decoded_reference_counts_model_and_physical_events_separately(sweep):
+    from dataclasses import replace
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value = problem('CCO', [(0, 1, 1.), (0, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    fragments = (saved_fragment(value, source_atoms=(0, 1), accepted_edges=((0, 1),)),
+                 saved_fragment(value, source_atoms=(2,)))
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, fragments).graph)
+    if sweep:
+        catalogue.families[0] = replace(catalogue.families[0], provenance=[dict(cuts=((0, 2),))])
+    decoded = decode_events(catalogue, event_slack=5)
+    reference = dict(mapping=[(0, 1), (1, 0), (2, 2)], features=[dict(heavy=[0, 1, 2])]*2)
+    result = verify_decoded(decoded, reference)
+    assert result['status'] == 'recovered'
+    assert result['evidence']['physical_event_count'] == 0
+    assert result['event_count'] == (0 if sweep else 2)
+
+
+def test_decoded_reference_respects_joint_placement_partial_mapping_and_reverse():
+    from mappa import decode_events
+    from golden import verify_decoded
+    from test_final_branches import placed_fragment_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value, path = placed_fragment_path()
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(path.graph))
+    for target in permutations(range(4), 2):
+        reference = dict(mapping=list(zip((0, 1), target)), features=[dict(heavy=list(range(4)))]*2)
+        result = verify_decoded(decoded, reference)
+        assert result['status'] == ('recovered' if set(target) in ({0, 1}, {2, 3}) else 'not_recovered')
+        reference['mapping'] = [(b, a) for a, b in reference['mapping']]
+        reverse = verify_decoded(decoded, reference, reverse=True)
+        assert reverse['status'] == result['status']
+    reference['mapping'] = [(0, 0)]  # An annotated unmatched heavy atom must stay unmatched.
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+
+
+def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_source(tmp_path):
+    from types import SimpleNamespace
+    from mappa import decode_events
+    from golden import audit_decoding
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path, raw_record
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+
+    value = problem('CHH', [(0, 1, 1.), (0, 2, 1.)], [(0, 1, 1.), (0, 2, 1.)])
+    fragment = saved_fragment(value, accepted_edges=((0, 1), (0, 2)))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    source = tmp_path/'campaign'; source.mkdir()
+    (source/'result').mkdir()
+    store = BundleStore(source/'bundles')
+    saved = store.put(SimpleNamespace(record=decoded_events_record(decoded)))
+    input_blob = store.put(dict(raw_record(value), name=value.name))
+    reference = store.put(dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2))
+    raw = json.dumps(dict(directions=[dict(case=0, reversed=reverse, reference=asdict(reference), input=asdict(input_blob))
+                                     for reverse in (False, True)]))
+    (source/'index.json').write_text(raw)
+    (source/'result/plan.json').write_text(json.dumps(dict(input_index_sha256=hashlib.sha256(raw.encode()).hexdigest())))
+    with sqlite3.connect(source/'result/ledger.sqlite') as db:
+        db.execute('CREATE TABLE results(case_name TEXT,stage TEXT,state TEXT,reference TEXT)')
+        db.executemany('INSERT INTO results VALUES (?,?,?,?)',
+            [(f'00000/{direction}', 'decoding', 'complete', json.dumps(asdict(saved)))
+             for direction in ('forward', 'reverse')])
+    before = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
+    report = audit_decoding(source, tmp_path/'audit', workers=1)
+    assert report['complete'] and report['certificate_failures'] == 0
+    assert report['reaction_counts'] == {'recovered': 1}
+    for row in report['results']:
+        proof = read_blob(Blob(**row['certificate_blob']), None)['evidence']
+        assert len(proof['mapping']) == 3  # Unannotated H still has to fit.
+        assert len(set(dict(proof['mapping']).values())) == 3
+        assert proof['event_count'] == proof['physical_event_count'] == 0
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+
+
 def test_atom_set_reference_constructs_a_full_injective_proof_without_solver(monkeypatch):
     import golden
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue

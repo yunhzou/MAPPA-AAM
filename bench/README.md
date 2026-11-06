@@ -521,6 +521,24 @@ additional allocation memory for its supervisor/coordinator processes. Repeated
 either Python runner; `--workers` then means total local workers. Build and test
 before launching a pilot, using the checks in the repository's main README.
 
+## Audit saved Golden decoded recovery
+
+```bash
+PYTHONPATH=src:bench python bench/golden.py audit-decoding /path/to/batch \
+  /path/to/separate-audit --workers 4 --seconds 10 --task-seconds 60 --memory-gib 2
+```
+
+The batch contains `index.json` and `result/ledger.sqlite`. Add `--cases 0 19`
+for a pilot. This external audit loads existing successful decoded records; it
+does not rematch, optimize starting correspondences or retry scientific stages.
+Every recovery retains a full mapping and checked symmetry/placement choices in
+one aggregate evidence bundle. It checks exact annotated heavy-atom indices,
+including unmatched atoms; hydrogens must admit a valid injective completion.
+This differs from endpoint-symmetry-normalized catalogue recovery.
+The report distinguishes the saved model's event count from physical bond changes,
+retains resource failures as unknown, and checks that source records are unchanged.
+An invalid certificate stops admission and drains active audit tasks.
+
 ## Replay fragment event responses
 
 `python -m bench.fragment_events INPUT.json.gz OUTPUT.json.gz` measures saved

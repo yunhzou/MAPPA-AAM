@@ -1,5 +1,34 @@
 # Golden: fresh one-seed and ten-seed measurements
 
+## Current accepted version and verification audit
+
+The accepted reducer at `7648431` retains one original fragment per atom-set
+pair, including its discovery constraints. Its one-seed postprocessing pass
+completed all 3,702 reductions, decodes and catalogue checks: **1,834 / 1,851
+reactions recovered in the catalogue**, with 17 unrecovered and no unknowns.
+This is **not yet a post-decoding accuracy result**. The ten-seed pass is paused
+after 433 reductions, with no fresh decoded outputs in that pass.
+See [one-seed evidence](unique-seeds1-summary.json) and
+[ten-seed partial evidence](unique-seeds10-partial-summary.json).
+
+Earlier catalogue counts from the broadened-fragment reducer must not serve as
+accuracy evidence for the current mapping contract. Case 19 demonstrates why:
+the earlier successful fragment had no accepted-edge constraints. Its accepted
+reference mapped three required fragment bonds onto nonbonds; the fragment's
+binary symmetry could not repair those correspondences. The seven reaction-level
+differences from that historical count are not automatically seven regressions.
+The remaining cases require individual evidence.
+
+The current verification audit queries only saved decoded starting orbits and
+their retained event window. Every positive answer must include a concrete
+mapping, replayable local and placement choices, and an independently counted
+model event total. Physical whole-reaction events are reported separately.
+Exact annotated-index recovery and endpoint-symmetry-normalized catalogue
+recovery are different policies and must remain labelled. Resource limits are
+unknown outcomes. Original outputs and consumed budgets remain unchanged.
+
+## Earlier measurements
+
 This paired full-dataset study measures revision
 [`27b18ab`](https://github.com/yunhzou/MAPPA-AAM/commit/27b18abad691648cf2a87d2e5ae43db117d80b66),
 including the native reduction and event kernels and the incident-bond event bound. Each arm contains all

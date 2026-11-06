@@ -38,8 +38,16 @@ flowchart LR
 A cut is a search condition and provenance field, not the unit of decoding.
 A representative mapping is one witness of a compressed family. Scheduling must
 preserve the scientific stages and their meaning.
-Reference verification is external evaluation logic that queries the completed
-catalogue; it is not a stage of the MAPPA mapping pipeline.
+Reference verification is external evaluation logic, not a stage of the MAPPA
+mapping pipeline. Catalogue recovery and recovery in the saved decoded response
+are separate measurements. A decoded recovery requires an actual injective
+witness produced by the saved starting correspondences and correlated symmetry
+choices, in a retained branch context and event window. Preserve its replayable
+choices and check its count directly against the original matrices. Report the
+ordinary-boundary model count separately from the physical whole-reaction count;
+membership in an approximate bin is not proof of that physical event count.
+State whether reference indices are exact or normalized by endpoint chemical
+symmetry. Resource-limited verification remains unknown.
 
 ## Inputs and matching rules
 
