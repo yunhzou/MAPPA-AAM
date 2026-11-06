@@ -98,7 +98,7 @@ def decoded_events_record(result):
     reports and canonical event IDs are explicit queries, not part of export.
     Per-atom lookup maps are derived from the saved catalogue, not persisted.
     """
-    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
+    from mappa.mappa_core.post_processing.decoder.records import EventInterpretation, BoundEventTerms
     if not isinstance(result, EventInterpretation):
         raise TypeError('decoded_events_record requires EventInterpretation')
     tables, responses, response_ids = [], [], {}
@@ -131,13 +131,16 @@ def decoded_events_record(result):
     def groups_record(groups, label):
         rows = []
         for region, terms in groups.items():
+            binding = terms.binding if isinstance(terms, BoundEventTerms) else None
+            if binding is not None:
+                terms = terms.terms
             saved_terms = terms_record(terms)
-            # Shared terms retain their original action bindings. The region
-            # remains part of the key because the same terms can change owners.
-            # term_lists owns every saved list until export finishes.
-            key = label, region, id(saved_terms)
+            # A branch stores the local-to-global action positions once for the
+            # whole group; its bond records remain shared with every other use.
+            key = label, region, id(saved_terms), binding
             if key not in group_records:
-                group_records[key] = {label: region, 'terms': saved_terms}
+                group_records[key] = {label: region, 'terms': saved_terms,
+                                      'action_binding': binding}
             rows.append(group_records[key])
         return rows
 
@@ -164,7 +167,7 @@ def decoded_events_record(result):
                         if name not in ('search_seconds', 'elapsed_seconds', 'work')},
                      response=value.response.to_record())
                 for key,value in result.local.prepared.items() if key in fragment_ids]
-    record = dict(schema='mappa.decoded_events/v12', method='binary_fragment_events',
+    record = dict(schema='mappa.decoded_events/v13', method='binary_fragment_events',
         scope='Independent ordinary boundaries with selected fragment starting correspondences and binary symmetry',
         catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
@@ -199,7 +202,7 @@ def decoded_events_from_record(record):
     from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
     from mappa.mappa_core.post_processing.decoder.fragments import DecodedFragment
     from mappa.mappa_core.core.symmetry.minimum import FragmentMinimum, FragmentSymmetryEvents, SymmetryWork
-    if record['schema'] != 'mappa.decoded_events/v12':
+    if record['schema'] != 'mappa.decoded_events/v13':
         raise ValueError('require a saved binary-fragment event response')
     problem = problem_from_record(record['problem'])
     events = problem_from_record(record['event_problem']) if 'event_problem' in record else problem

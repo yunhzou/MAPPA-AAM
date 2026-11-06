@@ -5,7 +5,7 @@ from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
 
 from mappa.mappa_core.utils.bonds import bond_event_threshold
 from mappa.mappa_core.core.symmetry.actions import PreparedActionPrograms
-from .records import BondEventTerm
+from .records import BondEventTerm, BoundEventTerms
 from .local_counts import FragmentCountIndex, FragmentEventCounts
 
 
@@ -96,7 +96,6 @@ class FragmentDecoder:
         self.fragments = {}
         self.bonds = {}
         self.terms = {}
-        self.bindings = {}
         self.counts = FragmentCountIndex(index, self)
         self._bound_terms = {}
 
@@ -176,23 +175,8 @@ class FragmentDecoder:
         return self.fragments[key], binding
 
     def bind(self, terms, binding):
-        if binding == tuple(range(len(binding))):
-            return terms
         key = id(terms), binding
-        if key in self._bound_terms:
-            return self._bound_terms[key][1]
-        bound = []
-        for term in terms:
-            ids = tuple(binding[i] for i in term.action_ids)
-            if ids == term.action_ids:
-                bound.append(term)
-                continue
-            term_key = term, ids
-            if term_key not in self.bindings:
-                self.bindings[term_key] = replace(term, action_ids=ids)
-            bound.append(self.bindings[term_key])
-        result = tuple(bound)
-        # Retain the source tuple alongside its identity, so its ID cannot be
-        # reused while a binding is cached. Both belong to this local decoder.
-        self._bound_terms[key] = terms, result
-        return result
+        if key not in self._bound_terms:
+            # The view owns its source tuple, preventing identity reuse.
+            self._bound_terms[key] = BoundEventTerms(terms, binding)
+        return self._bound_terms[key]

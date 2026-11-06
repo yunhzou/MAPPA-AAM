@@ -406,7 +406,7 @@ def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_b
             record = store.load(Blob(**decoded['decoded'])).record
             assert decoded['event_problem_sha256'] == event_hash
             assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
-            assert record['schema'] == 'mappa.decoded_events/v12'
+            assert record['schema'] == 'mappa.decoded_events/v13'
             assert record['event_counts_approximate']
             assert record['minimum_events'] == 1
             assert record['event_slack'] == 6 and record['event_window'] == 7

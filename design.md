@@ -545,6 +545,11 @@ Working branch tables are released after publication. Persist only compact
 relations and sparse costs; their size is still not a bound on total reaction
 memory. Scheduling and hard resource watchdogs remain outside the scientific core.
 
+Share each local bond-term sequence across its branch uses. A branch stores one
+local-to-branch action-position map, not a relabelled copy of every bond term.
+Persistence preserves the same sharing; explicit inspection may resolve positions
+lazily without retaining a second expanded representation.
+
 ## Local and distributed execution
 
 Simple local calls remain `search_aam`, `deduplicate` and `decode_events`.

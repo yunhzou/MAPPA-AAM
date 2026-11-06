@@ -524,7 +524,7 @@ class FragmentEventTables:
             self.projected_pair_states += projected
             self.boundary[tuple(sorted((left, right)))] = (term,)
         # Preserve the public record order of the original sorted bond walk.
-        self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1][0].atoms))
+        self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1].terms[0].atoms))
         self.components = self._dependency_components()
         lower, upper = boundary.lower, boundary.count
         for response, _ in self.fragment_responses:
@@ -594,7 +594,7 @@ class FragmentEventTables:
     def _evaluation(self):
         """Compile array lookups only when a caller evaluates joint choices."""
         groups, constant = defaultdict(list), Counter()
-        for terms in (*self.internal.values(), *self.boundary.values()):
+        for terms in self._term_groups():
             for term in terms:
                 a, b = term.atoms
                 region = tuple(sorted((int(self.owners[a]), int(self.owners[b]))))
@@ -612,6 +612,11 @@ class FragmentEventTables:
                           np.array([region_ids[region] for _,_,region in terms], dtype=int))
                          for response, terms in groups.items())
         return fixed, variable, regions
+
+    def _term_groups(self):
+        """Physical bond lookups do not depend on branch action positions."""
+        yield from (view.terms for view in self.internal.values())
+        yield from self.boundary.values()
 
     def _dependency_components(self):
         """Separate contribution groups without separating shared choices.
@@ -681,7 +686,7 @@ class FragmentEventTables:
                       model=self.model, approximate=self.approximate)
         if include_events:
             events = []
-            for terms in (*self.internal.values(), *self.boundary.values()):
+            for terms in self._term_groups():
                 for term in terms:
                     a,b = term.atoms
                     x,y = int(vector[a]), int(vector[b])
@@ -721,7 +726,7 @@ class FragmentEventTables:
 
     @property
     def statistics(self):
-        terms = [t for rows in (*self.internal.values(), *self.boundary.values()) for t in rows]
+        terms = [t for rows in self._term_groups() for t in rows]
         return dict(fragments=len(self.fragments), internal_terms=sum(map(len,self.internal.values())),
                     neighboring_pairs=self.neighboring_pair_count,
                     boundary_terms=sum(map(len,self.boundary.values())),

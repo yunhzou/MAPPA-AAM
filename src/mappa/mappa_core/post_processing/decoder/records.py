@@ -1,6 +1,7 @@
 """Decoder configuration, witnesses and scoped completion records."""
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from collections.abc import Sequence
 from functools import cached_property
 from typing import TYPE_CHECKING
 import numpy as np
@@ -51,6 +52,27 @@ class BondEventTerm:
     def target_pairs(self):
         """Inspect pair bounds lazily for relations; joint choices remain required."""
         return self.index.endpoint_pairs(self.initial_pair, self.projected_actions)
+
+
+@dataclass(frozen=True, slots=True)
+class BoundEventTerms(Sequence):
+    """One shared term sequence and its branch action positions.
+
+    Explicit inspection resolves a term's positions lazily. Computation and
+    persistence use the shared terms directly, without copying every bond.
+    """
+    terms: tuple[BondEventTerm, ...]
+    binding: tuple[int, ...]
+
+    def __len__(self):
+        return len(self.terms)
+
+    def __getitem__(self, position):
+        if isinstance(position, slice):
+            return type(self)(self.terms[position], self.binding)
+        term = self.terms[position]
+        positions = tuple(self.binding[i] for i in term.action_ids)
+        return term if positions == term.action_ids else replace(term, action_ids=positions)
 
 
 @dataclass

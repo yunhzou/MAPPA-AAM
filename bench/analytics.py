@@ -81,7 +81,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
 
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError('seconds must be finite and nonnegative')
-    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8', 'mappa.decoded_events/v11', 'mappa.decoded_events/v12'):
+    if decoded['schema'] not in ('mappa.decoded_events/v7', 'mappa.decoded_events/v8', 'mappa.decoded_events/v11', 'mappa.decoded_events/v12', 'mappa.decoded_events/v13'):
         raise ValueError('Require original-space decoded responses')
     started, cpu = time.perf_counter(), time.process_time()
     deadline = started + seconds

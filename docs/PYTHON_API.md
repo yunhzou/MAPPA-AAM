@@ -404,7 +404,7 @@ Mapped/unmapped boundaries follow this same convention. Physical evaluation
 counts each original bond touching mapped atoms once and omits bonds wholly
 inside unmatched material.
 
-`decoded_events_record(events)` uses `mappa.decoded_events/v12` and retains the original catalogue, shared conditional
+`decoded_events_record(events)` uses `mappa.decoded_events/v13` and retains the original catalogue, shared conditional
 responses, model minimum/window and upper-window predicate. It does not export
 an eager list of all count bins or repeat derived per-atom maps for every family.
 `decoded_events_from_record(record)` restores the selected starts, responses and
@@ -412,6 +412,10 @@ window decisions without rerunning optimization or symmetry preparation.
 Normal decoding performs no whole-reaction event-pattern deduplication. For
 optional pattern comparison, `evaluate` includes a canonical event ID for the
 requested physical realization.
+Each internal contribution group shares its local `terms` and carries an
+`action_binding` tuple: resolve a term's local action index `i` as
+`group['action_binding'][i]`. A null binding means the term already uses branch
+positions. This avoids copying bond records when branches reorder their actions.
 
 If matching used transformed weights, pass the original endpoint problem as
 `decode_events(catalogue, event_problem=original_problem)`. Elements, atom order

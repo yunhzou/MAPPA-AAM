@@ -208,10 +208,33 @@ def test_shared_fragment_results_bind_original_branch_action_positions(shift_act
     first_group, second_group = [record['tables'][row['tables'][0]]['internal'][0]
                                  for row in record['families']]
     assert (first_group is second_group) == (not shift_actions)
+    assert first_group['terms'] is second_group['terms']
     assert first_group['terms'][0]['action_ids'] == (0,)
-    assert second_group['terms'][0]['action_ids'] == ((1,) if shift_actions else (0,))
+    assert tuple(second_group['action_binding'][i]
+                 for i in second_group['terms'][0]['action_ids']) == ((1,) if shift_actions else (0,))
     assert_all_choices(decoded)
     assert source.to_record() == before
+
+
+def test_branch_binding_and_export_do_not_expand_shared_bond_terms(monkeypatch):
+    source = two_branches(shift_actions=True)
+    decoded = decode_events(source, event_slack=1000)
+    first, second = decoded.tables(0), decoded.tables(1)
+    # Different branch positions must preserve the same local bond sequence.
+    assert first.internal[0].terms is second.internal[0].terms
+    with monkeypatch.context() as patch:
+        patch.setattr('mappa.mappa_core.post_processing.decoder.records.replace',
+                      lambda *_a, **_k: pytest.fail('bulk decoding copied a bound bond term'))
+        record = decoded_events_record(decoded)
+    groups = [record['tables'][row['tables'][0]]['internal'][0]
+              for row in record['families']]
+    assert groups[0]['terms'] is groups[1]['terms']
+    assert groups[0]['action_binding'] != groups[1]['action_binding']
+    restored = pickle.loads(pickle.dumps(record, protocol=5))
+    groups = [restored['tables'][row['tables'][0]]['internal'][0]
+              for row in restored['families']]
+    assert groups[0]['terms'] is groups[1]['terms']
+    assert_all_choices(decoded)
 
 
 def test_cut_annotations_and_constraints_are_not_lost_through_sharing():
