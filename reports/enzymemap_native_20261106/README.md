@@ -1,9 +1,16 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
-**Status at 2026-11-06 22:34 UTC: held after five reduction memory failures.**
-All started pools have drained; their published queues contain no remaining tasks
-or attempts. Completed results and consumed budgets are preserved. No scientific
-source changed, no retry ran and the worker memory allowance remains 2 GiB.
+**Status at 2026-11-06 22:45 UTC: bulk matching resumed at 2 GiB.**
+The user authorized larger-memory retries for memory-limit failures. The first
+retry tier will use 4 GiB, preserving completed results, original failure audits
+and consumed compute budgets. Those retries have not been submitted yet.
+All 33 unstarted matching batches were released, and continuations were submitted
+for exactly the three drained batches (8, 28 and 29). The first resumed pool
+registered 28 workers; its startup snapshot preceded task admission, so it does
+not establish concurrent compute utilization. Other pools remain queued.
+Decoding stays held until all matching and reduction results succeed. No
+scientific source changed or retry budget was reset. The stage counts below
+are the last published counts at this observation.
 
 | Stage | Successful directions | Failed directions | Full denominator |
 |---|---:|---:|---:|
@@ -33,7 +40,9 @@ asked to drain. The global barrier prevented every decoding allocation from
 starting. No background monitor was created.
 
 Evidence: [launch and settings](launch.json), [failure metrics](initial-failures.json)
-and [verified paused scope](paused-observation.json).
+and [verified paused scope](paused-observation.json). Private continuation evidence
+records ownership checks, input hashes, pre-resume ledger hashes, empty saved
+queues and scheduler actions.
 
 The scope is **47,974 reactions / 95,948 directions**. Revision `c437ed6`
 records the accepted milestone after indexed unique-fragment reuse. This run
