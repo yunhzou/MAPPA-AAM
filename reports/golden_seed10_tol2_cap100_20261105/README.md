@@ -568,6 +568,22 @@ and 2.23 GiB for 1640; these are not demonstrations under a 2 GiB guard. The sam
 [evidence file](seed-fragment-comparison.json) retains current observations,
 source identity, input hashes, separate phase timings and reference outcomes.
 
+### Cleanup after measurement
+
+An audit of the current reduction, symmetry and decoder owners removed four
+unreferenced helpers: the old standalone invariant-count certificate, an unused
+invariant-order property, the single-action certificate wrapper and an unused
+endpoint-witness accessor. Two write-only decoder fields and the unused
+`FinalFamily.as_path` argument were also removed. No algorithm was replaced.
+Tracked backup implementations and executable report scripts were not found;
+the temporary source exports used for comparison had already been removed.
+
+Validation passed **26 smoke tests and 436 affected tests** covering symmetry
+responses, fragment optimization, reduction, event queries/windows, reference
+queries and saved-result transport. The tests marked smoke were excluded from
+the second selection. Timings above identify the measured revisions; benchmarks
+were not repeated for this removal of unused code.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**

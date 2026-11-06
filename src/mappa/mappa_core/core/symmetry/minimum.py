@@ -208,10 +208,6 @@ class FragmentSymmetryEvents:
     def group_order(self):
         return int(self.group.order())
 
-    @cached_property
-    def invariant_order(self):
-        return int(self.invariant_group.order())
-
     def _event_terms(self):
         remaining = set(zip(*np.triu_indices(self.size, 1)))
         constant = 0

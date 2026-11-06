@@ -261,9 +261,6 @@ class SignedEventIndex(BondResponseIndex):
     def source_generators(self):
         return tuple(tuple(g[:self.n]) for g in pynauty.autgrp(self.base)[0])
 
-    def preserves_target_action(self, images):
-        return self.target_action_responses((tuple(images),))[0][0]
-
     def target_action_responses(self, generators, *, batch_entries=65536):
         """Certify generators over every bond response, never group elements.
 
@@ -528,7 +525,6 @@ class FragmentEventTables:
             self.boundary[tuple(sorted((left, right)))] = (term,)
         # Preserve the public record order of the original sorted bond walk.
         self.internal = dict(sorted(self.internal.items(), key=lambda item: item[1][0].atoms))
-        self.product_boundary_actions = ()
         self.components = self._dependency_components()
         lower, upper = boundary.lower, boundary.count
         for response, _ in self.fragment_responses:

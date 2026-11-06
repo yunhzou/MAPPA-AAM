@@ -64,24 +64,6 @@ def binary_group(size, edges, colors):
     return permutation_group(structural_generators(size, edges, colors), size)
 
 
-def invariant_event_count(source, target, source_group, target_group, threshold):
-    """Certify a constant internal count over a fixed witness's two-sided orbit.
-
-    Matrices and groups use the witness-aligned frame. Every generator must
-    preserve each pair's event response against every weight on the other side.
-    Compositions then preserve those same responses. None means inconclusive;
-    it is neither a minimum nor evidence that no allowed mapping exists.
-    """
-    for weights, other, group in ((source, target, source_group),
-                                  (target, source, target_group)):
-        responses = np.abs(weights[:, :, None] - np.unique(other)) > threshold
-        for operation in group.generators:
-            image = operation.array_form
-            if not np.array_equal(responses, responses[np.ix_(image, image)]):
-                return None
-    return int(np.count_nonzero(np.triu(np.abs(source - target) > threshold, 1)))
-
-
 def _merge_blocks(blocks, joins):
     blocks = [set(block) for block in blocks]
     for joined in joins:

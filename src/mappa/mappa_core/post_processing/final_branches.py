@@ -147,7 +147,7 @@ class FinalFamily:
                       next((value for kind, value in block if kind == 'group'), ()))
                      for block in reversed(decision_blocks(self.actions)))
 
-    def as_path(self, problem, source_edges=None):
+    def as_path(self, problem):
         """Expose the saved local/placement program through the hierarchy API."""
         from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
         floor, iso = self.policy

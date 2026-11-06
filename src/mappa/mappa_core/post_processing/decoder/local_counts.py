@@ -127,7 +127,6 @@ class FragmentEventCounts:
     def __init__(self, owner, response):
         self.owner, self.response = owner, response
         self.lower = max(count_bounds(owner.index, response)[0], owner.aggregate_bound(response))
-        self._endpoints = {}
 
     @cached_property
     def prepared_fragment(self):
@@ -212,7 +211,3 @@ class FragmentEventCounts:
 
     def endpoint_bounds(self, atom):
         return self.owner.endpoint_bounds(self.response, atom, self.lower)
-
-    def witness_endpoints(self, atom):
-        answer = self.minimum_result
-        return {dict(answer.witness)[atom]: answer.event_count}
