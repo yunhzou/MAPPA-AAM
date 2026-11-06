@@ -1,4 +1,4 @@
-"""Dependency-checked reuse across cut searches."""
+"""Unique completed fragments shared by extension queries across cuts."""
 
 from __future__ import annotations
 from dataclasses import dataclass
@@ -8,7 +8,7 @@ from mappa.mappa_core.core.matching.growth import native
 
 
 @dataclass(frozen=True)
-class FragmentCacheView:
+class FragmentPoolView:
     source: object
     target: object
     source_view: object
@@ -17,8 +17,8 @@ class FragmentCacheView:
     cuts: tuple
 
 
-class FragmentRepair:
-    """Reuse completed fragments when occupancy, locks and topology still agree."""
+class FragmentPool:
+    """Use known fragment witnesses to certify temporary growth fragments."""
     def __init__(self, source, target, *, cache_bytes=64*1024*1024,
                  bond_tolerance=None):
         self.source = source
@@ -27,15 +27,15 @@ class FragmentRepair:
             None if bond_tolerance is None else bond_tolerance.resolve(source))
         self.target_view = native.target_graph(target)
         if self.source_view is None or self.target_view is None:
-            raise ValueError('fragment cache requires native WBO graphs')
-        self.engine = native._engine.FragmentRepair(
+            raise ValueError('fragment pool requires native WBO graphs')
+        self.engine = native._engine.FragmentPool(
             self.source_view.graph, self.target_view.graph, cache_bytes)
 
     def for_cut(self, cut):
         index = self.source_view.index
         source = self.source.copy()
         source.remove_edges_from(cut)
-        return FragmentCacheView(source, self.target, self.source_view, self.target_view, self.engine,
+        return FragmentPoolView(source, self.target, self.source_view, self.target_view, self.engine,
             tuple((index[a], index[b]) for a, b in cut))
 
     def stats(self):

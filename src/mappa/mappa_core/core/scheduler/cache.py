@@ -192,7 +192,7 @@ class WorkerCache:
         self.clear()
 
     def clear(self):
-        self.identity, self.version, self.repair = None, 0, None
+        self.identity, self.version, self.fragments = None, 0, None
         self.saved_revision = 0
         self.pending = None
         self.digest, self.unpublished = None, False
@@ -203,19 +203,19 @@ class WorkerCache:
         self.metrics = dict(enabled=descriptor is not None, load_seconds=0., save_seconds=0., loaded_bytes=0,
                             saved_bytes=0, baseline_loads=0, errors=[])
 
-    def use(self, repair):
-        if repair is None:
+    def use(self, fragments):
+        if fragments is None:
             return
         self.used = True
         if self.descriptor is None:
-            self.repair, self.before = repair, repair.stats()
+            self.fragments, self.before = fragments, fragments.stats()
             return
         current = self.descriptor
         self.metrics['errors'].extend(current.get('errors', ()))
         identity = current['key'], current['direction']
-        if self.repair is not repair or self.identity != identity:
-            self.identity, self.version, self.repair = identity, 0, repair
-            self.saved_revision = repair.stats()['revision']
+        if self.fragments is not fragments or self.identity != identity:
+            self.identity, self.version, self.fragments = identity, 0, fragments
+            self.saved_revision = fragments.stats()['revision']
             self.pending = None
             self.digest, self.unpublished = None, False
         if self.pending is not None and current['digests'].get(current['direction']) == self.pending[3]:
@@ -233,27 +233,27 @@ class WorkerCache:
                     if data is None and field == 'latest' and current['direction'] in current['baseline_sections']:
                         continue
                     if data is not None:
-                        self.unpublished = repair.loads(zlib.decompress(data))
+                        self.unpublished = fragments.loads(zlib.decompress(data))
                         self.digest = hashlib.sha256(data).hexdigest()
                         self.metrics['loaded_bytes'] += len(data)
                         self.metrics['baseline_loads'] += int(field == 'baseline')
                     self.version = current['version'] if field == 'baseline' else version
-                    self.saved_revision = repair.stats()['revision']
+                    self.saved_revision = fragments.stats()['revision']
                     break
                 except (OSError, ValueError, KeyError, zlib.error) as error:
                     self.metrics['errors'].append(f'{field}: {error}')
             else:
                 raise RuntimeError('Neither reaction cache version could be loaded')
             self.metrics['load_seconds'] += time.perf_counter()-started
-        self.before = repair.stats()
+        self.before = fragments.stats()
 
     def proposal(self):
         if not self.used:
             return None
-        stats = self.repair.stats()
-        self.metrics.update(fragment_calls=stats['calls']-self.before['calls'],
-            fragment_hits=stats['full_hits']-self.before['full_hits'],
-            dependency_checks=stats['dependency_checks']-self.before['dependency_checks'],
+        stats = self.fragments.stats()
+        self.metrics.update(existence_queries=stats['existence_queries']-self.before['existence_queries'],
+            fragment_hits=stats['fragment_hits']-self.before['fragment_hits'],
+            witness_checks=stats['witness_checks']-self.before['witness_checks'],
             retained_bytes=stats['resident_bytes'], entries=stats['entries'])
         if self.descriptor is not None:
             missing = self.descriptor['direction'] not in self.descriptor['sections'] and stats['entries'] > 0
@@ -265,7 +265,7 @@ class WorkerCache:
         if plan is None:
             return None
         started = time.perf_counter()
-        data = zlib.compress(self.repair.dumps(), 1)
+        data = zlib.compress(self.fragments.dumps(), 1)
         direction = plan['direction']
         added = direction not in plan['baseline_sections']
         baseline = _read_all(plan['baseline'], plan['key']) if added and plan['baseline_sections'] else {}
@@ -285,5 +285,5 @@ class WorkerCache:
         # The next task's publisher token acknowledges our snapshot without
         # reading back the same bytes this process just wrote.
         digests = {name:entry['sha256'] for name,entry in header['sections'].items()}
-        self.pending = plan['token'], plan['version'], self.repair.stats()['revision'], digests[direction]
+        self.pending = plan['token'], plan['version'], self.fragments.stats()['revision'], digests[direction]
         return dict(version=plan['version'], baseline_added=added, sections=list(sections),digests=digests)

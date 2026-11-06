@@ -297,7 +297,10 @@ class FinalBranchCatalogue:
                 for action in sequence:
                     key = action[0], id(action[1])
                     if key not in actions:
-                        actions[key] = self.intern_actions((action,))[0]
+                        kind, value = action
+                        if kind == 'relation' and paths is None:
+                            value = graph.fragments[value.atom_sets]
+                        actions[key] = self.intern_actions(((kind, value),))[0]
                     prepared.append(actions[key])
                 programs[id(sequence)] = self._intern(self._programs,
                     canonical_actions(prepared))

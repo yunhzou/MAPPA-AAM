@@ -49,18 +49,22 @@ def test_actual_growth_can_choose_hydrogen_before_triple_bond():
 
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
-def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
-    from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+def test_nondefault_seeds_agree_in_python_native_and_fragment_pool(monkeypatch):
+    from mappa.mappa_core.core.matching.reuse import FragmentPool
     source,_=molecule()
     r=native.source_graph(source);p=native.target_graph(source)
-    sessions=[FragmentRepair(source,source)]
+    sessions=[FragmentPool(source,source)]
     for seed in [1,2,7,42,2**64-1,1]:
         expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed)
         for session in sessions:
             actual=session.engine.grow((),0,[-1]*5,.2,.1,1,100,None,(),False,seed)
-            actual.pop('reused_extensions')
-            actual['profile'].pop('completion_seconds')
-            expected['profile'].pop('completion_seconds', None)
+            for name in ('completion_seconds', 'feasibility_nodes', 'feasibility_searches'):
+                actual['profile'].pop(name)
+                expected['profile'].pop(name, None)
+            for result in (actual, expected):
+                for fragment in result['fragments']:
+                    for side in ('source', 'target'):
+                        fragment[side].pop('self_id', None)
             np.testing.assert_equal(actual, expected)
         def result(mode):
             monkeypatch.setenv('MAPPA_NATIVE',mode)
@@ -74,8 +78,8 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
     _,ep=molecule();problem=AAMProblem(ep,ep)
     config=AAMSearchConfig(random_seed=137,cut_floor=10,iso_tolerance=.1)
     result=search_aam(problem,config)
-    assert all(c.random_seed==137 and c.growth_policy=='growth_edge_splitmix64_v2'
-               for c in result.graph.contexts)
+    assert result.graph.contexts[0].random_seed == 137
+    assert all(c.growth_policy=='growth_edge_splitmix64_v3' for c in result.graph.contexts)
     assert result.graph==search_aam(problem,config).graph
     old=checkpoint_manifest(problem,config)
     old.pop('growth_policy');old['schema']='rxn_core.aam_checkpoints/v3'

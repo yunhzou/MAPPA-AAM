@@ -5,7 +5,7 @@ import pytest
 
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.growth import native
-from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+from mappa.mappa_core.core.matching.reuse import FragmentPool
 from mappa.mappa_core.core.search.branching.native import find_islands_native
 from growth_cases import graph
 
@@ -128,7 +128,7 @@ def test_nonidentity_atom_labels_and_final_groups():
 def test_native_scheduling_with_dependency_repair():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
-    repair=FragmentRepair(source,target)
+    repair=FragmentPool(source,target)
     for order in (list(source),list(reversed(list(source)))):
         for cut in ((),((0,1),),((2,7),)):
             view=repair.for_cut(cut)

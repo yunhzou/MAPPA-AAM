@@ -58,7 +58,7 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
             : std::make_shared<const PlacementGenerators>(
                 target.placement_orbits->stabilizer(occupied));
     }
-    auto witnesses=query.images(max_branches+1,&growth.witness.assignment(),*result.placement_generators);
+    auto witnesses=query.images(max_branches+1,nullptr,*result.placement_generators);
     if (witnesses.empty()) throw std::runtime_error("completed fragment lost its proven matching witness");
     profile.completion_queries=query.nodes;profile.completion_pruned=query.rejected;
     profile.completion_global_generators=query.global_generators;

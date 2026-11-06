@@ -42,7 +42,7 @@ def metrics(pool, stage, elapsed):
         workers_used=len({row['worker'] for row in values}))
     summary['cache'] = {key: sum(row.get(key,0) for row in cache) for key in
         ('load_seconds','save_seconds','loaded_bytes','saved_bytes','baseline_loads',
-         'fragment_calls','fragment_hits','dependency_checks','published')}
+         'existence_queries','fragment_hits','witness_checks','published')}
     summary['cache']['errors'] = [error for row in cache for error in row.get('errors',[])]
     keys = set(rows)
     attempts = [row for row in pool.queue.db.execute(

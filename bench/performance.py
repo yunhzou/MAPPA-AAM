@@ -187,7 +187,7 @@ def worker(args, case):
                 gc.collect()
                 session = measure('preparation', lambda: workspace.prepared(reference,
                     lambda: SearchSession(problem, config, 'reused_native')))
-                cache_before = session.repair.stats()
+                cache_before = session.fragments.stats()
                 completed = measure('matching', lambda: search_complete_cut(payload, workspace))
                 catalogue = measure('reduction', lambda:
                     FinalBranchCatalogue(problem).add_graph(completed.graph))
@@ -212,7 +212,7 @@ def worker(args, case):
                     tables=len(record['tables']), fragment_responses=len(record['fragment_responses']),
                     output_schema=record['schema'], serialized_bytes=len(binary),
                     output_sha256=audit,
-                    cache_before=cache_before, cache_after=session.repair.stats(),
+                    cache_before=cache_before, cache_after=session.fragments.stats(),
                     search_counts=completed.search_counts))
                 del completed, graph, catalogue, decoded, record, binary, restored
                 phases = {}

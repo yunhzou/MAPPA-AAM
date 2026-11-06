@@ -248,7 +248,7 @@ def test_removed_growth_options_are_rejected():
             config(growth_policy='incremental')
 
 
-def test_fragment_cache_requires_a_completed_result_view():
+def test_fragment_cache_requires_a_fragment_pool_view():
     ring = graph(['C'] * 3, [(0, 1, 1), (1, 2, 1), (0, 2, 1)])
     with pytest.raises(TypeError, match='fragment cache'):
         match_fragment(ring, ring, seed=0,

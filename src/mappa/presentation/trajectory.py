@@ -31,12 +31,15 @@ def _same_placement_group(left, right, degree):
 
 
 def replay(source, target, state, after, edge, context):
-    if context.growth_policy != 'growth_edge_splitmix64_v2':
+    if context.growth_policy != 'growth_edge_splitmix64_v3':
         raise ValueError('Growth policy differs from archive; use its producing engine')
+    from mappa.mappa_core.core.search.planning import growth_seed
+    stream = (growth_seed(context.cuts, edge.step[0], context.random_seed)
+              if len(edge.step) == 3 else context.random_seed)
     events = []
     result = growth.grow_island_python(source, target, edge.seed, dict(state.mapping),
         graph_floor=context.graph_floor, iso_tol=context.iso_tolerance,
-        max_branches=context.branch_limit, events=events, random_seed=context.random_seed,
+        max_branches=context.branch_limit, events=events, random_seed=stream,
         islands_R=dict(state.islands),
         prior_deferred_edges=state.deferred_edges)
     isos = result.matches

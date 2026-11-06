@@ -1,7 +1,7 @@
 """Prepared search state and per-cut scientific operations."""
 
 from __future__ import annotations
-from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
+from mappa.mappa_core.core.search.planning import cut_seed, growth_seed, _generate_seed_orders
 import gc, time
 from mappa.mappa_core.core.search.branching.construction import find_islands
 from mappa.mappa_core.core.matching.graphs import build_graph
@@ -34,18 +34,18 @@ class SearchSession:
         target = build_graph(problem.product.elements, problem.product.wbo,
                              bond_cut=config.graph_floor)
         self.context = (problem, config, target)
-        self.repair = None
+        self.fragments = None
         if execution in ('reused_native', 'shared_policies'):
-            from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+            from mappa.mappa_core.core.matching.reuse import FragmentPool
             source = build_graph(problem.reactant.elements, problem.reactant.wbo,
                                  bond_cut=config.graph_floor)
-            self.repair = FragmentRepair(source, target)
+            self.fragments = FragmentPool(source, target)
 
     def search_cut(self, cut, *, seed_indices=None):
         started = time.perf_counter()
         problem, config, target = self.context
-        view = (self.repair.for_cut(tuple(edge for edge in cut if self.repair.source.has_edge(*edge)))
-                if self.repair is not None else None)
+        view = (self.fragments.for_cut(tuple(edge for edge in cut if self.fragments.source.has_edge(*edge)))
+                if self.fragments is not None else None)
         if view is None:
             source = build_graph(problem.reactant.elements, problem.reactant.wbo,
                                  bond_cut=config.graph_floor)
@@ -83,7 +83,7 @@ class SearchSession:
         indices = tuple(range(len(orders))) if seed_indices is None else tuple(seed_indices)
         if not indices or tuple(sorted(set(indices))) != indices or any(i < 0 or i >= len(orders) for i in indices):
             raise ValueError('Seed indices must be a nonempty ordered subset of the original seed plan')
-        cache_before = self.repair.stats() if self.repair is not None else None
+        cache_before = self.fragments.stats() if self.fragments is not None else None
         for index in indices:
             order = orders[index]
             seed_started, seed_cpu = time.perf_counter(), time.process_time()
@@ -91,13 +91,13 @@ class SearchSession:
                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,
                 max_branches=config.branch_limit,
                 anchor_map=dict(config.anchors),
-                profile=profile, cuts=cut, fragment_cache=view, random_seed=config.random_seed))
+                profile=profile, cuts=cut, fragment_cache=view, random_seed=growth_seed(cut, index, config.random_seed)))
             measured = dict(index=index, wall_seconds=time.perf_counter()-seed_started,
                             cpu_seconds=time.process_time()-seed_cpu)
-            if self.repair is not None:
-                cache_after = self.repair.stats()
+            if self.fragments is not None:
+                cache_after = self.fragments.stats()
                 measured['cache'] = {key: cache_after[key]-cache_before[key]
-                                     for key in ('calls', 'full_hits', 'dependency_checks')}
+                                     for key in ('existence_queries', 'fragment_hits', 'witness_checks')}
                 measured['cache'].update(retained_bytes=cache_after['resident_bytes'],
                                          entries=cache_after['entries'])
                 cache_before = cache_after

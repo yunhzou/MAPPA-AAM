@@ -511,7 +511,7 @@ def _catalogue_signature(catalogue):
 def _match_direction(problem, config, *, key, cache=True, progress=None,
                      audit_catalogue=False, metrics=None):
     """One direction owns its cache and reduces completed cuts as they finish."""
-    from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+    from mappa.mappa_core.core.matching.reuse import FragmentPool
     from mappa.mappa_core.core.search.planning import cut_sweep_items
     from mappa.mappa_core.core.search.session import SearchSession
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
@@ -520,9 +520,9 @@ def _match_direction(problem, config, *, key, cache=True, progress=None,
     with _measure(metrics, 'preparation'):
         session = SearchSession(problem, config)
         if not cache:
-            repair = session.repair
-            session.repair = FragmentRepair(repair.source, repair.target, cache_bytes=0)
-            del repair
+            fragments = session.fragments
+            session.fragments = FragmentPool(fragments.source, fragments.target, cache_bytes=0)
+            del fragments
         cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
         catalogue = FinalBranchCatalogue(problem)
     result = dict(key=key, atoms=[problem.source_atom_count, problem.target_atom_count],
@@ -532,7 +532,7 @@ def _match_direction(problem, config, *, key, cache=True, progress=None,
     scope, stops, cap_stages = hashlib.sha256(), Counter(), Counter()
 
     def checkpoint(phase):
-        result.update(phase=phase, cache=session.repair.stats(), stops=dict(stops),
+        result.update(phase=phase, cache=session.fragments.stats(), stops=dict(stops),
                       cap_stages=dict(cap_stages))
         if progress is not None:
             progress(result)

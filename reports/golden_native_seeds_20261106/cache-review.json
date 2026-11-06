@@ -1,0 +1,482 @@
+{
+  "source_commit": "4b951a49bdb368f18253e7a862a1f1fd1cd114cf",
+  "code_identity": "0e7f24c643d21f19da0ef4a6b814a1910b0eb227caf95d30c889c8072c21ba84",
+  "runner_sha256": "5833041a20bf3994ae1ee7a3eb0cfcdc6cc59d11f9f2aadd5716abe55e5f7eca",
+  "platform": {
+    "system": "Darwin",
+    "release": "25.6.0",
+    "machine": "arm64",
+    "cpu_model": "Apple M4 Pro",
+    "cpu_model_evidence": "sysctl -n machdep.cpu.brand_string; label corrected after run"
+  },
+  "cases": [
+    895,
+    1261,
+    1841
+  ],
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 10,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "method": "Current native matcher; cold direction process; same resident cache across all cuts and seeds; off disables completed-fragment retention only; no shared-file snapshot I/O. Matching CPU excludes reduction, audits, verification, publication and preparation.",
+  "repetitions": 1,
+  "direction_runs": 24,
+  "matching_catalogue_scope_cap_comparisons": 12,
+  "all_equal": true,
+  "arms": [
+    {
+      "seeds": 1,
+      "cache": "on",
+      "matching_cpu_seconds": 1.039215,
+      "cache_counters": {
+        "calls": 115994,
+        "full_hits": 105062,
+        "logical_extensions": 51699,
+        "reused_extensions": 21429,
+        "evictions": 0,
+        "oversized_results": 0
+      },
+      "maximum_retained_bytes": 17078478
+    },
+    {
+      "seeds": 1,
+      "cache": "off",
+      "matching_cpu_seconds": 1.7958560000000001,
+      "cache_counters": {
+        "calls": 115994,
+        "full_hits": 0,
+        "logical_extensions": 51699,
+        "reused_extensions": 0,
+        "evictions": 0,
+        "oversized_results": 115994
+      },
+      "maximum_retained_bytes": 0
+    },
+    {
+      "seeds": 10,
+      "cache": "on",
+      "matching_cpu_seconds": 12.476616,
+      "cache_counters": {
+        "calls": 1225436,
+        "full_hits": 1093878,
+        "logical_extensions": 681044,
+        "reused_extensions": 325820,
+        "evictions": 67583,
+        "oversized_results": 0
+      },
+      "maximum_retained_bytes": 67108864
+    },
+    {
+      "seeds": 10,
+      "cache": "off",
+      "matching_cpu_seconds": 20.804064000000004,
+      "cache_counters": {
+        "calls": 1225436,
+        "full_hits": 0,
+        "logical_extensions": 681044,
+        "reused_extensions": 0,
+        "evictions": 0,
+        "oversized_results": 1225436
+      },
+      "maximum_retained_bytes": 0
+    }
+  ],
+  "direct_hits": [
+    {
+      "case": 895,
+      "fragment_size": 13,
+      "cache_on_cpu_us": 8.61500000000001,
+      "cache_off_cpu_us": 48.489999999999924,
+      "speedup": 5.628554846198474,
+      "parity": true,
+      "repetitions": 3,
+      "calls_per_repetition": 200,
+      "scope": "Identical uncut initial fragment query, warmed cache vs zero retention; includes Python result conversion"
+    },
+    {
+      "case": 1261,
+      "fragment_size": 30,
+      "cache_on_cpu_us": 10.570000000000023,
+      "cache_off_cpu_us": 88.38499999999999,
+      "speedup": 8.361873226111616,
+      "parity": true,
+      "repetitions": 3,
+      "calls_per_repetition": 200,
+      "scope": "Identical uncut initial fragment query, warmed cache vs zero retention; includes Python result conversion"
+    },
+    {
+      "case": 1841,
+      "fragment_size": 31,
+      "cache_on_cpu_us": 13.785000000000046,
+      "cache_off_cpu_us": 87.33999999999992,
+      "speedup": 6.335872324990905,
+      "parity": true,
+      "repetitions": 3,
+      "calls_per_repetition": 200,
+      "scope": "Identical uncut initial fragment query, warmed cache vs zero retention; includes Python result conversion"
+    }
+  ],
+  "full_run_seed_cpu_seconds": {
+    "1": [
+      1190.601248680012
+    ],
+    "10": [
+      1425.206723298033,
+      1276.2488427150097,
+      1249.037278009022,
+      1234.542407375005,
+      1229.6945428340055,
+      1231.4496706700006,
+      1223.5310394819962,
+      1213.4576632499966,
+      1215.9926684909826,
+      1212.6065666619934
+    ]
+  },
+  "full_run_cache": {
+    "1": {
+      "fragment_calls": 74281547,
+      "fragment_hits": 66805603,
+      "dependency_checks": 69766260,
+      "load_seconds": 57.57172347721644,
+      "save_seconds": 2469.6057043005712,
+      "loaded_bytes": 521506384,
+      "saved_bytes": 2418867097,
+      "baseline_loads": 0,
+      "max_retained_bytes": 67108862
+    },
+    "10": {
+      "fragment_calls": 752047358,
+      "fragment_hits": 694982261,
+      "dependency_checks": 754564500,
+      "load_seconds": 27.676967927487567,
+      "save_seconds": 5523.020299707539,
+      "loaded_bytes": 327288010,
+      "saved_bytes": 33163433924,
+      "baseline_loads": 0,
+      "max_retained_bytes": 67108864
+    }
+  },
+  "limitations": [
+    "Selected three-case sample, one full-direction observation per arm; not a full-Golden cache-off benchmark.",
+    "Extension counts are work counters, not CPU-weighted avoided work.",
+    "Warm-hit microbenchmarks include Python result conversion; native branch-search hits do not use that conversion.",
+    "Native cache off still performs dependency collection and result accounting; this compares retention, not a separately optimized cache-free implementation."
+  ],
+  "fragment_pool_replacement": {
+    "parent_commit": "4b951a49bdb368f18253e7a862a1f1fd1cd114cf",
+    "code_identity": "a0182a8f6e97385dba9d28e5efed466da0f4a2549790b994e8a7d002ea59742c",
+    "runner_sha256": "35bb2078553ff5249df6fab36f24fa7d2d6c4cd047d9b026a2f5447e1fe59082",
+    "platform": {
+      "system": "Darwin",
+      "release": "25.6.0",
+      "machine": "arm64",
+      "cpu_model": "Apple M4 Pro"
+    },
+    "cases": [
+      895,
+      1261,
+      1841
+    ],
+    "config": {
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "iso_tolerance": 2.0,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3,
+      "seed_count": 10,
+      "branch_limit": 100,
+      "task_chunksize": 1,
+      "anchors": [],
+      "seed_selection": "random",
+      "random_seed": 42,
+      "sweep_cuts": true
+    },
+    "repetitions": 1,
+    "method": "Fresh direction process; one native fragment pool across seeds/cuts; zero retention control. All growth decisions execute afresh. Independent reproducible cut/trial streams; canonical saturation representatives independent of existence witness. No event decoding or shared-file exchange in timing controls.",
+    "direction_runs": 24,
+    "comparisons": [
+      {
+        "case": 895,
+        "reversed": false,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 895,
+        "reversed": true,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1261,
+        "reversed": false,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1261,
+        "reversed": true,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1841,
+        "reversed": false,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1841,
+        "reversed": true,
+        "seeds": 1,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 895,
+        "reversed": false,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 895,
+        "reversed": true,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1261,
+        "reversed": false,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1261,
+        "reversed": true,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1841,
+        "reversed": false,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      },
+      {
+        "case": 1841,
+        "reversed": true,
+        "seeds": 10,
+        "catalogue_equal": true,
+        "scope_equal": true,
+        "cap_equal": true,
+        "graph_counts_equal": true
+      }
+    ],
+    "arms": [
+      {
+        "seeds": 1,
+        "cache": "on",
+        "stages": {
+          "preparation": {
+            "cpu_seconds": 0.007416999999999951,
+            "wall_seconds": 0.01695008180104196
+          },
+          "matching": {
+            "cpu_seconds": 0.7058750000000003,
+            "wall_seconds": 0.707584711490199
+          },
+          "reduction": {
+            "cpu_seconds": 0.316712,
+            "wall_seconds": 0.31716733518987894
+          },
+          "verification": {
+            "cpu_seconds": 0.18478399999999995,
+            "wall_seconds": 0.21458991593681276
+          },
+          "audit": {
+            "cpu_seconds": 1.3539490000000003,
+            "wall_seconds": 1.3548579597845674
+          }
+        },
+        "pool": {
+          "existence_queries": 34992,
+          "fragment_hits": 2224,
+          "witness_checks": 579207,
+          "entries": 2183,
+          "evictions": 0,
+          "oversized_results": 0
+        },
+        "max_pool_bytes": 2664814,
+        "max_process_lifetime_rss_bytes": 117538816,
+        "recovered_directions": 6
+      },
+      {
+        "seeds": 1,
+        "cache": "off",
+        "stages": {
+          "preparation": {
+            "cpu_seconds": 0.007515999999999995,
+            "wall_seconds": 0.008988375309854746
+          },
+          "matching": {
+            "cpu_seconds": 1.0398220000000002,
+            "wall_seconds": 1.0411009609233588
+          },
+          "reduction": {
+            "cpu_seconds": 0.32429200000000025,
+            "wall_seconds": 0.3244692012667656
+          },
+          "verification": {
+            "cpu_seconds": 0.17910700000000013,
+            "wall_seconds": 0.22253779089078307
+          },
+          "audit": {
+            "cpu_seconds": 1.3631409999999993,
+            "wall_seconds": 1.3641218326520175
+          }
+        },
+        "pool": {
+          "existence_queries": 35763,
+          "fragment_hits": 0,
+          "witness_checks": 0,
+          "entries": 0,
+          "evictions": 0,
+          "oversized_results": 51885
+        },
+        "max_pool_bytes": 0,
+        "max_process_lifetime_rss_bytes": 117571584,
+        "recovered_directions": 6
+      },
+      {
+        "seeds": 10,
+        "cache": "on",
+        "stages": {
+          "preparation": {
+            "cpu_seconds": 0.0068030000000000035,
+            "wall_seconds": 0.007695583393797278
+          },
+          "matching": {
+            "cpu_seconds": 7.505385999999998,
+            "wall_seconds": 7.510432283161208
+          },
+          "reduction": {
+            "cpu_seconds": 2.903511999999999,
+            "wall_seconds": 2.905114670516923
+          },
+          "verification": {
+            "cpu_seconds": 0.4410959999999986,
+            "wall_seconds": 0.47084554308094084
+          },
+          "audit": {
+            "cpu_seconds": 10.449380999999995,
+            "wall_seconds": 10.456340661970899
+          }
+        },
+        "pool": {
+          "existence_queries": 379302,
+          "fragment_hits": 26415,
+          "witness_checks": 26977774,
+          "entries": 6116,
+          "evictions": 0,
+          "oversized_results": 0
+        },
+        "max_pool_bytes": 9978856,
+        "max_process_lifetime_rss_bytes": 291389440,
+        "recovered_directions": 6
+      },
+      {
+        "seeds": 10,
+        "cache": "off",
+        "stages": {
+          "preparation": {
+            "cpu_seconds": 0.007614999999999983,
+            "wall_seconds": 0.008864997886121273
+          },
+          "matching": {
+            "cpu_seconds": 11.152444999999997,
+            "wall_seconds": 11.164201665436849
+          },
+          "reduction": {
+            "cpu_seconds": 3.3832979999999933,
+            "wall_seconds": 3.3868810846470296
+          },
+          "verification": {
+            "cpu_seconds": 0.3657660000000007,
+            "wall_seconds": 0.39231333299539983
+          },
+          "audit": {
+            "cpu_seconds": 10.655417,
+            "wall_seconds": 10.66313508641906
+          }
+        },
+        "pool": {
+          "existence_queries": 386718,
+          "fragment_hits": 0,
+          "witness_checks": 0,
+          "entries": 0,
+          "evictions": 0,
+          "oversized_results": 580476
+        },
+        "max_pool_bytes": 0,
+        "max_process_lifetime_rss_bytes": 289390592,
+        "recovered_directions": 6
+      }
+    ],
+    "limitation": "Historical before/after totals use changed random streams and representative ordering, so they are not fixed-workload speedups. Within-replacement on/off comparisons have identical catalogue, scope, graph counts and cap outcomes. This is a selected three-case test, not a full Golden benchmark.",
+    "validation": {
+      "full_suite": {
+        "passed": 1313,
+        "seconds": 131.96
+      },
+      "additional_eviction_test": {
+        "passed": 1,
+        "seconds": 0.35
+      },
+      "final_code_identity": "ad786d481e9b126e4865daa90089ba947b6daa69357d7f328da0e8f8a6592f56",
+      "notes": "The timing controls preceded removal of unused native cut/placement transport and an explicit selected-path reduction scope correction. Complete-graph controls are unaffected. All final source changes passed the full suite; the additional eviction test was added after collection and run separately."
+    }
+  }
+}

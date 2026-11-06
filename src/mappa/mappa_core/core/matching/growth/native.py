@@ -112,8 +112,8 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,
                 allow_mapped_seed, profile, profile_context, fragment_cache=None, random_seed=42, bond_tolerance=None,
                 placement_fixed_targets=()):
     """Run the selected native engine or report unsupported inputs explicitly."""
-    if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentRepair):
-        raise TypeError('fragment cache must be a completed-fragment cache view')
+    if fragment_cache is not None and not isinstance(getattr(fragment_cache, 'engine', None), _engine.FragmentPool):
+        raise TypeError('fragment cache must be a fragment pool view')
     if fragment_cache is not None and (fragment_cache.source is not g_R or fragment_cache.target is not g_P):
         raise ValueError("fragment cache view belongs to different source/target graphs")
     source_view = fragment_cache.source_view if fragment_cache is not None else source_graph(g_R, bond_tolerance)

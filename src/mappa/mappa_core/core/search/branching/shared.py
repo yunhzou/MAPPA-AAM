@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import replace, dataclass
 import time
-from mappa.mappa_core.core.search.planning import cut_seed, _generate_seed_orders
+from mappa.mappa_core.core.search.planning import cut_seed, growth_seed, _generate_seed_orders
 from mappa.mappa_core.core.search.branching.construction import _Branch
 from mappa.mappa_core.domain import AAMResult, AAMSearchMetrics
 from mappa.mappa_core.core.matching.api import match_fragment
@@ -63,7 +63,8 @@ class SharedSeedSearch:
     """One cut's original seed policies sharing an exact decision DAG.
 
 The future of a seed decision depends on mapping, island partition, deferred
-edges and the cut condition, not the history or which policy reached it.
+edges, the cut condition and the policy's random stream. Distinct policies
+share retained graph structure and fragment knowledge, not growth decisions.
 Each policy retains its own decision edges and prunes its hierarchy independently.
 Identical growth output is never expanded into bijections.
 """
@@ -115,8 +116,8 @@ Identical growth output is never expanded into bijections.
         self.builder.stop_keys.clear()
         self.policy_edges.clear()
 
-    def _expand(self, branch, seed):
-        key = (branch.node, seed)
+    def _expand(self, branch, seed, policy):
+        key = (branch.node, seed, policy)
         if key in self.decisions:
             self.reused_states += 1
             return self.decisions[key]
@@ -127,7 +128,7 @@ Identical growth output is never expanded into bijections.
                 fragment_cache=self.condition.fragment_cache),
             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,
                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,
-                random_seed=self.config.random_seed),
+                random_seed=growth_seed(self.condition.cuts, policy, self.config.random_seed)),
             profile=self.profile)
         edges = []
         if result.capped:
@@ -220,7 +221,7 @@ Identical growth output is never expanded into bijections.
         policy, (index, pass_no, position, seed, branch) = self.agenda.popleft()
         self.builder.seed, self.builder.step = seed, (index, pass_no, position)
         self.work += 1
-        output = self._expand(branch, seed)
+        output = self._expand(branch, seed, index)
         try:
             request = policy.send(output)
         except StopIteration:

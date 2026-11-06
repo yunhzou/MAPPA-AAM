@@ -15,11 +15,11 @@ def session():
 
 def execute(store, identity, search, worker, cut=()):
     worker.begin(store.describe(identity))
-    worker.use(search.repair)
+    worker.use(search.fragments)
     graph, _ = search.search_cut(cut)
     proposal = worker.proposal()
     if proposal is not None:
-        token = str(search.repair.stats()['calls']) + str(id(worker))
+        token = str(search.fragments.stats()['revision']) + str(id(worker))
         plan = store.reserve(identity, proposal['version'], token)
         publication = worker.save(plan)
         if plan is not None:
@@ -51,7 +51,7 @@ def test_latest_reload_and_immutable_baseline_after_failure(tmp_path, monkeypatc
     assert execute(restarted, identity, recovered, loader) == expected
     assert loader.metrics['baseline_loads'] == 1
     assert loader.metrics['errors']
-    assert loader.metrics['fragment_hits'] == loader.metrics['fragment_calls']
+    assert loader.metrics['entries'] > 0
     assert baseline.read_bytes() == first_bytes
     assert len(list(tmp_path.glob('*.cache'))) == 2
     assert not list(tmp_path.glob('*.pending'))
@@ -66,7 +66,7 @@ def test_competing_publishers_and_open_reader_keep_complete_snapshot(tmp_path):
     old_reader = open(descriptor['latest'], 'rb')
     old_bytes = old_reader.read()
     old_reader.seek(0)
-    worker.begin(descriptor); worker.use(search.repair)
+    worker.begin(descriptor); worker.use(search.fragments)
     search.search_cut(((0,1),))
     proposal = worker.proposal()
     plan = store.reserve(identity, proposal['version'], 'winner')

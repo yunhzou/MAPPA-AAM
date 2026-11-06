@@ -85,7 +85,7 @@ def search_batch(payload, workspace):
         descriptor = workspace.cache.descriptor
         if identity != (descriptor['key'], descriptor['direction']):
             raise ValueError('Task cache input, settings or code identity differs')
-    workspace.cache.use(session.repair)
+    workspace.cache.use(session.fragments)
     graph, counts = session.search_cut(payload['cut'], seed_indices=payload['indices'])
     workspace.measurements['search'] = counts
     if tuple(context.seed_order for context in graph.contexts) != payload['orders']:
@@ -127,10 +127,10 @@ def iter_cuts(queue, keys, scratch):
 
 
 def _initialize_search(problem, config, execution='reused_native'):
-    global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_REPAIR, _CHECKPOINT_STORE
+    global _SEARCH_SESSION, _SEARCH_CONTEXT, _SEARCH_FRAGMENTS, _CHECKPOINT_STORE
     _SEARCH_SESSION = SearchSession(problem, config, execution)
     # Profiling tools inspect these views; computation is owned by the session.
-    _SEARCH_CONTEXT, _SEARCH_REPAIR = _SEARCH_SESSION.context, _SEARCH_SESSION.repair
+    _SEARCH_CONTEXT, _SEARCH_FRAGMENTS = _SEARCH_SESSION.context, _SEARCH_SESSION.fragments
     _CHECKPOINT_STORE = None
 
 
@@ -154,7 +154,7 @@ def _search_cut_task(payload, *, in_process=False):
 
 
 _SEARCH_CONTEXT = None
-_SEARCH_REPAIR = None
+_SEARCH_FRAGMENTS = None
 _SEARCH_SESSION = None
 _CHECKPOINT_STORE = None
 

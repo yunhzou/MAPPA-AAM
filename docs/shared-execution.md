@@ -50,7 +50,7 @@ policy. A cut with several batches has one dependent task that combines them
 in their original seed order. If all its seeds fit in one batch, the worker
 publishes the completed cut directly. There is no intermediate scheduling or storage round trip for that cut.
 Matching counts retain each seed's index, matcher CPU/wall time and cache
-call/hit/dependency-check deltas. These small measurements also accompany the
+existence-query/fragment-hit/witness-check deltas. These small measurements also accompany the
 task audit, so timing analysis need not deserialize its search graph. Task
 totals separately include preparation and graph combination; cache transport
 and publication remain separately measured by the worker.
@@ -106,13 +106,15 @@ available. These are trusted Python checkpoints, not an interchange format for
 untrusted inputs. Stage transitions use the same storage mode; RAM transitions
 also require the same `MemoryStore` instance.
 
-BundleStore pools also share completed-fragment caches between workers by
+BundleStore pools also share unique-fragment pools between workers by
 default. At task start a worker loads a newer reaction snapshot if needed;
 otherwise it keeps using its prepared RAM cache.
 Snapshot import retains useful local entries within the existing memory budget;
-identical requests are not inserted twice. An update to the other direction
+identical atom-set pairs are not inserted twice. An update to the other direction
 does not force a reload of an unchanged directional snapshot.
-Existing lock, occupancy, topology and boundary checks still decide every cache hit. Only a worker granted
+Each hit checks a known witness against the temporary fragment's required edges,
+tolerance, current locks and available targets. Growth choices are always made
+afresh. Only a worker granted
 publication by the coordinator writes an update. Its own next task acknowledges
 that update without reading the same snapshot back from disk.
 
@@ -125,7 +127,8 @@ two independent coordinators from writing the same cache directory. Result
 bundles remain independent of cache snapshots.
 
 The native cache keeps its 64 MiB accounted retention budget per prepared
-direction. Snapshots retain completed compressed results and dependency checks.
+direction. Snapshots retain one original fragment per atom-set pair, with its
+discovery witness and constraints; they contain no growth trajectories.
 Task metrics report cache hits, bytes, load
 and save time, successful publication and baseline recovery. For comparisons,
 `pool.search(problems, config, shared_cache=False)` disables disk exchange while

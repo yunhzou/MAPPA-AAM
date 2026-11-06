@@ -228,8 +228,9 @@ When a fragment locks, deferred edges needed for further search remain with the
 branch continuation. They neither constrain fragment self-automorphs nor imply
 bond events. Branch state also owns cut provenance and inter-fragment boundary
 context. Sharing a completed fragment does not merge these continuation states.
-Cache identity and checkpoints preserve their relevant context without retaining
-discarded growth histories.
+Checkpoints preserve their relevant context without retaining discarded growth
+histories. Fragment reuse validates the current query rather than replaying a
+previous continuation.
 
 Original atom lists, anchors and prepared self-relationships are stored once and
 referenced where shared; the table describes logical access, not duplicate
@@ -382,20 +383,49 @@ policies. Unsupported capabilities and execution failures are reported, never
 silently routed to another algorithm. Historical records keep their recorded
 scientific meaning; loading cannot reinterpret decoding as rematching.
 
-## Completed-fragment reuse
+## Unique-fragment reuse during growth
 
-A bounded cache surrounds fragment matching. Reuse requires the same endpoint
-problem and policies, with compatible topology, occupancy, locks, joined islands
-and deferred boundaries. Cache eviction, disabled retention or an oversized
-entry may increase computation but cannot change matching or caps.
+Matching accumulates a reaction's known fragments, keyed only by the source and
+target atom-set pair. Keep one original fragment per pair. Its discovery witness
+can prove that a smaller temporary fragment has at least one match. This reuse
+works across branches, seeds and cuts; it does not reuse a completed growth path.
 
-The cache contains completed compressed results and their dependency evidence.
-It does not retain expanded bijections, candidate prefixes or symmetry
-certificates. Its budget bounds retained entries, not total process memory.
-Entries share equal immutable fragment self-preparations within one reaction.
-The budget counts each shared preparation once, including its ownership index;
-evicting its last entry also releases that index record.
-Switching reactions releases prepared reaction-specific state.
+First try the cheap extension of the current witness. Otherwise consult the
+fragment pool: the stored witness must cover the proposed atoms, respect current
+locks and target availability, and satisfy every currently required edge at the
+current tolerance. Atom-set inclusion alone is insufficient. A valid restriction
+answers **yes** immediately. A pool miss makes no claim about absence; the same
+existence solver then answers the query normally. No symmetry or bijection
+enumeration is needed to test a stored witness.
+
+For example, after finding `R{1,2,3,4} → P{a,b,c,d}`, a later proposal for
+`R{2,3}` can use `2→b, 3→c` if those targets remain available and its required
+edge is satisfied. A different seed or an unrelated cut does not invalidate
+this proof. A newly required edge or conflicting lock must be checked.
+
+Growth keeps selecting its own proposals. Each cut/trial has a distinct,
+reproducible random stream, independent of worker assignment or seed batching.
+Saturation selects its representatives independently of the temporary existence
+witness, so cache contents cannot choose the returned mapping or cap outcome.
+There is no whole-growth replay cache or dependency-tracking layer.
+
+The pool has a 64 MiB accounted retention budget per prepared direction; eviction
+changes reuse only. Accounting conservatively charges each entry's referenced
+self-preparations and its index. This bounds pool retention, not total search
+memory. Raw decisions retain their own locks and accepted edges. The returned
+search graph carries a unique-fragment inventory for reduction to reuse.
+Switching reactions releases the prepared reaction state.
+
+```mermaid
+flowchart LR
+    Growth[Fresh growth proposals] --> Exists[One-match query]
+    Pool[Unique completed fragments] --> Exists
+    Exists --> Growth
+    Growth --> Completion[Compressed completion]
+    Completion --> Pool
+    Completion --> Graph[Search graph and fragment inventory]
+    Graph --> Reduction[Deduplicate branch compositions]
+```
 
 ### Shared reaction cache snapshots
 
@@ -415,6 +445,8 @@ overwrite newer versions. Only changed retained entries are published, with
 updates coalesced to limit storage overhead. Scientific results are published
 independently of cache snapshots.
 
+Snapshots contain unique fragment records, never growth trajectories or branch
+outcomes. Import merges useful local and received records by atom-set pair.
 Snapshot transport validates checksums, endpoint identity, policies and code
 compatibility, and reapplies the resident memory budget. Cache I/O, hits and
 recovery are measured. Persistent snapshot count is bounded per reaction, never
@@ -454,7 +486,10 @@ records. Live continuation contexts
 cannot be discarded merely because their final atom-set groups coincide.
 
 One catalogue per endpoint problem and direction reduces all supplied seeds and
-cuts under the fixed policy. Keep exactly one fragment record per reactant/product
+cuts under the fixed policy. Reuse each search graph's fragment inventory, then
+unify its keys across graphs. An explicitly selected path subset supplies its
+own records; it cannot borrow a representative from an excluded path.
+Keep exactly one fragment record per reactant/product
 atom-set pair. Retain the first original record intact and reference it from every
 branch using that pair. Different starting witnesses, discovery domains and growth
 routes do not create additional fragment records or local decoding jobs.

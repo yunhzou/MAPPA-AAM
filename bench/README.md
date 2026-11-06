@@ -377,9 +377,9 @@ runner's SHA-256; each task rejects a runner changed after planning.
 Each reaction/direction and seed/cache setting starts a fresh process. The same
 native `SearchSession` then retains its prepared state across the full canonical
 cut sweep and all requested seeds. Seed-order prefixes, random settings and
-input checksums remain fixed. `--cache off` sets completed-fragment retention to
-zero; it preserves the native algorithm, dependency tracking and other caches.
-The enabled control uses the existing 64 MiB completed-fragment cache. These
+input checksums remain fixed. `--cache off` sets unique-fragment retention to
+zero; it preserves the native algorithm and other prepared state.
+The enabled control uses the 64 MiB unique-fragment pool. These
 controls do not compare different search algorithms or shared-file cache I/O.
 
 The runner performs matching, family reduction and the
@@ -387,7 +387,8 @@ existing Golden reference-membership query; it does not decode events. CPU and
 wall time are reported separately for each stage, preparation and parity audits.
 Task totals also include progress/result publication, while process startup is
 reported separately. The existing local worker records sampled process-tree RSS
-and the fresh process's lifetime peak RSS. Reports include cache calls/hits,
+and the fresh process's lifetime peak RSS. Reports include existence queries,
+fragment hits and witness checks,
 retention statistics, weighted cap/stop counts and completed cut/seed scope.
 Cache controls compare the saved scientific family records and branch
 associations, exact search scope, and per-cut graph/stop counts. This is catalogue

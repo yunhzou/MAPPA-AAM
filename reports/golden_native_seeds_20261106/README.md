@@ -98,8 +98,8 @@ a newly measured uninterrupted end-to-end run.
 Ten seeds require **9.42× matching CPU, 8.09× reduction CPU and 4.95× decoding
 CPU**, compared with one seed. This compares different amounts of retained work;
 it is not a fixed-workload acceleration measurement. Matching cache hit fractions
-were **89.94%** and **92.41%** respectively. Without a cache-disabled control,
-these ratios do not isolate the cache's causal speedup.
+were **89.94%** and **92.41%** respectively. These full-run ratios do not isolate
+the cache's causal speedup; selected cache-disabled controls appear below.
 
 | Per-direction decoding compute time | One seed (s) | Ten seeds (s) |
 |---|---:|---:|
@@ -135,6 +135,104 @@ Evidence: [completed stage and timing summary](unique-seeds10-summary.json),
 [decoded coverage and proof-audit summary](decoded-seeds10-summary.json).
 The earlier [433-reduction snapshot](unique-seeds10-partial-summary.json) remains
 historical evidence, not the current completion state.
+
+### Historical whole-growth cache audit (`4b951a4`)
+
+The now-retired completed-fragment cache skipped both growth and completion on a valid hit.
+It persists across seeds within a cut and across cuts while the reaction session
+remains resident. Shared snapshots exchange knowledge at task boundaries. Keys
+include the starting atom, settings and occupied target atoms; dependency checks
+also validate relevant locks, source topology, joined fragments and deferred
+edges. The same final atom sets reached under another request do not alone
+establish a reusable answer. Branch traversal, continuation construction, caps
+and export still execute after a hit. Snapshot saving belongs to publication,
+not the matching CPU reported above.
+
+At revision `4b951a4`, fresh local controls on cases **895, 1261 and 1841**, both
+directions, compared one and ten seeds with 64 MiB retention versus zero
+retention. All **24 direction runs** completed and all **12 paired comparisons**
+agreed on catalogue contents, cut/seed scope and cap evidence. No scientific code
+changed. Each arm used one compute worker on an Apple M4 Pro, with a 2 GiB guard.
+
+| Seeds | Cache-on matching CPU (s) | Cache-off matching CPU (s) | Speedup |
+|---|---:|---:|---:|
+| 1 | 1.039 | 1.796 | 1.73× |
+| 10 | 12.477 | 20.804 | 1.67× |
+
+These are sums across six directions, with one observation per arm. They exclude
+preparation, reduction, verification, audits and file publication. The control
+disables retention, preserving the native algorithm and dependency accounting.
+It is not an alternative cache-free algorithm. At ten seeds, **89.26% of
+requests hit**, but those hits reused only **47.84% of logical extension steps**.
+Request hits therefore overstate the fraction of growth work avoided; extensions
+themselves also vary in cost. Case 1841 produced all 67,583 evictions; the other
+two cases had none.
+
+An additional direct test repeated the identical initial fragment request 200
+times in each of three alternating-order measurements. Warm hits took median
+**8.62–13.79 microseconds**, versus **48.49–88.39 microseconds** with zero
+retention: **5.63–8.36× faster**, with equal scientific outputs. These direct
+calls include Python result conversion; the native branch search consumes hits
+without that conversion. They demonstrate cheap hits, not full-search speedup.
+
+In the full ten-seed campaign, per-seed matching CPU summed over all cuts drops
+from **1,425.21 s for the first seed to 1,212.61 s for the tenth**, about 15%.
+Total requests still grow from 74.28 million at one seed to 752.05 million at ten;
+misses grow from 7.48 million to 57.07 million. Reuse is active, but does not remove
+the repeated branch work or new conditional fragment requests.
+
+The earlier [three-repetition cache study](../golden_seed10_tol2_cap100_20261105/README.md#completed-cache-control-results)
+measured a 1.76× ten-seed matching speedup. Its native growth, completion, cache
+and seed scheduler sources are unchanged in this audit. Its capacity controls
+found only about 2% aggregate benefit from 64 to 256 MiB on eight cases, and
+4.5–6.5% from 64 MiB to 1 GiB on two heavier cases. Those remain selected historical
+measurements, not proof that capacity never matters. Current evidence supports
+useful absolute cache savings for that revision, not strongly sublinear full-dataset seed scaling.
+[Aggregate audit evidence](cache-review.json) records counters and timing scope.
+
+### Replacement: unique fragments answer extension queries
+
+The replacement removes whole-growth replay and its dependency tracking. Matching
+accumulates one fragment per source/target atom-set pair. A stored witness can
+prove a smaller extension feasible after checking its required edges, tolerance,
+locks and available targets. Otherwise the ordinary existence solver runs.
+Growth proposals always execute afresh. Cut/trial random streams are distinct
+and reproducible; saturation chooses its representatives independently of the
+existence witness. The saved search graph supplies its fragment inventory to
+reduction. Decoder logic is unchanged.
+
+Selected local controls used cases **895, 1261 and 1841**, both directions, one
+and ten seeds, tolerance 2, cap 100 and the full cut sweep on an Apple M4 Pro.
+All **24 direction runs** completed. All **12 cache-on/off pairs** had identical
+catalogue fingerprints, cut/seed scope, graph counts and cap outcomes. Reference
+membership recovered all three reactions in every setting. These controls do
+not perform event decoding or establish full-Golden accuracy.
+
+| Seeds | Pool-on matching CPU (s) | Pool-off matching CPU (s) | Speedup | Pool-on reduction CPU (s) |
+|---|---:|---:|---:|---:|
+| 1 | 0.706 | 1.040 | 1.47× | 0.317 |
+| 10 | 7.505 | 11.152 | 1.49× | 2.903 |
+
+Times are sums across six directions, one measurement per arm, excluding
+preparation, audits, verification and publication. At ten seeds the six pools
+retained **6,116 unique fragments** and supplied **26,415 positive existence
+answers**. The largest pool accounted for **9.52 MiB**, with no evictions. These
+queries follow the cheaper direct extension of the current witness, so their hit
+fraction is not the fraction of all extensions accelerated.
+
+The historical cache-on totals above were 1.039 s and 12.477 s. Changed random
+streams and representative ordering change the sampled search workload; those
+before/after numbers do not isolate a cache speedup. The replacement's on/off
+comparison does. This sample still does not show strongly sublinear seed scaling.
+The measured worktree identity, per-stage CPU/wall times and all comparison
+outcomes are retained in [the aggregate evidence](cache-review.json).
+
+Final validation: **1,313 tests passed in 131.96 s**, including matching oracles,
+Python/native agreement, reduction/decoding, trajectory replay and work-pool
+storage. An additional eviction/snapshot-budget test passed separately. The suite
+caught and verified the correction of an explicit-path-subset reduction bug:
+excluded paths cannot supply the retained fragment. The final source identity
+and the timing run's earlier identity are recorded separately in the evidence.
 
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:

@@ -115,7 +115,7 @@ def complete_fragment(growth, source, target, locked, *, tolerance,
                    if not set(target).issubset(fixed) and query.needs_global_symmetry() else None)
     generators = (() if global_self is None else
                   _placement_generators(target, global_self, locked, placement_fixed_targets))
-    witnesses = query.images(branch_limit + 1, preferred=growth.witness,
+    witnesses = query.images(branch_limit + 1,
                              placement_generators=generators)
     if profile is not None:
         profile.update(completion_seconds=perf_counter() - started,

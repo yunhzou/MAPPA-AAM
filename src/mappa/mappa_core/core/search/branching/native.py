@@ -15,14 +15,13 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
     anchors=_normalize_anchor_map(anchor_map,source,target)
     if not native.available():
         raise ValueError('native scheduling requires the built native engine')
-    repair=None;repair_cuts=()
+    fragments=None
     if fragment_cache is not None:
         if fragment_cache.source is not source or fragment_cache.target is not target:
-            raise ValueError('fragment repair view belongs to another graph pair')
-        repair=fragment_cache.engine
-        if not isinstance(repair,native._engine.FragmentRepair):
-            raise ValueError('native scheduling requires a completed-fragment cache view')
-        repair_cuts=fragment_cache.cuts
+            raise ValueError('fragment pool view belongs to another graph pair')
+        fragments=fragment_cache.engine
+        if not isinstance(fragments,native._engine.FragmentPool):
+            raise ValueError('native scheduling requires a fragment pool view')
     r=native.source_graph(source)
     p=fragment_cache.target_view if fragment_cache is not None else native.target_graph(target)
     if r is None or p is None:
@@ -42,7 +41,7 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1
         graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],
             float(graph_floor),float(iso_tol),int(max_branches),
             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
-            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,
+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,fragments,
             int(random_seed) & ((1<<64)-1))
         native_cpu=time.process_time()-cpu if profile is not None else 0.
         native_wall=time.perf_counter()-wall if profile is not None else 0.

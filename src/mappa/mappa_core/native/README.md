@@ -17,7 +17,8 @@ imports are `mappa._engine` and `mappa._group_ops`.
   retains this placement relationship separately from its fragment-local
   relationships; saved hierarchy transitions transport the entire later
   continuation jointly. This prepared endpoint record is separate from the
-  bounded completed-result cache.
+  bounded unique-fragment pool in `fragment_pool.h`. The pool certifies temporary
+  existence queries from stored witnesses; it never replays growth decisions.
   Frontier selection stays in `engine.cpp`; neither module owns hierarchy caps
   or work-pool scheduling.
 - `find_fragment_witness` binds `FragmentQuery.find` directly for a supplied

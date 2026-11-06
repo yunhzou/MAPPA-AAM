@@ -358,6 +358,31 @@ public:
     }
 };
 
+std::vector<int> FragmentPool::find(const FragmentQuery& query) {
+    ++lookups;
+    if (query.atoms.empty()) return {};
+    int rare=query.atoms.front();
+    for (int atom:query.atoms)
+        if (by_atom[atom].size()<by_atom[rare].size()) rare=atom;
+    for (auto* entry:by_atom[rare]) {
+        ++checks;
+        const auto& image=entry->image;
+        bool valid=true;
+        for (int atom:query.atoms)
+            if (image[atom]<0 || !contains(query.domains[atom],image[atom])) {valid=false;break;}
+        if (!valid) continue;
+        for (const auto& edge:query.edges)
+            if (!query.supports(edge,image[edge.a],image[edge.b])) {valid=false;break;}
+        if (!valid) continue;
+        ++hits;
+        entries.splice(entries.end(),entries,index.at(entry->key));
+        std::vector<int> witness(base.n,-1);
+        for (int atom:query.atoms) witness[atom]=image[atom];
+        return witness;
+    }
+    return {};
+}
+
 // One concrete assignment during growth. It is not a compressed candidate:
 // accepted extensions update only new atoms; old edges remain proven.
 class WitnessGrowth {
@@ -368,6 +393,7 @@ class WitnessGrowth {
     double tolerance;
     std::vector<uint8_t> used;
     std::vector<int> image;
+    FragmentPool* pool;
 
     void assign(int atom,int value) { image[atom]=value;used[value]=1; }
 public:
@@ -376,9 +402,9 @@ public:
     const std::vector<int>& assignment() const { return image; }
 
     WitnessGrowth(const Source& source,const Target& target,const std::vector<int>& locked,
-                  const std::vector<uint8_t>& occupied,double tolerance,int seed)
+                  const std::vector<uint8_t>& occupied,double tolerance,int seed,FragmentPool* pool)
         :source(source),target(target),locked(locked),occupied(occupied),tolerance(tolerance),
-         used(target.n,0),image(source.n,-1) {
+         used(target.n,0),image(source.n,-1),pool(pool) {
         if (locked[seed]>=0) {assign(seed,locked[seed]);seed_targets=1;}
         else for (int p=0;p<target.n;++p) if (!occupied[p] && source.ecode[seed]==target.ecode[p]) {
             if (!seed_targets) assign(seed,p);
@@ -423,8 +449,8 @@ public:
         for (int r:added) enlarged[r]=1;
         auto edges=bonds;edges.push_back({anchor,atom});
         FragmentQuery query(source,target,enlarged,edges,locked,tolerance);
-        ++searches;
-        auto next=query.find();nodes+=query.nodes;
+        auto next=pool ? pool->find(query) : std::vector<int>{};
+        if (next.empty()) {++searches;next=query.find();nodes+=query.nodes;}
         if (next.empty()) return false;
         image=std::move(next);
         std::fill(used.begin(),used.end(),0);

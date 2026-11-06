@@ -55,15 +55,24 @@ def cut_seed(cut, root_seed=42):
                                          person=b'AAM-cut-seeds-v1').digest(), 'big')
 
 
+def growth_seed(cut, index, root_seed=42):
+    """Each cut/trial explores its own reproducible growth stream."""
+    if not cut and index == 0:
+        return root_seed & ((1 << 64) - 1)
+    payload = json.dumps([cut_seed(cut, root_seed), index], separators=(',', ':')).encode('ascii')
+    return int.from_bytes(hashlib.blake2b(payload, digest_size=8,
+        person=b'AAM-growth-v3').digest(), 'big')
+
+
 def checkpoint_manifest(problem, config):
     """Identity required before reusing cut checkpoints (not reference labels)."""
     def endpoint(value):
         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),
                     coordinates=value.coordinates.tolist())
     return json.loads(json.dumps(dict(schema='mappa.aam_checkpoints/v7',
-        fragment_growth='witness_then_distinct_images_v1',
+        fragment_growth='existence_then_canonical_images_v2',
         matching_policy='complete_discovery_two_sided_relaxed_self_v1',
-        growth_policy='growth_edge_splitmix64_v2',
+        growth_policy='growth_edge_splitmix64_v3',
         branch_cap_policy='completed_fragment_bottom_up_v2',
         seed_policy='independent_per_cut_blake2b_v2_shared_pool',
         reactant=endpoint(problem.reactant), product=endpoint(problem.product),

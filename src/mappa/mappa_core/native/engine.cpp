@@ -81,41 +81,25 @@ struct Target : Graph {
     mutable std::unique_ptr<permutation_native::SetOrbit> placement_orbits;
 };
 
-// Source topology dependencies for completed-fragment cache validation.
-// WBO values/elements never change between its cuts. Target canonicalization
-// depends on P, not on reactant topology or reactant automorphism orbits.
-struct SourceReads {
-    std::vector<uint8_t> rows, pairs;
-    explicit SourceReads(int n) : rows(n, 0), pairs((size_t)n*n, 0) {}
-};
-
 struct Source : Graph {
-    mutable SourceReads* reads = nullptr;
-    bool has_edge(int a, int b) const {
-        if (reads) {
-            uint8_t& first = reads->pairs[(size_t)std::min(a,b)*n+std::max(a,b)];
-            first = 1;
-        }
-        return Graph::has_edge(a,b);
-    }
-    const std::vector<int>& neighbors(int a) const {
-        if (reads) reads->rows[a] = 1;
-        return adj[a];
-    }
-};
-
-struct SourceReadScope {
-    const Source& source;
-    SourceReads* previous;
-    SourceReadScope(const Source& s, SourceReads* reads) : source(s), previous(s.reads) {
-        source.reads = reads;
-    }
-    ~SourceReadScope() { source.reads = previous; }
+    const std::vector<int>& neighbors(int atom) const { return adj[atom]; }
 };
 
 inline bool contains(const std::vector<int>& sorted, int x) {
     return std::binary_search(sorted.begin(), sorted.end(), x);
 }
+
+struct Fragment {
+    std::shared_ptr<const PreparedSymmetry> source, target;
+    std::vector<std::vector<int>> domains;
+    std::vector<int> witness;
+    std::vector<Pair> anchors, accepted_edges, target_edges;
+    std::vector<double> edge_tolerances;
+    bool inclusive=true;
+    double target_bond_floor=0.2;
+};
+
+#include "fragment_pool.h"
 
 #include "fragment_query.h"
 
@@ -164,8 +148,8 @@ struct FragmentGrowth {
     FragmentGrowth(const Source& source, const Target& target,
                    const std::vector<int>& mapping, const std::vector<uint8_t>& occupied,
                    double tolerance, int seed, const std::vector<Pair>& deferred,
-                   uint64_t random_seed)
-        :witness(source,target,mapping,occupied,tolerance,seed),random{random_seed} {
+                   uint64_t random_seed,FragmentPool* pool)
+        :witness(source,target,mapping,occupied,tolerance,seed,pool),random{random_seed} {
         if (!witness.seed_targets) return;
         source_atoms.assign(source.n,0);
         source_atoms[seed]=1;atom_count=1;
@@ -209,16 +193,6 @@ struct BranchCap {
     long count, limit;
 };
 
-struct Fragment {
-    std::shared_ptr<const PreparedSymmetry> source, target;
-    std::vector<std::vector<int>> domains;
-    std::vector<int> witness;
-    std::vector<Pair> anchors, accepted_edges, target_edges;
-    std::vector<double> edge_tolerances;
-    bool inclusive=true;
-    double target_bond_floor=0.2;
-};
-
 struct GrowResult {
     std::vector<std::shared_ptr<const Fragment>> fragments;
     PlacementGroup placement_generators=std::make_shared<const PlacementGenerators>();
@@ -230,17 +204,14 @@ struct GrowResult {
 
 #include "fragment_completion.h"
 
-#include "growth_dependencies.h"
 
 GrowResult grow_island(const Source& R, const Target& P, int seed, const std::vector<int>& mapping,
                        double graph_floor, double iso_tol, int min_lock_size, long max_branches,
                        const std::vector<Pair>* islands, const std::vector<Pair>& prior_deferred,
                        bool allow_mapped_seed, uint64_t random_seed = 42,
                        GrowthObservation* observation = nullptr,
-                       GrowthDependencies* dependencies = nullptr,
-                       SourceReads* source_reads = nullptr,
+                       FragmentPool* pool = nullptr,
                        const std::vector<int>& placement_fixed_targets = {}) {
-    SourceReadScope dependency_scope(R, source_reads);
     GrowResult result;
     GrowProfile& prof = result.profile;
     const int NR = R.n, NP = P.n;
@@ -253,9 +224,8 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
     if (islands)
         for (const auto& item : *islands) island_of[item.first] = item.second;
 
-    if (dependencies) dependencies->mapping_at(seed);
     if (mapping[seed]>=0 && !allow_mapped_seed) {prof.result="already_mapped";return result;}
-    FragmentGrowth growth(R,P,mapping,locked_p,iso_tol,seed,prior_deferred,random_seed);
+    FragmentGrowth growth(R,P,mapping,locked_p,iso_tol,seed,prior_deferred,random_seed,pool);
     prof.seed_targets=growth.witness.seed_targets;
     const long initial_count=growth.witness.seed_targets ? 1 : 0;
     if (!initial_count) {
@@ -298,10 +268,6 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         growth.edge_used(u, n) = 1;
         if (growth.source_atoms[n]) { prof.fragment_skip_pops++; continue; }
         bool n_in_mapping = mapping[n] >= 0;
-        if (dependencies) {
-            dependencies->mapping_at(n);
-            if (n_in_mapping) dependencies->island_at(n, islands, island_of);
-        }
         prof.extend_calls++;
         if (n_in_mapping) prof.merge_calls++; else prof.free_extend_calls++;
         long old_count = 1;
@@ -330,16 +296,15 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve
         } else {
             prof.deferred++;
             Pair e{std::min(u, n), std::max(u, n)};
-            if (dependencies) dependencies->local_deferred.push_back(e);
             auto pos = std::lower_bound(growth.deferred_edges.begin(), growth.deferred_edges.end(), e);
             if (pos == growth.deferred_edges.end() || *pos != e) growth.deferred_edges.insert(pos, e);
         }
     }
     prof.feasibility_calls=growth.witness.calls;prof.feasibility_nodes=growth.witness.nodes;
     prof.feasibility_searches=growth.witness.searches;
-    if (dependencies) dependencies->boundary(growth.source_atoms);
     complete_fragment(R,P,mapping,growth,graph_floor,iso_tol,
                       min_lock_size,max_branches,result,observation,placement_fixed_targets);
+    if (pool) for (auto& fragment:result.fragments) fragment=pool->remember(fragment);
     return result;
 }
 
@@ -525,7 +490,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se
         py::gil_scoped_release release;
         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,
                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,
-                          random_seed,observe ? &observation : nullptr,nullptr,nullptr,placement_fixed_targets);
+                          random_seed,observe ? &observation : nullptr,nullptr,placement_fixed_targets);
     }
     auto out = grow_result_dict(res).cast<py::dict>();
     if (observe) {
@@ -584,7 +549,7 @@ py::dict py_find_fragment_witness(const PySource& source, const PyTarget& target
     return result;
 }
 
-#include "fragment_repair.h"
+#include "fragment_pool_binding.h"
 #include "fragment_scheduler.h"
 #include "fragment_scheduler_binding.h"
 
@@ -614,6 +579,6 @@ PYBIND11_MODULE(_engine, mod) {
     mod.def("find_fragment_witness", &py_find_fragment_witness,
             py::arg("source"), py::arg("target"), py::arg("atoms"), py::arg("bonds"),
             py::arg("locked"), py::arg("tolerance"));
-    register_fragment_repair(mod);
+    register_fragment_pool(mod);
     register_fragment_scheduler(mod);
 }

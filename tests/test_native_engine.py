@@ -70,6 +70,7 @@ def test_every_growth_call_agrees_with_python(monkeypatch):
                     islands_R=kw.get("islands_R"),
                     prior_deferred_edges=kw.get("prior_deferred_edges"),
                     allow_mapped_seed=kw.get("allow_mapped_seed", False),
+                    random_seed=kw.get("random_seed", 42),
                     profile=None, profile_context=None)
                 got = ("ok", _result_key(out))
             except IslandBranchLimitExceeded as exc:

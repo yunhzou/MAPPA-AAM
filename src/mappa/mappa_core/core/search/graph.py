@@ -34,7 +34,7 @@ class SearchContext:
     branch_limit: int = 100
     objective: str = 'full_source'
     random_seed: int = 42
-    growth_policy: str = 'growth_edge_splitmix64_v2'
+    growth_policy: str = 'growth_edge_splitmix64_v3'
 
 
 
@@ -248,6 +248,19 @@ class AAMSearchGraph:
     states: tuple[SearchState, ...]
     transitions: tuple[FragmentTransition, ...]
     stops: tuple[SearchStop, ...]
+
+    def __post_init__(self):
+        # Establish the atom-set inventory at the matching/restore boundary.
+        # Original decision records keep their locks and trajectory evidence.
+        self.fragments
+
+    @cached_property
+    def fragments(self):
+        inventory = {}
+        for edge in self.transitions:
+            if edge.match is not None:
+                inventory.setdefault(edge.match.atom_sets, edge.match)
+        return inventory
 
     def stop_context(self, stop):
         """Attached historical stops derive context from their saved state."""

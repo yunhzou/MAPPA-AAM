@@ -149,19 +149,20 @@ def represented(value):
     return represented_local(value)
 
 
-def raw(source,target,seed,mapping,cut,*,replay=None,cap=100,tol=1.,islands=None,deferred=()):
-    if replay is None:
+def raw(source,target,seed,mapping,cut,*,pool=None,cap=100,tol=1.,islands=None,deferred=()):
+    if pool is None:
         cut_graph = source.copy()
         cut_graph.remove_edges_from(cut)
         view = native.source_graph(cut_graph)
         result = native._engine.grow_island(view.graph,native.target_graph(target).graph,
             seed,mapping,.2,tol,1,cap,islands,deferred,False)
     else:
-        result = replay.engine.grow(cut,seed,mapping,.2,tol,1,cap,islands,deferred,False)
-        result.pop('reused_extensions')
-    result['profile'].pop('completion_seconds')  # Wall time is not a scientific result.
+        result = pool.engine.grow(cut,seed,mapping,.2,tol,1,cap,islands,deferred,False)
+    for name in ('completion_seconds', 'feasibility_nodes', 'feasibility_searches'):
+        result['profile'].pop(name)  # Executed work changes when a stored fragment answers.
     for fragment in result['fragments']:
         for side in ('source', 'target'):
+            fragment[side].pop('self_id', None)  # Transport sharing is not part of the relation.
             fragment[side]['weights'] = np.asarray(fragment[side]['weights']).tolist()
     return result
 

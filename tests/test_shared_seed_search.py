@@ -7,7 +7,7 @@ import pytest
 from mappa import AAMSearchConfig
 from mappa.mappa_core.core.search.branching.shared import AdaptiveSearchCondition
 from mappa.mappa_core.core.search.planning import cut_sweep_items
-from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+from mappa.mappa_core.core.matching.reuse import FragmentPool
 from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
 from mappa.mappa_core.core.search.branching.native import find_islands_native
 from mappa.mappa_core.core.search.graph import frozen_value
@@ -16,7 +16,7 @@ from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
 
 def cut_sessions(problem, config):
     condition = AdaptiveSearchCondition.uncut(problem, config)
-    repair = FragmentRepair(condition.source, condition.target)
+    repair = FragmentPool(condition.source, condition.target)
     for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
         view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
         yield SharedSeedSearch(problem, config, condition=replace(condition,
@@ -49,9 +49,9 @@ def test_cached_session_preserves_fresh_results(execution):
         expected,_=SearchSession(problem,config,execution).search_cut(cut)
         actual,_=selected.search_cut(cut)
         assert actual==expected
-    if selected.repair is not None:
-        stats=selected.repair.stats()
-        assert stats['full_hits']>0
+    if selected.fragments is not None:
+        stats=selected.fragments.stats()
+        assert stats['entries']>0
         assert stats['peak_resident_bytes']<=stats['cache_budget_bytes']
 
 
@@ -74,10 +74,11 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
             pass
         actual = contents(child.builder.finish())
         reference = [set(), set(), set()]
-        for order in child.orders:
+        for index, order in enumerate(child.orders):
+            from mappa.mappa_core.core.search.planning import growth_seed
             graph = find_islands_native(child.source, child.target, order,
                 graph_floor=config.graph_floor, iso_tol=tol, max_branches=cap,
-                cuts=child.condition.cuts)
+                cuts=child.condition.cuts, random_seed=growth_seed(child.condition.cuts, index, config.random_seed))
             for target, values in zip(reference, contents(graph)):
                 target.update(values)
         assert actual == tuple(reference)
@@ -105,7 +106,7 @@ def test_shared_growth_cache_and_saved_snapshot_preserve_groups():
         while plain.advance():
             pass
         assert plain.snapshot().aam.graph == child.snapshot().aam.graph
-    assert sum(c.reused_states for c in sessions) > 0
+    assert all(c.work == c.growth_calls + c.reused_states for c in sessions)
 
 
 @pytest.mark.parametrize('cap', [1, 3, 100])

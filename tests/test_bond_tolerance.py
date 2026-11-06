@@ -121,13 +121,13 @@ def test_noncontiguous_atom_indices(backend):
 
 
 def test_fragment_cache_keeps_its_conditional_policy(monkeypatch):
-    from mappa.mappa_core.core.search.branching.reuse import FragmentRepair
+    from mappa.mappa_core.core.matching.reuse import FragmentPool
     monkeypatch.setenv('MAPPA_NATIVE', '1')
     assert native.built()
     source = graph(['Co', 'C', 'O'], [(0, 1, 1.), (1, 2, 1.)])
     target = graph(['Co', 'C', 'O'], [(0, 1, 1.4), (1, 2, 1.4)])
     policy = BondTolerance(event_threshold, inclusive=False)
-    session = FragmentRepair(source, target, bond_tolerance=policy)
+    session = FragmentPool(source, target, bond_tolerance=policy)
     view = session.for_cut(())
     config = FragmentMatchConfig(allow_mapped_seed=True, bond_tolerance=policy)
     context = FragmentMatchContext(locked_mapping={1: 1}, islands={1: 0},

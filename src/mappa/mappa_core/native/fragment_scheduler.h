@@ -242,7 +242,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                                   const std::vector<int>& order,double graph_floor,double iso_tol,
                                   long max_branches,const std::vector<Pair>& anchors,
                                   const std::vector<int>& core,bool stop_at_core,
-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {
+                                  FragmentPool* pool,uint64_t random_seed) {
     ScheduledGraph graph;
     auto root=std::make_shared<ScheduledBranch>();
     root->mapping.assign(source.n,-1);root->labels.assign(source.n,-1);
@@ -326,11 +326,8 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,
                 if (branch->mapping[seed]>=0 && !anchor) {carry(branch);continue;}
                 if (anchor && !mapped_anchor_can_seed(*branch,seed)) {carry(branch);continue;}
                 ++graph.growth_calls;
-                auto result=repair
-                    ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                      &branch->islands,branch->deferred,anchor,random_seed).first
-                    : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
-                                  &branch->islands,branch->deferred,anchor,random_seed,nullptr,nullptr,nullptr);
+                auto result=grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,
+                    &branch->islands,branch->deferred,anchor,random_seed,nullptr,pool);
                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);
                 if (result.capped) {
                     graph.stop(*branch,"capped","fragment_growth",result.cap.count,result.cap.limit);
