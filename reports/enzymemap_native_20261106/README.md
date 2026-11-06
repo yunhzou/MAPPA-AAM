@@ -98,3 +98,51 @@ The older full EnzymeMap run used tolerance 1 and different matching, decoding
 and verification implementations. Comparisons will identify those differences;
 its catalogue recovery does not establish current decoded recovery, and allocation
 time does not measure isolated algorithm speed.
+
+## Reduction memory investigation
+
+The first 14 archived memory failures comprise nine during reduction computation
+and five during publication. Matching completed successfully for these directions.
+Three saved directions were reproduced in fresh isolated processes using the
+unchanged scientific revision, a 4 GiB guard and a 180-second diagnostic limit.
+No matching was repeated and no campaign result or retry budget was changed.
+
+| Direction | Unique fragments | Families | Cold process peak, GiB | Reduction + inspection + publication, s |
+|---|---:|---:|---:|---:|
+| 18749 forward | 3,041 | 4,065 | 2.35 | 14.53 |
+| 27769 forward | 3,374 | 8,045 | 1.99 | 13.53 |
+| 10383 forward | 7,688 | 29,780 | 2.03 | 20.65 |
+
+All three completed under the 4 GiB diagnostic guard. These instrumented timings
+are diagnostic evidence, not a replacement for benchmark stage timings.
+The cold reproductions show that retained matching-worker state is not required
+to explain the failures in 18749 and 10383. Case 27769 sits close to the original
+guard; worker history and sampling can affect which side of it a run reaches.
+
+There is confirmed avoidable storage overhead. In 18749, retained fragment-side
+bond matrices occupy 717,461,344 bytes, and their cached comparison keys contain
+another 717,461,344 bytes of matrix copies. Equivalent side preparations across
+different fragment pairs also repeat 100,751,648 bytes of matrix storage. These
+comparison keys are separate from the bounded growth-reuse cache. Reduction
+keeps one fragment per atom-set pair and performs no symmetry/bijection search;
+these measurements do not indicate a combinatorial matching explosion.
+The matrix-copy representation predates the current cache milestone.
+
+10383 uses less matrix storage but its memory peaks during serialization.
+Its 29,780 family witnesses contain **11,137,720 separate assignment-pair tuples**
+representing only **14,833 distinct pair values**. The pair tuples alone occupy
+623,712,320 bytes; their enclosing mapping tuples occupy another 90,292,960 bytes.
+These are repeated records such as the same `1→a` assignment in many family
+witnesses, not an enumeration of 11 million complete mappings. The serializer's
+own allocated memo/buffer storage measures 536,871,112 bytes (approximately
+512 MiB). The diagnostic's identity-counting sets temporarily increase RSS, so
+the table above uses the first cold run, without those sets, for process peaks.
+
+The appropriate correction is storage sharing and compact comparison keys,
+preserving each retained fragment and every branch's mapping values. This does
+not require changing growth, symmetry choices, branch caps or decoding rules.
+No scientific correctness defect has been demonstrated by this memory
+investigation; that is not a new accuracy validation. The bulk implementation
+remains frozen, and the three diagnostic successes are not campaign retries.
+
+Sanitized measurements: [memory investigation](memory-investigation.json).

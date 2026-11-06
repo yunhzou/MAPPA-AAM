@@ -1,0 +1,201 @@
+{
+  "scientific_revision": "c437ed6fc5fb252c3ebc37c87048825787150678",
+  "source_engine_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+  "scope": "First 14 reduction memory failures; three independently selected cold-process reproductions",
+  "original_failure_phases": {
+    "compute": 9,
+    "publication": 5
+  },
+  "original_guard_bytes": 2147483648,
+  "diagnostic_guard_bytes": 4294967296,
+  "diagnostic_seconds_per_direction": 180,
+  "matching_repeated": false,
+  "campaign_outputs_modified": false,
+  "instrumented_measurements": true,
+  "observations": [
+    {
+      "case": "18749/forward",
+      "kind": "start",
+      "seconds": 0.022278813179582357,
+      "rss": 47800320,
+      "cuts": 528,
+      "cut_bytes": 33432521
+    },
+    {
+      "case": "18749/forward",
+      "kind": "reduction_complete",
+      "seconds": 10.207967796130106,
+      "rss": 2313768960,
+      "fragments": 3041,
+      "families": 4065,
+      "branches": 4055,
+      "paths": 4092,
+      "programs": 4065,
+      "actions": 3631,
+      "placements": 590
+    },
+    {
+      "case": "18749/forward",
+      "kind": "retained_storage",
+      "seconds": 10.676909727044404,
+      "rss": 2313768960,
+      "symmetries": 5743,
+      "equal_symmetry_groups": 2528,
+      "matrix_bytes": 717461344,
+      "cached_weight_bytes": 717461344,
+      "duplicate_matrix_bytes": 100751648
+    },
+    {
+      "case": "18749/forward",
+      "kind": "publication_complete",
+      "seconds": 14.243181952973828,
+      "rss": 2333167616,
+      "publication_seconds": 3.566093002911657,
+      "compressed_bytes": 16077376
+    },
+    {
+      "case": "18749/forward",
+      "kind": "supervisor",
+      "exitcode": 0,
+      "peak_rss": 2528382976,
+      "guard": null,
+      "wall": 14.532212864141911
+    },
+    {
+      "case": "27769/forward",
+      "kind": "start",
+      "seconds": 0.022104937117546797,
+      "rss": 47849472,
+      "cuts": 466,
+      "cut_bytes": 23551996
+    },
+    {
+      "case": "27769/forward",
+      "kind": "reduction_complete",
+      "seconds": 9.420262485044077,
+      "rss": 1923088384,
+      "fragments": 3374,
+      "families": 8045,
+      "branches": 8018,
+      "paths": 8527,
+      "programs": 8045,
+      "actions": 3525,
+      "placements": 151
+    },
+    {
+      "case": "27769/forward",
+      "kind": "retained_storage",
+      "seconds": 9.868729365058243,
+      "rss": 1923559424,
+      "symmetries": 6465,
+      "equal_symmetry_groups": 1958,
+      "matrix_bytes": 679062408,
+      "cached_weight_bytes": 679062408,
+      "duplicate_matrix_bytes": 23675496
+    },
+    {
+      "case": "27769/forward",
+      "kind": "publication_complete",
+      "seconds": 13.277710021007806,
+      "rss": 1948344320,
+      "publication_seconds": 3.408016220200807,
+      "compressed_bytes": 12499990
+    },
+    {
+      "case": "27769/forward",
+      "kind": "supervisor",
+      "exitcode": 0,
+      "peak_rss": 2137288704,
+      "guard": null,
+      "wall": 13.529852299019694
+    },
+    {
+      "case": "10383/forward",
+      "kind": "start",
+      "seconds": 0.020389122189953923,
+      "rss": 47632384,
+      "cuts": 374,
+      "cut_bytes": 16627405
+    },
+    {
+      "case": "10383/forward",
+      "kind": "reduction_complete",
+      "seconds": 15.821479990147054,
+      "rss": 1349668864,
+      "fragments": 7688,
+      "families": 29780,
+      "branches": 29780,
+      "paths": 29780,
+      "programs": 29780,
+      "actions": 9393,
+      "placements": 1705
+    },
+    {
+      "case": "10383/forward",
+      "kind": "retained_storage",
+      "seconds": 15.919202804099768,
+      "rss": 1351286784,
+      "symmetries": 14544,
+      "equal_symmetry_groups": 2990,
+      "matrix_bytes": 82208832,
+      "cached_weight_bytes": 82208832,
+      "duplicate_matrix_bytes": 19234512
+    },
+    {
+      "case": "10383/forward",
+      "kind": "publication_complete",
+      "seconds": 20.279769600136206,
+      "rss": 1376194560,
+      "publication_seconds": 4.3603960340842605,
+      "compressed_bytes": 10246224
+    },
+    {
+      "case": "10383/forward",
+      "kind": "supervisor",
+      "exitcode": 0,
+      "peak_rss": 2179272704,
+      "guard": null,
+      "wall": 20.645607043989003
+    }
+  ],
+  "publication_attribution": [
+    {
+      "case": "10383/forward",
+      "kind": "mapping_storage",
+      "seconds": 20.91674250504002,
+      "rss": 2251452416,
+      "mappings": 29780,
+      "distinct_mapping_values": 29180,
+      "mapping_tuple_bytes": 90292960,
+      "pair_objects": 11137720,
+      "distinct_pair_values": 14833,
+      "pair_tuple_bytes": 623712320,
+      "pair_occurrences": 11137720
+    },
+    {
+      "case": "10383/forward",
+      "kind": "pickle_memo",
+      "seconds": 25.4783470579423,
+      "rss": 1935884288,
+      "before_pickle_rss": 1357668352,
+      "pickler_allocated_bytes": 536871112
+    },
+    {
+      "case": "10383/forward",
+      "kind": "publication_complete",
+      "seconds": 25.709538036957383,
+      "rss": 1399111680,
+      "publication_seconds": 4.3648920129053295,
+      "compressed_bytes": 10246224
+    },
+    {
+      "case": "10383/forward",
+      "kind": "supervisor",
+      "exitcode": 0,
+      "peak_rss": 2485436416,
+      "guard": null,
+      "wall": 26.055683494079858
+    }
+  ],
+  "publication_attribution_note": "Counting object identities temporarily allocates diagnostic sets. Use the first cold run for the uninstrumented-by-sets RSS peak. Pickler.__sizeof__ measures its own allocated memo/buffer storage."
+}
