@@ -11,6 +11,11 @@ after 433 reductions, with no fresh decoded outputs in that pass.
 See [one-seed evidence](unique-seeds1-summary.json) and
 [ten-seed partial evidence](unique-seeds10-partial-summary.json).
 
+Latest decoded verification confirms **1,832 / 1,851 reactions (98.974%)**:
+16 are absent from the saved exact-index decoded response and three remain
+unresolved: **852, 1568 and 1606**. The targeted retest below recovered 607 and
+1586 with replayed witnesses. This remains a confirmed lower bound on coverage.
+
 Earlier catalogue counts from the broadened-fragment reducer must not serve as
 accuracy evidence for the current mapping contract. Case 19 demonstrates why:
 the earlier successful fragment had no accepted-edge constraints. Its accepted
@@ -27,7 +32,7 @@ Exact annotated-index recovery and endpoint-symmetry-normalized catalogue
 recovery are different policies and must remain labelled. Resource limits are
 unknown outcomes. Original outputs and consumed budgets remain unchanged.
 
-### Completed audit of saved one-seed decoding
+### Initial audit of saved one-seed decoding
 
 All **3,702 directions / 1,851 reactions** were queried at the unchanged scientific
 identity. Recovery here requires the **exact annotated heavy-atom indices**;
@@ -40,9 +45,10 @@ than the catalogue evaluation's endpoint-equivalence policy.
 | Exact-index reference absent from saved decoded response | 16 | 80 |
 | Inconclusive within the query budget | 5 | 31 |
 
-The five unresolved reactions are **607, 852, 1568, 1586 and 1606**. They are
-neither recovered nor demonstrated absent. The verified percentage is therefore
-a lower bound, not an estimate that assigns outcomes to unknowns. Ten-seed
+At the end of these initial passes, the five unresolved reactions were
+**607, 852, 1568, 1586 and 1606**. They were neither recovered nor demonstrated
+absent. That verified percentage was a lower bound, not an estimate assigning
+outcomes to unknowns. Ten-seed
 post-decoding accuracy remains unmeasured.
 
 Every positive query retained a concrete full mapping and its ordered local and
@@ -143,6 +149,37 @@ the existing replay and scalar-count audit.
 
 Evidence: [filter summary and replay checks](decoded-event-filter-summary.json),
 [full direction measurements](decoded-event-filter-directions.json.gz).
+
+### Targeted retest of the five unresolved reactions
+
+The user requested another test with the current verifier. The seven unresolved
+directions of those five reactions were queried at `b6d8c08`, using a separately
+announced **50-second query allowance**, a 90-second task guard and the unchanged
+2 GiB worker guard. The three already-negative directions were retained without
+rerunning them. No matching, decoding or scientific settings changed.
+
+| Newly recovered reaction | Direction | Compute wall seconds | Model / physical events | Saved window |
+|---|---|---:|---:|---|
+| 607 | Reverse | 14.592 | 16 / 16 | 16–21 |
+| 1586 | Reverse | 17.688 | 11 / 11 | 7–12 |
+
+Both positive answers include a concrete mapping and ordered choices replayed
+against the saved starting correspondences, with independent scalar event
+counts. All input, decoded-output and original ledger hashes remained unchanged.
+Cases **852, 1568 and 1606** remain inconclusive; additional time did not settle
+them. Unknowns remain distinct from absence. The query also retains its existing
+10,000-node limit; a longer deadline does not remove that limit.
+
+The pass used **54.207 seconds elapsed / 282.781 compute CPU seconds** in an
+eight-worker pool, with seven tasks and no worker, memory or certificate failures.
+The full allocation took 61 seconds / 288.267 CPU seconds. It returned two
+positive and five unknown directions. Combining the retained valid evidence
+from all passes gives **1,832 recovered, 16 absent and 3 unresolved reactions**;
+direction outcomes are 3,593 recovered, 80 absent and 29 unknown. Recovery is
+defined at reaction level, so an unresolved opposite direction does not undo a
+validated witness. Every pass's consumed resources remain separate.
+
+Evidence: [targeted retest outcomes, timing and certificate hashes](decoded-five-unresolved-retest.json).
 
 ## Earlier measurements of the scientific pipeline
 
