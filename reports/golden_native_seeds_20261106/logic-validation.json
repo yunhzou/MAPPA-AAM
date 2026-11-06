@@ -14058,5 +14058,194 @@
     "One selected 869 reverse fragment improved from ten events in the historical constrained relation to six in the broad relation; no exact decoded-output equivalence is claimed.",
     "Both benchmark configurations use minimum + 5; expensive starting-map preparation occurs before the final window can filter contexts.",
     "No complete ten-seed decoding result or repair acceptance follows from this diagnostic."
-  ]
+  ],
+  "starting_search_gate": {
+    "source_weights": [
+      [
+        0.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        2.0,
+        0.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    ],
+    "target_weights": [
+      [
+        0.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        2.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ]
+    ],
+    "growth_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        0
+      ]
+    ],
+    "growth_equals_both_final_binary_graphs": true,
+    "independent_exhaustive_minimum": 2,
+    "measurements": [
+      {
+        "record": "growth_record",
+        "starting_search_calls": 0,
+        "event_count": 2,
+        "lower_bound": 2,
+        "complete": true,
+        "reason": "complete discovery covered by solved symmetry",
+        "work": {
+          "nodes": 4,
+          "projected_pair_states": 0,
+          "score_evaluations": 14,
+          "bond_comparisons": 84,
+          "cache_hits": 0,
+          "peak_cache_entries": 10,
+          "independent_splits": 0,
+          "event_coupling_merges": 0,
+          "equivalent_positions_skipped": 3,
+          "cap_reached": false,
+          "restriction_cache_hits": 1,
+          "restriction_parent_reuses": 0,
+          "peak_restriction_cache_entries": 3,
+          "group_steps_prepared": 2,
+          "discovery_nodes": 0,
+          "discovery_improvements": 0,
+          "time_limit_reached": false
+        },
+        "seconds": 0.001538541866466403
+      },
+      {
+        "record": "completed_atom_sets",
+        "starting_search_calls": 1,
+        "event_count": 2,
+        "lower_bound": 1,
+        "complete": false,
+        "reason": "no better discovery found; full-relation minimum unproved",
+        "work": {
+          "nodes": 4,
+          "projected_pair_states": 0,
+          "score_evaluations": 14,
+          "bond_comparisons": 84,
+          "cache_hits": 0,
+          "peak_cache_entries": 10,
+          "independent_splits": 0,
+          "event_coupling_merges": 0,
+          "equivalent_positions_skipped": 3,
+          "cap_reached": false,
+          "restriction_cache_hits": 1,
+          "restriction_parent_reuses": 0,
+          "peak_restriction_cache_entries": 3,
+          "group_steps_prepared": 2,
+          "discovery_nodes": 77,
+          "discovery_improvements": 0,
+          "time_limit_reached": false
+        },
+        "seconds": 0.0008812500163912773
+      }
+    ],
+    "conclusion": "A fragment whose complete growth graph equals both final binary graphs nevertheless invokes starting-correspondence search after atom-set reduction. The existing symmetry response and independent exhaustive enumeration both attain two events; the additional search visits 77 nodes without improvement. This establishes the missing eligibility gate, not a full-dataset timing attribution."
+  }
 }

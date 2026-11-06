@@ -109,8 +109,19 @@ is established. Exhausted search limits remain incomplete, never exact minima.
 
 One candidate identifies one source/target atom-set placement. Different starting
 correspondences on that placement need not be connected by binary symmetry.
-Search for a useful starting correspondence within a fixed budget; do not turn
-growth routes into additional completed fragments or enumerate all starting classes.
+Extra starting-correspondence search is restricted to special fragments: recorded
+growth connectivity differs from the completed fragment's internal connectivity
+on at least one endpoint, and the current witness has not already attained an
+established minimum bond-event count. A loose event lower bound alone does not
+make an ordinary fragment eligible. Optimize permitted fragment symmetries without
+reapplying growth constraints to reject their resulting mappings.
+
+Preserve the evidence needed to distinguish growth from final connectivity through
+reduction, without making growth history part of completed-fragment identity.
+Missing growth evidence is not evidence of a connectivity mismatch. For eligible
+fragments, search for a useful starting correspondence within a fixed budget;
+do not turn growth routes into additional completed fragments or enumerate all
+starting classes.
 
 Completed fragments are identified by their reactant/product atom-set pair,
 within the fixed endpoint problem and policy. Growth witnesses and accepted
@@ -126,7 +137,8 @@ bound does not settle the saved witness, also relax each atom's incident bond
 assignments and match the atoms injectively. Every bond event touches two atoms,
 so half that minimum incident cost, rounded up, is another valid lower bound.
 Use the stronger bound and stop immediately when it meets the witness. Improve
-the incumbent through the shared binary-symmetry event core. If needed, search
+the incumbent through the shared binary-symmetry event core. Only for an eligible
+connectivity-mismatch fragment whose current witness remains unsettled, search
 the completed atom sets for a better element-compatible, injective starting
 correspondence, respecting explicit endpoint anchors, and apply that same event
 core to it. Original growth edges do not restrict this search. Partial

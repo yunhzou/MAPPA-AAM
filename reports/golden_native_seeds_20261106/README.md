@@ -279,3 +279,26 @@ module rebuilt. No replacement search policy has been implemented or deployed.
 The regression is diagnosed; the full ten-seed study remains stopped pending a
 repair that respects the agreed scientific contract. Full controls, work counts,
 incumbents and limits are in [logic-validation.json](logic-validation.json).
+
+### Starting-map eligibility
+
+The clarified contract permits extra starting-map search only when growth
+connectivity differs from the completed fragment on at least one side and the
+current witness has not already attained an established minimum. Permitted local
+symmetry rearrangements remain valid; growth constraints do not veto their outputs.
+The connectivity gate is absent from `optimize_fragment`: after symmetry
+optimization it launches starting-map search whenever the incumbent exceeds its
+current lower bound. This is not equivalent to the clarified rule.
+
+A direct six-carbon-ring regression example uses identical complete binary ring
+connectivity on both endpoints, with edge weights `(2,2,1,1,1,1)` and
+`(2,1,2,1,1,1)`. Growth includes all six ring edges. Shared symmetry optimization
+attains two events; independent enumeration of all 720 atom assignments confirms
+that minimum. The growth record stops without another starting search. Its
+completed atom-set representation invokes starting search, visits **77 partial
+assignment nodes**, finds no improvement and reports a loose lower bound of one.
+This small case proves unnecessary search on an ordinary fragment; its sub-
+millisecond native search is not itself a large-runtime benchmark.
+
+The restriction is recorded in `design.md`; implementation remains pending.
+The min + 5 window and production algorithm are unchanged by this diagnostic.
