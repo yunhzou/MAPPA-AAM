@@ -123,6 +123,63 @@ def test_input_failures_remain_in_denominator_and_stop_next_pass(tmp_path):
         assert db.execute('SELECT stage,state,count(*) FROM results GROUP BY stage,state').fetchall()==[('matching','error',2)]
 
 
+@pytest.mark.parametrize('corrupt', [False, True])
+def test_saved_matching_postprocessing_preserves_source_and_stage_barrier(tmp_path, monkeypatch, corrupt):
+    from mappa.execution import WorkPool
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    index = prepared_index(tmp_path)
+    source = tmp_path/'original'
+    run(index, source, local=True, workers=1, stop_after='matching')
+    original = (source/'ledger.sqlite').read_bytes()
+    data = json.loads(index.read_text())
+    with sqlite3.connect(source/'ledger.sqlite') as db:
+        matching = {name: json.loads(reference) for name, reference in
+                    db.execute("SELECT case_name,reference FROM results WHERE stage='matching'")}
+    for row in data['directions']:
+        name = f"00000/{'reverse' if row['reversed'] else 'forward'}"
+        row['matching'] = matching[name]
+    if corrupt:
+        data['directions'][0]['matching']['sha256'] = '0'*64
+    data['reduction_source'] = dict(source_identity='recorded', ledger_sha256='recorded')
+    data['decode_config'] = dict(event_slack=5)
+    index = tmp_path/'postprocess.json'
+    index.write_text(json.dumps(data))
+    output = tmp_path/'postprocessed'
+    def forbidden(*args, **kwargs):
+        pytest.fail('Saved matching must never be searched again')
+    decode = WorkPool.decode
+    def after_reduction(pool, *args, **kwargs):
+        with sqlite3.connect(output/'ledger.sqlite') as db:
+            assert db.execute("SELECT count(*) FROM results WHERE stage='deduplication' AND state='complete'").fetchone()[0] == 2
+        return decode(pool, *args, **kwargs)
+    monkeypatch.setattr(WorkPool, 'search', forbidden)
+    monkeypatch.setattr(WorkPool, 'decode', after_reduction)
+    options = dict(local=True, workers=1, window=1, postprocess_only=True,
+                   memory_bytes=2**30, case_seconds=123.)
+    result = run(index, output, **options)
+    assert (source/'ledger.sqlite').read_bytes() == original
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        records = db.execute('SELECT * FROM results ORDER BY case_name,stage').fetchall()
+    if corrupt:
+        assert result['stopped_on_failure'] and result['allocation_drained']
+        assert len(records) == 1 and records[0][1:3] == ('snapshot', 'error')
+        return
+    assert result['finished']
+    assert {row[1] for row in records} == {'snapshot', 'deduplication', 'decoding', 'verification'}
+    assert len(records) == 8 and all(row[2] == 'complete' for row in records)
+    store = BundleStore(output/'bundles')
+    for name, stage, state, reference, audit, error in records:
+        saved = store.load(Blob(**json.loads(reference)))
+        if stage == 'decoding':
+            assert saved.config.event_slack == 5
+        if stage == 'verification':
+            assert saved['status'] == 'recovered'
+        assert store.load(Blob(**json.loads(audit)))['case'][1] == 123.
+    assert run(index, output, resume=True, **options)['finished']
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results ORDER BY case_name,stage').fetchall() == records
+
+
 def test_seed_batch_is_saved_and_changes_task_count_without_changing_scope(tmp_path):
     from mappa.mappa_core.core.scheduler.bundles import Blob
     from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint

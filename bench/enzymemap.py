@@ -363,7 +363,11 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
         retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False,
-        seed_batch=1, reduce_only=False):
+        seed_batch=1, reduce_only=False, postprocess_only=False):
+    saved_matching = reduce_only or postprocess_only
+    if postprocess_only and (reduce_only or decode_only or verify_only or recover_decoding
+                             or retry_memory_limits or stop_after is not None):
+        raise ValueError('Fresh postprocessing cannot select another pass or retry policy')
     if seed_batch < 1:
         raise ValueError('Seed batch must be positive')
     if reduce_only and (decode_only or verify_only or recover_decoding or retry_memory_limits
@@ -398,8 +402,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             index = json.loads(raw)
             if 'decoding_source' in index and not decode_only:
                 raise ValueError('A saved catalogue index requires --decode-only')
-            if 'reduction_source' in index and not reduce_only:
-                raise ValueError('A saved matching index requires --reduce-only')
+            if 'reduction_source' in index and not saved_matching:
+                raise ValueError('A saved matching index requires --reduce-only or --postprocess-only')
             config = AAMSearchConfig(**index['config'])
             decoding_config = decoding_policy(index)
             verification = index.get('verification', 'enzymemap:verify')
@@ -420,13 +424,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 requested.update(mode='decode_only', decoding_source=index['decoding_source'],
                     decoder_source=code_identity(),
                     directions_to_decode=catalogues, memory_bytes=memory_bytes, case_seconds=case_seconds)
-            if reduce_only:
+            if saved_matching:
                 if not rows or not isinstance(index.get('reduction_source'), dict) or not index['reduction_source']:
                     raise ValueError('Fresh reduction requires saved matching provenance and nonempty scope')
                 comparisons = [dict(case=row['case'], reversed=row['reversed'],
-                    matching=asdict(Blob(**row['matching'])),
-                    catalogue=asdict(Blob(**row['catalogue']))) for row in rows]
-                requested.update(mode='reduce_only', reduction_source=index['reduction_source'],
+                    matching=asdict(Blob(**row['matching']))) for row in rows]
+                if reduce_only:
+                    for selected, row in zip(comparisons, rows):
+                        selected['catalogue'] = asdict(Blob(**row['catalogue']))
+                requested.update(mode='reduce_only' if reduce_only else 'postprocess_only',
+                    reduction_source=index['reduction_source'],
                     reduction_code=code_identity(),
                     runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                     directions_to_reduce=comparisons, memory_bytes=memory_bytes, case_seconds=case_seconds)
@@ -442,7 +449,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                 saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
             if saved_plan != requested:
                 raise ValueError('Resume input/configuration differs')
-            if decode_only or reduce_only:
+            if decode_only or saved_matching:
                 require_drained(output)
         else:
             if plan.exists():
@@ -471,12 +478,16 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             status['decoding_only'] = True
         if reduce_only:
             status['reduction_only'] = True
+        if postprocess_only:
+            status['postprocessing_only'] = True
         if verify_only:
             if json.loads((output/'progress.json').read_text())['source'] != status['source']:
                 raise ValueError('MAPPA source or compiled engine differs from the saved campaign')
             require_drained(output)
             status['verification_only'] = True
         stages = ([('snapshot', None), ('deduplication', 'snapshot'),
+                   ('decoding', 'deduplication'), ('verification', 'deduplication')] if postprocess_only else
+                  [('snapshot', None), ('deduplication', 'snapshot'),
                    ('reduction_validation', 'deduplication')] if reduce_only else
                   [('decoding', None)] if recover_decoding or decode_only else
                   [('verification', 'deduplication')] if verify_only else
@@ -539,7 +550,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                         active[name] = result
                                 continue
                             try:
-                                if reduce_only and stage != 'deduplication':
+                                if stage == 'snapshot' or stage == 'reduction_validation':
                                     key = f'{uuid.uuid4().hex}/{name}/{stage}'
                                     if stage == 'snapshot':
                                         operation = 'enzymemap:republish_matching'
@@ -583,7 +594,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                 active[name] = result
                             except Exception as error:
                                 ledger.put(name,stage,'error',error=repr(error))
-                                if reduce_only:
+                                if saved_matching:
                                     stop = True
                                     status['stopped_on_failure'] = True
                         all_keys = [key for result in active.values() for group in result.tasks.values() for key in group]
@@ -598,7 +609,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                             audit = pool.queue.archive_case(keys[0],store)
                             ledger.put(name,stage,'error' if failed else 'complete',reference,audit,failed)
                             del active[name]
-                            if reduce_only and failed:
+                            if saved_matching and failed:
                                 stop = True
                                 status['stopped_on_failure'] = True
                         if time.monotonic() >= next_checkpoint:
@@ -654,6 +665,8 @@ def main():
                         help='Decode every saved catalogue in a prepared index into fresh output, with fresh recorded budgets')
     parser.add_argument('--reduce-only',action='store_true',
                         help='Republish saved matching, rerun reduction and compare original catalogues in separate measured passes')
+    parser.add_argument('--postprocess-only',action='store_true',
+                        help='Reuse saved matching; run fresh reduction, decoding and reference verification, stopping admission on any task failure')
     parser.add_argument('--retry-memory-limits',action='store_true',
                         help='Retry memory/time failures from smaller memory allocations with fresh time; preserve completed cuts and attempts')
     parser.add_argument('--stop-after',choices=['matching','deduplication','decoding','verification'])
@@ -665,7 +678,8 @@ def main():
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
         seed_batch=args.seed_batch,
         retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding,
-        decode_only=args.decode_only,reduce_only=args.reduce_only,case_seconds=args.case_seconds)
+        decode_only=args.decode_only,reduce_only=args.reduce_only,
+        postprocess_only=args.postprocess_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):
         raise SystemExit(75)
 

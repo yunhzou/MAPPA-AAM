@@ -89,6 +89,17 @@ a new directory; original ledgers and bundles are read-only. Any failed task
 stops further admission. Resume preserves completed passes, settings, source and
 runner identity and requires a drained queue.
 
+`--postprocess-only` uses the same saved-matching index, with each direction's
+original reference blob and verification policy. It runs transport conversion,
+reduction, decoding and external reference verification as separate measured
+passes in one pool. Every reduction finishes before decoding starts. Original
+catalogue blobs are neither required nor loaded: this mode validates a changed
+reducer against references, rather than asserting equality with an old schema.
+It records fresh budgets and source identity in separate output, preserves the
+original campaign, and stops admission on any failed task. Saved matching times
+and new postprocessing times must be reported separately; they do not establish
+an uninterrupted end-to-end wall time.
+
 ## Prepare fresh inputs
 
 `prepare_batches.py fresh OUTPUT INDEX... --workers COUNT...` creates disjoint
