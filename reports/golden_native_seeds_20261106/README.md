@@ -7,8 +7,10 @@ including the native reduction and event kernels and the incident-bond event bou
 reference verification and reaction caches start empty in both arms. Only
 immutable prepared endpoint and reference inputs are reused.
 
-**Status: both complete runs have restarted with empty results and caches;
-final benchmark results remain pending.** Historical
+**Status: the one-seed run is complete and independently audited. The ten-seed
+run stopped admission after decoding exceeded its unchanged 2 GiB memory guard.
+Its workers have drained, and a separate verification-only pass completed all
+reference checks. Ten-seed decoding remains incomplete.** Historical
 accuracy and selected-case speedups are not results of this new full run.
 
 ## Protocol
@@ -106,3 +108,67 @@ matching for case 890 forward, current decoding plus record construction takes
 1.358 CPU seconds, with both catalogue and decoded-window recovery retained.
 Other selected cases retain a slow bounded-search tail; the complete rerun will
 measure that cost without changing the search policy.
+
+The ten selected slow directions all completed their point validation, retaining
+both catalogue and selected-window reference recovery. Combined baseline stage
+compute was 1,521.666 CPU seconds; revised decoding plus record construction was
+663.782 CPU seconds. No selected case became slower, but four still exceeded
+125 seconds. These selected cases do not establish a full-dataset speedup.
+Raw stage timings, output counts and memory measurements are in
+[bound-validation.json](bound-validation.json).
+
+## Completed one-seed result
+
+All 3,702 directions completed matching, reduction, decoding and external
+verification: 14,808 terminal stage records, zero failed tasks and zero retries.
+Reference recovery is **1,841/1,851 reactions (99.46%)**. Directional checks comprise
+3,650 recovered, 50 not recovered and two unknown; both unknown directions have
+a recovered opposite direction. Ten reactions are not recovered.
+
+Pool elapsed time was **1,147.929 seconds (19m08s)** with 32 workers. Stage compute
+CPU was 1,427.875 seconds matching, 794.006 seconds reduction, 16,135.380 seconds
+decoding and 629.800 seconds external verification. Publication CPU was separate:
+485.145, 90.170, 199.986 and 3.689 seconds respectively. The full planned cut/seed
+scope, stage barrier, archived output references and nonoverlapping worker
+ownership passed independent checks. Raw results are in
+[seeds1-summary.json](seeds1-summary.json) and
+[seeds1-directions.json.gz](seeds1-directions.json.gz).
+
+## Ten-seed result and decoder storage validation
+
+Matching and reduction completed all 3,702 directions. External reference
+verification subsequently completed all 3,702 checks, recovering **1,847/1,851
+reactions (99.78%)**, with 3,687 recovered and 15 unrecovered directions and no
+unknowns. Existing scientific rows remained hash-identical through the separate
+verification pass. The ten-seed decoder stopped with 259 successful outputs,
+nine memory-limit failures and 3,434 directions not attempted. These failures
+are resource exhaustion, not mapping absence; this is not a completed full run.
+The audit is retained in [seeds10-summary.json](seeds10-summary.json) and
+[seeds10-directions.json.gz](seeds10-directions.json.gz).
+
+Replaying case 1654 reverse under the same 2 GiB guard reproduced the failure.
+Instrumentation found 1,500,577 retained bond-term bindings: branch-specific
+action positions caused copies of otherwise shared fragment terms. Saving
+results also copied those expanded records. Revision `ac4583c` replaces those
+copies with one shared term sequence and one action-position map per branch
+use, preserving the event model and mapping permissions. The persisted record
+is version 13, with an explicit group binding. All **1,295 local tests passed
+in 117.96 seconds**, including independent event-choice checks, serialization
+round trips and a test forbidding bond-term copies during export. Case 1654
+reverse then completed in 37.815 compute CPU seconds plus 1.571 publication CPU
+seconds, with a process-lifetime peak of 1.613 GiB. Across all nine prior failures,
+four completed and five still exceeded the guard. This was a partial repair.
+
+Revision `6fdb42e` removes a reference cycle retaining decoder working state and
+releases bond-construction indexes before output construction. Its complete
+local suite passed **1,297 tests in 111.46 seconds**. Six of the nine original
+failures then completed; 862 in both directions and 1264 forward still exceeded
+the guard. Revision `d34ffc7` additionally releases derived responses belonging
+only to contexts excluded by the completed event window, preserving selected
+responses and all saved starting-map solutions. Its **94 affected tests passed
+in 1.35 seconds**, including a test that discards an excluded context while
+reusing the selected response and preserving later explicit inspection.
+Cluster validation of this last change and full updated decoding measurements
+remain pending. Unit tests alone do not establish the resource repair or its
+full-dataset performance. Original failures, artifacts and consumed budgets are
+preserved; these are separate new-revision diagnostic passes at the same guard.

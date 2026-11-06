@@ -1,5 +1,5 @@
 {
-  "status": "fresh paired full runs active; results pending",
+  "status": "One seed fully audited; ten-seed matching, reduction and verification audited, decoding incomplete. Decoder storage validation pending at unchanged 2 GiB guard.",
   "arms": {
     "1": {
       "case_seconds": 600,
@@ -269,5 +269,18 @@
         "startup_seconds": 2.5308110620826483
       }
     }
+  },
+  "decoder_storage_validation": {
+    "source_commit": "d34ffc7",
+    "source_identity": "212fdddce7b67df34e00d971302d653437da3c66b3704e17d97843f13776fc24",
+    "guard_bytes": 2147483648,
+    "case_seconds": 600,
+    "original_failures_preserved": true,
+    "changes": [
+      "Shared local bond terms with branch action-position references",
+      "Release construction indexes and remove decoder ownership cycle",
+      "Release derived responses excluded by the finalized event window"
+    ],
+    "validation": "1297 full tests at 6fdb42e; 94 affected tests after d34ffc7. Nine-case cluster validation pending. No full updated decoding result claimed."
   }
 }
