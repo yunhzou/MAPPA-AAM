@@ -538,6 +538,11 @@ This differs from endpoint-symmetry-normalized catalogue recovery.
 The report distinguishes the saved model's event count from physical bond changes,
 retains resource failures as unknown, and checks that source records are unchanged.
 An invalid certificate stops admission and drains active audit tasks.
+Saved catalogue certificates only prioritize which branch to query; they cannot
+establish decoded recovery. An explicitly budgeted additional pass can use
+`--unknown-from /path/to/previous-audit/results.json` and a new output directory.
+It checks input identity and admits only unresolved directions, retaining the
+previous report hash. Report both passes and their combined resource use.
 
 ## Replay fragment event responses
 

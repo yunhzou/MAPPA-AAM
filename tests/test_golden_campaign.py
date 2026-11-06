@@ -32,7 +32,7 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
     reference = dict(mapping=list(enumerate((1, 0, 3, 2))),
                      features=[dict(heavy=list(range(4)))]*2, generators=[(), ()])
     assert verify_catalogue(catalogue, reference)['status'] == 'recovered'
-    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    assert verify_decoded(decoded, reference, preferred_family=0)['status'] == 'not_recovered'
     assert not decoded._tables
     reference['mapping'] = list(enumerate(range(4)))
     assert verify_decoded(decoded, reference)['status'] == 'recovered'
@@ -166,6 +166,7 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
     store = BundleStore(source/'bundles')
     saved = store.put(SimpleNamespace(record=decoded_events_record(decoded)))
     input_blob = store.put(dict(raw_record(value), name=value.name))
+    catalogue_check = store.put(dict(status='recovered', family=0))
     reference = store.put(dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2))
     raw = json.dumps(dict(directions=[dict(case=0, reversed=reverse, reference=asdict(reference), input=asdict(input_blob))
                                      for reverse in (False, True)]))
@@ -176,6 +177,9 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
         db.executemany('INSERT INTO results VALUES (?,?,?,?)',
             [(f'00000/{direction}', 'decoding', 'complete', json.dumps(asdict(saved)))
              for direction in ('forward', 'reverse')])
+        db.executemany('INSERT INTO results VALUES (?,?,?,?)',
+            [(f'00000/{direction}', 'verification', 'complete', json.dumps(asdict(catalogue_check)))
+             for direction in ('forward', 'reverse')])
     before = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
     report = audit_decoding(source, tmp_path/'audit', workers=1)
     assert report['complete'] and report['certificate_failures'] == 0
@@ -185,6 +189,15 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
         assert len(proof['mapping']) == 3  # Unannotated H still has to fit.
         assert len(set(dict(proof['mapping']).values())) == 3
         assert proof['event_count'] == proof['physical_event_count'] == 0
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+    # A separate bounded pass admits only the prior unresolved direction.
+    prior = dict(report, results=[dict(row, status='unknown' if row['reversed'] else 'recovered')
+                                  for row in report['results']])
+    prior_path = tmp_path/'prior-audit.json'
+    prior_path.write_text(json.dumps(prior))
+    continued = audit_decoding(source, tmp_path/'continuation', workers=1, unknown_from=prior_path)
+    assert continued['expected'] == 1 and continued['results'][0]['reversed']
+    assert continued['results'][0]['status'] == 'recovered'
     assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
 
 

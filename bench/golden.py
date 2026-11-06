@@ -157,7 +157,7 @@ def _atom_set_reference(family, problem, reference, heavy):
                 certificate='validated_atom_set_correspondence')
 
 
-def verify_decoded(decoded, reference, *, reverse=False, seconds=10.):
+def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_family=None):
     """Test exact annotated indices in the retained event window, separately from catalogue membership.
 
     This diagnostic does not relax reference indices by endpoint symmetry.
@@ -167,7 +167,9 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10.):
     feature = reference['features'][int(reverse)]
     if reverse:
         mapping = {p: r for r, p in mapping.items()}
-    contexts = decoded.window.contexts
+    # A prior catalogue certificate is only an ordering hint. Its mapping is
+    # never accepted without the independent saved-decoder query and replay.
+    contexts = sorted(decoded.window.contexts, key=lambda c: c[0] != preferred_family)
     started = time.perf_counter()
     unknown = False
     for family, partition, cut in contexts:
@@ -287,14 +289,16 @@ def audit_saved_decoding(payload, workspace):
     original = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
     if FinalBranchCatalogue(original).problem_sha256 != decoded.matching_problem_sha256:
         raise ValueError('Decoded record belongs to different prepared endpoints')
-    result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'])
+    catalogue_check = read_blob(Blob(**row['verification']), workspace.scratch)
+    result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
+                            preferred_family=catalogue_check.get('family'))
     result.update(decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'],
                   input_sha256=row['input']['sha256'])
     return result
 
 
 def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task_seconds=60.,
-                   memory_bytes=2**31):
+                   memory_bytes=2**31, unknown_from=None):
     """Audit a completed single batch in a separate pool and evidence bundle."""
     import sqlite3
     from mappa.execution import BundleStore, WorkPool
@@ -315,16 +319,31 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
     with sqlite3.connect(f'file:{campaign}/result/ledger.sqlite?mode=ro', uri=True) as db:
         records = {(name, stage): (state, reference) for name, stage, state, reference in
                    db.execute('SELECT case_name,stage,state,reference FROM results')}
+    previous = None
+    if unknown_from is not None:
+        previous = json.loads(Path(unknown_from).read_bytes())
+        if previous['original_hashes'] != original or previous['certificate_failures']:
+            raise ValueError('Continuation requires the same unchanged source and no certificate failures')
+        unresolved = {r['name']: r for r in previous['results'] if r['status'] == 'unknown'}
     rows = []
     for row in index['directions']:
         if cases is not None and row['case'] not in cases:
             continue
         name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+        if previous is not None and name not in unresolved:
+            continue
         state, reference = records[name, 'decoding']
         if state != 'complete':
             raise ValueError('Audit requires a saved successful decoding for ' + name)
+        verification_state, verification = records[name, 'verification']
+        if verification_state != 'complete':
+            raise ValueError('Audit requires a saved catalogue check for ' + name)
+        decoded = json.loads(reference)
+        if previous is not None and any(unresolved[name][key+'_sha256'] != value['sha256']
+            for key, value in (('decoded', decoded), ('reference', row['reference']), ('input', row['input']))):
+            raise ValueError('Continuation input identity differs')
         rows.append(dict(case=row['case'], reversed=row['reversed'], reference=row['reference'], input=row['input'],
-                         decoded=json.loads(reference), name=name))
+                         decoded=decoded, verification=json.loads(verification), name=name))
     if not rows or len({r['name'] for r in rows}) != len(rows):
         raise ValueError('Require unique, nonempty direction scope')
     if cases is not None and set(cases) != {r['case'] for r in rows}:
@@ -338,6 +357,8 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
         event_count_policy='saved independent-fragment model; physical count reported separately',
         resources=dict(workers=workers, query_seconds=seconds, task_seconds=task_seconds,
                        memory_bytes=memory_bytes), results=[])
+    if previous is not None:
+        report['previous_audit_sha256'] = hashlib.sha256(Path(unknown_from).read_bytes()).hexdigest()
     store = BundleStore(output/'bundles')
     started = time.perf_counter()
     with WorkPool.local(workers=workers, store=store, memory_bytes=memory_bytes,
@@ -1035,9 +1056,11 @@ def main(argv=None):
         parser.add_argument('--seconds', type=float, default=10.)
         parser.add_argument('--task-seconds', type=float, default=60.)
         parser.add_argument('--memory-gib', type=float, default=2.)
+        parser.add_argument('--unknown-from', help='Explicit additional audit of only unresolved directions in this prior report')
         args = parser.parse_args(argv[1:])
         report = audit_decoding(args.campaign, args.output, cases=args.cases, workers=args.workers,
-            seconds=args.seconds, task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30))
+            seconds=args.seconds, task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30),
+            unknown_from=args.unknown_from)
         return 1 if report['certificate_failures'] else 0
     if argv[:1] == ['compare']:
         parser = argparse.ArgumentParser(description='Paired full Golden study with original-WBO decoding')
