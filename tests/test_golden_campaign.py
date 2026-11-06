@@ -22,11 +22,11 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
     from mappa import decode_events
     from golden import verify_catalogue, verify_decoded
     from test_event_patterns import problem, saved_path
-    from mappa.mappa_core.core.matching.representation.records import Fragment
+    from growth_cases import saved_fragment
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     bonds = [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)]
     endpoints = problem('CCCC', bonds, bonds)
-    fragment = Fragment.from_atom_sets(endpoints, range(4), range(4), enumerate(range(4)))
+    fragment = saved_fragment(endpoints)
     catalogue = FinalBranchCatalogue(endpoints).add_graph(saved_path(endpoints, (fragment,)).graph)
     decoded = decode_events(catalogue)
     reference = dict(mapping=list(enumerate((1, 0, 3, 2))),

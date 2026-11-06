@@ -207,7 +207,8 @@ def test_ring_chain_keeps_growth_subgraph_through_public_consumers(native, rever
     events = decode_events(catalogue)
     for i, family in enumerate(catalogue.families):
         family.validate_representative(problem)
-        assert family.required_edges == ()
+        assert family.required_edges == family.fragments[0].accepted_edges
+        assert len(family.required_edges) == 5
         assert family.fragments[0].atom_sets == (tuple(range(6)), tuple(range(6)))
         result = events.contributions(i)
         assert result['total'] == 1
@@ -233,9 +234,12 @@ def test_equal_atom_sets_merge_distinct_growth_constraints_after_search():
     changed = with_edges(((0, 1), (1, 2)))
     other = with_edges(((0, 1), (0, 2)))
     cat = FinalBranchCatalogue(AAMProblem(endpoint, endpoint)).add_graph(changed).add_graph(other)
-    assert len(cat.families) == 1
-    assert len(cat.families[0].provenance) == 2
-    assert cat.families[0].fragments[0].accepted_edges == ()
+    assert cat.branch_count == 1 and len(cat.families) == 2
+    assert sum(len(f.provenance) for f in cat.families) == 2
+    assert cat.families[0].fragments[0] is changed.transitions[0].match
+    assert cat.families[1].fragments[0] is other.transitions[0].match
+    assert cat.families[0].fragments[0].accepted_edges == ((0, 1), (1, 2))
+    assert cat.families[1].fragments[0].accepted_edges == ((0, 1), (0, 2))
 
 
 def image_query(source, target, atoms, bonds, *, locked=None, tolerance=.2):

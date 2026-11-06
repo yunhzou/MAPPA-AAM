@@ -46,8 +46,8 @@ imports are `mappa._engine` and `mappa._group_ops`.
 - `action_program.h` binds ordered actions to shared atom domains and
   dependencies, with the existing 4,096-entry / 16 MiB composition cache.
   These domains are bounds, not independent mapping permissions.
-- `history_projection.h` collects shared ancestry, ordered placements and final
-  fragment-ID compositions. Provenance remains parent links and terminal
+- `history_projection.h` collects shared ancestry and unchanged ordered
+  fragment/placement decisions. Provenance remains parent links and terminal
   references; path counts retain arbitrary precision at the Python boundary.
 
 Python retains public records, stage orchestration, bounded event-query control,

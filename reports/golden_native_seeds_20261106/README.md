@@ -300,12 +300,70 @@ assignment nodes**, finds no improvement and reports a loose lower bound of one.
 This small case proves unnecessary search on an ordinary fragment; its sub-
 millisecond native search is not itself a large-runtime benchmark.
 
-The restriction is recorded in `design.md`; implementation remains pending.
-The min + 5 window and production algorithm are unchanged by this diagnostic.
+At the diagnostic revision, the restriction was recorded in `design.md` and the
+implementation remained pending. The min + 5 window was unchanged.
 
 The reducer contract is now explicit: atom-set deduplication groups existing
 fragment records without changing their scientific payloads. Different original
 information remains available through shared references under the same identity.
-The current `Fragment.from_atom_sets` reconstruction violates this preservation
-rule by replacing discovery domains and omitting accepted growth edges. This
-documentation change does not repair the reducer or validate a replacement.
+The then-current `Fragment.from_atom_sets` reconstruction violated this
+preservation rule by replacing discovery domains and omitting accepted growth
+edges. The following repair removes that reconstruction.
+
+### Original-fragment preservation repair
+
+Reduction now retains the original immutable fragment records and their ordered
+local/placement actions. Final atom-set compositions remain the branch key;
+different original records are retained as alternatives within that branch.
+The native history collector shares identical decision programs and parent links
+without expanding duplicate paths. The replacement-fragment constructor and
+the placement-only projection were deleted. Catalogue schema v6 distinguishes
+these records from the prior reconstructed v5 catalogues: original matching
+graphs must be reduced again to recover their information.
+
+The first saved-case test exposed repeated validation of shared minimum choices.
+The decoder now prepares each shared local minimum operation once and reuses it
+when composing branches, preserving choice agreement and action order. A separate
+indexing correction makes the symmetry-coverage check compare molecular bond
+indices in the same frame. A six-ring fixture using atom numbers 6–11 now stops
+after the same two-event symmetry solution as the fixture using numbers 0–5.
+Neither invokes extra starting-map search. The matcher and event model are
+unchanged; all measurements retain **minimum + 5**.
+
+Validation: **1,301 tests passed** in the full suite before the final indexing
+correction; **292 affected tests passed** afterward. Sixty-four tiny independent
+mapping oracles now require exact equality across reduction, rather than merely
+allowing the reduced relation to contain extra mappings. Tests also retain
+different growth constraints under one atom-set branch, preserve correlated
+placements and round trips, and reduce a million duplicate histories without
+unfolding their paths. Assertions that previously expected growth edges to be
+erased were replaced with preservation checks.
+
+The [saved-input measurements](reducer-preservation-validation.json) cover two
+Golden directions at one and ten seeds, using the same saved matching inputs and
+a 2 GiB guard on the Mac. All four retain their branch-composition hashes and
+recover their reference both in the catalogue and in the selected decoded window.
+They do **not** establish full Golden accuracy for this revision.
+
+| Direction / seeds | Recorded native decode CPU (s) | First preservation repair (s) |
+|---|---:|---:|
+| 1640 forward / 1 | 3.008 | 2.540 |
+| 1640 forward / 10 | 15.673 | 21.508 |
+| 1763 reverse / 1 | 3.046 | 3.217 |
+| 1763 reverse / 10 | 4.864 | 23.046 |
+
+Further benchmark expansion stopped after the regression was observed. Shared
+minimum operations and the indexing correction subsequently reduced **1763
+reverse / ten seeds to 16.539 CPU seconds** for decoding, **2.618 seconds** for
+reduction and **4.660 seconds** for export; sampled process-tree peak was
+**1.067 GiB**. The original 4,532 atom-set branches now retain 33,928 original
+action/witness records, versus 4,893 reconstructed records in the earlier native
+measurement. Different records are not necessarily different chemical mappings;
+this repair preserves their information rather than assuming equivalence.
+
+The preservation defect is repaired, but performance is **not uniformly improved**.
+The full benchmark remains stopped. Recorded pre-port times and every measured
+stage are retained in the evidence, separately from the earlier native times.
+These are single observations, with correctness tests concurrent with some runs;
+do not treat timing differences as precise speed ratios. No failed campaign
+ledger was reset, no matching was repeated, and no cluster retry was launched.

@@ -577,17 +577,25 @@ class FragmentEventTables:
     def composed_minimum(self):
         """Compose saved local witnesses, checking shared choices agree."""
         from mappa.mappa_core.core.symmetry.actions import apply_action
-        choices = {}
+        choices, operations = {}, {}
         for response, binding in self.fragment_responses:
-            for position, choice in zip(binding, response.event_counts.minimum_choices):
+            counts = response.event_counts
+            for position, choice, operation in zip(binding, counts.minimum_choices, counts.minimum_operations):
                 if position in choices and choices[position] != choice:
                     return None
                 choices[position] = choice
-        selections = tuple(choices.get(i, dict(discovery=dict(self.local.prepare(action[1]).optimization.discovery_witness))
-            if action[0] == 'relation' else None) for i, action in enumerate(self.family.actions))
+                operations[position] = operation
+        selections = []
         images = np.asarray([p for _, p in self.family.mapping])
-        for action, choice in zip(self.family.actions, selections):
-            images = apply_action(images, action, choice, self.index.m)
+        for position, action in enumerate(self.family.actions):
+            if position in choices:
+                choice = choices[position]
+                images = operations[position][images]
+            else:
+                choice = (dict(discovery=dict(self.local.prepare(action[1]).optimization.discovery_witness))
+                          if action[0] == 'relation' else None)
+                images = apply_action(images, action, choice, self.index.m)
+            selections.append(choice)
         mapping = tuple((a, int(p)) for (a, _), p in zip(self.family.mapping, images))
         count = self.boundary_events.lower + sum(
             response.event_counts.minimum for response, _ in self.fragment_responses)
@@ -599,7 +607,7 @@ class FragmentEventTables:
             count += int(term.response.lookup(self.index.p[pair]) != 0)
             count += self.sweep_removed - int(self.boundary_events.source_cut_counted)
             count -= int(pair in self.product_boundary_set)
-        return count, mapping, selections
+        return count, mapping, tuple(selections)
 
     @cached_property
     def _evaluation(self):

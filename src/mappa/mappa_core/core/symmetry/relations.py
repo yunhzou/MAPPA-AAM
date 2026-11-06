@@ -139,8 +139,10 @@ class RelaxedIsomorphism:
         the saved witness is then a target symmetry, with anchors and labels
         preserved. A witness agreeing with connectivity alone is insufficient.
         """
-        if (len(self.accepted_edges) != len(self.target.edges)
-                or not set(self.target_edges).issubset(self.target.edges)):
+        binary_edges = {tuple(sorted((self.target_atoms[a], self.target_atoms[b])))
+                        for a, b in self.target.edges}
+        if (len(self.accepted_edges) != len(binary_edges)
+                or not set(self.target_edges).issubset(binary_edges)):
             return False
         positions = self._target_positions
         witness = dict(self.witness)

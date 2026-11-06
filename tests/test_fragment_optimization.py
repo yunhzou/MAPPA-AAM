@@ -56,7 +56,7 @@ def test_triangle_leaves_two_event_starting_class_and_attains_zero():
 
 
 @pytest.mark.parametrize('case', ['triangle_tail', 'ring_chain', 'continuous', 'anchored'])
-def test_completed_atom_sets_find_an_optimum_without_growth_history(case):
+def test_explicit_unconstrained_relation_finds_an_optimum(case):
     from mappa import AAMProblem, MolecularEndpoint, decode_events
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     from test_event_patterns import saved_path
@@ -71,8 +71,8 @@ def test_completed_atom_sets_find_an_optimum_without_growth_history(case):
     endpoint = lambda matrix: MolecularEndpoint(elements, np.zeros((4, 3)), matrix)
     problem = AAMProblem(endpoint(source), endpoint(target))
     anchors = ((0, 1),) if case == 'anchored' else ()
-    value = Fragment.from_atom_sets(problem, range(4), range(4),
-        enumerate((1, 0, 3, 2)), anchors=anchors)
+    from growth_cases import saved_fragment
+    value = saved_fragment(problem, witness=dict(enumerate((1, 0, 3, 2))), anchors=anchors)
     objective = FragmentObjective(value)
     allowed = [image for image in permutations(range(4))
                if all(image[r] == p for r, p in anchors)]
@@ -102,8 +102,8 @@ def test_starting_bound_matches_exhaustive_injective_fixed_bond_cost(seed):
     elements = ('C', 'C', 'C', 'O', 'O')
     left, right = matrix(), matrix()
     endpoint = lambda x: MolecularEndpoint(elements, np.zeros((5, 3)), x)
-    value = Fragment.from_atom_sets(AAMProblem(endpoint(left), endpoint(right)),
-                                    range(5), range(5), enumerate(range(5)))
+    from growth_cases import saved_fragment
+    value = saved_fragment(AAMProblem(endpoint(left), endpoint(right)))
     objective = FragmentObjective(value)
     domains = [(i,) if rng.random() < .4 else tuple(j for j in range(5)
         if elements[i] == elements[j] and (i == j or rng.random() < .7)) for i in range(5)]

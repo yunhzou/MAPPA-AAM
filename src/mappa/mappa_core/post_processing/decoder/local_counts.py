@@ -199,7 +199,7 @@ class FragmentEventCounts:
     def minimum_proven(self):
         return self.minimum_result.complete
 
-    @property
+    @cached_property
     def minimum_choices(self):
         if self.prepared_fragment is not None:
             result = self.prepared_fragment.optimization
@@ -208,6 +208,17 @@ class FragmentEventCounts:
             identity = dict(permutation=tuple(range(self.owner.index.m)))
             return (local,) + (identity,) * (len(self.response.actions) - 1)
         return self.minimum_result.choices
+
+    @cached_property
+    def minimum_operations(self):
+        """Validate each shared local witness once, before branch composition."""
+        from mappa.mappa_core.core.symmetry.actions import apply_action
+        identity = np.arange(self.owner.index.m)
+        operations = tuple(apply_action(identity, action, choice, len(identity))
+                           for action, choice in zip(self.response.actions, self.minimum_choices))
+        for operation in operations:
+            operation.setflags(write=False)
+        return operations
 
     @property
     def constant(self):

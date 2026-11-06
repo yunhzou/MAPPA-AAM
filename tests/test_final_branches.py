@@ -67,6 +67,9 @@ def test_raw_overlapping_relations_keep_their_order():
     left, right = saved_path(value, (a, b)), saved_path(value, (b, a))
     assert canonical_actions((('relation', a), ('relation', a))) == (('relation', a), ('relation', a))
     assert recovered(left, value) != recovered(right, value)
+    for original in (left, right):
+        saved = FinalBranchCatalogue(value).add_graph(original.graph)
+        assert recovered(saved.families[0].as_path(value), value) == recovered(original, value)
 
 
 def test_growth_constraints_do_not_split_a_completed_atom_set_fragment():
@@ -75,11 +78,13 @@ def test_growth_constraints_do_not_split_a_completed_atom_set_fragment():
     constrained = saved_fragment(value, accepted_edges=((0, 1),), iso_tolerance=0.)
     saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (free,)).graph)
     saved.add_graph(saved_path(value, (constrained,)).graph)
-    assert saved.branch_count == len(saved.families) == 1
-    assert len(saved._completed_fragments) == 1
-    assert saved.families[0].fragments[0].accepted_edges == ()
-    assert len(saved.families[0].provenance) == 2
-    assert len(recovered(saved.families[0].as_path(value), value)) == 6
+    assert saved.branch_count == 1 and len(saved.families) == 2
+    assert saved.families[0].fragments == (free,)
+    assert saved.families[1].fragments == (constrained,)
+    assert saved.families[1].fragments[0] is constrained
+    assert sum(len(f.provenance) for f in saved.families) == 2
+    for original, family in zip((free, constrained), saved.families):
+        assert recovered(saved_path(value, (original,)), value) == recovered(family.as_path(value), value)
 
 
 def test_explicit_endpoint_anchors_remain_fixed_after_reduction():
@@ -111,14 +116,13 @@ def test_reduction_shares_final_pairs_without_symmetry_or_starting_search(monkey
         guard.setattr(structure, 'structural_generators', forbidden)
         guard.setattr(optimization, 'optimize_fragment', forbidden)
         saved = FinalBranchCatalogue(value).add_graph(graph).add_graph(other)
-    assert saved.path_count == 2 and saved.branch_count == len(saved.families) == 1
-    fragment, = saved.families[0].fragments
-    assert fragment.atom_sets == ((0, 1, 2), (0, 1, 2))
-    assert fragment.fixed_assignments == ()  # The temporary join lock is not a user anchor.
-    assert len(saved._completed_fragments) == 1
-    from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
-    answer = optimize_fragment(fragment)
-    assert answer.complete and answer.event_count == 0
+    assert saved.path_count == 2 and saved.branch_count == 1
+    assert len(saved.families) == 2
+    assert {id(f) for f in saved.families[0].fragments} == {id(edge.match) for edge in graph.transitions}
+    assert saved.families[1].fragments == (other.transitions[0].match,)
+    for original, family in zip((graph, other), saved.families):
+        from growth_cases import represented
+        assert represented(original) == represented(family.as_path(value))
 
 
 def test_million_growth_histories_reduce_and_decode_without_unfolding(monkeypatch):
@@ -191,7 +195,7 @@ def test_compact_origins_preserve_each_path_and_selected_scope():
     assert sorted(tuple(origin['transitions']) for f in restored.families for origin in f.provenance) == sorted(expected*2)
 
 
-def test_absorbed_placement_histories_keep_original_path_order():
+def test_placement_alternatives_keep_original_histories():
     value = problem('CC', [], [])
     states = tuple(SearchState(i, 0, ((0, 0), (1, 1)), ((0, 1), (1, 1)), ()) for i in range(5))
     pairs = ((0, 1), (0, 2), (1, 3), (2, 3), (0, 3), (3, 4))
@@ -200,9 +204,9 @@ def test_absorbed_placement_histories_keep_original_path_order():
     graph = AAMSearchGraph((SearchContext((0, 1), (0, 1), (0,)),), (0,), states,
                            edges, (SearchStop(4, 'objective_met'),))
     saved = FinalBranchCatalogue(value).add_graph(graph)
-    assert len(saved.families) == 1
-    assert [origin['transitions'] for origin in saved.families[0].provenance] == [
-        path.transitions for path in graph.paths()]
+    assert saved.branch_count == 1 and len(saved.families) == 2
+    assert sorted(origin['transitions'] for family in saved.families for origin in family.provenance) == sorted(
+        path.transitions for path in graph.paths())
 
 
 @pytest.mark.parametrize('seed', range(16))
@@ -264,8 +268,28 @@ def test_completed_compositions_retain_tiny_greedy_search_mapping_coverage(seed,
     saved = FinalBranchCatalogue(value).add_aam(original)
     before = represented(original.graph)
     after = set().union(*(represented(family.as_path(value)) for family in saved.families))
-    assert before <= after
-    assert len({fragment.atom_sets for family in saved.families for fragment in family.fragments}) == len(saved._completed_fragments)
+    assert before == after
+    assert saved.branch_count == len(original.graph.branches())
+
+
+@pytest.mark.parametrize('offset', [0, 6])
+def test_reduced_ring_retains_its_symmetry_coverage_and_skips_extra_search(offset):
+    from mappa.mappa_core.core.symmetry.optimization import optimize_fragment
+    atoms = tuple(range(offset, offset + 6))
+    bonds = tuple((i + offset, (i + 1) % 6 + offset) for i in range(6))
+    value = problem('C' * (offset + 6), [(a, b, w) for (a, b), w in zip(bonds, (2, 2, 1, 1, 1, 1))],
+        [(a, b, w) for (a, b), w in zip(bonds, (2, 1, 2, 1, 1, 1))])
+    fragment = saved_fragment(value, source_atoms=atoms, target_atoms=atoms, accepted_edges=bonds)
+    before = fragment.to_record()
+    saved = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    original, = saved.families[0].fragments
+    assert original is fragment and original.to_record() == before
+    assert original.relation.discovery_in_witness_orbit
+    answer = optimize_fragment(original)
+    assert answer.event_count == answer.lower_bound == 2 and answer.complete
+    assert answer.work.discovery_nodes == 0
+    decoded = decode_events(saved, event_slack=5)
+    assert decoded.minimum_events == 2
 
 
 def test_discarded_history_pruning_preserves_catalogue_and_boundary_counts():

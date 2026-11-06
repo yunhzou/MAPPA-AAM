@@ -50,41 +50,6 @@ class Fragment:
     def atom_sets(self):
         return self.source_atoms, self.target_atoms
 
-    @classmethod
-    def from_atom_sets(cls, problem, source_atoms, target_atoms, witness, *,
-                       anchors=(), graph_floor=.2, self_pool=None):
-        """A completed placement, independent of the route used to discover it.
-
-        Reduction retains an initial witness and original endpoint graphs.
-        Binary symmetry and starting-map improvement are prepared on demand.
-        Only explicit endpoint anchors constrain the completed placement;
-        accepted growth edges remain in the raw search archive.
-        """
-        from mappa.mappa_core.core.symmetry.structure import binary_symmetry
-        source_atoms, target_atoms = tuple(sorted(source_atoms)), tuple(sorted(target_atoms))
-        anchors = tuple(sorted((r, p) for r, p in anchors if r in source_atoms))
-        self_pool = {} if self_pool is None else self_pool
-
-        def side(name, atoms, fixed):
-            key = name, atoms, fixed, graph_floor
-            if key not in self_pool:
-                endpoint = getattr(problem, name)
-                self_pool[key] = binary_symmetry(endpoint.elements, endpoint.wbo,
-                    atoms=atoms, anchors=fixed, bond_threshold=graph_floor)
-            return self_pool[key]
-
-        source = side('reactant', source_atoms, tuple(r for r, _ in anchors))
-        target = side('product', target_atoms, tuple(p for _, p in anchors))
-        mapping = dict(witness)
-        target_groups = {}
-        for p in target_atoms:
-            target_groups.setdefault(problem.product.elements[p], []).append(p)
-        target_groups = {element: tuple(atoms) for element, atoms in target_groups.items()}
-        domains = tuple((r, target_groups.get(problem.reactant.elements[r], ())) for r in source_atoms)
-        edges = tuple((target_atoms[a], target_atoms[b]) for a, b in target.edges)
-        return cls(RelaxedIsomorphism(source, target,
-            tuple((r, mapping[r]) for r in source_atoms), anchors, domains, (), edges, graph_floor))
-
     def __reduce__(self):
         return type(self), (self.relation,)
 

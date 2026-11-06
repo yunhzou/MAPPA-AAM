@@ -1,4 +1,4 @@
-// Shared search ancestry and ordered placement programs. A join retains its
+// Shared search ancestry and ordered fragment/placement programs. A join retains its
 // parent links; this projection never expands all paths through the graph.
 #pragma once
 #include <algorithm>
@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace reduction_native {
-struct HistoryEdge {int id, source, target, placement;};
+struct HistoryEdge {int id, source, target, decision;};
 using Parents = std::vector<std::pair<int, int>>;
 using Choices = std::vector<std::pair<int, int>>;
 struct HistoryProjection {
@@ -19,64 +19,14 @@ struct HistoryProjection {
     std::vector<std::tuple<int, int, int>> endings;
 };
 
-struct FamilyEnding {
-    int terminal, context, policy, program, node;
-    std::vector<int> fragments;
-};
-struct FamilyComposition {
-    int terminal;
-    std::vector<int> program;
-    std::vector<std::pair<int, std::vector<std::pair<int, int>>>> origins;
-};
-
-// A final family is a fragment-ID composition plus its ordered placements.
-// Prefix actions confined to final atom sets are already local symmetries.
-inline std::vector<FamilyComposition> family_compositions(int degree,
-        const std::vector<FamilyEnding>& endings, const std::vector<std::vector<int>>& targets,
-        const std::vector<std::vector<int>>& anchors, const std::vector<std::vector<int>>& programs,
-        const std::vector<std::vector<std::pair<int, int>>>& moves) {
-    using Composition = std::pair<int, std::vector<int>>;
-    std::map<Composition, int> compositions;
-    std::vector<std::vector<int>> owners;
-    std::map<std::pair<int, int>, std::vector<int>> trimmed;
-    std::map<std::pair<int, std::vector<int>>, size_t> families;
-    std::vector<FamilyComposition> result;
-    for (const auto& end : endings) {
-        auto [entry, fresh] = compositions.emplace(Composition{end.policy, end.fragments}, compositions.size());
-        const int composition = entry->second;
-        if (fresh) {
-            std::vector<int> labels(degree, -1);
-            for (size_t i = 0; i < end.fragments.size(); ++i)
-                for (int atom : targets[end.fragments[i]]) labels.at(atom) = static_cast<int>(i);
-            for (int atom : anchors[end.policy]) labels.at(atom) = static_cast<int>(end.fragments.size()) + atom;
-            owners.push_back(std::move(labels));
-        }
-        auto [program, added] = trimmed.try_emplace({composition, end.program});
-        if (added) {
-            const auto& sequence = programs[end.program];
-            const auto& labels = owners[composition];
-            size_t first = 0;
-            while (first < sequence.size() && std::all_of(moves[sequence[first]].begin(), moves[sequence[first]].end(),
-                    [&](const auto& move) {return labels.at(move.first) == labels.at(move.second);})) ++first;
-            program->second.assign(sequence.begin() + first, sequence.end());
-        }
-        auto [family, created] = families.emplace(std::make_pair(composition, program->second), result.size());
-        if (created) result.push_back({end.terminal, program->second, {}});
-        auto& origins = result[family->second].origins;
-        if (origins.empty() || origins.back().first != end.context) origins.emplace_back(end.context, std::vector<std::pair<int, int>>{});
-        origins.back().second.emplace_back(end.terminal, end.node);
-    }
-    return result;
-}
-
 inline HistoryProjection collect_histories(int states, const std::vector<int>& roots,
         const std::vector<int>& terminals, const std::vector<HistoryEdge>& edges,
         const std::optional<std::vector<std::pair<int, std::vector<int>>>>& selected) {
     HistoryProjection result;
     std::map<std::pair<int, int>, int> program_ids;
     auto append = [&](int program, const HistoryEdge& edge) {
-        if (edge.placement < 0) return program;
-        auto key = std::make_pair(edge.placement, program);
+        if (edge.decision < 0) return program;
+        auto key = std::make_pair(edge.decision, program);
         auto [entry, added] = program_ids.emplace(key, static_cast<int>(result.programs.size()));
         if (added) result.programs.push_back(key);
         return entry->second;

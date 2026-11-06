@@ -133,13 +133,12 @@ def test_earlier_global_placement_moves_later_anchor_continuation_jointly():
     path = next(graph.paths())
     decoded = decode_events(FinalBranchCatalogue(endpoints).add_graph(graph))
     assert tuple(kind for kind, _ in decoded.catalogue.families[0].actions) == (
-        'relation', 'group')
-    fragment, = decoded.inventory.fragments
-    assert fragment.source_atoms == fragment.target_atoms == (0, 1, 2)
-    assert fragment.fixed_assignments == ()
+        'relation', 'relation', 'group')
+    assert set(decoded.inventory.fragments) == {first, later}
+    assert later.fixed_assignments == ((1, 1),)
     observed = set()
     for image, word in product(((0, 1), (1, 0)), ((), (1,))):
-        selection = (dict(discovery={0: image[0], 1: image[1], 2: 2}), word)
+        selection = (None, dict(discovery={0: image[0], 1: image[1]}), word)
         result = assert_counts(decoded, selection)
         expected = tuple(atom + (3 if word else 0) for atom in (*image, 2))
         assert result == expected

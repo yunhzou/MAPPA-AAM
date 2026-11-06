@@ -125,10 +125,10 @@ starting classes.
 
 Completed fragments are identified by their reactant/product atom-set pair,
 within the fixed endpoint problem and policy. Growth witnesses and accepted
-edges do not create additional completed fragments. Raw search archives retain
-that evidence for replay and search validation. Explicit endpoint anchors remain
-constraints; temporary locks inherited during growth do not become permanent
-anchors of the completed fragment.
+edges do not create additional atom-set identities. Recorded anchors and locks
+remain attached to their original decisions. Earlier joint actions can move a
+later locked continuation; reduction preserves that order rather than erasing
+locks or promoting them to whole-branch constraints.
 
 Use a saved element-compatible correspondence as the incumbent. First obtain a lower bound by
 matching the original pair-weight multisets within element-pair types, including
@@ -139,9 +139,10 @@ so half that minimum incident cost, rounded up, is another valid lower bound.
 Use the stronger bound and stop immediately when it meets the witness. Improve
 the incumbent through the shared binary-symmetry event core. Only for an eligible
 connectivity-mismatch fragment whose current witness remains unsettled, search
-the completed atom sets for a better element-compatible, injective starting
-correspondence, respecting explicit endpoint anchors, and apply that same event
-core to it. Original growth edges do not restrict this search. Partial
+the saved discovery relation for a better injective starting correspondence,
+respecting its recorded domains, anchors and accepted edges, and apply that same
+event core to it. These discovery checks do not veto subsequent permitted binary
+symmetry rearrangements. Partial
 original-weight event bounds account for injective occupancy of the remaining
 atoms through a linear assignment; bonds between two unassigned atoms contribute
 zero to that bound. These bounds guide the search; they do not prove absence of
@@ -437,8 +438,8 @@ cannot be discarded merely because their final atom-set groups coincide.
 One catalogue per endpoint problem and direction reduces all supplied seeds and
 cuts. Intern each final reactant/product atom-set pair once under the fixed
 policy and explicit anchors. Deduplicate branch compositions by their fragment
-pairs. Intermediate overlapping growth fragments and accepted-edge histories
-do not become additional completed fragments or family identities.
+pairs. Original fragment relations may overlap and remain shared alternatives;
+their different growth records do not split the final atom-set branch.
 
 The atom-set pair is a deduplication key, not a replacement fragment payload.
 Reduction preserves the original witnesses, discovery domains, accepted growth
@@ -452,9 +453,8 @@ with another's. Preserve shared histories without expanding their paths.
 Retain ordered global placement alternatives as branch context: they move whole
 continuations and must not permit independent overlapping occupancy. Such
 alternatives can share one atom-set branch and its local fragment responses.
-An initial placement that preserves every final target atom set and explicit
-anchor is already included in the local binary symmetries and can be omitted.
-After any placement moves an atom set, preserve the remaining action order.
+Retain the original local relations and placements together. Reorder only
+independent decisions; overlapping actions preserve their recorded order.
 Reduction performs structural key lookups and provenance aggregation. It does
 not solve symmetry, search for starting maps or count events. Binary symmetry
 preparation is deferred until a consumer needs it.
@@ -509,13 +509,16 @@ flowchart LR
     Branch --> Window[Retained branches with a queryable event window]
 ```
 
-Branches remain unique compositions referencing shared final fragment responses.
-Final fragments own disjoint internal bond contributions. Compose their local
+Branches remain unique compositions referencing shared fragment responses.
+Final partition pieces own disjoint internal bond contributions, including when
+their original fragment relations overlap. Compose their local
 choices and retain the saved global placement order, binding a shared placement
 to one joint choice. Never replace an ordered placement sequence by unrestricted
 group closure or allow two fragments to occupy the same target atoms.
 
-Assembly binds the prepared cost projections to their original shared choices;
+Prepare and validate each shared local minimum operation once, then reuse it
+when composing branch witnesses. Shared choices must still agree and operations
+retain their recorded order. Assembly binds the prepared cost projections to their original shared choices;
 it does not expand them back into raw bond terms. Weight-preserving placement
 actions retain those internal costs while moving the endpoints. The sweep adds
 only its endpoint-pair correction, with endpoint dependencies traced through the

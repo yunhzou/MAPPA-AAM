@@ -194,7 +194,7 @@ class SearchBranch:
 class SearchHistories:
     """Shared path references containing only transition IDs and parent links.
 
-    Reduction needs final placement programs and path counts, not expanded
+    Reduction needs original decision programs and path counts, not expanded
     growth paths. Explicit replay can still recover every original path.
     """
     def __init__(self):
@@ -231,7 +231,7 @@ class SearchHistories:
 
     @classmethod
     def collect(cls, graph, paths=None):
-        """Group histories by their ordered placement program once per state."""
+        """Group histories by their unchanged decision program once per state."""
         from mappa._group_ops import collect_histories
         selected = None if paths is None else [(path.terminal, path.transitions) for path in paths]
         parents, counts, endings = collect_histories(len(graph.states), graph.roots,

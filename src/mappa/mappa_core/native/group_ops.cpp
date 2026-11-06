@@ -518,80 +518,32 @@ public:
 };
 
 PYBIND11_MODULE(_group_ops, m) {
-    m.def("family_compositions", [](int degree, py::sequence states, py::sequence endings,
-            const std::vector<std::pair<int, Images>>& compositions, py::sequence fragments,
-            const Images& policies, const std::vector<Images>& anchors) {
-        std::map<int, Images> ids(compositions.begin(), compositions.end());
-        std::vector<Images> targets;
-        for (py::handle record : fragments) targets.push_back(py::cast<Images>(record[py::int_(2)]));
-        py::dict group_ids;
-        std::vector<py::object> groups;
-        std::vector<std::vector<Bond>> moves;
-        std::unordered_map<PyObject*, int> program_ids;
-        std::vector<Images> programs;
-        std::vector<reduction_native::FamilyEnding> rows;
-        for (py::handle ending : endings) {
-            auto row = py::cast<py::tuple>(ending);
-            const int terminal = py::cast<int>(row[0]);
-            const int context = py::cast<int>(states[terminal].attr("context"));
-            auto [program, fresh] = program_ids.emplace(row[1].ptr(), programs.size());
-            if (fresh) {
-                Images sequence;
-                for (py::handle group : row[1]) {
-                    if (!group_ids.contains(group)) {
-                        group_ids[group] = py::int_(groups.size());
-                        groups.push_back(py::reinterpret_borrow<py::object>(group));
-                        std::set<Bond> changed;
-                        for (const auto& action : py::cast<std::vector<Images>>(group)) {
-                            if (action.size() > static_cast<size_t>(degree)) throw std::invalid_argument("placement exceeds target frame");
-                            for (size_t a = 0; a < action.size(); ++a) if (action[a] != static_cast<int>(a)) changed.emplace(a, action[a]);
-                        }
-                        moves.emplace_back(changed.begin(), changed.end());
-                    }
-                    sequence.push_back(py::cast<int>(group_ids[group]));
-                }
-                programs.push_back(std::move(sequence));
-            }
-            rows.push_back({terminal, context, policies.at(context), program->second, py::cast<int>(row[2]), ids.at(terminal)});
-        }
-        std::vector<reduction_native::FamilyComposition> result;
-        {py::gil_scoped_release release;
-         result = reduction_native::family_compositions(degree, rows, targets, anchors, programs, moves);}
-        py::list families;
-        std::map<Images, py::tuple> shared_programs;
-        for (const auto& family : result) {
-            auto [entry, fresh] = shared_programs.try_emplace(family.program);
-            if (fresh) {
-                py::tuple sequence(family.program.size());
-                for (size_t i = 0; i < family.program.size(); ++i) sequence[i] = groups[family.program[i]];
-                entry->second = sequence;
-            }
-            families.append(py::make_tuple(family.terminal, entry->second, family.origins));
-        }
-        return families;
-    });
     m.def("collect_histories", [](int states, const Images& roots, const Images& terminals,
             py::sequence transitions, std::optional<std::vector<std::pair<int, Images>>> selected) {
-        py::dict group_ids;
-        std::unordered_map<PyObject*, int> objects;
-        std::vector<py::object> groups;
+        py::dict decision_ids;
+        std::map<std::pair<PyObject*, PyObject*>, int> objects;
+        std::vector<py::tuple> decisions;
         std::vector<reduction_native::HistoryEdge> edges;
         for (py::handle edge : transitions) {
-            py::object generators = edge.attr("placement_generators");
-            int group = -1;
-            if (py::len(generators)) {
-                auto [entry, fresh] = objects.try_emplace(generators.ptr(), -1);
+            py::object fragment = edge.attr("match"), generators = edge.attr("placement_generators");
+            int decision = -1;
+            if (!fragment.is_none() || py::len(generators)) {
+                auto [entry, fresh] = objects.try_emplace(std::make_pair(fragment.ptr(), generators.ptr()), -1);
                 if (fresh) {
-                    if (!group_ids.contains(generators)) {
-                        group_ids[generators] = py::int_(groups.size());
-                        groups.push_back(generators);
+                    py::list actions;
+                    if (!fragment.is_none()) actions.append(py::make_tuple("relation", fragment));
+                    if (py::len(generators)) actions.append(py::make_tuple("group", generators));
+                    py::tuple block(actions);
+                    if (!decision_ids.contains(block)) {
+                        decision_ids[block] = py::int_(decisions.size());
+                        decisions.push_back(block);
                     }
-                    entry->second = py::cast<int>(group_ids[generators]);
+                    entry->second = py::cast<int>(decision_ids[block]);
                 }
-                group = entry->second;
+                decision = entry->second;
             }
             edges.push_back({py::cast<int>(edge.attr("id")), py::cast<int>(edge.attr("source")),
-                py::cast<int>(edge.attr("target")), group});
+                py::cast<int>(edge.attr("target")), decision});
         }
         reduction_native::HistoryProjection result;
         {py::gil_scoped_release release; result = reduction_native::collect_histories(states, roots, terminals, edges, selected);}
@@ -619,7 +571,7 @@ PYBIND11_MODULE(_group_ops, m) {
             if (fresh) {
                 py::list actions;
                 for (int current = program; current; current = result.programs[current].second)
-                    actions.append(groups[result.programs[current].first]);
+                    for (py::handle action : decisions[result.programs[current].first]) actions.append(action);
                 entry->second = py::tuple(actions);
             }
             endings[i] = py::make_tuple(terminal, entry->second, node);

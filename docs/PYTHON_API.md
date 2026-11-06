@@ -22,10 +22,11 @@ physical_events = decoded.evaluate(0)
 record = decoded_events_record(decoded)
 ```
 
-Reduction shares each final reactant/product atom-set pair once within the fixed
-reaction, policy and explicit anchors. Growth routes and temporary locks remain
-in the search archive. Branches retain their compositions, ordered global
-placements and sweep provenance. Reduction performs no symmetry or event search.
+Reduction groups final reactant/product atom-set pairs within the fixed reaction
+and policy. It shares original fragment records without changing their witnesses,
+discovery constraints, anchors or symmetry. Different original alternatives stay
+under the same atom-set branch. Branches retain their ordered local/global actions
+and sweep provenance. Reduction performs no symmetry or event search.
 Completed states are projected to shared fragment IDs in bulk. Growth histories
 remain compact parent references, including in saved catalogue records.
 `family.provenance` is a sequence view: iterating it explicitly reconstructs the
@@ -392,9 +393,10 @@ Without `categories=True`, `counts` retains decrease/increase counts.
 `events.inventory.fragments` contains the unique saved Fragment objects.
 `events.inventory.uses[family_id]` identifies the disjoint pieces owning internal
 bonds in each final partition. Inventory construction precedes response preparation.
-Equal atom-set pairs share a local response under the same endpoint problem,
-policy and explicit anchors. Global placement order and sweep context remain
-branch-level information; they do not create more local fragments.
+Identical original fragment records share a local response. Equal atom-set keys
+alone do not authorize replacing different recorded relationships. Global
+placement order and sweep context remain branch-level information. Original
+overlapping relations retain their order while final pieces assign bond ownership.
 
 `events.tables(family_id)` exposes the conditional fragment and boundary data.
 Responses preserve local correlations and action order. The branch composition
