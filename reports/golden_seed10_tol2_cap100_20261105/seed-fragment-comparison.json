@@ -131,7 +131,121 @@
       "fragment_ratio": 2.15179392824287,
       "branch_ratio": 4.507075905164492,
       "historical_family_ratio": 9.31130309575234,
-      "historical_decode_cpu_ratio": 9.740669980864654
+      "historical_decode_cpu_ratio": 9.740669980864654,
+      "current": {
+        "seed1": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 0.14875900000000009,
+              "wall_seconds": 0.1488558785058558
+            },
+            "reduction": {
+              "cpu_seconds": 0.20533499999999955,
+              "wall_seconds": 0.20566895650699735
+            },
+            "verification": {
+              "cpu_seconds": 0.9561250000000001,
+              "wall_seconds": 0.9870082919951528
+            },
+            "decoding": {
+              "cpu_seconds": 18.489149,
+              "wall_seconds": 18.49525041715242
+            },
+            "decoded_reference": {
+              "cpu_seconds": 9.985735000000002,
+              "wall_seconds": 10.012549874838442
+            },
+            "export": {
+              "cpu_seconds": 5.905509000000002,
+              "wall_seconds": 5.906468250090256
+            },
+            "serialization": {
+              "cpu_seconds": 0.14638899999999921,
+              "wall_seconds": 0.14642058382742107
+            },
+            "restoration": {
+              "cpu_seconds": 0.1409270000000049,
+              "wall_seconds": 0.14094287483021617
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 86,
+          "seed_searches": 86,
+          "branches": 5441,
+          "families": 5633,
+          "fragments": 1087,
+          "paths": 6945,
+          "branch_composition_sha256": "782c53ab30d9ab55fb79538350b0ef2b0d697ec4351c0d55d4c9ff614cbfb19a",
+          "catalogue_reference": "not_recovered",
+          "decoded_reference": {
+            "status": "unknown",
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 7,
+          "minimum_proven": true,
+          "serialized_bytes": 28908608,
+          "process_lifetime_peak_rss_bytes": 1253359616
+        },
+        "seed10": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 2.136259999999999,
+              "wall_seconds": 2.1377075407654047
+            },
+            "reduction": {
+              "cpu_seconds": 1.4207919999999992,
+              "wall_seconds": 1.4216872102115303
+            },
+            "verification": {
+              "cpu_seconds": 0.06295099999999998,
+              "wall_seconds": 0.06295862491242588
+            },
+            "decoding": {
+              "cpu_seconds": 54.00191099999999,
+              "wall_seconds": 54.06911991722882
+            },
+            "decoded_reference": {
+              "cpu_seconds": 9.923655999999994,
+              "wall_seconds": 10.002703791949898
+            },
+            "export": {
+              "cpu_seconds": 18.492326000000006,
+              "wall_seconds": 18.50651075015776
+            },
+            "serialization": {
+              "cpu_seconds": 0.7225069999999931,
+              "wall_seconds": 0.723792958073318
+            },
+            "restoration": {
+              "cpu_seconds": 0.4802140000000037,
+              "wall_seconds": 0.48048812500201166
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 86,
+          "seed_searches": 860,
+          "branches": 24523,
+          "families": 26419,
+          "fragments": 2339,
+          "paths": 71199,
+          "branch_composition_sha256": "7fe132edca7e55e174562188f237771422fa9300fc19ef88fe3a9cd6f597bceb",
+          "catalogue_reference": "recovered",
+          "decoded_reference": {
+            "status": "unknown",
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 7,
+          "minimum_proven": true,
+          "serialized_bytes": 87086346,
+          "process_lifetime_peak_rss_bytes": 2768453632
+        },
+        "decode_cpu_ratio": 2.9207353459047787,
+        "reduction_cpu_ratio": 6.919385394599081
+      }
     },
     {
       "case": "01640/forward",
@@ -268,7 +382,123 @@
       "fragment_ratio": 3.3563218390804597,
       "branch_ratio": 6.623655913978495,
       "historical_family_ratio": 11.189814814814815,
-      "historical_decode_cpu_ratio": 12.74292782106648
+      "historical_decode_cpu_ratio": 12.74292782106648,
+      "current": {
+        "seed1": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 0.052873000000000114,
+              "wall_seconds": 0.052909501595422626
+            },
+            "reduction": {
+              "cpu_seconds": 0.043490000000000306,
+              "wall_seconds": 0.043576417956501245
+            },
+            "verification": {
+              "cpu_seconds": 0.0005950000000000122,
+              "wall_seconds": 0.0005951670464128256
+            },
+            "decoding": {
+              "cpu_seconds": 11.034794,
+              "wall_seconds": 11.037008458049968
+            },
+            "decoded_reference": {
+              "cpu_seconds": 0.00544800000000123,
+              "wall_seconds": 0.0054536249954253435
+            },
+            "export": {
+              "cpu_seconds": 0.25806299999999993,
+              "wall_seconds": 0.2580766249448061
+            },
+            "serialization": {
+              "cpu_seconds": 0.05520800000000037,
+              "wall_seconds": 0.055210750084370375
+            },
+            "restoration": {
+              "cpu_seconds": 0.07271999999999856,
+              "wall_seconds": 0.07273937482386827
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 95,
+          "seed_searches": 95,
+          "branches": 186,
+          "families": 186,
+          "fragments": 261,
+          "paths": 216,
+          "branch_composition_sha256": "8e08ff2566a69dc171229d1315708895535a71f650f80e5b90481d4812637932",
+          "catalogue_reference": "recovered",
+          "decoded_reference": {
+            "status": "recovered",
+            "event_count": 5,
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 3,
+          "minimum_proven": true,
+          "serialized_bytes": 17563020,
+          "process_lifetime_peak_rss_bytes": 576045056
+        },
+        "seed10": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 0.7545769999999994,
+              "wall_seconds": 0.7547060067299753
+            },
+            "reduction": {
+              "cpu_seconds": 0.20046700000000012,
+              "wall_seconds": 0.20062083075754344
+            },
+            "verification": {
+              "cpu_seconds": 0.0006129999999999747,
+              "wall_seconds": 0.0006143751088529825
+            },
+            "decoding": {
+              "cpu_seconds": 73.59841399999999,
+              "wall_seconds": 73.61677533388138
+            },
+            "decoded_reference": {
+              "cpu_seconds": 0.0011960000000073023,
+              "wall_seconds": 0.0011974170338362455
+            },
+            "export": {
+              "cpu_seconds": 1.1508660000000077,
+              "wall_seconds": 1.1509935001377016
+            },
+            "serialization": {
+              "cpu_seconds": 0.5051040000000029,
+              "wall_seconds": 0.5052305827848613
+            },
+            "restoration": {
+              "cpu_seconds": 0.35500999999999294,
+              "wall_seconds": 0.35508474987000227
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 95,
+          "seed_searches": 950,
+          "branches": 1232,
+          "families": 1253,
+          "fragments": 876,
+          "paths": 2563,
+          "branch_composition_sha256": "05113bed9590d0f2b80e029a1c062e0acc3a23a774939378c69a2f89e16c87af",
+          "catalogue_reference": "recovered",
+          "decoded_reference": {
+            "status": "recovered",
+            "event_count": 5,
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 3,
+          "minimum_proven": true,
+          "serialized_bytes": 77819417,
+          "process_lifetime_peak_rss_bytes": 2396930048
+        },
+        "decode_cpu_ratio": 6.669668142422957,
+        "reduction_cpu_ratio": 4.60949643596226
+      }
     },
     {
       "case": "01763/reverse",
@@ -352,9 +582,197 @@
       "fragment_ratio": 1.112633181126332,
       "branch_ratio": 1.6232091690544412,
       "historical_family_ratio": 8.226964112512125,
-      "historical_decode_cpu_ratio": 10.24085146492607
+      "historical_decode_cpu_ratio": 10.24085146492607,
+      "current": {
+        "seed1": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 0.056641000000000274,
+              "wall_seconds": 0.05665471078827977
+            },
+            "reduction": {
+              "cpu_seconds": 0.07862600000000003,
+              "wall_seconds": 0.07870179205201566
+            },
+            "verification": {
+              "cpu_seconds": 0.0005379999999999274,
+              "wall_seconds": 0.0005390418227761984
+            },
+            "decoding": {
+              "cpu_seconds": 9.100112000000001,
+              "wall_seconds": 9.1060062921606
+            },
+            "decoded_reference": {
+              "cpu_seconds": 0.05062999999999995,
+              "wall_seconds": 0.05063395807519555
+            },
+            "export": {
+              "cpu_seconds": 1.7113519999999998,
+              "wall_seconds": 1.7115204168949276
+            },
+            "serialization": {
+              "cpu_seconds": 0.037348999999998966,
+              "wall_seconds": 0.03735174983739853
+            },
+            "restoration": {
+              "cpu_seconds": 0.04285899999999998,
+              "wall_seconds": 0.04288262501358986
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 52,
+          "seed_searches": 52,
+          "branches": 2792,
+          "families": 2792,
+          "fragments": 657,
+          "paths": 4124,
+          "branch_composition_sha256": "171a88cd36bf056363f034fc58ec03fbfb95263dade811cb1190dcf06ef0362b",
+          "catalogue_reference": "recovered",
+          "decoded_reference": {
+            "status": "recovered",
+            "event_count": 6,
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 6,
+          "minimum_proven": true,
+          "serialized_bytes": 8333181,
+          "process_lifetime_peak_rss_bytes": 416432128
+        },
+        "seed10": {
+          "kind": "result",
+          "phases": {
+            "loading": {
+              "cpu_seconds": 0.9105129999999992,
+              "wall_seconds": 0.9107317107263952
+            },
+            "reduction": {
+              "cpu_seconds": 0.4200560000000006,
+              "wall_seconds": 0.4203120833262801
+            },
+            "verification": {
+              "cpu_seconds": 0.0005079999999999529,
+              "wall_seconds": 0.000507500022649765
+            },
+            "decoding": {
+              "cpu_seconds": 13.227272000000001,
+              "wall_seconds": 13.234066624892876
+            },
+            "decoded_reference": {
+              "cpu_seconds": 0.05075399999999952,
+              "wall_seconds": 0.05077624996192753
+            },
+            "export": {
+              "cpu_seconds": 3.242904000000001,
+              "wall_seconds": 3.2521217500325292
+            },
+            "serialization": {
+              "cpu_seconds": 0.12252599999999703,
+              "wall_seconds": 0.12312566698528826
+            },
+            "restoration": {
+              "cpu_seconds": 0.10741999999999763,
+              "wall_seconds": 0.10827029217034578
+            }
+          },
+          "matching_repeated": false,
+          "cuts": 52,
+          "seed_searches": 520,
+          "branches": 4532,
+          "families": 4893,
+          "fragments": 731,
+          "paths": 41010,
+          "branch_composition_sha256": "95d0ecbb480ef0c868c5a945c77e27f7ba732bd63fb52d125e665923ccc64d3b",
+          "catalogue_reference": "recovered",
+          "decoded_reference": {
+            "status": "recovered",
+            "event_count": 6,
+            "policy": "exact annotated indices in selected decoded window"
+          },
+          "catalogue_content_sha256": null,
+          "minimum_events": 6,
+          "minimum_proven": true,
+          "serialized_bytes": 16209146,
+          "process_lifetime_peak_rss_bytes": 645726208
+        },
+        "decode_cpu_ratio": 1.4535284840450315,
+        "reduction_cpu_ratio": 5.342456693714553
+      }
     }
   ],
   "timing_scope": "Original cluster stage timings include catalogue loading and output preparation. They are not the latest isolated local decoding timings. The counts use current atom-set identity on both saved catalogues; historical family counts describe the original representation.",
-  "interpretation": "Unique fragment counts alone do not explain the time ratios. Multi-atom fragments and branch combinations also grow, and original family records grow much faster than unique fragments. These counts do not attribute CPU causally; new fragment difficulty and per-family work require separate profiling."
+  "interpretation": "Unique fragment counts alone do not explain the time ratios. Multi-atom fragments and branch combinations also grow, and original family records grow much faster than unique fragments. These counts do not attribute CPU causally; new fragment difficulty and per-family work require separate profiling.",
+  "current_measurements": {
+    "revision": "63088bd44aed5af1a88bbcd919f788ba2260f395",
+    "source_identity": "388303f0e0852a8cbe16773061fec7b7a1abbd1631b109aeacac76d5531b30eb",
+    "runner_sha256": "26e6138e96e717a4f1b3e923067a9349283c5deccd2356c1b9b1532a96732952",
+    "hardware": {
+      "cpu_model": "Apple M4 Pro",
+      "machine": "arm64",
+      "python": "3.12.14",
+      "packages": {
+        "numpy": "2.3.5",
+        "scipy": "1.16.3",
+        "sympy": "1.14.0",
+        "pynauty": "2.8.8.1",
+        "z3-solver": "5.1.0.0"
+      }
+    },
+    "methodology": "Five fresh isolated current-code processes, sequentially on the same Mac, plus the existing current-code ten-seed 1606 observation. One observation per arm; one numerical thread. Matching was not rerun. Identical original endpoint problems and cut scopes were checked for each pair.",
+    "reused_measurement": {
+      "case": "01606/reverse/seeds10",
+      "report": "longest-decoding-comparison.json",
+      "revision": "df1c3b52fba4dca135b232f72ebf2074b716ba78",
+      "source_identity": "388303f0e0852a8cbe16773061fec7b7a1abbd1631b109aeacac76d5531b30eb"
+    },
+    "timing_scope": "Reduction and decoding with window construction are timed separately; loading, verification, decoded-window queries, output preparation and transport are excluded from decoding.",
+    "memory_guard_bytes": 8589934592,
+    "timeout_seconds": 600,
+    "fresh_runs": [
+      {
+        "case": "01763/reverse/seeds1",
+        "status": "ok",
+        "process_wall_seconds": 12.395579624921083,
+        "peak_sampled_rss_bytes": 416432128,
+        "memory_samples": 58
+      },
+      {
+        "case": "01763/reverse/seeds10",
+        "status": "ok",
+        "process_wall_seconds": 19.65719429193996,
+        "peak_sampled_rss_bytes": 645726208,
+        "memory_samples": 92
+      },
+      {
+        "case": "01606/reverse/seeds1",
+        "status": "ok",
+        "process_wall_seconds": 38.52640508301556,
+        "peak_sampled_rss_bytes": 1253359616,
+        "memory_samples": 180
+      },
+      {
+        "case": "01640/forward/seeds1",
+        "status": "ok",
+        "process_wall_seconds": 12.63112466596067,
+        "peak_sampled_rss_bytes": 576045056,
+        "memory_samples": 59
+      },
+      {
+        "case": "01640/forward/seeds10",
+        "status": "ok",
+        "process_wall_seconds": 78.41428916715086,
+        "peak_sampled_rss_bytes": 2396930048,
+        "memory_samples": 367
+      }
+    ],
+    "input_problem_hashes": {
+      "01763/reverse/seeds1": "b3303142bbe2b21297ffed4285ee7c1bbe7bfcd1639fc92fdaf5271dc7a3a3c4",
+      "01606/reverse/seeds1": "caad955f11582614634e54a2039aa51eeb07f3cccc3398d5f6fd58b5d08ffb5b",
+      "01640/forward/seeds1": "fbf4771df92d64fe404386a627f1ce9386f1ce501e57df2f18b0d3c8d41f7a0f",
+      "01763/reverse/seeds10": "b3303142bbe2b21297ffed4285ee7c1bbe7bfcd1639fc92fdaf5271dc7a3a3c4",
+      "01640/forward/seeds10": "fbf4771df92d64fe404386a627f1ce9386f1ce501e57df2f18b0d3c8d41f7a0f",
+      "01606/reverse/seeds10": "caad955f11582614634e54a2039aa51eeb07f3cccc3398d5f6fd58b5d08ffb5b"
+    }
+  }
 }

@@ -535,6 +535,39 @@ atom-set count of 2,339 independently agrees with that current-version replay.
 [Count evidence](seed-fragment-comparison.json) retains catalogue checksums,
 overlap counts, fragment-size distributions and recorded timings.
 
+The same three cases now have **current-code one-versus-ten-seed measurements**
+on the Apple M4 Pro. Five fresh processes use revision `63088bd`; the existing
+1606 ten-seed observation above is reused. Both revisions have identical
+scientific source/engine identity. Each arm has one observation and one
+numerical thread. The original endpoint problems, cut scopes and settings match
+within each pair; matching was not repeated.
+
+| Case / direction | Current reduction CPU (s), 1 → 10 seeds | Current decoding CPU (s), 1 → 10 seeds | Decoding increase | Current families, 1 → 10 seeds |
+|---|---:|---:|---:|---:|
+| 1606 reverse | 0.205 → 1.421 | 18.489 → 54.002 | 2.92× | 5,633 → 26,419 |
+| 1640 forward | 0.043 → 0.200 | 11.035 → 73.598 | 6.67× | 186 → 1,253 |
+| 1763 reverse | 0.079 → 0.420 | 9.100 → 13.227 | 1.45× | 2,792 → 4,893 |
+
+The previously disproportionate scaling is much smaller for 1763 and 1606.
+Case 1640 still scales substantially: fragments with at least 20 atoms increase
+92 → 456 and branch compositions 186 → 1,232. These counts describe additional
+work but do not isolate which operations consume the time. The current ratios
+are measured on one machine with identical phase boundaries; they should not be
+used to derive absolute speedups against the older cluster observations.
+
+Output preparation is separate: 5.91 → 18.49 seconds for 1606, 0.26 → 1.15 for
+1640, and 1.71 → 3.24 for 1763. Both seed counts recover 1640 and 1763 in the
+catalogue and selected decoded window. For 1606, catalogue recovery changes from
+absent at one seed to recovered at ten, as in the original study; its separate
+decoded-window query remains unknown in both after ten seconds. Model minima
+remain 7, 3 and 6 respectively. No runtime or transport checks failed.
+
+All measurements used an 8 GiB process watchdog and 600-second total process
+limit. Full-process memory, including queries/export, reaches 2.58 GiB for 1606
+and 2.23 GiB for 1640; these are not demonstrations under a 2 GiB guard. The same
+[evidence file](seed-fragment-comparison.json) retains current observations,
+source identity, input hashes, separate phase timings and reference outcomes.
+
 ## Paper analysis
 
 At the stop, saved verification establishes **1,843/1,851 reactions (99.57%)**
