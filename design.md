@@ -543,6 +543,9 @@ counts. Completed search graphs may be ingested one at a time; the accumulated
 catalogue and provenance still consume memory.
 Restoring a catalogue shares equal immutable mapping, constraint and action
 records while preserving every family's values, action order and provenance.
+Apply the same sharing during construction, before serialization. Comparison keys
+borrow immutable matrix storage and retain exact byte equality and ordering;
+hashes never replace equality checks or retain another matrix-sized payload.
 Trusted binary transport restores already validated scientific fields without
 repeating construction checks. Reduction reuses immutable fragment hashes and
 prepared transition actions; each saved path still contributes its provenance.

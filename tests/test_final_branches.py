@@ -60,6 +60,27 @@ def test_different_target_pairs_remain_separate_and_overlap_is_not_lost():
     assert not recovered(first, value).intersection(recovered(second, value))
 
 
+def test_assignment_pairs_are_shared_before_publication_and_after_restore():
+    import pickle
+
+    value = problem('HHHH', [], [])
+    graphs = [independent_path((0, 1), mapping=mapping).graph for mapping in
+              ({0: 0, 1: 1, 2: 2, 3: 3}, {0: 0, 1: 2, 2: 1, 3: 3})]
+    catalogue = FinalBranchCatalogue(value)
+    for graph in graphs:
+        catalogue.add_graph(graph)
+    record = catalogue.to_record()
+    for saved in (catalogue, pickle.loads(pickle.dumps(catalogue)),
+                  FinalBranchCatalogue.from_record(value, record)):
+        assert saved.to_record() == record
+        assert len(saved.families) == 2
+        pairs = {}
+        for family in saved.families:
+            for pair in family.mapping:
+                assert pairs.setdefault(pair, pair) is pair
+        assert saved.families[0].mapping != saved.families[1].mapping
+
+
 def test_raw_overlapping_relations_keep_their_order():
     value = problem('CCC', [], [])
     a = saved_fragment(value, source_atoms=(0, 1), target_atoms=(0, 1))

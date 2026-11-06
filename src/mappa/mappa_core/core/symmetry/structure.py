@@ -1,13 +1,40 @@
 """Element- and anchor-preserving symmetry of a binary molecular graph."""
 from collections import defaultdict
 from dataclasses import dataclass, field, fields
-from functools import cached_property
+from functools import cached_property, total_ordering
 import math
 from numbers import Integral
 
 import numpy as np
 
 from .actions import apply_action
+
+
+@total_ordering
+class _MatrixKey:
+    """Exact byte comparison without retaining a second immutable matrix."""
+    __slots__ = ('data', '_hash')
+
+    def __init__(self, weights):
+        self.data = weights.view(np.uint8).reshape(-1)
+        self._hash = hash(self.data.tobytes())
+
+    def __hash__(self):
+        return self._hash
+
+    def __reduce__(self):
+        return type(self), (self.data,)
+
+    def __eq__(self, other):
+        if not isinstance(other, _MatrixKey):
+            return NotImplemented
+        return self is other or (self._hash == other._hash
+                                 and np.array_equal(self.data, other.data))
+
+    def __lt__(self, other):
+        if not isinstance(other, _MatrixKey):
+            return NotImplemented
+        return self.data.tobytes() < other.data.tobytes()
 
 
 def structural_generators(size, edges, colors):
@@ -39,7 +66,7 @@ class BinarySymmetry:
     @cached_property
     def key(self):
         return (self.atoms, self.elements, self.anchors, self.bond_threshold,
-                self.weights.tobytes())
+                _MatrixKey(self.weights))
 
     @property
     def generators(self):
@@ -79,7 +106,7 @@ class BinarySymmetry:
         generators = tuple(tuple(g) for g in record['generators'])
         threshold = float(record['bond_threshold'])
         key = (tuple(record['atoms']), tuple(record['elements']), tuple(record['anchors']),
-               threshold, weights.tobytes())
+               threshold, _MatrixKey(weights))
         if pool is not None and key in pool:
             return pool[key]
         edges = tuple((int(a), int(b)) for a, b in zip(*np.nonzero(np.triu(weights > threshold, 1))))

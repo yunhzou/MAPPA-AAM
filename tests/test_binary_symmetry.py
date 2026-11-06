@@ -126,6 +126,45 @@ def test_subthreshold_contacts_remain_available_without_restricting_symmetry():
     assert np.array_equal(relation.weights, matrix)
 
 
+def test_comparison_keys_preserve_exact_weight_bytes_and_order():
+    import pickle
+    from mappa.mappa_core.core.symmetry.structure import BinarySymmetry
+
+    values = (0., -0., .1, np.nextafter(.1, np.inf), 1., 2.)
+    relations = [binary_symmetry('CC', weights(2, [(0, 1, value)])) for value in values]
+    for left in relations:
+        old_left = (*left.key[:-1], left.weights.tobytes())
+        assert hash(left.key) == hash(old_left)
+        assert pickle.loads(pickle.dumps(left)).key == left.key
+        for right in relations:
+            old_right = (*right.key[:-1], right.weights.tobytes())
+            assert (left.key == right.key) == (old_left == old_right)
+            assert (left.key < right.key) == (old_left < old_right)
+    pool = {}
+    for relation in relations:
+        record = relation.to_record()
+        restored = BinarySymmetry.from_record(record, pool=pool)
+        assert restored.key == relation.key
+        assert BinarySymmetry.from_record(record, pool=pool) is restored
+
+
+def test_comparison_key_does_not_retain_a_matrix_copy():
+    import gc
+    import tracemalloc
+
+    relation = binary_symmetry('C' * 512, np.zeros((512, 512)))
+    tracemalloc.start()
+    try:
+        before = tracemalloc.get_traced_memory()[0]
+        key = relation.key
+        gc.collect()
+        retained = tracemalloc.get_traced_memory()[0] - before
+        assert hash(key)
+        assert retained < relation.weights.nbytes // 8
+    finally:
+        tracemalloc.stop()
+
+
 @pytest.mark.parametrize('seed', range(12))
 def test_small_weighted_graphs_match_complete_independent_relation(seed):
     rng = np.random.default_rng(seed)

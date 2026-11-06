@@ -206,6 +206,8 @@ class FinalBranchCatalogue:
         self._fragments = {}
         self._placements = {}
         self._actions = {}
+        self._pairs = {}
+        self._mappings = {}
         self.path_count = 0
         self.incomplete_paths = 0
         self.mode = 'unique_fragment_compositions'
@@ -213,6 +215,9 @@ class FinalBranchCatalogue:
 
     def _intern(self, cache, value):
         return cache.setdefault(value, value)
+
+    def _intern_pairs(self, cache, pairs):
+        return self._intern(cache, tuple(self._intern(self._pairs, pair) for pair in pairs))
 
     def intern_actions(self, actions):
         """Share immutable local relations and placement generators across families."""
@@ -258,12 +263,9 @@ class FinalBranchCatalogue:
 
     def _index_families(self):
         """Restore shared fragment records and their composition indexes."""
-        mappings, pairs = {}, {}
         for index, family in enumerate(self.families):
-            family.mapping = self._intern(mappings, tuple(
-                self._intern(pairs, pair) for pair in family.mapping))
-            family.required_edges = self._intern(self._required, tuple(
-                self._intern(pairs, pair) for pair in family.required_edges))
+            family.mapping = self._intern_pairs(self._mappings, family.mapping)
+            family.required_edges = self._intern_pairs(self._required, family.required_edges)
             family.actions = self._intern(self._programs, self.intern_actions(family.actions))
         for (policy, pairs), ids in self.branches.items():
             for index in ids:
@@ -315,10 +317,10 @@ class FinalBranchCatalogue:
                 for kind, fragment in reversed(program):
                     if kind == 'relation':
                         witness.update(fragment.witness)
-                witness = tuple(sorted(witness.items()))
-                required = self._intern(self._required, tuple(sorted({edge
+                witness = self._intern_pairs(self._mappings, sorted(witness.items()))
+                required = self._intern_pairs(self._required, sorted({edge
                     for kind, fragment in program if kind == 'relation'
-                    for edge in fragment.accepted_edges})))
+                    for edge in fragment.accepted_edges}))
                 self._family_ids[key] = len(self.families)
                 self.families.append(FinalFamily(witness, required, program, policy))
             family_id = self._family_ids[key]
