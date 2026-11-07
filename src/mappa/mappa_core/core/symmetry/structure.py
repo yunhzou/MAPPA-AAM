@@ -77,6 +77,16 @@ class BinarySymmetry:
                 structural_generators(len(self.atoms), self.edges, colors))
         return self._generators
 
+    def share_weights(self, pool):
+        """Intern identical storage without changing this record or its keys."""
+        key = self.key[-1]
+        weights = pool.setdefault((self.weights.shape, key), self.weights)
+        if weights is not self.weights:
+            object.__setattr__(self, 'weights', weights)
+            # Existing fragment keys borrow this key. Repoint its equal bytes
+            # too, so those keys do not keep the discarded allocation alive.
+            key.data = weights.view(np.uint8).reshape(-1)
+
     def __reduce__(self):
         return type(self)._from_binary, tuple(getattr(self, item.name) for item in fields(self))
 

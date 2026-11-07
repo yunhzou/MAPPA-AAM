@@ -204,6 +204,7 @@ class FinalBranchCatalogue:
         self._required = {}
         self._programs = {}
         self._fragments = {}
+        self._weights = {}
         self._placements = {}
         self._actions = {}
         self._pairs = {}
@@ -224,6 +225,9 @@ class FinalBranchCatalogue:
         prepared = []
         for kind, value in actions:
             if kind == 'relation':
+                if value.atom_sets not in self._fragments:
+                    value.source_symmetry.share_weights(self._weights)
+                    value.target_symmetry.share_weights(self._weights)
                 value = self._fragments.setdefault(value.atom_sets, value)
             elif kind == 'group':
                 # Subgraph searches retain original labels in a shorter frame.

@@ -552,6 +552,9 @@ records while preserving every family's values, action order and provenance.
 Apply the same sharing during construction, before serialization. Comparison keys
 borrow immutable matrix storage and retain exact byte equality and ordering;
 hashes never replace equality checks or retain another matrix-sized payload.
+Equal-shaped, byte-identical fragment weight matrices share storage even when
+their atom sets or anchors differ. Their fragment and symmetry records remain
+distinct, and existing comparison keys reference that same shared allocation.
 Trusted binary transport restores already validated scientific fields without
 repeating construction checks. Binary decoded output shares numeric weight arrays;
 only explicit JSON export expands them to lists. Reduction reuses immutable fragment hashes and

@@ -81,6 +81,45 @@ def test_assignment_pairs_are_shared_before_publication_and_after_restore():
         assert saved.families[0].mapping != saved.families[1].mapping
 
 
+def test_equal_matrices_share_storage_without_merging_fragments_or_permissions():
+    import pickle
+    import numpy as np
+    from weakref import ref
+
+    value = problem('CCCCCC', [(0, 1, 1.), (2, 3, 1.), (4, 5, 1.2)],
+                    [(0, 1, 1.), (2, 3, 1.), (4, 5, 1.2)])
+    fragments = (saved_fragment(value, source_atoms=(0, 1)),
+                 saved_fragment(value, source_atoms=(2, 3), anchors=((2, 2),)),
+                 saved_fragment(value, source_atoms=(4, 5)))
+    records = [fragment.to_record() for fragment in fragments]
+    # Keys may already be referenced by a search graph before reduction.
+    keys = [fragment.key for fragment in fragments]
+    hashes = [hash(fragment) for fragment in fragments]
+    allocations = [ref(symmetry.weights) for fragment in fragments[:2]
+                   for symmetry in (fragment.source_symmetry, fragment.target_symmetry)]
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, fragments).graph)
+    retained = {fragment.atom_sets: fragment for fragment in catalogue.families[0].fragments}
+    assert all(retained[fragment.atom_sets] is fragment for fragment in fragments)
+    assert [fragment.to_record() for fragment in fragments] == records
+    assert [hash(fragment) for fragment in fragments] == hashes
+    assert [fragment.key for fragment in fragments] == keys
+    assert sum(reference() is not None for reference in allocations) == 1
+    weights = fragments[0].source_symmetry.weights
+    assert fragments[0].target_symmetry.weights is weights
+    assert fragments[1].source_symmetry.weights is weights
+    assert fragments[1].target_symmetry.weights is weights
+    assert np.shares_memory(keys[1][0][-1].data, weights)
+    assert not weights.flags.writeable
+    assert fragments[2].source_symmetry.weights is not weights
+    assert fragments[0].source_symmetry.anchors == ()
+    assert fragments[1].source_symmetry.anchors == (2,)
+    restored = pickle.loads(pickle.dumps(catalogue))
+    assert restored.to_record() == catalogue.to_record()
+    left, middle, right = sorted(restored.families[0].fragments, key=lambda f: f.source_atoms)
+    assert left.source_symmetry.weights is middle.source_symmetry.weights
+    assert left.source_symmetry.weights is not right.source_symmetry.weights
+
+
 def test_raw_overlapping_relations_keep_their_order():
     value = problem('CCC', [], [])
     a = saved_fragment(value, source_atoms=(0, 1), target_atoms=(0, 1))
