@@ -61,28 +61,6 @@ def test_negative_and_zero_differences_are_retained(reference, expected):
     assert result['status'] == 'exact' and result['difference'] == expected
 
 
-@pytest.mark.parametrize('reference,expected', [({0: 0, 1: 1, 2: 2}, 0),
-                                               ({0: 0, 1: 2, 2: 1}, -2)])
-def test_detected_position_replays_saved_minimum_and_keeps_negative_offsets(reference, expected):
-    from mappa.mappa_core.utils.io.records import decoded_events_from_record
-    record = decoded_events_record(decode_events(rearrangement(hydrogen_constraint=True)))
-    result = analytics.detected_position(decoded_events_from_record(record), reference, seconds=5)
-    assert result['status'] == 'complete'
-    assert result['saved_model_minimum'] == record['minimum_events']
-    assert result['difference'] == expected
-    assert result['same_heavy_coverage']
-
-
-def test_detected_position_does_not_use_reference_to_choose_witness():
-    from mappa.mappa_core.utils.io.records import decoded_events_from_record
-    record = decoded_events_record(decode_events(rearrangement(hydrogen_constraint=True)))
-    identity = analytics.detected_position(decoded_events_from_record(record), {0: 0, 1: 1, 2: 2}, seconds=5)
-    swapped = analytics.detected_position(decoded_events_from_record(record), {0: 0, 1: 2, 2: 1}, seconds=5)
-    assert identity['witness'] == swapped['witness']
-    incomplete = analytics.detected_position(decoded_events_from_record(record), {}, seconds=0)
-    assert incomplete['status'] == 'unknown' and 'difference' not in incomplete
-
-
 def test_event_scope_counts_partial_heavy_boundaries_and_strict_metal_thresholds():
     reactant = endpoint(('Fe', 'C', 'H'), [(0, 1, 1.), (1, 2, 1.)])
     product = endpoint(('Fe', 'C', 'H', 'C'),

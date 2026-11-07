@@ -459,33 +459,27 @@ coordinator loss requires an explicit audit instead of silently repeating work.
 
 ### Minimum-event analysis of saved results
 
-For the position of ground truth relative to an **already detected** mapping,
-use `analytics.py --positions`. This retrieves one witness at the saved model
-minimum, without re-optimizing a heavy-only objective or using the reference to
-choose a mapping. Count heavy–heavy physical bond changes for both that witness
-and the ground truth. The plotted offset is reference count minus detected count;
-negative offsets are retained. Both directions must be supplied; the direction
-with the lower saved model minimum is selected, with forward winning ties.
-Partial references can cover different heavy atoms, and that difference is
-recorded. Unknown witness queries are excluded from numerical bins, not put at zero.
+To plot ground-truth position against the **saved detected minimum**, use
+`analytics.py --positions`. It reads the saved count directly, chooses the lower
+count across directions (forward wins ties), counts annotated heavy-atom events,
+and subtracts. It runs no matching, decoding, witness query or optimization.
+The saved minimum includes hydrogen events: this direct-count plot has mixed atom
+scope and must not be labelled as a heavy-only minimum comparison.
 
 The input JSON contains `source_files` checksums and `directions`; each direction
 has `dataset`, `case`, `reversed`, `decoded` and `reference` blob references.
-An optional `saved_minimum` avoids loading an unselected direction solely for its
-minimum metadata; it must come from the same saved output and is checked on load.
+Optional `saved_minimum` metadata must come from that same saved decoded output.
+Ground-truth counts use the annotation's own atom indices and graph, including
+bonds touching unmatched atoms; they do not assume its indices match the input.
 
 ```bash
 PYTHONPATH=src:bench python bench/analytics.py /path/to/positions.json \
-  /path/to/output --positions --slurm --workers 16 --seconds 10 \
-  --task-seconds 120 --memory-gib 8
+  /path/to/output --positions
 ```
 
-`--slurm` uses one existing allocation; omit it for a local pool. The worker
-count is per node under Slurm. Output retains per-reaction counts and witness
-references, with bounded task admission and aggregated storage. Render the
-saved counts with `analytics.plot_positions(results_path, figure_stem)` to get
-PNG, PDF and SVG panels with integer offsets and logarithmic reaction counts.
-These heavy-atom projections are not the decoder's original all-atom event bins.
+Render the numeric output with `analytics.plot_positions(results_path, figure_stem)`
+to get PNG, PDF and SVG panels: integer offsets on x, logarithmic reaction counts
+on y. Negative offsets are preserved. Missing minima remain outside the bins.
 
 `analytics.py` queries completed decoder outputs without rerunning matching or
 decoding. Supply an explicit JSON manifest with a `directions` list. Each row has
