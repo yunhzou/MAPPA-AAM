@@ -314,9 +314,15 @@ def compare(args, cases):
 
 def canonical_digest(value):
     """Hash every JSON field without constructing a second serialized record."""
+    import numpy as np
+    def array_values(item):
+        if isinstance(item, np.ndarray):
+            return item.tolist()
+        raise TypeError(f'Unsupported record value: {type(item).__name__}')
     digest = hashlib.sha256()
     size = 0
-    encoder = json.JSONEncoder(sort_keys=True, separators=(',', ':'), allow_nan=False)
+    encoder = json.JSONEncoder(sort_keys=True, separators=(',', ':'), allow_nan=False,
+                               default=array_values)
     for chunk in encoder.iterencode(value):
         raw = chunk.encode()
         digest.update(raw)

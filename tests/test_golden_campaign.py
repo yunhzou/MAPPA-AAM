@@ -771,6 +771,16 @@ def test_decoding_audit_hashes_complete_records_and_releases_old_before_loading_
         assert result['baseline']['metadata_sha256'] != result['candidate']['metadata_sha256']
 
 
+def test_decoding_audit_hashes_arrays_and_lists_identically():
+    import numpy as np
+    from performance import canonical_digest
+    matrix = np.array([[0., 1.25], [1.25, 0.]])
+    expected = canonical_digest(dict(weights=matrix.tolist()))
+    assert canonical_digest(dict(weights=matrix)) == expected
+    matrix[0, 1] = 1.5
+    assert canonical_digest(dict(weights=matrix)) != expected
+
+
 def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(tmp_path):
     from performance import audit_decoding, decoding_timings
     from prepare_batches import prepare_decoding, prepare_fresh
