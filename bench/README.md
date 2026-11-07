@@ -555,13 +555,19 @@ audit; an invalid certificate stops the pass for investigation.
 The report distinguishes the saved model's event count from physical bond changes,
 retains resource failures as unknown, and checks that source records are unchanged.
 An invalid certificate stops admission and drains active audit tasks.
-Saved catalogue certificates only prioritize which branch to query; they cannot
-establish decoded recovery. Missing or failed catalogue checks provide no hint
+Saved catalogue certificates can prioritize a branch or supply one candidate;
+they cannot establish decoded recovery on their own. A candidate is rewritten
+using the saved starts only when the required binary self operation is valid,
+then fully replayed and counted against the saved window. This checks one concrete
+witness and cannot establish absence. Missing or failed catalogue checks provide no hint
 and do not block this independent decoded audit. Their original records and
 budgets remain unchanged. An explicitly budgeted additional pass can use
 `--unknown-from /path/to/previous-audit/results.json` and a new output directory.
 It checks input identity and admits only unresolved directions, retaining the
 previous report hash. Report both passes and their combined resource use.
+Use `--seconds 0` in the shared CLI to check existing candidate certificates
+without further membership search. Candidates that cannot be validated remain
+unknown; they are never counted as absent.
 The shared CLI exposes `--max-nodes` separately from `--seconds`; these are
 query resources, not mapping or decoding settings. Reports count node-limited
 and time-limited queries separately. Increasing only elapsed time cannot remove

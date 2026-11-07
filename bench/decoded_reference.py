@@ -155,6 +155,78 @@ def audit_decoded_witness(decoded, reference, context, answer, *, reverse=False,
         certificate='replayed_saved_decoder_choices_with_scalar_event_count')
 
 
+def replay_catalogue_witness(decoded, reference, certificate, *, reverse=False, unmatched_heavy=True):
+    """Check an existing candidate against the saved starts, symmetries and window.
+
+    Rebase the correspondence on either side only when the resulting self
+    operation preserves that side's binary graph and anchors.
+    Failure to convert this one witness says nothing about other allowed choices.
+    """
+    from types import SimpleNamespace
+    from mappa.mappa_core.core.symmetry.actions import decision_blocks
+
+    family_id = certificate['family']
+    contexts = [key for key in decoded.window.contexts if key[0] == family_id]
+    if not contexts:
+        return None
+    family = decoded.catalogue.families[family_id]
+    evidence = certificate['evidence']
+    actions = {(a['transition'], a['kind']): a for a in evidence['actions']}
+    blocks = decision_blocks(family.actions)
+    transitions = [len(blocks)-1-i for i, block in enumerate(blocks) for _ in block]
+    if len(actions) != len(evidence['actions']) or set(actions) - set(zip(transitions, (a[0] for a in family.actions))):
+        raise ValueError('Catalogue certificate action identifiers differ')
+    choices = []
+    for (kind, fragment), transition in zip(family.actions, transitions):
+        action = actions.get((transition, kind))
+        if kind == 'relation':
+            selected = dict(decoded.local.prepare(fragment).optimization.discovery_witness)
+            inverse = {p: r for r, p in selected.items()}
+            positions = {p: i for i, p in enumerate(fragment.target_atoms)}
+            # Certificates omit identity operations. For a relation, identity
+            # means its original discovery and identity self permutations.
+            discovery = dict(fragment.witness if action is None else action['discovery'])
+            beta = tuple(range(len(fragment.target_atoms))) if action is None else action['target_permutation']
+            alpha = tuple(range(len(fragment.source_atoms))) if action is None else action['source_permutation']
+            adjusted = tuple(beta[positions[discovery[inverse[p]]]] for p in fragment.target_atoms)
+            if fragment.relation.target.contains(adjusted):
+                beta = adjusted  # beta' = beta o discovery o selected^-1
+            else:
+                inverse = {p: r for r, p in discovery.items()}
+                positions = {r: i for i, r in enumerate(fragment.source_atoms)}
+                adjusted = tuple(alpha[positions[inverse[selected[r]]]] for r in fragment.source_atoms)
+                if not fragment.relation.source.contains(adjusted):
+                    return None
+                alpha = adjusted  # alpha' = alpha o discovery^-1 o selected
+            choices.append(dict(discovery=selected, source_permutation=alpha, target_permutation=beta))
+        elif kind == 'group':
+            choices.append(dict(permutation=tuple(range(decoded.index.m)) if action is None
+                                else tuple(p for _, p in action['permutation'])))
+        elif kind == 'pool':
+            choices.append(tuple(fragment) if action is None else tuple(p for _, p in action['permutation']))
+        else:
+            raise ValueError('Unsupported catalogue certificate action')
+    mapping = decoded.realize(family_id, choices)
+    if mapping != dict(evidence['mapping']):
+        raise ValueError('Rebased catalogue witness changed its mapping')
+    vector = decoded.index.vector(mapping)
+    started = time.perf_counter()
+    for examined, (family_id, partition, cut) in enumerate(contexts, 1):
+        table = decoded._prepare_table(family_id, partition, decoded._table_key(family_id, partition, cut))
+        count = int(table.evaluate(vector)['total'])
+        del table
+        if decoded.minimum_lower_bound <= count <= decoded.event_window:
+            answer = SimpleNamespace(status='found', witness=tuple(sorted(mapping.items())),
+                                     choices=tuple(choices), event_count=count)
+            proof = audit_decoded_witness(decoded, reference, (family_id, partition, cut), answer,
+                                          reverse=reverse, unmatched_heavy=unmatched_heavy)
+            return dict(status='recovered', event_count=count, evidence=proof,
+                event_filter=dict(contexts=examined, rejected=0, symmetry_queries=0, proof_replays=1,
+                    seconds=time.perf_counter()-started, node_limited_queries=0, time_limited_queries=0),
+                policy='exact annotated indices in selected decoded window')
+    return None
+
+
 def audit_saved_decoding(payload, workspace):
     """External verification of immutable output; never rerun mapping or decoding."""
     from mappa.mappa_core.utils.io.records import decoded_events_from_record
@@ -169,13 +241,18 @@ def audit_saved_decoding(payload, workspace):
     original = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
     if FinalBranchCatalogue(original).problem_sha256 != decoded.matching_problem_sha256:
         raise ValueError('Decoded record belongs to different prepared endpoints')
-    preferred_family = None
+    certificate = None
     if row['verification'] is not None:
-        preferred_family = read_blob(Blob(**row['verification']), workspace.scratch).get('family')
+        certificate = read_blob(Blob(**row['verification']), workspace.scratch)
     loaded = time.perf_counter()
-    result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
-                            preferred_family=preferred_family, unmatched_heavy=payload['unmatched_heavy'],
-                            max_nodes=payload['max_nodes'])
+    result = None
+    if certificate is not None and certificate.get('status') == 'recovered' and 'evidence' in certificate:
+        result = replay_catalogue_witness(decoded, reference, certificate, reverse=row['reversed'],
+                                         unmatched_heavy=payload['unmatched_heavy'])
+    if result is None:
+        result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
+            preferred_family=certificate.get('family') if certificate is not None else None,
+            unmatched_heavy=payload['unmatched_heavy'], max_nodes=payload['max_nodes'])
     result.update(decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'],
                   input_sha256=row['input']['sha256'], loading_seconds=loaded-started,
                   query_seconds=time.perf_counter()-loaded)
@@ -225,8 +302,8 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
     from mappa.execution.identity import code_identity
     from mappa.mappa_core.core.scheduler import Task
 
-    if workers < 1 or memory_bytes < 1 or max_nodes < 1 or not 0 < seconds < task_seconds:
-        raise ValueError('Require positive workers/memory and 0 < query seconds < task seconds')
+    if workers < 1 or memory_bytes < 1 or max_nodes < 1 or not 0 <= seconds < task_seconds:
+        raise ValueError('Require positive workers/memory and 0 <= query seconds < task seconds')
     campaign, output = Path(campaign).resolve(), Path(output).resolve()
     if output == campaign or campaign in output.parents:
         raise ValueError('Use an audit output outside the immutable campaign')
@@ -329,7 +406,8 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--cases', nargs='+', type=int)
     parser.add_argument('--workers', type=int, default=1)
-    parser.add_argument('--seconds', type=float, default=10.)
+    parser.add_argument('--seconds', type=float, default=10.,
+                        help='Search allowance after candidate checking; zero checks existing candidates only')
     parser.add_argument('--task-seconds', type=float, default=60.)
     parser.add_argument('--max-nodes', type=int, default=10000,
                         help='Explicit search-node allowance per decoded query; reaching it remains unknown')

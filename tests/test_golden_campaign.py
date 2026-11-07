@@ -32,6 +32,11 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
     reference = dict(mapping=list(enumerate((1, 0, 3, 2))),
                      features=[dict(heavy=list(range(4)))]*2, generators=[(), ()])
     assert verify_catalogue(catalogue, reference)['status'] == 'recovered'
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from decoded_reference import replay_catalogue_witness
+    certificate = query_catalogue(catalogue, dict(reference['mapping']))
+    assert certificate['status'] == 'recovered'
+    assert replay_catalogue_witness(decoded, reference, certificate) is None
     assert verify_decoded(decoded, reference, preferred_family=0)['status'] == 'not_recovered'
     assert not decoded._tables
     reference['mapping'] = list(enumerate(range(4)))
@@ -60,6 +65,27 @@ def test_decoded_reference_keeps_explicit_unmatched_policy_separate():
     assert verify_decoded(decoded, reference, unmatched_heavy=False)['status'] == 'not_recovered'
 
 
+def test_catalogue_candidate_can_rebase_on_source_symmetry_for_unequal_connectivity():
+    from mappa import decode_events
+    from decoded_reference import replay_catalogue_witness
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    value = problem('CCC', [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    fragment = saved_fragment(value)
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decode_events(catalogue, event_slack=0)
+    for mapping in permutations(range(3)):
+        reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=[0, 1, 2])]*2)
+        certificate = query_catalogue(catalogue, dict(reference['mapping']))
+        assert certificate['status'] == 'recovered'
+        answer = replay_catalogue_witness(decoded, reference, certificate)
+        assert answer['status'] == 'recovered'
+        assert answer['event_count'] == answer['evidence']['physical_event_count'] == 1
+
+
 @pytest.mark.parametrize('kind', ['ring', 'anchored_ring', 'triangle_tail'])
 @pytest.mark.parametrize('slack', [0, 5])
 def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack):
@@ -70,6 +96,8 @@ def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack)
     from test_event_patterns import problem, saved_path
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
     from mappa.mappa_core.utils.io.records import decoded_events_from_record, decoded_events_record
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from decoded_reference import replay_catalogue_witness
 
     edges = ([(0, 1, 1.), (1, 2, 2.), (2, 3, 1.), (3, 0, 2.)]
              if 'ring' in kind else [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
@@ -94,6 +122,14 @@ def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack)
         reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=list(range(4)))]*2)
         result = verify_decoded(decoded, reference)
         assert result['status'] == ('recovered' if mapping in allowed else 'not_recovered')
+        certificate = query_catalogue(catalogue, dict(reference['mapping']))
+        if certificate['status'] == 'recovered':
+            replayed = replay_catalogue_witness(decoded, reference, certificate)
+            if replayed is not None:
+                assert mapping in allowed
+                assert dict(replayed['evidence']['mapping']) == dict(enumerate(mapping))
+            if kind == 'ring' and mapping in allowed:
+                assert replayed is not None
         bounded = verify_decoded(decoded, reference, max_nodes=1)
         if bounded['status'] == 'unknown':
             assert bounded['event_filter']['node_limited_queries'] > 0
@@ -224,7 +260,8 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
     store = BundleStore(source/'bundles')
     saved = store.put(SimpleNamespace(record=decoded_events_record(decoded)))
     input_blob = store.put(dict(raw_record(value), name=value.name))
-    catalogue_check = store.put(dict(status='recovered', family=0))
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    catalogue_check = store.put(query_catalogue(decoded.catalogue, {0: 0}))
     reference = store.put(dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2))
     raw = json.dumps(dict(directions=[dict(case=0, reversed=reverse, reference=asdict(reference), input=asdict(input_blob))
                                      for reverse in (False, True)]))
@@ -250,6 +287,10 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
         assert len(set(dict(proof['mapping']).values())) == 3
         assert proof['event_count'] == proof['physical_event_count'] == 0
     assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+    if catalogue_state == 'complete':
+        candidate_only = audit_decoding(source, tmp_path/'candidate-only', workers=1, seconds=0)
+        assert candidate_only['status_counts'] == {'recovered': 2}
+        assert all(row['event_filter']['proof_replays'] == 1 for row in candidate_only['results'])
     from decoded_reference import audit_inputs
     rows, files, unmatched = audit_inputs(source)
     manifest = tmp_path/'manifest.json'

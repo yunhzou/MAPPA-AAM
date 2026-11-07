@@ -51,6 +51,12 @@ symmetry. Resource-limited verification remains unknown.
 An available catalogue certificate can prioritize a decoded query's search, but
 is neither a prerequisite nor proof of decoded membership. Its absence or failure
 must not block an independent audit of successfully saved decoded responses.
+A catalogue witness may also supply a candidate for direct checking. Express it
+using the saved starting correspondences only when allowed binary symmetry
+operations preserve that same complete mapping. Acceptance still requires the
+retained context, full action replay, annotated pairs, injectivity and independently
+checked event count inside the saved window. An unsuitable candidate says nothing
+about whether another decoded witness exists.
 
 Before a decoded membership query, count the events already forced by the
 annotated assignments, using the same fixed ordinary boundaries and conservative
