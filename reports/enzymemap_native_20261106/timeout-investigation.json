@@ -5268,5 +5268,140 @@
         "capture_scope": "First restriction call, not necessarily the slowest restriction call"
       }
     ]
+  },
+  "symmetry_restriction_root_cause": {
+    "scope": "Isolated captured native restriction for 40793/reverse; no full decoding rerun",
+    "machine_class": "Local Apple silicon Mac; serial subprocesses",
+    "native_introducing_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+    "historical_source_revision": "c1325c30a1a037299ae6809f82e97542bfaf9682",
+    "cause": "Group.stabilizer rebuilds a complete generator-reduction chain after each fixed point, across unrelated disjoint components. It does not short-circuit when every movable position is fixed.",
+    "deadline_issue": "No cooperative deadline checks within native group construction",
+    "historical_operation": {
+      "case": "40793/reverse",
+      "operation": "SymPy pointwise_stabilizer incremental=False as used before native acceleration",
+      "wall_seconds": 0.0659493338316679,
+      "cpu_seconds": 0.06595500000000001,
+      "identity_result_verified": true
+    },
+    "isolated_measurements": [
+      {
+        "case": "8",
+        "mode": "current",
+        "wall_seconds": 9.041721932590008e-05,
+        "cpu_seconds": 9.100000000000774e-05,
+        "degree": 16,
+        "generators": 8,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "8",
+        "mode": "split",
+        "wall_seconds": 4.495796747505665e-05,
+        "cpu_seconds": 4.499999999998949e-05,
+        "degree": 16,
+        "generators": 8,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "16",
+        "mode": "current",
+        "wall_seconds": 0.0016700827982276678,
+        "cpu_seconds": 0.0016670000000000018,
+        "degree": 32,
+        "generators": 16,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "16",
+        "mode": "split",
+        "wall_seconds": 0.0001092089805752039,
+        "cpu_seconds": 0.00010899999999999799,
+        "degree": 32,
+        "generators": 16,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "32",
+        "mode": "current",
+        "wall_seconds": 0.049367459025233984,
+        "cpu_seconds": 0.04935400000000001,
+        "degree": 64,
+        "generators": 32,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "32",
+        "mode": "split",
+        "wall_seconds": 0.00022004195488989353,
+        "cpu_seconds": 0.00021999999999999797,
+        "degree": 64,
+        "generators": 32,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "64",
+        "mode": "current",
+        "wall_seconds": 2.3228170410729945,
+        "cpu_seconds": 2.321807,
+        "degree": 128,
+        "generators": 64,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "64",
+        "mode": "split",
+        "wall_seconds": 0.0006953328847885132,
+        "cpu_seconds": 0.0006950000000000012,
+        "degree": 128,
+        "generators": 64,
+        "remaining_generators": 1,
+        "identity_or_free_pair_oracle_passed": true
+      },
+      {
+        "case": "real",
+        "mode": "current",
+        "status": "diagnostic_timeout",
+        "watchdog_seconds": 15
+      },
+      {
+        "case": "real",
+        "mode": "split",
+        "wall_seconds": 0.0016185829881578684,
+        "cpu_seconds": 0.0016149999999999776,
+        "degree": 269,
+        "generators": 83,
+        "remaining_generators": 0,
+        "identity_or_free_pair_oracle_passed": true
+      }
+    ],
+    "validation": {
+      "exhaustive_small_checks": 483,
+      "failed": 0,
+      "explicit_correlated_pair_lock": true,
+      "composed_generators_retained": true,
+      "real_case": "40793/reverse",
+      "real_repeats": 7,
+      "real_wall_seconds": [
+        0.0014779160264879465,
+        0.0014753330033272505,
+        0.0013510831631720066,
+        0.0013529160059988499,
+        0.001345084048807621,
+        0.001367167104035616,
+        0.001335709122940898
+      ],
+      "real_median_seconds": 0.0013529160059988499,
+      "validation_elapsed_seconds": 1.7422158338595182,
+      "production_source_changed": false
+    },
+    "comparison_caveat": "Historical timing is one isolated operation. Native current was stopped at a 15-second process watchdog including import/startup. Split timings include native factorization, restriction and output construction, with seven further repeats for the real case. These are not whole-decoder speedups.",
+    "implementation_status": "Diagnostic composition of existing functions only; production code and benchmark budgets unchanged"
   }
 }

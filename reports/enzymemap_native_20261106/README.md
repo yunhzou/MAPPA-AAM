@@ -307,3 +307,41 @@ extra retry time or failed-stage reruns were made during this investigation.
 The separate memory failures still require recovery.
 
 Sanitized evidence: [profiles and terminal stage counts](timeout-investigation.json).
+
+### Isolated symmetry-restriction diagnosis
+
+The captured restriction for **40793 reverse** confirms a performance regression
+in the native replacement introduced by `040f817`. The preceding implementation
+used SymPy's `pointwise_stabilizer(..., incremental=False)`. On the same captured
+input on the local Mac, that historical operation completed in **65.95 ms**;
+the current native operation did not finish within a **15-second process
+watchdog**. These are isolated operations, not full historical/current decoding
+runs.
+
+The native helper fixes atoms one at a time. After each effective restriction,
+it reconstructs a complete generator-reduction chain, including unrelated
+independent symmetry components. Each insertion into that chain also rebuilds
+intermediate representatives. The helper does not recognize the immediate
+identity answer when all movable positions are fixed. The main event search
+separates independent components, but this helper again processes the full
+event-preserving symmetry group.
+
+An isolated calculation using the **existing native independent-factor and
+restriction functions** first separated those components, restricted each one,
+and collected their generators. It returned the exact identity for the captured
+case in **1.35 ms median across seven repeats**, including factorization and
+result construction. This experimental composition is not integrated into
+production. No SymPy fallback or change in allowed mappings was introduced.
+
+The same calculation passed **483 checks against independent exhaustive small
+groups**, including a paired exchange that must move together and a case where
+combining generators permits a restriction that no individual generator supplies.
+For 64 independent pair swaps with all but the last pair fixed, the current
+operation took **2.323 s**, while separate restrictions took **0.695 ms** and
+retained exactly the one free swap. This also demonstrates avoidable cost when
+the answer is not the identity.
+
+These measurements identify redundant native group construction as a concrete
+cause. They do not establish the performance of a production repair, its effect
+on all 37 decoding failures, or a full-decoder speedup. The scientific code,
+existing benchmark outputs and retry allowances remain unchanged.
