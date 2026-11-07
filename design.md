@@ -755,6 +755,18 @@ and symmetry witness. Reduced finite constraints are transferred to the native
 solver in one batch; this changes query execution, not the retained mapping
 relation or the reference-equivalence policy.
 
+Exact annotated-index catalogue verification shares fragment membership answers
+across compositions. Reject impossible atom-set compositions before solving local
+relations. Independent fragment answers compose directly; overlapping local or
+global placement choices retain their original joint order. Cache the complete
+local query conditions, not just an atom-set Boolean. Unannotated atoms still
+require full feasible local assignments. Element-preserving actions that only
+move unannotated element classes do not couple the annotated query. Replay the
+accepted composition against its saved family and retain its full injective
+certificate. Unknown local answers remain unknown. This changes verification
+execution only; it neither expands catalogue permissions nor proves decoded
+event-window membership.
+
 Matcher acceptance requires independent mapping-relation checks, meaningful
 branch and cap checks, and Python/native agreement. Critical cases include C6
 into C6 producing one compressed match, and C6 into two rings retaining both

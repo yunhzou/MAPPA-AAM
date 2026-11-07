@@ -14,13 +14,14 @@ import tempfile
 import time
 import uuid
 
-from mappa import AAMSearchConfig, EventDecodeConfig, query_path
+from mappa import AAMSearchConfig, EventDecodeConfig
 from mappa.execution import BundleStore, StageResults, WorkPool
 from mappa.execution.identity import code_identity
 from mappa.mappa_core.core.scheduler import Task
 from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
 from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
 from mappa.mappa_core.utils.io.records import problem_from_record
+from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
 
 
 def decoding_policy(index):
@@ -98,15 +99,8 @@ def verify(payload, workspace):
     target = dict(reference['mapping'])
     if payload['reversed']:
         target = {product: reactant for reactant, product in target.items()}
-    unknown = False
-    for fid, family in enumerate(saved.catalogue.families):
-        status, evidence = query_path(family.as_path(saved.catalogue.problem), saved.catalogue.problem,
-            target, source_atoms=tuple(sorted(target)), complete_reference=True, timeout_ms=1000)
-        if status == 'recovered':
-            return dict(status=status, family=fid, evidence=evidence, heavy_atoms=len(target),
-                        policy='exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
-        unknown |= status == 'unknown'
-    return dict(status='unknown' if unknown else 'not_recovered', heavy_atoms=len(target),
+    result = query_catalogue(saved.catalogue, target, timeout_ms=1000)
+    return dict(result, heavy_atoms=len(target),
                 policy='exact annotated heavy-atom indices; no endpoint-symmetry relaxation')
 
 

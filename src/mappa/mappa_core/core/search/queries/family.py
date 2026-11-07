@@ -70,7 +70,7 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     physical mapping. Partial matching and external analytics share this compiler;
     ordinary event decoding uses its prepared local responses instead.
     """
-    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints, compile_relaxed_relation
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
     started = time.perf_counter()
     encoder = FiniteConstraints()
     source_atoms = tuple(source_atoms)
@@ -84,19 +84,14 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
         encoder.failed = True
         return CompiledFamily(encoder, values, representative, actions, path, problem,
                               time.perf_counter() - started)
+    program = []
     for edge_id in reversed(path.transitions):
         edge = path.graph.transitions[edge_id]
-        fragment = edge.match
-        if fragment is not None:
-            relation = compile_relaxed_relation(encoder, fragment.relation, edge_id,
-                                                images_only=True)
-            transport = {p: relation.images[r] for r, p in fragment.witness}
-            values = [encoder.lookup(value, transport) for value in values]
-            actions.append(('relation', edge_id, relation))
+        if edge.match is not None:
+            program.append(('relation', edge_id, edge.match))
         if edge.placement_generators:
-            start = len(encoder.program)
-            values = encoder.act(values, edge.placement_generators, ('placement', edge_id))
-            actions.append(('group', edge_id, tuple(encoder.program[start:])))
+            program.append(('group', edge_id, edge.placement_generators))
+    values, actions = compile_actions(encoder, values, program)
     if len(set(representative.values())) != len(representative):
         encoder.failed = True
     for r in representative:
@@ -113,6 +108,47 @@ def compile_path(path, problem, reference, *, source_atoms, source_generators=()
     encoder.propagate()
     return CompiledFamily(encoder, physical_values, representative, actions, path, problem,
                           time.perf_counter() - started)
+
+
+def compile_actions(encoder, values, program):
+    """Bind requested images to complete, ordered fragment and placement choices."""
+    from mappa.mappa_core.core.symmetry.constraints import compile_relaxed_relation
+    actions = []
+    for kind, label, data in program:
+        if kind == 'relation':
+            relation = compile_relaxed_relation(encoder, data.relation, label, images_only=True)
+            transport = {p: relation.images[r] for r, p in data.witness}
+            values = [encoder.lookup(value, transport) for value in values]
+            actions.append((kind, label, relation))
+        else:
+            start = len(encoder.program)
+            values = encoder.act(values, data, ('placement', label))
+            actions.append((kind, label, tuple(encoder.program[start:])))
+    return values, actions
+
+
+def realize_actions(encoder, actions, model, degree):
+    """Return checked full permutations, retaining each local discovery certificate."""
+    def number(value):
+        expression = encoder.expression(value)
+        return expression if isinstance(expression, int) else model.eval(
+            expression, model_completion=True).as_long()
+
+    result = []
+    for kind, label, action in actions:
+        if kind == 'relation':
+            selected = action.realize(model)
+            transport = {p: selected[r] for r, p in action.relation.witness}
+            result.append(dict(kind=kind, transition=label,
+                permutation=sorted(transport.items()), **action.choices(model)))
+        else:
+            permutation = tuple(range(degree))
+            for _, _, choice, factor in action:
+                selected = factor[number(choice)]
+                permutation = tuple(selected[p] if p < len(selected) else p for p in permutation)
+            result.append(dict(kind=kind, transition=label,
+                               permutation=list(enumerate(permutation))))
+    return result
 
 
 @dataclass
@@ -208,23 +244,12 @@ def _realize(compiled, model):
         return value if isinstance(value, int) else model.eval(value, model_completion=True).as_long()
 
     actual = dict(compiled.representative)
-    actions = []
-    checked_edges = 0
-    for kind, edge_id, action in compiled.actions:
-        if kind == 'relation':
-            selected = action.realize(model)
-            transport = {p: selected[r] for r, p in action.relation.witness}
-            actions.append(dict(kind=kind, transition=edge_id,
-                permutation=sorted(transport.items()), **action.choices(model)))
-            checked_edges += len(action.relation.accepted_edges)
-        else:
-            permutation = tuple(range(compiled.problem.target_atom_count))
-            for _, _, choice, factor in action:
-                selected = factor[number(compiled.constraints.expression(choice))]
-                permutation = tuple(selected[p] if p < len(selected) else p for p in permutation)
-            transport = dict(enumerate(permutation))
-            actions.append(dict(kind=kind, transition=edge_id,
-                                permutation=sorted(transport.items())))
+    actions = realize_actions(compiled.constraints, compiled.actions, model,
+                              compiled.problem.target_atom_count)
+    checked_edges = sum(len(action.relation.accepted_edges)
+                        for kind, _, action in compiled.actions if kind == 'relation')
+    for action in actions:
+        transport = dict(action['permutation'])
         actual = {r: transport.get(p, p) for r, p in actual.items()}
     assert actual == {r: number(compiled.values[r][0]) for r in actual}
     assert len(set(actual.values())) == len(actual)

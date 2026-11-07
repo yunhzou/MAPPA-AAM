@@ -3,6 +3,45 @@ from dataclasses import dataclass
 import math
 import time
 
+
+def query_catalogue(catalogue, reference, *, timeout_ms=1000):
+    """Exact annotated-index membership, reusing shared fragment answers.
+
+    This tests the retained catalogue, not a decoded orbit or event window.
+    Endpoint-equivalence policies belong to their explicit query callers.
+    """
+    from mappa.mappa_core.core.search.queries.reference import ReferenceQuery
+    from mappa.mappa_core.core.symmetry.actions import decision_blocks
+
+    query = ReferenceQuery(catalogue.problem, reference, timeout_ms=timeout_ms)
+    unknown = False
+    for fid, family in enumerate(catalogue.families):
+        status, evidence = query.query(family.mapping, family.actions)
+        if status == 'recovered':
+            blocks = decision_blocks(family.actions)
+            transitions = [len(blocks) - 1 - i for i, block in enumerate(blocks)
+                           for _ in block]
+            fragments, placements = {}, {}
+            for choice in evidence['actions']:
+                choice['transition'] = transitions[choice.pop('action')]
+                if choice['kind'] == 'relation':
+                    fragments[choice['transition']] = {key: choice[key] for key in
+                        ('discovery', 'source_permutation', 'target_permutation')}
+                else:
+                    placements[choice['transition']] = {
+                        'permutation': tuple(p for _, p in choice['permutation'])}
+            # Replay only the accepted composition through the original saved path.
+            realized = family.as_path(catalogue.problem).realize(
+                fragment_choices=fragments, placement_choices=placements)
+            if dict(realized.mapping) != dict(evidence['mapping']):
+                raise ValueError('Reference certificate disagrees with the saved family')
+            evidence['fragment_choices'] = fragments
+            evidence['placement_choices'] = placements
+            return dict(status=status, family=fid, evidence=evidence, work=query.stats)
+        unknown |= status == 'unknown'
+    return dict(status='unknown' if unknown else 'not_recovered', work=query.stats)
+
+
 @dataclass(frozen=True)
 class ShuffleQuery:
     status: str  # allowed / forbidden / unknown
