@@ -89,14 +89,23 @@ def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack)
             if decoded.minimum_lower_bound <= count <= decoded.event_window:
                 allowed.add(mapping)
     before = json.dumps(decoded_events_record(decoded), sort_keys=True)
+    limited_queries = 0
     for mapping in permutations(range(4)):
         reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=list(range(4)))]*2)
         result = verify_decoded(decoded, reference)
         assert result['status'] == ('recovered' if mapping in allowed else 'not_recovered')
+        bounded = verify_decoded(decoded, reference, max_nodes=1)
+        if bounded['status'] == 'unknown':
+            assert bounded['event_filter']['node_limited_queries'] > 0
+            limited_queries += 1
+        else:
+            assert bounded['status'] == result['status']
         if mapping in allowed:
             proof = result['evidence']
             assert dict(proof['mapping']) == dict(enumerate(mapping))
             assert proof['event_count'] == proof['physical_event_count']
+    if kind == 'ring' and slack == 5:
+        assert limited_queries > 0
     assert json.dumps(decoded_events_record(decoded), sort_keys=True) == before
     assert not decoded._tables
     reference['mapping'] = [(0, 0), (1, 0), (2, 2), (3, 3)]

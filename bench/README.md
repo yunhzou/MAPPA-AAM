@@ -562,6 +562,10 @@ budgets remain unchanged. An explicitly budgeted additional pass can use
 `--unknown-from /path/to/previous-audit/results.json` and a new output directory.
 It checks input identity and admits only unresolved directions, retaining the
 previous report hash. Report both passes and their combined resource use.
+The shared CLI exposes `--max-nodes` separately from `--seconds`; these are
+query resources, not mapping or decoding settings. Reports count node-limited
+and time-limited queries separately. Increasing only elapsed time cannot remove
+a search-node limit. Preserve the original pass when granting either allowance.
 
 ## Replay fragment event responses
 

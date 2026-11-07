@@ -18,7 +18,7 @@ def _publish(path, report):
 
 
 def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_family=None,
-                   unmatched_heavy=True):
+                   unmatched_heavy=True, max_nodes=10000):
     """Test exact annotated indices in the retained event window, separately from catalogue membership.
 
     This diagnostic does not relax reference indices by endpoint symmetry.
@@ -34,7 +34,8 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     contexts = sorted(decoded.window.contexts, key=lambda c: c[0] != preferred_family)
     started = time.perf_counter()
     bound = AssignedEventBound(decoded.index, mapping)
-    filtering = dict(contexts=0, rejected=0, symmetry_queries=0, seconds=time.perf_counter()-started)
+    filtering = dict(contexts=0, rejected=0, symmetry_queries=0, seconds=time.perf_counter()-started,
+                     node_limited_queries=0, time_limited_queries=0)
     unknown = False
     for family, partition, cut in contexts:
         mapped = dict(decoded.catalogue.families[family].mapping)
@@ -63,7 +64,9 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
             break
         filtering['symmetry_queries'] += 1
         answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
-            assignments=mapping, seconds=remaining)
+            assignments=mapping, seconds=remaining, max_nodes=max_nodes)
+        filtering['node_limited_queries'] += int(answer.work.cap_reached)
+        filtering['time_limited_queries'] += int(answer.work.time_limit_reached and not answer.work.cap_reached)
         if answer.status == 'found':
             evidence = audit_decoded_witness(decoded, reference, (family, partition, cut),
                                              answer, reverse=reverse, unmatched_heavy=unmatched_heavy)
@@ -171,7 +174,8 @@ def audit_saved_decoding(payload, workspace):
         preferred_family = read_blob(Blob(**row['verification']), workspace.scratch).get('family')
     loaded = time.perf_counter()
     result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
-                            preferred_family=preferred_family, unmatched_heavy=payload['unmatched_heavy'])
+                            preferred_family=preferred_family, unmatched_heavy=payload['unmatched_heavy'],
+                            max_nodes=payload['max_nodes'])
     result.update(decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'],
                   input_sha256=row['input']['sha256'], loading_seconds=loaded-started,
                   query_seconds=time.perf_counter()-loaded)
@@ -215,13 +219,13 @@ def audit_inputs(campaign):
 
 
 def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task_seconds=60.,
-                   memory_bytes=2**31, unknown_from=None, slurm=False):
+                   memory_bytes=2**31, unknown_from=None, slurm=False, max_nodes=10000):
     """Audit immutable saved outputs in one guarded pool and aggregated evidence bundle."""
     from mappa.execution import BundleStore, WorkPool
     from mappa.execution.identity import code_identity
     from mappa.mappa_core.core.scheduler import Task
 
-    if workers < 1 or memory_bytes < 1 or not 0 < seconds < task_seconds:
+    if workers < 1 or memory_bytes < 1 or max_nodes < 1 or not 0 < seconds < task_seconds:
         raise ValueError('Require positive workers/memory and 0 < query seconds < task seconds')
     campaign, output = Path(campaign).resolve(), Path(output).resolve()
     if output == campaign or campaign in output.parents:
@@ -254,7 +258,7 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
         hydrogen_policy='unannotated; must admit one complete injective witness',
         event_count_policy='saved independent-fragment model; physical count reported separately',
         resources=dict(workers=workers, query_seconds=seconds, task_seconds=task_seconds,
-                       memory_bytes=memory_bytes), results=[])
+                       memory_bytes=memory_bytes, query_max_nodes=max_nodes), results=[])
     if previous is not None:
         report['previous_audit_sha256'] = hashlib.sha256(Path(unknown_from).read_bytes()).hexdigest()
     store = BundleStore(output/'bundles')
@@ -266,7 +270,7 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
                       startup_seconds=pool.startup_elapsed_seconds)
         pending = {row['name']: row for row in rows}
         pool.queue.add([Task(name, 'decoded_reference:audit_saved_decoding',
-            dict(row=row, seconds=seconds, unmatched_heavy=unmatched_heavy,
+            dict(row=row, seconds=seconds, max_nodes=max_nodes, unmatched_heavy=unmatched_heavy,
                  verifier_sha256=report['verifier_sha256']),
             case=name, case_seconds=task_seconds, memory_bytes=memory_bytes) for name, row in pending.items()])
         next_publish = 0.
@@ -327,13 +331,15 @@ def main():
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--seconds', type=float, default=10.)
     parser.add_argument('--task-seconds', type=float, default=60.)
+    parser.add_argument('--max-nodes', type=int, default=10000,
+                        help='Explicit search-node allowance per decoded query; reaching it remains unknown')
     parser.add_argument('--memory-gib', type=float, default=2.)
     parser.add_argument('--unknown-from', type=Path)
     parser.add_argument('--slurm', action='store_true')
     args = parser.parse_args()
     report = audit_decoding(args.inputs, args.output, cases=args.cases, workers=args.workers,
         seconds=args.seconds, task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30),
-        unknown_from=args.unknown_from, slurm=args.slurm)
+        unknown_from=args.unknown_from, slurm=args.slurm, max_nodes=args.max_nodes)
     return int(report['certificate_failures'] > 0)
 
 
