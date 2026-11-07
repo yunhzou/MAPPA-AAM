@@ -28,10 +28,10 @@ def binary_group(size, edges, colors):
     return permutation_group(structural_generators(size, edges, colors), size)
 
 
-def independent_factors(group, adjacency=None):
+def independent_factors(group, adjacency=None, *, seconds=None):
     """Extract certified native factors, retaining unresolved correlations."""
     from mappa._group_ops import independent_factors as split
-    return tuple(split(group, adjacency))
+    return tuple(split(group, adjacency, seconds))
 
 
 def event_components(factors, pairs):

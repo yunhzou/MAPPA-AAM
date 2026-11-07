@@ -5403,5 +5403,39 @@
     },
     "comparison_caveat": "Historical timing is one isolated operation. Native current was stopped at a 15-second process watchdog including import/startup. Split timings include native factorization, restriction and output construction, with seven further repeats for the real case. These are not whole-decoder speedups.",
     "implementation_status": "Diagnostic composition of existing functions only; production code and benchmark budgets unchanged"
+  },
+  "symmetry_restriction_repair": {
+    "scope": "Native pointwise restriction and cooperative deadlines; unchanged mathematical group, mapping relation and event model.",
+    "method": "Restrict disjoint generator-support components in compact frames; coupled supports remain joined; fixing all moved points returns identity immediately.",
+    "captured_operation": {
+      "case": "40793/reverse",
+      "method": "corrected production native stabilizer",
+      "wall_seconds": [
+        7.804203778505325e-05,
+        7.391581311821938e-05,
+        7.125013507902622e-05,
+        6.395881064236164e-05,
+        6.554112769663334e-05,
+        6.387499161064625e-05,
+        6.325007416307926e-05,
+        6.325007416307926e-05,
+        6.504100747406483e-05
+      ],
+      "median_seconds": 6.504100747406483e-05,
+      "identity_result_verified": true
+    },
+    "campaign_outputs_modified": false,
+    "new_retry_time_granted": 0,
+    "validation_status": "Full local suite passed; affected catalogue decoding pending.",
+    "local_tests": {
+      "passed": 1325,
+      "failed": 0,
+      "wall_seconds": 126.03,
+      "command": "PYTHONPATH=src:bench:tests python -m pytest -q",
+      "native_extensions_rebuilt": [
+        "group_ops",
+        "engine"
+      ]
+    }
   }
 }

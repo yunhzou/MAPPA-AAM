@@ -279,6 +279,7 @@ class FragmentSymmetryEvents:
 class _Search:
     def __init__(self, prepared, max_nodes, cache_entries):
         self.data = prepared
+        self.deadline = prepared.deadline
         self.max_nodes = max_nodes
         self.cache_entries = cache_entries
         self.work = SymmetryWork()
@@ -288,11 +289,14 @@ class _Search:
         self.restrictions = OrderedDict()
 
     def stopped(self):
-        if self.data.deadline is not None and perf_counter() >= self.data.deadline:
+        if self.deadline is not None and perf_counter() >= self.deadline:
             self.work.time_limit_reached = True
         if self.max_nodes is not None and self.work.nodes >= self.max_nodes:
             self.work.cap_reached = True
         return self.work.time_limit_reached or self.work.cap_reached
+
+    def remaining(self):
+        return None if self.deadline is None else max(0., self.deadline - perf_counter())
 
     def _score(self, prefix, pairs):
         self.work.score_evaluations += 1
@@ -303,7 +307,7 @@ class _Search:
         key = group_key(group)
         if key not in self.groups:
             moved = support(group)
-            factors = independent_factors(group, self.data.factor_graph)
+            factors = independent_factors(group, self.data.factor_graph, seconds=self.remaining())
             orbits = [orbit for orbit in group.orbits() if len(orbit) > 1]
             point = min((i for orbit in orbits for i in orbit),
                 key=lambda i: (next(len(orbit) for orbit in orbits if i in orbit),
@@ -341,7 +345,7 @@ class _Search:
             moving = set(support(invariant))
             additional = [atom for atom in outside if atom in moving and not (inherited & (1 << atom))]
             if additional:
-                invariant = invariant.stabilizer(additional)
+                invariant = invariant.stabilizer(additional, seconds=self.remaining())
             if self.cache_entries:
                 self.restrictions[fixed] = invariant
                 if len(self.restrictions) > self.cache_entries:
@@ -378,7 +382,11 @@ class _Search:
                 cost, images, visited = projected
                 self.work.projected_pair_states += visited
                 return _Answer(cost, tuple((i, int(images[i])) for i in support(group)), True)
-        key, (moved, factors, point) = self._metadata(group)
+        try:
+            key, (moved, factors, point) = self._metadata(group)
+        except SearchDeadlineReached:
+            self.work.time_limit_reached = True
+            return _Answer(initial, tuple((i, int(prefix[i])) for i in support(group)), False)
         relevant = sorted(set(moved).union(atom for pair in pairs for atom in pair))
         answer_key = key, pairs, tuple(int(prefix[i]) for i in relevant)
         if answer_key in self.answers:
@@ -414,14 +422,19 @@ class _Search:
         if affected and point not in affected:
             point = min(affected)
         step_key = key, point
-        if step_key not in self.steps:
-            representatives = group.transversal(point)
-            representatives.sort(key=lambda item: (item[0] != point, item[0]))
-            self.steps[step_key] = group.stabilizer((point,)), representatives
-            self.work.group_steps_prepared += 1
-        subgroup, representatives = self.steps[step_key]
+        try:
+            if step_key not in self.steps:
+                representatives = group.transversal(point, seconds=self.remaining())
+                representatives.sort(key=lambda item: (item[0] != point, item[0]))
+                self.steps[step_key] = group.stabilizer((point,), seconds=self.remaining()), representatives
+                self.work.group_steps_prepared += 1
+            subgroup, representatives = self.steps[step_key]
+            representatives = self._representatives(prefix, representatives, moved)
+        except SearchDeadlineReached:
+            self.work.time_limit_reached = True
+            return best
         complete = True
-        for _, operation in self._representatives(prefix, representatives, moved):
+        for _, operation in representatives:
             next_prefix = prefix[np.asarray(operation[:self.data.size])]
             answer = self._solve(subgroup, next_prefix, active)
             complete = complete and answer.complete

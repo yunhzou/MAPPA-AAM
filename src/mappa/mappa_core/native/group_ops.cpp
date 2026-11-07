@@ -588,11 +588,12 @@ PYBIND11_MODULE(_group_ops, m) {
         return py::make_tuple(parents, counts, endings);
     });
     m.def("independent_factors", [](const std::shared_ptr<permutation_native::Group>& group,
-            std::optional<MatrixArray> adjacency) {
+            std::optional<MatrixArray> adjacency, std::optional<double> seconds) {
+        event_native::Deadline deadline(seconds);
         auto graph = adjacency ? matrix_values(*adjacency, group->degree) : event_native::Matrix{};
         py::gil_scoped_release release;
-        return permutation_native::independent_factors(group, adjacency ? &graph : nullptr);
-    });
+        return permutation_native::independent_factors(group, adjacency ? &graph : nullptr, deadline);
+    }, py::arg("group"), py::arg("adjacency") = py::none(), py::arg("seconds") = py::none());
     m.def("event_components", &permutation_native::event_components, py::call_guard<py::gil_scoped_release>());
     py::register_exception<event_native::SearchExpired>(m, "SearchDeadlineReached");
     m.def("fragment_event_terms", [](const MatrixArray& source, const MatrixArray& target,
@@ -652,8 +653,10 @@ PYBIND11_MODULE(_group_ops, m) {
         .def("orbits", &permutation_native::Group::orbits, py::call_guard<py::gil_scoped_release>())
         .def("pair_orbits", &permutation_native::Group::pair_orbits, py::arg("selected") = py::none(),
              py::call_guard<py::gil_scoped_release>())
-        .def("transversal", &permutation_native::Group::transversal, py::call_guard<py::gil_scoped_release>())
-        .def("stabilizer", &permutation_native::Group::stabilizer, py::call_guard<py::gil_scoped_release>())
+        .def("transversal", &permutation_native::Group::transversal, py::arg("point"), py::arg("seconds") = py::none(),
+             py::call_guard<py::gil_scoped_release>())
+        .def("stabilizer", &permutation_native::Group::stabilizer, py::arg("fixed"), py::arg("seconds") = py::none(),
+             py::call_guard<py::gil_scoped_release>())
         .def("contains", &permutation_native::Group::contains, py::call_guard<py::gil_scoped_release>())
         .def("transversals", &permutation_native::Group::transversals, py::call_guard<py::gil_scoped_release>())
         .def("order", [](const permutation_native::Group& group) {

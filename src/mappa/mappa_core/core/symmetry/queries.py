@@ -67,6 +67,7 @@ class EventSelection:
                     self.lower - data.fixed_events, self.upper - data.fixed_events, conditions)
             status = 'absent' if prefix is None else 'found'
         except SearchDeadlineReached:
+            search.work.time_limit_reached = True
             prefix, status = None, 'unknown'
         witness, choices, count = None, None, None
         if prefix is not None:
@@ -129,9 +130,9 @@ class _EventSearch(_Search):
                 point = min(affected) if affected else point
                 step_key = key, point
                 if step_key not in self.steps:
-                    representatives = sorted(group.transversal(point),
+                    representatives = sorted(group.transversal(point, seconds=self.remaining()),
                         key=lambda item: (item[0] != point, item[0]))
-                    self.steps[step_key] = group.stabilizer((point,)), representatives
+                    self.steps[step_key] = group.stabilizer((point,), seconds=self.remaining()), representatives
                     self.work.group_steps_prepared += 1
                 subgroup, representatives = self.steps[step_key]
                 # Count invariance alone does not preserve a requested endpoint.

@@ -8,19 +8,6 @@ namespace event_native {
 using Pair = std::pair<int, int>;
 using Pairs = std::vector<Pair>;
 
-class Deadline {
-    std::chrono::steady_clock::time_point end;
-public:
-    explicit Deadline(std::optional<double> seconds) {
-        end = seconds ? std::chrono::steady_clock::now() +
-            std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(*seconds))
-            : std::chrono::steady_clock::time_point::max();
-    }
-    void check() const {
-        if (std::chrono::steady_clock::now() >= end) throw SearchExpired();
-    }
-};
-
 inline std::vector<double> pair_values(const Matrix& weights, const Pairs& pairs) {
     std::vector<double> values;
     values.reserve(pairs.size());

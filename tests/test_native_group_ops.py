@@ -60,6 +60,59 @@ def test_native_group_chain_keeps_factorial_symmetry_compact():
         __file__], check=True, timeout=10)
 
 
+def _check_independent_restrictions():
+    # Fixing many independent pairs must not repeatedly rebuild one large chain.
+    count = 128
+    degree = 2 * count
+    generators = []
+    for i in range(count):
+        action = list(range(degree))
+        action[2*i], action[2*i+1] = action[2*i+1], action[2*i]
+        generators.append(action)
+    group = PermutationGroup(degree, generators)
+    assert not group.stabilizer(range(degree), seconds=1.).generators
+    remaining = group.stabilizer(range(degree-2), seconds=1.)
+    assert remaining.generators == (tuple(generators[-1]),)
+
+
+def test_native_restriction_does_not_rebuild_unrelated_pair_symmetries():
+    subprocess.run([sys.executable, '-c',
+        "import runpy,sys; runpy.run_path(sys.argv[1])['_check_independent_restrictions']()",
+        __file__], check=True, timeout=10)
+
+
+def test_native_restriction_preserves_coupled_and_composed_operations():
+    from growth_cases import group_actions
+
+    # A coupled pair exchange cannot become two independently usable swaps.
+    coupled = PermutationGroup(4, [(1, 0, 3, 2)])
+    assert not coupled.stabilizer((0,)).generators
+    assert set(group_actions(coupled.stabilizer(()).generators, 4)) == {(0, 1, 2, 3), (1, 0, 3, 2)}
+    # Keeping only individually eligible input generators would lose this swap.
+    composed = PermutationGroup(3, [(1, 0, 2), (1, 2, 0)])
+    assert set(group_actions(composed.stabilizer((0,)).generators, 3)) == {(0, 1, 2), (0, 2, 1)}
+
+
+def test_native_restriction_deadline_interrupts_chain_construction():
+    from mappa._group_ops import SearchDeadlineReached
+    from time import perf_counter
+
+    degree = 128
+    generators = []
+    for i in range(degree-1):
+        action = list(range(degree))
+        action[i], action[i+1] = action[i+1], action[i]
+        generators.append(action)
+    group = PermutationGroup(degree, generators)
+    start = perf_counter()
+    with pytest.raises(SearchDeadlineReached):
+        group.stabilizer((0,), seconds=.001)
+    assert perf_counter()-start < 1.
+    # Interruption must not change the original group or publish partial output.
+    assert group.generators == tuple(map(tuple, generators))
+    assert not group.stabilizer(range(degree), seconds=1.).generators
+
+
 def reference(witness, degree, stages, attachments, fragments, bonds, limit=-1):
     def key(images):
         return (tuple(sorted(images)), tuple(sorted(images[i] for i in attachments)),

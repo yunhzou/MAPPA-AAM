@@ -22,27 +22,29 @@ class GroupChain {
 public:
     explicit GroupChain(int n): degree(n) {}
 
-    bool contains(const Permutation& action) const {
+    bool contains(const Permutation& action, const event_native::Deadline& deadline = event_native::Deadline()) const {
+        deadline.check();
         if (is_identity(action)) return true;
         if (point < 0 || transversal->actions[action[point]].empty()) return false;
         auto remainder = compose(inverse(transversal->actions[action[point]]), action);
-        return next ? next->contains(remainder) : is_identity(remainder);
+        return next ? next->contains(remainder, deadline) : is_identity(remainder);
     }
 
-    bool insert(const Permutation& action) {
-        if (contains(action)) return false;
+    bool insert(const Permutation& action, const event_native::Deadline& deadline = event_native::Deadline()) {
+        if (contains(action, deadline)) return false;
         if (point < 0) {
             for (int i = 0; i < degree; ++i) if (action[i] != i) {point = i; break;}
         }
         generators.push_back(action);
-        transversal = std::make_unique<Transversal>(degree, generators, point);
+        transversal = std::make_unique<Transversal>(degree, generators, point, deadline);
         Generators inverses(degree);
         for (int p : transversal->points) inverses[p] = inverse(transversal->actions[p]);
         for (int p : transversal->points) for (const auto& generator : generators) {
+            deadline.check();
             auto remainder = compose(inverses[generator[p]], compose(generator, transversal->actions[p]));
             if (!is_identity(remainder)) {
                 if (!next) next = std::make_unique<GroupChain>(degree);
-                next->insert(remainder);
+                next->insert(remainder, deadline);
             }
         }
         return true;
@@ -63,20 +65,37 @@ public:
     }
 };
 
-inline Generators reduce_generators(int degree, const Generators& generators) {
+inline Generators reduce_generators(int degree, const Generators& generators,
+        const event_native::Deadline& deadline = event_native::Deadline()) {
     GroupChain chain(degree);
     Generators result;
-    for (const auto& action : generators) if (chain.insert(action)) result.push_back(action);
+    for (const auto& action : generators) if (chain.insert(action, deadline)) result.push_back(action);
     return result;
+}
+
+inline std::vector<Permutation> merged_blocks(const Permutation& atoms, const std::vector<Permutation>& joins) {
+    const int degree = atoms.empty() ? 0 : *std::max_element(atoms.begin(), atoms.end()) + 1;
+    auto parent = identity(degree);
+    auto root = [&](int p) {while (parent[p] != p) {parent[p] = parent[parent[p]]; p = parent[p];} return p;};
+    for (const auto& joined : joins) if (!joined.empty())
+        for (int p : joined) parent[root(p)] = root(joined.front());
+    std::map<int, size_t> positions;
+    std::vector<Permutation> blocks;
+    for (int p : atoms) {
+        auto [entry, added] = positions.emplace(root(p), blocks.size());
+        if (added) blocks.emplace_back();
+        blocks[entry->second].push_back(p);
+    }
+    return blocks;
 }
 
 class Group {
     mutable std::once_flag chain_ready;
     mutable std::unique_ptr<GroupChain> chain;
-    void prepare_chain() const {
+    void prepare_chain(const event_native::Deadline& deadline = event_native::Deadline()) const {
         std::call_once(chain_ready, [&] {
             auto prepared = std::make_unique<GroupChain>(degree);
-            for (const auto& action : generators) prepared->insert(action);
+            for (const auto& action : generators) prepared->insert(action, deadline);
             chain = std::move(prepared);
         });
     }
@@ -157,23 +176,67 @@ public:
         return result;
     }
 
-    std::vector<std::pair<int, Permutation>> transversal(int point) const {
+    std::vector<std::pair<int, Permutation>> transversal(int point, std::optional<double> seconds = std::nullopt) const {
         if (point < 0 || point >= degree) throw std::invalid_argument("point outside group frame");
-        Transversal table(degree, generators, point);
+        event_native::Deadline deadline(seconds);
+        Transversal table(degree, generators, point, deadline);
         std::vector<std::pair<int, Permutation>> result;
         for (int p : table.points) result.emplace_back(p, table.actions[p]);
         return result;
     }
 
-    std::shared_ptr<Group> stabilizer(const Permutation& fixed) const {
-        auto remaining = generators;
+    std::shared_ptr<Group> stabilizer(const Permutation& fixed, std::optional<double> seconds = std::nullopt) const {
+        event_native::Deadline deadline(seconds);
+        deadline.check();
+        std::vector<bool> locked(degree, false);
         for (int point : fixed) {
             if (point < 0 || point >= degree) throw std::invalid_argument("point outside group frame");
-            if (std::all_of(remaining.begin(), remaining.end(), [&](const auto& g) {return g[point] == point;})) continue;
-            Transversal table(degree, remaining, point);
-            remaining = reduce_generators(degree, table.stabilizer(remaining));
+            locked[point] = true;
         }
-        return std::make_shared<Group>(degree, std::move(remaining));
+        const auto moved = support();
+        if (std::all_of(moved.begin(), moved.end(), [&](int p) {return locked[p];}))
+            return std::make_shared<Group>(degree, Generators{});
+        if (std::none_of(moved.begin(), moved.end(), [&](int p) {return locked[p];}))
+            return std::make_shared<Group>(degree, generators);
+
+        // Disjoint generator supports are independent direct factors. Join every
+        // atom moved by one generator, so coupled exchanges can never split.
+        std::vector<Permutation> supports;
+        for (const auto& action : generators) {
+            deadline.check();
+            Permutation affected;
+            for (int p : moved) if (action[p] != p) affected.push_back(p);
+            supports.push_back(std::move(affected));
+        }
+        Generators result;
+        for (const auto& block : merged_blocks(moved, supports)) {
+            deadline.check();
+            if (std::all_of(block.begin(), block.end(), [&](int p) {return locked[p];})) continue;
+            Permutation positions(degree, -1);
+            for (size_t i = 0; i < block.size(); ++i) positions[block[i]] = static_cast<int>(i);
+            Generators remaining;
+            for (size_t i = 0; i < generators.size(); ++i) if (positions[supports[i].front()] >= 0) {
+                Permutation local;
+                for (int p : block) local.push_back(positions[generators[i][p]]);
+                remaining.push_back(std::move(local));
+            }
+            // Restrict only this compact component; unrelated atoms and choices
+            // never enter its generator reduction.
+            for (int atom : fixed) if (positions[atom] >= 0) {
+                deadline.check();
+                int point = positions[atom];
+                if (std::all_of(remaining.begin(), remaining.end(), [&](const auto& g) {return g[point] == point;})) continue;
+                Transversal table(static_cast<int>(block.size()), remaining, point, deadline);
+                remaining = reduce_generators(static_cast<int>(block.size()), table.stabilizer(remaining, deadline), deadline);
+            }
+            for (const auto& local : remaining) {
+                auto action = identity(degree);
+                for (size_t i = 0; i < block.size(); ++i) action[block[i]] = block[local[i]];
+                result.push_back(std::move(action));
+            }
+        }
+        deadline.check();
+        return std::make_shared<Group>(degree, std::move(result));
     }
 
     bool contains(const Permutation& action) const {
@@ -184,8 +247,8 @@ public:
         return chain->contains(action);
     }
 
-    std::vector<int> order_factors() const {
-        prepare_chain();
+    std::vector<int> order_factors(const event_native::Deadline& deadline = event_native::Deadline()) const {
+        prepare_chain(deadline);
         std::vector<int> sizes;
         chain->factors(sizes);
         return sizes;
@@ -199,25 +262,9 @@ public:
     }
 };
 
-inline std::vector<Permutation> merged_blocks(const Permutation& atoms, const std::vector<Permutation>& joins) {
-    const int degree = atoms.empty() ? 0 : *std::max_element(atoms.begin(), atoms.end()) + 1;
-    auto parent = identity(degree);
-    auto root = [&](int p) {while (parent[p] != p) {parent[p] = parent[parent[p]]; p = parent[p];} return p;};
-    for (const auto& joined : joins) if (!joined.empty())
-        for (int p : joined) parent[root(p)] = root(joined.front());
-    std::map<int, size_t> positions;
-    std::vector<Permutation> blocks;
-    for (int p : atoms) {
-        auto [entry, added] = positions.emplace(root(p), blocks.size());
-        if (added) blocks.emplace_back();
-        blocks[entry->second].push_back(p);
-    }
-    return blocks;
-}
-
-inline std::map<int, int> order_signature(const Group& group) {
+inline std::map<int, int> order_signature(const Group& group, const event_native::Deadline& deadline) {
     std::map<int, int> powers;
-    for (int value : group.order_factors()) {
+    for (int value : group.order_factors(deadline)) {
         for (int factor = 2; factor * factor <= value; ++factor)
             while (value % factor == 0) {++powers[factor]; value /= factor;}
         if (value > 1) ++powers[value];
@@ -226,11 +273,14 @@ inline std::map<int, int> order_signature(const Group& group) {
 }
 
 inline std::vector<std::shared_ptr<Group>> independent_factors(const std::shared_ptr<Group>& group,
-        const std::vector<std::vector<double>>* adjacency) {
+        const std::vector<std::vector<double>>* adjacency,
+        const event_native::Deadline& deadline = event_native::Deadline()) {
+    deadline.check();
     auto moved = group->support();
     if (moved.empty()) return {};
     std::vector<Permutation> supports;
     for (const auto& action : group->generators) {
+        deadline.check();
         Permutation support;
         for (int p : moved) if (action[p] != p) support.push_back(p);
         supports.push_back(std::move(support));
@@ -242,7 +292,7 @@ inline std::vector<std::shared_ptr<Group>> independent_factors(const std::shared
             Generators generators;
             for (size_t i = 0; i < supports.size(); ++i)
                 if (std::binary_search(block.begin(), block.end(), supports[i].front())) generators.push_back(group->generators[i]);
-            auto factors = independent_factors(std::make_shared<Group>(group->degree, std::move(generators)), adjacency);
+            auto factors = independent_factors(std::make_shared<Group>(group->degree, std::move(generators)), adjacency, deadline);
             result.insert(result.end(), factors.begin(), factors.end());
         }
         return result;
@@ -251,6 +301,7 @@ inline std::vector<std::shared_ptr<Group>> independent_factors(const std::shared
     orbits.erase(std::remove_if(orbits.begin(), orbits.end(), [](const auto& orbit) {return orbit.size() == 1;}), orbits.end());
     std::stable_sort(orbits.begin(), orbits.end(), [](const auto& a, const auto& b) {return a.size() < b.size();});
     if (orbits.size() > 1) for (const auto& orbit : orbits) {
+        deadline.check();
         Permutation positions(group->degree, -1), outside;
         for (size_t i = 0; i < orbit.size(); ++i) positions[orbit[i]] = static_cast<int>(i);
         bool correlated = false;
@@ -258,7 +309,7 @@ inline std::vector<std::shared_ptr<Group>> independent_factors(const std::shared
             for (int q : orbit) if ((*adjacency)[p][q] != (*adjacency)[p][orbit.front()]) {correlated = true; break;}
         if (correlated) continue;
         for (int p : moved) if (positions[p] < 0) outside.push_back(p);
-        auto isolated = group->stabilizer(outside);
+        auto isolated = group->stabilizer(outside, deadline.remaining());
         if (isolated->generators.empty()) continue;
         Generators projected;
         for (const auto& action : group->generators) {
@@ -267,9 +318,9 @@ inline std::vector<std::shared_ptr<Group>> independent_factors(const std::shared
             projected.push_back(std::move(local));
         }
         Group image(static_cast<int>(orbit.size()), std::move(projected));
-        if (order_signature(*isolated) == order_signature(image)) {
-            auto result = independent_factors(isolated, adjacency);
-            auto remaining = independent_factors(group->stabilizer(orbit), adjacency);
+        if (order_signature(*isolated, deadline) == order_signature(image, deadline)) {
+            auto result = independent_factors(isolated, adjacency, deadline);
+            auto remaining = independent_factors(group->stabilizer(orbit, deadline.remaining()), adjacency, deadline);
             result.insert(result.end(), remaining.begin(), remaining.end());
             return result;
         }

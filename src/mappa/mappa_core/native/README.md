@@ -45,6 +45,10 @@ imports are `mappa._engine` and `mappa._group_ops`.
   it retains no table of complete assignments.
 - `permutation_group.h` owns compact stabilizer chains, membership, pair orbits
   and independent-factor checks shared by event preparation and queries.
+  Pointwise restriction separates disjoint generator supports and uses compact
+  component frames; coupled generators stay together. Fully fixed components
+  disappear without rebuilding a chain. Restriction and factorization consume
+  the caller's remaining allowance through the shared `deadline.h` utility.
   `event_response.h` prepares fixed contributions, sparse variable event terms
   and event-invariant graph colors from the original weights.
 - `action_program.h` binds ordered actions to shared atom domains and

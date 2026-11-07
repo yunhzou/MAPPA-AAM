@@ -1,6 +1,7 @@
 // Exact set transport under compact permutation generators. No orbit of sets
 // or complete permutation group is materialized.
 #pragma once
+#include "deadline.h"
 #include <algorithm>
 #include <cstdint>
 #include <map>
@@ -31,21 +32,26 @@ inline Permutation inverse(const Permutation& action) {
 struct Transversal {
     std::vector<int> points;
     Generators actions;
-    Transversal(int degree,const Generators& generators,int fixed):actions(degree) {
+    Transversal(int degree,const Generators& generators,int fixed,
+                const event_native::Deadline& deadline = event_native::Deadline()):actions(degree) {
+        deadline.check();
         points.push_back(fixed);actions[fixed]=identity(degree);
         for (size_t i=0;i<points.size();++i) for (const auto& action:generators) {
+            deadline.check();
             int image=action[points[i]];
             if (actions[image].empty()) {
                 actions[image]=compose(action,actions[points[i]]);points.push_back(image);
             }
         }
     }
-    Generators stabilizer(const Generators& generators) const {
+    Generators stabilizer(const Generators& generators,
+                         const event_native::Deadline& deadline = event_native::Deadline()) const {
         std::set<Permutation> unique;
         const auto unit=identity((int)actions.size());
         Generators inverses(actions.size());
         for (int p:points) inverses[p]=inverse(actions[p]);
         for (int p:points) for (const auto& action:generators) {
+            deadline.check();
             auto residual=compose(inverses[action[p]],compose(action,actions[p]));
             if (residual!=unit) unique.insert(std::move(residual));
         }

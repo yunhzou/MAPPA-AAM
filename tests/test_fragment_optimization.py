@@ -256,6 +256,28 @@ def test_native_preparation_delay_preserves_incumbent_and_spends_same_deadline(m
     assert_witness(value, answer)
 
 
+def test_native_group_deadline_retains_witness_and_reports_query_unknown(monkeypatch):
+    from mappa.mappa_core.core.symmetry import minimum
+
+    source = weights(3, [(0, 1, 1.), (1, 2, 1.), (0, 2, 2.)])
+    target = weights(3, [(0, 1, 1.), (1, 2, 2.), (0, 2, 1.)])
+    value = fragment(source, target, ((0, 1), (1, 2), (0, 2)), range(3))
+    response = minimum.FragmentSymmetryEvents(value)
+    assert response.solve().event_count == 0
+    original = minimum.independent_factors
+
+    def expired(group, adjacency=None, *, seconds=None):
+        return original(group, adjacency, seconds=0.)
+
+    monkeypatch.setattr(minimum, 'independent_factors', expired)
+    answer = response.solve()
+    assert answer.witness == value.witness and answer.event_count == 2
+    assert not answer.complete and answer.work.time_limit_reached
+    query = response.select(0).find()
+    assert query.status == 'unknown' and query.witness is None
+    assert query.work.time_limit_reached
+
+
 def test_anchor_is_retained_while_improving_other_discoveries():
     value = triangle()
     anchored = fragment(value.source_symmetry.weights, value.target_symmetry.weights,

@@ -345,3 +345,30 @@ These measurements identify redundant native group construction as a concrete
 cause. They do not establish the performance of a production repair, its effect
 on all 37 decoding failures, or a full-decoder speedup. The scientific code,
 existing benchmark outputs and retry allowances remain unchanged.
+
+### Native restriction repair
+
+The production helper now restricts disjoint generator-support components in
+compact local frames. All positions moved by one generator remain joined, so
+coupled exchanges cannot become independent swaps. Fixing every movable position
+returns the identity immediately. The remaining computation uses the same exact
+pointwise restriction; no allowed operations are added or removed.
+
+Long native restriction, factorization and group-chain operations now receive
+the existing remaining search allowance and check it internally. Interrupted
+optimization retains an actual incumbent with incomplete status; interrupted
+queries remain unknown. No partial group is returned as an exact result. The
+external process watchdog remains responsible for hard resource limits.
+
+The captured 40793 reverse operation takes **0.0650 ms median over nine fresh
+groups** on the Mac, and returns the expected identity. This is a helper timing,
+not a full-decoder speedup. Compared with the measured historical SymPy helper
+(65.95 ms), it is approximately 1,014 times faster on this particular input; the
+unrepaired native helper exceeded its 15-second watchdog.
+
+Both native extensions were rebuilt. The full local suite passed **1,325 tests
+in 126.03 s**, including independent exhaustive small-group comparisons, coupled
+and composed restrictions, large independent swaps, deadline interruption,
+fragment witnesses, queries and complete stage pipelines. Affected catalogue
+validation is pending. Original campaign errors, outputs and consumed budgets are
+unchanged; these validation measurements do not count as benchmark recovery.

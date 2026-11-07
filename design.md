@@ -174,8 +174,14 @@ Time-limited answers may vary
 with hardware; record the allowance, elapsed time, bound and work counts.
 
 Core checks deadlines between operations and retains a valid incumbent. An
-opaque native operation can finish after its deadline; hard preemption belongs
-to the execution layer's external watchdog. No scheduler or per-fragment worker
+opaque operation can finish after its deadline; hard preemption belongs
+to the execution layer's external watchdog. Native symmetry restriction and
+factorization check the same remaining search allowance within their long loops.
+Restrict disjoint generator-support components independently, preserving coupled
+exchanges. Fixing every movable atom immediately leaves the identity. These
+operations preserve the group relation; interruption retains an actual witness
+or an explicitly unknown query, never a partial group presented as complete.
+No scheduler or per-fragment worker
 creation belongs in the scientific core. Bounded witness optimization does not
 establish all event bins, endpoint-conditioned responses or a whole-reaction
 minimum. Decoder assembly must preserve that distinction when consuming it.

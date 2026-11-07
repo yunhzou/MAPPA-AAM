@@ -188,7 +188,8 @@ class OrderedSymmetryEvents:
             fixed = [i for i, position in enumerate(positions) if position in protected]
             invariant = response.invariant_group
             if fixed:
-                invariant = invariant.stabilizer(fixed)
+                remaining = None if self.deadline is None else max(0., self.deadline - perf_counter())
+                invariant = invariant.stabilizer(fixed, seconds=remaining)
             for g in invariant.generators:
                 if tuple(g) == tuple(range(invariant.degree)):
                     continue

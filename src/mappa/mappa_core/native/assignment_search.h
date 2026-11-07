@@ -1,6 +1,7 @@
 // Bounded starting-correspondence search. Domains and original-weight event
 // bounds stay native between improvements; no complete assignment table is kept.
 #pragma once
+#include "deadline.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -13,8 +14,6 @@
 namespace event_native {
 using Domains = std::vector<std::vector<int>>;
 using Matrix = std::vector<std::vector<double>>;
-
-struct SearchExpired : std::exception {};
 
 // Shortest augmenting paths for integer assignment costs; forbidden entries
 // use the caller's impossible cost. Both event relaxations share this solver.
