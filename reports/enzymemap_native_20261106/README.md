@@ -1,6 +1,47 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
-**Status at 2026-11-06 22:45 UTC: bulk matching resumed at 2 GiB.**
+**Status at 2026-11-07 00:43 UTC: all 95,948 directions have successful
+matching and reduction. Decoding has 1,441 successful outputs and 73 memory-limit
+failures; verification is still pending. All stages use the 95,948-direction
+denominator.**
+
+The 95 reduction memory failures were recovered without repeating matching:
+92 completed at 4 GiB in a 290-second pool pass, and the remaining three at
+8 GiB in a 46-second pass. Original attempts and consumed compute budgets were
+preserved; no extra compute time was granted. The 98 original and subsequent
+failed attempt records remain available alongside the successful outcomes.
+These are stage completions, not benchmark accuracy results.
+
+After all earlier pools and saved queues drained, revision `2a06a15` deployed
+the validated storage correction with the native engine unchanged. Only the
+22,320 untouched matching directions were rebalanced. A later resize moved
+7,932 of those directions before their allocations started. The matching pass
+then completed with zero failed directions. The two measured source identities
+remain separately recorded; completed scientific outputs were retained.
+
+The final-stage handoff independently verified the complete, disjoint input
+scope and successful matching/reduction for every direction. It balances 42
+batches by saved catalogue bytes, copies only the small ledger records and
+retains the original immutable result references. All 191,896 imported successful
+stage rows and original input rows are unchanged; source ledgers remain intact.
+The ordinary 95,853 directions use 2 GiB workers. The 92 and three previously
+large directions use 4 and 8 GiB respectively. Every fresh decoding and external
+verification stage retains the original 600-second allowance and decoding uses
+minimum + 5. No algorithm or scientific setting changed during this adjustment.
+
+The bulk matching resize reached 298 registered workers. The decoding observation
+records 267 registered workers across ten active allocations, with 264 running
+tasks in their latest saved snapshots and 308 allocated CPUs including overhead.
+The 73 decoder failures are unresolved memory limits, not mapping absence. Sixteen
+inspected audits exceeded their 2 or 4 GiB guards during computation; those records
+do not identify the dominant allocation or establish an algorithm defect. Larger
+retries must retain the original attempt history and remaining compute budget.
+The global matching/reduction barrier was verified before any decoding job was
+submitted.
+See [scope, recovery and handoff evidence](throughput-adjustment.json). Operational
+resource requests, ownership checks, hashes and scheduler records remain private.
+
+**Earlier observation, 2026-11-06 22:45 UTC: bulk matching resumed at 2 GiB.**
 The user authorized larger-memory retries for memory-limit failures. The first
 retry tier will use 4 GiB, preserving completed results, original failure audits
 and consumed compute budgets. Those retries have not been submitted yet.
@@ -184,8 +225,9 @@ Git objects; all other modules and the native engine came from the frozen
 baseline. The recorded filesystem identity therefore identifies the baseline,
 while the candidate commit and individual module hashes identify the tested
 correction. The active benchmark checkout was not changed beneath running pools,
-and no campaign results, errors or budgets were overwritten. Deployment remains
-pending a drained execution boundary; these diagnostic successes are not retries
-of the campaign's failed reductions.
+and no campaign results, errors or budgets were overwritten. The correction was
+subsequently deployed at a verified drained execution boundary, as recorded
+above; these diagnostic successes are not retries of the campaign's failed
+reductions.
 
 Sanitized validation: [storage comparison](storage-comparison.json).
