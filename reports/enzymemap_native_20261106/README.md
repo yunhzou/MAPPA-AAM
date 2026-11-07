@@ -9,22 +9,57 @@ this final recovery reserved a 12-GiB guard. Original attempts, consumed budgets
 scientific settings and matching outputs remain intact. These source changes
 share storage; they do not alter the mapping relation or event model.
 
-**External catalogue verification remains unfinished:** 95,931 tasks completed
-and 17 directions retain compute timeouts. A first recovery of 21 resource failures
-stopped before reference queries because the launch omitted input-root relocation.
-All 21 reference inputs now pass checksum-verified loading with the original
-relocation configuration. The corrected recovery completed four checks (three
-recovered references and one unknown); the other 17 exhausted their remaining
-compute allowance. Peak memory across this recovery was 3.08 GiB, with no memory
-failures. It kept the same eight-GiB guard, preserved failed attempts and remaining
-budgets, and granted no additional time. Completed verification results are
-preserved. The independent decoded-reference audit has
-not run. Catalogue verification must not be reported as decoded-response recovery.
+**External catalogue verification is now conclusive for all 95,948 directions.**
+Reaction-level reference recovery is **47,798 / 47,974 (99.6331%)**, accepting
+recovery in either direction. The other **176 reactions** are not recovered;
+there are **zero unresolved reactions, unknown directions or outstanding stage
+failures**. Direction-level counts are 94,823 recovered and 1,125 not recovered.
+These totals combine preserved conclusive outputs, registered failure recoveries
+and separately saved certificates resolving the earlier unknown outputs.
+The independent decoded-reference audit has **not run**: these are catalogue
+membership results, not proof of membership in the saved decoded event window.
 
-The execution-only recovery correction (`0738df5`) requires an explicit recorded
-reason to retry a diagnosed execution error. All 67 campaign and work-pool tests
-passed, including preservation of attempts, remaining budgets and previous ledgers.
-No matching, reduction, decoding or verifier scientific rule changed.
+### Shared-fragment reference verification
+
+Revision `5b29531` checks fragment membership once for each distinct local query
+and reuses those answers across branch compositions. Impossible compositions
+are rejected before solving. Independent choices compose directly; overlapping
+placements retain their original joint order. Unannotated atoms still require
+feasible full assignments. Every accepted composition is replayed through its
+saved family, retaining a concrete injective mapping and its choices. Mapping,
+reduction, decoding, reference policy and permitted relationships are unchanged.
+
+All **17 remaining verification timeouts recovered** in **54.13 seconds of pool
+wall time**, with 18 registered workers and a four-GiB guard. The longest task
+took **48.77 seconds including catalogue loading**; maximum sampled peak memory
+was **1.41 GiB**. This recovery explicitly granted another 120 seconds per selected
+task and preserved all previous attempts and consumed budgets. The independent
+scope audit checked all 17 outputs, empty queues and unchanged original ledgers.
+An initial launch stopped during preflight, before worker startup, because the
+preserved history required its earlier execution-error authorization; the
+corrected launch retained that recorded authorization.
+
+Two bounded point measurements separate input loading from verification:
+
+| Case | Original result | Catalogue loading | Verification and certificate replay |
+|---|---|---:|---:|
+| 10393 reverse | 600-second timeout | 2.155 s | 1.515 s |
+| 10383 reverse | 600-second timeout | 17.315 s | 0.00685 s |
+
+All **26 previously unknown references** also recovered in separate queries of
+their unchanged catalogues. Twenty-one resolved with one second per shared
+component query. The final five used ten seconds per component, retaining
+a 120-second case watchdog; their complete query times were 11.60–16.85 seconds.
+The original unknown records remain intact alongside the new certificates.
+
+Validation found no differences in **2,400 small explicit-permutation oracle
+comparisons** or **16 real conclusive controls** (eight recovered and eight
+not recovered). Local reference/Golden tests (77), campaign tests (47), smoke
+checks (26) and Linux reference tests (34) passed. This is scoped equivalence
+validation, not a fresh timing or rerun of all previously conclusive queries.
+See [verification evidence](fragment-reference-validation.json) for individual
+measurements, certificate hashes, scope and final coverage. Operational details
+and full certificates remain private.
 
 ### Measured stage times
 
