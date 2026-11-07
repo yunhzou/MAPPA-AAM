@@ -364,11 +364,37 @@ The captured 40793 reverse operation takes **0.0650 ms median over nine fresh
 groups** on the Mac, and returns the expected identity. This is a helper timing,
 not a full-decoder speedup. Compared with the measured historical SymPy helper
 (65.95 ms), it is approximately 1,014 times faster on this particular input; the
-unrepaired native helper exceeded its 15-second watchdog.
+unrepaired native helper exceeded its 15-second watchdog. Keeping one free swap
+among 64 independent pairs takes **0.0329 ms median over nine repeats**, versus
+**2.323 s** before, with exactly the same remaining swap.
 
 Both native extensions were rebuilt. The full local suite passed **1,325 tests
 in 126.03 s**, including independent exhaustive small-group comparisons, coupled
 and composed restrictions, large independent swaps, deadline interruption,
-fragment witnesses, queries and complete stage pipelines. Affected catalogue
-validation is pending. Original campaign errors, outputs and consumed budgets are
-unchanged; these validation measurements do not count as benchmark recovery.
+fragment witnesses, queries and complete stage pipelines. Both native extensions
+also rebuilt on Linux, where **247 focused tests passed in 21.86 s**. The repaired
+scientific source is `ea4d9e6`.
+
+Three isolated full-catalogue checks used the original two-GiB guards, original
+decoding settings including `minimum + 5`, and no profiler. Their original
+600-second campaign attempts had timed out. The new checks progressed past the
+previous symmetry restriction, but **all three then reached the memory guard**:
+
+| Direction | Wall time to memory stop | Sampled peak GiB | Complete decode |
+|---|---:|---:|---|
+| 16297 forward | 86.10 s | 2.093 | No |
+| 40793 reverse | 73.03 s | 2.000 | No |
+| 24793 forward | 85.99 s | 2.106 | No |
+
+These times include validation startup and catalogue loading; they are neither
+CPU times nor completed-stage timings. Memory is sampled, so a process can exceed
+the guard between observations. Stack samples show fragment event-bound
+preparation, local weight-bag comparisons and response/action construction rather
+than the previous persistent restriction call. This does not yet establish which
+objects dominate memory, a full-decoder speedup, or recovery of all 37 timeouts.
+
+The specific helper regression is repaired and tested. Full-case recovery remains
+blocked by memory in these checks, with other preparation costs still visible.
+Original campaign errors, outputs and consumed budgets are unchanged. No fresh
+retry time was granted, and these validation measurements do not count as
+benchmark recovery.

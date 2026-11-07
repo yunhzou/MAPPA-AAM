@@ -5422,11 +5422,28 @@
         6.504100747406483e-05
       ],
       "median_seconds": 6.504100747406483e-05,
-      "identity_result_verified": true
+      "identity_result_verified": true,
+      "independent_pairs": {
+        "pairs": 64,
+        "fixed_pairs": 63,
+        "wall_seconds": [
+          4.100007936358452e-05,
+          3.8499943912029266e-05,
+          3.287498839199543e-05,
+          3.16668301820755e-05,
+          3.137486055493355e-05,
+          3.2916897907853127e-05,
+          3.10409814119339e-05,
+          3.0624913051724434e-05,
+          3.508315421640873e-05
+        ],
+        "median_seconds": 3.287498839199543e-05,
+        "exact_remaining_swap_verified": true
+      }
     },
     "campaign_outputs_modified": false,
     "new_retry_time_granted": 0,
-    "validation_status": "Full local suite passed; affected catalogue decoding pending.",
+    "validation_status": "Exact helper and scientific tests passed. All three full-catalogue validations stopped at the original 2 GiB memory guard; none completed decoding.",
     "local_tests": {
       "passed": 1325,
       "failed": 0,
@@ -5436,6 +5453,138 @@
         "group_ops",
         "engine"
       ]
+    },
+    "source_revision": "ea4d9e6",
+    "linux_tests": {
+      "passed": 247,
+      "failed": 0,
+      "wall_seconds": 21.86,
+      "native_extensions_rebuilt": [
+        "group_ops",
+        "engine"
+      ]
+    },
+    "full_catalogue_validation": {
+      "results": [
+        {
+          "case": "16297/forward",
+          "stage": "decoding",
+          "outcome": "validation_memory_guard",
+          "exit_code": -9,
+          "peak_rss_bytes": 2247090176,
+          "elapsed_seconds": 86.10375496698543
+        },
+        {
+          "case": "40793/reverse",
+          "stage": "decoding",
+          "outcome": "validation_memory_guard",
+          "exit_code": -9,
+          "peak_rss_bytes": 2147995648,
+          "elapsed_seconds": 73.03489954399993
+        },
+        {
+          "case": "24793/forward",
+          "stage": "decoding",
+          "outcome": "validation_memory_guard",
+          "exit_code": -9,
+          "peak_rss_bytes": 2261823488,
+          "elapsed_seconds": 85.98505759600084
+        }
+      ],
+      "memory_bytes_per_case": 2147483648,
+      "wall_watchdog_seconds": 130,
+      "sampled_stacks": [
+        {
+          "case": "16297-forward-decoding",
+          "top_frames": [
+            {
+              "file": "mappa/mappa_core/core/symmetry/objective.py",
+              "line": 65,
+              "function": "lower_bound"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/objective.py",
+              "line": 72,
+              "function": "lower_bound"
+            },
+            {
+              "file": "mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 167,
+              "function": "fragment"
+            },
+            {
+              "file": "mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 83,
+              "function": "distance"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/actions.py",
+              "line": 222,
+              "function": "<genexpr>"
+            }
+          ]
+        },
+        {
+          "case": "40793-reverse-decoding",
+          "top_frames": [
+            {
+              "file": "mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 213,
+              "function": "_event_terms"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/objective.py",
+              "line": 77,
+              "function": "lower_bound"
+            },
+            {
+              "file": "mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 86,
+              "function": "distance"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/objective.py",
+              "line": 63,
+              "function": "lower_bound"
+            }
+          ]
+        },
+        {
+          "case": "24793-forward-decoding",
+          "top_frames": [
+            {
+              "file": "mappa/mappa_core/core/symmetry/groups.py",
+              "line": 8,
+              "function": "permutation_group"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/objective.py",
+              "line": 66,
+              "function": "lower_bound"
+            },
+            {
+              "file": "mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 82,
+              "function": "distance"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/actions.py",
+              "line": 207,
+              "function": "bind"
+            },
+            {
+              "file": "mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 105,
+              "function": "<listcomp>"
+            }
+          ]
+        }
+      ],
+      "profiling_enabled": false,
+      "complete_decodes": 0,
+      "memory_guard_stops": 3,
+      "all_37_timeouts_recovered": false,
+      "event_slack": 5
     }
   }
 }
