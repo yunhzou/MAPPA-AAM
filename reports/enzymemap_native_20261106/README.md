@@ -1,5 +1,32 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
+**Closure recovery is active.** The user authorized continuing diagnosis and
+resource retries until decoding and verification close, while preserving the
+core algorithm. The validated storage correction (`2e54202`) keeps shared numeric
+matrices in binary decoded output; explicit JSON export is unchanged. An audit
+compatibility correction (`ac990ab`) hashes the two storage forms identically.
+
+The recovery runner now covers either final stage, preserves every prior attempt
+and consumed budget, and records explicit added time and memory. It validates
+original input hashes, scientific settings, catalogue/reference identity, drained
+queues and exclusive ownership. Successive retries use the latest registered
+failure; completed work is never repeated.
+
+Validation: 260 affected storage/query/pool tests passed. The full suite passed
+1,328 tests and exposed one audit serialization incompatibility; after correction,
+all 11 targeted audit tests passed. Another 27 recovery tests and a successive
+resource-grant test passed, including exhausted budgets, changed memory,
+reference validation, source immutability and duplicate-owner rejection.
+
+The first recovery tier selects exactly **545 failed decodes** and **21 failed
+catalogue verifications** from the terminal finishing campaign. It uses 4 GiB
+workers and an explicitly recorded additional 600-second compute allowance per
+selected stage, retaining all original costs. Decoding registered 96 workers;
+the first running-task snapshot showed all 96 active. Verification is scheduled
+after that pool releases ownership. Matching, reduction and the minimum-plus-five
+scientific settings are unchanged. These are active attempts, not recovered
+results or a new accuracy claim. Operational evidence remains private.
+
 **Status at 2026-11-07 02:10 UTC: the bulk pass has ended, but the benchmark
 is not complete. All 95,948 directions matched and reduced successfully.
 Decoding has 95,403 successful outputs and 545 resource failures. Catalogue
@@ -16,8 +43,8 @@ decoded-reference audit has not run.**
 All 42 finishing batches have terminal decoding and verification records and
 empty queues, with no active benchmark owners. A completed verification task
 can report recovery, absence or unknown; the table does not report accuracy.
-Original failure records, results and consumed budgets are intact. The user
-requested diagnosis before any extra timeout allowance; none has been granted.
+Original failure records, results and consumed budgets are intact. At that observation, the user had
+requested diagnosis before any extra timeout allowance; none had been granted.
 See the [timeout investigation](#timeout-investigation).
 
 **Earlier observation, 2026-11-07 00:43 UTC:** decoding had 1,441 successful
