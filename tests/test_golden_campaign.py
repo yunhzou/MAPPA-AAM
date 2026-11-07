@@ -39,6 +39,27 @@ def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
     assert not decoded._tables
 
 
+def test_decoded_reference_keeps_explicit_unmatched_policy_separate():
+    from mappa import decode_events
+    from decoded_reference import verify_decoded
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    value = problem('CC', [(0, 1, 1.)], [(0, 1, 1.)])
+    fragment = saved_fragment(value, accepted_edges=((0, 1),))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    reference = dict(mapping=[(0, 0)], features=[dict(heavy=[0, 1])]*2)
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    del reference['features']
+    for reverse in (False, True):
+        answer = verify_decoded(decoded, reference, reverse=reverse, unmatched_heavy=False)
+        assert answer['status'] == 'recovered'
+        assert dict(answer['evidence']['mapping']) == {0: 0, 1: 1}
+    reference['mapping'] = [(0, 1), (1, 1)]
+    assert verify_decoded(decoded, reference, unmatched_heavy=False)['status'] == 'not_recovered'
+
+
 @pytest.mark.parametrize('kind', ['ring', 'anchored_ring', 'triangle_tail'])
 @pytest.mark.parametrize('slack', [0, 5])
 def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack):
@@ -220,6 +241,18 @@ def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_sourc
         assert len(set(dict(proof['mapping']).values())) == 3
         assert proof['event_count'] == proof['physical_event_count'] == 0
     assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+    from decoded_reference import audit_inputs
+    rows, files, unmatched = audit_inputs(source)
+    manifest = tmp_path/'manifest.json'
+    manifest.write_text(json.dumps(dict(schema='mappa.decoded_reference_inputs/v1',
+        directions=rows, source_files=files, unmatched_heavy=False)))
+    explicit = audit_decoding(manifest, tmp_path/'explicit', workers=1)
+    assert explicit['complete'] and explicit['reaction_counts'] == {'recovered': 1}
+    assert not explicit['unmatched_heavy']
+    source.joinpath('index.json').write_text('changed')
+    with pytest.raises(ValueError, match='Audit source changed'):
+        audit_inputs(manifest)
+    source.joinpath('index.json').write_bytes(before[source/'index.json'])
     # A separate bounded pass admits only the prior unresolved direction.
     prior = dict(report, results=[dict(row, status='unknown' if row['reversed'] else 'recovered')
                                   for row in report['results']])

@@ -513,7 +513,7 @@ additional allocation memory for its supervisor/coordinator processes. Repeated
 either Python runner; `--workers` then means total local workers. Build and test
 before launching a pilot, using the checks in the repository's main README.
 
-## Audit saved Golden decoded recovery
+## Audit saved decoded recovery
 
 Each reference first supplies a cheap lower bound on its forced model events.
 Contexts above the saved window are rejected before preparing their symmetry
@@ -533,6 +533,25 @@ Every recovery retains a full mapping and checked symmetry/placement choices in
 one aggregate evidence bundle. It checks exact annotated heavy-atom indices,
 including unmatched atoms; hydrogens must admit a valid injective completion.
 This differs from endpoint-symmetry-normalized catalogue recovery.
+The shared implementation is `decoded_reference.py`. It also accepts an explicit
+`mappa.decoded_reference_inputs/v1` JSON manifest with `directions`,
+`source_files` (absolute filenames and SHA256 digests) and `unmatched_heavy`.
+Each direction contains `name`, `case`, `reversed`, `input`, `reference`,
+`decoded` and optional `verification` blob descriptors (use null without a hint).
+Resolve successful recovery outputs exactly once when preparing the manifest;
+include the original and recovery ledgers in its source hashes. For EnzymeMap,
+set `unmatched_heavy` to false: unannotated pairs remain unspecified, while the
+complete witness must still satisfy saved decoder constraints and injectivity.
+
+```bash
+PYTHONPATH=src:bench python bench/decoded_reference.py /path/to/manifest.json \
+  /path/to/separate-audit --slurm --workers 16 --memory-gib 4
+```
+
+`--slurm` uses one persistent pool inside an existing allocation. Workers archive
+their attempts and publish replayable certificates in aggregated bundles. No
+source stage is modified. Resource failures remain unknown in this independent
+audit; an invalid certificate stops the pass for investigation.
 The report distinguishes the saved model's event count from physical bond changes,
 retains resource failures as unknown, and checks that source records are unchanged.
 An invalid certificate stops admission and drains active audit tasks.
