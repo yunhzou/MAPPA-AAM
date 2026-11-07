@@ -13,13 +13,17 @@ class DomainAction {
 public:
     std::map<int, Domain> rows;
     explicit DomainAction(const std::map<int, Permutation>& values) {
+        // Share equal rows without closing overlapping conservative domains.
+        std::map<Permutation, Domain> shared;
         for (const auto& [atom, domain] : values) {
             if (atom < 0 || domain.empty() || domain.front() < 0
                 || !std::is_sorted(domain.begin(), domain.end())
                 || std::adjacent_find(domain.begin(), domain.end()) != domain.end()
                 || !std::binary_search(domain.begin(), domain.end(), atom))
                 throw std::invalid_argument("action bounds must contain their original atom and distinct sorted images");
-            rows.emplace(atom, std::make_shared<const Permutation>(domain));
+            auto [entry, added] = shared.try_emplace(domain);
+            if (added) entry->second = std::make_shared<const Permutation>(domain);
+            rows.emplace(atom, entry->second);
         }
     }
 };

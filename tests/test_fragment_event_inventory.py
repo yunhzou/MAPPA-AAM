@@ -21,6 +21,23 @@ from growth_cases import saved_fragment
 from test_event_interpretation import dense_categories, endpoint, model_events, saved, swap
 
 
+def test_equal_action_domains_share_storage_without_closing_the_relation():
+    from mappa._group_ops import DomainAction, DomainPrograms
+
+    n = 400
+    rows = {i: tuple(range(n)) for i in range(n)}
+    program = DomainPrograms(n)
+    domains, dependencies = program.bind((DomainAction(rows),), tuple(enumerate(range(n))))
+    assert domains == rows
+    assert all(value == (0,) for value in dependencies.values())
+    assert len({id(value) for value in domains.values()}) == 1
+
+    # Equal storage must not close overlapping rows into a new relationship.
+    rows = {0: (0, 1), 1: (0, 1), 2: (1, 2)}
+    domains, dependencies = DomainPrograms(3).bind((DomainAction(rows),), ((0, 0), (1, 2)))
+    assert domains == {0: (0, 1), 1: (1, 2)}
+
+
 @pytest.mark.parametrize('metal_threshold', [.3, None])
 def test_assigned_event_bound_respects_thresholds_and_unmatched_boundaries(metal_threshold):
     import numpy as np

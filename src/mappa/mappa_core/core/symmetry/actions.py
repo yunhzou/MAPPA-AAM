@@ -171,10 +171,10 @@ class PreparedActionPrograms:
         if reference is None:
             prepared = _PreparedAction(action)
             if prepared not in self.actions:
-                prepared.domains = {image: tuple(sorted(domain | {image})) for image, domain in
+                domains = {image: tuple(sorted(domain | {image})) for image, domain in
                     enumerate(self.index.action_domains(prepared)) if len(domain) > 1}
                 from mappa._group_ops import DomainAction
-                prepared.native = DomainAction(prepared.domains)
+                prepared.native = DomainAction(domains)
                 self.actions[prepared] = prepared
             reference = self.action_references[id(action)] = action, self.actions[prepared]
         return reference[1]
