@@ -1,0 +1,5272 @@
+{
+  "observed_utc": "2026-11-07T02:10:30.711267+00:00",
+  "source_revision": "2a06a15042b29c40c615a1a78ee79984a02de301",
+  "scope": {
+    "reactions": 47974,
+    "directions": 95948
+  },
+  "terminal_directions": 95948,
+  "stage_counts": {
+    "matching/complete": 95948,
+    "deduplication/complete": 95948,
+    "decoding/complete": 95403,
+    "decoding/error": 545,
+    "verification/complete": 95927,
+    "verification/error": 21
+  },
+  "failures": [
+    {
+      "stage": "decoding",
+      "kind": "memory_limit",
+      "count": 508
+    },
+    {
+      "stage": "decoding",
+      "kind": "timeout",
+      "count": 37
+    },
+    {
+      "stage": "verification",
+      "kind": "memory_limit",
+      "count": 4
+    },
+    {
+      "stage": "verification",
+      "kind": "timeout",
+      "count": 17
+    }
+  ],
+  "active_benchmark_allocations": 0,
+  "decoded_reference_audit_performed": false,
+  "new_retry_seconds_granted": 0,
+  "benchmark_results_modified": false,
+  "original_timeout_metrics": {
+    "decoding": {
+      "count": 37,
+      "cpu_seconds": {
+        "minimum": 598.01,
+        "mean": 599.6613513513514,
+        "maximum": 599.93
+      },
+      "phase": "compute",
+      "allowance_seconds": 600
+    },
+    "verification": {
+      "count": 17,
+      "cpu_seconds": {
+        "minimum": 594.3299999999999,
+        "mean": 598.2958823529411,
+        "maximum": 599.97
+      },
+      "phase": "compute",
+      "allowance_seconds": 600
+    }
+  },
+  "diagnostic_policy": {
+    "instrumentation": "cProfile and repeated stack traces",
+    "cooperative_stop_seconds": 60,
+    "external_watchdog_seconds": 90,
+    "original_memory_guards": true,
+    "source_changed": false,
+    "representative_sample_only": true,
+    "timings_include_profiler_overhead": true
+  },
+  "profiles": [
+    {
+      "case": "13414/forward",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 60.17385535314679,
+      "cpu_seconds": 60.157156496,
+      "peak_rss_bytes": 1170460672,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 8.207288589794189,
+          "compressed_bytes": 9678412,
+          "atoms": [
+            440,
+            440
+          ],
+          "families": 2809,
+          "branches": 2797,
+          "fragments": 2402
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 653,
+          "self_seconds": 9.382484742,
+          "cumulative_seconds": 11.809086495
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1624,
+          "self_seconds": 5.321347555,
+          "cumulative_seconds": 7.013840602
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 777527,
+          "self_seconds": 3.641961089,
+          "cumulative_seconds": 3.641961089
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 5239,
+          "self_seconds": 3.503678668,
+          "cumulative_seconds": 4.428210214
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 812,
+          "self_seconds": 3.300643678,
+          "cumulative_seconds": 3.9522480800000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1863,
+          "self_seconds": 3.2689056880000003,
+          "cumulative_seconds": 3.2689056880000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 13302306,
+          "self_seconds": 2.803378453,
+          "cumulative_seconds": 3.0216335830000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 1305,
+          "self_seconds": 2.066082733,
+          "cumulative_seconds": 2.4501849200000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 2809,
+          "self_seconds": 2.0290761610000003,
+          "cumulative_seconds": 3.5433272720000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 3126870,
+          "self_seconds": 1.7483446260000002,
+          "cumulative_seconds": 1.7667977000000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 205,
+          "function": "bind",
+          "calls": 339,
+          "self_seconds": 1.24791122,
+          "cumulative_seconds": 1.2482098270000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 3291,
+          "self_seconds": 1.178231488,
+          "cumulative_seconds": 5.346438595
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 15962674,
+          "self_seconds": 1.119260509,
+          "cumulative_seconds": 1.119262658
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 13855659,
+          "self_seconds": 1.016768315,
+          "cumulative_seconds": 1.016768315
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.850338374,
+          "cumulative_seconds": 8.049680488
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 2442796,
+          "self_seconds": 0.813013588,
+          "cumulative_seconds": 1.8047775350000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 2466053,
+          "self_seconds": 0.612339792,
+          "cumulative_seconds": 2.033972077
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 3164,
+          "self_seconds": 0.567952675,
+          "cumulative_seconds": 1.160434353
+        },
+        {
+          "file": "numeric.py",
+          "line": 2475,
+          "function": "array_equal",
+          "calls": 14792,
+          "self_seconds": 0.547337665,
+          "cumulative_seconds": 0.649679042
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 1617104,
+          "self_seconds": 0.5132393230000001,
+          "cumulative_seconds": 2.011931347
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _abc._abc_instancecheck>",
+          "calls": 1592757,
+          "self_seconds": 0.49778420100000004,
+          "cumulative_seconds": 1.178174778
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 105,
+          "function": "<genexpr>",
+          "calls": 1940811,
+          "self_seconds": 0.47274853400000005,
+          "cumulative_seconds": 0.47274853400000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 215,
+          "function": "root",
+          "calls": 2499626,
+          "self_seconds": 0.44733168100000004,
+          "cumulative_seconds": 0.44733168100000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 4853,
+          "self_seconds": 0.434763008,
+          "cumulative_seconds": 0.434763008
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 812,
+          "self_seconds": 0.400065702,
+          "cumulative_seconds": 5.663540924
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _abc._abc_subclasscheck>",
+          "calls": 1585176,
+          "self_seconds": 0.38410192000000004,
+          "cumulative_seconds": 0.38411830900000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asarray>",
+          "calls": 68669,
+          "self_seconds": 0.35831364600000004,
+          "cumulative_seconds": 0.35831364600000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 682,
+          "function": "root",
+          "calls": 529838,
+          "self_seconds": 0.33117398200000003,
+          "cumulative_seconds": 0.397677712
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 1355,
+          "self_seconds": 0.32850273,
+          "cumulative_seconds": 17.999738629
+        },
+        {
+          "file": "abc.py",
+          "line": 117,
+          "function": "__instancecheck__",
+          "calls": 1592757,
+          "self_seconds": 0.32051724600000003,
+          "cumulative_seconds": 1.4986920240000001
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 4.9694e-05,
+          "cumulative_seconds": 59.999284327000005
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 19742,
+          "self_seconds": 0.07417415000000001,
+          "cumulative_seconds": 51.005791221
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 3.6679e-05,
+          "cumulative_seconds": 50.570839035000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 1.1405e-05,
+          "cumulative_seconds": 50.569748973
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.5065e-05,
+          "cumulative_seconds": 50.569722985000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.041782019000000004,
+          "cumulative_seconds": 50.56813411
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 339,
+          "self_seconds": 0.0016199040000000001,
+          "cumulative_seconds": 46.719228584
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 339,
+          "self_seconds": 0.011125839,
+          "cumulative_seconds": 45.361027245
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 339,
+          "self_seconds": 0.032705538,
+          "cumulative_seconds": 45.348836453000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 1675,
+          "self_seconds": 0.003437425,
+          "cumulative_seconds": 42.761090436
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 813,
+          "self_seconds": 0.008825748000000001,
+          "cumulative_seconds": 42.750492114000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 813,
+          "self_seconds": 0.01239818,
+          "cumulative_seconds": 31.641319977000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 1355,
+          "self_seconds": 0.32850273,
+          "cumulative_seconds": 17.999738629
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 3056,
+          "self_seconds": 0.0034545960000000003,
+          "cumulative_seconds": 17.700800547
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 653,
+          "self_seconds": 0.083775522,
+          "cumulative_seconds": 13.900299297
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 653,
+          "self_seconds": 9.382484742,
+          "cumulative_seconds": 11.809086495
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 133,
+          "function": "lower",
+          "calls": 812,
+          "self_seconds": 0.004804605,
+          "cumulative_seconds": 11.076204936
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 95,
+          "function": "aggregate_bound",
+          "calls": 812,
+          "self_seconds": 0.048918231000000006,
+          "cumulative_seconds": 11.057961477000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 60,
+          "function": "__init__",
+          "calls": 812,
+          "self_seconds": 0.05641500000000001,
+          "cumulative_seconds": 9.009452545
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.00015916700000000002,
+          "cumulative_seconds": 8.477251370000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 3815,
+          "self_seconds": 0.001646499,
+          "cumulative_seconds": 8.209793903000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 7.229000000000001e-06,
+          "cumulative_seconds": 8.207269181000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 4.143e-06,
+          "cumulative_seconds": 8.207261952
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 3.1885000000000004e-05,
+          "cumulative_seconds": 8.207257809
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.000491987,
+          "cumulative_seconds": 8.207224122000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.0005784060000000001,
+          "cumulative_seconds": 8.203903146
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.103462724,
+          "cumulative_seconds": 8.153143212
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.850338374,
+          "cumulative_seconds": 8.049680488
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1624,
+          "self_seconds": 5.321347555,
+          "cumulative_seconds": 7.013840602
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 2.9235e-05,
+          "cumulative_seconds": 5.7553975280000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.041040435,
+          "cumulative_seconds": 5.745166602
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 812,
+          "self_seconds": 0.400065702,
+          "cumulative_seconds": 5.663540924
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 3291,
+          "self_seconds": 1.178231488,
+          "cumulative_seconds": 5.346438595
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 142,
+          "function": "prepared_fragment",
+          "calls": 812,
+          "self_seconds": 0.006978207,
+          "cumulative_seconds": 4.467045849000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 33,
+          "function": "preserves_weights",
+          "calls": 2775,
+          "self_seconds": 0.0060501570000000005,
+          "cumulative_seconds": 4.445680025000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 498,
+          "self_seconds": 0.0026382750000000003,
+          "cumulative_seconds": 4.4431887990000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 151,
+          "function": "<genexpr>",
+          "calls": 1292,
+          "self_seconds": 0.001747566,
+          "cumulative_seconds": 4.442506458
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 5239,
+          "self_seconds": 3.503678668,
+          "cumulative_seconds": 4.428210214
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 812,
+          "self_seconds": 3.300643678,
+          "cumulative_seconds": 3.9522480800000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 777527,
+          "self_seconds": 3.641961089,
+          "cumulative_seconds": 3.641961089
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 2809,
+          "self_seconds": 2.0290761610000003,
+          "cumulative_seconds": 3.5433272720000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1863,
+          "self_seconds": 3.2689056880000003,
+          "cumulative_seconds": 3.2689056880000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 13302306,
+          "self_seconds": 2.803378453,
+          "cumulative_seconds": 3.0216335830000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "calls": 14489,
+          "self_seconds": 0.24050131500000002,
+          "cumulative_seconds": 2.7573670750000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 1305,
+          "self_seconds": 2.066082733,
+          "cumulative_seconds": 2.4501849200000003
+        }
+      ]
+    },
+    {
+      "case": "15959/reverse",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 60.14144314220175,
+      "cpu_seconds": 60.131448232000004,
+      "peak_rss_bytes": 1068216320,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 5.573487200308591,
+          "compressed_bytes": 8041748,
+          "atoms": [
+            399,
+            399
+          ],
+          "families": 2261,
+          "branches": 2241,
+          "fragments": 1830
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 406,
+          "self_seconds": 14.50485684,
+          "cumulative_seconds": 18.277153269
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 994,
+          "self_seconds": 8.213977744000001,
+          "cumulative_seconds": 10.773980121000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 497,
+          "self_seconds": 4.381283891000001,
+          "cumulative_seconds": 5.248921933
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 16060233,
+          "self_seconds": 3.8161713820000003,
+          "cumulative_seconds": 3.9666729180000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 812,
+          "self_seconds": 2.366127122,
+          "cumulative_seconds": 2.7142202600000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 183115,
+          "self_seconds": 1.841814059,
+          "cumulative_seconds": 1.841814059
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 2934,
+          "self_seconds": 1.8252481870000001,
+          "cumulative_seconds": 2.305796871
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 17904338,
+          "self_seconds": 1.597070999,
+          "cumulative_seconds": 1.597073522
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 16251003,
+          "self_seconds": 1.4317593130000001,
+          "cumulative_seconds": 1.4317593130000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 778,
+          "self_seconds": 1.4301095400000001,
+          "cumulative_seconds": 1.4301095400000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 40,
+          "function": "structural_generators",
+          "calls": 128,
+          "self_seconds": 1.2905049000000002,
+          "cumulative_seconds": 1.317418624
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 2261,
+          "self_seconds": 0.983366838,
+          "cumulative_seconds": 1.924593116
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 2031888,
+          "self_seconds": 0.868351862,
+          "cumulative_seconds": 0.8787212860000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 105,
+          "function": "<genexpr>",
+          "calls": 2651052,
+          "self_seconds": 0.8307859630000001,
+          "cumulative_seconds": 0.8307859630000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.6796575140000001,
+          "cumulative_seconds": 5.486270484
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 1789423,
+          "self_seconds": 0.56558861,
+          "cumulative_seconds": 1.218713592
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 1681,
+          "self_seconds": 0.489802528,
+          "cumulative_seconds": 2.545079453
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 3850,
+          "self_seconds": 0.462122609,
+          "cumulative_seconds": 0.462122609
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 1803827,
+          "self_seconds": 0.44084233500000003,
+          "cumulative_seconds": 1.1651282790000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 2494,
+          "self_seconds": 0.43532558000000005,
+          "cumulative_seconds": 0.907360822
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 914,
+          "self_seconds": 0.41989953900000004,
+          "cumulative_seconds": 26.768875816
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+          "line": 7,
+          "function": "permutation_group",
+          "calls": 1068,
+          "self_seconds": 0.416992156,
+          "cumulative_seconds": 0.416992156
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method mappa._group_ops.fragment_event_terms>",
+          "calls": 406,
+          "self_seconds": 0.387256297,
+          "cumulative_seconds": 0.387818178
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.abs>",
+          "calls": 4330513,
+          "self_seconds": 0.342615956,
+          "cumulative_seconds": 0.342615956
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 497,
+          "self_seconds": 0.33646669100000004,
+          "cumulative_seconds": 2.763916274
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asanyarray>",
+          "calls": 13886,
+          "self_seconds": 0.33579259,
+          "cumulative_seconds": 0.33579259
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 3851,
+          "self_seconds": 0.32227618900000005,
+          "cumulative_seconds": 0.32227618900000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 105,
+          "function": "<listcomp>",
+          "calls": 406,
+          "self_seconds": 0.312455778,
+          "cumulative_seconds": 1.143241741
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method mappa._group_ops.invariant_event_graph>",
+          "calls": 128,
+          "self_seconds": 0.296918911,
+          "cumulative_seconds": 0.296918911
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 637114,
+          "self_seconds": 0.25429074100000004,
+          "cumulative_seconds": 1.00192918
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 4.2363e-05,
+          "cumulative_seconds": 59.999026014
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 13915,
+          "self_seconds": 0.049621652,
+          "cumulative_seconds": 54.148545836000004
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 2.6783e-05,
+          "cumulative_seconds": 53.735309114
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 8.818000000000001e-06,
+          "cumulative_seconds": 53.734505828
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.981e-05,
+          "cumulative_seconds": 53.734480523
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.025756677000000002,
+          "cumulative_seconds": 53.732832380000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 211,
+          "self_seconds": 0.0010452690000000001,
+          "cumulative_seconds": 51.279503995000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 211,
+          "self_seconds": 0.0064007790000000005,
+          "cumulative_seconds": 50.366901307000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 211,
+          "self_seconds": 0.018333598,
+          "cumulative_seconds": 50.359826139000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 1051,
+          "self_seconds": 0.0018432440000000002,
+          "cumulative_seconds": 49.592771973000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 497,
+          "self_seconds": 0.004487495,
+          "cumulative_seconds": 49.587199692000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 497,
+          "self_seconds": 0.0068866840000000006,
+          "cumulative_seconds": 33.420050603
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 914,
+          "self_seconds": 0.41989953900000004,
+          "cumulative_seconds": 26.768875816
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 1550,
+          "self_seconds": 0.001996133,
+          "cumulative_seconds": 26.578847913
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 406,
+          "self_seconds": 0.097429601,
+          "cumulative_seconds": 20.335006575
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 406,
+          "self_seconds": 14.50485684,
+          "cumulative_seconds": 18.277153269
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 133,
+          "function": "lower",
+          "calls": 497,
+          "self_seconds": 0.002379902,
+          "cumulative_seconds": 16.128171457
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 95,
+          "function": "aggregate_bound",
+          "calls": 497,
+          "self_seconds": 0.064139,
+          "cumulative_seconds": 16.12022018
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 994,
+          "self_seconds": 8.213977744000001,
+          "cumulative_seconds": 10.773980121000001
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.00014576700000000002,
+          "cumulative_seconds": 5.701653393
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 2914,
+          "self_seconds": 0.001440033,
+          "cumulative_seconds": 5.576255209
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 6.995000000000001e-06,
+          "cumulative_seconds": 5.573469419
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 4.469e-06,
+          "cumulative_seconds": 5.573462424000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 3.1166e-05,
+          "cumulative_seconds": 5.573457955
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.00050904,
+          "cumulative_seconds": 5.573424491
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.00011714800000000001,
+          "cumulative_seconds": 5.570101243000001
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.053334436000000006,
+          "cumulative_seconds": 5.53960492
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.6796575140000001,
+          "cumulative_seconds": 5.486270484
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 497,
+          "self_seconds": 4.381283891000001,
+          "cumulative_seconds": 5.248921933
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 78,
+          "function": "__init__",
+          "calls": 406,
+          "self_seconds": 0.191858528,
+          "cumulative_seconds": 5.103161256
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 60,
+          "function": "__init__",
+          "calls": 497,
+          "self_seconds": 0.026659355000000003,
+          "cumulative_seconds": 4.235321131
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 16060233,
+          "self_seconds": 3.8161713820000003,
+          "cumulative_seconds": 3.9666729180000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 3.6323000000000004e-05,
+          "cumulative_seconds": 3.4383598070000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.027251107,
+          "cumulative_seconds": 3.4292653110000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 497,
+          "self_seconds": 0.33646669100000004,
+          "cumulative_seconds": 2.763916274
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 812,
+          "self_seconds": 2.366127122,
+          "cumulative_seconds": 2.7142202600000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 1681,
+          "self_seconds": 0.489802528,
+          "cumulative_seconds": 2.545079453
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 142,
+          "function": "prepared_fragment",
+          "calls": 497,
+          "self_seconds": 0.005050016,
+          "cumulative_seconds": 2.332292405
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 33,
+          "function": "preserves_weights",
+          "calls": 1393,
+          "self_seconds": 0.003382223,
+          "cumulative_seconds": 2.317164408
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 362,
+          "self_seconds": 0.001849266,
+          "cumulative_seconds": 2.316526927
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 151,
+          "function": "<genexpr>",
+          "calls": 890,
+          "self_seconds": 0.0011826150000000001,
+          "cumulative_seconds": 2.316023893
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 2934,
+          "self_seconds": 1.8252481870000001,
+          "cumulative_seconds": 2.305796871
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 218,
+          "function": "_invariant_group",
+          "calls": 128,
+          "self_seconds": 0.058789419,
+          "cumulative_seconds": 1.952889998
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 2261,
+          "self_seconds": 0.983366838,
+          "cumulative_seconds": 1.924593116
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 183115,
+          "self_seconds": 1.841814059,
+          "cumulative_seconds": 1.841814059
+        }
+      ]
+    },
+    {
+      "case": "18744/forward",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 60.13537925388664,
+      "cpu_seconds": 60.126550922,
+      "peak_rss_bytes": 999145472,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 10.232829811051488,
+          "compressed_bytes": 6993776,
+          "atoms": [
+            394,
+            394
+          ],
+          "families": 4358,
+          "branches": 4354,
+          "fragments": 2242
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 687,
+          "self_seconds": 10.140741682,
+          "cumulative_seconds": 12.838826939
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1720,
+          "self_seconds": 5.447121234,
+          "cumulative_seconds": 7.324911677
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 860,
+          "self_seconds": 3.7585569370000003,
+          "cumulative_seconds": 4.536333568
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 4358,
+          "self_seconds": 3.206103149,
+          "cumulative_seconds": 5.232976585
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 12813224,
+          "self_seconds": 3.0704665540000002,
+          "cumulative_seconds": 3.3661349570000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 304299,
+          "self_seconds": 2.9342045480000003,
+          "cumulative_seconds": 2.9342045480000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1652,
+          "self_seconds": 2.6367634960000004,
+          "cumulative_seconds": 2.6367634960000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 3968695,
+          "self_seconds": 2.421713394,
+          "cumulative_seconds": 2.455516654
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 1374,
+          "self_seconds": 2.206385592,
+          "cumulative_seconds": 2.596611782
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 3296,
+          "self_seconds": 1.929790026,
+          "cumulative_seconds": 2.447328875
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 15635734,
+          "self_seconds": 1.3159965630000001,
+          "cumulative_seconds": 1.3159984820000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 13115000,
+          "self_seconds": 1.125345902,
+          "cumulative_seconds": 1.125345902
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 3372871,
+          "self_seconds": 1.0207316990000002,
+          "cumulative_seconds": 2.286518707
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 3153,
+          "self_seconds": 0.9724156740000001,
+          "cumulative_seconds": 4.2498335350000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 4747,
+          "self_seconds": 0.923163868,
+          "cumulative_seconds": 1.911276125
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.910428038,
+          "cumulative_seconds": 10.079443757
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3423203,
+          "self_seconds": 0.790338529,
+          "cumulative_seconds": 2.897659741
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 40,
+          "function": "structural_generators",
+          "calls": 207,
+          "self_seconds": 0.606641147,
+          "cumulative_seconds": 0.6246064330000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 105,
+          "function": "<genexpr>",
+          "calls": 1804584,
+          "self_seconds": 0.520979131,
+          "cumulative_seconds": 0.520979131
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 858,
+          "self_seconds": 0.38819781200000003,
+          "cumulative_seconds": 4.658968332000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 8716,
+          "self_seconds": 0.383956332,
+          "cumulative_seconds": 2.712771505
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 1494,
+          "self_seconds": 0.375688163,
+          "cumulative_seconds": 19.717997602
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _abc._abc_instancecheck>",
+          "calls": 995086,
+          "self_seconds": 0.349928428,
+          "cumulative_seconds": 0.836230172
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 3799,
+          "self_seconds": 0.34921098300000003,
+          "cumulative_seconds": 0.34921098300000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 1016874,
+          "self_seconds": 0.34906251400000005,
+          "cumulative_seconds": 1.413086212
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 483,
+          "function": "<listcomp>",
+          "calls": 4747,
+          "self_seconds": 0.329167147,
+          "cumulative_seconds": 0.48669568
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+          "line": 7,
+          "function": "permutation_group",
+          "calls": 1788,
+          "self_seconds": 0.308470052,
+          "cumulative_seconds": 0.308470052
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method mappa._group_ops.fragment_event_terms>",
+          "calls": 687,
+          "self_seconds": 0.30049816700000004,
+          "cumulative_seconds": 0.301013721
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asarray>",
+          "calls": 56982,
+          "self_seconds": 0.29174538,
+          "cumulative_seconds": 0.29174538
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asanyarray>",
+          "calls": 20821,
+          "self_seconds": 0.29106405900000004,
+          "cumulative_seconds": 0.29106405900000004
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 3.5894e-05,
+          "cumulative_seconds": 59.999167569
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 19433,
+          "self_seconds": 0.069226864,
+          "cumulative_seconds": 48.576881367000006
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 2.9652000000000003e-05,
+          "cumulative_seconds": 48.231274373000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 1.3491e-05,
+          "cumulative_seconds": 48.229892914000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.6156e-05,
+          "cumulative_seconds": 48.229864066000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.046241798,
+          "cumulative_seconds": 48.228304977
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 374,
+          "self_seconds": 0.0016553100000000001,
+          "cumulative_seconds": 43.863313311000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 374,
+          "self_seconds": 0.010728091,
+          "cumulative_seconds": 42.986134234000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 374,
+          "self_seconds": 0.029919734000000003,
+          "cumulative_seconds": 42.974279916
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 1848,
+          "self_seconds": 0.002870978,
+          "cumulative_seconds": 41.783918888
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 860,
+          "self_seconds": 0.007769715000000001,
+          "cumulative_seconds": 41.775002219
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 860,
+          "self_seconds": 0.011360627,
+          "cumulative_seconds": 29.737776845000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 1494,
+          "self_seconds": 0.375688163,
+          "cumulative_seconds": 19.717997602
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 2929,
+          "self_seconds": 0.0030528300000000003,
+          "cumulative_seconds": 19.413292515000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 687,
+          "self_seconds": 0.10114872100000001,
+          "cumulative_seconds": 14.959798903000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 687,
+          "self_seconds": 10.140741682,
+          "cumulative_seconds": 12.838826939
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 133,
+          "function": "lower",
+          "calls": 860,
+          "self_seconds": 0.00435223,
+          "cumulative_seconds": 11.976037961000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 95,
+          "function": "aggregate_bound",
+          "calls": 860,
+          "self_seconds": 0.055708857,
+          "cumulative_seconds": 11.959942632
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.00015183200000000002,
+          "cumulative_seconds": 10.517145532
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 5460,
+          "self_seconds": 0.0022946390000000002,
+          "cumulative_seconds": 10.237247337000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 5.833000000000001e-06,
+          "cumulative_seconds": 10.232810464
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 2.3550000000000003e-06,
+          "cumulative_seconds": 10.232804631
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 3.0120000000000003e-05,
+          "cumulative_seconds": 10.232802276000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.000527178,
+          "cumulative_seconds": 10.232770149
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.000120112,
+          "cumulative_seconds": 10.230075003000001
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.12269600100000001,
+          "cumulative_seconds": 10.202139758000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.910428038,
+          "cumulative_seconds": 10.079443757
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 3.1858e-05,
+          "cumulative_seconds": 8.078089897
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.06591458800000001,
+          "cumulative_seconds": 8.070210671
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 60,
+          "function": "__init__",
+          "calls": 858,
+          "self_seconds": 0.042515758,
+          "cumulative_seconds": 7.3585467950000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1720,
+          "self_seconds": 5.447121234,
+          "cumulative_seconds": 7.324911677
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 4358,
+          "self_seconds": 3.206103149,
+          "cumulative_seconds": 5.232976585
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 858,
+          "self_seconds": 0.38819781200000003,
+          "cumulative_seconds": 4.658968332000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 860,
+          "self_seconds": 3.7585569370000003,
+          "cumulative_seconds": 4.536333568
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 3153,
+          "self_seconds": 0.9724156740000001,
+          "cumulative_seconds": 4.2498335350000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 78,
+          "function": "__init__",
+          "calls": 687,
+          "self_seconds": 0.17074323600000002,
+          "cumulative_seconds": 3.466777199
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 12813224,
+          "self_seconds": 3.0704665540000002,
+          "cumulative_seconds": 3.3661349570000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 304299,
+          "self_seconds": 2.9342045480000003,
+          "cumulative_seconds": 2.9342045480000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3423203,
+          "self_seconds": 0.790338529,
+          "cumulative_seconds": 2.897659741
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 8716,
+          "self_seconds": 0.383956332,
+          "cumulative_seconds": 2.712771505
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1652,
+          "self_seconds": 2.6367634960000004,
+          "cumulative_seconds": 2.6367634960000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 1374,
+          "self_seconds": 2.206385592,
+          "cumulative_seconds": 2.596611782
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 142,
+          "function": "prepared_fragment",
+          "calls": 860,
+          "self_seconds": 0.006218805,
+          "cumulative_seconds": 2.4836157070000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 33,
+          "function": "preserves_weights",
+          "calls": 2630,
+          "self_seconds": 0.005521282000000001,
+          "cumulative_seconds": 2.4640691130000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 545,
+          "self_seconds": 0.002160758,
+          "cumulative_seconds": 2.4619022590000004
+        }
+      ]
+    },
+    {
+      "case": "18749/forward",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 60.34480428788811,
+      "cpu_seconds": 60.319468704,
+      "peak_rss_bytes": 1871749120,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 14.276650378014892,
+          "compressed_bytes": 15880738,
+          "atoms": [
+            524,
+            524
+          ],
+          "families": 4065,
+          "branches": 4055,
+          "fragments": 3041
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 547,
+          "self_seconds": 8.140545328,
+          "cumulative_seconds": 10.224838525000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1396,
+          "self_seconds": 4.2135047640000005,
+          "cumulative_seconds": 5.57096928
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 4065,
+          "self_seconds": 4.159441339000001,
+          "cumulative_seconds": 7.2571396560000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 698,
+          "self_seconds": 3.9987902230000003,
+          "cumulative_seconds": 4.7958488290000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 297602,
+          "self_seconds": 3.47340601,
+          "cumulative_seconds": 3.47340601
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1422,
+          "self_seconds": 3.207962626,
+          "cumulative_seconds": 3.207962626
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 4802925,
+          "self_seconds": 2.9153398950000002,
+          "cumulative_seconds": 2.9481639100000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 2699,
+          "self_seconds": 2.572367839,
+          "cumulative_seconds": 3.229838979
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 11257609,
+          "self_seconds": 2.387210917,
+          "cumulative_seconds": 2.689049625
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 10,
+          "function": "__init__",
+          "calls": 1093,
+          "self_seconds": 1.747751116,
+          "cumulative_seconds": 2.049921709
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 1.282796354,
+          "cumulative_seconds": 14.107025639000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 17094001,
+          "self_seconds": 1.203136522,
+          "cumulative_seconds": 1.203138405
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 4204563,
+          "self_seconds": 1.06363734,
+          "cumulative_seconds": 2.3317499020000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 2610,
+          "self_seconds": 0.994987927,
+          "cumulative_seconds": 4.784566895
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 6741,
+          "self_seconds": 0.944498488,
+          "cumulative_seconds": 0.944498488
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 11689123,
+          "self_seconds": 0.865979695,
+          "cumulative_seconds": 0.865979695
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 4254455,
+          "self_seconds": 0.862844853,
+          "cumulative_seconds": 3.4556019210000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 4412,
+          "self_seconds": 0.857309995,
+          "cumulative_seconds": 1.731948317
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 6742,
+          "self_seconds": 0.732620012,
+          "cumulative_seconds": 0.732620012
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 40,
+          "function": "structural_generators",
+          "calls": 159,
+          "self_seconds": 0.5751006310000001,
+          "cumulative_seconds": 0.589389218
+        },
+        {
+          "file": "numeric.py",
+          "line": 2475,
+          "function": "array_equal",
+          "calls": 9334,
+          "self_seconds": 0.43005197,
+          "cumulative_seconds": 0.504759382
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 8130,
+          "self_seconds": 0.40908272,
+          "cumulative_seconds": 2.787055789
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 105,
+          "function": "<genexpr>",
+          "calls": 1601202,
+          "self_seconds": 0.395027375,
+          "cumulative_seconds": 0.395027375
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 15112,
+          "self_seconds": 0.374442755,
+          "cumulative_seconds": 0.37578671300000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 698,
+          "self_seconds": 0.350364981,
+          "cumulative_seconds": 5.220647493
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 483,
+          "function": "<listcomp>",
+          "calls": 4412,
+          "self_seconds": 0.34199403100000003,
+          "cumulative_seconds": 0.503399565
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 1046037,
+          "self_seconds": 0.33076736900000003,
+          "cumulative_seconds": 1.314405797
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _abc._abc_instancecheck>",
+          "calls": 1028360,
+          "self_seconds": 0.326604891,
+          "cumulative_seconds": 0.773750096
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1116,
+          "function": "_dataclass_setstate",
+          "calls": 162132,
+          "self_seconds": 0.313827691,
+          "cumulative_seconds": 0.712597082
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 205,
+          "function": "bind",
+          "calls": 320,
+          "self_seconds": 0.275728588,
+          "cumulative_seconds": 0.276026555
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 4.3022e-05,
+          "cumulative_seconds": 59.998922153
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 21730,
+          "self_seconds": 0.07146717600000001,
+          "cumulative_seconds": 44.893453717
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 3.2633000000000004e-05,
+          "cumulative_seconds": 44.157463264
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 9.046000000000001e-06,
+          "cumulative_seconds": 44.040746034
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.3458e-05,
+          "cumulative_seconds": 44.040722858
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.048845867,
+          "cumulative_seconds": 44.039640484
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 320,
+          "self_seconds": 0.0013766380000000001,
+          "cumulative_seconds": 39.989499004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 320,
+          "self_seconds": 0.010284918,
+          "cumulative_seconds": 39.275265823000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 320,
+          "self_seconds": 0.027421911,
+          "cumulative_seconds": 39.263818343000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 1566,
+          "self_seconds": 0.002795543,
+          "cumulative_seconds": 38.082524106
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 699,
+          "self_seconds": 0.007672379000000001,
+          "cumulative_seconds": 38.074363164000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 699,
+          "self_seconds": 0.010057764,
+          "cumulative_seconds": 27.55505214
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 1236,
+          "self_seconds": 0.24371805100000002,
+          "cumulative_seconds": 15.608609055
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 2463,
+          "self_seconds": 0.002656458,
+          "cumulative_seconds": 15.35173391
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.000140851,
+          "cumulative_seconds": 14.547539388
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 4993,
+          "self_seconds": 0.0019670300000000003,
+          "cumulative_seconds": 14.28045091
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 6.858e-06,
+          "cumulative_seconds": 14.276637568000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 3.588e-06,
+          "cumulative_seconds": 14.276630710000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 2.3828000000000003e-05,
+          "cumulative_seconds": 14.276627122
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.00042142700000000004,
+          "cumulative_seconds": 14.276601446
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.0006686400000000001,
+          "cumulative_seconds": 14.273681355
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.08805367,
+          "cumulative_seconds": 14.195079309
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 1.282796354,
+          "cumulative_seconds": 14.107025639000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 547,
+          "self_seconds": 0.070455638,
+          "cumulative_seconds": 11.932177726
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 133,
+          "function": "lower",
+          "calls": 698,
+          "self_seconds": 0.004143888,
+          "cumulative_seconds": 10.462849686
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 95,
+          "function": "aggregate_bound",
+          "calls": 698,
+          "self_seconds": 0.043620344000000005,
+          "cumulative_seconds": 10.447732831000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 547,
+          "self_seconds": 8.140545328,
+          "cumulative_seconds": 10.224838525000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 3.1807e-05,
+          "cumulative_seconds": 10.169098346
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.058078917,
+          "cumulative_seconds": 10.156565351000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 60,
+          "function": "__init__",
+          "calls": 698,
+          "self_seconds": 0.042183677,
+          "cumulative_seconds": 8.49320281
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 4065,
+          "self_seconds": 4.159441339000001,
+          "cumulative_seconds": 7.2571396560000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 1396,
+          "self_seconds": 4.2135047640000005,
+          "cumulative_seconds": 5.57096928
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 129,
+          "function": "_endpoint_scopes",
+          "calls": 698,
+          "self_seconds": 0.350364981,
+          "cumulative_seconds": 5.220647493
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 72,
+          "function": "distance",
+          "calls": 698,
+          "self_seconds": 3.9987902230000003,
+          "cumulative_seconds": 4.7958488290000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 210,
+          "function": "_action_orbits",
+          "calls": 2610,
+          "self_seconds": 0.994987927,
+          "cumulative_seconds": 4.784566895
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 221,
+          "function": "<genexpr>",
+          "calls": 297602,
+          "self_seconds": 3.47340601,
+          "cumulative_seconds": 3.47340601
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 4254455,
+          "self_seconds": 0.862844853,
+          "cumulative_seconds": 3.4556019210000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 142,
+          "function": "prepared_fragment",
+          "calls": 698,
+          "self_seconds": 0.005736056000000001,
+          "cumulative_seconds": 3.2587034220000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 33,
+          "function": "preserves_weights",
+          "calls": 2254,
+          "self_seconds": 0.00505519,
+          "cumulative_seconds": 3.2442362730000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 434,
+          "self_seconds": 0.0017763940000000001,
+          "cumulative_seconds": 3.2421888510000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 151,
+          "function": "<genexpr>",
+          "calls": 1174,
+          "self_seconds": 0.001470755,
+          "cumulative_seconds": 3.241601642
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 2699,
+          "self_seconds": 2.572367839,
+          "cumulative_seconds": 3.229838979
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/program.py",
+          "line": 72,
+          "function": "<setcomp>",
+          "calls": 1422,
+          "self_seconds": 3.207962626,
+          "cumulative_seconds": 3.207962626
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 4802925,
+          "self_seconds": 2.9153398950000002,
+          "cumulative_seconds": 2.9481639100000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 8130,
+          "self_seconds": 0.40908272,
+          "cumulative_seconds": 2.787055789
+        }
+      ]
+    },
+    {
+      "case": "24793/forward",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 72.36659331806004,
+      "cpu_seconds": 72.358717508,
+      "peak_rss_bytes": 798887936,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 9.480625339318067,
+          "compressed_bytes": 7377471,
+          "atoms": [
+            336,
+            336
+          ],
+          "families": 5778,
+          "branches": 5765,
+          "fragments": 2140
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 324,
+          "function": "_representatives",
+          "calls": 2,
+          "self_seconds": 57.790451814,
+          "cumulative_seconds": 57.79083407
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 5778,
+          "self_seconds": 2.1516813320000003,
+          "cumulative_seconds": 3.6914602170000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 4179097,
+          "self_seconds": 2.126953234,
+          "cumulative_seconds": 2.165196094
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 3812192,
+          "self_seconds": 1.2303218870000001,
+          "cumulative_seconds": 2.738586671
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 5792,
+          "self_seconds": 1.080247576,
+          "cumulative_seconds": 2.084853686
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3861980,
+          "self_seconds": 0.9487293290000001,
+          "cumulative_seconds": 2.595260401
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.944179972,
+          "cumulative_seconds": 9.306913802
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 697294,
+          "self_seconds": 0.5385487170000001,
+          "cumulative_seconds": 0.870627456
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 11556,
+          "self_seconds": 0.459858757,
+          "cumulative_seconds": 3.2499592
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 3306,
+          "self_seconds": 0.42869248000000004,
+          "cumulative_seconds": 0.42869248000000004
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 0.41551555900000003,
+          "cumulative_seconds": 0.46784918400000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 483,
+          "function": "<listcomp>",
+          "calls": 5792,
+          "self_seconds": 0.364394319,
+          "cumulative_seconds": 0.535738269
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 3307,
+          "self_seconds": 0.30526803,
+          "cumulative_seconds": 0.30526803
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 60,
+          "function": "<genexpr>",
+          "calls": 2023588,
+          "self_seconds": 0.258180685,
+          "cumulative_seconds": 0.258180685
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 26,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.202408054,
+          "cumulative_seconds": 1.675072042
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "calls": 1984753,
+          "self_seconds": 0.17729581300000002,
+          "cumulative_seconds": 0.17729581300000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 6209,
+          "self_seconds": 0.15654286,
+          "cumulative_seconds": 0.157537336
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 34,
+          "function": "intern",
+          "calls": 164299,
+          "self_seconds": 0.156411604,
+          "cumulative_seconds": 0.15771637000000002
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.142875273,
+          "cumulative_seconds": 9.449789075
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 477,
+          "function": "<dictcomp>",
+          "calls": 5792,
+          "self_seconds": 0.129656838,
+          "cumulative_seconds": 0.129656838
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1116,
+          "function": "_dataclass_setstate",
+          "calls": 78373,
+          "self_seconds": 0.128750541,
+          "cumulative_seconds": 0.410208711
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1187,
+          "function": "fields",
+          "calls": 78374,
+          "self_seconds": 0.12336525300000001,
+          "cumulative_seconds": 0.281475723
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 3,
+          "self_seconds": 0.12234199500000001,
+          "cumulative_seconds": 0.155368333
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'tobytes' of 'numpy.ndarray' objects>",
+          "calls": 4061,
+          "self_seconds": 0.114946191,
+          "cumulative_seconds": 0.114946191
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 105,
+          "function": "<listcomp>",
+          "calls": 1,
+          "self_seconds": 0.10092015400000001,
+          "cumulative_seconds": 0.10092015400000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 39,
+          "function": "collect",
+          "calls": 5765,
+          "self_seconds": 0.08999786300000001,
+          "cumulative_seconds": 0.331066252
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "calls": 78414,
+          "self_seconds": 0.086255178,
+          "cumulative_seconds": 0.086255178
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 178,
+          "self_seconds": 0.08104971600000001,
+          "cumulative_seconds": 0.10432877400000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.array>",
+          "calls": 5820,
+          "self_seconds": 0.076894532,
+          "cumulative_seconds": 0.076894532
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.068541325,
+          "cumulative_seconds": 7.076427007
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 3.9876e-05,
+          "cumulative_seconds": 72.25618335600001
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 10503,
+          "self_seconds": 0.030895783000000003,
+          "cumulative_seconds": 60.940146493
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 3.1698e-05,
+          "cumulative_seconds": 60.621666722
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 7.568e-06,
+          "cumulative_seconds": 60.5207136
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.9664000000000003e-05,
+          "cumulative_seconds": 60.520689382
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.042029389,
+          "cumulative_seconds": 60.518699743000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 1,
+          "self_seconds": 2.6867000000000002e-05,
+          "cumulative_seconds": 58.212010791000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 1,
+          "self_seconds": 5.9788000000000004e-05,
+          "cumulative_seconds": 58.198882217000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.000108102,
+          "cumulative_seconds": 58.198816141
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 3,
+          "self_seconds": 9.55e-06,
+          "cumulative_seconds": 58.194468767000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 3,
+          "self_seconds": 3.0528e-05,
+          "cumulative_seconds": 58.194440575
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 3,
+          "self_seconds": 5.5096e-05,
+          "cumulative_seconds": 58.189022894000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 5,
+          "self_seconds": 0.00029017100000000004,
+          "cumulative_seconds": 58.069451343000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 9,
+          "self_seconds": 2.3341000000000002e-05,
+          "cumulative_seconds": 58.069431811
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 3,
+          "self_seconds": 0.000973408,
+          "cumulative_seconds": 58.064416009000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 90,
+          "function": "optimize_start",
+          "calls": 3,
+          "self_seconds": 6.873900000000001e-05,
+          "cumulative_seconds": 57.844699345
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 246,
+          "function": "solve",
+          "calls": 2,
+          "self_seconds": 2.1720000000000002e-05,
+          "cumulative_seconds": 57.799236664000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 441,
+          "function": "run",
+          "calls": 2,
+          "self_seconds": 2.3687000000000002e-05,
+          "cumulative_seconds": 57.799188227
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 365,
+          "function": "_solve",
+          "calls": 8,
+          "self_seconds": 0.000364517,
+          "cumulative_seconds": 57.798311303000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 324,
+          "function": "_representatives",
+          "calls": 2,
+          "self_seconds": 57.790451814,
+          "cumulative_seconds": 57.79083407
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.00014665900000000002,
+          "cumulative_seconds": 9.949673636
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 5948,
+          "self_seconds": 0.0023446960000000003,
+          "cumulative_seconds": 9.486972795
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 7.411000000000001e-06,
+          "cumulative_seconds": 9.480608378000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 4.615000000000001e-06,
+          "cumulative_seconds": 9.480600967
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 2.7870000000000003e-05,
+          "cumulative_seconds": 9.480596352000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.000520464,
+          "cumulative_seconds": 9.480566482
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.000120605,
+          "cumulative_seconds": 9.477710701000001
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.142875273,
+          "cumulative_seconds": 9.449789075
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.944179972,
+          "cumulative_seconds": 9.306913802
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 3.5513000000000004e-05,
+          "cumulative_seconds": 7.082350506
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.068541325,
+          "cumulative_seconds": 7.076427007
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 5778,
+          "self_seconds": 2.1516813320000003,
+          "cumulative_seconds": 3.6914602170000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 11556,
+          "self_seconds": 0.459858757,
+          "cumulative_seconds": 3.2499592
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 3812192,
+          "self_seconds": 1.2303218870000001,
+          "cumulative_seconds": 2.738586671
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3861980,
+          "self_seconds": 0.9487293290000001,
+          "cumulative_seconds": 2.595260401
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 4179097,
+          "self_seconds": 2.126953234,
+          "cumulative_seconds": 2.165196094
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 5792,
+          "self_seconds": 1.080247576,
+          "cumulative_seconds": 2.084853686
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/api.py",
+          "line": 50,
+          "function": "decode",
+          "calls": 1,
+          "self_seconds": 0.000492548,
+          "cumulative_seconds": 1.675795976
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 26,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.202408054,
+          "cumulative_seconds": 1.675072042
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 697294,
+          "self_seconds": 0.5385487170000001,
+          "cumulative_seconds": 0.870627456
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'read' of '_io.BufferedReader' objects>",
+          "calls": 3378,
+          "self_seconds": 0.02234952,
+          "cumulative_seconds": 0.8418831720000001
+        },
+        {
+          "file": "gzip.py",
+          "line": 296,
+          "function": "read",
+          "calls": 3368,
+          "self_seconds": 0.003050189,
+          "cumulative_seconds": 0.830484623
+        },
+        {
+          "file": "_compression.py",
+          "line": 66,
+          "function": "readinto",
+          "calls": 3306,
+          "self_seconds": 0.04718097,
+          "cumulative_seconds": 0.819620938
+        },
+        {
+          "file": "gzip.py",
+          "line": 463,
+          "function": "read",
+          "calls": 3306,
+          "self_seconds": 0.012509189,
+          "cumulative_seconds": 0.7681718700000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 483,
+          "function": "<listcomp>",
+          "calls": 5792,
+          "self_seconds": 0.364394319,
+          "cumulative_seconds": 0.535738269
+        }
+      ]
+    },
+    {
+      "case": "40793/reverse",
+      "stage": "decoding",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 67.50189626123756,
+      "cpu_seconds": 67.488599259,
+      "peak_rss_bytes": 1023127552,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 6.143504787702113,
+          "compressed_bytes": 12028489,
+          "atoms": [
+            521,
+            521
+          ],
+          "families": 1409,
+          "branches": 1405,
+          "fragments": 2145
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 324,
+          "function": "_representatives",
+          "calls": 1,
+          "self_seconds": 59.180624899,
+          "cumulative_seconds": 59.180960104
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.9298957200000001,
+          "cumulative_seconds": 6.028670431
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 1409,
+          "self_seconds": 0.7074488520000001,
+          "cumulative_seconds": 1.78640064
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 4844,
+          "self_seconds": 0.701941561,
+          "cumulative_seconds": 0.701941561
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 1501641,
+          "self_seconds": 0.699753802,
+          "cumulative_seconds": 0.7053762690000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 4845,
+          "self_seconds": 0.514582984,
+          "cumulative_seconds": 0.514582984
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 1461769,
+          "self_seconds": 0.471632345,
+          "cumulative_seconds": 1.0662460440000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 1469205,
+          "self_seconds": 0.366047809,
+          "cumulative_seconds": 0.974024878
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 1456,
+          "self_seconds": 0.27891670900000004,
+          "cumulative_seconds": 0.609159769
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 6305,
+          "self_seconds": 0.265870798,
+          "cumulative_seconds": 0.266869261
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/objective.py",
+          "line": 54,
+          "function": "lower_bound",
+          "calls": 2,
+          "self_seconds": 0.22067773000000002,
+          "cumulative_seconds": 0.280522587
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1116,
+          "function": "_dataclass_setstate",
+          "calls": 133988,
+          "self_seconds": 0.218533112,
+          "cumulative_seconds": 0.6031333120000001
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1187,
+          "function": "fields",
+          "calls": 133988,
+          "self_seconds": 0.20974204600000002,
+          "cumulative_seconds": 0.3846002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "calls": 274668,
+          "self_seconds": 0.20119219800000002,
+          "cumulative_seconds": 0.31176446500000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'tobytes' of 'numpy.ndarray' objects>",
+          "calls": 4145,
+          "self_seconds": 0.192388251,
+          "cumulative_seconds": 0.192388251
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 2818,
+          "self_seconds": 0.17170874,
+          "cumulative_seconds": 1.25638026
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 483,
+          "function": "<listcomp>",
+          "calls": 1456,
+          "self_seconds": 0.143176372,
+          "cumulative_seconds": 0.21257298600000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 37,
+          "function": "<genexpr>",
+          "calls": 119,
+          "self_seconds": 0.125907544,
+          "cumulative_seconds": 0.156424373
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 89,
+          "function": "<genexpr>",
+          "calls": 136133,
+          "self_seconds": 0.125799985,
+          "cumulative_seconds": 0.125799985
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1202,
+          "function": "<genexpr>",
+          "calls": 669940,
+          "self_seconds": 0.10914973800000001,
+          "cumulative_seconds": 0.10914973800000001
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 0.10870452300000001,
+          "cumulative_seconds": 0.120919039
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 60,
+          "function": "<genexpr>",
+          "calls": 743316,
+          "self_seconds": 0.096122488,
+          "cumulative_seconds": 0.096122488
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "calls": 784996,
+          "self_seconds": 0.073824058,
+          "cumulative_seconds": 0.073824058
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 60,
+          "function": "bag",
+          "calls": 4,
+          "self_seconds": 0.06919488,
+          "cumulative_seconds": 0.091376651
+        },
+        {
+          "file": "_compression.py",
+          "line": 66,
+          "function": "readinto",
+          "calls": 4844,
+          "self_seconds": 0.065011123,
+          "cumulative_seconds": 1.3468296350000002
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.061771409000000006,
+          "cumulative_seconds": 6.09044184
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 34,
+          "function": "intern",
+          "calls": 18436,
+          "self_seconds": 0.049717542,
+          "cumulative_seconds": 0.050920863000000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 26,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.047912082,
+          "cumulative_seconds": 0.449369752
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 477,
+          "function": "<dictcomp>",
+          "calls": 1456,
+          "self_seconds": 0.047046203,
+          "cumulative_seconds": 0.047046203
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "calls": 134018,
+          "self_seconds": 0.046131942,
+          "cumulative_seconds": 0.046131942
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/decoding.py",
+          "line": 35,
+          "function": "decode_catalogue",
+          "calls": 1,
+          "self_seconds": 3.4164e-05,
+          "cumulative_seconds": 67.341236792
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 10598,
+          "self_seconds": 0.032749975,
+          "cumulative_seconds": 61.295089902
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/records.py",
+          "line": 94,
+          "function": "decoded_events_record",
+          "calls": 1,
+          "self_seconds": 2.5416000000000002e-05,
+          "cumulative_seconds": 60.609099409
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 192,
+          "function": "_export_tables",
+          "calls": 1,
+          "self_seconds": 9.613000000000001e-06,
+          "cumulative_seconds": 60.608028418
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 132,
+          "function": "window",
+          "calls": 1,
+          "self_seconds": 2.0339e-05,
+          "cumulative_seconds": 60.608006712000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 14,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.010552078000000001,
+          "cumulative_seconds": 60.606620564
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/window.py",
+          "line": 89,
+          "function": "_table",
+          "calls": 1,
+          "self_seconds": 1.3172e-05,
+          "cumulative_seconds": 59.942741045000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+          "line": 178,
+          "function": "_prepare_table",
+          "calls": 1,
+          "self_seconds": 5.0830000000000006e-05,
+          "cumulative_seconds": 59.926961091
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 520,
+          "function": "__init__",
+          "calls": 1,
+          "self_seconds": 0.000101947,
+          "cumulative_seconds": 59.926905315000006
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 129,
+          "function": "bounds",
+          "calls": 3,
+          "self_seconds": 1.2023e-05,
+          "cumulative_seconds": 59.922602961
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 175,
+          "function": "bounds",
+          "calls": 3,
+          "self_seconds": 4.2392000000000003e-05,
+          "cumulative_seconds": 59.922563709
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 159,
+          "function": "program",
+          "calls": 3,
+          "self_seconds": 6.4899e-05,
+          "cumulative_seconds": 59.792567848000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+          "line": 115,
+          "function": "prepare",
+          "calls": 3,
+          "self_seconds": 0.002178349,
+          "cumulative_seconds": 59.607248295000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+          "line": 164,
+          "function": "<genexpr>",
+          "calls": 9,
+          "self_seconds": 2.4498e-05,
+          "cumulative_seconds": 59.607191659
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 64,
+          "function": "optimize_fragment",
+          "calls": 2,
+          "self_seconds": 0.001690206,
+          "cumulative_seconds": 59.584437525000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+          "line": 90,
+          "function": "optimize_start",
+          "calls": 2,
+          "self_seconds": 6.8182e-05,
+          "cumulative_seconds": 59.232536735000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 246,
+          "function": "solve",
+          "calls": 1,
+          "self_seconds": 1.0459000000000001e-05,
+          "cumulative_seconds": 59.188007520000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 441,
+          "function": "run",
+          "calls": 1,
+          "self_seconds": 1.2363e-05,
+          "cumulative_seconds": 59.187979860000006
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 365,
+          "function": "_solve",
+          "calls": 3,
+          "self_seconds": 0.000283348,
+          "cumulative_seconds": 59.187953761
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+          "line": 324,
+          "function": "_representatives",
+          "calls": 1,
+          "self_seconds": 59.180624899,
+          "cumulative_seconds": 59.180960104
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.000115741,
+          "cumulative_seconds": 6.265486848
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 1606,
+          "self_seconds": 0.0006710020000000001,
+          "cumulative_seconds": 6.1439560570000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 6.6140000000000005e-06,
+          "cumulative_seconds": 6.14349827
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 2.415e-06,
+          "cumulative_seconds": 6.143491656
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 1,
+          "self_seconds": 1.5380000000000002e-05,
+          "cumulative_seconds": 6.143489241
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 2,
+          "self_seconds": 0.000437845,
+          "cumulative_seconds": 6.143472206
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 1,
+          "self_seconds": 0.000608555,
+          "cumulative_seconds": 6.139761099
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 1,
+          "self_seconds": 0.061771409000000006,
+          "cumulative_seconds": 6.09044184
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 1,
+          "self_seconds": 0.9298957200000001,
+          "cumulative_seconds": 6.028670431
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 3.3507e-05,
+          "cumulative_seconds": 3.084766305
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.017191885,
+          "cumulative_seconds": 3.070354002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 1409,
+          "self_seconds": 0.7074488520000001,
+          "cumulative_seconds": 1.78640064
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'read' of '_io.BufferedReader' objects>",
+          "calls": 5017,
+          "self_seconds": 0.035462895,
+          "cumulative_seconds": 1.382153412
+        },
+        {
+          "file": "gzip.py",
+          "line": 296,
+          "function": "read",
+          "calls": 5003,
+          "self_seconds": 0.004992533,
+          "cumulative_seconds": 1.363244289
+        },
+        {
+          "file": "_compression.py",
+          "line": 66,
+          "function": "readinto",
+          "calls": 4844,
+          "self_seconds": 0.065011123,
+          "cumulative_seconds": 1.3468296350000002
+        },
+        {
+          "file": "gzip.py",
+          "line": 463,
+          "function": "read",
+          "calls": 4844,
+          "self_seconds": 0.018229025000000003,
+          "cumulative_seconds": 1.2759398830000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 2818,
+          "self_seconds": 0.17170874,
+          "cumulative_seconds": 1.25638026
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 1461769,
+          "self_seconds": 0.471632345,
+          "cumulative_seconds": 1.0662460440000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 1469205,
+          "self_seconds": 0.366047809,
+          "cumulative_seconds": 0.974024878
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 1501641,
+          "self_seconds": 0.699753802,
+          "cumulative_seconds": 0.7053762690000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 4844,
+          "self_seconds": 0.701941561,
+          "cumulative_seconds": 0.701941561
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 100,
+          "function": "__hash__",
+          "calls": 22748,
+          "self_seconds": 0.005734838000000001,
+          "cumulative_seconds": 0.667109754
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 96,
+          "function": "_hash",
+          "calls": 2145,
+          "self_seconds": 0.0023648460000000003,
+          "cumulative_seconds": 0.6552359400000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 84,
+          "function": "key",
+          "calls": 2145,
+          "self_seconds": 0.024321645000000003,
+          "cumulative_seconds": 0.6206060330000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+          "line": 474,
+          "function": "prepare_boundary_events",
+          "calls": 1456,
+          "self_seconds": 0.27891670900000004,
+          "cumulative_seconds": 0.609159769
+        }
+      ]
+    },
+    {
+      "case": "10383/reverse",
+      "stage": "verification",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 69.48731002071872,
+      "cpu_seconds": 69.226187974,
+      "peak_rss_bytes": 1512079360,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 42.35405444074422,
+          "compressed_bytes": 8065258,
+          "atoms": [
+            374,
+            374
+          ],
+          "families": 26589,
+          "branches": 26493,
+          "fragments": 2214
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 12,
+          "function": "group_factors",
+          "calls": 3,
+          "self_seconds": 23.923953539000003,
+          "cumulative_seconds": 23.928355117000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 26589,
+          "self_seconds": 14.201529157000001,
+          "cumulative_seconds": 21.730401158000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 20060571,
+          "self_seconds": 10.15980373,
+          "cumulative_seconds": 10.215805831
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 19725915,
+          "self_seconds": 6.158072834,
+          "cumulative_seconds": 13.929499792000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 19844354,
+          "self_seconds": 4.968577446,
+          "cumulative_seconds": 15.066979444000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 2,
+          "self_seconds": 2.371966582,
+          "cumulative_seconds": 41.851231204
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 53178,
+          "self_seconds": 2.2355102920000003,
+          "cumulative_seconds": 16.425309564000003
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 1.246166227,
+          "cumulative_seconds": 1.386710063
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 2,
+          "self_seconds": 0.47167728200000003,
+          "cumulative_seconds": 42.322908486
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 5199,
+          "self_seconds": 0.28668739800000004,
+          "cumulative_seconds": 0.28668739800000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.282631261,
+          "cumulative_seconds": 38.608589516
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method io.open>",
+          "calls": 2,
+          "self_seconds": 0.245213911,
+          "cumulative_seconds": 0.24522900900000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 127,
+          "function": "<setcomp>",
+          "calls": 39270,
+          "self_seconds": 0.21588779700000002,
+          "cumulative_seconds": 0.2884701
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 340795,
+          "self_seconds": 0.201235656,
+          "cumulative_seconds": 0.8022952170000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 5201,
+          "self_seconds": 0.177589418,
+          "cumulative_seconds": 0.177589418
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 1883857,
+          "self_seconds": 0.160914197,
+          "cumulative_seconds": 0.16092951500000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 128,
+          "function": "<genexpr>",
+          "calls": 340027,
+          "self_seconds": 0.150461391,
+          "cumulative_seconds": 0.615655492
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+          "line": 75,
+          "function": "__hash__",
+          "calls": 615370,
+          "self_seconds": 0.092314087,
+          "cumulative_seconds": 0.092314087
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1116,
+          "function": "_dataclass_setstate",
+          "calls": 50544,
+          "self_seconds": 0.086639503,
+          "cumulative_seconds": 0.23013428400000002
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1187,
+          "function": "fields",
+          "calls": 50544,
+          "self_seconds": 0.08401820800000001,
+          "cumulative_seconds": 0.14349478100000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 100,
+          "function": "__hash__",
+          "calls": 436119,
+          "self_seconds": 0.07433642,
+          "cumulative_seconds": 0.324072793
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 139,
+          "function": "<genexpr>",
+          "calls": 242440,
+          "self_seconds": 0.059266820000000005,
+          "cumulative_seconds": 0.059266820000000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 6419,
+          "self_seconds": 0.057588609000000006,
+          "cumulative_seconds": 0.058814928
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 123,
+          "function": "apply_factor",
+          "calls": 105,
+          "self_seconds": 0.052802911,
+          "cumulative_seconds": 1.0183264790000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'tobytes' of 'numpy.ndarray' objects>",
+          "calls": 4207,
+          "self_seconds": 0.051673750000000004,
+          "cumulative_seconds": 0.051673750000000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 89,
+          "function": "<genexpr>",
+          "calls": 52758,
+          "self_seconds": 0.047567096,
+          "cumulative_seconds": 0.047567096
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 355924,
+          "self_seconds": 0.045594301000000004,
+          "cumulative_seconds": 0.045594301000000004
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 137,
+          "function": "fragments",
+          "calls": 26591,
+          "self_seconds": 0.04326917,
+          "cumulative_seconds": 0.10253599000000001
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1202,
+          "function": "<genexpr>",
+          "calls": 252720,
+          "self_seconds": 0.042379172,
+          "cumulative_seconds": 0.042379172
+        },
+        {
+          "file": "_compression.py",
+          "line": 66,
+          "function": "readinto",
+          "calls": 5199,
+          "self_seconds": 0.042347793,
+          "cumulative_seconds": 0.563965751
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "bench/enzymemap.py",
+          "line": 95,
+          "function": "verify",
+          "calls": 1,
+          "self_seconds": 9.412e-05,
+          "cumulative_seconds": 69.272647455
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.000176582,
+          "cumulative_seconds": 43.741199077000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 2,
+          "self_seconds": 4.2293e-05,
+          "cumulative_seconds": 42.608052049
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 4,
+          "self_seconds": 0.001020155,
+          "cumulative_seconds": 42.608006257
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 148,
+          "self_seconds": 2.9078000000000002e-05,
+          "cumulative_seconds": 42.606821314
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 2,
+          "self_seconds": 0.000192658,
+          "cumulative_seconds": 42.360976165000004
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 5.591e-06,
+          "cumulative_seconds": 42.354037775
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 2.713e-06,
+          "cumulative_seconds": 42.354032184000005
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 2,
+          "self_seconds": 0.47167728200000003,
+          "cumulative_seconds": 42.322908486
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 2,
+          "self_seconds": 2.371966582,
+          "cumulative_seconds": 41.851231204
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 4.2573e-05,
+          "cumulative_seconds": 38.616875740000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.282631261,
+          "cumulative_seconds": 38.608589516
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/queries/family.py",
+          "line": 178,
+          "function": "query_path",
+          "calls": 1,
+          "self_seconds": 4.0938e-05,
+          "cumulative_seconds": 25.276781165000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/queries/family.py",
+          "line": 64,
+          "function": "compile_path",
+          "calls": 1,
+          "self_seconds": 0.00025264,
+          "cumulative_seconds": 25.239959646000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 114,
+          "function": "act",
+          "calls": 3,
+          "self_seconds": 0.007046981000000001,
+          "cumulative_seconds": 25.009235043
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 12,
+          "function": "group_factors",
+          "calls": 3,
+          "self_seconds": 23.923953539000003,
+          "cumulative_seconds": 23.928355117000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 26589,
+          "self_seconds": 14.201529157000001,
+          "cumulative_seconds": 21.730401158000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 53178,
+          "self_seconds": 2.2355102920000003,
+          "cumulative_seconds": 16.425309564000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 19844354,
+          "self_seconds": 4.968577446,
+          "cumulative_seconds": 15.066979444000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 19725915,
+          "self_seconds": 6.158072834,
+          "cumulative_seconds": 13.929499792000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 20060571,
+          "self_seconds": 10.15980373,
+          "cumulative_seconds": 10.215805831
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 1.246166227,
+          "cumulative_seconds": 1.386710063
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 123,
+          "function": "apply_factor",
+          "calls": 105,
+          "self_seconds": 0.052802911,
+          "cumulative_seconds": 1.0183264790000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 340795,
+          "self_seconds": 0.201235656,
+          "cumulative_seconds": 0.8022952170000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 128,
+          "function": "<genexpr>",
+          "calls": 340027,
+          "self_seconds": 0.150461391,
+          "cumulative_seconds": 0.615655492
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'read' of '_io.BufferedReader' objects>",
+          "calls": 5460,
+          "self_seconds": 0.036355643,
+          "cumulative_seconds": 0.600060216
+        },
+        {
+          "file": "gzip.py",
+          "line": 296,
+          "function": "read",
+          "calls": 5434,
+          "self_seconds": 0.004962398000000001,
+          "cumulative_seconds": 0.582123187
+        },
+        {
+          "file": "_compression.py",
+          "line": 66,
+          "function": "readinto",
+          "calls": 5199,
+          "self_seconds": 0.042347793,
+          "cumulative_seconds": 0.563965751
+        },
+        {
+          "file": "gzip.py",
+          "line": 463,
+          "function": "read",
+          "calls": 5199,
+          "self_seconds": 0.018355486,
+          "cumulative_seconds": 0.515386148
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 10861,
+          "self_seconds": 0.03723874,
+          "cumulative_seconds": 0.447652215
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 100,
+          "function": "__hash__",
+          "calls": 436119,
+          "self_seconds": 0.07433642,
+          "cumulative_seconds": 0.324072793
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 127,
+          "function": "<setcomp>",
+          "calls": 39270,
+          "self_seconds": 0.21588779700000002,
+          "cumulative_seconds": 0.2884701
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'decompress' of 'zlib.Decompress' objects>",
+          "calls": 5199,
+          "self_seconds": 0.28668739800000004,
+          "cumulative_seconds": 0.28668739800000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method io.open>",
+          "calls": 2,
+          "self_seconds": 0.245213911,
+          "cumulative_seconds": 0.24522900900000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 96,
+          "function": "_hash",
+          "calls": 2214,
+          "self_seconds": 0.0029187260000000004,
+          "cumulative_seconds": 0.242545642
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1116,
+          "function": "_dataclass_setstate",
+          "calls": 50544,
+          "self_seconds": 0.086639503,
+          "cumulative_seconds": 0.23013428400000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 84,
+          "function": "key",
+          "calls": 2214,
+          "self_seconds": 0.017653763,
+          "cumulative_seconds": 0.21715816500000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 395,
+          "function": "compile_relaxed_relation",
+          "calls": 7,
+          "self_seconds": 0.00025386,
+          "cumulative_seconds": 0.19644454900000002
+        },
+        {
+          "file": "gzip.py",
+          "line": 514,
+          "function": "_add_read_data",
+          "calls": 5199,
+          "self_seconds": 0.005993114000000001,
+          "cumulative_seconds": 0.18438559200000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method zlib.crc32>",
+          "calls": 5201,
+          "self_seconds": 0.177589418,
+          "cumulative_seconds": 0.177589418
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 153,
+          "function": "absorbed_self_actions",
+          "calls": 7,
+          "self_seconds": 7.0982e-05,
+          "cumulative_seconds": 0.162825679
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 1883857,
+          "self_seconds": 0.160914197,
+          "cumulative_seconds": 0.16092951500000002
+        },
+        {
+          "file": "dataclasses.py",
+          "line": 1187,
+          "function": "fields",
+          "calls": 50544,
+          "self_seconds": 0.08401820800000001,
+          "cumulative_seconds": 0.14349478100000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 66,
+          "function": "key",
+          "calls": 4205,
+          "self_seconds": 0.008051412,
+          "cumulative_seconds": 0.13779434100000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+          "line": 18,
+          "function": "__init__",
+          "calls": 4205,
+          "self_seconds": 0.014887835,
+          "cumulative_seconds": 0.129742929
+        }
+      ]
+    },
+    {
+      "case": "10393/reverse",
+      "stage": "verification",
+      "status": "diagnostic_limit",
+      "elapsed_seconds": 60.04709014669061,
+      "cpu_seconds": 59.945402938,
+      "peak_rss_bytes": 275787776,
+      "loading": [
+        {
+          "loaded_type": "CatalogueResult",
+          "seconds": 4.791380778886378,
+          "compressed_bytes": 1732758,
+          "atoms": [
+            152,
+            152
+          ],
+          "families": 10404,
+          "branches": 10308,
+          "fragments": 869
+        }
+      ],
+      "top_self": [
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 145,
+          "function": "propagate",
+          "calls": 19,
+          "self_seconds": 17.118230933,
+          "cumulative_seconds": 41.248642601
+        },
+        {
+          "file": "<string>",
+          "line": 2,
+          "function": "__hash__",
+          "calls": 28957476,
+          "self_seconds": 7.5243269580000005,
+          "cumulative_seconds": 10.997847644
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 81,
+          "function": "domain",
+          "calls": 16652865,
+          "self_seconds": 5.333898830000001,
+          "cumulative_seconds": 6.859901034000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 28959990,
+          "self_seconds": 3.4858842020000003,
+          "cumulative_seconds": 3.48625663
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 136,
+          "function": "action_rows",
+          "calls": 4909643,
+          "self_seconds": 3.327531056,
+          "cumulative_seconds": 4.595884521
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 128,
+          "function": "<genexpr>",
+          "calls": 11713272,
+          "self_seconds": 3.076989776,
+          "cumulative_seconds": 3.788055296
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 127,
+          "function": "<setcomp>",
+          "calls": 222528,
+          "self_seconds": 2.61036086,
+          "cumulative_seconds": 3.4774805360000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 3103106,
+          "self_seconds": 2.1676520790000002,
+          "cumulative_seconds": 7.811594757000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 26046803,
+          "self_seconds": 2.126559879,
+          "cumulative_seconds": 2.126577063
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 17129105,
+          "self_seconds": 1.5732255880000001,
+          "cumulative_seconds": 1.5732255880000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 10404,
+          "self_seconds": 1.0089596730000001,
+          "cumulative_seconds": 1.6977218200000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 165,
+          "function": "<setcomp>",
+          "calls": 282363,
+          "self_seconds": 0.892604401,
+          "cumulative_seconds": 0.892604401
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 3232210,
+          "self_seconds": 0.868273998,
+          "cumulative_seconds": 0.8851714770000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 3099180,
+          "self_seconds": 0.830486586,
+          "cumulative_seconds": 1.8472808340000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3147480,
+          "self_seconds": 0.6751921200000001,
+          "cumulative_seconds": 1.538086485
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 5288764,
+          "self_seconds": 0.6533387390000001,
+          "cumulative_seconds": 0.6533387390000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 2,
+          "self_seconds": 0.48899113400000005,
+          "cumulative_seconds": 4.71393923
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 123,
+          "function": "apply_factor",
+          "calls": 1976,
+          "self_seconds": 0.418300863,
+          "cumulative_seconds": 11.781400219
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 91,
+          "function": "restrict",
+          "calls": 290859,
+          "self_seconds": 0.417546835,
+          "cumulative_seconds": 0.764822467
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 12,
+          "function": "group_factors",
+          "calls": 5,
+          "self_seconds": 0.412132204,
+          "cumulative_seconds": 0.41309900800000005
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 20808,
+          "self_seconds": 0.330817297,
+          "cumulative_seconds": 2.221298276
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 0.287933133,
+          "cumulative_seconds": 0.34912767
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 146,
+          "function": "<listcomp>",
+          "calls": 19,
+          "self_seconds": 0.23847611400000002,
+          "cumulative_seconds": 0.23847611400000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'intersection' of 'set' objects>",
+          "calls": 290859,
+          "self_seconds": 0.178987278,
+          "cumulative_seconds": 0.178987278
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "calls": 158034,
+          "self_seconds": 0.11819051300000001,
+          "cumulative_seconds": 0.34365446
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 117,
+          "function": "<genexpr>",
+          "calls": 157985,
+          "self_seconds": 0.11678880900000001,
+          "cumulative_seconds": 0.31841658700000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 84,
+          "function": "symbol",
+          "calls": 51034,
+          "self_seconds": 0.113462962,
+          "cumulative_seconds": 0.16516065500000002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 130,
+          "function": "<genexpr>",
+          "calls": 73180,
+          "self_seconds": 0.102354068,
+          "cumulative_seconds": 0.249512486
+        },
+        {
+          "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+          "line": 89,
+          "function": "<genexpr>",
+          "calls": 13554,
+          "self_seconds": 0.09736847200000001,
+          "cumulative_seconds": 0.09736847200000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 120,
+          "function": "_allows_edge",
+          "calls": 70280,
+          "self_seconds": 0.090565275,
+          "cumulative_seconds": 0.147158418
+        }
+      ],
+      "top_cumulative": [
+        {
+          "file": "bench/enzymemap.py",
+          "line": 95,
+          "function": "verify",
+          "calls": 1,
+          "self_seconds": 0.021628061,
+          "cumulative_seconds": 59.995287267
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/queries/family.py",
+          "line": 178,
+          "function": "query_path",
+          "calls": 19,
+          "self_seconds": 0.000781468,
+          "cumulative_seconds": 54.813119402000005
+        },
+        {
+          "file": "src/mappa/mappa_core/core/search/queries/family.py",
+          "line": 64,
+          "function": "compile_path",
+          "calls": 19,
+          "self_seconds": 0.012796636,
+          "cumulative_seconds": 54.704278035
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 145,
+          "function": "propagate",
+          "calls": 19,
+          "self_seconds": 17.118230933,
+          "cumulative_seconds": 41.248642601
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 114,
+          "function": "act",
+          "calls": 133,
+          "self_seconds": 0.055234089,
+          "cumulative_seconds": 12.569419865
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 123,
+          "function": "apply_factor",
+          "calls": 1976,
+          "self_seconds": 0.418300863,
+          "cumulative_seconds": 11.781400219
+        },
+        {
+          "file": "<string>",
+          "line": 2,
+          "function": "__hash__",
+          "calls": 28957476,
+          "self_seconds": 7.5243269580000005,
+          "cumulative_seconds": 10.997847644
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "calls": 3103106,
+          "self_seconds": 2.1676520790000002,
+          "cumulative_seconds": 7.811594757000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 81,
+          "function": "domain",
+          "calls": 16652865,
+          "self_seconds": 5.333898830000001,
+          "cumulative_seconds": 6.859901034000001
+        },
+        {
+          "file": "<string>",
+          "line": 17,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 0.000108999,
+          "cumulative_seconds": 5.141675254
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.next>",
+          "calls": 436,
+          "self_seconds": 0.00018468500000000002,
+          "cumulative_seconds": 4.802362499
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 37,
+          "function": "read_blob",
+          "calls": 2,
+          "self_seconds": 4.9141e-05,
+          "cumulative_seconds": 4.802337488
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 42,
+          "function": "read_blobs",
+          "calls": 4,
+          "self_seconds": 0.0009310490000000001,
+          "cumulative_seconds": 4.802281533
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/bundles.py",
+          "line": 55,
+          "function": "_read_verified",
+          "calls": 2,
+          "self_seconds": 0.000137474,
+          "cumulative_seconds": 4.796729888000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/runtime.py",
+          "line": 55,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 1.0134e-05,
+          "cumulative_seconds": 4.791363317
+        },
+        {
+          "file": "src/mappa/mappa_core/core/scheduler/storage.py",
+          "line": 54,
+          "function": "load",
+          "calls": 1,
+          "self_seconds": 4.469e-06,
+          "cumulative_seconds": 4.791353183
+        },
+        {
+          "file": "src/mappa/mappa_core/utils/io/checkpoints.py",
+          "line": 157,
+          "function": "_load_checkpoint",
+          "calls": 2,
+          "self_seconds": 0.06389312200000001,
+          "cumulative_seconds": 4.777832352
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'load' of '_pickle.Unpickler' objects>",
+          "calls": 2,
+          "self_seconds": 0.48899113400000005,
+          "cumulative_seconds": 4.71393923
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 136,
+          "function": "action_rows",
+          "calls": 4909643,
+          "self_seconds": 3.327531056,
+          "cumulative_seconds": 4.595884521
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 253,
+          "function": "_from_binary",
+          "calls": 1,
+          "self_seconds": 2.7443e-05,
+          "cumulative_seconds": 4.061368455
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 264,
+          "function": "_index_families",
+          "calls": 1,
+          "self_seconds": 0.083396805,
+          "cumulative_seconds": 4.059740967000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 128,
+          "function": "<genexpr>",
+          "calls": 11713272,
+          "self_seconds": 3.076989776,
+          "cumulative_seconds": 3.788055296
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hash>",
+          "calls": 28959990,
+          "self_seconds": 3.4858842020000003,
+          "cumulative_seconds": 3.48625663
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 127,
+          "function": "<setcomp>",
+          "calls": 222528,
+          "self_seconds": 2.61036086,
+          "cumulative_seconds": 3.4774805360000003
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 219,
+          "function": "_intern_pairs",
+          "calls": 20808,
+          "self_seconds": 0.330817297,
+          "cumulative_seconds": 2.221298276
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 26046803,
+          "self_seconds": 2.126559879,
+          "cumulative_seconds": 2.126577063
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 220,
+          "function": "<genexpr>",
+          "calls": 3099180,
+          "self_seconds": 0.830486586,
+          "cumulative_seconds": 1.8472808340000002
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 222,
+          "function": "intern_actions",
+          "calls": 10404,
+          "self_seconds": 1.0089596730000001,
+          "cumulative_seconds": 1.6977218200000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "calls": 17129105,
+          "self_seconds": 1.5732255880000001,
+          "cumulative_seconds": 1.5732255880000001
+        },
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "line": 216,
+          "function": "_intern",
+          "calls": 3147480,
+          "self_seconds": 0.6751921200000001,
+          "cumulative_seconds": 1.538086485
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 165,
+          "function": "<setcomp>",
+          "calls": 282363,
+          "self_seconds": 0.892604401,
+          "cumulative_seconds": 0.892604401
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "calls": 3232210,
+          "self_seconds": 0.868273998,
+          "cumulative_seconds": 0.8851714770000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 91,
+          "function": "restrict",
+          "calls": 290859,
+          "self_seconds": 0.417546835,
+          "cumulative_seconds": 0.764822467
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 395,
+          "function": "compile_relaxed_relation",
+          "calls": 133,
+          "self_seconds": 0.003523163,
+          "cumulative_seconds": 0.718348517
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "calls": 5288764,
+          "self_seconds": 0.6533387390000001,
+          "cumulative_seconds": 0.6533387390000001
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 12,
+          "function": "group_factors",
+          "calls": 5,
+          "self_seconds": 0.412132204,
+          "cumulative_seconds": 0.41309900800000005
+        },
+        {
+          "file": "<string>",
+          "line": 21,
+          "function": "<setcomp>",
+          "calls": 1,
+          "self_seconds": 0.287933133,
+          "cumulative_seconds": 0.34912767
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "calls": 158034,
+          "self_seconds": 0.11819051300000001,
+          "cumulative_seconds": 0.34365446
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 117,
+          "function": "<genexpr>",
+          "calls": 157985,
+          "self_seconds": 0.11678880900000001,
+          "cumulative_seconds": 0.31841658700000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 382,
+          "function": "compile_discovery",
+          "calls": 133,
+          "self_seconds": 0.00845621,
+          "cumulative_seconds": 0.296841002
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 126,
+          "function": "discovery_pairs",
+          "calls": 2900,
+          "self_seconds": 0.026173870000000002,
+          "cumulative_seconds": 0.28043539700000003
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "line": 130,
+          "function": "<genexpr>",
+          "calls": 73180,
+          "self_seconds": 0.102354068,
+          "cumulative_seconds": 0.249512486
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 105,
+          "function": "lookup",
+          "calls": 30096,
+          "self_seconds": 0.030225772,
+          "cumulative_seconds": 0.243928742
+        },
+        {
+          "file": "functools.py",
+          "line": 961,
+          "function": "__get__",
+          "calls": 4296,
+          "self_seconds": 0.014440617000000001,
+          "cumulative_seconds": 0.243379704
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+          "line": 146,
+          "function": "<listcomp>",
+          "calls": 19,
+          "self_seconds": 0.23847611400000002,
+          "cumulative_seconds": 0.23847611400000002
+        }
+      ]
+    }
+  ],
+  "diagnostic_processes": [
+    {
+      "case": "18744/forward",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 997670912,
+      "elapsed_seconds": 73.59550240309909
+    },
+    {
+      "case": "13414/forward",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 1170251776,
+      "elapsed_seconds": 73.59478326281533
+    },
+    {
+      "case": "16297/forward",
+      "stage": "decoding",
+      "outcome": "diagnostic_watchdog",
+      "exit_code": -9,
+      "peak_rss_bytes": 600965120,
+      "elapsed_seconds": 90.21208876185119
+    },
+    {
+      "case": "40793/reverse",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 1023127552,
+      "elapsed_seconds": 80.39384139375761
+    },
+    {
+      "case": "15959/reverse",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 1068216320,
+      "elapsed_seconds": 73.24887183215469
+    },
+    {
+      "case": "24793/forward",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 797622272,
+      "elapsed_seconds": 85.15495204739273
+    },
+    {
+      "case": "10393/reverse",
+      "stage": "verification",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 273612800,
+      "elapsed_seconds": 73.14780042786151
+    },
+    {
+      "case": "10383/reverse",
+      "stage": "verification",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 1512079360,
+      "elapsed_seconds": 82.21260957885534
+    },
+    {
+      "case": "18749/forward",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 1869991936,
+      "elapsed_seconds": 73.71968440478668
+    }
+  ],
+  "findings": [
+    {
+      "kind": "native_symmetry_preparation_deadline_overrun",
+      "cases": [
+        "16297/forward",
+        "24793/forward",
+        "40793/reverse"
+      ],
+      "operation": "core/symmetry/minimum.py _Search._representatives -> native Group.stabilizer",
+      "evidence": "Repeated stack snapshots inside stabilizer; 59.181 s for one representatives call in 40793; 16297 externally stopped at 90 s before returning.",
+      "limitation": "No complete permutation list is stored by this operation; slow native subgroup construction is not itself evidence of mapping enumeration or incorrect scientific outputs."
+    },
+    {
+      "kind": "python_fragment_bound_preparation",
+      "cases": [
+        "13414/forward",
+        "15959/reverse",
+        "18744/forward",
+        "18749/forward"
+      ],
+      "evidence": "Initial 60-second profiles spend 38.08-49.59 s in local response bounds. Pair-weight bounds and ordered-response preparation dominate; unique-fragment optimization is cached by atom-set key.",
+      "limitation": "Partial profiles show early-phase cost, not a complete attribution of each original 600-second attempt."
+    },
+    {
+      "kind": "verification_constraint_preparation",
+      "cases": [
+        "10393/reverse",
+        "10383/reverse"
+      ],
+      "evidence": "10393: 54.70 s compiling 19 family queries, including 41.25 s propagation. 10383: 42.35 s loading/reindexing catalogue, then 23.93 s group-factor preparation.",
+      "limitation": "Per-family budget is tested after compilation, and does not interrupt it. External 600-second stage watchdog remains effective. No reference membership conclusion follows from timeout."
+    }
+  ],
+  "symmetry_input_captures": {
+    "records": [
+      {
+        "case": "16297/forward",
+        "degree": 38,
+        "generator_count": 1,
+        "fixed_count": 2,
+        "representatives": 2,
+        "before_seconds": 5.96594914799789,
+        "generator_support_sizes": {
+          "2": 1
+        },
+        "disjoint_support_block_sizes": {
+          "1": 36,
+          "2": 1
+        }
+      },
+      {
+        "case": "24793/forward",
+        "degree": 33,
+        "generator_count": 1,
+        "fixed_count": 2,
+        "representatives": 2,
+        "before_seconds": 8.870771676010918,
+        "generator_support_sizes": {
+          "2": 1
+        },
+        "disjoint_support_block_sizes": {
+          "1": 31,
+          "2": 1
+        }
+      },
+      {
+        "case": "40793/reverse",
+        "degree": 269,
+        "generator_count": 83,
+        "fixed_count": 145,
+        "representatives": 2,
+        "before_seconds": 7.3065042740199715,
+        "generator_support_sizes": {
+          "2": 82,
+          "8": 1
+        },
+        "disjoint_support_block_sizes": {
+          "8": 1,
+          "1": 124,
+          "2": 40,
+          "3": 19
+        }
+      }
+    ],
+    "identity_check": [
+      {
+        "case": "16297/forward",
+        "degree": 38,
+        "generators": 1,
+        "moving_positions": 2,
+        "fixed_positions": 2,
+        "all_moving_positions_fixed": true,
+        "capture_scope": "First restriction call, not necessarily the slowest restriction call"
+      },
+      {
+        "case": "24793/forward",
+        "degree": 33,
+        "generators": 1,
+        "moving_positions": 2,
+        "fixed_positions": 2,
+        "all_moving_positions_fixed": true,
+        "capture_scope": "First restriction call, not necessarily the slowest restriction call"
+      },
+      {
+        "case": "40793/reverse",
+        "degree": 269,
+        "generators": 83,
+        "moving_positions": 145,
+        "fixed_positions": 145,
+        "all_moving_positions_fixed": true,
+        "capture_scope": "First restriction call, not necessarily the slowest restriction call"
+      }
+    ]
+  }
+}

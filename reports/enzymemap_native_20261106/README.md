@@ -1,9 +1,27 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
-**Status at 2026-11-07 00:43 UTC: all 95,948 directions have successful
-matching and reduction. Decoding has 1,441 successful outputs and 73 memory-limit
-failures; verification is still pending. All stages use the 95,948-direction
-denominator.**
+**Status at 2026-11-07 02:10 UTC: the bulk pass has ended, but the benchmark
+is not complete. All 95,948 directions matched and reduced successfully.
+Decoding has 95,403 successful outputs and 545 resource failures. Catalogue
+verification has 95,927 completed checks and 21 resource failures. The independent
+decoded-reference audit has not run.**
+
+| Stage | Successful tasks | Memory-limit failures | Compute timeouts | Full denominator |
+|---|---:|---:|---:|---:|
+| Matching | 95,948 | 0 | 0 | 95,948 |
+| Reduction | 95,948 | 0 | 0 | 95,948 |
+| Decoding | 95,403 | 508 | 37 | 95,948 |
+| Catalogue verification | 95,927 | 4 | 17 | 95,948 |
+
+All 42 finishing batches have terminal decoding and verification records and
+empty queues, with no active benchmark owners. A completed verification task
+can report recovery, absence or unknown; the table does not report accuracy.
+Original failure records, results and consumed budgets are intact. The user
+requested diagnosis before any extra timeout allowance; none has been granted.
+See the [timeout investigation](#timeout-investigation).
+
+**Earlier observation, 2026-11-07 00:43 UTC:** decoding had 1,441 successful
+outputs and 73 memory-limit failures; verification was pending.
 
 The 95 reduction memory failures were recovered without repeating matching:
 92 completed at 4 GiB in a 290-second pool pass, and the remaining three at
@@ -231,3 +249,61 @@ above; these diagnostic successes are not retries of the campaign's failed
 reductions.
 
 Sanitized validation: [storage comparison](storage-comparison.json).
+
+## Timeout investigation
+
+The 37 decoding and 17 catalogue-verification timeouts exhausted their original
+600-second compute allowances. Sampled CPU time averaged **599.66 seconds** for
+decoding and **598.30 seconds** for verification. Every timeout occurred during
+computation. These observations rule out scheduling waits as their explanation;
+they do not establish mapping absence.
+
+Nine representative failures were profiled from their original archived task
+inputs, using the unchanged scientific revision and original memory guards.
+Diagnostics requested interruption after 60 seconds and used an external
+90-second watchdog. Eight produced interrupted profiles; one required the hard
+watchdog. None completed the scientific stage or replaced a benchmark result.
+Profiling overhead means these partial measurements are attribution evidence,
+not replacement stage timings or speedup estimates.
+
+| Direction | Measured bottleneck in the partial diagnostic |
+|---|---|
+| 40793 reverse | One symmetry-restriction call occupied 59.18 s despite the five-second fragment allowance. |
+| 24793 forward | Two calls to the same symmetry-restriction helper occupied 57.79 s. |
+| 16297 forward | Repeated stack snapshots remained inside native symmetry restriction; the external watchdog stopped the process at 90 s. |
+| 15959 reverse | Fragment pair-weight lower bounds took 18.28 s; contextual weight-bag bounds took another 16.12 s in the initial 60 s. |
+| 13414, 18744 and 18749 forward | Initial profiles also concentrated on fragment bounds and ordered-response preparation. |
+| 10393 reverse, verification | Compiling 19 family queries took 54.70 s, including 41.25 s in finite-constraint propagation. |
+| 10383 reverse, verification | Loading and reindexing took 42.35 s; the first query then spent 23.93 s preparing symmetry factors. |
+
+The native restriction operation computes which symmetry operations remain when
+specified atoms must stay fixed. It has no internal deadline check. The caller's
+cooperative five-second deadline cannot stop it before it returns, although the
+execution layer still enforces the overall stage limit. Capturing the first
+restriction input for 40793 revealed 83 generators on 269 positions, with all
+145 movable positions fixed. Its answer must be the identity group. Rebuilding
+a general group chain for that query is avoidable work, not a requirement to
+enumerate possible atom mappings. The other two captures stop at their first
+restriction call and do not identify every later expensive input.
+
+The Python event-bound paths repeatedly classify and compare atom pairs across
+distinct fragments and contextual pieces. Unique-fragment preparation remains
+cached by atom-set identity; these profiles do not show that cache being bypassed.
+They identify expensive early preparation, not a complete attribution of each
+600-second attempt. Catalogue restoration also repeats assignment and action
+interning, which is especially visible in the 26,589-family verification case.
+
+For verification, the one-second family-query allowance is checked **after**
+constraint compilation. Expensive compilation can overrun it before the solver
+is reached. The observed propagation work includes millions of Python domain
+lookups and choice hashes. Timeout remains unknown; no constraint should be
+weakened to turn it into recovery.
+
+The indicated corrections are compact native symmetry restriction, cooperative
+checks inside its long operations, and faster preparation/reuse of the same
+event bounds and verification constraints. Their scientific equivalence and
+performance still require validation before deployment. No algorithm changes,
+extra retry time or failed-stage reruns were made during this investigation.
+The separate memory failures still require recovery.
+
+Sanitized evidence: [profiles and terminal stage counts](timeout-investigation.json).
