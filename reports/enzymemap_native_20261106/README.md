@@ -1,11 +1,29 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
-**Closure recovery is paused for a decoder memory correction.**
+**Decoding is complete: 95,948 / 95,948 directions have successful saved outputs.**
+The independent scope audit confirms all 47,974 reactions, both directions,
+42 disjoint batches, unchanged input hashes and original ledgers. The final
+three recoveries finished in **408.51 seconds wall time** using three concurrent
+workers. Their measured peaks were **7.42–7.59 GiB**, below eight GiB even though
+this final recovery reserved a 12-GiB guard. Original attempts, consumed budgets,
+scientific settings and matching outputs remain intact. These source changes
+share storage; they do not alter the mapping relation or event model.
+
+**External catalogue verification remains unfinished:** 95,927 tasks completed
+and 21 resource errors remain. Those 21 are now in a separate recovery; completed
+verification results are preserved. The independent decoded-reference audit has
+not run. Catalogue verification must not be reported as decoded-response recovery.
+
+### Decoder storage correction and recovery
+
 The 4-GiB recovery completed 471 of 545 failed decodes in 628.94 seconds,
 with 74 memory-limit failures remaining (69 during computation and five during
 publication), and no new timeouts or crashes. This brings successful decoding
-to **95,874 / 95,948 directions**. The pending decoding and verification retries
-were held at the user's request before either started.
+to **95,874 / 95,948 directions**. The next recovery completed 71 of the 74,
+bringing decoding to **95,945 / 95,948 directions**. The remaining three are
+37269 forward/reverse and 37270 forward, which exceeded eight GiB. Verification
+recovery waits for decoding to finish. Original results and resource failures
+remain recorded.
 
 A bounded profile reproduced original decoder peaks of 4.08 GiB for 6723 forward
 and 4.13 GiB for 33459 forward; 23481 forward exceeded an 8-GiB diagnostic guard.
@@ -14,8 +32,42 @@ pair-weight summaries near termination. The storage correction shares identical
 immutable weights, uses shared uniform thresholds, and stores exact weight
 multiplicities. Sweep endpoint summaries retain only incident counts and derive
 nonincident counts from the fragment summary. No scientific settings or mapping
-permissions change. Validation before the final aligned-matrix sharing adjustment:
-1,344 full-suite tests passed. Real-case comparison is in progress.
+permissions change. The final storage revision also releases unused Python action-domain copies and
+shares identical native domain rows without closing overlapping relationships.
+All 1,345 local tests and 196 affected Linux tests passed. The complete saved
+decoded record for 16297 forward is unchanged on the final native build. Final
+real-case validation passed, including complete saved-record equality. A smaller
+allocation started with all 24 registered workers simultaneously decoding the
+remaining 74 directions; the larger unstarted request was cancelled first.
+That exception pool used an 8-GiB guard because the measured largest corrected
+case still exceeded 4 GiB. Matching and successful final-stage results are retained.
+The three remaining catalogues load at approximately 4.5–5 GiB. In 37269 reverse,
+6,889 retained weight arrays occupy 2,891,764,048 bytes; exact value sharing reduces
+this to 1,504 arrays and 2,190,036,504 bytes. The additional storage correction
+shares these equal matrices without replacing fragment objects, merging distinct
+atom sets or anchors, or changing comparison keys. Existing keys also release
+the duplicate matrix allocation. All 1,346 local tests and 297 affected Linux
+tests passed on revision `058ec735`. The complete saved response for 16297 forward
+still compares equal to its earlier successful output. The additional sharing
+reduced 37269 reverse from 8.24 to 7.60 GiB and 37270 forward from 8.52 to 7.46 GiB
+in instrumented full-catalogue checks. A 37269 forward diagnostic crashed before
+this correction; its debugger repeat with Python memory checks completed normally.
+That intermittent crash's cause remains unconfirmed. Its instrumented memory
+measurement includes debugger and debug-allocator overhead and is not comparable
+to an ordinary worker's peak. The final three-direction recovery uses a 12-GiB
+guard and explicit additional 600-second allowances, preserving previous costs.
+
+| Diagnostic direction | Before peak | After peak | Outcome after matrix correction |
+|---|---:|---:|---|
+| 6723 forward | 4.08 GiB | 2.94 GiB | Complete |
+| 33459 forward | 4.13 GiB | 2.35 GiB | Two traced repeats complete; one earlier SIGSEGV remains unexplained |
+| 23481 forward | Exceeded 8 GiB | 5.84 GiB | Complete |
+
+These are instrumented saved-catalogue measurements, including loading and
+publication, rather than new end-to-end benchmark timing. See the sanitized
+[memory validation evidence](decoder-memory-validation.json). The crash is not
+presented as fixed; diagnostic capture remains enabled during recovery.
+
 
 **Earlier recovery launch:** The user authorized continuing diagnosis and
 resource retries until decoding and verification close, while preserving the
