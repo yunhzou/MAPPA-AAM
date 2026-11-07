@@ -10,9 +10,18 @@ scientific settings and matching outputs remain intact. These source changes
 share storage; they do not alter the mapping relation or event model.
 
 **External catalogue verification remains unfinished:** 95,927 tasks completed
-and 21 resource errors remain. Those 21 are now in a separate recovery; completed
-verification results are preserved. The independent decoded-reference audit has
+and 21 directions remain unresolved. A first recovery of those resource failures
+stopped before reference queries because the launch omitted input-root relocation.
+All 21 reference inputs now pass checksum-verified loading with the original
+relocation configuration. A corrected 21-worker recovery is queued with the same
+eight-GiB guard, preserved failed attempts and remaining budgets; it grants no
+additional time. Completed verification results are preserved. The independent decoded-reference audit has
 not run. Catalogue verification must not be reported as decoded-response recovery.
+
+The execution-only recovery correction (`0738df5`) requires an explicit recorded
+reason to retry a diagnosed execution error. All 67 campaign and work-pool tests
+passed, including preservation of attempts, remaining budgets and previous ledgers.
+No matching, reduction, decoding or verifier scientific rule changed.
 
 ### Decoder storage correction and recovery
 
