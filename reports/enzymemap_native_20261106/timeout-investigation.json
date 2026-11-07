@@ -5586,5 +5586,1024 @@
       "all_37_timeouts_recovered": false,
       "event_slack": 5
     }
+  },
+  "decode_memory_followup": {
+    "scientific_source_revision": "ea4d9e6",
+    "production_code_changed": false,
+    "campaign_results_modified": false,
+    "new_campaign_retry_time_granted": 0,
+    "memory_bytes_per_worker": 4294967296,
+    "isolated_validation": [
+      {
+        "case": "16297/forward",
+        "stage": "decoding",
+        "outcome": "completed",
+        "exit_code": 0,
+        "peak_rss_bytes": 2801385472,
+        "elapsed_seconds": 94.06145877297968,
+        "worker_result": {
+          "case": "16297/forward",
+          "stage": "decoding",
+          "status": "completed",
+          "elapsed_seconds": 91.53600781201385,
+          "cpu_seconds": 91.37521422,
+          "peak_rss_bytes": 2801188864,
+          "result": {
+            "schema": "mappa.decoded_events/v14",
+            "minimum_events": 4,
+            "minimum_lower_bound": 4,
+            "minimum_proven": true,
+            "event_window": 9,
+            "event_slack": 5,
+            "fragment_seconds": 5.0,
+            "mapping_space_preserved": true,
+            "incomplete_fragment_optimizations": 1,
+            "families": 2273,
+            "tables": 669,
+            "fragment_responses": 1090
+          }
+        }
+      },
+      {
+        "case": "40793/reverse",
+        "stage": "decoding",
+        "outcome": "validation_memory_guard",
+        "exit_code": -9,
+        "peak_rss_bytes": 4383547392,
+        "elapsed_seconds": 104.67134123301366
+      },
+      {
+        "case": "24793/forward",
+        "stage": "decoding",
+        "outcome": "completed",
+        "exit_code": 0,
+        "peak_rss_bytes": 2737266688,
+        "elapsed_seconds": 94.59736797999358,
+        "worker_result": {
+          "case": "24793/forward",
+          "stage": "decoding",
+          "status": "completed",
+          "elapsed_seconds": 92.0447284890106,
+          "cpu_seconds": 91.935068168,
+          "peak_rss_bytes": 2737061888,
+          "result": {
+            "schema": "mappa.decoded_events/v14",
+            "minimum_events": 4,
+            "minimum_lower_bound": 4,
+            "minimum_proven": true,
+            "event_window": 9,
+            "event_slack": 5,
+            "fragment_seconds": 5.0,
+            "mapping_space_preserved": true,
+            "incomplete_fragment_optimizations": 0,
+            "families": 5778,
+            "tables": 864,
+            "fragment_responses": 1072
+          }
+        }
+      }
+    ],
+    "memory_samples": [
+      {
+        "case": "24793-forward-decoding",
+        "samples": [
+          {
+            "catalogue_loaded": {
+              "rss_bytes": 758968320,
+              "families": 5778,
+              "branches": 5765,
+              "atoms": [
+                336,
+                336
+              ],
+              "compressed_bytes": 7377471
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 9.574070836009923,
+              "rss_bytes": 762183680,
+              "table_calls": 1,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 3,
+              "contextual_responses": 4,
+              "detailed_responses": 1,
+              "bonds": 1,
+              "terms": 1,
+              "weight_bags": 8,
+              "weight_bag_bytes": 593632,
+              "fragment_response_array_bytes": 1938014,
+              "contextual_programs": 4,
+              "contextual_program_array_bytes": 903168,
+              "action_programs": 5,
+              "actions": 7,
+              "native_domain_cache": [
+                134,
+                29208,
+                179,
+                134
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 19.679736454971135,
+              "rss_bytes": 839708672,
+              "table_calls": 99,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 179,
+              "contextual_responses": 246,
+              "detailed_responses": 116,
+              "bonds": 112,
+              "terms": 89,
+              "weight_bags": 227,
+              "weight_bag_bytes": 13370600,
+              "fragment_response_array_bytes": 51165920,
+              "contextual_programs": 246,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 247,
+              "actions": 211,
+              "native_domain_cache": [
+                495,
+                142096,
+                19420,
+                495
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 29.85231595800724,
+              "rss_bytes": 929886208,
+              "table_calls": 150,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 278,
+              "contextual_responses": 380,
+              "detailed_responses": 185,
+              "bonds": 163,
+              "terms": 140,
+              "weight_bags": 337,
+              "weight_bag_bytes": 27467768,
+              "fragment_response_array_bytes": 103711088,
+              "contextual_programs": 380,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 382,
+              "actions": 331,
+              "native_domain_cache": [
+                783,
+                244608,
+                29271,
+                783
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 39.87669107399415,
+              "rss_bytes": 1020276736,
+              "table_calls": 203,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 383,
+              "contextual_responses": 517,
+              "detailed_responses": 255,
+              "bonds": 216,
+              "terms": 193,
+              "weight_bags": 461,
+              "weight_bag_bytes": 42417560,
+              "fragment_response_array_bytes": 154383242,
+              "contextual_programs": 517,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 522,
+              "actions": 448,
+              "native_domain_cache": [
+                1072,
+                395016,
+                40397,
+                1072
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 50.155122380005196,
+              "rss_bytes": 1122656256,
+              "table_calls": 257,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 488,
+              "contextual_responses": 651,
+              "detailed_responses": 326,
+              "bonds": 270,
+              "terms": 247,
+              "weight_bags": 583,
+              "weight_bag_bytes": 57807464,
+              "fragment_response_array_bytes": 209283386,
+              "contextual_programs": 651,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 656,
+              "actions": 578,
+              "native_domain_cache": [
+                1386,
+                575648,
+                51621,
+                1386
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 60.16656427399721,
+              "rss_bytes": 1225265152,
+              "table_calls": 325,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 604,
+              "contextual_responses": 803,
+              "detailed_responses": 407,
+              "bonds": 327,
+              "terms": 304,
+              "weight_bags": 704,
+              "weight_bag_bytes": 71895864,
+              "fragment_response_array_bytes": 266501508,
+              "contextual_programs": 803,
+              "contextual_program_array_bytes": 904468,
+              "action_programs": 805,
+              "actions": 711,
+              "native_domain_cache": [
+                1568,
+                729336,
+                64785,
+                1568
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 70.42426035797689,
+              "rss_bytes": 1319174144,
+              "table_calls": 500,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 788,
+              "contextual_responses": 1136,
+              "detailed_responses": 598,
+              "bonds": 407,
+              "terms": 380,
+              "weight_bags": 846,
+              "weight_bag_bytes": 82034352,
+              "fragment_response_array_bytes": 313755208,
+              "contextual_programs": 1136,
+              "contextual_program_array_bytes": 904468,
+              "action_programs": 1145,
+              "actions": 915,
+              "native_domain_cache": [
+                1822,
+                808776,
+                101584,
+                1822
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 80.55416406097356,
+              "rss_bytes": 1417289728,
+              "table_calls": 621,
+              "total_families": 5778,
+              "total_unique_fragments": 2140,
+              "total_partition_pieces": 2140,
+              "prepared_fragments": 922,
+              "contextual_responses": 1326,
+              "detailed_responses": 701,
+              "bonds": 473,
+              "terms": 447,
+              "weight_bags": 968,
+              "weight_bag_bytes": 95078640,
+              "fragment_response_array_bytes": 370355518,
+              "contextual_programs": 1326,
+              "contextual_program_array_bytes": 904468,
+              "action_programs": 1374,
+              "actions": 1066,
+              "native_domain_cache": [
+                2026,
+                909304,
+                124661,
+                2026
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "case": "40793-reverse-decoding",
+        "samples": [
+          {
+            "catalogue_loaded": {
+              "rss_bytes": 990289920,
+              "families": 1409,
+              "branches": 1405,
+              "atoms": [
+                521,
+                521
+              ],
+              "compressed_bytes": 12028489
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 4.5319737829850055,
+              "rss_bytes": 999813120,
+              "table_calls": 1,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 2,
+              "contextual_responses": 4,
+              "detailed_responses": 2,
+              "bonds": 2,
+              "terms": 1,
+              "weight_bags": 8,
+              "weight_bag_bytes": 1070768,
+              "fragment_response_array_bytes": 3493412,
+              "contextual_programs": 4,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 5,
+              "actions": 7,
+              "native_domain_cache": [
+                89,
+                19352,
+                122,
+                89
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 14.723306719970424,
+              "rss_bytes": 1145032704,
+              "table_calls": 139,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 192,
+              "contextual_responses": 290,
+              "detailed_responses": 160,
+              "bonds": 127,
+              "terms": 89,
+              "weight_bags": 210,
+              "weight_bag_bytes": 25397000,
+              "fragment_response_array_bytes": 93066558,
+              "contextual_programs": 290,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 208,
+              "actions": 212,
+              "native_domain_cache": [
+                594,
+                139904,
+                36199,
+                594
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 24.749078917957377,
+              "rss_bytes": 1328115712,
+              "table_calls": 262,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 428,
+              "contextual_responses": 564,
+              "detailed_responses": 349,
+              "bonds": 284,
+              "terms": 208,
+              "weight_bags": 465,
+              "weight_bag_bytes": 56344440,
+              "fragment_response_array_bytes": 194874758,
+              "contextual_programs": 564,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 429,
+              "actions": 466,
+              "native_domain_cache": [
+                985,
+                226696,
+                68640,
+                985
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 34.83687633799855,
+              "rss_bytes": 1503920128,
+              "table_calls": 352,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 607,
+              "contextual_responses": 782,
+              "detailed_responses": 491,
+              "bonds": 394,
+              "terms": 298,
+              "weight_bags": 661,
+              "weight_bag_bytes": 82512504,
+              "fragment_response_array_bytes": 285835550,
+              "contextual_programs": 782,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 627,
+              "actions": 668,
+              "native_domain_cache": [
+                1318,
+                353024,
+                93327,
+                1318
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 44.86745246895589,
+              "rss_bytes": 1668075520,
+              "table_calls": 433,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 766,
+              "contextual_responses": 989,
+              "detailed_responses": 618,
+              "bonds": 495,
+              "terms": 379,
+              "weight_bags": 848,
+              "weight_bag_bytes": 105500632,
+              "fragment_response_array_bytes": 365527682,
+              "contextual_programs": 989,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 824,
+              "actions": 853,
+              "native_domain_cache": [
+                1935,
+                624064,
+                117028,
+                1935
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 54.936347455950454,
+              "rss_bytes": 1853935616,
+              "table_calls": 519,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 934,
+              "contextual_responses": 1199,
+              "detailed_responses": 752,
+              "bonds": 599,
+              "terms": 465,
+              "weight_bags": 1034,
+              "weight_bag_bytes": 129438944,
+              "fragment_response_array_bytes": 451098804,
+              "contextual_programs": 1199,
+              "contextual_program_array_bytes": 2171528,
+              "action_programs": 1019,
+              "actions": 1043,
+              "native_domain_cache": [
+                2376,
+                925296,
+                141554,
+                2376
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 65.05767672898946,
+              "rss_bytes": 2012114944,
+              "table_calls": 654,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 1171,
+              "contextual_responses": 1528,
+              "detailed_responses": 975,
+              "bonds": 736,
+              "terms": 579,
+              "weight_bags": 1275,
+              "weight_bag_bytes": 154342280,
+              "fragment_response_array_bytes": 539467370,
+              "contextual_programs": 1528,
+              "contextual_program_array_bytes": 2172178,
+              "action_programs": 1295,
+              "actions": 1302,
+              "native_domain_cache": [
+                2815,
+                1090720,
+                178221,
+                2815
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 75.26665082498221,
+              "rss_bytes": 2203922432,
+              "table_calls": 826,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 1455,
+              "contextual_responses": 1908,
+              "detailed_responses": 1261,
+              "bonds": 944,
+              "terms": 709,
+              "weight_bags": 1519,
+              "weight_bag_bytes": 186125744,
+              "fragment_response_array_bytes": 645153080,
+              "contextual_programs": 1908,
+              "contextual_program_array_bytes": 2172178,
+              "action_programs": 1581,
+              "actions": 1603,
+              "native_domain_cache": [
+                3124,
+                1160744,
+                228357,
+                3124
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 85.3282413079869,
+              "rss_bytes": 2353463296,
+              "table_calls": 936,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 1626,
+              "contextual_responses": 2168,
+              "detailed_responses": 1441,
+              "bonds": 1054,
+              "terms": 819,
+              "weight_bags": 1680,
+              "weight_bag_bytes": 206454928,
+              "fragment_response_array_bytes": 726401962,
+              "contextual_programs": 2168,
+              "contextual_program_array_bytes": 2172178,
+              "action_programs": 1806,
+              "actions": 1798,
+              "native_domain_cache": [
+                3594,
+                1362928,
+                257652,
+                3594
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 95.37202141998569,
+              "rss_bytes": 2497200128,
+              "table_calls": 1084,
+              "total_families": 1409,
+              "total_unique_fragments": 2145,
+              "total_partition_pieces": 2145,
+              "prepared_fragments": 1862,
+              "contextual_responses": 2557,
+              "detailed_responses": 1713,
+              "bonds": 1197,
+              "terms": 927,
+              "weight_bags": 1905,
+              "weight_bag_bytes": 225530800,
+              "fragment_response_array_bytes": 801061908,
+              "contextual_programs": 2557,
+              "contextual_program_array_bytes": 2174128,
+              "action_programs": 2144,
+              "actions": 2063,
+              "native_domain_cache": [
+                4081,
+                1578040,
+                298877,
+                4081
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "case": "16297-forward-decoding",
+        "samples": [
+          {
+            "catalogue_loaded": {
+              "rss_bytes": 573140992,
+              "families": 2273,
+              "branches": 2261,
+              "atoms": [
+                336,
+                336
+              ],
+              "compressed_bytes": 6786547
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 4.3863549180096015,
+              "rss_bytes": 584093696,
+              "table_calls": 1,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 3,
+              "contextual_responses": 4,
+              "detailed_responses": 1,
+              "bonds": 1,
+              "terms": 1,
+              "weight_bags": 8,
+              "weight_bag_bytes": 594032,
+              "fragment_response_array_bytes": 1939314,
+              "contextual_programs": 4,
+              "contextual_program_array_bytes": 903168,
+              "action_programs": 5,
+              "actions": 7,
+              "native_domain_cache": [
+                73,
+                15952,
+                101,
+                73
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 14.537482537038159,
+              "rss_bytes": 690544640,
+              "table_calls": 112,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 200,
+              "contextual_responses": 271,
+              "detailed_responses": 124,
+              "bonds": 113,
+              "terms": 98,
+              "weight_bags": 264,
+              "weight_bag_bytes": 13276336,
+              "fragment_response_array_bytes": 49955022,
+              "contextual_programs": 271,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 272,
+              "actions": 235,
+              "native_domain_cache": [
+                487,
+                173192,
+                23220,
+                487
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 24.559605451999232,
+              "rss_bytes": 800772096,
+              "table_calls": 160,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 292,
+              "contextual_responses": 398,
+              "detailed_responses": 182,
+              "bonds": 161,
+              "terms": 146,
+              "weight_bags": 375,
+              "weight_bag_bytes": 27957696,
+              "fragment_response_array_bytes": 104404638,
+              "contextual_programs": 398,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 409,
+              "actions": 347,
+              "native_domain_cache": [
+                753,
+                343264,
+                33705,
+                753
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 34.5746066350257,
+              "rss_bytes": 901742592,
+              "table_calls": 213,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 395,
+              "contextual_responses": 536,
+              "detailed_responses": 248,
+              "bonds": 214,
+              "terms": 199,
+              "weight_bags": 492,
+              "weight_bag_bytes": 42120208,
+              "fragment_response_array_bytes": 157175850,
+              "contextual_programs": 536,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 556,
+              "actions": 467,
+              "native_domain_cache": [
+                1155,
+                520848,
+                44493,
+                1155
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 44.71636924601626,
+              "rss_bytes": 1014112256,
+              "table_calls": 268,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 503,
+              "contextual_responses": 679,
+              "detailed_responses": 318,
+              "bonds": 269,
+              "terms": 254,
+              "weight_bags": 615,
+              "weight_bag_bytes": 56904032,
+              "fragment_response_array_bytes": 212910100,
+              "contextual_programs": 679,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 704,
+              "actions": 591,
+              "native_domain_cache": [
+                1440,
+                748032,
+                57086,
+                1440
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 54.89959374401951,
+              "rss_bytes": 1129041920,
+              "table_calls": 321,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 605,
+              "contextual_responses": 819,
+              "detailed_responses": 381,
+              "bonds": 322,
+              "terms": 307,
+              "weight_bags": 740,
+              "weight_bag_bytes": 72223920,
+              "fragment_response_array_bytes": 268525946,
+              "contextual_programs": 819,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 857,
+              "actions": 716,
+              "native_domain_cache": [
+                1774,
+                984840,
+                69149,
+                1774
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 65.03487208200386,
+              "rss_bytes": 1260396544,
+              "table_calls": 374,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 707,
+              "contextual_responses": 961,
+              "detailed_responses": 441,
+              "bonds": 375,
+              "terms": 360,
+              "weight_bags": 867,
+              "weight_bag_bytes": 88558216,
+              "fragment_response_array_bytes": 328333590,
+              "contextual_programs": 961,
+              "contextual_program_array_bytes": 903818,
+              "action_programs": 1011,
+              "actions": 848,
+              "native_domain_cache": [
+                2129,
+                1276136,
+                81189,
+                2129
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 75.18663894705242,
+              "rss_bytes": 1376497664,
+              "table_calls": 430,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 811,
+              "contextual_responses": 1096,
+              "detailed_responses": 506,
+              "bonds": 431,
+              "terms": 416,
+              "weight_bags": 981,
+              "weight_bag_bytes": 103750360,
+              "fragment_response_array_bytes": 387255154,
+              "contextual_programs": 1096,
+              "contextual_program_array_bytes": 904468,
+              "action_programs": 1153,
+              "actions": 970,
+              "native_domain_cache": [
+                2366,
+                1479184,
+                93086,
+                2366
+              ]
+            }
+          },
+          {
+            "memory_sample": {
+              "seconds": 85.30794574000174,
+              "rss_bytes": 1474752512,
+              "table_calls": 747,
+              "total_families": 2273,
+              "total_unique_fragments": 1533,
+              "total_partition_pieces": 1533,
+              "prepared_fragments": 1090,
+              "contextual_responses": 1598,
+              "detailed_responses": 791,
+              "bonds": 527,
+              "terms": 529,
+              "weight_bags": 1164,
+              "weight_bag_bytes": 111705904,
+              "fragment_response_array_bytes": 423120364,
+              "contextual_programs": 1598,
+              "contextual_program_array_bytes": 907354,
+              "action_programs": 1725,
+              "actions": 1274,
+              "native_domain_cache": [
+                2844,
+                1611136,
+                164710,
+                2844
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "isolated_catalogue_export": {
+      "case": "40793/reverse",
+      "stage": "decoding",
+      "outcome": "completed",
+      "exit_code": 0,
+      "peak_rss_bytes": 3291078656,
+      "elapsed_seconds": 11.386472359998152,
+      "worker_result": {
+        "case": "40793/reverse",
+        "stage": "decoding",
+        "status": "completed",
+        "loaded_rss_bytes": 990375936,
+        "export_rss_bytes": 3288981504,
+        "export_rss_increase_bytes": 2298605568,
+        "export_seconds": 3.916731191013241,
+        "elapsed_seconds": 7.131478722003521,
+        "peak_rss_bytes": 3288981504,
+        "weights": {
+          "matrices": 1899,
+          "matrix_cells": 57936100,
+          "array_bytes": 463488800,
+          "python_list_bytes": 1869959400
+        },
+        "families": 1409,
+        "fragments": 2145
+      }
+    },
+    "storage_experiment_status": "Array storage completed full decoding, binary publication and matrix/window roundtrip twice (debugger and normal repeat), below 4 GiB. One initial signal-11 crash before export did not recur; cause remains unidentified. Production serializer unchanged.",
+    "storage_experiments": {
+      "initial": [
+        {
+          "case": "40793/reverse",
+          "stage": "decoding",
+          "outcome": "process_failure",
+          "exit_code": -11,
+          "peak_rss_bytes": 1189134336,
+          "elapsed_seconds": 18.404172706999816
+        }
+      ],
+      "debugger": [
+        {
+          "case": "40793/reverse",
+          "stage": "decoding",
+          "outcome": "completed",
+          "exit_code": 0,
+          "peak_rss_bytes": 2932826112,
+          "elapsed_seconds": 96.38672663099715,
+          "worker_result": {
+            "case": "40793/reverse",
+            "stage": "decoding",
+            "status": "completed",
+            "elapsed_seconds": 94.46437932699337,
+            "cpu_seconds": 94.454264968,
+            "peak_rss_bytes": 2753286144,
+            "result": {
+              "schema": "mappa.decoded_events/v14",
+              "minimum_events": 4,
+              "minimum_lower_bound": 4,
+              "minimum_proven": true,
+              "event_window": 9,
+              "event_slack": 5,
+              "fragment_seconds": 5.0,
+              "mapping_space_preserved": true,
+              "incomplete_fragment_optimizations": 1,
+              "families": 1409,
+              "tables": 1087,
+              "fragment_responses": 1914,
+              "export_samples": [
+                {
+                  "before_rss_bytes": 2644643840,
+                  "after_rss_bytes": 2676207616,
+                  "seconds": 3.9128740469750483,
+                  "shared_matrix_bytes": 503317064,
+                  "checked_matrices": 1899
+                }
+              ],
+              "decode_seconds": 90.17766194298747,
+              "publication_seconds": 1.8826852859929204,
+              "published_bytes": 10511020,
+              "saved_matrix_digest": "1146fc07543be5c073df940fdcfce3c05d19f6fc7353d4e6a38ec32f21f8ec0d",
+              "publication_roundtrip_passed": true
+            }
+          }
+        }
+      ],
+      "normal_repeat": [
+        {
+          "case": "40793/reverse",
+          "stage": "decoding",
+          "outcome": "completed",
+          "exit_code": 0,
+          "peak_rss_bytes": 2736734208,
+          "elapsed_seconds": 95.78782149098697,
+          "worker_result": {
+            "case": "40793/reverse",
+            "stage": "decoding",
+            "status": "completed",
+            "elapsed_seconds": 94.80674279099912,
+            "cpu_seconds": 94.801958513,
+            "peak_rss_bytes": 2753417216,
+            "result": {
+              "schema": "mappa.decoded_events/v14",
+              "minimum_events": 4,
+              "minimum_lower_bound": 4,
+              "minimum_proven": true,
+              "event_window": 9,
+              "event_slack": 5,
+              "fragment_seconds": 5.0,
+              "mapping_space_preserved": true,
+              "incomplete_fragment_optimizations": 1,
+              "families": 1409,
+              "tables": 1087,
+              "fragment_responses": 1914,
+              "export_samples": [
+                {
+                  "before_rss_bytes": 2644529152,
+                  "after_rss_bytes": 2676191232,
+                  "seconds": 3.9329304310085718,
+                  "shared_matrix_bytes": 503317064,
+                  "checked_matrices": 1899
+                }
+              ],
+              "decode_seconds": 90.51610554300714,
+              "publication_seconds": 1.8760663629800547,
+              "published_bytes": 10511020,
+              "saved_matrix_digest": "1146fc07543be5c073df940fdcfce3c05d19f6fc7353d4e6a38ec32f21f8ec0d",
+              "publication_roundtrip_passed": true
+            }
+          }
+        }
+      ]
+    },
+    "conclusion": "Four GiB accommodates the tested cases after removing output matrix-list duplication; no whole-dataset memory bound or new reference-recovery claim."
   }
 }

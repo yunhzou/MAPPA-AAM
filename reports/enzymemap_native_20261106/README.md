@@ -398,3 +398,66 @@ blocked by memory in these checks, with other preparation costs still visible.
 Original campaign errors, outputs and consumed budgets are unchanged. No fresh
 retry time was granted, and these validation measurements do not count as
 benchmark recovery.
+
+### Four-GiB decoding diagnosis
+
+The user authorized testing four GiB rather than treating two GiB as a scientific
+limit. The same repaired revision (`ea4d9e6`), saved catalogues, fragment budget
+and `minimum + 5` settings were used in fresh isolated workers. Lightweight
+measurements sampled prepared arrays and cache sizes. These runs do not change
+the campaign ledger or replenish consumed retry budgets.
+
+| Direction | Outcome under 4 GiB | Peak GiB | Decode and record construction, wall / CPU s |
+|---|---|---:|---:|
+| 16297 forward | Completed | 2.609 | 91.536 / 91.375 |
+| 24793 forward | Completed | 2.549 | 92.045 / 91.935 |
+| 40793 reverse | Memory guard | 4.082 sampled | Incomplete |
+
+The two completed responses retain model minimum four and window maximum nine.
+16297 has one incompletely optimized fragment; this status remains explicit,
+and does not prevent the model minimum from being established by other retained
+choices. These checks do not establish external reference recovery. Timings
+include catalogue loading and instrumentation, and exclude durable publication.
+
+Loading the three catalogues uses 0.53–0.92 GiB. They contain 1,533–2,145 unique
+fragments. The prepared fragment arrays and contextual responses grow with that
+retained work. The bounded native domain cache remains small (under two MiB in
+the recorded samples); it does not account for the multi-GiB footprint.
+
+There is also confirmed avoidable duplication in output construction. An isolated
+`catalogue.to_record()` on 40793 reverse, without decoding, converts 1,899 shared
+fragment-side matrices containing 57,936,100 numeric cells into Python lists.
+The arrays occupy **463,488,800 bytes (442 MiB)**. The additional lists, pointers
+and individual floating-point objects occupy **1,869,959,400 bytes (1.742 GiB)**,
+while the arrays remain live. This is repeated storage of bond-weight matrices,
+not additional candidate mappings. Total RSS rises from **0.922 to 3.063 GiB**
+in this output-only measurement, a **2.141 GiB** increase; the list allocation
+accounts for most, but not all, of that increase. Output construction takes
+3.917 seconds.
+
+A separate diagnostic tests retaining numeric arrays in binary output while
+checking every matrix against the normal list representation. Production modules
+and public JSON behavior remain unchanged. Its first attempt exited with signal
+11 before reaching output construction. The subsequent debugger run completed
+decoding in **90.178 s**, publication in **1.883 s**, and a save/reload check of
+every matrix and the saved event window. The worker peak was **2.564 GiB**
+(**2.731 GiB** including debugger overhead). Output construction increased RSS
+by only 30.1 MiB in that run; source and event-preparation memory remained live.
+The response has model minimum four and maximum nine, with one explicitly
+incompletely optimized fragment. No external reference audit was performed.
+
+A normal repeat also completed: **90.516 s** for decoding and record
+construction, **1.876 s** for publication, and **94.807 s wall / 94.802 s CPU**
+including digest and reload checks. Its worker peak was **2.564 GiB**. Both
+completed runs produced the same matrix digest, model minimum/window and
+fragment/table counts. The binary published result occupies 10,511,020 bytes.
+
+The initial pre-export crash did not recur in either repeat; its cause remains
+unidentified and is not treated as fixed. The duplicate storage is established
+independently of that process failure. Four GiB is sufficient for these tested
+cases with shared numeric-array output, but the production serializer is still
+unchanged. Integrate this storage correction through the binary transport owner
+while preserving explicit JSON export behavior, rather than raising this case
+above four GiB to accommodate duplicate lists. This is a storage correction,
+not a change to matching, allowed symmetries or event counting. These checks do
+not establish a whole-dataset memory bound or new reference-recovery accuracy.
