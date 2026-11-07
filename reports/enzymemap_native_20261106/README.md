@@ -16,8 +16,74 @@ there are **zero unresolved reactions, unknown directions or outstanding stage
 failures**. Direction-level counts are 94,823 recovered and 1,125 not recovered.
 These totals combine preserved conclusive outputs, registered failure recoveries
 and separately saved certificates resolving the earlier unknown outputs.
-The independent decoded-reference audit has **not run**: these are catalogue
-membership results, not proof of membership in the saved decoded event window.
+
+**The saved decoded-window audit is also complete.** It confirms reference
+recovery in **47,796 / 47,974 reactions (99.6290%)** within the saved
+minimum-plus-five window, with an actual replayed witness for every positive.
+Catalogue recovery and decoded-window recovery are distinct measurements:
+
+| Reference membership | Recovered reactions | Not recovered reactions |
+|---|---:|---:|
+| Matching catalogue | 47,798 | 176 |
+| Saved decoded minimum + 5 | **47,796** | **178** |
+
+Cases **44128 and 44130** account for the two-reaction difference. Both have a
+saved window of **14–19 events**; their recovered catalogue witnesses have
+**22 events**, outside that window. Independent decoded queries exhaust both
+directions without finding a retained reference witness. This is a window
+exclusion, not a matching failure or an algorithm change during the audit.
+
+### Independent saved-decoder audit
+
+All **95,948 decoded outputs** were checked, including the 545 decoder recoveries.
+The audit preserves exact annotated atom pairs and leaves unannotated atoms
+unspecified. Every accepted result has a complete injective mapping, replayed
+saved starting correspondences and correlated symmetry choices, and a scalar
+bond-event count checked against the original matrices. All **94,820 positive
+direction certificates** passed their checks and their saved bytes were independently
+checksum-verified. There were **zero invalid certificates** and no decoded
+recovery contradicting a conclusive catalogue absence.
+
+Direct decoded queries resolved 47,796 reactions positively and 133 negatively;
+45 remained unknown within the query limits. Those 45 are already conclusively
+absent from the unchanged containing catalogue, so they are also absent from
+its selected decoded subset. This separate deduction closes the reaction-level
+accounting. The **250 bounded unknown direction queries remain recorded as
+unknown**, rather than being relabeled as direct negative queries. Combined
+direction counts are 94,820 recovered and 1,128 absent. Case 47863 additionally
+loses reverse-direction recovery but retains forward recovery.
+
+The first pass used 20-second membership queries. A continuation checked only
+507 unknown directions with a 120-second allowance and a larger explicit node
+budget. Finally, 44 available catalogue witnesses were checked directly against
+the saved decoder, without further search: all passed in **40.08 seconds pool
+wall time**, with eight registered workers and **0.76 GiB** maximum sampled
+worker memory. A catalogue certificate alone never establishes decoded recovery;
+these candidates still passed the saved-start, symmetry, occupancy, event-window
+and scalar-count checks.
+
+For **2,801 accepted direction witnesses**, the declared independent-fragment
+model count differs from the physical whole-reaction count. Both are retained;
+this audit measures membership in the **model's** saved window, not physical
+event-bin accuracy. Matching, reduction and decoding were reused unchanged.
+All source hashes, complete scope and drained queues were independently checked.
+
+The audit consumed **42.93 observed worker CPU hours**, including publication
+and sampled failed attempts. Its allocations spanned 44 minutes 7 seconds,
+including diagnostics and gaps for audit development and validation; this is
+not a uniform-version throughput benchmark. These costs are external evaluation
+and are excluded from the stage timings below. Four historical audit memory
+failures remain in the attempt history; their references were subsequently
+resolved without rerunning decoding.
+
+The shared external audit owner is `bench/decoded_reference.py`, final revision
+`91eea28`. Its 45 affected tests passed, including explicit-permutation oracles,
+event-window exclusion, wrong-starting-orbit rejection and sparse identity
+certificates. Initial integration also passed 44 benchmark tests and 26 smoke
+checks; six query-budget/oracle checks passed for the continuation.
+See [decoded-reference evidence](decoded-reference-validation.json) for the
+separate direct and combined outcomes, budgets, costs, exclusions and checksums.
+Full certificates and operational records remain private on the cluster.
 
 ### Shared-fragment reference verification
 
@@ -92,14 +158,15 @@ references and source-ledger checksums remain in private evidence.
 
 ### Decoder storage correction and recovery
 
+The recovery history below precedes the completed totals above.
 The 4-GiB recovery completed 471 of 545 failed decodes in 628.94 seconds,
 with 74 memory-limit failures remaining (69 during computation and five during
-publication), and no new timeouts or crashes. This brings successful decoding
+publication), and no new timeouts or crashes. This brought successful decoding
 to **95,874 / 95,948 directions**. The next recovery completed 71 of the 74,
-bringing decoding to **95,945 / 95,948 directions**. The remaining three are
-37269 forward/reverse and 37270 forward, which exceeded eight GiB. Verification
-recovery waits for decoding to finish. Original results and resource failures
-remain recorded.
+bringing decoding to **95,945 / 95,948 directions**. The final three were
+37269 forward/reverse and 37270 forward, which exceeded eight GiB and then
+completed in the final recovery. Verification recovery followed completed
+decoding. Original results and resource failures remain recorded.
 
 A bounded profile reproduced original decoder peaks of 4.08 GiB for 6723 forward
 and 4.13 GiB for 33459 forward; 23481 forward exceeded an 8-GiB diagnostic guard.
