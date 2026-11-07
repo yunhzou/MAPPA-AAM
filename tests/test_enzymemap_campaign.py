@@ -816,13 +816,13 @@ def test_decoding_recovery_attempts_all_selected_and_does_not_retry_new_failures
     assert json.loads((output/'progress.json').read_text())['failed_stages'] == ['decoding']
 
 
-def failed_recovery(tmp_path, *, retry_seconds=None):
+def failed_recovery(tmp_path, *, retry_seconds=None, failure='memory_limit', stage='decoding'):
     """One second-attempt memory failure beside an already recovered direction."""
     from mappa.mappa_core.core.scheduler.bundles import Blob
 
-    source, selected = failed_decode_campaign(tmp_path)
+    source, selected = failed_decode_campaign(tmp_path, stage=stage)
     output = tmp_path/'first-recovery'
-    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_stage='decoding')
+    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_stage=stage)
     if retry_seconds is not None:
         options.update(memory_bytes=4*2**30, retry_seconds=retry_seconds)
     run(source, output, **options)
@@ -832,17 +832,48 @@ def failed_recovery(tmp_path, *, retry_seconds=None):
         failed, completed = rows
         record = store.load(Blob(**json.loads(failed[4])))
         task = list(record['tasks'][0])
-        task[4] = 'memory_limit'
+        task[4] = failure
         record['tasks'] = [tuple(task)]
-        record['attempts'] = [tuple('memory_limit' if i == 5 else value for i, value in enumerate(attempt))
+        record['attempts'] = [tuple(failure if i == 5 else value for i, value in enumerate(attempt))
                               if attempt[0] == task[6] else attempt for attempt in record['attempts']]
         record['case'] = tuple(73. if i == 3 else value for i, value in enumerate(record['case']))
         # Archive order is not a scientific contract; preserve attempts by token.
         record['attempts'].reverse()
         audit = store.put(record)
         ledger.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=?",
-            (json.dumps(asdict(audit)), json.dumps({task[0]: 'memory_limit'}), failed[0]))
+            (json.dumps(asdict(audit)), json.dumps({task[0]: failure}), failed[0]))
     return source, output, failed[0], completed, record, options
+
+
+@pytest.mark.parametrize('stage', ['decoding', 'verification'])
+def test_execution_error_retry_is_explicit_and_preserves_remaining_budget(tmp_path, stage):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+
+    source, previous, name, completed, before, options = failed_recovery(
+        tmp_path, failure='error', stage=stage)
+    output = tmp_path/'repaired-launch'
+    with pytest.raises(ValueError, match='only archived resource failures'):
+        run(previous, output, **options)
+    assert not output.exists()
+    reason = 'Corrected the input relocation configuration after diagnosis'
+    original = (previous/'ledger.sqlite').read_bytes()
+    assert run(previous, output, retry_error_reason=reason, **options)['pass_finished'] == stage
+    plan = json.loads((output/'plan.json').read_text())
+    assert plan['retry_error_reason'] == reason and plan['retry_seconds'] is None
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        rows = ledger.execute('SELECT * FROM results').fetchall()
+    assert len(rows) == 1 and rows[0][:3] == (name, stage, 'complete')
+    after = BundleStore(output/'bundles').load(Blob(**json.loads(rows[0][4])))
+    assert after['case'][:2] == before['case'][:2]
+    assert after['case'][3] >= before['case'][3]
+    assert after['retries'] == before['retries']
+    assert len(after['attempts']) == len(before['attempts']) + 1
+    attempts = {row[0]: row for row in after['attempts']}
+    assert all(attempts[row[0]] == row for row in before['attempts'])
+    assert (previous/'ledger.sqlite').read_bytes() == original
+    assert run(previous, output, resume=True, retry_error_reason=reason, **options)['pass_finished'] == stage
+    with pytest.raises(ValueError, match='registered stage recovery'):
+        run(previous, output, resume=True, retry_error_reason='Different reason', **options)
 
 
 def test_recovery_chain_preserves_explicit_resource_grants(tmp_path):

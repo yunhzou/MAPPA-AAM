@@ -283,12 +283,16 @@ class WorkPool:
             'mappa.mappa_core.core.scheduler.decoding:decode_catalogue', 'catalogue',
             config=config or EventDecodeConfig())
 
-    def retry_stage(self, case, audit, *, stage, catalogue, retry_seconds=None):
+    def retry_stage(self, case, audit, *, stage, catalogue, retry_seconds=None,
+                    retry_error_reason=None):
         """Recover one final-stage task without discarding its attempts or spent time."""
         if stage not in ('decoding', 'verification'):
             raise ValueError('Recovery requires a final stage')
+        if retry_error_reason is not None and not retry_error_reason.strip():
+            raise ValueError('Retrying execution errors requires a recorded reason')
         record = self.store.load(audit)
-        if len(record['tasks']) != 1 or record['tasks'][0][4] not in ('memory_limit', 'timeout'):
+        states = ('memory_limit', 'timeout', 'error') if retry_error_reason else ('memory_limit', 'timeout')
+        if len(record['tasks']) != 1 or record['tasks'][0][4] not in states:
             raise ValueError('Stage recovery requires one archived resource failure')
         row = record['tasks'][0]
         task = _loads_checkpoint(row[1])

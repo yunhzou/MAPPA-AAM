@@ -318,6 +318,11 @@ old attempt and resource grant remains in the task audit. Without this option,
 recovery requires the original guard and uses only its remaining time. Core
 scientific settings are always preserved.
 
+After diagnosing and correcting an execution error, `--retry-error-reason TEXT`
+explicitly selects that error for recovery and records the reason in the plan.
+It preserves the failed attempt and remaining budget; it grants no extra time.
+Without this option, recovery selects only memory and time limits.
+
 Original batch ownership remains locked for the pool's lifetime. A stage-specific
 registration binds each source to one recovery output, preventing duplicate
 ownership or restoring older budgets. In an existing Slurm allocation omit

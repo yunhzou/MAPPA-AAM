@@ -719,6 +719,8 @@ publication and idle time do not replenish it. Extra retry time or a changed
 resource allowance must be explicit. Failure, resource limits, lost leases and
 incomplete scope remain distinguishable from scientific absence. Coordinator
 loss requires explicit recovery.
+Diagnosed execution errors may be retried explicitly with a recorded reason,
+preserving failed attempts and remaining budgets; they are never retried automatically.
 
 Cross-node execution requires compatible code, inputs, artifact paths and clocks.
 Storage-root relocation preserves offsets and checksums, including nested

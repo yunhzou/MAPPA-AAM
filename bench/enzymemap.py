@@ -179,7 +179,8 @@ def recovery_registration(output, plan):
                 plan_sha256=hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest())
 
 
-def campaign_stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds):
+def campaign_stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds,
+                                retry_error_reason=None):
     """Select terminal resource failures without loading catalogues or changing their campaign."""
     source, output = Path(source).resolve(), Path(output).resolve()
     if output.is_relative_to(source) or source.is_relative_to(output):
@@ -224,7 +225,8 @@ def campaign_stage_recovery_plan(source, output, memory_bytes, owners, stage, re
                 continue
             audit = Blob(**json.loads(saved[4]))
             record = read_blob(audit, None)
-            if len(record['tasks']) != 1 or record['tasks'][0][4] not in ('memory_limit', 'timeout'):
+            states = ('memory_limit', 'timeout', 'error') if retry_error_reason else ('memory_limit', 'timeout')
+            if len(record['tasks']) != 1 or record['tasks'][0][4] not in states:
                 raise ValueError('Stage recovery selects only archived resource failures')
             task_row = record['tasks'][0]
             task = _loads_checkpoint(task_row[1])
@@ -269,10 +271,13 @@ def campaign_stage_recovery_plan(source, output, memory_bytes, owners, stage, re
         original_source=original_sources.pop(),
         decoder_source=code_identity(), stage=stage, retry_seconds=retry_seconds, memory_bytes=memory_bytes, directions=len(selected),
         cases=len({row['case'] for row in selected}), directions_to_recover=selected)
+    if retry_error_reason:
+        requested['retry_error_reason'] = retry_error_reason
     return selected, requested
 
 
-def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds):
+def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds,
+                        retry_error_reason=None):
     """Validate a registered recovery chain and continue only its latest failures."""
     source, output = Path(source).resolve(), Path(output).resolve()
     predecessors = []
@@ -290,7 +295,8 @@ def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_secon
             directory = Path(plan['recovery_source']).resolve()
         else:
             directory = Path(plan['original_campaign']).resolve()
-    selected, requested = campaign_stage_recovery_plan(directory, output, memory_bytes, owners, stage, retry_seconds)
+    selected, requested = campaign_stage_recovery_plan(directory, output, memory_bytes, owners, stage, retry_seconds,
+                                                      retry_error_reason)
     registration = directory/f'{stage}-recovery.json'
     for directory in reversed(predecessors):
         if output.is_relative_to(directory) or directory.is_relative_to(output):
@@ -302,6 +308,9 @@ def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_secon
             raise ValueError('Predecessor differs from its registered stage recovery')
         expected = dict(requested, decoder_source=plan['decoder_source'],
                         memory_bytes=plan['memory_bytes'], retry_seconds=plan['retry_seconds'])
+        expected.pop('retry_error_reason', None)
+        if 'retry_error_reason' in plan:
+            expected['retry_error_reason'] = plan['retry_error_reason']
         if plan != expected:
             raise ValueError('Predecessor input, configuration or recovery lineage differs')
         if json.loads((directory/'progress.json').read_text())['source'] != plan['decoder_source']:
@@ -359,7 +368,8 @@ def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_secon
                         or result['blob'] != Blob(**json.loads(saved[3]))):
                     raise ValueError('Predecessor successful decoding lacks its completed result')
                 continue
-            if state not in ('memory_limit', 'timeout'):
+            states = ('memory_limit', 'timeout', 'error') if retry_error_reason else ('memory_limit', 'timeout')
+            if state not in states:
                 raise ValueError('Stage recovery selects only archived resource failures')
             remaining.append(dict(row, audit=asdict(audit), spent_seconds=current['case'][3],
                                   budget_seconds=current['case'][1], memory_bytes=task[3]))
@@ -374,6 +384,9 @@ def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_secon
             predecessors=history, decoder_source=code_identity(), directions=len(selected),
             cases=len({row['case'] for row in selected}), directions_to_recover=selected,
             memory_bytes=memory_bytes, retry_seconds=retry_seconds)
+        requested.pop('retry_error_reason', None)
+        if retry_error_reason:
+            requested['retry_error_reason'] = retry_error_reason
         registration = directory/f'{stage}-recovery.json'
     if retry_seconds is None:
         if any(row['memory_bytes'] != memory_bytes for row in selected):
@@ -385,13 +398,16 @@ def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_secon
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
-        retry_memory_limits=False, verify_only=False, recover_stage=None, retry_seconds=None, decode_only=False,
+        retry_memory_limits=False, verify_only=False, recover_stage=None, retry_seconds=None,
+        retry_error_reason=None, decode_only=False,
         seed_batch=1, reduce_only=False, postprocess_only=False):
     saved_matching = reduce_only or postprocess_only
     if recover_stage not in (None, 'decoding', 'verification'):
         raise ValueError('Recovery requires decoding or verification')
     if retry_seconds is not None and (recover_stage is None or retry_seconds <= 0):
         raise ValueError('Retry time requires a final-stage recovery and a positive allowance')
+    if retry_error_reason is not None and (recover_stage is None or not retry_error_reason.strip()):
+        raise ValueError('Retrying execution errors requires a final stage and a recorded reason')
     if postprocess_only and (reduce_only or decode_only or verify_only or recover_stage
                              or retry_memory_limits or stop_after is not None):
         raise ValueError('Fresh postprocessing cannot select another pass or retry policy')
@@ -414,7 +430,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         if recover_stage:
             if (output/f'{recover_stage}-recovery.json').exists():
                 raise ValueError('Recovery output already has a registered successor; use that latest recovery')
-            rows, requested = stage_recovery_plan(index_path, output, memory_bytes, owners, recover_stage, retry_seconds)
+            rows, requested = stage_recovery_plan(index_path, output, memory_bytes, owners, recover_stage, retry_seconds,
+                                                 retry_error_reason)
             registration = Path(index_path)/f'{recover_stage}-recovery.json'
             registered = recovery_registration(output, requested)
             if registration.exists():
@@ -593,7 +610,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                     result = StageResults(stage, store, pool=pool, tasks={name:(key,)})
                                 elif recover_stage:
                                     result = pool.retry_stage(name, Blob(**row['audit']), stage=recover_stage,
-                                        catalogue=Blob(**row['catalogue']), retry_seconds=retry_seconds)
+                                        catalogue=Blob(**row['catalogue']), retry_seconds=retry_seconds,
+                                        retry_error_reason=retry_error_reason)
                                 elif decode_only:
                                     saved = StageResults('deduplication', store,
                                         references={name: Blob(**row['catalogue'])})
@@ -690,6 +708,8 @@ def main():
                         help='Recover archived final-stage failures into separate output, preserving attempts and consumed time')
     parser.add_argument('--retry-seconds', type=float,
                         help='Explicit additional compute allowance for each recovered task; recorded in its audit')
+    parser.add_argument('--retry-error-reason',
+                        help='Explicitly retry diagnosed execution errors and record why; preserves remaining budgets')
     parser.add_argument('--decode-only',action='store_true',
                         help='Decode every saved catalogue in a prepared index into fresh output, with fresh recorded budgets')
     parser.add_argument('--reduce-only',action='store_true',
@@ -707,6 +727,7 @@ def main():
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
         seed_batch=args.seed_batch,
         retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_stage=args.recover_stage,retry_seconds=args.retry_seconds,
+        retry_error_reason=args.retry_error_reason,
         decode_only=args.decode_only,reduce_only=args.reduce_only,
         postprocess_only=args.postprocess_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):
