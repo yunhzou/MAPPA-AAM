@@ -9,19 +9,51 @@ this final recovery reserved a 12-GiB guard. Original attempts, consumed budgets
 scientific settings and matching outputs remain intact. These source changes
 share storage; they do not alter the mapping relation or event model.
 
-**External catalogue verification remains unfinished:** 95,927 tasks completed
-and 21 directions remain unresolved. A first recovery of those resource failures
+**External catalogue verification remains unfinished:** 95,931 tasks completed
+and 17 directions retain compute timeouts. A first recovery of 21 resource failures
 stopped before reference queries because the launch omitted input-root relocation.
 All 21 reference inputs now pass checksum-verified loading with the original
-relocation configuration. A corrected 21-worker recovery is queued with the same
-eight-GiB guard, preserved failed attempts and remaining budgets; it grants no
-additional time. Completed verification results are preserved. The independent decoded-reference audit has
+relocation configuration. The corrected recovery completed four checks (three
+recovered references and one unknown); the other 17 exhausted their remaining
+compute allowance. Peak memory across this recovery was 3.08 GiB, with no memory
+failures. It kept the same eight-GiB guard, preserved failed attempts and remaining
+budgets, and granted no additional time. Completed verification results are
+preserved. The independent decoded-reference audit has
 not run. Catalogue verification must not be reported as decoded-response recovery.
 
 The execution-only recovery correction (`0738df5`) requires an explicit recorded
 reason to retry a diagnosed execution error. All 67 campaign and work-pool tests
 passed, including preservation of attempts, remaining budgets and previous ledgers.
 No matching, reduction, decoding or verifier scientific rule changed.
+
+### Measured stage times
+
+Saved audits cover every reaction and all three completed stages. Times below
+sum successful worker computation across both directions and the full cut sweep,
+with one seed, branch cap 100, discovery tolerance two and decoding slack five.
+
+| Stage | Mean CPU seconds per reaction | Median CPU seconds per reaction |
+|---|---:|---:|
+| Matching | 3.02 | 1.25 |
+| Reduction | 1.39 | 0.89 |
+| Matching plus reduction | **4.41** | **2.15** |
+| Decoding | **8.75** | **3.46** |
+| Matching, reduction and decoding | **13.16** | **5.80** |
+
+Including output publication and measured worker overhead, the mean is
+**14.60 CPU seconds per reaction** (194.51 CPU hours across the dataset).
+Historical failed attempts add approximately 27.93 sampled CPU hours, bringing
+the observed cost including those attempts to about 16.69 CPU seconds per reaction.
+Verification, diagnostic runs, scheduler waits and coordinator overhead are
+excluded. These are summed CPU costs, not parallel campaign wall times.
+The combined computation distribution has a 95th percentile of 41.86 seconds
+and a 99th percentile of 128.58 seconds per reaction.
+
+This measurement combines original successful tasks with successful recoveries;
+it is not a fresh full-dataset timing of one final performance revision. See
+[stage timing evidence](stage-timings.json) for separate computation, publication,
+direction/reaction distributions and failed-attempt accounting. Original audit
+references and source-ledger checksums remain in private evidence.
 
 ### Decoder storage correction and recovery
 
