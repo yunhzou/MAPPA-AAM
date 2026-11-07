@@ -92,7 +92,7 @@ class FragmentSymmetryEvents:
         self.target_binary = (target.weights > target.bond_threshold)[np.ix_(self.witness, self.witness)]
         objective = objective or FragmentObjective(fragment, event_problem, threshold, metal_threshold)
         self.source = objective.source
-        self.target = objective.target[np.ix_(self.witness, self.witness)]
+        self.target = objective.aligned_target(self.witness)
         self.thresholds = objective.thresholds
         self.binary = self.target_binary
         self.edges = tuple(zip(*np.where(np.triu(self.binary, 1))))
@@ -155,7 +155,7 @@ class FragmentSymmetryEvents:
         result.witness = tuple(positions[mapping[a]] for a in fragment.source_atoms)
         objective = FragmentObjective(fragment, event_problem, threshold, metal_threshold)
         result.source, result.thresholds = objective.source, objective.thresholds
-        result.target = objective.target[np.ix_(result.witness, result.witness)]
+        result.target = objective.aligned_target(result.witness)
         result.source_binary = fragment.source_symmetry.weights > fragment.source_symmetry.bond_threshold
         result.target_binary = (fragment.target_symmetry.weights > fragment.target_symmetry.bond_threshold)[
             np.ix_(result.witness, result.witness)]

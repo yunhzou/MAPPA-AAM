@@ -1,6 +1,8 @@
 """Independent tiny mapping oracles for prepared, correlated event counts."""
 from itertools import permutations, product
+from collections import defaultdict
 
+import numpy as np
 import pytest
 import z3
 
@@ -10,7 +12,7 @@ from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder, 
 from mappa.mappa_core.post_processing.decoder.local_counts import FragmentEventCounts, count_bounds
 from growth_cases import saved_fragment
 from test_event_interpretation import endpoint
-from mappa import AAMProblem
+from mappa import AAMProblem, MolecularEndpoint
 from test_relaxed_fragment_decoding import problem
 from test_relaxed_isomorphism import relation, represented, weights
 
@@ -221,6 +223,57 @@ def test_incident_weight_bags_strengthen_only_the_conditioned_endpoint():
     assert_bounds_cover_mappings(local, response, mappings)
     # The selected binary orbit cannot move a bonded atom onto an isolated atom.
     assert endpoints_for(response.event_counts, 0) == {0: 0, 1: 0}
+
+
+@pytest.mark.parametrize('seed', range(12))
+def test_counted_pair_bags_preserve_all_weights_and_assignment_bound(seed):
+    from scipy.optimize import linear_sum_assignment
+    from mappa.mappa_core.utils.bonds import bond_event_threshold
+
+    rng = np.random.default_rng(seed)
+    elements = ('C', 'C', 'C', 'O', 'O', 'Fe')
+    matrices = []
+    for _ in range(2):
+        values = rng.choice([0., .2, .3, .5, .5000001, .8, 1., 2.], size=(6, 6))
+        matrix = np.triu(values, 1)
+        matrices.append(matrix + matrix.T)
+    endpoints = AAMProblem(*(MolecularEndpoint(elements, np.zeros((6, 3)), matrix)
+                             for matrix in matrices))
+    local = FragmentDecoder(SignedEventIndex(endpoints), None)
+    counts, atoms = local.counts, tuple(range(6))
+    for anchor in (None, *atoms):
+        bags = []
+        for side, matrix in zip(('reactant', 'product'), matrices):
+            expected = defaultdict(list)
+            for a in atoms:
+                for b in atoms[a + 1:]:
+                    expected[tuple(sorted((elements[a], elements[b]))), anchor in (a, b)].append(matrix[a, b])
+            actual = counts.bag(side, atoms, anchor)
+            for key, (values, multiplicities) in actual.items():
+                assert np.array_equal(np.repeat(values, multiplicities), sorted(expected[key]))
+            bags.append(expected)
+        cost = 0
+        for (labels, incident), left in bags[0].items():
+            a, b = (elements.index(label) for label in labels)
+            limit = bond_event_threshold(elements, a, b, default_threshold=.5, metal_threshold=.3)
+            matrix = np.abs(np.subtract.outer(left, bags[1][labels, incident])) > limit
+            rows, columns = linear_sum_assignment(matrix)
+            cost += matrix[rows, columns].sum()
+        assert counts.distance(counts.bag('reactant', atoms, anchor),
+                               counts.bag('product', atoms, anchor)) == cost
+
+
+def test_sweep_endpoint_cache_does_not_retain_all_nonincident_pairs():
+    n = 120
+    matrix = weights(n, [(i, (i + 1) % n, 1.) for i in range(n)])
+    local = FragmentDecoder(SignedEventIndex(problem(matrix, matrix)), None)
+    atoms = tuple(range(n))
+    for atom in atoms:
+        bag = local.counts.bag('reactant', atoms, atom)
+        assert sum(int(counts.sum()) for _, counts in bag.values()) == n * (n - 1) // 2
+    arrays = [array for collection in (local.counts.bags, local.counts.incident_bags)
+              for bag in collection.values() for pair in bag.values() for array in pair]
+    assert sum(array.nbytes for array in arrays) < 64 * (n + 1)
 
 
 def test_weight_preserving_placement_can_move_the_entire_fragment_atom_set():

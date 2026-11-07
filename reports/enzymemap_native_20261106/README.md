@@ -1,6 +1,23 @@
 # Fresh EnzymeMap benchmark of the accepted milestone
 
-**Closure recovery is active.** The user authorized continuing diagnosis and
+**Closure recovery is paused for a decoder memory correction.**
+The 4-GiB recovery completed 471 of 545 failed decodes in 628.94 seconds,
+with 74 memory-limit failures remaining (69 during computation and five during
+publication), and no new timeouts or crashes. This brings successful decoding
+to **95,874 / 95,948 directions**. The pending decoding and verification retries
+were held at the user's request before either started.
+
+A bounded profile reproduced original decoder peaks of 4.08 GiB for 6723 forward
+and 4.13 GiB for 33459 forward; 23481 forward exceeded an 8-GiB diagnostic guard.
+The latter retained 2.93 GiB in prepared response arrays and 817 MiB in expanded
+pair-weight summaries near termination. The storage correction shares identical
+immutable weights, uses shared uniform thresholds, and stores exact weight
+multiplicities. Sweep endpoint summaries retain only incident counts and derive
+nonincident counts from the fragment summary. No scientific settings or mapping
+permissions change. Validation before the final aligned-matrix sharing adjustment:
+1,344 full-suite tests passed. Real-case comparison is in progress.
+
+**Earlier recovery launch:** The user authorized continuing diagnosis and
 resource retries until decoding and verification close, while preserving the
 core algorithm. The validated storage correction (`2e54202`) keeps shared numeric
 matrices in binary decoded output; explicit JSON export is unchanged. An audit

@@ -644,6 +644,10 @@ boundary model and does not silently reassign model bins.
 Saved results retain the unchanged matching catalogue, each selected starting
 correspondence, shared response and window decisions. Loading reconstructs query
 objects without rerunning starting-map optimization or symmetry preparation.
+Prepared responses share identical immutable fragment weights and uniform event
+thresholds. Pair-weight summaries retain exact multiplicities; sweep endpoints
+retain only their incident summaries, deriving nonincident counts from the shared
+fragment summary. Storage compression changes no event bound or permitted choice.
 Calculation-only branch state is released when the independent saved record is
 ready, before publication. Persist only compact
 relations and sparse costs; their size is still not a bound on total reaction

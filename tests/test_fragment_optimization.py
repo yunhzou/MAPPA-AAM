@@ -231,6 +231,33 @@ def test_original_event_problem_retains_sparse_indices_and_metal_threshold():
     assert optimize_fragment(value, event_problem=original, metal_threshold=.5).event_count == 0
 
 
+def test_prepared_response_shares_original_weights_and_uniform_threshold():
+    from mappa import AAMProblem, MolecularEndpoint
+    from mappa.mappa_core.core.symmetry.minimum import FragmentSymmetryEvents
+
+    matrix = weights(4, [(0, 1, 1.), (1, 2, 1.2), (2, 3, 1.)])
+    value = fragment(matrix, matrix, ((0, 1), (1, 2), (2, 3)), range(4))
+    endpoint = MolecularEndpoint(('C',) * 4, np.zeros((4, 3)), matrix)
+    original = AAMProblem(endpoint, endpoint)
+    response = FragmentSymmetryEvents(value, event_problem=original)
+    assert response.source is value.source_symmetry.weights
+    assert response.target is response.source
+    assert response.thresholds.base.nbytes == 8
+    assert np.all(response.thresholds == .5)
+    restored = FragmentSymmetryEvents.from_record(value, response.to_record(), event_problem=original)
+    assert restored.source is response.source and restored.target is response.target
+    assert restored.thresholds.base.nbytes == 8
+    assert restored.solve().event_count == response.solve().event_count == 0
+
+    changed = matrix.copy()
+    changed[0, 1] = changed[1, 0] = 2.
+    altered = AAMProblem(endpoint, replace(endpoint, wbo=changed))
+    objective = FragmentObjective(value, altered)
+    assert objective.source is value.source_symmetry.weights
+    assert not np.shares_memory(objective.target, value.target_symmetry.weights)
+    assert objective.count(range(4)) == 1
+
+
 def test_zero_budget_returns_original_valid_witness():
     value = triangle()
     answer = optimize_fragment(value, time_limit=0)

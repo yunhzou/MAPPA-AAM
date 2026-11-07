@@ -29,6 +29,7 @@ class FragmentCountIndex:
         self.decoder = proxy(decoder)
         self.groups = {}
         self.bags = {}
+        self.incident_bags = {}
 
     def preserves_weights(self, action):
         if action not in self.groups:
@@ -58,38 +59,66 @@ class FragmentCountIndex:
         return True
 
     def bag(self, side, atoms, anchor=None):
-        key = side, atoms, anchor
+        key = side, atoms
+        endpoint = getattr(self.index.problem, side)
         if key not in self.bags:
-            endpoint = getattr(self.index.problem, side)
             grouped = defaultdict(list)
             for i, a in enumerate(atoms):
                 for b in atoms[i + 1:]:
                     elements = tuple(sorted((endpoint.elements[a], endpoint.elements[b])))
-                    grouped[elements, anchor in (a, b)].append(float(endpoint.wbo[a, b]))
-            self.bags[key] = {elements: np.sort(values) for elements, values in grouped.items()}
-        return self.bags[key]
+                    grouped[elements, False].append(float(endpoint.wbo[a, b]))
+            self.bags[key] = {kind: np.unique(values, return_counts=True)
+                              for kind, values in grouped.items()}
+        base = self.bags[key]
+        if anchor is None:
+            return base
+        incident_key = side, atoms, anchor
+        if incident_key not in self.incident_bags:
+            grouped = defaultdict(list)
+            for atom in atoms:
+                if atom != anchor:
+                    elements = tuple(sorted((endpoint.elements[anchor], endpoint.elements[atom])))
+                    grouped[elements, True].append(float(endpoint.wbo[anchor, atom]))
+            self.incident_bags[incident_key] = {
+                kind: np.unique(values, return_counts=True) for kind, values in grouped.items()}
+        incident = self.incident_bags[incident_key]
+        result = dict(base)
+        for (elements, _), (weights, counts) in incident.items():
+            values, totals = base[elements, False]
+            remaining = totals.copy()
+            remaining[np.searchsorted(values, weights)] -= counts
+            result[elements, False] = values, remaining
+        # Only incident summaries persist per endpoint. The large nonincident
+        # bag shares the fragment's values and is released after this comparison.
+        result.update(incident)
+        return result
 
     def distance(self, source, target):
         representatives = {element: a for a, element in enumerate(self.index.elements)}
         lower = 0
-        for key, xs in source.items():
+        for key, (xs, counts_x) in source.items():
             elements, _ = key
-            ys = target[key]
+            ys, counts_y = target[key]
             a, b = (representatives[e] for e in elements)
             threshold = bond_event_threshold(self.index.elements, a, b,
                 default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
             i = j = matches = 0
+            left = int(counts_x[0]) if len(xs) else 0
+            right = int(counts_y[0]) if len(ys) else 0
             while i < len(xs) and j < len(ys):
                 delta = float(xs[i]) - float(ys[j])
-                if delta > threshold:
-                    j += 1
-                elif delta < -threshold:
+                if not left or delta < -threshold:
                     i += 1
+                    left = int(counts_x[i]) if i < len(xs) else 0
+                elif not right or delta > threshold:
+                    j += 1
+                    right = int(counts_y[j]) if j < len(ys) else 0
                 else:
-                    i += 1
-                    j += 1
-                    matches += 1
-            lower += len(xs) - matches
+                    matched = min(left, right)
+                    matches += matched
+                    left -= matched
+                    right -= matched
+            lower += int(counts_x.sum()) - matches
         return lower
 
     def aggregate_bound(self, response):
