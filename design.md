@@ -553,7 +553,8 @@ Apply the same sharing during construction, before serialization. Comparison key
 borrow immutable matrix storage and retain exact byte equality and ordering;
 hashes never replace equality checks or retain another matrix-sized payload.
 Trusted binary transport restores already validated scientific fields without
-repeating construction checks. Reduction reuses immutable fragment hashes and
+repeating construction checks. Binary decoded output shares numeric weight arrays;
+only explicit JSON export expands them to lists. Reduction reuses immutable fragment hashes and
 prepared transition actions; each saved path still contributes its provenance.
 
 ## Decoding: shared fragment responses and branch queries

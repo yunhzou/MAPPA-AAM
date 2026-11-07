@@ -505,10 +505,13 @@ def test_binary_catalogue_preserves_shared_preparation_without_record_expansion(
     gc.collect()
 
 
-def test_decoded_record_and_bundle_share_self_payloads_across_distinct_fragments(tmp_path):
+@pytest.mark.parametrize('array_lists', [False, True])
+def test_decoded_record_and_bundle_share_self_payloads_across_distinct_fragments(tmp_path, array_lists):
     from mappa.execution import BundleStore
     from mappa.mappa_core.utils.io.records import decoded_events_record
-    record = decoded_events_record(decode_events(shared_source_catalogue()))
+    catalogue = shared_source_catalogue()
+    decoded = decode_events(catalogue)
+    record = decoded_events_record(decoded, array_lists=array_lists)
     first, second = record['catalogue']['fragments']
     assert first['target']['atoms'] != second['target']['atoms']
     assert first['source'] is second['source']
@@ -517,7 +520,13 @@ def test_decoded_record_and_bundle_share_self_payloads_across_distinct_fragments
     a, b = restored['catalogue']['fragments']
     assert a['source'] is b['source']
     assert a['source']['weights'] is b['source']['weights']
-    assert restored == record
+    if not array_lists:
+        assert first['source']['weights'] is catalogue.families[0].fragments[0].source_symmetry.weights
+        assert record['problem']['reactant']['wbo'] is catalogue.problem.reactant.wbo
+    normalize = lambda value: json.loads(json.dumps(value, default=lambda array: array.tolist()))
+    assert normalize(restored) == normalize(decoded_events_record(decoded))
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    assert normalize(decoded_events_record(decoded_events_from_record(restored))) == normalize(record)
 
 
 def placed_fragment_path():

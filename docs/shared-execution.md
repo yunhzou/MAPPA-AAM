@@ -210,15 +210,16 @@ attempt history. The public pool does not automatically resume an interrupted
 pass or fail over its coordinator. Work after the latest checkpoint can require
 repeating after node loss. Plan allocation walltime accordingly.
 
-After diagnosing a decoding memory failure, `pool.retry_decoding(case, audit,
-catalogue=original_reference)` restores that archived task into a new pool. It
-preserves the task ID, decoder configuration, previous attempts, memory guard
-and consumed case time. Only the remaining original budget is available; an
-exhausted budget or changed guard is rejected. The original catalogue reference
-must match the failed task. Use a separate `BundleStore` for the recovered output
-when retaining a completed campaign as immutable evidence. The
-[EnzymeMap recovery command](../bench/README.md#recover-decoding-after-a-repair)
-adds original/current code provenance and explicit resume checks around this API.
+After diagnosing a final-stage resource failure, `pool.retry_stage(case, audit,
+stage='decoding', catalogue=original_reference)` restores the task into a new
+pool, retaining its ID, payload, attempts and consumed time. `stage='verification'`
+supports archived reference queries. Without `retry_seconds`, only the remaining
+original time and unchanged memory guard are allowed. An explicit positive
+`retry_seconds` grants additional compute time at the pool's memory guard and
+records both in the audit. The original catalogue reference must match the task.
+The [benchmark recovery command](../bench/README.md#recover-final-stages-after-a-repair)
+validates task operations, reference identity, source ownership and lineage.
+Use separate output bundles to preserve original evidence.
 
 Local tests exercise RAM/file transport, full scientific-record equivalence,
 deadlines, worker replacement, dependency barriers, checkpoint resume and the

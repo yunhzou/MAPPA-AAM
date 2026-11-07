@@ -531,7 +531,7 @@ def test_fresh_batches_reject_duplicate_and_incomplete_inputs(tmp_path):
         prepare_fresh([index], tmp_path/'partial', workers=[1])
 
 
-def failed_decode_campaign(tmp_path, *, bad_catalogue=False, decode_config=None):
+def failed_decode_campaign(tmp_path, *, bad_catalogue=False, decode_config=None, stage='decoding'):
     """Keep a terminal campaign, with two diagnosed failures and two successes."""
     from prepare_batches import prepare_fresh
     from mappa.mappa_core.core.scheduler.bundles import Blob
@@ -552,7 +552,7 @@ def failed_decode_campaign(tmp_path, *, bad_catalogue=False, decode_config=None)
         run(output.parent/'index.json', output, local=True, workers=1, memory_bytes=2*2**30)
         store = BundleStore(output/'bundles')
         with sqlite3.connect(output/'ledger.sqlite') as ledger:
-            name, raw = ledger.execute("SELECT case_name,audit FROM results WHERE stage='decoding' ORDER BY case_name LIMIT 1").fetchone()
+            name, raw = ledger.execute("SELECT case_name,audit FROM results WHERE stage=? ORDER BY case_name LIMIT 1", (stage,)).fetchone()
             record = store.load(Blob(**json.loads(raw)))
             task_row = list(record['tasks'][0])
             if bad_catalogue and batch == 0:
@@ -567,8 +567,8 @@ def failed_decode_campaign(tmp_path, *, bad_catalogue=False, decode_config=None)
                                   for attempt in record['attempts']]
             record['case'] = tuple(37. if i == 3 else item for i, item in enumerate(record['case']))
             audit = store.put(record)
-            ledger.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=? AND stage='decoding'",
-                (json.dumps(asdict(audit)), json.dumps({task_row[0]: 'memory_limit'}), name))
+            ledger.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=? AND stage=?",
+                (json.dumps(asdict(audit)), json.dumps({task_row[0]: 'memory_limit'}), name, stage))
         progress = output/'progress.json'
         progress.write_text(json.dumps(dict(json.loads(progress.read_text()), source='original-code')))
         selected[name] = dict(audit=audit, record=record, output=output)
@@ -609,7 +609,7 @@ def test_fresh_decoding_uses_all_catalogues_with_new_budgets_and_preserves_sourc
     source_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     def forbidden(*args, **kwargs):
         raise AssertionError('A fresh decoding pass cannot run other stages or restore an old attempt')
-    for method in ('search', 'deduplicate', 'retry_decoding'):
+    for method in ('search', 'deduplicate', 'retry_stage'):
         monkeypatch.setattr(WorkPool, method, forbidden)
     monkeypatch.setattr(enzymemap, 'prepared_problem', forbidden)
     monkeypatch.setattr(enzymemap, 'read_blob', forbidden)
@@ -675,12 +675,49 @@ def test_fresh_decoding_preserves_new_failures_without_retry_or_other_stages(tmp
         assert ledger.execute('SELECT * FROM results ORDER BY case_name').fetchall() == records
 
 
-@pytest.mark.parametrize('options', [dict(verify_only=True), dict(recover_decoding=True),
+@pytest.mark.parametrize('options', [dict(verify_only=True), dict(recover_stage='decoding'),
     dict(retry_memory_limits=True), dict(stop_after='matching'), dict(stop_after='verification')])
 def test_fresh_decoding_rejects_competing_stage_modes(tmp_path, options):
     with pytest.raises(ValueError, match='Fresh decoding cannot select another pass'):
         run(tmp_path/'unused', tmp_path/'output', decode_only=True, **options)
     assert not (tmp_path/'output').exists()
+
+
+@pytest.mark.parametrize('stage', ['decoding', 'verification'])
+def test_stage_recovery_explicit_resources_preserve_exhausted_attempts(tmp_path, stage):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    source, selected = failed_decode_campaign(tmp_path, stage=stage)
+    for name, entry in selected.items():
+        record = entry['record']
+        record['case'] = tuple(record['case'][1] if i == 3 else value
+                               for i, value in enumerate(record['case']))
+        record['tasks'] = [tuple('timeout' if i == 4 else value
+                                for i, value in enumerate(record['tasks'][0]))]
+        record['attempts'] = [tuple('timeout' if i == 5 else value for i, value in enumerate(attempt))
+                              for attempt in record['attempts']]
+        store = BundleStore(entry['output']/'bundles')
+        with sqlite3.connect(entry['output']/'ledger.sqlite') as ledger:
+            ledger.execute('UPDATE results SET audit=? WHERE case_name=? AND stage=?',
+                           (json.dumps(asdict(store.put(record))), name, stage))
+    output = tmp_path/'recovery'
+    options = dict(local=True, workers=2, window=2, memory_bytes=4*2**30,
+                   recover_stage=stage, retry_seconds=120.)
+    assert run(source, output, **options)['pass_finished'] == stage
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        rows = ledger.execute('SELECT * FROM results').fetchall()
+    assert len(rows) == 2 and all(row[2] == 'complete' for row in rows)
+    store = BundleStore(output/'bundles')
+    for name, _, _, _, audit, _ in rows:
+        before = selected[name]['record']
+        after = store.load(Blob(**json.loads(audit)))
+        assert after['tasks'][0][:3] == before['tasks'][0][:3]
+        assert after['tasks'][0][3] == 4*2**30
+        assert after['case'][1] == before['case'][3] + 120.
+        assert after['case'][3] >= before['case'][3]
+        assert after['attempts'][:-1] == before['attempts']
+        assert after['retries'][-1][1:] == (before['case'][0], before['case'][1],
+                                           before['case'][3], 120., 4*2**30)
+    assert run(source, output, resume=True, **options)['pass_finished'] == stage
 
 
 def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypatch):
@@ -693,10 +730,10 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
     source, selected = failed_decode_campaign(tmp_path, decode_config=policy)
     original_files = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     output = tmp_path/'recovery'
-    options = dict(local=True, workers=2, window=2, memory_bytes=2*2**30, recover_decoding=True)
+    options = dict(local=True, workers=2, window=2, memory_bytes=2*2**30, recover_stage='decoding')
     original_enter = WorkPool.__enter__
     def enter_recovery(pool):
-        with pytest.raises(RuntimeError, match='active coordinator or decoding recovery'):
+        with pytest.raises(RuntimeError, match='active coordinator or stage recovery'):
             run(source, tmp_path/'duplicate', **options)
         assert not (tmp_path/'duplicate').exists()
         for entry in selected.values():
@@ -741,10 +778,10 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
     after = {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()}
     assert after.pop(Path('decoding-recovery.json')) == registration.read_bytes()
     assert after == original_files
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(source, tmp_path/'later-duplicate', **options)
     assert not (tmp_path/'later-duplicate').exists()
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(source, output, **options)
 
     with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
@@ -757,7 +794,7 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
         queue.execute('DELETE FROM attempts')
     before = {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()}
     monkeypatch.setattr(enzymemap, 'code_identity', lambda: 'changed-decoder')
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(source, output, resume=True, **options)
     assert {path.relative_to(output): path.read_bytes() for path in output.rglob('*') if path.is_file()} == before
 
@@ -765,7 +802,7 @@ def test_decoding_recovery_is_separate_budgeted_and_resumable(tmp_path, monkeypa
 def test_decoding_recovery_attempts_all_selected_and_does_not_retry_new_failures(tmp_path):
     source, selected = failed_decode_campaign(tmp_path, bad_catalogue=True)
     output = tmp_path/'recovery'
-    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_decoding=True)
+    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_stage='decoding')
     with pytest.raises(RuntimeError, match='decoding contains failed directions'):
         run(source, output, **options)
     with sqlite3.connect(output/'ledger.sqlite') as db:
@@ -779,13 +816,15 @@ def test_decoding_recovery_attempts_all_selected_and_does_not_retry_new_failures
     assert json.loads((output/'progress.json').read_text())['failed_stages'] == ['decoding']
 
 
-def failed_recovery(tmp_path):
+def failed_recovery(tmp_path, *, retry_seconds=None):
     """One second-attempt memory failure beside an already recovered direction."""
     from mappa.mappa_core.core.scheduler.bundles import Blob
 
     source, selected = failed_decode_campaign(tmp_path)
     output = tmp_path/'first-recovery'
-    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_decoding=True)
+    options = dict(local=True, workers=1, window=1, memory_bytes=2*2**30, recover_stage='decoding')
+    if retry_seconds is not None:
+        options.update(memory_bytes=4*2**30, retry_seconds=retry_seconds)
     run(source, output, **options)
     store = BundleStore(output/'bundles')
     with sqlite3.connect(output/'ledger.sqlite') as ledger:
@@ -806,6 +845,22 @@ def failed_recovery(tmp_path):
     return source, output, failed[0], completed, record, options
 
 
+def test_recovery_chain_preserves_explicit_resource_grants(tmp_path):
+    from mappa.mappa_core.core.scheduler.bundles import Blob
+    source, previous, name, completed, old_audit, options = failed_recovery(tmp_path, retry_seconds=120.)
+    output = tmp_path/'next-recovery'
+    options.update(memory_bytes=8*2**30, retry_seconds=240.)
+    assert run(previous, output, **options)['pass_finished'] == 'decoding'
+    with sqlite3.connect(output/'ledger.sqlite') as ledger:
+        rows = ledger.execute('SELECT * FROM results').fetchall()
+    assert len(rows) == 1 and rows[0][:3] == (name, 'decoding', 'complete')
+    audit = BundleStore(output/'bundles').load(Blob(**json.loads(rows[0][4])))
+    assert audit['retries'][:-1] == old_audit['retries']
+    assert audit['attempts'][:-1] == old_audit['attempts']
+    assert audit['tasks'][0][3] == 8*2**30
+    assert audit['case'][1] == old_audit['case'][3] + 240.
+
+
 def test_decoding_recovery_chain_preserves_latest_budget_history_and_successes(tmp_path, monkeypatch):
     import enzymemap
     import shutil
@@ -815,10 +870,10 @@ def test_decoding_recovery_chain_preserves_latest_budget_history_and_successes(t
     source, previous, name, completed, old_audit, options = failed_recovery(tmp_path)
     copy = tmp_path/'copied-predecessor'
     shutil.copytree(previous, copy)
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(copy, tmp_path/'copied-successor', **options)
     assert not (tmp_path/'copied-successor').exists()
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(source, tmp_path/'stale-original', **options)
 
     output = tmp_path/'second-recovery'
@@ -835,7 +890,7 @@ def test_decoding_recovery_chain_preserves_latest_budget_history_and_successes(t
     assert status['pass_finished'] == 'decoding'
     assert status['expected_directions'] == 1 and not status.get('finished', False)
     plan = json.loads((output/'plan.json').read_text())
-    assert plan['source_kind'] == 'decoding_recovery'
+    assert plan['source_kind'] == 'stage_recovery'
     assert plan['recovery_source'] == str(previous.resolve())
     assert plan['original_campaign'] == str(source.resolve())
     assert plan['original_source'] == 'original-code'
@@ -861,7 +916,7 @@ def test_decoding_recovery_chain_preserves_latest_budget_history_and_successes(t
         assert db.execute('SELECT * FROM results').fetchall() == rows
     with pytest.raises(ValueError, match='registered successor'):
         run(source, previous, resume=True, **options)
-    with pytest.raises(ValueError, match='registered decoding recovery'):
+    with pytest.raises(ValueError, match='registered stage recovery'):
         run(previous, tmp_path/'stale-predecessor', **options)
 
 
@@ -940,6 +995,6 @@ def test_decoding_recovery_rejects_changed_original_before_writing(tmp_path, cha
     output = tmp_path/'recovery'
     with pytest.raises(ValueError, match=message):
         run(source, output, local=True, memory_bytes=(4 if change == 'guard' else 2)*2**30,
-            recover_decoding=True)
+            recover_stage='decoding')
     assert not output.exists()
     assert {path.relative_to(source): path.read_bytes() for path in source.rglob('*') if path.is_file()} == original_files

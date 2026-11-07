@@ -170,17 +170,17 @@ def recovery_owner(output, owners):
     try:
         fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
-        raise RuntimeError('Original campaign or predecessor has an active coordinator or decoding recovery') from None
+        raise RuntimeError('Original campaign or predecessor has an active coordinator or stage recovery') from None
     require_drained(output)
 
 
 def recovery_registration(output, plan):
-    return dict(schema='mappa.decoding-recovery-owner/v1', output=str(Path(output).resolve()),
+    return dict(schema='mappa.stage-recovery-owner/v1', output=str(Path(output).resolve()),
                 plan_sha256=hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest())
 
 
-def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
-    """Select terminal decode failures without loading catalogues or changing their campaign."""
+def campaign_stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds):
+    """Select terminal resource failures without loading catalogues or changing their campaign."""
     source, output = Path(source).resolve(), Path(output).resolve()
     if output.is_relative_to(source) or source.is_relative_to(output):
         raise ValueError('Decoding recovery requires a separate output directory')
@@ -219,74 +219,79 @@ def campaign_decoding_recovery_plan(source, output, memory_bytes, owners):
         for name, row in names.items():
             if any(records[name, stage][2] != 'complete' for stage in ('matching', 'deduplication')):
                 raise ValueError('Decoding recovery requires completed matching and reduction')
-            saved = records[name, 'decoding']
+            saved = records[name, stage]
             if saved[2] == 'complete':
                 continue
             audit = Blob(**json.loads(saved[4]))
             record = read_blob(audit, None)
-            if len(record['tasks']) != 1 or record['tasks'][0][4] != 'memory_limit':
-                raise ValueError('Decoding recovery selects only archived memory failures')
+            if len(record['tasks']) != 1 or record['tasks'][0][4] not in ('memory_limit', 'timeout'):
+                raise ValueError('Stage recovery selects only archived resource failures')
             task_row = record['tasks'][0]
             task = _loads_checkpoint(task_row[1])
             catalogue = Blob(**json.loads(records[name, 'deduplication'][3]))
-            if (task.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue'
+            operation = ('mappa.mappa_core.core.scheduler.decoding:decode_catalogue'
+                         if stage == 'decoding' else index.get('verification', 'enzymemap:verify'))
+            if (task.operation != operation
                     or task.payload['catalogue'] != catalogue):
                 raise ValueError('Original decoding task differs from its saved catalogue')
-            if asdict(task.payload['config']) != decoding_config:
+            if stage == 'decoding' and asdict(task.payload['config']) != decoding_config:
                 raise ValueError('Original decoding configuration differs from the campaign configuration')
-            if task_row[3] != memory_bytes or task.memory_bytes != memory_bytes:
-                raise ValueError('Decoding recovery must preserve the original memory guard')
-            if record['case'][3] >= record['case'][1]:
-                raise ValueError('Decoding recovery has no remaining case budget')
+            if stage == 'verification' and (task.payload['reference'] != Blob(**row['reference'])
+                                           or task.payload['reversed'] != row['reversed']):
+                raise ValueError('Original verification reference or direction differs')
             if task.key in task_keys:
                 raise ValueError('Original decoding task appears more than once')
             task_keys.add(task.key)
             selected.append(dict(case=row['case'], reversed=row['reversed'], batch=batch['batch'],
                 audit=asdict(audit), catalogue=asdict(catalogue), task=task.key,
                 budget_seconds=record['case'][1], spent_seconds=record['case'][3],
-                decoding_config=asdict(task.payload['config'])))
+                memory_bytes=task_row[3], decoding_config=decoding_config))
         origins.append(dict(batch=batch['batch'], input_index_sha256=digest,
             plan_sha256=hashlib.sha256(plan_raw).hexdigest(),
             ledger_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
             source=json.loads((result/'progress.json').read_text())['source']))
     if len(identities) != manifest['directions'] or not selected:
-        raise ValueError('Original campaign scope differs or contains no decoding memory failures')
+        raise ValueError('Original campaign scope differs or contains no stage resource failures')
     original_sources = {origin['source'] for origin in origins}
-    if 'code_identity' in manifest:
-        original_sources.add(manifest['code_identity'])
+    for key in ('code_identity', 'source_identity'):
+        if key in manifest:
+            original_sources.add(manifest[key])
     launch = source/'launch.json'
     if launch.exists():
-        original_sources.add(json.loads(launch.read_text())['code_identity'])
+        launch_record = json.loads(launch.read_text())
+        for key in ('code_identity', 'source_identity'):
+            if key in launch_record:
+                original_sources.add(launch_record[key])
     if len(original_sources) != 1:
         raise ValueError('Original campaign source identities differ')
-    requested = dict(schema='mappa.decoding-recovery/v1', original_campaign=str(source),
+    requested = dict(schema='mappa.stage-recovery/v1', original_campaign=str(source),
         manifest_sha256=hashlib.sha256(raw).hexdigest(), original_batches=origins,
         original_source=original_sources.pop(),
-        decoder_source=code_identity(), memory_bytes=memory_bytes, directions=len(selected),
+        decoder_source=code_identity(), stage=stage, retry_seconds=retry_seconds, memory_bytes=memory_bytes, directions=len(selected),
         cases=len({row['case'] for row in selected}), directions_to_recover=selected)
     return selected, requested
 
 
-def decoding_recovery_plan(source, output, memory_bytes, owners):
+def stage_recovery_plan(source, output, memory_bytes, owners, stage, retry_seconds):
     """Validate a registered recovery chain and continue only its latest failures."""
     source, output = Path(source).resolve(), Path(output).resolve()
     predecessors = []
     directory = source
     while not (directory/'manifest.json').exists():
         plan = json.loads((directory/'plan.json').read_text())
-        if plan.get('schema') != 'mappa.decoding-recovery/v1':
+        if plan.get('schema') != 'mappa.stage-recovery/v1':
             raise ValueError('Recovery source must be an original campaign or a decoding recovery')
         if directory in predecessors:
             raise ValueError('Decoding recovery lineage contains a cycle')
         predecessors.append(directory)
         if 'recovery_source' in plan:
-            if plan.get('source_kind') != 'decoding_recovery':
+            if plan.get('source_kind') != 'stage_recovery':
                 raise ValueError('Decoding recovery source kind differs')
             directory = Path(plan['recovery_source']).resolve()
         else:
             directory = Path(plan['original_campaign']).resolve()
-    selected, requested = campaign_decoding_recovery_plan(directory, output, memory_bytes, owners)
-    registration = directory/'decoding-recovery.json'
+    selected, requested = campaign_stage_recovery_plan(directory, output, memory_bytes, owners, stage, retry_seconds)
+    registration = directory/f'{stage}-recovery.json'
     for directory in reversed(predecessors):
         if output.is_relative_to(directory) or directory.is_relative_to(output):
             raise ValueError('Decoding recovery requires a separate output directory')
@@ -294,8 +299,9 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
         plan_raw = (directory/'plan.json').read_bytes()
         plan = json.loads(plan_raw)
         if json.loads(registration.read_text()) != recovery_registration(directory, plan):
-            raise ValueError('Predecessor differs from its registered decoding recovery')
-        expected = dict(requested, decoder_source=plan['decoder_source'])
+            raise ValueError('Predecessor differs from its registered stage recovery')
+        expected = dict(requested, decoder_source=plan['decoder_source'],
+                        memory_bytes=plan['memory_bytes'], retry_seconds=plan['retry_seconds'])
         if plan != expected:
             raise ValueError('Predecessor input, configuration or recovery lineage differs')
         if json.loads((directory/'progress.json').read_text())['source'] != plan['decoder_source']:
@@ -305,24 +311,36 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
             records = {(row[0], row[1]): row for row in ledger.execute('SELECT * FROM results')}
         names = {f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}": row
                  for row in selected}
-        if (set(records) != {(name, 'decoding') for name in names}
+        if (set(records) != {(name, stage) for name in names}
                 or any(row[2] not in ('complete', 'error') for row in records.values())):
             raise ValueError('Predecessor recovery has incomplete terminal scope')
         remaining = []
         for name, row in names.items():
-            saved = records[name, 'decoding']
+            saved = records[name, stage]
             previous = read_blob(Blob(**row['audit']), None)
             audit = Blob(**json.loads(saved[4]))
             current = read_blob(audit, None)
             old_task = previous['tasks'][0]
             old_attempts = {attempt[0]: attempt for attempt in previous['attempts']}
             attempts = {attempt[0]: attempt for attempt in current['attempts']}
-            if (len(current['tasks']) != 1 or current['tasks'][0][:4] != old_task[:4]
-                    or current['case'][:2] != previous['case'][:2]
+            extra = plan['retry_seconds']
+            budget = previous['case'][1] if extra is None else previous['case'][3] + extra
+            expected_retries = list(previous['retries'])
+            if extra is not None:
+                if len(current['retries']) != len(expected_retries) + 1:
+                    raise ValueError('Predecessor changed its resource retry history')
+                added = current['retries'][-1]
+                if tuple(added[1:]) != (previous['case'][0], previous['case'][1],
+                                       previous['case'][3], extra, plan['memory_bytes']):
+                    raise ValueError('Predecessor changed its resource retry allowance')
+                expected_retries.append(added)
+            if (len(current['tasks']) != 1 or current['tasks'][0][:3] != old_task[:3]
+                    or current['tasks'][0][3] != plan['memory_bytes']
+                    or current['case'][:2] != (previous['case'][0], budget)
                     or current['case'][3] < previous['case'][3]
                     or current['case'][2] is not None or current['case'][4] is not None
                     or current['dependencies'] != previous['dependencies']
-                    or current['retries'] != previous['retries']
+                    or current['retries'] != expected_retries
                     or len(old_attempts) != len(previous['attempts'])
                     or len(attempts) != len(current['attempts'])
                     or len(attempts) != len(old_attempts)+1
@@ -341,11 +359,10 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
                         or result['blob'] != Blob(**json.loads(saved[3]))):
                     raise ValueError('Predecessor successful decoding lacks its completed result')
                 continue
-            if state != 'memory_limit':
-                raise ValueError('Decoding recovery selects only archived memory failures')
-            if current['case'][3] >= current['case'][1]:
-                raise ValueError('Decoding recovery has no remaining case budget')
-            remaining.append(dict(row, audit=asdict(audit), spent_seconds=current['case'][3]))
+            if state not in ('memory_limit', 'timeout'):
+                raise ValueError('Stage recovery selects only archived resource failures')
+            remaining.append(dict(row, audit=asdict(audit), spent_seconds=current['case'][3],
+                                  budget_seconds=current['case'][1], memory_bytes=task[3]))
         if not remaining:
             raise ValueError('Predecessor contains no decoding memory failures')
         history = [*plan.get('predecessors', []), dict(path=str(directory),
@@ -353,30 +370,40 @@ def decoding_recovery_plan(source, output, memory_bytes, owners):
             ledger_sha256=hashlib.sha256(ledger_path.read_bytes()).hexdigest(),
             decoder_source=plan['decoder_source'])]
         selected = remaining
-        requested = dict(plan, source_kind='decoding_recovery', recovery_source=str(directory),
+        requested = dict(plan, source_kind='stage_recovery', recovery_source=str(directory),
             predecessors=history, decoder_source=code_identity(), directions=len(selected),
-            cases=len({row['case'] for row in selected}), directions_to_recover=selected)
-        registration = directory/'decoding-recovery.json'
+            cases=len({row['case'] for row in selected}), directions_to_recover=selected,
+            memory_bytes=memory_bytes, retry_seconds=retry_seconds)
+        registration = directory/f'{stage}-recovery.json'
+    if retry_seconds is None:
+        if any(row['memory_bytes'] != memory_bytes for row in selected):
+            raise ValueError('Recovery must preserve the original memory guard unless resources are explicitly granted')
+        if any(row['spent_seconds'] >= row['budget_seconds'] for row in selected):
+            raise ValueError('Recovery has no remaining case budget; specify an explicit retry allowance')
     return selected, requested
 
 
 def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         case_seconds=3600., local=False, limit=None, resume=False, run_seconds=12600., stop_after=None,
-        retry_memory_limits=False, verify_only=False, recover_decoding=False, decode_only=False,
+        retry_memory_limits=False, verify_only=False, recover_stage=None, retry_seconds=None, decode_only=False,
         seed_batch=1, reduce_only=False, postprocess_only=False):
     saved_matching = reduce_only or postprocess_only
-    if postprocess_only and (reduce_only or decode_only or verify_only or recover_decoding
+    if recover_stage not in (None, 'decoding', 'verification'):
+        raise ValueError('Recovery requires decoding or verification')
+    if retry_seconds is not None and (recover_stage is None or retry_seconds <= 0):
+        raise ValueError('Retry time requires a final-stage recovery and a positive allowance')
+    if postprocess_only and (reduce_only or decode_only or verify_only or recover_stage
                              or retry_memory_limits or stop_after is not None):
         raise ValueError('Fresh postprocessing cannot select another pass or retry policy')
     if seed_batch < 1:
         raise ValueError('Seed batch must be positive')
-    if reduce_only and (decode_only or verify_only or recover_decoding or retry_memory_limits
+    if reduce_only and (decode_only or verify_only or recover_stage or retry_memory_limits
                         or stop_after is not None):
         raise ValueError('Fresh reduction cannot select another pass or retry policy')
-    if decode_only and (verify_only or recover_decoding or retry_memory_limits
+    if decode_only and (verify_only or recover_stage or retry_memory_limits
                         or stop_after not in (None, 'decoding')):
         raise ValueError('Fresh decoding cannot select another pass or retry policy')
-    if recover_decoding and (verify_only or retry_memory_limits or limit is not None or stop_after is not None):
+    if recover_stage and (verify_only or retry_memory_limits or limit is not None or stop_after is not None):
         raise ValueError('Decoding recovery cannot select another pass, limit or retry policy')
     if verify_only and not resume:
         raise ValueError('Verification-only execution requires --resume')
@@ -384,15 +411,15 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         raise ValueError('Verification-only execution cannot retry or select another pass')
     with ExitStack() as owners:
         output = Path(output)
-        if recover_decoding:
-            if (output/'decoding-recovery.json').exists():
+        if recover_stage:
+            if (output/f'{recover_stage}-recovery.json').exists():
                 raise ValueError('Recovery output already has a registered successor; use that latest recovery')
-            rows, requested = decoding_recovery_plan(index_path, output, memory_bytes, owners)
-            registration = Path(index_path)/'decoding-recovery.json'
+            rows, requested = stage_recovery_plan(index_path, output, memory_bytes, owners, recover_stage, retry_seconds)
+            registration = Path(index_path)/f'{recover_stage}-recovery.json'
             registered = recovery_registration(output, requested)
             if registration.exists():
                 if not resume or json.loads(registration.read_text()) != registered:
-                    raise ValueError('Source already has a registered decoding recovery; resume its unchanged output')
+                    raise ValueError('Source already has a registered stage recovery; resume its unchanged output')
             elif resume:
                 raise ValueError('Decoding recovery resume requires its original registration')
             if resume:
@@ -445,7 +472,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         plan = output/'plan.json'
         if resume:
             saved_plan = json.loads(plan.read_text())
-            if not recover_decoding:
+            if not recover_stage:
                 saved_plan['input_index'] = str(Path(saved_plan['input_index']).resolve())
             if saved_plan != requested:
                 raise ValueError('Resume input/configuration differs')
@@ -455,7 +482,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
             if plan.exists():
                 raise ValueError('Existing run requires --resume')
             plan.write_text(json.dumps(requested,indent=2)+'\n')
-            if recover_decoding:
+            if recover_stage:
                 pending = registration.with_suffix('.pending.json')
                 with pending.open('w') as stream:
                     json.dump(registered, stream, indent=2)
@@ -472,8 +499,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
         started = time.monotonic()
         status = dict(job=os.environ.get('SLURM_JOB_ID'), source=code_identity(), memory_bytes=memory_bytes,
                       expected_cases=requested['cases'], expected_directions=len(rows))
-        if recover_decoding:
-            status['decoding_recovery'] = True
+        if recover_stage:
+            status['recovery_stage'] = recover_stage
         if decode_only:
             status['decoding_only'] = True
         if reduce_only:
@@ -489,7 +516,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                    ('decoding', 'deduplication'), ('verification', 'deduplication')] if postprocess_only else
                   [('snapshot', None), ('deduplication', 'snapshot'),
                    ('reduction_validation', 'deduplication')] if reduce_only else
-                  [('decoding', None)] if recover_decoding or decode_only else
+                  [(recover_stage or 'decoding', None)] if recover_stage or decode_only else
                   [('verification', 'deduplication')] if verify_only else
                   [('matching', None), ('deduplication', 'matching'),
                    ('decoding', 'deduplication'), ('verification', 'deduplication')])
@@ -564,9 +591,9 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                                     pool.queue.add([Task(key, operation, payload, case=key,
                                         case_seconds=case_seconds, memory_bytes=memory_bytes)])
                                     result = StageResults(stage, store, pool=pool, tasks={name:(key,)})
-                                elif recover_decoding:
-                                    result = pool.retry_decoding(name, Blob(**row['audit']),
-                                                                 catalogue=Blob(**row['catalogue']))
+                                elif recover_stage:
+                                    result = pool.retry_stage(name, Blob(**row['audit']), stage=recover_stage,
+                                        catalogue=Blob(**row['catalogue']), retry_seconds=retry_seconds)
                                 elif decode_only:
                                     saved = StageResults('deduplication', store,
                                         references={name: Blob(**row['catalogue'])})
@@ -627,7 +654,7 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                     if failed:
                         status.setdefault('failed_stages', []).append(stage)
                     checkpoint(stage,active)
-                    if failed and (stage != 'decoding' or stop_after == 'decoding' or recover_decoding or decode_only):
+                    if failed and (stage != 'decoding' or stop_after == 'decoding' or recover_stage or decode_only):
                         raise RuntimeError(f'{stage} contains failed directions; next pass was not started')
                     if stage == 'verification' and not verify_only and status.get('failed_stages'):
                         raise RuntimeError('decoding contains failed directions; external verification completed')
@@ -635,8 +662,8 @@ def run(index_path, output, *, workers=32, window=128, memory_bytes=4*2**30,
                         status['pass_finished'] = stage
                         checkpoint(stage,{})
                         return status
-                if verify_only or recover_decoding or decode_only or reduce_only:
-                    stage = 'reduction_validation' if reduce_only else 'verification' if verify_only else 'decoding'
+                if verify_only or recover_stage or decode_only or reduce_only:
+                    stage = 'reduction_validation' if reduce_only else 'verification' if verify_only else recover_stage or 'decoding'
                     status['pass_finished'] = stage
                     checkpoint(stage,{})
                 else:
@@ -659,8 +686,10 @@ def main():
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--verify-only',action='store_true',
                         help='Verify completed catalogues without requiring decoding; requires --resume')
-    parser.add_argument('--recover-decoding',action='store_true',
-                        help='Read an original campaign or its latest terminal recovery and retry decoding memory failures into separate output, preserving guards and remaining budgets')
+    parser.add_argument('--recover-stage', choices=['decoding', 'verification'],
+                        help='Recover archived final-stage failures into separate output, preserving attempts and consumed time')
+    parser.add_argument('--retry-seconds', type=float,
+                        help='Explicit additional compute allowance for each recovered task; recorded in its audit')
     parser.add_argument('--decode-only',action='store_true',
                         help='Decode every saved catalogue in a prepared index into fresh output, with fresh recorded budgets')
     parser.add_argument('--reduce-only',action='store_true',
@@ -677,7 +706,7 @@ def main():
     status = run(args.index,args.output,workers=args.workers,memory_bytes=int(args.memory_gib*2**30),window=args.window,limit=args.limit,
         local=args.local,resume=args.resume,run_seconds=args.run_seconds,stop_after=args.stop_after,
         seed_batch=args.seed_batch,
-        retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_decoding=args.recover_decoding,
+        retry_memory_limits=args.retry_memory_limits,verify_only=args.verify_only,recover_stage=args.recover_stage,retry_seconds=args.retry_seconds,
         decode_only=args.decode_only,reduce_only=args.reduce_only,
         postprocess_only=args.postprocess_only,case_seconds=args.case_seconds)
     if status.get("allocation_drained"):

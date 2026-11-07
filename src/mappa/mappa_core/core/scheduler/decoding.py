@@ -41,7 +41,7 @@ def decode_catalogue(payload, workspace):
         lambda: EventDecodeSession(saved.catalogue.problem, config))
     interpreted = session.decode(saved.catalogue)
     result = DecodingResult(saved.case, config, saved.scope, saved.stops,
-                           decoded_events_record(interpreted), saved.search_config, saved.execution)
+                           decoded_events_record(interpreted, array_lists=False), saved.search_config, saved.execution)
     # A task decodes the whole catalogue. Its independent output owns everything
     # needed by queries; the worker must not retain a second prepared copy.
     workspace.release_prepared()

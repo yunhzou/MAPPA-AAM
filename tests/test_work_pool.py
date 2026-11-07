@@ -61,7 +61,7 @@ def test_separate_stages_preserve_full_graph_catalogue_and_decoding(tmp_path, st
             assert catalogue.search_config == config
             assert catalogue.execution == 'reused_native'
             assert normalize_provenance(catalogue.catalogue.to_record(), cuts) == normalize_provenance(reference.final_catalogue().to_record())
-            actual = dict(decoded.load(name).record)
+            actual = json.loads(json.dumps(decoded.load(name).record, default=lambda value: value.tolist()))
             assert decoded.load(name).search_config == config
             actual['catalogue'] = normalize_provenance(actual['catalogue'], cuts)
             expected = decoded_events_record(decode_events(reference.final_catalogue()))
@@ -256,7 +256,7 @@ def test_decoding_retry_preserves_task_attempt_guard_and_remaining_budget(tmp_pa
 
     pool = WorkPool.local(store=store, memory_bytes=2*2**30, case_seconds=999.)
     pool.queue = TaskQueue(':memory:', 'new')
-    result = pool.retry_decoding('case', audit, catalogue=catalogue)
+    result = pool.retry_stage('case', audit, stage='decoding', catalogue=catalogue)
     assert result.tasks == {'case': (task.key,)}
     assert pool.queue.db.execute('SELECT * FROM cases').fetchone() == original['case']
     assert pool.queue.db.execute('SELECT * FROM attempts').fetchall() == original['attempts']
@@ -277,7 +277,7 @@ def test_decoding_retry_preserves_task_attempt_guard_and_remaining_budget(tmp_pa
 
 @pytest.mark.parametrize('change, message', [
     ('operation', 'decoding task audit'),
-    ('state', 'one archived memory failure'),
+    ('state', 'one archived resource failure'),
     ('catalogue', 'catalogue differs'),
     ('guard', 'original memory guard'),
     ('budget', 'no remaining case budget'),
@@ -297,7 +297,7 @@ def test_decoding_retry_rejects_changed_scope_or_resources(tmp_path, change, mes
     old = TaskQueue(':memory:', 'original')
     old.add([task])
     claimed = old.claim('worker', 2*2**30, 'original')
-    old.finish(task.key, claimed['token'], 'timeout' if change == 'state' else 'memory_limit', {})
+    old.finish(task.key, claimed['token'], 'error' if change == 'state' else 'memory_limit', {})
     if change == 'budget':
         with old.db:
             old.db.execute('UPDATE cases SET spent=seconds')
@@ -306,7 +306,7 @@ def test_decoding_retry_rejects_changed_scope_or_resources(tmp_path, change, mes
     pool = WorkPool.local(store=store, memory_bytes=(4 if change == 'guard' else 2)*2**30)
     pool.queue = TaskQueue(':memory:', 'new')
     with pytest.raises(ValueError, match=message):
-        pool.retry_decoding('case', audit,
+        pool.retry_stage('case', audit, stage='decoding',
             catalogue=store.put('other') if change == 'catalogue' else catalogue)
     assert not pool.queue.snapshot()
     assert not pool.queue.db.execute('SELECT * FROM attempts').fetchall()

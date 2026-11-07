@@ -114,10 +114,10 @@ class Fragment:
             domains=tuple((r, tuple(image(p) for p in values)) for r, values in relation.domains),
             target_edges=tuple((image(a), image(b)) for a, b in relation.target_edges)))
 
-    def to_record(self, *, self_pool=None):
+    def to_record(self, *, self_pool=None, array_lists=True):
         relation = self.relation
-        return dict(schema='mappa.fragment/2', source=relation.source.to_record(pool=self_pool),
-                    target=relation.target.to_record(pool=self_pool), witness=relation.witness,
+        return dict(schema='mappa.fragment/2', source=relation.source.to_record(pool=self_pool, array_lists=array_lists),
+                    target=relation.target.to_record(pool=self_pool, array_lists=array_lists), witness=relation.witness,
                     anchors=relation.anchors, domains=relation.domains,
                     accepted_edges=tuple(asdict(edge) for edge in relation.accepted_edges),
                     target_edges=relation.target_edges, graph_floor=relation.graph_floor)

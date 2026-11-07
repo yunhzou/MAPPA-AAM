@@ -283,24 +283,27 @@ class WorkPool:
             'mappa.mappa_core.core.scheduler.decoding:decode_catalogue', 'catalogue',
             config=config or EventDecodeConfig())
 
-    def retry_decoding(self, case, audit, *, catalogue):
-        """Retry one archived memory failure, preserving its guard and spent time."""
+    def retry_stage(self, case, audit, *, stage, catalogue, retry_seconds=None):
+        """Recover one final-stage task without discarding its attempts or spent time."""
+        if stage not in ('decoding', 'verification'):
+            raise ValueError('Recovery requires a final stage')
         record = self.store.load(audit)
-        if len(record['tasks']) != 1 or record['tasks'][0][4] != 'memory_limit':
-            raise ValueError('Decoding recovery requires one archived memory failure')
+        if len(record['tasks']) != 1 or record['tasks'][0][4] not in ('memory_limit', 'timeout'):
+            raise ValueError('Stage recovery requires one archived resource failure')
         row = record['tasks'][0]
         task = _loads_checkpoint(row[1])
-        if task.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue':
+        if stage == 'decoding' and task.operation != 'mappa.mappa_core.core.scheduler.decoding:decode_catalogue':
             raise ValueError('Decoding recovery requires a decoding task audit')
         if task.payload['catalogue'] != catalogue:
             raise ValueError('Decoding recovery catalogue differs from the original task')
-        if row[3] != self.memory_bytes or task.memory_bytes != self.memory_bytes:
+        if retry_seconds is None and row[3] != self.memory_bytes:
             raise ValueError('Decoding recovery must preserve the original memory guard')
-        if record['case'][3] >= record['case'][1]:
+        if retry_seconds is None and record['case'][3] >= record['case'][1]:
             raise ValueError('Decoding recovery has no remaining case budget')
-        self.queue.restore_case(record)
+        self.queue.restore_case(record, retry_seconds=retry_seconds,
+                                memory_bytes=self.memory_bytes if retry_seconds is not None else None)
         self.queue.retry(task.key)
-        return StageResults('decoding', self.store, pool=self, tasks={case: (task.key,)})
+        return StageResults(stage, self.store, pool=self, tasks={case: (task.key,)})
 
     def __exit__(self, exc_type, exc, traceback):
         try:

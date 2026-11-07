@@ -86,12 +86,12 @@ class BinarySymmetry:
         result.weights.setflags(write=False)
         return result
 
-    def to_record(self, *, pool=None):
+    def to_record(self, *, pool=None, array_lists=True):
         if pool is not None and self.key in pool:
             return pool[self.key]
         record = dict(atoms=self.atoms, elements=self.elements, anchors=self.anchors,
                       bond_threshold=self.bond_threshold, generators=self.generators,
-                      weights=self.weights.tolist())
+                      weights=self.weights.tolist() if array_lists else self.weights)
         if pool is not None:
             pool[self.key] = record
         return record

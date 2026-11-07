@@ -376,7 +376,7 @@ class FinalBranchCatalogue:
         result._index_families()
         return result
 
-    def to_record(self):
+    def to_record(self, *, array_lists=True):
         fragment_ids, placement_ids, history_ids = {}, {}, {}
         for family in self.families:
             for histories, _, _ in family.provenance.references:
@@ -393,7 +393,7 @@ class FinalBranchCatalogue:
                     branches=[dict(policy=policy, fragment_pairs=pairs, families=sorted(families))
                               for (policy, pairs), families in self.branches.items()],
                     coupled_branches=[dict(family=k, source_fragment_pairs=list(v)) for k, v in self.coupled_branches.items()],
-                    fragments=[fragment.to_record(self_pool=self_pool) for fragment in fragment_ids],
+                    fragments=[fragment.to_record(self_pool=self_pool, array_lists=array_lists) for fragment in fragment_ids],
                     placements=list(placement_ids),
                     histories=[history.to_record() for history in history_ids],
                     families=[f.to_record(fragment_ids, placement_ids, history_ids) for f in self.families])

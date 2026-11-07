@@ -91,12 +91,13 @@ def refined_mapping_record(result):
     }
 
 
-def decoded_events_record(result):
+def decoded_events_record(result, *, array_lists=True):
     """Persist the windowed fragment model and unchanged mapping constraints.
 
     Tables and responses shared across branches are stored once. Whole-reaction
     reports and canonical event IDs are explicit queries, not part of export.
     Per-atom lookup maps are derived from the saved catalogue, not persisted.
+    Binary transport retains shared numeric arrays; JSON export converts them.
     """
     from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
     if not isinstance(result, EventInterpretation):
@@ -124,10 +125,10 @@ def decoded_events_record(result):
                 for key,value in result.local.prepared.items() if key in fragment_ids]
     record = dict(schema='mappa.decoded_events/v14', method='binary_fragment_events',
         scope='Independent ordinary boundaries with selected fragment starting correspondences and binary symmetry',
-        catalogue=result.catalogue.to_record(), event_policy=result.index.policy,
+        catalogue=result.catalogue.to_record(array_lists=array_lists), event_policy=result.index.policy,
         problem=dict(name=result.catalogue.problem.name,
-            reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=True),
-            product=endpoint_record(result.catalogue.problem.product,array_lists=True)),
+            reactant=endpoint_record(result.catalogue.problem.reactant,array_lists=array_lists),
+            product=endpoint_record(result.catalogue.problem.product,array_lists=array_lists)),
         families=families, tables=tables,
         fragment_responses=prepared, fragment_seconds=result.local.fragment_seconds,
         retained_contexts=result.window.contexts,
@@ -144,8 +145,8 @@ def decoded_events_record(result):
         record.update(matching_problem_sha256=result.matching_problem_sha256,
             event_problem_sha256=result.event_problem_sha256,
             event_problem=dict(name=result.event_problem.name,
-                reactant=endpoint_record(result.event_problem.reactant, array_lists=True),
-                product=endpoint_record(result.event_problem.product, array_lists=True)))
+                reactant=endpoint_record(result.event_problem.reactant, array_lists=array_lists),
+                product=endpoint_record(result.event_problem.product, array_lists=array_lists)))
     return record
 
 

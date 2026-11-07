@@ -295,57 +295,43 @@ and metadata hashes, releases each old artifact before loading its replacement,
 and reports missing or failed outputs separately. `--resume` requires a cleanly
 drained audit with unchanged source files, implementation and budgets.
 
-## Recover decoding after a repair
+## Recover final stages after a repair
 
-After validating a decoder repair, retry a completed campaign's archived decoding
-memory failures into a **separate output directory**:
+Recover archived decoding or verification resource failures into a separate
+output, preserving the original campaign and successful results:
 
 ```bash
 python bench/enzymemap.py /path/to/original-campaign /path/to/decoding-recovery \
-  --recover-decoding --local --workers 4 --memory-gib 2 --window 16
+  --recover-stage decoding --local --workers 4 --memory-gib 4 --window 16 \
+  --retry-seconds 600
 ```
 
-The original campaign root must contain the manifest and batch directories made
-by `prepare_batches.py fresh`. All original stages must be terminal and their
-queues drained. Recovery validates input/configuration identities, saved
-catalogue references and original decoder thresholds. Its plan records the
-original campaign identities and the current decoder identity. It restores only
-archived decoding memory failures, with their original task IDs, attempts,
-memory guards and remaining time budgets. It never reruns matching, reduction
-or reference verification, grants no fresh time and leaves the original scientific
-artifacts unchanged. Catalogue payloads are loaded only by compute workers.
-Original batch ownership stays locked for the recovery pool's lifetime, preventing
-concurrent source continuations or a second recovery of the same tasks.
-A single `decoding-recovery.json` registration beside the original manifest binds
-the campaign to this recovery output. A second output or fresh restart is rejected
-so the original pre-retry budget cannot be reused.
+Use `--recover-stage verification` for failed catalogue verification tasks.
+The original campaign root must contain its manifest and batch directories.
+All stages must be terminal and queues drained. Recovery checks input hashes,
+scientific settings, catalogue/reference identities and task operations before
+writing its plan. Compute workers alone load catalogue payloads.
 
-Within an existing Slurm allocation, omit `--local` and set `--workers` per node.
-This campaign-wide command uses one recovery pool; the batch-array launcher is
-for the ordinary per-batch passes. Use the same worker guard as the original run.
-After a normal drain, repeat the recovery command with `--resume`. Resume requires
-the same recovery code/input plan and a drained saved queue; unarchived attempts
-require explicit diagnosis. Terminal recovery rows, including failures, are
-never retried automatically. Success reports `pass_finished: decoding`, without
-rewriting the original benchmark's status or accuracy evidence.
+The optional `--retry-seconds` explicitly grants that additional compute allowance
+from the already consumed time, and permits the specified memory guard. Every
+old attempt and resource grant remains in the task audit. Without this option,
+recovery requires the original guard and uses only its remaining time. Core
+scientific settings are always preserved.
 
-If a later validated repair is needed, pass the **latest terminal recovery** as
-the input and choose another separate output:
+Original batch ownership remains locked for the pool's lifetime. A stage-specific
+registration binds each source to one recovery output, preventing duplicate
+ownership or restoring older budgets. In an existing Slurm allocation omit
+`--local`; `--workers` counts workers per node. Resume a normally drained allocation
+with the same command and `--resume`. A nonempty saved queue needs explicit recovery,
+not a fresh restart. Terminal failures are never retried automatically.
 
-```bash
-python bench/enzymemap.py /path/to/decoding-recovery /path/to/next-decoding-recovery \
-  --recover-decoding --local --workers 4 --memory-gib 2 --window 16
-```
-
-This selects only its remaining memory failures, retaining every prior attempt
-and the latest consumed budget. Successful directions stay in their existing
-outputs. All predecessor scopes must be terminal, drained and free of active
-owners. Their registered plans, ledgers, original inputs and scientific settings
-are checked, and ownership remains locked through the new run. Each recovery
-registers at most one successor; copied or older sources cannot restart a chain
-or restore earlier budgets. A predecessor with a successor cannot resume. A new
-decoder identity requires a new successor output; resuming that output still
-requires its unchanged decoder identity and plan.
+For another diagnosed resource retry, use the latest terminal recovery as input
+and a new output directory. The runner validates its lineage, every prior attempt,
+consumed time and resource grants, and selects only remaining failures. Successful
+outputs stay in place. Changed code requires this new successor; resume requires
+unchanged source identity and plan. Completion reports the selected stage pass,
+not overall benchmark completion. Combine the original and successor ledgers for
+the final scope and accuracy audit.
 
 ## Golden and cache pilots
 
