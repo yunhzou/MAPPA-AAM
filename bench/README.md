@@ -662,3 +662,25 @@ The input schema and measured original/xTB fixtures are in
 [the integration report](../reports/fragment_optimization_20261104/README.md).
 `--reference /path/to/symmetry-event-lab` interleaves preparation with the accepted
 beta; this optional benchmark dependency is outside production MAPPA.
+
+## Choices at the detected minimum
+
+```bash
+PYTHONPATH=src:bench python bench/minimum_choices.py /path/to/saved/batch \
+  /path/to/choice-counts --slurm --workers 16 --seconds 60 --memory-gib 4
+```
+
+This external analysis uses both saved decoded directions at their lowest
+detected model event count. It counts distinct heavy-atom mapping classes using
+the same chemical endpoint equivalence as benchmark verification. Hydrogen
+assignments need one valid completion and do not multiply the number of choices.
+Repeated branches, cuts and directions are combined. No scientific stage is
+rerun and no ground-truth information selects the minimum or its alternatives.
+
+Every enumerated heavy mapping is checked against the saved ordered actions and
+event response. Exhaustion certifies the count; a time or work limit reports only
+a lower bound. For a complete count K, uniform-choice reference success is 1/K
+when the reference class is present, otherwise zero. This is expected random
+selection accuracy, not a learned ranking or a guarantee of physical minimum
+events. Use `--cases` for a pilot; original source hashes and evidence remain in
+the separate output directory.
