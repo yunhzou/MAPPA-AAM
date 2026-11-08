@@ -361,7 +361,7 @@ def run(args):
                                     measured['blob'] if success else None, pool.queue.archive_case(key, store),
                                     None if success else dict(state=state['state'], error=measured.get('error')))
                                 del active[name]
-                                if not success and not (name.startswith('slap/') and state['state'] == 'timeout'):
+                                if not success and name.startswith('mappa/'):
                                     stop = True  # Preserve evidence and investigate before continuing.
                             if time.monotonic() >= next_save or not active:
                                 checkpoint(stage, active); next_save = time.monotonic()+30
