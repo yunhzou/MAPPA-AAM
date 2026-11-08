@@ -36,11 +36,11 @@ must exclude the private operational paths.
 
 `slap_audit.py` independently checks completed SLAP label records and reference
 verdicts using a direct colored-graph VF2 oracle, rather than the comparison's
-nauty certificates. It also times default binary, uncut `SlapAAM.get_maps` on the identical prepared
-graphs for every reaction and direction. Graph preparation and output extraction
-are timed; file loading and SMILES conversion are outside this scope. This standard baseline is
-separate from the expanded two-mode sweep above. It saves actual returned mappings and positive correspondence
-witnesses. Neither reference assignments nor atom-map hints enter the mapper.
+nauty certificates. It also times default binary, uncut `SlapAAM.get_maps` on
+the identical prepared graphs for every reaction and direction. Graph preparation
+and output extraction are timed; file loading and SMILES conversion are outside
+this scope. This standard baseline is separate from the expanded two-mode sweep
+above. It saves actual returned mappings and positive correspondence witnesses. Neither reference assignments nor atom-map hints enter the mapper.
 
 ```bash
 python bench/slap_audit.py /path/to/completed-comparison /path/to/new-audit \
