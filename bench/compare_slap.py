@@ -1,4 +1,4 @@
-"""Paired Golden timings: current MAPPA and pinned upstream SLAP on one machine."""
+"""Paired Golden timings: current MAPPA and pinned upstream SLAP on one CPU model."""
 import argparse
 from collections import Counter, defaultdict
 from dataclasses import asdict
@@ -361,7 +361,7 @@ def run(args):
                                     measured['blob'] if success else None, pool.queue.archive_case(key, store),
                                     None if success else dict(state=state['state'], error=measured.get('error')))
                                 del active[name]
-                                if not success:
+                                if not success and not (name.startswith('slap/') and state['state'] == 'timeout'):
                                     stop = True  # Preserve evidence and investigate before continuing.
                             if time.monotonic() >= next_save or not active:
                                 checkpoint(stage, active); next_save = time.monotonic()+30
@@ -374,7 +374,9 @@ def run(args):
                     status['drained'] = True
                     checkpoint(stage, {})
                 report = summary(plan, ledger, store)
-                report['complete'] = not stop
+                report['terminal_complete'] = len(report['rows']) == 10 * len(cases)
+                report['complete'] = report['terminal_complete'] and all(
+                    row['state'] == 'complete' for row in report['rows'])
                 report['elapsed_seconds'] = time.monotonic()-started
                 _publish(args.output/'results.json', report)
                 ledger.db.close()
@@ -397,4 +399,4 @@ if __name__ == '__main__':
     parser.add_argument('--resume', action='store_true')
     arguments = parser.parse_args()
     result = run(arguments)
-    raise SystemExit(0 if result['complete'] else 75)
+    raise SystemExit(0 if result['terminal_complete'] else 75)

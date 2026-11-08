@@ -26,10 +26,13 @@ MAPPA's additional decoded audit uses exact annotated indices and is separate.
 The global matching barrier precedes decoding. One persistent pool alternates
 method admission by reaction, records CPU model, source hashes, software versions,
 budgets and per-direction timings, and publishes through aggregate bundles and
-the existing campaign ledger. Any resource or execution failure stops admission
-and drains active work for investigation. `--resume` requires a drained owner and
+the existing campaign ledger. SLAP timeouts remain incomplete comparator outcomes;
+unexpected execution errors and any MAPPA failure stop admission and drain active
+work for investigation. `--resume` requires a drained owner and
 identical scientific settings; completed and failed attempts are preserved without
-automatic retries. Public evidence must exclude the private operational paths.
+automatic retries. `terminal_complete` means every required task has a recorded
+outcome; `complete` additionally requires every task to succeed. Public evidence
+must exclude the private operational paths.
 
 ## Compare revisions locally
 
