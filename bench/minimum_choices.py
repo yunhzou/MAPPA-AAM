@@ -379,6 +379,7 @@ def run(args):
                     row['evidence'] = asdict(measured['blob'])
                 else:
                     row.update(status='incomplete', error=measured.get('error'))
+                row['attempt_audit'] = asdict(pool.queue.archive_case(key,store))
                 report['results'].append(row)
                 if state['state'] == 'error':
                     pool.queue.finish_input(cancel_pending=True)
@@ -408,7 +409,7 @@ def publish_summary(path, output):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     report = json.loads(Path(path).read_bytes())
-    rows = [{k:v for k,v in row.items() if k not in ('evidence','error')}
+    rows = [{k:v for k,v in row.items() if k not in ('evidence','error','attempt_audit')}
             for row in report['results']]
     if len({row['case'] for row in rows}) != report['expected']:
         raise ValueError('Wait for the full analysis scope before publishing a distribution')
