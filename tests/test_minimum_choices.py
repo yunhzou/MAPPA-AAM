@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'bench'))
-from minimum_choices import ProjectedChoices, count_choices
+from minimum_choices import ProjectedChoices, chemical_orbit, count_choices
 from slap_audit import equivalent, paired_graph
 from mappa import AAMProblem, decode_events
 from growth_cases import saved_fragment
@@ -71,7 +71,7 @@ def test_count_is_mapping_equivalence_not_branches_directions_or_hydrogens():
     reference = dict(features=[feature(r)]*2,mapping=[(0,0),(1,1)])
     result = count_choices([(False,decoded),(True,decoded)],reference)
     assert result['status'] == 'complete'
-    assert result['labelled_heavy_mappings'] == 2
+    assert result['equivalent_labels_excluded'] == 2
     assert result['choices'] == 1 and result['random_success'] == 1
 
 
@@ -150,3 +150,16 @@ def test_sweep_and_placement_counts_preserve_joint_actions(placement):
         while (pairs := projected.next(set(dict(table.program.base)))) is not None:
             observed.add(pairs)
         assert observed == expected
+
+
+def test_orbit_exclusions_are_only_chemical_equivalence_including_unmatched_atoms():
+    from golden import endpoint_generators
+    r = endpoint('CCCC',[(0,1,1.),(1,2,1.),(2,3,1.)])
+    features = [feature(r)]*2
+    generators = [endpoint_generators(f,4) for f in features]
+    for pairs in (((0,0),(1,1)),((0,0),(1,2),(2,1),(3,3))):
+        graph = paired_graph(features,pairs)
+        images = chemical_orbit(pairs,generators)
+        assert len(images) > 1
+        assert all(equivalent(graph,paired_graph(features,image)) is not None for image in images)
+        assert chemical_orbit(pairs,generators,limit=1) == {pairs}

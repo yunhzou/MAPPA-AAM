@@ -157,13 +157,36 @@ class ProjectedChoices:
         return pairs
 
 
+def chemical_orbit(pairs, generators, *, limit=4096, deadline=float('inf')):
+    """Bounded heavy-only images of a class already witnessed at the minimum.
+
+    These images are exclusions, not extra predictions: every image has the same
+    paired chemical graph. Stopping early only leaves more duplicate work.
+    """
+    seen, pending = {pairs}, [pairs]
+    while pending and len(seen) < limit and time.perf_counter() < deadline:
+        old = pending.pop()
+        for side, operations in enumerate(generators):
+            for g in operations:
+                image = tuple(sorted((a,g[b]) if side else (g[a],b) for a,b in old))
+                if image not in seen:
+                    seen.add(image); pending.append(image)
+                    if len(seen) >= limit:
+                        return seen
+    return seen
+
+
 def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=100000):
     """Exact union at the detected score, or an explicit lower bound on choices."""
     started = time.perf_counter()
     deadline = started + seconds
     minimum = min(decoded.minimum_events for _, decoded in decoded_directions)
     expected = reference_certificate(reference['features'], reference['mapping'])
-    classes, labelled = {}, set()
+    from golden import endpoint_generators
+    generators = reference.get('generators')
+    if generators is None:
+        generators = [endpoint_generators(f,1+max(f['heavy'],default=-1)) for f in reference['features']]
+    classes, labelled, excluded = {}, set(), set()
     contexts, completed, queries = 0, 0, 0
     exhausted = None
     try:
@@ -181,7 +204,7 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                 if time.perf_counter() >= deadline:
                     raise TimeoutError('choice-count allowance exhausted')
                 table = decoded._prepare_table(*context[:2], key)
-                known = [tuple(sorted((b,a) for a,b in pairs)) if reverse else pairs for pairs in labelled]
+                known = [tuple(sorted((b,a) for a,b in pairs)) if reverse else pairs for pairs in excluded]
                 projected = ProjectedChoices(table, minimum, deadline, heavy=heavy, known=known)
                 while True:
                     pairs = projected.next(heavy)
@@ -192,7 +215,16 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                     if pairs not in labelled:
                         labelled.add(pairs)
                         certificate = reference_certificate(reference['features'], pairs)
-                        classes.setdefault(certificate, pairs)
+                        if certificate not in classes:
+                            classes[certificate] = pairs
+                            images = chemical_orbit(pairs,generators,deadline=deadline)
+                            excluded.update(images)
+                            for image in images:
+                                oriented = tuple(sorted((b,a) for a,b in image)) if reverse else image
+                                if (set(dict(oriented)) == set(projected.domain_values)
+                                        and all(b in projected.values[a][1] for a,b in oriented)):
+                                    projected.exclude(oriented)
+                        excluded.add(pairs)
                     if queries >= max_mappings:
                         raise TimeoutError('mapping-count allowance exhausted')
                 completed += 1
@@ -209,7 +241,7 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
         choices=len(classes) if complete else None, choices_lower_bound=len(classes),
         reference_at_minimum=recovered if complete or recovered else None,
         random_success=(int(recovered)/len(classes) if complete else None),
-        labelled_heavy_mappings=len(labelled), contexts_visited=contexts,
+        labelled_heavy_mappings=len(labelled), equivalent_labels_excluded=len(excluded), contexts_visited=contexts,
         contexts_completed=completed, solver_queries=queries, reason=exhausted,
         seconds=time.perf_counter()-started, representatives=list(classes.values()))
 
