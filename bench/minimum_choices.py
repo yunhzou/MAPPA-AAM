@@ -234,7 +234,7 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
     try:
         for reverse, decoded in decoded_directions:
             heavy = set(reference['features'][int(reverse)]['heavy'])
-            seen_tables = set()
+            seen_tables, covered_programs = set(), set()
             for context in decoded.window.contexts:
                 if decoded.window.bounds[context] > minimum:
                     continue
@@ -245,6 +245,9 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                 contexts += 1
                 if time.perf_counter() >= deadline:
                     raise TimeoutError('choice-count allowance exhausted')
+                if key[:2] in covered_programs:
+                    completed += 1
+                    continue
                 table = decoded._prepare_table(*context[:2], key)
                 if excluded:
                     images = heavy_images(table.program,heavy,deadline=min(deadline,time.perf_counter()+.05))
@@ -252,6 +255,7 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                         images = {tuple(sorted((b,a) for a,b in pairs)) if reverse else tuple(sorted(pairs))
                                   for pairs in images}
                         if images <= excluded:
+                            covered_programs.add(key[:2])
                             completed += 1
                             continue
                 known = [tuple(sorted((b,a) for a,b in pairs)) if reverse else pairs for pairs in excluded]
