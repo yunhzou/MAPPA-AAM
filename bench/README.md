@@ -684,3 +684,11 @@ when the reference class is present, otherwise zero. This is expected random
 selection accuracy, not a learned ranking or a guarantee of physical minimum
 events. Use `--cases` for a pilot; original source hashes and evidence remain in
 the separate output directory.
+
+`--remaining-from /path/to/previous/results.json` preserves every exact count
+and processes only incomplete or unprocessed reactions from the same immutable
+scope. Each pass records its own counting allowance and the prior report hash;
+scientific-stage results and their budgets remain unchanged. `--plot` exports
+sanitized per-reaction evidence, summary statistics and the choice histogram.
+Incomplete counts are excluded from exact-count means and contribute bounds,
+rather than point estimates, to full-scope random-selection accuracy.

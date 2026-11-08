@@ -315,7 +315,9 @@ def run(args):
     from mappa.execution import BundleStore, WorkPool
     from mappa.execution.identity import code_identity
     from mappa.mappa_core.core.scheduler import Task
-    rows, sources, _ = audit_inputs(args.campaign)
+    rows, sources, unmatched_heavy = audit_inputs(args.campaign)
+    if not unmatched_heavy:
+        raise ValueError('This metric requires exact heavy-atom references, including unmatched atoms')
     grouped = defaultdict(list)
     for row in rows:
         if args.cases is None or row['case'] in args.cases:
@@ -417,6 +419,15 @@ def publish_summary(path, output):
     pending = [row for row in rows if row['status'] != 'complete']
     counts = np.array([row['choices'] for row in exact])
     probabilities = [row['random_success'] for row in exact]
+    lower_counts = sorted([*map(int,counts),*(max(1,row.get('choices_lower_bound',0)) for row in pending)])
+    upper_counts = sorted([*map(int,counts),*([float('inf')]*len(pending))])
+    def quantile_bounds(fraction):
+        from math import ceil,isfinite
+        position = ceil(fraction*len(rows))-1
+        upper = upper_counts[position]
+        return [lower_counts[position],int(upper) if isfinite(upper) else None]
+    reference_found = sum(row.get('reference_at_minimum') is True for row in rows)
+    reference_unknown = sum(row.get('reference_at_minimum') is None for row in rows)
     summary = dict(expected=report['expected'], complete_counts=len(exact), incomplete_counts=len(pending),
         reference_at_minimum=sum(row.get('reference_at_minimum') is True for row in rows),
         reference_absent_at_minimum=sum(row.get('reference_at_minimum') is False for row in rows),
@@ -429,6 +440,9 @@ def publish_summary(path, output):
         exact_subset_p95=float(np.percentile(counts,95)) if len(counts) else None,
         exact_subset_max=int(max(counts)) if len(counts) else None,
         exact_subset_random_accuracy=float(np.mean(probabilities)) if probabilities else None,
+        full_scope_median_bounds=quantile_bounds(.5),full_scope_p95_bounds=quantile_bounds(.95),
+        full_scope_reference_at_minimum_bounds=[reference_found/len(rows),
+                                               (reference_found+reference_unknown)/len(rows)],
         full_scope_random_accuracy_bounds=[sum(probabilities)/len(rows),
             (sum(probabilities)+sum(1/max(1,row.get('choices_lower_bound',0)) for row in pending))/len(rows)],
         analysis_wall_seconds=report['elapsed_seconds']+report.get('previous_analysis',{}).get('elapsed_seconds',0),
@@ -445,6 +459,8 @@ def publish_summary(path, output):
     for row in exact:
         i = next(i for i,edge in enumerate(edges) if row['choices'] <= edge)
         groups[int(not row['reference_at_minimum']),i] += 1
+    used = max(np.flatnonzero(groups.sum(axis=0)),default=0)+1
+    labels,groups = labels[:used],groups[:,:used]
     fig,ax = plt.subplots(figsize=(8,4.5),layout='constrained')
     x=np.arange(len(labels))
     ax.bar(x,groups[0],color='#287b8e',label='Reference among these options')

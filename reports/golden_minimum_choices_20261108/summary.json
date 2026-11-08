@@ -1,0 +1,57 @@
+{
+  "expected": 1851,
+  "complete_counts": 1829,
+  "incomplete_counts": 22,
+  "reference_at_minimum": 1691,
+  "reference_absent_at_minimum": 158,
+  "reference_unknown": 2,
+  "detected_minimum_proven": 1850,
+  "exact_count_distribution": {
+    "1": 1370,
+    "2": 352,
+    "3": 63,
+    "4": 31,
+    "7": 5,
+    "5": 2,
+    "13": 1,
+    "8": 1,
+    "6": 3,
+    "12": 1
+  },
+  "single_choice": 1370,
+  "exact_subset_mean": 1.3575724439584473,
+  "exact_subset_median": 1.0,
+  "exact_subset_p95": 3.0,
+  "exact_subset_max": 13,
+  "exact_subset_random_accuracy": 0.7925440651930538,
+  "full_scope_median_bounds": [
+    1,
+    1
+  ],
+  "full_scope_p95_bounds": [
+    3,
+    3
+  ],
+  "full_scope_reference_at_minimum_bounds": [
+    0.9135602377093462,
+    0.9146407347379795
+  ],
+  "full_scope_random_accuracy_bounds": [
+    0.7831243086105323,
+    0.7944695274111806
+  ],
+  "analysis_wall_seconds": 1679.1515988111914,
+  "ready_workers": 80,
+  "source_unchanged": true,
+  "policy": "Distinct paired heavy-atom chemical mapping classes at the lowest saved detected model count across both directions",
+  "hydrogen_policy": "One full valid completion suffices; hydrogen permutations do not multiply choices",
+  "resources": {
+    "seconds": 600.0,
+    "task_seconds": 720.0,
+    "max_mappings": 100000,
+    "workers": 16,
+    "memory_gib": 4.0
+  },
+  "runner_sha256": "302d18f4d3804335645433325bfa3dd8e94237685fef65fce443e20c245eee1c",
+  "report_sha256": "f612a1ff0ddced67cb7aa608aa3459513a9da956c07ca8539c1ba28a18ae20aa"
+}
