@@ -447,13 +447,15 @@ def plot_positions(results, output):
     datasets = sorted({r['dataset'] for r in rows}, key=lambda name: (name != 'Golden', name))
     plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11,
                          'pdf.fonttype': 42, 'svg.fonttype': 'none'})
-    fig, axes = plt.subplots(1, len(datasets), figsize=(11.5, 4.5), squeeze=False, layout='constrained')
+    fig, axes = plt.subplots(1, len(datasets), figsize=(11.5, 5.0), squeeze=False, layout='constrained')
     for ax, dataset, color in zip(axes[0], datasets, ('#3568a8', '#258a78')):
         cohort = [r for r in rows if r['dataset'] == dataset]
         measured = [r for r in cohort if r['status'] == 'complete']
         counts = Counter(r['difference'] for r in measured)
         xs = sorted(counts)
         ax.bar(xs, [counts[x] for x in xs], width=.82, color=color, zorder=3)
+        for x in xs:
+            ax.text(x, counts[x]*1.12, f'{counts[x]:,}', ha='center', va='bottom', fontsize=9)
         ax.set_yscale('log')
         ax.set_ylim(.7, max(counts.values(), default=1)*2.5)
         ax.set_xlim(min(xs, default=0)-.7, max(max(xs, default=0), 5)+.8)
@@ -464,14 +466,24 @@ def plot_positions(results, output):
         ax.yaxis.set_minor_formatter(NullFormatter())
         ax.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=12))
         ax.spines[['top', 'right']].set_visible(False)
-        below = sum(v for x, v in counts.items() if x < 0)
         above = sum(v for x, v in counts.items() if x > 0)
         ax.set_title(f'{dataset}  |  {len(measured):,} / {len(cohort):,} reactions', loc='left', fontweight='bold', pad=15)
         ax.text(.98, .96, f'At minimum: {counts[0]:,}   Above: {above:,}',
                 transform=ax.transAxes, ha='right', va='top', fontsize=9, color='#43505d')
-        ax.set_xlabel(r'$n$ = GT-containing branch minimum − overall minimum', labelpad=10)
+        ax.set_xlabel(r'$n = E_{\min,\,\mathrm{GT\ branch}} - E_{\min,\,\mathrm{all}}$', labelpad=10)
+        absent = sum(r['status'] == 'not_recovered' for r in cohort)
+        pending = sum(r['status'] == 'pending' for r in cohort)
+        unresolved = sum(r['status'] not in ('complete', 'not_recovered', 'pending') for r in cohort)
+        excluded = f'GT not represented: {absent:,}    Unresolved: {unresolved:,}'
+        if pending:
+            excluded += f'    Pending: {pending:,}'
+        ax.text(.5, -.22, excluded,
+                transform=ax.transAxes, ha='center', fontsize=9, color='#43505d')
         ax.set_ylabel('Number of reactions (log scale)')
-    fig.suptitle('Where the ground-truth-containing branch begins', fontsize=14, fontweight='bold')
+    title = 'Where the ground-truth-containing branch begins'
+    if data.get('partial'):
+        title += '\nPreliminary — established offsets only; remaining checks pending'
+    fig.suptitle(title, fontsize=14, fontweight='bold')
     fig.text(.5, -.035, 'Both counts use the same saved decoder model · One seed, tolerance 2, branch cap 100',
              ha='center', fontsize=9, color='#43505d')
     output = Path(output)
