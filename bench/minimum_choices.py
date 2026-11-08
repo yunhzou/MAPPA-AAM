@@ -176,6 +176,48 @@ def chemical_orbit(pairs, generators, *, limit=4096, deadline=float('inf')):
     return seen
 
 
+def heavy_images(program, heavy, *, deadline, limit=4096):
+    """A small exact heavy projection of ordered actions, independent of events.
+
+    Use only as a coverage certificate for classes already found at the minimum.
+    Large projections are left to the existing bounded event query.
+    """
+    initial = dict(program.base)
+    atoms = tuple(a for a in initial if a in heavy)
+    states = {tuple(initial[a] for a in atoms)}
+    for (kind,data),prepared in program.actions:
+        if time.perf_counter() >= deadline:
+            return None
+        if kind == 'relation':
+            selected = prepared.mapping(np.arange(prepared.size))
+            transport = {b:selected[a] for a,b in data.witness}
+            states = {tuple(transport.get(p,p) for p in state) for state in states}
+            fragment = prepared.fragment
+            groups = []
+            if prepared.two_sided:
+                source = fragment.source_atoms
+                groups.append([{selected[a]:selected[source[g[i]]] for i,a in enumerate(source)
+                                if i != g[i]} for g in fragment.source_symmetry.generators])
+            target = fragment.target_atoms
+            groups.append([{a:target[g[i]] for i,a in enumerate(target) if i != g[i]}
+                           for g in fragment.target_symmetry.generators])
+        else:
+            groups = [[{a:b for a,b in enumerate(g) if a != b} for g in data]]
+        for generators in groups:
+            pending = list(states)
+            while pending:
+                if time.perf_counter() >= deadline:
+                    return None
+                old = pending.pop()
+                for g in generators:
+                    new = tuple(g.get(p,p) for p in old)
+                    if new not in states:
+                        if len(states) >= limit:
+                            return None
+                        states.add(new); pending.append(new)
+    return {tuple(zip(atoms,state)) for state in states}
+
+
 def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=100000):
     """Exact union at the detected score, or an explicit lower bound on choices."""
     started = time.perf_counter()
@@ -204,6 +246,14 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                 if time.perf_counter() >= deadline:
                     raise TimeoutError('choice-count allowance exhausted')
                 table = decoded._prepare_table(*context[:2], key)
+                if excluded:
+                    images = heavy_images(table.program,heavy,deadline=min(deadline,time.perf_counter()+.05))
+                    if images is not None:
+                        images = {tuple(sorted((b,a) for a,b in pairs)) if reverse else tuple(sorted(pairs))
+                                  for pairs in images}
+                        if images <= excluded:
+                            completed += 1
+                            continue
                 known = [tuple(sorted((b,a) for a,b in pairs)) if reverse else pairs for pairs in excluded]
                 projected = ProjectedChoices(table, minimum, deadline, heavy=heavy, known=known)
                 while True:
@@ -268,6 +318,17 @@ def run(args):
             grouped[row['case']].append(row)
     if not grouped or any(sorted(r['reversed'] for r in pair) != [False, True] for pair in grouped.values()):
         raise ValueError('Require exactly both directions of every requested reaction')
+    previous, completed = None, []
+    if args.remaining_from is not None:
+        previous = json.loads(args.remaining_from.read_bytes())
+        if any(previous['original_hashes'].get(p) != h for p,h in sources.items()):
+            raise ValueError('Continuation inputs differ from the original saved analysis')
+        if (previous['schema'] != 'mappa.minimum_choices/v1' or previous['expected'] != len(grouped)
+                or not {r['case'] for r in previous['results']} <= set(grouped)
+                or len({r['case'] for r in previous['results']}) != len(previous['results'])):
+            raise ValueError('Continuation must belong to the same reaction scope')
+        completed = [r for r in previous['results'] if r['status'] == 'complete']
+        sources[str(args.remaining_from.resolve())] = hashlib.sha256(args.remaining_from.read_bytes()).hexdigest()
     args.output.mkdir(parents=True, exist_ok=False)
     digest = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     report = dict(schema='mappa.minimum_choices/v1', original_hashes=sources,
@@ -275,14 +336,19 @@ def run(args):
         policy='Distinct paired heavy-atom chemical mapping classes at the lowest saved detected model count across both directions',
         hydrogen_policy='One full valid completion suffices; hydrogen permutations do not multiply choices',
         resources=dict(seconds=args.seconds, task_seconds=args.task_seconds,
-                       max_mappings=args.max_mappings, workers=args.workers, memory_gib=args.memory_gib), results=[])
+                       max_mappings=args.max_mappings, workers=args.workers, memory_gib=args.memory_gib), results=completed)
+    if previous is not None:
+        report['previous_analysis'] = dict(sha256=sources[str(args.remaining_from.resolve())],
+            runner_sha256=previous['runner_sha256'], carried_complete=len(completed),
+            elapsed_seconds=previous['elapsed_seconds']+previous.get('previous_analysis',{}).get('elapsed_seconds',0))
     store = BundleStore(args.output/'bundles')
     factory = WorkPool.slurm if args.slurm else WorkPool.local
     started = time.perf_counter()
     with factory(workers=args.workers, store=store, memory_bytes=int(args.memory_gib*2**30),
                  case_seconds=args.task_seconds, shared_cache=False) as pool:
         report['ready_workers'] = len(pool.queue.ready_workers())
-        waiting = iter(sorted(grouped.items()))
+        carried = {r['case'] for r in completed}
+        waiting = iter((case,rows) for case,rows in sorted(grouped.items()) if case not in carried)
         pending, done = {}, False
         publish_at = 0.
         while pending or not done:
@@ -360,7 +426,8 @@ def publish_summary(path, output):
         exact_subset_random_accuracy=float(np.mean(probabilities)) if probabilities else None,
         full_scope_random_accuracy_bounds=[sum(probabilities)/len(rows),
             (sum(probabilities)+sum(1/max(1,row.get('choices_lower_bound',0)) for row in pending))/len(rows)],
-        analysis_wall_seconds=report['elapsed_seconds'], source_unchanged=report['source_unchanged'],
+        analysis_wall_seconds=report['elapsed_seconds']+report.get('previous_analysis',{}).get('elapsed_seconds',0),
+        ready_workers=report['ready_workers'], source_unchanged=report['source_unchanged'],
         policy=report['policy'], hydrogen_policy=report['hydrogen_policy'], resources=report['resources'],
         runner_sha256=report['runner_sha256'], report_sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest())
     output = Path(output); output.mkdir(parents=True,exist_ok=True)
@@ -404,6 +471,7 @@ if __name__ == '__main__':
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--memory-gib', type=float, default=4.)
     parser.add_argument('--slurm', action='store_true')
+    parser.add_argument('--remaining-from',type=Path,help='Preserve exact counts and analyze only incomplete reactions')
     parser.add_argument('--plot', action='store_true',help='Summarize saved results; campaign argument is results.json')
     args = parser.parse_args()
     if args.plot:

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'bench'))
-from minimum_choices import ProjectedChoices, chemical_orbit, count_choices
+from minimum_choices import ProjectedChoices, chemical_orbit, count_choices, heavy_images
 from slap_audit import equivalent, paired_graph
 from mappa import AAMProblem, decode_events
 from growth_cases import saved_fragment
@@ -52,6 +52,7 @@ def test_every_saved_event_count_matches_exhaustive_joint_actions(source_edges, 
         mapping = table.program.mapping(np.asarray(operation))
         score = table.evaluate(decoded.index.vector(mapping))['total']
         oracle.setdefault(score,set()).add(tuple(sorted(mapping.items())))
+    assert heavy_images(table.program,set(range(n)),deadline=time.perf_counter()+5) == set().union(*oracle.values())
     for score in range(max(oracle)+2):
         projected = ProjectedChoices(table, score, time.perf_counter()+10.)
         found = set()
@@ -73,6 +74,9 @@ def test_count_is_mapping_equivalence_not_branches_directions_or_hydrogens():
     assert result['status'] == 'complete'
     assert result['equivalent_labels_excluded'] == 2
     assert result['choices'] == 1 and result['random_success'] == 1
+    table = decoded.tables(0)
+    assert heavy_images(table.program,{0,1},deadline=time.perf_counter()+5) == {
+        ((0,0),(1,1)),((0,1),(1,0))}
 
 
 def test_reference_in_branch_is_not_reference_at_minimum():
@@ -145,6 +149,9 @@ def test_sweep_and_placement_counts_preserve_joint_actions(placement):
             mapping = table.program.mapping(np.asarray(operation))
             if table.evaluate(decoded.index.vector(mapping))['total'] == decoded.minimum_events:
                 expected.add(tuple(sorted(mapping.items())))
+        all_images = {tuple(sorted(table.program.mapping(np.asarray(operation)).items()))
+                      for operation in all_operations(table.program.group)}
+        assert heavy_images(table.program,set(dict(table.program.base)),deadline=time.perf_counter()+5) == all_images
         projected = ProjectedChoices(table,decoded.minimum_events,time.perf_counter()+10)
         observed = set()
         while (pairs := projected.next(set(dict(table.program.base)))) is not None:
