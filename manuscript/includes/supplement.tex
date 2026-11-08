@@ -11,110 +11,71 @@
 \subsection{Exact existence queries during growth}
 \label{sec:existence-details}
 
-An existence query takes the growing source fragment $F$, its accepted preservation edges $A$, and the assignments locked by completed fragments. Its output is one compatible injective assignment, or proof that none exists. It does not construct the completed fragment's alternative placements.
+An existence query contains the proposed source atoms, their accepted preservation edges and completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. Source nonedges and unselected molecular edges do not add constraints.
 
-For each source atom $u$, a domain $D_u$ contains compatible target atoms. A locked atom has its recorded image as its only destination; other atoms exclude destinations occupied by completed fragments. Target degree must accommodate the accepted edges incident to $u$. For each accepted edge $(u,v)$, a support relation contains the target pairs satisfying the graph floor and matching tolerance. These are constraints on accepted edges only, without additional nonedge or induced-subgraph tests.
+Propagation removes occupied singleton destinations and destinations without support in a neighbor's domain. An empty domain or incompatible singletons establish infeasibility. A bipartite distinct-target check can reject domains that cannot accommodate an injective assignment. These are necessary conditions; surviving ambiguous cases require search. The solver chooses a constrained atom, propagates its tentative destination and stops at the first complete witness. Proving absence can require exploring every remaining feasible choice. Positive and negative answers use the same constraints.
 
-Propagation repeatedly removes occupied singleton destinations from other domains and removes any destination lacking support in a neighboring domain. An empty domain or conflicting singletons proves infeasibility. A bipartite matching check then tests whether the remaining domains admit distinct destinations for every source atom; it can reject competing domains without enumerating their assignments. These checks are necessary conditions. If choices remain, the solver selects the smallest domain, breaking ties by accepted-edge degree and atom index, and explores its destinations until the first solution is found. A negative answer requires exhaustion of the surviving choices. Difficult negative instances can therefore still require search.
+Direct witness extension and indexed fragment reuse precede this query. They establish existence only. Neither supplies a different continuation policy nor converts a timeout into absence. Completed-fragment assignments remain fixed while assignments internal to the current growing fragment may change.
 
-A growth proposal first tries to reuse the previous witness: it already satisfies the earlier edges, so only the proposed edge and any newly joined locked atoms require checking. If that extension fails, earlier assignments within the growing fragment may change in a new exact query. Completed-fragment locks remain fixed. An interrupted query does not establish absence. The Python and native implementations follow these same rules; the native propagation tests bond support by scanning target neighbors against indexed domain membership.
-
-\subsection{Direct compressed completion}
+\subsection{Completion, local symmetry and global placement}
 \label{sec:completion-details}
 
-Completion starts from the finished fragment constraints. It partitions eligible target atoms into interchangeable classes: swapping two atoms within a class must preserve their eligibility, the relevant accepted-edge support relations, and the orbit, lock and policy context. For custom atom policies, compatibility with future source atoms is retained as well. Local interchangeability is a property of these matching predicates. Component labels alone do not split an otherwise interchangeable free-atom class.
+Completion searches the finished fragment constraints for distinct target atom-set placements. It excludes already represented sets or certified global placement orbits within the search. It does not enumerate all internal assignments before deduplicating them. Target sites that cease to be globally equivalent remain separate placements, even when their local matched subgraphs share symmetry.
 
-The second equivalence is the exact global target automorphism action. Its colored graph retains the target's exact bond weights, edge presence, atom policy and component identities. Locks and current allocation roles further restrict this action. It can move atoms outside the fragment together with atoms inside it; individual orbit labels cannot replace these correlated moves. The automorphisms are obtained with nauty~\citep{mckay2014}.
+For each local fragment, nauty receives an element-colored binary graph with individually fixed anchors. Its compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these binary generators. An accepted discovery mapping can be followed by a source and a target local action without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
 
-The completion search allocates source atoms to target classes, rather than successively listing concrete bijections. After each allocation, the same support and injectivity propagation removes impossible continuations. Forced class choices are assigned directly. For an unresolved source atom, only one class representative from each orbit of the conditioned global action is explored. Conditioning preserves the allocations already made. A completed allocation yields a representative assignment, target pools and fixed roles; every represented injection within those pools satisfies the finished constraints. Pool allocations related by the allowed global action remain compressed. Thus distinct placements are constructed directly, without a subsequent candidate-merging pass.
+The global action used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every source-to-target compatibility predicate relevant to subsequent growth. Such an action moves the whole later continuation, preserving occupied targets and its matching problem. A local fragment action cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
 
-\begin{algorithm}[t]
-\caption{Separate fragment growth and completion}
-\label{alg:fragment-details}
-\small
-\begin{algorithmic}[1]
-\REQUIRE A seed, active source edges, completed-fragment locks and matching rules
-\ENSURE Completed compressed placements and accepted/deferred edges
-\STATE Initialize the growing fragment and one witness; return no placement if none exists
-\STATE Initialize the accepted preservation edges
-\WHILE{an eligible frontier proposal remains}
-  \STATE Select a boundary atom and then an incident edge, each uniformly
-  \STATE Form the proposed fragment, including a whole completed fragment if joined
-  \STATE Retain the joined fragment's locked assignments and accepted preservation edges
-  \STATE Extend the witness, or run the exact existence query with completed locks fixed
-  \IF{a witness exists}
-    \STATE Accept the selected edge and replace the growing witness
-  \ELSIF{absence is proved}
-    \STATE Defer the edge and continue with the remaining frontier
-  \ENDIF
-\ENDWHILE
-\STATE Partition eligible target atoms by interchangeability for the finished constraints
-\STATE Allocate source atoms to those classes using propagation and conditioned symmetry
-\STATE Emit each distinct completed compressed placement once
-\STATE Return placements to the reaction hierarchy for branching and cap checks
-\end{algorithmic}
-\end{algorithm}
-
-\subsection{Conditional branches, caps and retained histories}
+\subsection{Hierarchical caps and provenance}
 \label{sec:hierarchy-details}
 
-Each completed placement produces a conditional continuation for later fragments. The cap counts compressed choices, not the bijections inside them, and applies both to an individual expansion and to the combined live continuations across parents. Exact continuation states may share a node while retaining all incoming histories. After these joins, a parent's new descendants are admitted together or rejected together if their addition exceeds the cap; descendants already joined to retained states remain represented. A capped expansion is not a partial list of the first $K$ placements and does not prove absence of other mappings.
+Each retained placement creates a child continuation. After a completed step, count surviving continuations bottom-up. At an over-limit node, discard its largest child subtree, recount and repeat; ties retain the earlier decision. An ancestor then sees the reduced count. The completed-fragment limit separately rejects a placement expansion exceeding its allowance. Neither operation counts internal symmetry assignments as separate branches, and both retain explicit cap evidence.
 
-The search retains every history reaching a live continuation or returned result. Mapping and boundary payloads with no surviving descendant are released, while compact cap records retain their context, attempted count, limit and number of occurrences. This storage sharing does not merge distinct mapping relations. Neither the branch cap nor the cache budget bounds every temporary allocation or total process memory.
+A shared search state may have several incoming histories. The retained graph keeps parent links and terminal references rather than unfolding every path. States and payloads with no surviving descendant are released. Returned histories and cut provenance remain available for inspection, but are not independent fragment-decoding jobs. A branch cap bounds retained choices, not every temporary allocation or total memory.
 
-\subsection{Finalization and conservative family reduction}
+\subsection{Fragment identities and composition reduction}
 \label{sec:reduction-details}
 
-Finalization supplies the saved symmetry actions needed to interpret each retained path. Family reduction then collects its terminal representative, required preservation edges, matching policy and ordered pool/group action program with earlier locks applied. It normalizes independent actions by commuting only those with disjoint support, and collapses identical adjacent full actions. Other overlapping actions retain their order.
+Reduction reuses the fragment inventory in each search graph and unifies it across seeds and cuts. A completed fragment's key is its source/target atom-set pair within a fixed endpoint problem and policy. Keep the first original record intact. Other starting witnesses, growth routes, domains or anchors do not create additional identities and are not unioned into broader permissions. Raw archives retain the original decisions; the reduced catalogue retains the selected record and compact provenance. When reducing an explicitly selected path subset, the representative must come from that subset.
 
-Identical normalized records share one family. The public branch grouping uses the unordered collection of paired fragment atom sets, preserving the union of its family records, source histories and alternative fragment partitions. Equal witnesses, atom sets or automorphism groups alone do not establish family equality. This is conservative reduction of representations, not a semantic normal form proving that all remaining mapping sets are different or disjoint. It preserves the saved mapping union; it does not recover alternatives excluded by growth or caps.
+Native projection converts retained states into shared fragment identifiers. Composition keys use those identifiers together with the ordered placement context. Independent decisions can commute; overlapping local or global choices retain their order. Equal keys share one family record and aggregate cut/partition provenance. Reduction uses structural equality, not symmetry solving or event queries. The atom-set key must not be confused with a permission to map its atoms arbitrarily.
 
-\subsection{Local event responses and valid joint composition}
+\subsection{Shared event core and bounded starting-map improvement}
 \label{sec:decoding-details}
 
-The decoder first completes an inventory of fragment atom-set pairs and every use in the catalogue's families and alternative partitions. This shares structural descriptions. Shared event responses additionally require agreement of the local witness, relevant ordered actions and boundary context. Local action positions are bound back to the original family positions, so one action moving several fragments remains one joint choice.
+Each unique fragment is prepared once. For a selected starting correspondence, the shared core stores binary symmetry generators, fixed event contributions and sparse variable original-weight terms. It separates operation components only when no variable event or requested endpoint joins them. A generator moving two arms couples those moves even if each arm also has its own independent internal exchanges. Event-preserving operations can share computation only when they also preserve all endpoints relevant to the query. No complete group or Cartesian table of mappings is stored.
 
-For each relevant source pair, decoding follows its reachable target endpoint pairs under the ordered action program. Each group closes its pair orbit before the next action acts. For two distinct endpoints in a pool of size $k$, this involves at most $k(k-1)$ ordered pairs rather than $k!$ permutations. Before computing that orbit, the decoder tests a superset formed from the individual destination domains: if every pair has the same event response, that response is constant on the allowed choices too. A constant contribution avoids pair expansion but does not remove the underlying action or its constraints.
+Starting-map improvement first compares the saved witness with lower bounds. One bound matches pair-weight multisets within element-pair types while relaxing atom consistency. Another matches incident bond assignments and then atoms injectively; each event touches two atoms, so half the incident cost, rounded up, is a lower bound. The stronger bound is retained. These relaxations can rule out improvement but need not be attainable.
 
-The local tables include source bonds, pairs that can reach a target bond, inter-fragment relationships and mapped/unmatched boundaries. Responses use the original endpoint weights and strict event thresholds. Target-side boundary contributions depend on which target atoms are occupied, without assigning correspondences to unmatched atoms. Constraints involving other atoms can restrict a pair projection, so the decoder validates the complete requested joint choice before combining local contributions. Each bond contributes once. Alternative partitions provide alternative decompositions of a family; their totals are not added.
+Optimize the selected fragment's binary symmetries. Search additional discovery correspondences only when its recorded growth connectivity differs from final internal connectivity on either endpoint and the current witness remains unsettled. New starting correspondences must satisfy the saved discovery domains, anchors and accepted edges; subsequent binary symmetry choices are not rejected by those discovery constraints. Preparation, correspondence improvement and symmetry optimization share a five-second per-fragment deadline. Attaining a valid bound stops work immediately. Otherwise retain an actual best witness and incomplete status. An orbit minimum does not certify a minimum over discarded starting orbits.
 
-\begin{algorithm}[t]
-\caption{Prepare local responses and evaluate a requested family choice}
-\label{alg:decoding-details}
-\small
-\begin{algorithmic}[1]
-\REQUIRE A reduced catalogue and original endpoint matrices
-\STATE Inventory all unique fragments, occurrences, partitions, actions and boundaries
-\STATE Build shared internal-fragment and boundary response tables
-\STATE Retain the family bindings and constraints connecting those tables
-\FORALL{requested joint choices}
-  \STATE Validate the saved ordered actions, injectivity and preservation constraints
-  \STATE Choose one saved fragment partition of the family
-  \STATE Combine its internal and boundary responses, counting each bond once
-  \STATE Return event counts and, when requested, the corresponding bond changes
-\ENDFOR
-\end{algorithmic}
-\end{algorithm}
+Branch assembly binds local response operations to their shared branch choices. Final partition pieces own disjoint internal contributions. Weight-preserving global placements move endpoints while retaining those local costs. Ordinary boundaries remain fixed under the declared model. The sweep correction follows jointly reachable endpoint pairs through the saved action order, preserving dependence on variable internal events. When internal costs are constant, this is an endpoint-pair calculation, not a complete symmetry-assignment enumeration.
 
-This preparation neither rematches fragments nor enumerates complete bijections. Pair tables can still grow with the reachable domains. Ordinary decoding also does not enumerate unique whole-reaction event classes or choose a minimum-event mapping; the archived event-window study below used a separate explicit query.
+For a requested event interval, the saved response searches its retained choices and returns a concrete mapping with its ordered choices, absence after complete exclusion, or unknown under a limit. Event counts and mappings can be replayed independently. Preparing a queryable response does not assert that every count in its numerical interval is attainable. Physical whole-reaction event counts can differ from the independent-boundary model and are recorded separately during external audits.
 
-\subsection{Completed-fragment reuse}
+\subsection{Indexed fragment reuse and execution}
 \label{sec:cache-details}
 
-The cache stores completed compressed fragment results and the dependencies read during growth and completion. A reuse request must agree on the endpoint problem, matching rules, seed/random settings, branch settings and target occupancy. It then checks the assignments and completed-fragment memberships actually consulted, topology reads affected by changed cuts, and relevant deferred boundaries. Changes outside those dependencies can reuse the result; a changed relevant lock cannot. Unaffected external deferred edges are carried forward with the reused result.
+The reaction-local pool stores one original fragment per atom-set pair. A restricted saved witness proves a growth proposal when it covers the requested source atoms, uses available target atoms, respects locks and supports every required edge at the current tolerance. Atom-set containment alone is insufficient when occupancy or edge requirements have changed. An inverted index intersects atom, edge-support and fixed-assignment sets to find a valid proof. A miss invokes the ordinary existence query; no negative cache is used.
 
-Retention is bounded and oversized entries need not be cached. Eviction changes computation, not the returned placements or cap decisions. Shared snapshots carry endpoint, policy and code identity with integrity checks. At task boundaries a worker can load the latest compatible snapshot; an immutable first snapshot remains available if the latest stored version cannot be loaded. Publication replaces complete snapshots atomically. This is recovery of reusable data, not a different matching algorithm. Scheduling and storage do not alter the scientific search conditions.
+Growth continues with its own random proposals. Cut/trial streams are distinct and reproducible, and completion chooses its representatives independently of the temporary existence witness. The pool therefore does not replay a previous trajectory. Its accounted retention limit bounds cached records and index storage, not total stage memory. Returned search graphs expose their unique-fragment inventories directly to reduction.
 
-\section{Reproducibility}
+Persistent execution shares compatible reaction snapshots at task boundaries. A permanent first snapshot and replaceable latest snapshot support concurrent readers; a validated first snapshot can be used when the latest stored version cannot be loaded. This is recovery of reusable data, not an alternative scientific algorithm. A single publication owner atomically replaces complete versions, and stale publishers cannot overwrite newer ones. Stored snapshot count is bounded per reaction rather than per cut or seed.
+
+Separate stage APIs return typed matching, catalogue and decoding records. In-memory and aggregated file-backed transport preserve shared immutable arrays and fragment relations. Worker pools schedule those operations without changing their scope. For the reported batch protocol, a global matching/reduction barrier precedes decoding. Recovery retains completed outputs and consumed budgets; resource errors remain distinguishable from mapping absence. The main manuscript reports successful compute costs separately from failed attempts and external evaluation.
+
+\section{Reproducibility and measurement scope}
 \label{sec:reproducibility}
 
-The repository's \texttt{manuscript/REPRODUCIBILITY.md} links the benchmark scripts, pinned software and input versions, full configurations, and per-case records. It distinguishes the completed Golden validation in \Cref{sec:current-validation} from the archived September evaluations below. \Cref{tab:protocol} gives the archived comparison settings. The guide \texttt{docs/PYTHON\_API.md} demonstrates matching, family reduction, separate local decoding and conditional symmetry queries through the Python API.
+The repository's \texttt{manuscript/REPRODUCIBILITY.md} links source pins, immutable input identities, benchmark records and the evidence used to generate tables and figures. The public Python API documents direct matching, reduction, decoding and conditional queries. Figure building runs no searches. Publication records omit execution-site identifiers.
 
-The current Golden validation used source \texttt{096a010961f53944ddd4ddc433bd8d56f282a2f2}, with fresh results and caches. The current main-text timing figure sums total task-worker CPU, including computation and result publication, across both directions and all four stages, then divides by 1,851 reactions. Its mean is 10.01 CPU seconds per reaction. Coordinator activity, startup and idle capacity are excluded; this is not elapsed latency. Compute-only CPU is recorded separately and excludes publication. The current evidence does not record a CPU model, so these measurements do not establish a hardware-normalized comparison. They are not pooled with the historical timing cohorts.
+The main-text Golden measurements combine the saved one- and ten-seed matching passes with corrected completed reduction and decoding passes. They are not new uninterrupted end-to-end measurements. The matching passes predate indexed containment; the three-reaction cache control tests that later implementation separately. EnzymeMap combines original successful tasks and successful recoveries with unchanged scientific settings. Performance corrections preserved the mapping relation and event model. CPU totals include computation, stage loading and record construction; publication, external audits and sampled earlier failures are separate. CPU models were not retained in the exported full-campaign summaries, so no hardware-normalized ranking follows. The scoped cache control reports its Apple M4 Pro CPU.
 
-The WBO-generation method for the archived coordinate inputs is not recorded in the available metadata, so regeneration of those matrices from molecular structures is not established.
+Every accepted decoded-reference witness is checked for replay, injectivity, annotated assignments and an independently counted model total inside the saved window. Its physical total is stored separately. The Golden decoded audit uses exact indices; its catalogue audit permits endpoint chemical equivalence. EnzymeMap uses exact indices for both. A conclusive absence from the unchanged containing catalogue implies absence from the decoded subset; that inference is recorded separately from a direct negative decoded query. Bounded unknown queries are never relabeled as direct negatives.
 
-The archived paired search timings use an Apple M4 Pro CPU. Averages use \CommonCases{} common completed reactions. Reference verification and interrupted work are excluded. MAPPA includes checkpoint I/O; SLAP excludes I/O. Higher-seed runs measured on different CPUs are excluded from this paired comparison. For the archived coordinate stage comparison, MAPPA search includes checkpoint I/O; SLAP mapping excludes input preparation and export, and its hydrogen refinement includes I/O. Shared event rescoring and failed or replaced attempts are excluded. Archived Golden MAPPA timing includes symmetry finalization; SLAP includes graph construction, mapping, and export. In that primary Golden evaluation, uncut and swept SLAP have one and three unresolved cases, respectively; all MAPPA verdicts are resolved. These timing cohorts are not pooled with the current-design validation.
+The branch-offset snapshot contains one row per reaction. Its 45,737 exact offsets, 3,891 pending offsets, 194 absent references and three unresolved memberships sum to 49,825. Easy zero-offset certificates are resolved first, so the partial histogram is not an unbiased estimate of the final distribution. Both compared counts use the saved all-atom decoder model. No heavy-only reference count enters the subtraction.
+
+The supplementary September studies below retain their original settings, evaluators and comparison cohorts. Their archived paired search timings use an Apple M4 Pro CPU; the cap comparison uses an AMD EPYC 9J14. Search, publication and event-query boundaries differ across those studies and are stated with each table. They are not pooled with the current main-text timings. The WBO-generation method for the archived coordinate inputs is not recorded in the available metadata, so regeneration of those matrices from molecular structures is not established.
 
 \section{Archived September evaluations}
 \label{sec:historical-evaluation}

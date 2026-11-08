@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{14}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -45,6 +45,14 @@ Thomas~D. Goddard, Conrad~C. Huang, Elaine~C. Meng, Eric~F. Pettersen,
   analysis.
 \newblock \emph{Protein Science}, 27:\penalty0 14--25, 2018.
 \newblock \doi{10.1002/pro.3235}.
+
+\bibitem[Heid et~al.(2023)Heid, Probst, Green, and Madsen]{heid2023enzymemap}
+Esther Heid, Daniel Probst, William~H. Green, and Georg K.~H. Madsen.
+\newblock {EnzymeMap}: curation, validation and data-driven prediction of
+  enzymatic reactions.
+\newblock \emph{Chemical Science}, 2023.
+\newblock \doi{10.1039/D3SC02048G}.
+\newblock \url{https://doi.org/10.1039/D3SC02048G}.
 
 \bibitem[Henkelman et~al.(2000)Henkelman, Uberuaga, and
   J{\'o}nsson]{henkelman2000}

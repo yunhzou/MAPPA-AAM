@@ -6,26 +6,16 @@ from pypdf import PdfReader
 MAN=Path(__file__).resolve().parents[1];E=MAN/'evidence'
 check_publication('manuscript.pdf',(MAN/'manuscript.pdf').read_bytes())
 def read(n):return json.loads((E/n).read_text())
-# Current Golden results are independently counted from every direction record.
-current=read('current_golden.json')
-current_cases=read('current_golden_cases.json')
-assert hashlib.sha256((E/'current_golden_cases.json').read_bytes()).hexdigest()==current['case_evidence_sha256']
-assert current['complete'] and current['manifest']['cases']==1851 and current['manifest']['directions']==3702
-assert current['source_commit']=='096a010961f53944ddd4ddc433bd8d56f282a2f2'
-assert {row['case'] for row in current_cases['cases']}==set(range(1851))
-assert len(current_cases['cases'])==1851
-for status,count in current['reference_reactions'].items():
- assert sum(row['status']==status for row in current_cases['cases'])==count
-for status,count in current['reference_directions'].items():
- assert sum(row[d]==status for row in current_cases['cases'] for d in ('forward','reverse'))==count
-assert current['reference_reactions']['recovered']==1830
-assert current['reference_directions']['recovered']==3618
-for stage,metrics in current['stage_metrics'].items():
- records=[row['stages'][d][stage] for row in current_cases['cases'] for d in ('forward','reverse')]
- assert len(records)==3702 and all(row['state']=='complete' for row in records)
- assert sum(row['tasks'] for row in records)==metrics['final_tasks']['records']
- assert abs(sum(row['compute_cpu_seconds'] for row in records)-metrics['final_tasks']['compute_cpu_seconds'])<1e-6
- assert abs(sum(row['total_worker_cpu_seconds'] for row in records)-metrics['final_tasks']['total_worker_cpu_seconds'])<1e-6
+# Separate current catalogue and decoded coverage; never turn unknowns into misses.
+from build_benchmark_figures import evidence
+current, offsets = evidence(MAN)
+studies = {row['id']: row for row in current['studies']}
+assert [studies[k]['decoded']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1832,1841,47796]
+assert [studies[k]['catalogue']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1834,1843,47798]
+assert [studies[k]['decoded']['unknown'] for k in ('golden1','golden10','enzyme1')] == [3,2,0]
+assert offsets['partial'] and sum(r['status']=='pending' for r in offsets['results']) == 3891
+assert sum(r['status']=='complete' for r in offsets['results']) == 45737
+assert current['cache_control']['all_equal'] and current['cache_control']['direction_runs']==48
 from build_molecule_figure import check_example
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
 from build_alternatives_figure import check_example as check_alternatives
@@ -79,7 +69,7 @@ assert flat['flat_families']==120052==sum(r['flat_saved_families'] for r in flat
 assert flat['event_classes']==300==sum(len(r['class_ids']) for r in flat['per_case'])
 assert sum(flat['window_distribution'].values())==140
 sources=json.loads((E/'paper_sources.json').read_text())
-assert sources['fresh_campaign_complete']
+assert sources['historical_campaign']['fresh_campaign_complete']
 for row in sources['snapshots']:
  assert hashlib.sha256((E/row['snapshot']).read_bytes()).hexdigest()==row['sha256'],row['snapshot']
 tex='\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in ['paper.tex','supplement.tex','include-abstract.tex'])
@@ -100,7 +90,7 @@ bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_golden.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf'}
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -109,11 +99,15 @@ log=(MAN/'build/preprint.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
-for value in ['1,830','1,851','98.87','3,618','3,702']:assert value in alltext,value
-mean_worker_cpu=sum(m['final_tasks']['total_worker_cpu_seconds'] for m in current['stage_metrics'].values())/current['manifest']['cases']
-assert f'{mean_worker_cpu:.2f}' in alltext
-cache=current['stage_metrics']['matching']['final_tasks']['cache']
-assert f"{100*cache['fragment_hits']/cache['fragment_calls']:.1f}" in alltext
+for value in ['1,832','1,841','47,796','47,798','99.629','45,737','3,891']:
+ assert value in alltext,value
+for study in current['studies']:
+ means=[study['cpu_seconds'][s]/study['reactions'] for s in ('matching','deduplication','decoding')]
+ for value in [*means,sum(means[:2]),sum(means)]:
+  assert f'{value:.2f}' in alltext
+assert 'ordinary-boundary' in tex and 'starting orbit' in tex
+assert 'preliminary' in paper.lower() and 'overrepresents zero' in paper
+assert 'whole-growth replay' not in paper
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
 for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{seed['methods']['seeds3']['golden_recovery_percent']:.2f}",'120,052','300','162','168']:
  assert value in alltext,value
@@ -146,8 +140,11 @@ assert '--' not in comparison
 
 for fig in figs:
  figure_text=PdfReader(MAN/fig).pages[0].extract_text()
- if fig.endswith('fig6_current_golden.pdf'):
-  for label in ['98.87','1,830','1,851','Local decoding','Verification']:
+ if fig.endswith('fig6_current_benchmarks.pdf'):
+  for label in ['98.974','99.460','99.629','Matching','Reduction','Decoding']:
+   assert label in figure_text,label
+ elif fig.endswith('fig7_reference_offsets.pdf'):
+  for label in ['Preliminary','Pending','Golden','EnzymeMap']:
    assert label in figure_text,label
  else:
   assert 'MAPPA' in figure_text,fig
@@ -246,7 +243,7 @@ assert 'Archived MAPPA search plus event-window queries' in alltext.replace('\n'
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden outcomes are validated separately from archived September comparisons; each study retains its recorded implementation and scope. Completeness and limits are recorded in the evidence.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The branch-offset snapshot remains explicitly preliminary. Completeness and limits are recorded in the evidence.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

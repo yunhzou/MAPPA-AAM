@@ -1,0 +1,312 @@
+{
+  "schema": "mappa.paper_benchmarks/v2",
+  "settings": "Both directions, full uncut and single-edge sweep; iso tolerance 2, branch cap 100; decoded best attained count + 5.",
+  "timing_definition": "Successful stage computation summed across both directions, including input loading and result construction; publication and external verification excluded.",
+  "cpu_model": "Not retained in exported full-campaign summaries; no hardware-normalized speed claim.",
+  "studies": [
+    {
+      "id": "golden1",
+      "dataset": "Golden",
+      "seeds": 1,
+      "reactions": 1851,
+      "directions": 3702,
+      "catalogue": {
+        "recovered": 1834,
+        "not_recovered": 17,
+        "unknown": 0
+      },
+      "decoded": {
+        "recovered": 1832,
+        "unknown": 3,
+        "not_recovered": 16
+      },
+      "matching_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
+      "postprocessing_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+      "verifier_commit": "b6d8c086cf92583d099509c7c7078daaf3cfc0af",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "cpu_seconds": {
+        "matching": 1427.8752675080007,
+        "deduplication": 1001.0640629020013,
+        "decoding": 3474.1818341059993
+      },
+      "decoding_direction_cpu": {
+        "count": 3702,
+        "total": 3474.1818341059993,
+        "maximum": 52.667113130000004,
+        "maximum_case": "00590/forward",
+        "median": 0.47547146450000355,
+        "p90": 2.092174618700002,
+        "p95": 3.295915840650001,
+        "p99": 7.473570961199988
+      },
+      "timing_scope": "Reused matching and corrected completed postprocessing. Matching predates indexed fragment containment.",
+      "catalogue_policy": "Endpoint chemical symmetry permitted",
+      "decoded_policy": "Exact annotated indices in saved model window",
+      "input_index_sha256": "f95c7fe8e3b2e65f8b54bdf8ba09dad091d633978d17aca74398ef5f8c1be31f"
+    },
+    {
+      "id": "golden10",
+      "dataset": "Golden",
+      "seeds": 10,
+      "reactions": 1851,
+      "directions": 3702,
+      "catalogue": {
+        "recovered": 1843,
+        "not_recovered": 8,
+        "unknown": 0
+      },
+      "decoded": {
+        "recovered": 1841,
+        "not_recovered": 8,
+        "unknown": 2
+      },
+      "matching_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
+      "postprocessing_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+      "verifier_commit": "1591a8c90d810ba42b27273f19de3ea1278dd4e5",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "cpu_seconds": {
+        "matching": 13450.552316094,
+        "deduplication": 8094.120776933003,
+        "decoding": 17180.809974998
+      },
+      "decoding_direction_cpu": {
+        "count": 3702,
+        "total": 17180.809974998,
+        "maximum": 316.379366442,
+        "maximum_case": "00607/forward",
+        "median": 1.960996645999984,
+        "p90": 10.420170482099998,
+        "p95": 17.498919639799986,
+        "p99": 44.59166428124922
+      },
+      "timing_scope": "Reused matching and corrected completed postprocessing. Matching predates indexed fragment containment.",
+      "catalogue_policy": "Endpoint chemical symmetry permitted",
+      "decoded_policy": "Exact annotated indices in saved model window",
+      "input_index_sha256": "1f010f078e89719c8d770cf14721370b86e8dffa790488ae020a3ba2e89cb869"
+    },
+    {
+      "id": "enzyme1",
+      "dataset": "EnzymeMap",
+      "seeds": 1,
+      "reactions": 47974,
+      "directions": 95948,
+      "catalogue": {
+        "recovered": 47798,
+        "not_recovered": 176,
+        "unknown": 0
+      },
+      "decoded": {
+        "recovered": 47796,
+        "not_recovered": 178,
+        "unknown": 0
+      },
+      "scientific_identity": "ba841d410beb9356c1bf1d86c9c34467a42e06d9e82a66cfd45c4aa65fa92e6b",
+      "matching_commit": "c437ed6fc5fb252c3ebc37c87048825787150678",
+      "verifier_commit": "91eea28",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "cpu_seconds": {
+        "matching": 144722.66871213296,
+        "deduplication": 66912.604539667,
+        "decoding": 419830.37401288893
+      },
+      "reaction_cpu_distributions": {
+        "matching": {
+          "count": 47974,
+          "sum": 144722.66871213296,
+          "mean": 3.0166896383902313,
+          "median": 1.249329583000053,
+          "p95": 10.275736753299961,
+          "p99": 28.382455135329902,
+          "max": 566.8855233909999
+        },
+        "deduplication": {
+          "count": 47974,
+          "sum": 66912.604539667,
+          "mean": 1.3947680939606244,
+          "median": 0.8867814305000028,
+          "p95": 4.140884580750017,
+          "p99": 8.786641273099995,
+          "max": 49.913968168
+        },
+        "decoding": {
+          "count": 47974,
+          "sum": 419830.37401288893,
+          "mean": 8.751206362047961,
+          "median": 3.460832211999957,
+          "p95": 27.602039350499986,
+          "p99": 94.42862146859993,
+          "max": 786.5944312040001
+        },
+        "matching_plus_reduction": {
+          "count": 47974,
+          "sum": 211635.27325179995,
+          "mean": 4.411457732350856,
+          "median": 2.1500703845000295,
+          "p95": 14.377274534099975,
+          "p99": 37.30354617226991,
+          "max": 607.7308564689997
+        },
+        "mapping_plus_decoding": {
+          "count": 47974,
+          "sum": 631465.6472646891,
+          "mean": 13.162664094398822,
+          "median": 5.801724645999988,
+          "p95": 41.86092686210002,
+          "p99": 128.5843539829999,
+          "max": 1394.3252876729998
+        }
+      },
+      "decoding_direction_cpu": {
+        "count": 95948,
+        "sum": 419830.374012889,
+        "mean": 4.3756031810239815,
+        "median": 1.6687246685000048,
+        "p95": 14.048679620299996,
+        "p99": 48.48588513379993,
+        "max": 480.349764029
+      },
+      "timing_scope": "Original successful tasks and successful recoveries, summed across both directions and the full cut sweep; this is not a fresh all-cases run of one final performance revision.",
+      "catalogue_policy": "Exact annotated indices",
+      "decoded_policy": "Exact annotated indices in saved model window",
+      "positive_direction_certificates": 94820,
+      "invalid_certificates": 0,
+      "model_physical_count_differences": 2801,
+      "direct_decoded_unknown_directions": 250,
+      "absence_derived_reactions": 45,
+      "successful_cpu_including_publication": {
+        "count": 47974,
+        "sum": 700218.064039228,
+        "mean": 14.595782382941344,
+        "median": 6.600721526500109,
+        "p95": 46.81381416439994,
+        "p99": 142.66619503730996,
+        "max": 1485.9122503830004
+      },
+      "failed_attempt_cpu_seconds": 100533.12000000007,
+      "window_excluded_reactions": [
+        44128,
+        44130
+      ]
+    }
+  ],
+  "cache_control": {
+    "cases": [
+      895,
+      1261,
+      1841
+    ],
+    "cpu_model": "Apple M4 Pro",
+    "direction_runs": 48,
+    "all_equal": true,
+    "median_matching_cpu_seconds": {
+      "1": 0.6778150000000005,
+      "10": 7.075007999999998
+    },
+    "zero_retention_matching_cpu_seconds": {
+      "1": 1.0081559999999998,
+      "10": 10.476622000000004
+    },
+    "repetitions": 3,
+    "code_identity": "9c2022c2c5a28288975e567296612907da50ee48691d51a28dec3313153a8de4",
+    "scope": "Three reactions, both directions; zero retention removes existence reuse and immutable sharing. No full-dataset speedup claim."
+  },
+  "source_reports": [
+    {
+      "path": "reports/golden_native_seeds_20261106/seeds1-summary.json",
+      "sha256": "ea8ac87f96ce93715c096165890c08487594289e91fe2f12fd647e95d98c908c"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/unique-seeds1-summary.json",
+      "sha256": "03cc19ba27ef033f43f16aaad2f06122d22007cf85ea2b2274db8da3756515dc"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/decoded-five-unresolved-retest.json",
+      "sha256": "1aa0f82d91ee376d31d0adc2a940f25dd3c21f3b52d93b8a5ef9f07fcd26a78b"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/seeds10-summary.json",
+      "sha256": "c6903ac1164c572433265d76b40f25ddfc69efe6c459e1c8524730073fbab8e1"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/unique-seeds10-summary.json",
+      "sha256": "7f2182979045fe6fba2e8cbbf5e2dbf72d58939aeeb0e11eb3587d3b528513c2"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/decoded-seeds10-summary.json",
+      "sha256": "fd71a864e03ad4cfb494367edbe9f185b69d71e8469ba0748b5d2cfe54fbf727"
+    },
+    {
+      "path": "reports/enzymemap_native_20261106/stage-timings.json",
+      "sha256": "3da56026682809f3f796a43889353bc54ace9d9e8f089c5fd9844c819b212b58"
+    },
+    {
+      "path": "reports/enzymemap_native_20261106/decoded-reference-validation.json",
+      "sha256": "b6c770fb66d4ef4b099cb462b1a89340a44de79e61be8d92b3ec2ebe3c6a49d6"
+    },
+    {
+      "path": "reports/enzymemap_native_20261106/launch.json",
+      "sha256": "ba74be0222bb75f0e5dab862f258e776d5e62fcf3211baf29716a3ec468a1db3"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/cache-review.json",
+      "sha256": "c40c6e197ddef09bd85042d626f01df7c710f68b46bed0ad6b9285bb0d6630aa"
+    }
+  ]
+}

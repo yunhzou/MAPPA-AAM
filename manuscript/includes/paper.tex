@@ -6,152 +6,226 @@ Existing approaches obtain correspondences from learned reaction representations
 
 Weighted molecular graphs introduce another distinction. Two assignments can both satisfy a permissive bond-weight matching tolerance while producing different bond events at a finer threshold. Retaining one representative alone can therefore hide information needed for chemical interpretation. The search for correspondences and their interpretation as bond changes should remain separate.
 
-MAPPA separates three decisions: whether a fragment can continue growing, which compressed placements its completed constraints permit, and what bond changes those placements imply. Growth retains one compatible assignment. At saturation, a separate operation constructs the distinct compressed fragment placements, which become conditional branches for mapping the remaining atoms. A cut sweep varies the growth conditions to expose alternatives excluded by greedy fragment commitment. The completed search is reduced to a catalogue of mapping families, and a separate decoder shares local bond-event calculations across its unique fragments. We describe these stages and evaluate reference recovery on the Golden benchmark~\citep{lin2022}.
+MAPPA separates three decisions: whether a fragment can continue growing, which compressed placements its completed constraints permit, and what bond changes those placements imply. Growth retains one compatible assignment. At saturation, a separate operation constructs the distinct compressed fragment placements, which become conditional branches for mapping the remaining atoms. A cut sweep varies the growth conditions to expose alternatives excluded by greedy fragment commitment. The completed search is reduced to a catalogue of mapping families, and a separate decoder shares local bond-event calculations across its unique fragments. We describe these stages and evaluate reference recovery and computational cost on Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}.
 
-\section{Method}
+\section{Methods}
 
-\subsection{Overview and terminology}
+\subsection{Scientific stages and module boundaries}
+\label{sec:architecture}
 
-MAPPA takes two molecular endpoints and returns mapping families, each representing a set of allowed atom correspondences. A \emph{witness} is one explicit assignment. During growth, it establishes that the current fragment has at least one match. A \emph{compressed placement} represents the allowed assignments of a completed fragment. A \emph{search branch} records conditional fragment choices while the remaining atoms are mapped. A final \emph{mapping family} retains the resulting assignments together with the constraints and symmetry relations that connect them.
+MAPPA separates correspondence discovery from bond-event interpretation. Matching returns conditional fragment placements. Reduction collects them into a catalogue shared across seeds and cuts. Decoding prepares reusable fragment responses and returns branches that can be queried within an event-count window (\Cref{fig:algorithm}). These stages have separate inputs and outputs: decoding a saved catalogue does not repeat matching.
 
-\Cref{fig:algorithm} connects the scientific stages through molecular examples. Matching grows fragments and constructs their compressed placements under the requested seed and cut conditions. Finalization and reduction collect the saved families into a catalogue for each reaction and direction. Decoding then interprets these families through shared local bond responses, without repeating fragment growth.
+A \emph{fragment} pairs a source atom set with a target atom set and retains one original discovery record. A \emph{witness} is one explicit correspondence permitted by that record. A \emph{branch} is a composition of fragment choices; a \emph{mapping family} retains their selected local relations and ordered placement context. Symmetry describes correlated rearrangements within these records, rather than a list of complete atom permutations.
+
+The implementation follows these scientific boundaries. A shared core supplies binary symmetry, constrained assignment and event-response operations. Matching, reduction and decoding consume that core through distinct stage interfaces. Execution and persistence manage work and intermediate results; they do not decide which mappings are allowed. Reference verification is an external evaluation of the saved outputs (\Cref{sec:verification}).
 
 \begin{figure}[t]
 \centering\includegraphics[width=\linewidth]{figs/fig1_algorithm.pdf}
-\caption{\textbf{From fragment matching to bond-event interpretation.} (a) Growth keeps one witness; saturation produces the compressed placements used for conditional branching. Three illustrative source alcohol motifs can occupy three target sites with distinct molecular environments. Placing A conditions the sites available to B and C. Attached hydrogens participate in matching but are implicit in the drawings. (b) Uncut and single-edge-masked ester searches contribute families to one catalogue across seeds and cuts. A mask changes the growth conditions, not the bond events. (c) Decoding shares responses for unique fragments and their boundaries. Exchanging the acetate oxygen images preserves matching at $\tau_{\mathrm{iso}}=1$ but adds two internal changes to two boundary changes at event threshold $0.5$. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. Dashed arrows project choices within the compressed family. Panel a is a constructed local-placement example; panels b and c use methyl acetate saponification. These illustrations are not a complete search trace, and the formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.}
+\caption{\textbf{From fragment matching to bond-event interpretation.} (a) Growth keeps one witness; saturation produces the compressed placements used for conditional branching. Three illustrative source alcohol motifs can occupy three target sites with distinct molecular environments. Placing A conditions the sites available to B and C. Attached hydrogens participate in matching but are implicit in the drawings. (b) Uncut and single-edge-masked ester searches contribute families to one catalogue across seeds and cuts. A mask changes the growth conditions, not the bond events. (c) Decoding shares internal responses for unique fragments, with a fixed ordinary-boundary contribution and an endpoint-dependent sweep correction. A permitted binary-symmetry exchange of the acetate oxygen images adds two internal changes to two boundary changes at event threshold $0.5$. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. Dashed arrows project choices within the compressed family. Panel a is a constructed local-placement example; panels b and c use methyl acetate saponification. These illustrations are not a complete search trace, and the formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.}
 \label{fig:algorithm}
 \end{figure}
 
-\subsection{Endpoint graphs and matching rules}
+\subsection{Endpoint graphs and discovery constraints}
 \label{sec:matching-rules}
 
-Let $V_R,V_P$ denote the source and target atom sets, $Z_R,Z_P$ their element labels, and $W_R,W_P$ their symmetric bond-weight matrices. A partial mapping $m:D\subseteq V_R\rightarrow V_P$ assigns distinct target atoms to the mapped source atoms and preserves their elements. Explicit hydrogen atoms participate. Coordinates may accompany the endpoints but do not determine fragment growth.
+Let $V_R,V_P$ be the endpoint atom sets, $Z_R,Z_P$ their elements and $W_R,W_P$ their bond-weight matrices. A partial mapping $m:D\subseteq V_R\rightarrow V_P$ is injective and element-preserving. Explicit hydrogens participate. Coordinates may accompany the inputs, but do not determine growth.
 
-The active source graph contains edges with weight at least $b$. A growing fragment retains a set $A$ of accepted preservation edges. Its witness must satisfy
+The active source graph contains bonds at or above the presence threshold $b$. A growing fragment stores only its accepted preservation edges $A$. For each $(u,v)\in A$, discovery requires
 \begin{equation}
- Z_R(u)=Z_P(m(u)),\qquad
- W_P(m(u),m(v))\geq b,\qquad
- |W_R(u,v)-W_P(m(u),m(v))|\leq\tau_{\mathrm{iso}}
+ Z_R(u)=Z_P(m(u)),\quad W_P(m(u),m(v))\geq b,\quad
+ |W_R(u,v)-W_P(m(u),m(v))|\leq\tau_{\mathrm{iso}}.
  \label{eq:match}
 \end{equation}
-for each $(u,v)\in A$, while respecting assignments locked by completed fragments. Only an accepted growth edge adds a preservation constraint. Other bonds between included source atoms are not implicitly required, and source nonedges impose no negative constraints. The full original matrices remain available for subsequent event interpretation.
+Previously completed assignments remain locked during subsequent growth. Other bonds between included atoms are not implicitly added as constraints, and source nonedges impose no negative constraint. The complete original matrices are retained for event interpretation. Thus the accepted growth graph can differ from the fragment's final internal connectivity.
 
-\subsection{Growing a fragment with one witness}
+\subsection{One-witness fragment growth}
 \label{sec:growth}
 
-Starting from a seed, MAPPA chooses a boundary atom uniformly and then one of its incident frontier edges uniformly. It proposes adding that edge and asks whether the enlarged fragment has a compatible injective assignment. Bond weight does not rank the proposals.
+Starting from a seed, MAPPA selects a boundary atom uniformly and then one of its incident frontier edges uniformly. Each proposal asks a single question: does the enlarged fragment have at least one compatible injective assignment? Bond weight does not rank proposals.
 
-Whenever possible, the existing witness is extended by checking the new edge and newly joined locked atoms. Otherwise, an exact existence query permits earlier assignments within the growing fragment to change; assignments belonging to previously completed fragments remain fixed. The query removes destinations that cannot satisfy element, bond or distinct-atom requirements, then searches the remaining choices only until it finds one witness. The same query proves absence if all remaining choices are excluded. Detailed propagation and search rules are given in \Cref{sec:existence-details}.
+The current witness is extended when possible. Otherwise, a previously discovered fragment can certify existence under the current occupancy and edge constraints (\Cref{sec:reuse-execution}). If neither supplies a witness, the existence solver propagates element, bond-support and distinct-target constraints before searching the remaining choices. Assignments within the growing fragment may change; completed-fragment locks remain fixed. The query stops at the first witness. Only exhaustion establishes absence, so a resource limit cannot become a rejected chemical match.
 
-A successful proposal accepts the edge and replaces the witness. Proven absence defers the proposal while other frontier edges are explored. A resource limit remains an unresolved search, rather than a negative match. Joining a completed fragment preserves its locked assignments and accepted constraints. Growth saturates when no further admissible proposal remains. Thus, intermediate growth needs one witness, regardless of how many assignments that fragment could ultimately represent.
+A successful proposal adds its edge and replaces the witness. An impossible proposal is deferred while other frontier edges are considered. When a completed fragment is joined, its locked assignments and accepted edges are retained. Saturation occurs when no admissible extension remains. Intermediate growth therefore does not enumerate all matches of each shorter fragment.
 
-\subsection{Constructing compressed placements at saturation}
+\subsection{Compressed completion and the two roles of symmetry}
 \label{sec:completion}
 
-At saturation, MAPPA uses the finished fragment constraints to construct its distinct compressed placements. Compression has two complementary forms. An interchangeable \emph{pool} stores target atoms among which every represented injective assignment is valid. A correlated symmetry action describes atoms that must move together. For example, a rotation of a ring changes several atom assignments jointly; allowing its atoms to move independently would introduce invalid combinations.
+At saturation, a separate operation discovers the allowed target atom sets for the completed source fragment. It uses the full accepted constraints and exclusions for placements already represented, rather than emitting every internal bijection and merging duplicates. A six-membered carbon ring mapped onto one equivalent ring gives one atom-set placement; two rings with distinct surrounding environments can give two placements. Their internal rotations do not create additional atom-set candidates.
 
-Completion allocates source atoms to interchangeable target classes and uses the exact symmetry of the globally colored target graph, conditioned on earlier locks and the matching context, to avoid constructing equivalent allocations. Each returned placement carries a witness and the compact choices it represents. Symmetric assignments within that placement remain compressed. Exact graph automorphisms are computed with nauty~\citep{mckay2014}; the class construction and conditioned symmetry action are specified in \Cref{sec:completion-details}.
+Symmetry has two roles. \emph{Fragment-local symmetry} is computed on each fragment's own binary internal graph, preserving elements and fixing its anchors. Bonds above the presence criterion have one structural label; original weights remain available for event counting. Nauty provides compact generators~\citep{mckay2014}, each describing a permitted joint rearrangement. For example, exchanging two identical arms moves their attached atoms together; it does not allow independent atom choices that break connectivity. Both source and target fragment actions are retained. If an aligned pair has equal binary connectivity, one side suffices to represent their relative rearrangements.
 
-Local interchangeability and global symmetry serve different purposes. A tolerance can admit several target bond weights without making those weights globally equivalent. Likewise, a symmetry action can move atoms outside the current fragment as well as those inside it. MAPPA retains the joint restrictions needed for later placements. Equal atom sets or individual symmetry labels alone do not justify treating all assignments as interchangeable.
+\emph{Global placement symmetry} acts on an entire endpoint and can connect different target atom sets. To share a subsequent search continuation, MAPPA uses only a certified subgroup that preserves the target weights, active connectivity, source-to-target compatibility and earlier locks. The saved action moves the whole continuation jointly. This stronger requirement protects later growth; it is distinct from the permissive local binary symmetry used in decoding. If global equivalence is broken by external attachments, the local fragment can still have its own symmetry.
 
-\subsection{Conditional branching and cut-sweep exploration}
+A fragment stores its atom-set pair, original witness, discovery constraints, anchors and local symmetry relations. Different discovery correspondences on the same sets need not belong to one binary-symmetry orbit. This distinction matters when decoding selects a starting correspondence (\Cref{sec:decoding}); neither a single witness nor individual atom domains alone describe every correlated choice.
+
+\subsection{Hierarchical branching, pruning and cut sweep}
 \label{sec:cut-sweep}
 
-Each retained completed-fragment placement creates one continuation for the remaining atoms. Earlier placements condition later choices, as illustrated in \Cref{fig:algorithm}a. The branch cap counts compressed choices at each hierarchy level, including the combined live continuations across parents. Assignments represented inside a pool are not separate branches. Expansions exceeding the cap are recorded as truncated; a capped result does not establish exhaustive coverage.
+Each completed placement creates a continuation for the remaining atoms. Earlier choices condition later ones (\Cref{fig:algorithm}a), and targets cannot be occupied twice. After each finished search step, the hierarchy is recounted from its leaves upward. At an over-limit node, the largest child subtree is removed, the node is recounted, and pruning continues until its retained count is within the branch cap. An ancestor uses the already-reduced descendant count. The cap counts representative continuations, not the symmetry-related bijections within a fragment. Truncation remains explicit.
 
-Fragment growth is greedy along a trajectory: accepting an edge can exclude placements that would be available with a different fragment boundary. MAPPA explores alternative trajectories through seed orderings and a cut sweep. For a source graph $G_R=(V_R,E_R)$, the sweep searches the uncut graph and one graph $G_R^{(e)}=(V_R,E_R\setminus\{e\})$ for each eligible edge $e$. At the evaluated settings, the cut threshold equals the active-graph floor, so the sweep includes $|E_R|+1$ conditions, including cuts involving H.
+Greedy growth can commit to constraints that exclude another useful correspondence. MAPPA varies these commitments through independent seed orderings and a single-edge cut sweep. For $G_R=(V_R,E_R)$, the sweep searches the uncut graph and $G_R^{(e)}=(V_R,E_R\setminus\{e\})$ for each eligible edge, including bonds to hydrogen. Each seed setting supplies that many source-atom orderings per cut condition.
 
-Masking an edge changes which preservation constraints growth can acquire. It can redirect growth, expose another placement or leave atoms for a later fragment (\Cref{fig:algorithm}b). The endpoints of the masked edge may still join through another route, and their final correspondence may preserve the bond. A cut is therefore a search condition, not a prescribed bond event. One cut can redirect several subsequent placements and expose a correspondence with multiple bond changes. Combining both search directions further broadens the explored choices, while retaining each family's orientation. The sweep and seed orderings improve exploration without making greedy search exhaustive.
+A masked edge changes growth, not the original endpoint weights. Its endpoints may reconnect through another route, and the final mapping may preserve that bond. Conversely, one mask can redirect several later choices and expose multiple bond changes. Both reaction directions are searched and retained in their own atom-index frames. Seeds, cuts and bidirectional search broaden exploration, but do not make it exhaustive.
 
 \begin{algorithm}[t]
-\caption{MAPPA matching and catalogue construction}
+\caption{Matching, reduction and separate decoding}
 \label{alg:mappa-overview}
 \small
 \begin{algorithmic}[1]
-\REQUIRE Endpoint graphs, matching policies, seed/cut plan and search budgets
-\ENSURE A mapping-family catalogue for each search direction
-\FORALL{requested directions}
-  \STATE Initialize collected search results
+\REQUIRE Endpoint graphs, discovery policies, seed/cut plan, branch cap and event window
+\FORALL{requested search directions}
   \FORALL{cut conditions and seed orderings}
-    \STATE Initialize live branches with any supplied anchors
-    \WHILE{a live branch can continue under the seed ordering}
-      \STATE Select an eligible branch and fragment seed
-      \STATE Grow with one-witness existence queries until saturation
-      \IF{an admissible fragment has been established}
-        \STATE Construct distinct compressed placements of the finished fragment
-        \STATE Continue each retained placement with completed assignments locked
-      \ELSE
-        \STATE Retain the branch for later seeds
-      \ENDIF
-      \STATE Enforce hierarchy caps and record completion, stalls or truncation
+    \STATE Initialize the conditional search hierarchy
+    \WHILE{a retained continuation has an eligible fragment seed}
+      \STATE Grow using one-witness existence queries
+      \STATE At saturation, construct distinct compressed placements
+      \STATE Continue each placement with earlier assignments locked
+      \STATE Prune and recount the hierarchy from leaves to root
     \ENDWHILE
-    \STATE Retain terminal results and their provenance
+    \STATE Retain terminal compositions and compact provenance
   \ENDFOR
-  \STATE Finalize saved symmetry; group fragment pairs and reduce repeated families
+  \STATE Share fragments by atom-set pair; reduce repeated branch compositions
+\ENDFOR
+\STATE Complete the matching/reduction stage before batch decoding
+\FORALL{reaction/direction catalogues}
+  \STATE Inventory unique fragments and prepare their shared symmetry-event responses
+  \STATE Compose branch contributions and the sweep-endpoint correction
+  \STATE Retain queryable branches within the requested event window
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
-
-\subsection{Aggregating the final mapping families}
+\subsection{Atom-set reduction and the mapping catalogue}
 \label{sec:reduction}
 
-After matching, saved symmetry is finalized and results from all supplied seeds and cuts are collected for each reaction and direction. Final branches are grouped by the unordered collection of their matched fragment atom-set pairs,
+Reduction identifies each completed fragment by the pair $(R_i,P_i)$ of source and target atom sets. It retains one original fragment record per pair and gives it a shared identifier. A final branch is grouped by its unordered composition
 \begin{equation}
  \mathcal B=\{(R_1,P_1),\ldots,(R_q,P_q)\}.
  \label{eq:branch}
 \end{equation}
-Growing fragment A before B or B before A does not create a new final group when the paired sets agree. Each group nevertheless retains its mapping families: different preserved edges or correlated actions can permit different assignments even when the fragment sets coincide.
+Repeated witnesses or growth orderings do not create new fragment identities. Branch compositions also retain their ordered global placement context: overlapping actions must remain correlated, whereas independent decisions may be reordered.
 
-Reduction shares identical normalized family records while preserving distinct constraints, alternative fragment partitions and provenance. It preserves the union of represented mappings and does not assume that the remaining families are mutually disjoint. This cross-search reduction is separate from constructing compressed placements during matching. The resulting catalogue is the input to decoding; a single cut is not an independent decoding unit.
+This is a structural aggregation. It reuses the inventories accumulated during matching, translates compositions to shared fragment identifiers and deduplicates those compositions. It performs no symmetry solving, starting-map optimization or event counting. The retained original record keeps its witness, domains, accepted edges and anchors intact. Duplicate discovery records are discarded rather than combined into a broader relation. Consequently, reduction selects a representative discovery record; it does not preserve the union of every discarded starting relation. Alternative partitions and cut histories remain compact provenance for interpreting the retained families. One complete reaction/direction catalogue, rather than an isolated cut, is the input to decoding.
 
-\subsection{Decoding through shared local bond responses}
+\subsection{Shared fragment symmetry-to-event responses}
 \label{sec:decoding}
 
-Decoding translates the saved mapping choices into bond changes using the original endpoint matrices. For mapped atoms $u,v$, the signed change is
+The decoder inventories the unique fragments before preparing their responses. Events use the original endpoint weights:
 \begin{equation}
  \Delta_{uv}(m)=W_P(m(u),m(v))-W_R(u,v).
  \label{eq:events}
 \end{equation}
-An event occurs when $|\Delta_{uv}|$ is strictly greater than its threshold: $0.3$ for a pair involving a metal and $0.5$ otherwise. Positive changes indicate formation or strengthening; negative changes indicate cleavage or weakening. These thresholds are independent of the matching tolerance. Matching-compatible assignments can consequently produce different events (\Cref{fig:algorithm}c).
+A change is counted when $|\Delta_{uv}|$ is strictly greater than $0.5$, or $0.3$ for a pair involving a metal. Signs distinguish formation or strengthening from cleavage or weakening. These event thresholds are separate from discovery tolerance; binary rearrangements can preserve connectivity while changing weighted bond events.
 
-The decoder first collects all unique saved fragments across the complete catalogue, together with their family occurrences, constraints, symmetry actions and boundary relationships. Only after this inventory is complete does it calculate reusable local responses. The responses cover bonds within fragments, between fragments and across mapped/unmatched boundaries. Bonds wholly inside unmatched material are omitted; no correspondence is invented for unmatched atoms.
+For each unique fragment, decoding retains one starting correspondence and its permitted local binary symmetries. It first improves the saved witness under those symmetries. Additional starting-correspondence search is limited to fragments whose accepted growth connectivity differs from their final connectivity on at least one side, and whose current witness remains above an established lower bound. This work has a fixed per-fragment budget. An attained bound certifies the minimum within its stated scope; otherwise the result is the best witness found with incomplete optimality. Selecting one starting orbit is an explicit restriction on decoded coverage.
 
-Each bond response depends on the destinations of its two endpoints. If the response is constant over the allowed destinations, it can be recorded directly. Otherwise, the decoder follows the reachable endpoint pairs under the saved actions, avoiding enumeration of the full molecular assignment family. Responses are shared only when their relevant fragment and constraint context agree. \Cref{sec:decoding-details} gives the construction.
+The shared response contains correlated symmetry operations, a fixed contribution and sparse variable bond-event terms. Independent components are separated only when neither an event term nor a requested endpoint couples them. Event-invariant operations can share computation. Occupancy remains joint: two arms cannot choose the same target position. The decoder retains this compact relation instead of materializing every permutation or every event total. A later query asks for an assignment at a selected count or with selected atom pairs and returns a replayable witness, absence or an unresolved outcome.
 
-For a requested joint choice, the decoder checks the full family constraints and combines the local contributions, counting each bond once. An action shared across several fragments remains one correlated choice. Alternative fragment partitions are alternative descriptions of the same family, so their totals are not added together. Ordinary decoding retains these local responses and composition rules; enumerating whole-reaction event patterns or selecting a minimum-event mapping are separate queries.
+\subsection{Branch composition, sweep correction and event windows}
+\label{sec:window}
 
-Matching, family reduction and decoding have separate interfaces for local and distributed execution. Completed-fragment results can be reused when their recorded dependencies remain valid; cache eviction changes computation, not the scientific result. Technical cache and execution details are given in \Cref{sec:cache-details}.
+Each branch references the prepared local responses. Its reported count uses the independent ordinary-boundary model
+\begin{equation}
+ E_{\mathcal B}(m)=B_{\mathcal B}+\sum_i e_i(m)+s_{\mathcal B}(m),
+ \qquad 0\leq s_{\mathcal B}(m)\leq 2.
+ \label{eq:composition}
+\end{equation}
+Here $e_i$ counts internal changes owned by a disjoint final fragment piece, $B_{\mathcal B}$ is the fixed ordinary-boundary contribution, and $s_{\mathcal B}$ is the correction associated with the single swept bond. Mapped/unmapped boundaries contribute without inventing correspondences for unmatched atoms; bonds wholly within unmatched material are omitted. Alternative partitions or cut histories are alternative compositions, not additive contributions.
+
+The sweep correction depends on its two endpoints and on local choices that move them. Assembly reuses the prepared fragment responses and preserves the joint endpoint/internal-event relationship. Shared placement actions remain one choice across the continuation. Ordinary boundaries, however, are not recomputed for every rearrangement. Equation~\eqref{eq:composition} is therefore an approximation to the physical whole-reaction event count, not a claim that all inter-fragment changes are independent.
+
+Window selection combines local lower bounds with attained branch witnesses. If attained local minima compose, the smallest pre-sweep composition $L$ has an attained upper bound at most $L+2$. Only compositions that can improve the current best count need the corresponding refinement. If local optimization is incomplete or its witnesses cannot compose, the decoder instead uses the honest lower bound and an actual attained upper bound $U$; $L+2$ is then not assumed to be attainable. Branches whose lower bounds exceed $U+n$ are excluded, and the survivors retain their event-query responses. The studies below use $n=5$. A proved model minimum, a best-found model count and a physical event minimum remain distinct.
+
+\subsection{Fragment reuse and portable execution}
+\label{sec:reuse-execution}
+
+Matching accumulates known fragments during search. For example, a stored match $R\{1,2,3,4\}\rightarrow P\{a,b,c,d\}$ can certify a later proposal on $R\{2,3\}$ when its restricted witness satisfies the proposed edges, existing locks and current target availability. An indexed containment check retrieves such a proof without searching its symmetry assignments. A miss leaves the ordinary existence query to decide; it does not establish absence. Every seed and cut still makes fresh growth decisions, and completion chooses its representatives independently of the temporary cached witness.
+
+The same stage interfaces support direct local calls and persistent worker pools. A pool is created once and schedules reaction, seed or cut work without putting scheduler decisions inside the algorithms. For a large campaign, all matching and reduction finish before decoding begins. Intermediate records can remain in memory or pass through aggregated storage with shared immutable fragments; file counts do not grow with individual seeds or cuts. Compatible reaction-cache snapshots share useful fragment proofs across workers. Retention limits affect reuse, not the declared mapping relation.
+
+Bulk assignment, composition and event operations use native kernels, while the public records and stage interfaces remain in Python. The shared symmetry/event core serves both local fragment preparation and branch decoding. Persistence stores the compact responses and chosen starting correspondences, so loading a decoded result does not repeat optimization. Detailed query, storage and cache rules appear in the supplement.
 
 \FloatBarrier
 \section{Evaluation}
 
-\subsection{Reference verification}
-\label{sec:verification}
-
-We evaluate MAPPA with a separate verifier that asks whether an annotated atom relation belongs to the retained mapping catalogue under a declared atom subset and endpoint-equivalence policy. The verifier queries the compressed relation rather than comparing only its representative witness; it is not part of the mapping or decoding algorithm. An unresolved query is reported separately from verified inclusion or exclusion. A reference absent from the saved catalogue may still be compatible with search choices that were not explored.
-
-\subsection{Golden reference recovery}
+\subsection{Datasets and search settings}
 \label{sec:current-validation}
 
-We evaluated the one-witness/direct-completion design on all \CurrentGoldenTotal{} Golden reactions~\citep{lin2022}, comprising \CurrentGoldenDirections{} search directions. Inputs use formal bond orders and explicit H, with reference labels removed before search. The run used one seed ordering per cut, random seed 42, branch cap 100, both directions, the full cut sweep, $b=0.2$ and $\tau_{\mathrm{iso}}=1$. Event thresholds were $0.5$, or $0.3$ for pairs involving metals.
+We evaluate all 1,851 Golden reactions~\citep{lin2022} and the prepared collection of 47,974 EnzymeMap reactions~\citep{heid2023enzymemap}. Reference labels are removed before search. Both studies use the prepared formal-bond-order matrices and explicit hydrogens; these results do not constitute a benchmark of continuously valued electronic-structure WBO inputs. EnzymeMap references are curated database mappings, so agreement is not independent validation of reaction mechanisms.
 
-Recovery requires the annotated heavy-atom relation, including unmatched atoms, modulo endpoint chemical symmetries preserving charge, isotope, H count and stereochemistry. These attributes define reference equivalence; they do not imply that element/bond-weight matching itself enforces every chemical attribute. A reaction is recovered if either direction contains its reference. This measures inclusion among alternatives, not top-ranked prediction accuracy. Failures and unresolved cases remain in the denominator.
+The common settings are discovery tolerance $\tau_{\mathrm{iso}}=2$, presence/cut threshold $b=0.2$, hierarchical branch cap 100, random seed 42, both directions and the full single-edge sweep. Golden uses one and ten seed orderings per cut; EnzymeMap uses one. Decoding uses the original weights, thresholds 0.5/0.3, a five-second allowance per unique fragment and the best attained model count plus five. No reference mapping guides growth, pruning or starting-correspondence selection.
 
-MAPPA recovered \CurrentGoldenRecovered{} of \CurrentGoldenTotal{} reactions (\CurrentGoldenPercent\%) and \CurrentGoldenDirectionRecovered{} directional references (\Cref{fig:current-golden}). Matching, reduction, local decoding and verification completed for every direction, with no failed tasks or unknown verification outcomes. Twenty-one reaction references were absent from the retained families. Their absence is an outcome of the specified bounded search, not a proof that no compatible mapping exists.
+\subsection{Catalogue and decoded-reference verification}
+\label{sec:verification}
 
-These results apply to the recorded completed run. Its source version, per-case outcomes and measurement boundaries are provided in \Cref{sec:reproducibility}; later implementation revisions are not implicitly certified by this evaluation. Historical seed, cap and comparator studies are reported separately in \Cref{sec:historical-evaluation}.
+We report two external coverage measurements. \emph{Catalogue recovery} asks whether the reference belongs to the retained matching relation. \emph{Decoded recovery} requires an actual injective mapping from a saved starting correspondence and its joint symmetry choices, in a retained branch and event window. A positive certificate is replayed and its event count independently checked. A catalogue certificate may suggest a candidate, but cannot alone establish decoded membership.
 
-\subsection{Computational cost}
+The decoded audits preserve exact annotated heavy-atom indices and unmatched-heavy-atom requirements. Unannotated hydrogens must admit a feasible completion. Golden catalogue verification additionally permits endpoint chemical symmetries preserving charge, isotope, hydrogen count and stereochemistry; the Golden catalogue and decoded scores therefore differ in both representation and reference-equivalence policy. EnzymeMap uses exact indices for both. Recovery means inclusion in either search direction, not top-ranked prediction accuracy. Every reaction remains in the denominator, and unresolved queries remain separate from absence.
 
-\Cref{fig:current-golden} separates the measured costs of matching, family reduction, local decoding and reference verification. Summed worker CPU over both directions averaged 10.01 seconds per reaction across all four stages. This includes task computation and publication, but is not elapsed latency or total allocation CPU: coordinator activity, startup and idle capacity have different measurement boundaries. The run completed 177,552 matching tasks. Completed-fragment reuse answered 91.8\% of recorded fragment calls; this measures cache reuse, not a causal speedup against an uncached control.
+\subsection{Timing and branch-event analysis}
+\label{sec:measurement}
 
-The stage separation exposes both search and interpretation cost. In particular, fast matching does not imply negligible decoding: local response tables still depend on the number of reachable endpoint pairs and retained family contexts. The reported costs characterize this completed run and are not combined with historical timings from different hardware or scientific settings. Full stage measurements and their sampling coverage accompany the per-case evidence.
+Mapping time is the sum of matching and reduction; decoding is reported separately. CPU seconds sum successful worker computation over both directions and all cuts, including stage input loading and result construction. Publication, external verification, historical failed attempts and parallel elapsed duration have separate accounting. Timings use the saved successful passes and their documented recoveries, rather than a newly measured uninterrupted run of one final performance revision. Exact source and measurement boundaries are recorded in the repository.
+
+To locate a recovered reference within the decoded event landscape, let $\mathcal C_{\mathrm{GT}}$ contain the retained branch contexts that admit it inside the saved window. We measure
+\begin{equation}
+ n_{\mathrm{GT}}=\min_{c\in\mathcal C_{\mathrm{GT}}}\min_{m\in c} E_c(m)-U,
+ \label{eq:reference-offset}
+\end{equation}
+where $U$ is the overall detected count, minimized across both directions. Ground truth selects the qualifying contexts; their event minima are queried without fixing the reference assignments. Both terms use the same saved all-atom decoder model. This measures where a GT-containing branch begins, not the physical event count of the reference itself. Missing references and unresolved offsets remain outside numeric bins.
+
+\section{Results}
+
+\subsection{Reference coverage on Golden and EnzymeMap}
+
+All requested matching, reduction and decoding outputs are available: 3,702 directions in each Golden setting and 95,948 in EnzymeMap. \Cref{tab:current-coverage,fig:current-benchmarks} separates catalogue membership from the independently audited decoded window.
+
+\begin{table}[H]
+\centering\small
+\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Unknown queries are not counted as misses.}
+\label{tab:current-coverage}
+\input{includes/generated-current-coverage-table}
+\end{table}
+
+One-seed Golden decoding confirms 1,832/1,851 references (98.974\%), with 16 absent and three unresolved. Ten seeds confirm 1,841 (99.460\%), with eight absent and two unresolved. Ten references become newly confirmed; one previously positive reaction remains unresolved in the ten-seed audit, giving a net gain of nine confirmed reactions and no proven loss. Catalogue recovery is 1,834 and 1,843, respectively. One ten-seed directional catalogue query exhausted its allowance, but its opposite direction establishes that reaction's catalogue recovery.
+
+EnzymeMap decoding confirms 47,796/47,974 references (99.629\%), compared with 47,798 (99.633\%) in the catalogue. The two additional catalogue references have 22-event witnesses outside their saved 14--19 windows; independent decoded queries confirm their exclusion. All 94,820 positive directional decoded certificates passed replay and count checks, with no invalid certificate. Forty-five reactions unresolved by bounded decoded queries are conclusively absent from the unchanged containing catalogue, establishing their absence from its decoded subset. Their 250 unresolved directional queries remain recorded as such. The combined reaction accounting is therefore 47,796 recovered, 178 absent and zero unresolved.
+
+\subsection{Separate mapping and decoding costs}
+
+\Cref{tab:current-times,fig:current-benchmarks} report compute CPU rather than parallel latency. One-seed Golden requires 1.31 CPU seconds per reaction for matching plus reduction and 1.88 for decoding. Ten seeds require 11.64 and 9.28 seconds, respectively. The corresponding EnzymeMap means are 4.41 and 8.75 seconds, with medians of 2.15 and 3.46 seconds. The median combined EnzymeMap cost is 5.80 seconds; medians of separate stages need not add.
+
+\begin{table}[H]
+\centering\small
+\caption{\textbf{Mean compute CPU seconds per reaction.} Both directions and the full cut sweep are included. Matching plus reduction is the mapping stage. Decoding is separate; publication and external verification are excluded. These are recorded completed-stage costs, not a hardware-normalized comparison with the archived methods.}
+\label{tab:current-times}
+\input{includes/generated-current-timing-table}
+\end{table}
+
+The distributions have substantial tails. Golden's maximum directional decoding cost is 52.69 seconds with one seed and 316.46 seconds with ten; its corresponding medians are 0.476 and 1.964 seconds. EnzymeMap's combined per-reaction computation has a 95th percentile of 41.86 seconds and a 99th percentile of 128.58 seconds. Including publication and measured worker overhead raises EnzymeMap's mean from 13.16 to 14.60 CPU seconds per reaction. Historical failed attempts contribute a further approximately 27.93 sampled CPU hours; external verification and diagnostic work are excluded from these algorithm costs.
 
 \begin{figure}[t]
-\centering\includegraphics[width=\linewidth]{figs/fig6_current_golden.pdf}
-\caption{\textbf{Completed Golden validation of the current algorithmic design.} Reference recovery uses all 1,851 reactions and accepts inclusion in either direction. Stage costs are mean total worker CPU seconds per reaction, summed across both directions and including task publication. They are not wall-clock latency. All 3,702 directions completed matching, reduction, local decoding and verification. Source and measurement scope are fixed to the recorded validation run.}
-\label{fig:current-golden}
+\centering\includegraphics[width=\linewidth]{figs/fig6_current_benchmarks.pdf}
+\caption{\textbf{Reference coverage and computational cost.} (a) Confirmed reference inclusion in the saved decoded min+5 window, with missing and unresolved reaction counts retained. This is inclusion among alternatives, not top-ranked accuracy. (b) Mean compute CPU per reaction, separated into matching, reduction and decoding. Both search directions contribute. Golden matching was reused for the corrected postprocessing passes; EnzymeMap combines original successful work with successful recoveries. External verification and publication are excluded.}
+\label{fig:current-benchmarks}
+\end{figure}
+
+\subsection{Seed scaling and fragment reuse}
+
+Increasing Golden from one to ten seeds increases matching CPU by 9.42-fold, reduction by 8.09-fold and decoding by 4.95-fold. Decoding therefore grows less than seed count in this comparison, consistent with sharing fragment work across the reduced output. These ratios compare different retained workloads and do not isolate a cache speedup. In particular, matching remains close to linear in the number of seed orderings.
+
+The full Golden seed comparison predates the current indexed fragment-containment cache. We assess that cache separately on three selected reactions, in both directions, using an Apple M4 Pro CPU. With one seed, the median matching CPU sum is 0.678 seconds with retention versus 1.008 without; with ten seeds it is 7.075 versus 10.477 seconds. The approximately 1.48-fold benefit includes immutable-record sharing as well as existence-query reuse. All 48 measured direction runs retain identical catalogue fingerprints, search scope and cap outcomes. These controls support useful reuse, but do not establish a dataset-wide cache speedup or strongly sublinear matching.
+
+\subsection{Where reference-containing branches enter the event window}
+
+\Cref{fig:reference-offsets} reports the preliminary distribution defined in \Cref{eq:reference-offset}, with logarithmic reaction counts. Offsets are established for 45,737 reactions: 1,620 Golden and 44,085 EnzymeMap reactions have a GT-containing branch at the overall detected count; another 32 EnzymeMap reactions have offsets one through four. There are 3,891 pending offset checks, in addition to the separately reported absent and unresolved references.
+
+Zero-offset certificates can establish the answer immediately, so the completed subset overrepresents zero. The higher-offset distribution remains incomplete and does not yet support full-dataset proportions. Both sides of the subtraction use the same decoder count, including hydrogen and the ordinary-boundary approximation. The offset measures the reported model landscape, not physical event-bin accuracy.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig7_reference_offsets.pdf}
+\caption{\textbf{Preliminary location of GT-containing branches.} The horizontal coordinate is the smallest event count of a retained GT-containing branch minus the overall detected count; the vertical axis is logarithmic. Ground truth selects the branch, rather than constraining the minimum witness within it. One-seed results use tolerance 2, cap 100 and saved min+5 responses. Pending checks and unresolved memberships are excluded from bars and labeled explicitly. Empty bins must not be interpreted as final zero frequencies.}
+\label{fig:reference-offsets}
 \end{figure}
 
 \subsection{Chemical interpretation of retained alternatives}
@@ -169,10 +243,12 @@ The figure uses selected archived witnesses as a chemical illustration. It is no
 \FloatBarrier
 \section{Discussion}
 
-MAPPA separates the decision needed during growth---whether one match exists---from the complete compressed representation needed when a fragment is committed. The final catalogue preserves structural alternatives and their correlated assignments, while local decoding reuses bond-response calculations across shared fragments. This makes correspondence search and chemical interpretation independently inspectable.
+MAPPA separates the existence question needed during growth from the compressed alternatives needed at saturation, and then separates correspondence discovery from event interpretation. Atom-set reduction gives repeated fragments one shared identity. The decoder reuses local symmetry-event responses while retaining correlated occupancy and the special dependence introduced by a swept bond. These module boundaries make search, representation and interpretation independently inspectable and reusable.
 
-The method retains several limits. Exact fragment queries can still require substantial search on difficult inputs. Greedy growth, sampled seed orders, single-edge cuts and branch caps restrict structural coverage. Lossless representation of retained choices therefore does not imply exhaustive discovery of all mappings. Similarly, sharing local responses does not guarantee small tables for every family. Chemical conclusions depend on the input attributes, bond-weight model and event thresholds; a compatible correspondence is not evidence of a feasible mechanism.
+The benchmarks demonstrate high reference inclusion with complete saved mapping and decoding outputs, while preserving the distinction between catalogue and decoded coverage. More Golden seeds recover additional references at increased computation. Fragment reuse reduces repeated work, but the measured matching cost remains approximately proportional to seed count. This evidence supports reporting stage-specific costs rather than treating a high cache hit rate as proof of a large overall speedup.
 
-Retained alternatives can support reaction-path preparation. Atom-index assignment affects endpoint interpolation~\citep{de2019}, and different correspondences or joint symmetry choices could supply starting structures for nudged elastic band calculations~\citep{henkelman2000}. Local bond events can also identify alternative reaction cores for mechanistic assessment. These are downstream uses of the representation; the present evaluation does not measure improvements in transition-state searches or pathway prediction.
+Several limits remain scientifically important. Greedy trajectories, sampled seeds, single-edge cuts and hierarchical caps restrict discovery. Selecting one original fragment record per atom-set pair and one decoded starting orbit can omit alternatives present in discarded discovery records. Bounded improvement can retain an unproved minimum. None of these restrictions establishes exhaustive correspondence recovery.
 
-The completed Golden study establishes reference-family recovery under its stated protocol. Broader annotated datasets and matched performance comparisons are needed to assess generalization and scaling. Historical studies remain available with their original scope in the supplement; they are not substituted for measurements of the present implementation.
+The fixed ordinary-boundary model is also an approximation. In the EnzymeMap audit, 2,801 positive directional witnesses have different model and physical whole-reaction event counts; the ten-seed Golden audit records 32 such witnesses. Both counts are retained. Model-window membership is therefore not physical event-bin accuracy, and a low model count alone does not identify the annotated or most plausible chemistry. The branch-offset figure assesses organization within that model, not a replacement accuracy measure.
+
+Retained alternatives can support reaction-path preparation: atom-index assignment affects endpoint interpolation~\citep{de2019}, and different permitted correspondences could supply starting structures for nudged elastic band calculations~\citep{henkelman2000}. These are downstream uses, not demonstrated improvements in transition-state prediction. The current Golden and EnzymeMap studies also do not validate continuously valued WBO inputs or every stereochemical attribute. The archived comparator, seed/cap, direction and coordinate analyses remain in the supplement with their original protocols; they do not establish a current-version speed ranking.

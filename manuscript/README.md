@@ -1,65 +1,76 @@
-# MAPPA preprint
+# MAPPA manuscript
 
-The manuscript describes one-witness fragment growth, direct compressed completion under global target symmetry, conditional fragment placement and cut sweep, family reduction, and separate decoding from a complete inventory of unique fragments. Whole-reaction event-window queries are distinct from ordinary local decoding.
+The main manuscript presents the current scientific design: one-witness growth,
+compressed completion, hierarchical branching and cut sweep, atom-set reduction,
+shared binary-symmetry event responses, branch composition and event windows.
+Portable execution and fragment reuse have their own Methods subsection.
+Reference verification is external evaluation, outside the MAPPA pipeline.
+The introduction and molecular illustrations are largely retained.
 
-- `manuscript.pdf`: compiled paper.
-- `preprint.tex`: LaTeX entry point, retaining the supplied author list and preprint style.
-- `includes/paper.tex`: the scientific stages, molecular examples, completed current-method validation, and discussion.
-- `includes/supplement.tex`: solver and representation details, evaluation protocols, and historical comparisons.
-- [REPRODUCIBILITY.md](REPRODUCIBILITY.md): full technical settings and links to code, input/source pins, and per-case evidence.
-- `figs/fig1_algorithm.{pdf,svg,png}`: the integrated molecular overview: RDKit vector depictions connect one-witness growth, conditional completed placements, aggregation across cuts, and shared fragment/boundary event responses. Reference verification belongs to the evaluation and is outside this MAPPA overview.
-- `evidence/current_golden.json` and `current_golden_cases.json`: publication-safe summary and per-case outcomes for the completed Golden validation.
-- `evidence/competitors.json`: archived Golden results for RXNMapper, LocalMapper, Chython, Indigo, RDT, and default SLAP configurations. The historical comparison retains its original seed/sweep settings and timing cohorts.
-- `evidence/molecule_example.json`: checked SMILES, mappings, and heavy-atom event lists for the constructed illustration.
-- `figs/fig6_current_golden.{pdf,svg,png}`: completed current-method Golden reference recovery and mean total CPU cost for matching, family reduction, local decoding, and verification. Both directions are included; CPU cost is not elapsed latency. The builder checks the aggregate values against all per-case records.
-- `figs/fig2_golden.{pdf,svg,png}`: supplementary archived Golden reference-family recovery and direction-specific mean CPU cost.
-- `figs/fig3_coordinate.{pdf,svg,png}`: supplementary archived MAPPA and prior-method minimum-event comparisons, minimum-count distributions, and measured stage costs on 140 cases.
-- `figs/fig4_alternatives.{pdf,svg,png}`: Golden case 9, with the recovered reference and two alternatives. Red × marks and green inward arrows identify bond changes; pastel colors identify actual saved fragments. The Results illustration explains why retaining alternative correspondences matters; the Discussion describes potential downstream uses.
-- `evidence/golden_case9.json` and `golden_case9_verification.json`: full witnesses, source fragment groups, source hashes, original-RDF reference verification, and H-event lower bounds for the selected heavy mappings.
-- `evidence/multicandidate_example.json` and `evidence/output_multiplicity.json`: saved API example and archived comparator-output audit for the discussion.
-- `manuscript_bundle.zip`: compact paper, source, figure, and evidence bundle.
+## Current results
 
-The main paper explains the method through an integrated molecular overview, then presents the completed current-method validation. Historical comparator, cap, seed, and coordinate studies remain in the supplement with their original scientific scope. They do not supply a speed comparison for the current implementation.
+| Study | Catalogue recovery | Saved decoded min+5 recovery | Decoded absent / unknown |
+|---|---:|---:|---:|
+| Golden, one seed | 1,834 / 1,851 | 1,832 / 1,851 | 16 / 3 |
+| Golden, ten seeds | 1,843 / 1,851 | 1,841 / 1,851 | 8 / 2 |
+| EnzymeMap, one seed | 47,798 / 47,974 | 47,796 / 47,974 | 178 / 0 |
 
-## Results and scope
+All requested mapping and decoding outputs are available. Decoded verification
+uses exact annotated heavy-atom indices and replayed complete witnesses.
+Golden catalogue verification additionally allows endpoint chemical symmetry;
+EnzymeMap uses exact indices for both metrics. Unknowns are not absences.
 
-The completed Golden validation at source `096a010961f53944ddd4ddc433bd8d56f282a2f2` processed all **1,851 reactions / 3,702 directions** through matching, family reduction, local decoding and separate reference verification. It recovered **1,830 reactions (98.87%)** and **3,618 directions**, with no failed tasks or unknown verification outcomes. Recovery means that the annotation belongs to a retained mapping family, not that a first-ranked mapping is correct. These results apply to the recorded version; they do not certify a full rerun of every subsequent revision.
+Mean compute CPU seconds per reaction for mapping (matching plus reduction)
+and decoding are respectively **1.31 / 1.88**, **11.64 / 9.28**, and **4.41 / 8.75**
+for these three studies. Both directions and every cut are included. Publication,
+external evaluation and failed-attempt accounting are separate. These are saved
+stage measurements with their recorded versions and recoveries, not a new
+uninterrupted run or a hardware-normalized speed ranking.
 
-The September seed, cap, comparator and coordinate studies remain archived evaluations. Their default Golden result of 1,834/1,851 is not substituted for the separate current-design validation. Their timing cohorts and event-window results are not presented as measurements of the current implementation.
+The branch-event histogram is explicitly **preliminary**: 45,737 exact offsets,
+3,891 pending offset checks, 194 absent references and three unresolved
+memberships. A GT-containing branch's unconditioned minimum is compared with
+the overall detected count using the same saved all-atom model. The completed
+subset overrepresents zero and cannot establish the final distribution.
 
-The expanded EnzymeMap benchmark is still running. No final EnzymeMap recovery score or completion time is included in the paper. Completing the Golden validation does not establish completion of all new benchmark work.
+## Sources and build
 
-`evidence/paper_sources.json` records the source versions, snapshot hashes and report locations. Pending outcomes cannot enter a completed-results table. [REPRODUCIBILITY.md](REPRODUCIBILITY.md) explains each study's protocol and timing scope.
+- `preprint.tex`: entry point; author list and supplied affiliations are retained.
+- `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
+- `includes/supplement.tex`: technical details and clearly separated archived studies.
+- `evidence/current_benchmarks.json`: sanitized coverage, timing and cache-control evidence.
+- `evidence/branch_offsets.json.gz`: complete reaction accounting for the preliminary figure.
+- `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
+- [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
+- `figs/fig1_algorithm.*`: molecular overview, with no verifier in the AAM pipeline.
+- `figs/fig6_current_benchmarks.*`: current decoded coverage and separate stage CPU costs.
+- `figs/fig7_reference_offsets.*`: preliminary branch-event distribution.
+- `figs/fig4_alternatives.*`: selected archived Golden case 9 witnesses, labeled as illustrations.
+- `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 
-## Build
-
-Install Python 3.12, Tectonic, and the packages in `requirements-build.txt` in an isolated environment. From this `manuscript` directory:
+Install the dependencies in `requirements-build.txt`, Tectonic and Poppler. From
+the repository root:
 
 ```sh
-MANUSCRIPT_PYTHON=/path/to/python bash scripts/build.sh
+MANUSCRIPT_PYTHON=/path/to/python bash manuscript/scripts/build.sh
 ```
 
-The build regenerates figures and tables from checked-in evidence, compiles the paper, verifies numerical claims and references, and creates the compact bundle. It performs no mapping searches. The first Tectonic build may download TeX packages. A saved `preprint.bbl` accompanies the source bundle.
+The build regenerates figures and tables, compiles `manuscript.pdf`, validates
+numeric evidence and references, checks publication privacy, and writes
+`manuscript_bundle.zip`. It performs no matching or decoding. Visual inspection
+is recorded separately against the final PDF checksum.
 
-For visual review, render the PDF with Poppler:
+The decoder's ordinary-boundary model is approximate; its selected starting
+orbits and bounded improvement restrict coverage. Model-window membership is
+not physical event-bin accuracy. September comparator, cap, direction and
+coordinate results retain their original protocols in the supplement. They do
+not establish current-version superiority. The coordinate collection lacks
+annotated mappings and complete WBO-generation provenance.
 
-```sh
-pdftoppm -scale-to 1400 -png manuscript.pdf build/page
-```
-
-`EDITORIAL_NOTES.md` records the author-supplied metadata and dataset provenance still needed for submission. These are not fabricated in the paper. This is an arXiv-oriented manuscript, not a submitted arXiv record. The build checks the PDF and compact bundle for execution-site disclosures; only CPU models are reported as hardware information.
-
-## Archived studies and examples
-
-The archived Golden comparison retains one-, two-, three- and ten-seed settings, uncut controls, and released comparators. Its cap study uses 1,403 common completed reactions on an AMD EPYC 9J14; its orientation study uses 1,821 common completed reactions on an Apple M4 Pro. Default-call times with an unrecorded CPU model are marked separately. No cross-CPU or current-implementation speed ranking follows from these tables.
-
-The 140-reaction coordinate collection compares bond events under unverified mappings. Its archived cap control returns complete mappings for 138 reactions at cap 100 and all 140 at cap 2,000. At cap 2,000, explicit event-window queries retained 300 event patterns across 120,052 saved families, including 166 patterns at MAPPA's own minima. These are historical event-query results, not a mapping-accuracy benchmark or an exhaustive structural search. Their evidence and timing scopes remain in [the coordinate report](../reports/published_baseline_20260915/) and `evidence/end_to_end_timing.json`.
-
-The Golden case 9 illustration uses three selected archived witnesses: the recovered heavy-atom reference and two alternatives. Event totals include H, whose individual identities are not reference labels. The witnesses are neither an exhaustive decoded set nor validated mechanisms. Their mappings, constraints and checks remain in `golden_case9.json` and `golden_case9_verification.json`.
-
-## 3D research preview
-
-[Grow. Branch. Decode.](animations/mappa_research_preview/index.html) is an archived 22-second 3D film of Golden case 15. It shows two event classes from a saved catalogue containing 44 unordered branches, 96 families and nine classes through six events. It illustrates conditional placements and event alternatives, not a trace of the current growth implementation. [MP4](animations/mappa_research_preview/mappa-grow-branch-decode.mp4) · [GIF](animations/mappa_research_preview/mappa-grow-branch-decode.gif).
+The archived [3D research preview](animations/mappa_research_preview/index.html)
+illustrates its saved historical catalogue, not an execution trace of the current
+matcher. [EDITORIAL_NOTES.md](EDITORIAL_NOTES.md) records remaining author metadata
+and dataset-provenance decisions; those have not been invented.
 
 ## Authors
 

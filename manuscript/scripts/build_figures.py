@@ -25,58 +25,9 @@ timing=read('timing_comparison.json')
 competitors=read('competitors.json')
 local=next(d for d in competitors['methods'] if d['method']=='localmapper')
 seed=read('seed_comparison.json');methods=seed['methods'];slap=read('slap_sweep.json');N=1851
-current=read('current_golden.json')
+from build_benchmark_figures import build as build_benchmark_figures
+build_benchmark_figures(MAN)
 
-
-def build_current_golden(summary,cases):
- total=summary['manifest']['cases'];directions=summary['manifest']['directions']
- assert summary['complete'] and not summary['failures'] and not summary['audit_issues']
- assert len(cases)==total and len({case['case'] for case in cases})==total
- for outcome,count in summary['reference_reactions'].items():
-  assert sum(case['status']==outcome for case in cases)==count
- for outcome,count in summary['reference_directions'].items():
-  assert sum(case[direction]==outcome for case in cases for direction in ('forward','reverse'))==count
- stages=['matching','deduplication','decoding','verification']
- totals=[]
- for stage in stages:
-  records=[case['stages'][direction][stage] for case in cases for direction in ('forward','reverse')]
-  assert len(records)==directions and all(record['state']=='complete' for record in records)
-  measured=sum(record['total_worker_cpu_seconds'] for record in records)
-  aggregate=summary['stage_metrics'][stage]
-  assert np.isclose(measured,aggregate['final_tasks']['total_worker_cpu_seconds'],rtol=1e-10,atol=1e-6)
-  assert np.isclose(measured,aggregate['all_attempts']['total_worker_cpu_seconds'],rtol=1e-10,atol=1e-6)
-  totals.append(measured/total)
- recovered=summary['reference_reactions']['recovered']
- missed=summary['reference_reactions']['not_recovered']
- percent=100*recovered/total
- fig,(accuracy,cost)=plt.subplots(1,2,figsize=(9.3,4.2),
-     gridspec_kw={'width_ratios':[1.05,1.5]})
- accuracy.set(xlim=(0,100),ylim=(0,1));accuracy.axis('off')
- accuracy.set_title('a  Reference membership',loc='left',weight='bold',pad=18)
- accuracy.text(0,.82,f'{percent:.2f}%',fontsize=32,weight='bold',color=GREEN)
- accuracy.text(0,.66,f'{recovered:,} of {total:,} reactions',fontsize=12,color=INK)
- accuracy.barh(.46,percent,color=GREEN,height=.12)
- accuracy.barh(.46,100-percent,left=percent,color=RED,height=.12)
- accuracy.text(0,.30,f'{missed:,} not recovered',fontsize=10,color=RED)
- accuracy.text(0,.13,'Both directions evaluated\nNo unresolved outcomes',
-     fontsize=9,color=MUTED,linespacing=1.7)
- colors=[GREEN,BLUE,PURPLE,ORANGE]
- cost.barh(np.arange(4),totals,color=colors,height=.55)
- for position,value in enumerate(totals):
-  cost.text(value+.08,position,f'{value:.2f}',va='center',fontsize=10,color=INK)
- cost.set(yticks=np.arange(4),yticklabels=['Matching','Family reduction','Local decoding','Verification'],
-     xlim=(0,max(totals)*1.22),ylim=(3.6,-.8),xlabel='Mean total CPU seconds / reaction')
- cost.set_title('b  Recorded stage costs',loc='left',weight='bold',pad=18)
- cost.grid(axis='x',alpha=.15);cost.set_axisbelow(True)
- cost.text(1.0,1.015,f'Total: {sum(totals):.2f} CPU s / reaction',
-     transform=cost.transAxes,ha='right',fontsize=9,color=MUTED)
- fig.text(.08,.04,'Completed Golden validation · both directions included · CPU cost, not elapsed time',
-     fontsize=9,color=MUTED)
- fig.subplots_adjust(left=.08,right=.97,bottom=.21,top=.84,wspace=.65)
- save(fig,'fig6_current_golden')
-
-
-build_current_golden(current,read('current_golden_cases.json')['cases'])
 keys=['seeds1','seeds2','seeds3','seeds10'];counts=[methods[k]['golden_outcomes']['recovered'] for k in keys];costs=[methods[k]['common_mean_cpu_seconds'] for k in keys]
 assert seed['fresh'] and all(sum(methods[k]['golden_outcomes'].values()) == N for k in keys)
 assert len(seed['common_case_indices']) > 0
@@ -141,12 +92,7 @@ save(fig,'fig3_coordinate')
 windows=sorted((int(k),v) for k,v in dedup['window_distribution'].items())
 (MAN/'includes/generated-decoder-table.tex').write_text('\\begin{tabular}{l'+ 'r'*len(windows)+'}\\toprule\nMaximum events & '+' & '.join(str(k) for k,v in windows)+r'\\'+'\nReactions (all complete) & '+' & '.join(str(v) for k,v in windows)+r'\\'+'\n'+r'\bottomrule\end{tabular}'+'\n')
 paired=slap['paired_recovery']['seeds1']
-macros=dict(CurrentGoldenRecovered=f"{current['reference_reactions']['recovered']:,}",
- CurrentGoldenTotal=f"{current['manifest']['cases']:,}",
- CurrentGoldenPercent=f"{100*current['reference_reactions']['recovered']/current['manifest']['cases']:.2f}",
- CurrentGoldenDirections=f"{current['manifest']['directions']:,}",
- CurrentGoldenDirectionRecovered=f"{current['reference_directions']['recovered']:,}",
- GoldenOneRecovered=f"{counts[0]:,}",GoldenOnePercent=f"{100*counts[0]/N:.2f}",
+macros=dict(GoldenOneRecovered=f"{counts[0]:,}",GoldenOnePercent=f"{100*counts[0]/N:.2f}",
  GoldenThreeRecovered=f"{counts[2]:,}",GoldenThreePercent=f"{100*counts[2]/N:.2f}",
  GoldenTenRecovered=f"{counts[3]:,}",GoldenTenPercent=f"{100*counts[3]/N:.2f}",GoldenTenUnknown=str(methods["seeds10"]["golden_outcomes"]["unknown"]),SlapRecovered=f"{slap['sweep_union_recovered']:,}",
  SlapPercent=f"{100*slap['sweep_union_recovered']/N:.2f}",
