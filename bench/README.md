@@ -1,5 +1,36 @@
 # Benchmark campaigns
 
+## Current Golden comparison with SLAP
+
+`compare_slap.py` pairs current MAPPA (one seed, cap 100, tolerance 2) with pinned
+upstream SLAP (`ea248fd`), binary plus weighted modes. Both consume the same
+prepared explicit-hydrogen endpoint graphs, both directions and every single-edge
+cut. SLAP retains its upstream isolated element-balancing atoms. No reference
+labels enter matching. MAPPA retains its reaction fragment cache across cuts.
+
+```bash
+export PYTHONPATH=src:bench OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+python bench/compare_slap.py /path/to/golden/index.json /path/to/new-comparison \
+  --slurm --workers 16 --memory-gib 4 --seconds 600
+```
+
+Run in one allocation on one CPU model. Omit `--slurm` for local execution.
+Use `--cases 0 7 19` for a pilot; omitting it selects all 1,851 reactions.
+Install the pinned SLAP package and RDKit in the benchmark environment first.
+Imports are outside scientific timings; graph preparation, matching and reduction
+form search cost. Input loading, publication, MAPPA decoding (minimum + 5), and
+external reference verification are measured separately. Both methods' coverage
+uses complete heavy-atom correspondence modulo chemical endpoint symmetry.
+MAPPA's additional decoded audit uses exact annotated indices and is separate.
+
+The global matching barrier precedes decoding. One persistent pool alternates
+method admission by reaction, records CPU model, source hashes, software versions,
+budgets and per-direction timings, and publishes through aggregate bundles and
+the existing campaign ledger. Any resource or execution failure stops admission
+and drains active work for investigation. `--resume` requires a drained owner and
+identical scientific settings; completed and failed attempts are preserved without
+automatic retries. Public evidence must exclude the private operational paths.
+
 ## Compare revisions locally
 
 `performance.py` runs identical single-cut cases serially in separately built
