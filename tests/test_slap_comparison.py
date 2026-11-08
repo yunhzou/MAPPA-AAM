@@ -103,12 +103,16 @@ def test_both_methods_publish_then_decode_and_verify_without_rematching(tmp_path
         if method == 'mappa':
             assert checked['decoded_verification']['status'] == 'recovered'
         else:
-            from slap_audit import audit_saved
+            from slap_audit import audit_saved, native_call
             audited = audit_saved(dict(payload,
                 matching=asdict(payload['matching']),
                 verification=asdict(store.put(checked))), workspace)
             assert audited['status'] == 'recovered'
             assert audited['calls'] == saved['search']['calls']
+            native = native_call(payload, workspace)
+            assert native['status'] == audited['binary_uncut_status'] == 'recovered'
+            assert native['witness'] in native['candidates']
+            assert native['endpoint_correspondence']
 
 
 @pytest.mark.parametrize('weights,colors', [

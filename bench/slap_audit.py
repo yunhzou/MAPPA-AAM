@@ -1,4 +1,4 @@
-"""Independent SLAP result audit and its standard, uncut public API baseline."""
+"""Independent SLAP result audit and its standard, uncut binary baseline."""
 import argparse
 from collections import Counter, defaultdict
 import hashlib
@@ -137,42 +137,27 @@ def audit_saved(payload, workspace):
         binary_uncut_status=binary_status, cpu_model=hardware())
 
 
-def molecular_features(molecule):
-    heavy = [a.GetIdx() for a in molecule.GetAtoms() if a.GetAtomicNum() > 1]
-    dense = {a: i for i, a in enumerate(heavy)}
-    return dict(heavy=heavy, colors=[[
-        a.GetSymbol(), a.GetIsotope(), a.GetFormalCharge(), a.GetTotalNumHs(includeNeighbors=True),
-        a.GetProp('_CIPCode') if a.HasProp('_CIPCode') else '']
-        for a in molecule.GetAtoms() if a.GetAtomicNum() > 1], bonds=[[
-        dense[b.GetBeginAtomIdx()], dense[b.GetEndAtomIdx()],
-        [b.GetBondTypeAsDouble(), str(b.GetStereo())]] for b in molecule.GetBonds()
-        if b.GetBeginAtomIdx() in dense and b.GetEndAtomIdx() in dense])
-
-
 def native_call(payload, workspace):
-    """Time the unchanged public API, then independently verify its native outputs."""
+    """Time default binary SLAP on the identical prepared chemical endpoints."""
     import numpy as np
-    from rdkit import Chem
     from slapmapper.aam import SlapAAM
+    from compare_slap import slap_graphs
+    from mappa.mappa_core.utils.io.records import problem_from_record
     raw = read_blob(Blob(**payload['input']), workspace.scratch)
     reference = read_blob(Blob(**payload['reference']), workspace.scratch)
-    smiles = [raw[side]['metadata']['unmapped_smiles'] for side in ['reactant', 'product']]
-    molecules = [Chem.MolFromSmiles(s) for s in smiles]
-    if any(a.GetAtomMapNum() for mol in molecules for a in mol.GetAtoms()):
-        raise ValueError('Benchmark input contains mapping hints')
-    features = [molecular_features(mol) for mol in molecules]
-    original = reference['features'][::-1] if payload['reversed'] else reference['features']
-    if equivalent(paired_graph(original, ()), paired_graph(features, ())) is None:
-        raise ValueError('Public-API input differs from prepared chemical endpoints')
-    elements = [tuple(a.GetSymbol() for a in Chem.AddHs(mol).GetAtoms()) for mol in molecules]
+    problem = problem_from_record(raw)
+    features = reference['features'][::-1] if payload['reversed'] else reference['features']
+    elements = [raw[side]['elements'] for side in ['reactant', 'product']]
     random.seed(20260910); np.random.seed(20260910)
     metrics = {}
-    with _measure(metrics, 'public_api'):
+    with _measure(metrics, 'standard_search'):
+        graphs = slap_graphs(problem)
+        targets = [i for i, z in enumerate(graphs[0].labels) if z > 1]
         mapper = SlapAAM()
-        mapper.map_smiles('>>'.join(smiles))
-    mappings = {label_mapping([g.labels for g in r['lgp']], elements) for r in mapper.results}
+        mapper.get_maps(graphs, break_sym_targets=targets)
+        mappings = {label_mapping([g.labels for g in r['lgp']], elements) for r in mapper.results}
     truth = [(b, a) for a, b in reference['mapping']] if payload['reversed'] else reference['mapping']
-    expected = paired_graph(original, truth)
+    expected = paired_graph(features, truth)
     hit = correspondence = None
     with _measure(metrics, 'verification'):
         for mapping in sorted(mappings):
@@ -225,7 +210,7 @@ def run(args):
         store=BundleStore(args.output/'bundles',scratch=scratch)
         with WorkPool.slurm(workers=args.workers,store=store,memory_bytes=4*2**30,
                             case_seconds=600,shared_cache=False) as pool:
-            pending=iter(tasks);active={};exhausted=False;next_save=0.
+            pending=iter(tasks);active={};exhausted=False;next_save=0.; stopped_on_error=None
             while active or not exhausted:
                 while len(active)<2*args.workers and not exhausted:
                     try:name,stage,payload=next(pending)
@@ -241,10 +226,15 @@ def run(args):
                     ledger.put(name,stage,'complete' if complete else 'error',
                         value['blob'] if complete else None,pool.queue.archive_case(key,store),
                         None if complete else dict(state=state['state'],error=value.get('error')))
+                    if not complete and (stage=='audit' or (state['state']=='error'
+                            and 'min() arg is an empty sequence' not in str(value.get('error')))):
+                        # A disagreement or invalid audit input stops admission immediately.
+                        stopped_on_error=key;exhausted=True
                     del active[key]
                 if time.monotonic()>=next_save or not active:
                     ledger.checkpoint();pool.checkpoint()
-                    progress=dict(counts=ledger.counts(),active=len(active),drained=exhausted and not active)
+                    progress=dict(counts=ledger.counts(),active=len(active),drained=exhausted and not active,
+                                  stopped_on_error=stopped_on_error)
                     _publish(args.output/'progress.json',progress);print(json.dumps(progress),flush=True)
                     next_save=time.monotonic()+30
                 if active:pool.check_workers();time.sleep(.1)
