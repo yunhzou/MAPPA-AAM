@@ -459,27 +459,33 @@ coordinator loss requires an explicit audit instead of silently repeating work.
 
 ### Minimum-event analysis of saved results
 
-To plot ground-truth position against the **saved detected minimum**, use
-`analytics.py --positions`. It reads the saved count directly, chooses the lower
-count across directions (forward wins ties), counts annotated heavy-atom events,
-and subtracts. It runs no matching, decoding, witness query or optimization.
-The saved minimum includes hydrogen events: this direct-count plot has mixed atom
-scope and must not be labelled as a heavy-only minimum comparison.
+To plot where a GT-containing branch starts, use `analytics.py --positions`.
+Both counts use the saved decoder model: the smallest minimum of retained
+GT-containing contexts minus the overall detected minimum over both directions.
+Ground truth identifies branch membership; the branch's event query is then
+unconditioned on the reference. Thus a GT witness's event count is only an upper
+bound, not automatically the branch minimum. Use exact annotated indices and the
+saved decoded window for membership, consistent with the decoded audit.
 
-The input JSON contains `source_files` checksums and `directions`; each direction
-has `dataset`, `case`, `reversed`, `decoded` and `reference` blob references.
-Optional `saved_minimum` metadata must come from that same saved decoded output.
-Ground-truth counts use the annotation's own atom indices and graph, including
-bonds touching unmatched atoms; they do not assume its indices match the input.
+Reuse existing verified witnesses at the overall minimum to establish offset
+zero immediately. For other reactions, inspect saved context bounds and query
+only branches that can improve the current value. The analysis changes no
+matching/decoding output. Bounded unknowns retain offset intervals outside exact
+numeric bins; missing references are reported separately.
+
+The manifest has `source_files`, pending `directions` and already certified
+`completed` rows. Pending directions carry decoded/reference blob references,
+`overall_minimum`, optional `saved_minimum` and verified `certificates` identifying
+the family, partition, cut and witness event count from the same decoded output.
 
 ```bash
 PYTHONPATH=src:bench python bench/analytics.py /path/to/positions.json \
-  /path/to/output --positions
+  /path/to/output --positions --slurm --workers 8 --seconds 30 \
+  --task-seconds 120 --memory-gib 8
 ```
 
-Render the numeric output with `analytics.plot_positions(results_path, figure_stem)`
-to get PNG, PDF and SVG panels: integer offsets on x, logarithmic reaction counts
-on y. Negative offsets are preserved. Missing minima remain outside the bins.
+Render numeric output with `analytics.plot_positions(results_path, figure_stem)`
+for PNG, PDF and SVG: integer offsets on x, logarithmic reaction counts on y.
 
 `analytics.py` queries completed decoder outputs without rerunning matching or
 decoding. Supply an explicit JSON manifest with a `directions` list. Each row has

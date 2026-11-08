@@ -191,3 +191,28 @@ def test_saved_binary_constraints_keep_original_weighted_minimum():
     record['event_problem']['reactant']['wbo'][1][0] = 1.
     with pytest.raises(ValueError, match='identities'):
         minimum_events(record, {0: 0, 1: 1})
+
+
+def test_branch_offset_uses_branch_minimum_not_ground_truth_witness_count():
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    r = endpoint('CCC', [(0,1,2.), (1,2,1.)])
+    p = endpoint('CCC', [(0,1,1.), (1,2,2.)])
+    fragment = saved_fragment(AAMProblem(r,p), source_atoms=(0,1,2), iso_tolerance=2.)
+    catalogue = saved(r,p,{0:0,1:1,2:2},fragments=(fragment,))
+    decoded = decoded_events_from_record(decoded_events_record(decode_events(catalogue)))
+    reference = dict(mapping=[(0,0),(1,1),(2,2)],features=[dict(heavy=[0,1,2])]*2)
+    result = analytics.branch_offset(decoded,reference,overall_minimum=0,best=2,seconds=5)
+    assert result['status'] == 'complete' and result['best'] == 0
+
+
+def test_branch_offset_excludes_lower_branches_without_ground_truth():
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    r = endpoint('CCC', [(0,1,1.)]); p = endpoint('CCC', [(0,2,1.)])
+    catalogue = saved(r,p,{0:0,1:2,2:1})
+    catalogue.families.extend(saved(r,p,{0:0,1:1,2:2}).families)
+    decoded = decoded_events_from_record(decoded_events_record(decode_events(catalogue)))
+    reference = dict(mapping=[(0,0),(1,1),(2,2)],features=[dict(heavy=[0,1,2])]*2)
+    result = analytics.branch_offset(decoded,reference,overall_minimum=0,best=2,seconds=5)
+    assert result['status'] == 'complete' and result['best'] == 2
+    result = analytics.branch_offset(decoded,reference,overall_minimum=0,best=2,seconds=0)
+    assert result['status'] == 'unknown' and result['lower'] == 0

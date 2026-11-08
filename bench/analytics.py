@@ -240,24 +240,118 @@ def _publish(path, report):
     pending.replace(path)
 
 
-def reference_event_count(reference, *, threshold=.5, metal_threshold=.3):
-    """Count the annotated heavy-atom graph in its own saved index frame."""
-    from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
-    endpoints, indices = [], []
-    for feature in reference['features']:
-        elements = tuple(color[0] for color in feature['colors'])
-        weights = np.zeros((len(elements), len(elements)))
-        for a, b, color in feature['bonds']:
-            weights[a, b] = weights[b, a] = color[0]
-        endpoints.append(MolecularEndpoint(elements, np.zeros((len(elements), 3)), weights))
-        indices.append({original: dense for dense, original in enumerate(feature['heavy'])})
-    mapping = {indices[0][a]: indices[1][b] for a, b in reference['mapping']}
-    index = SignedEventIndex(AAMProblem(*endpoints), threshold=threshold, metal_threshold=metal_threshold)
-    return int(index.counts([index.vector(mapping)])[0].sum())
+def branch_offset(decoded, reference, *, overall_minimum, best, certificates=(), seconds=30.):
+    """Locate the lowest retained GT-containing branch using saved responses.
+
+    Membership identifies a branch; its minimum query has no GT assignments.
+    Queries stay inside the reported minimum-to-window range, not a new global
+    optimization. Unknown queries keep an interval instead of a numeric bin.
+    """
+    from decoded_reference import audit_decoded_witness
+    deadline = time.perf_counter() + seconds
+    known = {(r['family'], r['partition'], r['cut']): r for r in certificates}
+    mapping = dict(reference['mapping'])
+    unresolved, queries = [], 0
+    winner = None
+    contexts = sorted(decoded.window.contexts, key=lambda key: (decoded.window.bounds[key], key))
+    for key in contexts:
+        lower = decoded.window.bounds[key]
+        if lower >= best:
+            continue
+        if time.perf_counter() >= deadline:
+            unresolved.append(lower)
+            break
+        family = decoded.catalogue.families[key[0]]
+        mapped = dict(family.mapping)
+        source_heavy, target_heavy = (set(f['heavy']) for f in reference['features'])
+        if (set(mapped) & source_heavy != set(mapping)
+                or set(mapped.values()) & target_heavy != set(mapping.values())):
+            continue
+        table = decoded._prepare_table(*key[:2], decoded._table_key(*key))
+        if key not in known:
+            remaining = deadline-time.perf_counter()
+            if remaining <= 0:
+                unresolved.append(lower)
+                break
+            answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
+                assignments=mapping, seconds=remaining, max_nodes=100000)
+            queries += 1
+            if answer.status != 'found':
+                if answer.status == 'unknown':
+                    unresolved.append(lower)
+                del table
+                continue
+            audit_decoded_witness(decoded, reference, key, answer)
+            best = min(best, answer.event_count)
+        else:
+            best = min(best, known[key]['event_count'])
+        while lower < best:
+            remaining = deadline-time.perf_counter()
+            if remaining <= 0:
+                unresolved.append(lower)
+                break
+            answer = table.program.select(lower, best-1).find(seconds=remaining, max_nodes=100000)
+            queries += 1
+            if answer.status != 'found':
+                if answer.status == 'unknown':
+                    unresolved.append(lower)
+                break
+            witness = dict(answer.witness)
+            if (decoded.realize(key[0], answer.choices) != witness
+                    or int(table.evaluate(decoded.index.vector(witness))['total']) != answer.event_count):
+                raise AssertionError('Branch minimum witness failed replay')
+            best = answer.event_count
+            winner = dict(context=key, event_count=best, witness=answer.witness, choices=answer.choices)
+        del table
+        if best == overall_minimum:
+            break
+    floor = min([best, *unresolved])
+    return dict(best=best, lower=floor, status='complete' if floor == best else 'unknown',
+                queries=queries, witness=winner)
 
 
-def run_positions(manifest, output):
-    """Subtract saved numbers only; never query a mapping or optimize a minimum."""
+def event_position(payload, workspace):
+    """One reaction: smallest GT-containing branch offset over both directions."""
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record
+    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != payload['runner_sha256']:
+        raise ValueError('Analysis runner changed after planning')
+    rows = payload['directions']
+    baseline = rows[0]['overall_minimum']
+    best = min(c['event_count'] for row in rows for c in row['certificates'])
+    start, floors, queries, winner = time.perf_counter(), [], 0, None
+    for row in sorted(rows, key=lambda r: r.get('saved_minimum', baseline)):
+        if best == baseline:
+            break
+        if row.get('saved_minimum', baseline) >= best:
+            continue
+        remaining = payload['seconds']-(time.perf_counter()-start)
+        if remaining <= 0:
+            floors.append(baseline)
+            break
+        saved = workspace.load(Blob(**row['decoded']))
+        decoded = decoded_events_from_record(saved.record)
+        reference = dict(workspace.load(Blob(**row['reference'])))
+        if row['reversed']:
+            reference['mapping'] = [(b,a) for a,b in reference['mapping']]
+            reference['features'] = reference['features'][::-1]
+        answer = branch_offset(decoded, reference, overall_minimum=baseline, best=best,
+                               certificates=row['certificates'], seconds=remaining)
+        best = answer['best']; queries += answer['queries']
+        floors.append(answer['lower'])
+        if answer['witness'] is not None:
+            winner = dict(answer['witness'], reversed=row['reversed'])
+        del decoded, saved
+    floor = min([best, *floors])
+    complete = floor == best
+    return dict(status='complete' if complete else 'unknown', overall_minimum=baseline,
+        branch_minimum=best if complete else None, difference=best-baseline if complete else None,
+        offset_lower=floor-baseline, offset_upper=best-baseline, queries=queries, witness=winner,
+        query_seconds=time.perf_counter()-start)
+
+
+def run_positions(manifest, output, *, workers=1, seconds=10., task_seconds=120.,
+                  memory_bytes=2**33, slurm=False):
+    """Read-only reaction-level positions; keep incomplete queries outside bins."""
     from collections import defaultdict
     manifest, output = Path(manifest), Path(output)
     source = json.loads(manifest.read_bytes())
@@ -273,43 +367,68 @@ def run_positions(manifest, output):
     if any(sorted(row['reversed'] for row in pair) != [False, True] for pair in grouped.values()):
         raise ValueError('Require both directions exactly once per reaction')
     output.mkdir(parents=True, exist_ok=False)
-    report = dict(schema='mappa.saved_minimum_positions/v1', expected=len(grouped), results=[],
-        original_hashes=sources, runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        policy='Annotated heavy-atom events minus saved all-atom model minimum; mixed atom scope',
-        direction_policy='Lower saved model minimum across both directions; forward wins ties',
-        event_policy=dict(threshold=.5, metal_threshold=.3),
-        matching_queries=0, decoding_queries=0, optimization_queries=0)
-    started = time.perf_counter()
-    for (dataset, case), rows in sorted(grouped.items()):
-        candidates = []
-        for row in rows:
-            minimum = row.get('saved_minimum')
-            if minimum is None:
-                saved = read_blob(Blob(**row['decoded']), None)
-                minimum = saved.record['minimum_events']
-                if saved.config.threshold != .5 or saved.config.metal_threshold != .3:
-                    raise ValueError('Saved event thresholds differ')
-                del saved
-            if minimum is not None:
-                candidates.append((minimum, row['reversed'], row))
-        if candidates:
-            minimum, reverse, row = min(candidates, key=lambda item: item[:2])
-            reference = read_blob(Blob(**row['reference']), None)
-            count = reference_event_count(reference)
-            result = dict(dataset=dataset, case=case, status='complete', reversed=reverse,
-                reference_events=count, detected_events=minimum, difference=count-minimum,
-                reference_index_agrees=reference.get('input_reference_index_agrees'),
-                decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'])
-        else:
-            result = dict(dataset=dataset, case=case, status='empty')
-        report['results'].append(result)
-        if len(report['results']) % 1000 == 0:
-            report['elapsed_seconds'] = time.perf_counter()-started
-            _publish(output/'results.json', report)
-            print(json.dumps(dict(completed=len(report['results']), expected=len(grouped))), flush=True)
+    digest = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    report = dict(schema='mappa.detected_event_positions/v1', code_identity=code_identity(),
+        runner_sha256=digest, original_hashes=sources, expected=len(grouped)+len(source.get('completed', [])), results=list(source.get('completed', [])),
+        policy='Minimum of GT-containing retained branches minus overall detected minimum; same saved decoder model',
+        direction_policy='Minimum across both directions, using each saved decoded minimum-to-plus-five window',
+        resources=dict(workers=workers, query_seconds=seconds, task_seconds=task_seconds, memory_bytes=memory_bytes))
+    store = BundleStore(output/'bundles')
+    factory = WorkPool.slurm if slurm else WorkPool.local
+    start = time.perf_counter()
+    with factory(workers=workers, store=store, memory_bytes=memory_bytes,
+                 case_seconds=task_seconds, shared_cache=False) as pool:
+        report['ready_workers'] = len(pool.queue.ready_workers())
+        from itertools import islice
+        waiting = iter((f'{dataset}/{case:05d}', (dataset, case, rows))
+                       for (dataset, case), rows in grouped.items())
+        pending, exhausted = {}, False
+        published = 0.
+        while pending or not exhausted:
+            capacity = 512-len(pending)
+            admitted = dict(islice(waiting, capacity))
+            if capacity:
+                exhausted = not admitted
+            pending.update(admitted)
+            if admitted:
+                pool.queue.add([Task(key, 'analytics:event_position',
+                    dict(directions=rows, seconds=seconds, runner_sha256=digest), case=key,
+                    case_seconds=task_seconds, memory_bytes=memory_bytes)
+                    for key, (_, _, rows) in admitted.items()])
+            pool.check_workers()
+            for key, state in pool.queue.results(tuple(pending)).items():
+                if state['state'] in ('pending', 'running'):
+                    continue
+                dataset, case, _ = pending.pop(key)
+                measured = state['result'] or {}
+                row = dict(dataset=dataset, case=case, state=state['state'],
+                    metrics={k: v for k, v in measured.items() if k.endswith(('_seconds', '_bytes'))})
+                if state['state'] == 'complete':
+                    value = store.load(measured['blob'])
+                    row.update({k: v for k, v in value.items() if k != 'witness'})
+                    from dataclasses import asdict
+                    row['result_blob'] = asdict(measured['blob'])
+                else:
+                    row.update(status='unknown', error=measured.get('error'))
+                    if state['state'] == 'error':
+                        pool.queue.finish_input(cancel_pending=True)
+                report['results'].append(row)
+                if state['state'] == 'error':
+                    _publish(output/'results.json', report)
+                    raise RuntimeError('Saved-minimum analysis failed: '+str(row))
+            if time.perf_counter() >= published or not pending:
+                report['elapsed_seconds'] = time.perf_counter()-start
+                _publish(output/'results.json', report)
+                print(json.dumps(dict(completed=len(report['results']), expected=len(grouped))), flush=True)
+                published = time.perf_counter()+30
+            if pending:
+                time.sleep(.1)
+    if len(report['results']) != report['expected']:
+        raise AssertionError('Analysis did not cover the complete reaction scope')
     if not unchanged():
         raise ValueError('Saved sources changed during analysis')
-    report.update(source_unchanged=True, elapsed_seconds=time.perf_counter()-started)
+    report.update(source_unchanged=True, elapsed_seconds=time.perf_counter()-start,
+                  complete=all(row['status'] == 'complete' for row in report['results']))
     _publish(output/'results.json', report)
     return report
 
@@ -336,7 +455,7 @@ def plot_positions(results, output):
         ax.bar(xs, [counts[x] for x in xs], width=.82, color=color, zorder=3)
         ax.set_yscale('log')
         ax.set_ylim(.7, max(counts.values(), default=1)*2.5)
-        ax.set_xlim(min(min(xs, default=0), -1)-.8, max(max(xs, default=0), 5)+.8)
+        ax.set_xlim(min(xs, default=0)-.7, max(max(xs, default=0), 5)+.8)
         ax.axvline(0, color='#273543', lw=1, alpha=.65)
         ax.set_axisbelow(True)
         ax.grid(axis='y', which='major', color='#dce1e6', lw=.7)
@@ -347,12 +466,12 @@ def plot_positions(results, output):
         below = sum(v for x, v in counts.items() if x < 0)
         above = sum(v for x, v in counts.items() if x > 0)
         ax.set_title(f'{dataset}  |  {len(measured):,} / {len(cohort):,} reactions', loc='left', fontweight='bold', pad=15)
-        ax.text(.98, .96, f'Below: {below:,}   Equal: {counts[0]:,}   Above: {above:,}',
+        ax.text(.98, .96, f'At minimum: {counts[0]:,}   Above: {above:,}',
                 transform=ax.transAxes, ha='right', va='top', fontsize=9, color='#43505d')
-        ax.set_xlabel(r'$n$ = ground-truth events − saved minimum', labelpad=10)
+        ax.set_xlabel(r'$n$ = GT-containing branch minimum − overall minimum', labelpad=10)
         ax.set_ylabel('Number of reactions (log scale)')
-    fig.suptitle('Ground truth relative to MAPPA’s saved minimum', fontsize=14, fontweight='bold')
-    fig.text(.5, -.035, 'Ground truth: heavy-atom events · Saved minimum: original all-atom decoder count',
+    fig.suptitle('Where the ground-truth-containing branch begins', fontsize=14, fontweight='bold')
+    fig.text(.5, -.035, 'Both counts use the same saved decoder model · One seed, tolerance 2, branch cap 100',
              ha='center', fontsize=9, color='#43505d')
     output = Path(output)
     for suffix in ('png', 'pdf', 'svg'):
@@ -435,10 +554,12 @@ if __name__ == '__main__':
     parser.add_argument('--seconds', type=float, default=30.)
     parser.add_argument('--task-seconds', type=float, default=120.)
     parser.add_argument('--memory-gib', type=float, default=2.)
-    parser.add_argument('--positions', action='store_true', help='Subtract the saved minimum from the annotated heavy-atom event count; no searches')
+    parser.add_argument('--positions', action='store_true', help='Locate GT-containing branches within saved decoded responses')
+    parser.add_argument('--slurm', action='store_true', help='Use an existing allocation for saved-witness retrieval')
     args = parser.parse_args()
     if args.positions:
-        run_positions(args.manifest, args.output)
+        run_positions(args.manifest, args.output, workers=args.workers, seconds=args.seconds,
+            task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30), slurm=args.slurm)
     else:
         run(args.manifest, args.output, workers=args.workers, seconds=args.seconds,
             task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30))
