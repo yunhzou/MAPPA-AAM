@@ -102,3 +102,48 @@ def test_both_methods_publish_then_decode_and_verify_without_rematching(tmp_path
         assert checked['verification']['status'] == 'recovered'
         if method == 'mappa':
             assert checked['decoded_verification']['status'] == 'recovered'
+        else:
+            from slap_audit import audit_saved
+            audited = audit_saved(dict(payload,
+                matching=asdict(payload['matching']),
+                verification=asdict(store.put(checked))), workspace)
+            assert audited['status'] == 'recovered'
+            assert audited['calls'] == saved['search']['calls']
+
+
+@pytest.mark.parametrize('weights,colors', [
+    ([1., 1., 1.], ['C', 'C', 'C', 'C']),
+    ([1., 2., 1.], ['C', 'C', 'C', 'C']),
+    ([1., 1., 1.], ['O', 'C', 'C', 'O']),
+])
+def test_two_reference_oracles_agree_with_exhaustive_endpoint_symmetries(weights, colors):
+    from itertools import permutations, combinations
+    from slap_audit import paired_graph, equivalent
+    feature = dict(heavy=list(range(4)), colors=[[c, 0, 0, 0, ''] for c in colors],
+                   bonds=[(i, i+1, (w, '')) for i, w in enumerate(weights)])
+    matrix = np.zeros((4, 4))
+    for i, w in enumerate(weights):
+        matrix[i, i+1] = matrix[i+1, i] = w
+    symmetries = [p for p in permutations(range(4))
+                  if [colors[i] for i in p] == colors and np.array_equal(matrix, matrix[np.ix_(p, p)])]
+    features = [feature, feature]
+    for truth in [((0, 0), (1, 1), (2, 2), (3, 3)), ((0, 0), (1, 1))]:
+        allowed = {tuple(sorted((a[x], b[y]) for x, y in truth)) for a in symmetries for b in symmetries}
+        certificate = reference_certificate(features, truth)
+        graph = paired_graph(features, truth)
+        for source in combinations(range(4), len(truth)):
+            for target in permutations(range(4), len(truth)):
+                mapping = tuple(zip(source, target))
+                expected = mapping in allowed
+                assert (reference_certificate(features, mapping) == certificate) == expected
+                assert (equivalent(graph, paired_graph(features, mapping)) is not None) == expected
+
+
+def test_native_label_audit_preserves_unmatched_atoms_and_rejects_invalid_groups():
+    from slap_audit import label_mapping
+    assert label_mapping([[10, 20], [10, 20]], [['C', 'O'], ['C']]) == ((0, 0),)
+    assert label_mapping([[20, 10], [10, 20]], [['C', 'C'], ['C']]) == ((1, 0),)
+    with pytest.raises(ValueError, match='element'):
+        label_mapping([[10, 20], [20, 10]], [['C', 'O'], ['C', 'O']])
+    with pytest.raises(ValueError, match='unique'):
+        label_mapping([[10, 10], [10, 10]], [['C', 'C'], ['C', 'C']])

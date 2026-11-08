@@ -34,6 +34,25 @@ automatic retries. `terminal_complete` means every required task has a recorded
 outcome; `complete` additionally requires every task to succeed. Public evidence
 must exclude the private operational paths.
 
+`slap_audit.py` independently checks completed SLAP label records and reference
+verdicts using a direct colored-graph VF2 oracle, rather than the comparison's
+nauty certificates. It also times the unchanged default `SlapAAM.map_smiles`
+API (binary, uncut) on every reaction and direction. This standard baseline is
+separate from the expanded two-mode sweep above. It validates chemical input
+equivalence and saves actual returned mappings and positive correspondence
+witnesses. Neither reference assignments nor atom-map hints enter the mapper.
+
+```bash
+python bench/slap_audit.py /path/to/completed-comparison /path/to/new-audit \
+  --workers 16
+```
+
+Run inside one allocation with the same CPU model, pinned SLAP installation and
+one library thread. The audit uses a 4 GiB guard and 600-second task watchdog;
+resource failures stay explicit. It requires a drained source campaign, preserves
+its results, and records its source hashes. Report standard forward-only and
+bidirectional calls separately; neither is the full sweep protocol.
+
 ## Compare revisions locally
 
 `performance.py` runs identical single-cut cases serially in separately built
