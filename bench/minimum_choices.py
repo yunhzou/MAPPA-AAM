@@ -26,7 +26,7 @@ from mappa.mappa_core.utils.io.records import decoded_events_from_record
 
 class ProjectedChoices:
     """Project the saved ordered operations onto mappings and their saved score."""
-    def __init__(self, table, event_count, deadline):
+    def __init__(self, table, event_count, deadline, *, heavy=None, known=()):
         self.table, self.deadline = table, deadline
         self.solver = z3.Solver()
         self.encoder = SymbolicActions(self.solver, fresh=True)
@@ -34,6 +34,19 @@ class ProjectedChoices:
         self.prefix = self.encoder.act([self.encoder.constant(i) for i in range(program.size)],
                                       program.group.generators, 'saved_decoded_choices')
         self.values = self.mapping(program, self.prefix)
+        self.domain_solver = z3.Solver()
+        self.domain_values = {a: z3.FreshInt('heavy_image') for a in self.values
+                              if heavy is None or a in heavy}
+        for a,value in self.domain_values.items():
+            self.domain_solver.add(z3.Or(*(value == p for p in self.values[a][1])))
+        self.domain_solver.add(z3.Distinct(*self.domain_values.values()))
+        for pairs in known:
+            if set(dict(pairs)) == set(self.domain_values) and all(b in self.values[a][1] for a,b in pairs):
+                self.exclude(pairs)
+        self.event_count = event_count
+        self.covered = self.domain_covered()
+        if self.covered:
+            return
         constant = sum(int(np.asarray(row).sum()) for row in table.fixed_boundary.values())
         terms = []
         for group in table._term_groups():
@@ -54,7 +67,20 @@ class ProjectedChoices:
                 lambda x, y: tuple(sorted((x, y))) in table.product_boundary_set)
             terms.append(-z3.If(condition, 1, 0))
         self.solver.add(constant + z3.Sum(terms) == event_count)
-        self.event_count = event_count
+
+    def exclude(self, pairs):
+        self.solver.add(z3.Or(*(self.values[a][0] != b for a,b in pairs)))
+        self.domain_solver.add(z3.Or(*(self.domain_values[a] != b for a,b in pairs)))
+
+    def domain_covered(self):
+        """A relaxed injective image domain can certify no unseen heavy output.
+
+        This ignores event and symmetry restrictions, so only UNSAT can skip the
+        actual query. It avoids proving absence through irrelevant H operations.
+        """
+        self.check()
+        self.domain_solver.set(timeout=max(1,min(50,int(1000*(self.deadline-time.perf_counter())))))
+        return self.domain_solver.check() == z3.unsat
 
     def check(self):
         if time.perf_counter() >= self.deadline:
@@ -106,6 +132,8 @@ class ProjectedChoices:
 
     def next(self, heavy):
         self.check()
+        if self.covered or self.domain_covered():
+            return None
         self.solver.set(timeout=max(1, int(1000*(self.deadline-time.perf_counter()))))
         status = self.solver.check()
         if status == z3.unknown:
@@ -125,7 +153,7 @@ class ProjectedChoices:
             raise AssertionError('Choice does not have the saved requested event count')
         self.table.index._vectors([vector])
         pairs = tuple(sorted((a, b) for a, b in mapping.items() if a in heavy))
-        self.solver.add(z3.Or(*(self.values[a][0] != b for a, b in pairs)))
+        self.exclude(pairs)
         return pairs
 
 
@@ -153,7 +181,8 @@ def count_choices(decoded_directions, reference, *, seconds=60., max_mappings=10
                 if time.perf_counter() >= deadline:
                     raise TimeoutError('choice-count allowance exhausted')
                 table = decoded._prepare_table(*context[:2], key)
-                projected = ProjectedChoices(table, minimum, deadline)
+                known = [tuple(sorted((b,a) for a,b in pairs)) if reverse else pairs for pairs in labelled]
+                projected = ProjectedChoices(table, minimum, deadline, heavy=heavy, known=known)
                 while True:
                     pairs = projected.next(heavy)
                     queries += 1
@@ -270,6 +299,68 @@ def run(args):
     _publish(args.output/'results.json', report)
 
 
+def publish_summary(path, output):
+    """Sanitized evidence and the decision-count distribution, without raw mappings."""
+    import gzip
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    report = json.loads(Path(path).read_bytes())
+    rows = [{k:v for k,v in row.items() if k not in ('evidence','error')}
+            for row in report['results']]
+    if len({row['case'] for row in rows}) != report['expected']:
+        raise ValueError('Wait for the full analysis scope before publishing a distribution')
+    exact = [row for row in rows if row['status'] == 'complete']
+    pending = [row for row in rows if row['status'] != 'complete']
+    counts = np.array([row['choices'] for row in exact])
+    probabilities = [row['random_success'] for row in exact]
+    summary = dict(expected=report['expected'], complete_counts=len(exact), incomplete_counts=len(pending),
+        reference_at_minimum=sum(row.get('reference_at_minimum') is True for row in rows),
+        reference_absent_at_minimum=sum(row.get('reference_at_minimum') is False for row in rows),
+        reference_unknown=sum(row.get('reference_at_minimum') is None for row in rows),
+        detected_minimum_proven=sum(row.get('saved_minimum_proven',False) for row in rows),
+        exact_count_distribution=dict(Counter(map(int,counts))),
+        single_choice=int(np.count_nonzero(counts == 1)),
+        exact_subset_mean=float(counts.mean()) if len(counts) else None,
+        exact_subset_median=float(np.median(counts)) if len(counts) else None,
+        exact_subset_p95=float(np.percentile(counts,95)) if len(counts) else None,
+        exact_subset_max=int(max(counts)) if len(counts) else None,
+        exact_subset_random_accuracy=float(np.mean(probabilities)) if probabilities else None,
+        full_scope_random_accuracy_bounds=[sum(probabilities)/len(rows),
+            (sum(probabilities)+sum(1/max(1,row.get('choices_lower_bound',0)) for row in pending))/len(rows)],
+        analysis_wall_seconds=report['elapsed_seconds'], source_unchanged=report['source_unchanged'],
+        policy=report['policy'], hydrogen_policy=report['hydrogen_policy'], resources=report['resources'],
+        runner_sha256=report['runner_sha256'], report_sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest())
+    output = Path(output); output.mkdir(parents=True,exist_ok=True)
+    _publish(output/'summary.json',summary)
+    with gzip.open(output/'reactions.json.gz','wt') as stream:
+        json.dump(sorted(rows,key=lambda row:row['case']),stream)
+    edges = [1,2,5,10,20,50,100,float('inf')]
+    labels = ['1','2','3–5','6–10','11–20','21–50','51–100','>100']
+    groups = np.zeros((2,len(edges)),dtype=int)
+    for row in exact:
+        i = next(i for i,edge in enumerate(edges) if row['choices'] <= edge)
+        groups[int(not row['reference_at_minimum']),i] += 1
+    fig,ax = plt.subplots(figsize=(8,4.5),layout='constrained')
+    x=np.arange(len(labels))
+    ax.bar(x,groups[0],color='#287b8e',label='Reference among these options')
+    ax.bar(x,groups[1],bottom=groups[0],color='#d18a59',label='Reference absent')
+    for i,total in enumerate(groups.sum(axis=0)):
+        if total:
+            ax.annotate(f'{total:,}',(i,total),xytext=(0,4),textcoords='offset points',ha='center',fontsize=9)
+    ax.set(xticks=x,xticklabels=labels,xlabel='Distinct mapping options at the detected minimum',
+           ylabel='Golden reactions (log scale)',yscale='log',title='Choices remaining under minimum-event ranking')
+    ax.set_ylim(.8,max(2,int(groups.sum(axis=0).max())*2))
+    ax.spines[['top','right']].set_visible(False)
+    ax.legend(frameon=False,fontsize=9,loc='upper right')
+    fig.supxlabel(f'Exact counts: {len(exact):,}/{len(rows):,} reactions; incomplete counts: {len(pending):,}. '
+                  'Equivalent heavy mappings and hydrogen shuffles count once.',fontsize=9)
+    for suffix in ('png','pdf','svg'):
+        fig.savefig(output/('minimum-choices.'+suffix),dpi=180)
+    plt.close(fig)
+    return summary
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('campaign', type=Path)
@@ -281,4 +372,9 @@ if __name__ == '__main__':
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--memory-gib', type=float, default=4.)
     parser.add_argument('--slurm', action='store_true')
-    run(parser.parse_args())
+    parser.add_argument('--plot', action='store_true',help='Summarize saved results; campaign argument is results.json')
+    args = parser.parse_args()
+    if args.plot:
+        print(json.dumps(publish_summary(args.campaign,args.output),indent=2))
+    else:
+        run(args)
