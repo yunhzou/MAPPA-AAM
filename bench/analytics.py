@@ -253,13 +253,14 @@ def branch_offset(decoded, reference, *, overall_minimum, best, certificates=(),
     mapping = dict(reference['mapping'])
     unresolved, queries = [], 0
     winner = None
-    contexts = sorted(decoded.window.contexts, key=lambda key: (decoded.window.bounds[key], key))
+    contexts = sorted(decoded.window.contexts,
+                      key=lambda key: (key not in known, decoded.window.bounds[key], key))
     for key in contexts:
         lower = decoded.window.bounds[key]
         if lower >= best:
             continue
         if time.perf_counter() >= deadline:
-            unresolved.append(lower)
+            unresolved.append(min(decoded.window.bounds.values()))
             break
         family = decoded.catalogue.families[key[0]]
         mapped = dict(family.mapping)
@@ -271,7 +272,7 @@ def branch_offset(decoded, reference, *, overall_minimum, best, certificates=(),
         if key not in known:
             remaining = deadline-time.perf_counter()
             if remaining <= 0:
-                unresolved.append(lower)
+                unresolved.append(min(decoded.window.bounds.values()))
                 break
             answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
                 assignments=mapping, seconds=remaining, max_nodes=100000)
@@ -319,7 +320,7 @@ def event_position(payload, workspace):
     baseline = rows[0]['overall_minimum']
     best = min(c['event_count'] for row in rows for c in row['certificates'])
     start, floors, queries, winner = time.perf_counter(), [], 0, None
-    for row in sorted(rows, key=lambda r: r.get('saved_minimum', baseline)):
+    for row in sorted(rows, key=lambda r: (not r['certificates'], r.get('saved_minimum', baseline))):
         if best == baseline:
             break
         if row.get('saved_minimum', baseline) >= best:
@@ -419,7 +420,7 @@ def run_positions(manifest, output, *, workers=1, seconds=10., task_seconds=120.
             if time.perf_counter() >= published or not pending:
                 report['elapsed_seconds'] = time.perf_counter()-start
                 _publish(output/'results.json', report)
-                print(json.dumps(dict(completed=len(report['results']), expected=len(grouped))), flush=True)
+                print(json.dumps(dict(completed=len(report['results']), expected=report['expected'])), flush=True)
                 published = time.perf_counter()+30
             if pending:
                 time.sleep(.1)
