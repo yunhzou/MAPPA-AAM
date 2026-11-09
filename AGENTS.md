@@ -47,6 +47,16 @@ page to their first discussion, with the molecular overview on the first page
 of the main text (Introduction). Keep the title and abstract on their separate
 page; never place a scientific figure beneath the abstract.
 
+Within Matching, give growth matching, saturation matching and conditional
+branching their own short subsections. Define the growing fragment, locked
+assignments, witness and atom-set placement before using them. Explain the
+zero/one/many match transitions with a decision table and a concrete example;
+positive multiplicity never triggers branching during growth. A failed edge is
+deferred; saturation requires exhaustion of eligible extensions. Apply the same
+structure to decoding: local symmetry, internal events, boundary contribution,
+sweep correction and the event window. Use notation to expose the decisions,
+not long paragraphs listing implementation details.
+
 Use molecular examples, figures and concise pseudocode to clarify the stages.
 Keep one-witness growth, compressed completion, final family reduction and local
 decoding distinct. Show these operations through molecular changes and relationships,

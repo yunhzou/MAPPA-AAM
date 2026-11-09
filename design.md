@@ -218,6 +218,30 @@ flowchart TD
 Fragment matching has two operations: find one witness during growth, then
 construct the complete compressed placements when growth saturates.
 
+### Growth decisions and saturation
+
+Use `g = (B_g, A_g)` for the growing base atom set and accepted edges, and `L`
+for earlier locked assignments. Growth asks whether the compatible injective
+mapping set `M(g | L)` is nonempty. Its witness is provisional; earlier locks
+remain fixed. Let `nu(g)` describe the number of distinct target atom sets that
+admit such a map. This is explanatory notation, not a count computed during growth.
+
+| Current -> proposed placement count | Action |
+|---|---|
+| 0 -> 0 | Reject the start: an unavailable seed is skipped, never expanded. |
+| 1 -> 0 | Defer the edge; retain the current valid fragment and try the remaining frontier. |
+| many -> 0 | The same deferral rule; retain the current valid fragment. |
+| 1 -> 1 | Accept and continue growing. |
+| 1 -> many | Accept with one witness; postpone branching. |
+| many -> 1 | Accept with one witness; the larger fragment narrows the placements. |
+| many -> many | Accept with one witness; postpone branching. |
+
+Only when no eligible extension remains does saturation matching construct the
+completed fragment placements. One target atom set owns one internal mapping
+relation, including local symmetry. Certified global placement equivalence may
+share entire continuations between sets. Hierarchical children are formed from
+the retained completed placements, not temporary growth multiplicities.
+
 ### Fragment records and ownership
 
 `FragmentGrowth` owns the changing search state. `Fragment` stores one

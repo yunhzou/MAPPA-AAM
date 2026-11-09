@@ -8,6 +8,12 @@ Constraint-discovery philosophy is integrated into growth, sweep and boundary
 interpretation. Detailed matching equations and full pseudocode are in the
 supplement; parallel execution has its own final Methods subsection.
 Reference verification is external evaluation, outside the MAPPA pipeline.
+Growth matching, saturation matching and hierarchical branching have separate
+subsections. A zero/one/many transition table distinguishes the existence decision
+from completed placement construction. Decoding likewise separates local symmetry,
+internal events, connectivity-mismatch handling, ordinary boundaries, sweep
+correction and window selection. Each operation is paired with its inputs,
+decision and molecular example.
 The Introduction defines AAM between base and target endpoints, explains
 its applications and ambiguity, then compares alternative-generating solvers
 with single-answer predictors in a table and accompanying prose. MAPPA and SLAP

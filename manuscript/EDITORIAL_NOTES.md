@@ -10,7 +10,12 @@ separate scientific subsections: constraint discovery, inputs, existence
 growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set
 reduction, local event responses, branch composition/windowing, and reuse/execution.
 Reduction is a subphase of matching; the two scientific stages are Matching and
-Decoding. Their CPU costs use that same grouping. The verifier appears only in
+Decoding. Their CPU costs use that same grouping. Growth and saturation matching
+have separate subsubsections and a zero/one/many decision table. Multiplicities
+in that table are conceptual target-set counts, not work performed during growth;
+a rejected extension is distinct from a saturated fragment. Decoding is organized
+around local symmetry, internal events, starting correspondence, ordinary
+boundaries, sweep correction and window selection. The verifier appears only in
 Evaluation. The case 9 alternatives figure is introduced early to motivate
 retaining different correspondences.
 

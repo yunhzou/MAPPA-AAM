@@ -86,9 +86,17 @@ for obsolete in ['Adaptive no-sweep','Separate experimental versions','Holdout f
  assert obsolete not in tex,obsolete
 paper=(MAN/'includes/paper.tex').read_text()
 supplement=(MAN/'includes/supplement.tex').read_text()
-stages=['matching-rules','growth','completion','cut-sweep','reduction','decoding','verification']
+stages=['matching-rules','growth','completion','branching','cut-sweep','reduction','decoding','verification']
 positions=[paper.index(r'\label{sec:'+stage+'}') for stage in stages]
 assert positions==sorted(positions)
+assert r'\subsubsection{Growth matching:' in paper
+assert r'\subsubsection{Saturation matching:' in paper
+assert r'\subsubsection{Hierarchical branching:' in paper
+assert r'\label{tab:growth-transitions}' in paper
+for transition in [r'0\to0', r'1\to0', r'\mathrm{many}\to0', r'1\to1',
+                   r'1\to\mathrm{many}', r'\mathrm{many}\to1', r'\mathrm{many}\to\mathrm{many}']:
+ assert transition in paper,transition
+assert 'One failed edge does not end growth' in paper
 assert paper.index(r'\label{sec:verification}') > paper.index(r'\section{Evaluation}')
 assert 'fig5_pipeline' not in tex and 'fig:pipeline' not in tex
 assert paper.index(r'\label{fig:alternatives}') < paper.index(r'\section{Methods}')

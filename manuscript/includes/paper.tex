@@ -54,33 +54,73 @@ MAPPA builds atom mappings by growing structural fragments shared between the ba
 
 Two stages organize this procedure. The \emph{matching stage} discovers fragments and their conditional placements, then reduces repeated fragments and branch compositions into a shared mapping catalogue. Reduction is its final subphase. The \emph{decoding stage} uses that catalogue to relate permitted atom rearrangements to bond events, preparing each unique fragment once and combining its response with the branch boundaries. Its output retains branches that can be queried within a chosen event-count window, rather than only one selected mapping. Matching and decoding are separate operations; a saved catalogue can be decoded without repeating discovery. Reference verification evaluates these outputs separately (\Cref{sec:verification}).
 
-\subsection{Matching Stage: greedy fragment growth and hierarchical branching}
+\subsection{Matching Stage: grow, saturate and branch}
 \label{sec:matching-rules}
+
+Matching alternates between \emph{growth matching}, which tests whether an enlarged fragment has any placement, and \emph{saturation matching}, which finds the finished fragment's distinct placements. Postponing branching lets a small, common motif grow into a larger, more restrictive constraint (\Cref{fig:algorithm}a).
+
+\subsubsection{Growth matching: keep extending while a match exists}
 \label{sec:growth}
 
-For one search direction, let the base and target be the two endpoint molecular graphs. Atoms carry element labels, and bonds carry their original weights; explicit hydrogens participate. A fragment begins at a base seed and grows through neighboring connections. Each proposed extension asks whether the enlarged fragment has at least one compatible, one-to-one placement in the target. An explicit valid assignment is called a \emph{witness}. A positive answer accepts the extension and updates that witness. An impossible extension is deferred while other frontier connections are explored. Growth stops when no admissible extension remains.
+The growing fragment $g=(B_g,A_g)$ contains base atoms $B_g$ and accepted edges $A_g$; $\mathcal L$ records earlier locked assignments. A \emph{witness} $m$ maps these atoms injectively into the target, preserving elements and locks, with each accepted edge placed on a target bond within tolerance $\tau_{\mathrm{iso}}$. Explicit hydrogens participate. Other internal bonds and base nonedges impose no additional matching requirement.
 
-Compatibility requires equal elements, distinct target atoms, target bond presence and a base--target bond-weight difference within the discovery tolerance $\tau_{\mathrm{iso}}$. The presence threshold $b$ determines which base connections can be explored. Growth selects a boundary atom uniformly, then an incident frontier edge uniformly; weights do not rank proposals. Only accepted growth edges become preservation constraints. Other bonds between the included atoms are not automatically required, and base nonedges impose no prohibition. Consequently, the accepted growth graph can differ from the completed fragment's full internal connectivity. Coordinates may accompany the input but do not determine growth.
+Growth starts from a seed with an available target atom. The presence threshold $b$ defines eligible connections. It selects a boundary atom uniformly, then one of its frontier edges uniformly, and tentatively forms $g^+$. The decision is an existence test:
+\begin{equation}
+ \operatorname{Exists}(g^+\mid\mathcal L)
+ =\mathbf{1}\!\left[\mathcal M(g^+\mid\mathcal L)\ne\varnothing\right],
+ \label{eq:growth-exists}
+\end{equation}
+where $\mathcal M$ is the set of compatible injective maps. If a witness is found, accept the extension. If no placement exists, defer that edge, keep $g$, and try the remaining frontier. \emph{Saturation occurs only when no eligible extension remains.} One failed edge does not end growth.
 
-Finding one witness is sufficient to decide whether growth can continue. The current assignment is extended when possible; otherwise MAPPA can rearrange assignments within the growing fragment or reuse a compatible previously discovered fragment. Assignments locked by earlier fragments remain fixed. If a search is needed, it stops at the first witness; only exhausted alternatives establish absence. A resource limit is recorded as incomplete computation. Joining a previously completed fragment retains its locked assignments and accepted constraints.
+Let $\nu(g)$ count distinct target atom sets admitting a placement (\Cref{tab:growth-transitions}). Growth does not compute this count: every positive outcome means continue growing, regardless of multiplicity.
 
+\begin{table}[H]
+\centering\small
+\caption{\textbf{Match-count transitions during proposed growth.} ``Many'' means more than one target atom-set placement, not multiple symmetry permutations on the same set. The $0\to0$ row is a rejected start; a zero-match fragment is never expanded.}
+\label{tab:growth-transitions}
+\begin{tabular}{@{}>{\centering\arraybackslash}p{.22\linewidth}>{\raggedright\arraybackslash}p{.72\linewidth}@{}}
+\toprule
+$\nu(g)\to\nu(g^+)$ & Decision\\
+\midrule
+$0\to0$ & No seed placement: skip this start and try another seed.\\
+$1\to0$ & Keep $g$ and defer the edge. At saturation, one placement gives one continuation.\\
+$\mathrm{many}\to0$ & Keep $g$ and defer the edge. At saturation, resolve its alternative placements.\\
+$1\to1$ & Accept the extension and continue growing.\\
+$1\to\mathrm{many}$ & Accept; postpone the placement choice until saturation.\\
+$\mathrm{many}\to1$ & Accept; the larger fragment has narrowed the choices.\\
+$\mathrm{many}\to\mathrm{many}$ & Accept; retain one witness and continue growing.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For $1\to\mathrm{many}$, consider one eligible target carbon with two oxygen neighbors. C has one target atom set; C--O has two. Finding either placement accepts the extension without branching. The witness can change target sites during later growth, while earlier locks remain fixed. Extending the current witness or reusing a compatible saved fragment can avoid a new search; otherwise the existence solver finds one witness or establishes absence. A resource limit is not a zero-match answer.
+
+\subsubsection{Saturation matching: recover distinct atom-set placements}
 \label{sec:completion}
-At saturation, the question changes from whether a match exists to where the completed fragment can be placed. MAPPA searches the full accepted constraints for distinct target atom sets, representing their internal alternatives compactly. For example, a six-carbon ring can occupy either of two target rings with distinct surrounding environments. These are two atom-set placements; rotations within either ring do not create additional placements. The search excludes already represented placements directly, avoiding enumeration of every internal bijection followed by merging.
 
-Each retained placement conditions the next fragment search. If fragment A occupies one target site, fragment B must use the remaining compatible sites, as illustrated in \Cref{fig:algorithm}a. Whole-endpoint symmetry can sometimes connect different atom-set placements and allow their later searches to be shared. This is used only when the transformation preserves every subsequent matching constraint and earlier lock; it moves the continuation jointly. Otherwise the placements remain separate. The branch cap limits retained continuations through pruning from the leaves upward, using the reduced descendant counts at each level. Internal symmetry permutations do not count as separate branches.
+At saturation, MAPPA finds distinct target atom sets $T_i=m(B_g)$. Each pair $(B_g,T_i)$ defines a completed fragment placement, with its internal mapping relation and fragment-local binary symmetries retained compactly.
 
-This construction treats mapping as constraint discovery. A locked fragment expresses a structure that can coexist in both endpoints, restricting the choices left for subsequent fragments. Greedy growth extends that constraint as far as the current trajectory permits. The fragment is locally saturated, not necessarily the largest common fragment obtainable from every starting point. This motivates the exploration strategy below; precise matching conditions and hierarchy rules are given in \Cref{sec:algorithm-details}.
+A six-carbon ring fragment fitting two target rings with different external attachments gives two atom-set placements. Rotations and reflections within either ring belong to that placement. Search excludes already represented target sets directly, avoiding enumeration of their bijections followed by deduplication.
+
+Fragment-local symmetry describes rearrangements \emph{within} a placement. Certified global symmetry can share work \emph{between} placements, but only if it preserves the entire remaining matching problem, moving later fragments jointly and respecting earlier locks. Otherwise those placements remain separate (\Cref{sec:completion-details}).
+
+\subsubsection{Hierarchical branching: lock a placement and continue}
+\label{sec:branching}
+
+Each completed placement creates a child continuation: lock its assignments and grow the next fragment. In \Cref{fig:algorithm}a, choosing A$\to a$ leaves sites $b,c$ for B; choosing B$\to b$ leaves $c$ for C. These are conditional decisions: two fragments cannot independently occupy the same target atoms. Joining an earlier fragment retains its locked assignments and accepted constraints.
+
+Each locked fragment expresses a shared structural constraint, extended as far as the current greedy trajectory permits. Another seed may discover a different constraint. After each completed step, apply the branch cap from leaves to root: discard the largest sibling subtrees as needed, recount, then assess the parent. Internal symmetry permutations do not count as branches. Caps restrict coverage and are recorded explicitly (\Cref{sec:hierarchy-details}).
 
 \begin{samepage}
-\subsection{Matching Stage: exploring seeds and single-bond cuts}
+\subsection{Matching Stage: seeds, cuts and search direction}
 \label{sec:cut-sweep}
 
-One greedy trajectory can repeatedly favor a large preserved region and miss another useful decomposition. In \Cref{fig:design-examples}a, growing the large B--A region first tends to leave R--B as the next fragment. If B--A contains 90\% of the eligible seed atoms, a uniformly chosen initial seed falls there with probability 0.9. Additional seeds can discover different constraints, but may also revisit the dominant decomposition.
+\textbf{Vary the starting point.} One greedy trajectory can repeatedly favor a large preserved region and miss another useful decomposition. In \Cref{fig:design-examples}a, growing the large B--A region first tends to leave R--B as the next fragment. If B--A contains 90\% of the eligible seed atoms, a uniformly chosen initial seed falls there with probability 0.9. Additional seeds can discover different constraints, but may also revisit the dominant decomposition.
 \par\end{samepage}
 
-A single-edge \emph{cut sweep} perturbs this commitment systematically. MAPPA searches the uncut graph and then repeats the search with each eligible base edge temporarily masked, including bonds to hydrogen. Each cut condition receives the requested number of seed orderings. Masking a connection inside the dominant region can expose a trajectory that ordinary seeding rarely reaches. The original endpoint weights remain unchanged for decoding: a mask alters discovery and does not assert a broken bond. Its endpoints may reconnect through another route, and one cut can redirect several later fragment choices.
+\textbf{Vary the allowed connections.} A single-edge \emph{cut sweep} perturbs this commitment systematically. MAPPA searches the uncut graph and then repeats the search with each eligible base edge temporarily masked, including bonds to hydrogen. Each cut condition receives the requested number of seed orderings. Masking a connection inside the dominant region can expose a trajectory that ordinary seeding rarely reaches. The original endpoint weights remain unchanged for decoding: a mask alters discovery and does not assert a broken bond. Its endpoints may reconnect through another route, and one cut can redirect several later fragment choices.
 
-Exchanging the base and target adds further alternatives. Seeds, cuts and reverse searches broaden discovery without making it exhaustive. The same exploration principle can be applied to another mapper; our expanded SLAP protocol reaches approximately 97\% coverage, although its changes in both search scope and weight mode prevent a sweep-only attribution (\Cref{sec:paired-slap}).
+\textbf{Exchange the endpoints.} Exchanging the base and target adds further alternatives. Seeds, cuts and reverse searches broaden discovery without making it exhaustive. The same exploration principle can be applied to another mapper; our expanded SLAP protocol reaches approximately 97\% coverage, although its changes in both search scope and weight mode prevent a sweep-only attribution (\Cref{sec:paired-slap}).
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig8_design_examples.pdf}
@@ -88,42 +128,69 @@ Exchanging the base and target adds further alternatives. Seeds, cuts and revers
 \label{fig:design-examples}
 \end{figure}
 
-\subsection{Matching Stage: consolidating unique fragments and branch compositions}
+\subsection{Matching Stage: consolidate unique fragments and branches}
 \label{sec:reduction}
 
-The final subphase of matching consolidates the search results. Because different searches often rediscover the same fragment, reduction identifies it by its base and target atom-set pair $(B_i,T_i)$ and gives that pair one shared record. For example, if two seed searches both match base atoms $\{1,2,3\}$ to target atoms $\{a,b,c\}$, they reference the same completed fragment even if their growth order or starting witness differs. Each branch becomes a composition of these shared fragment identities, allowing repeated compositions to be removed before decoding.
+Different seeds and cuts often rediscover the same fragment. The final matching subphase, \emph{reduction}, gives each base/target atom-set pair $(B_i,T_i)$ one shared identity $F_i$. For example, two searches that match $\{1,2,3\}$ to $\{a,b,c\}$ reference the same $F_i$, even if their growth order or starting witness differs. Each branch then references its fragment identities, allowing repeated compositions to share one catalogue entry.
 
-The retained record keeps one original witness, its discovery constraints, anchors and symmetry information intact. Duplicate records are discarded rather than combined into broader mapping permissions. Branches also retain their ordered placement context, because a shared placement transformation must move its continuation consistently. A \emph{mapping family} stores these retained local relations and placements with their alternative partitions and cut provenance. Different fragment partitions remain alternatives, not contributions to be added together.
+A fragment identity is a key, not permission to map its atoms arbitrarily. Reduction keeps one original record with its witness, discovery constraints, anchors and symmetry relation. Branches also retain the ordered placement context needed to move later fragments consistently. Equal compositions are consolidated with that context preserved; their cut provenance is collected together. Selecting one original record does not retain the union of all discarded discovery relations.
 
-Reduction reuses the fragment inventories accumulated during matching. It performs structural grouping and deduplication, without symmetry optimization or bond-event computation. Selecting one record per atom-set pair does not preserve the union of every discarded discovery relation; this restriction remains part of the method. The output is one catalogue per reaction and search direction, combining the requested seeds and cuts. That complete catalogue supplies the decoder.
+This subphase reuses the fragment inventories already accumulated during matching. It performs structural grouping, with no symmetry optimization or event computation. Its output is one shared catalogue per reaction and direction. That catalogue is the input to decoding.
 
-\subsection{Decoding Stage: local fragment symmetry and internal bond events}
+\subsection{Decoding Stage: prepare each fragment's symmetry--event response}
 \label{sec:decoding}
 
-Decoding first identifies the unique fragments and which branches use them. Its goal is to compute a fragment's local symmetry-to-bond-event relationship once, then reuse it across all those branches. A response records which rearrangements remain possible and how they change the internal event count. Branch assembly follows in \Cref{sec:window}.
+Decoding turns the retained mapping alternatives into queryable bond-event information. It first prepares each unique fragment once, then reuses that response wherever the fragment occurs. The local calculation connects \emph{which atoms can move together} to \emph{which bond changes those moves produce}.
 
-Local symmetry is computed on each fragment's own binary internal graph, preserving elements and fixing its anchors. Bonds satisfying the presence criterion share one structural label; their original weights remain available for event counting. External attachments do not define the fragment's internal symmetry. Nauty supplies compact generators~\citep{mckay2014}, each describing a permitted joint rearrangement. For example, exchanging two identical arms moves each arm with its attached atoms, while an internal hydrogen exchange can act within one arm. The arm choices must still occupy different positions. These correlated operations represent the alternatives without storing every complete permutation. Both endpoint actions are retained; for an aligned equal-connectivity pair, one side suffices to describe their relative rearrangements.
+\subsubsection{Local symmetry: retain independent and correlated moves}
 
-Events are evaluated from the original bond-weight differences under the resulting correspondence. A change counts when its magnitude is strictly greater than the event threshold, with its sign distinguishing formation or strengthening from cleavage or weakening. Our studies use 0.5, or 0.3 for a pair involving a metal. Discovery tolerance and event thresholds therefore serve different purposes: a permitted binary rearrangement can preserve connectivity while changing weighted bond events. In the acetate example (\Cref{fig:algorithm}c), exchanging the two oxygen images adds two internal bond events even though the binary connectivity is preserved. The response separates independent components when no event term or requested endpoint couples them, and shares computations for event-invariant choices.
+For each endpoint of a fragment, compute symmetry on its own binary internal graph. Elements are preserved, anchors remain fixed, and bonds satisfying the presence criterion share one structural label. Original bond weights are retained for event counting. External attachments do not determine this local symmetry.
 
-For each fragment, the decoder improves the saved starting correspondence under its local symmetries. The growth graph and final internal connectivity can nevertheless differ, as in the substituted carbon triangle and chain in \Cref{fig:design-examples}b. The displayed rearrangements preserve the one-event internal ring-opening cost while changing the outer attachment. More generally, useful starting correspondences need not be connected by local symmetry. Additional starting-correspondence search is therefore restricted to fragments with such a connectivity mismatch whose current witness remains above a valid lower bound. Preparation and improvement share a fixed per-fragment budget. The retained result consists of one selected starting correspondence and its queryable symmetry response; unless a valid bound or complete search certifies optimality, its minimum is best found. Selecting this starting orbit is an explicit coverage restriction.
+Nauty supplies compact generators~\citep{mckay2014}: unit operations that describe the allowed rearrangements. Exchanging two identical arms moves each arm with its attached atoms; exchanging two hydrogens can act within an arm. The two arms must still occupy different positions. These joint operations retain that correlation without storing every full permutation. Both endpoint actions are represented; for an aligned equal-connectivity pair, one side suffices to describe their relative rearrangements.
 
-\subsection{Decoding Stage: boundary events, sweep correction and event windows}
+\subsubsection{Internal events: attach bond changes to the allowed moves}
+
+Let $W_B$ and $W_T$ denote the original base and target bond-weight matrices. For mapped atoms $u,v$, an assignment $m$ changes the bond weight by
+\begin{equation}
+ \Delta W_{uv}(m)=W_T(m(u),m(v))-W_B(u,v).
+ \label{eq:local-event}
+\end{equation}
+The pair contributes one event when $|\Delta W_{uv}|$ exceeds its event threshold. The sign distinguishes formation or strengthening from cleavage or weakening. These thresholds differ from the growth tolerance: a binary symmetry can preserve connectivity while changing bond weights.
+
+In the acetate example (\Cref{fig:algorithm}c), exchanging the two oxygen images adds two internal events. The saved response associates the rearrangement with those changes, so every branch using that fragment can reuse the calculation. Independent symmetry components are processed separately when no event term or requested endpoint couples them. Event-invariant choices share computation; correlated choices remain joint. The response supports later event queries without expanding every complete mapping.
+
+\subsubsection{Different connectivity: improve the starting correspondence}
+
+The accepted growth graph can omit bonds present in the final fragment. In the substituted triangle--chain example (\Cref{fig:design-examples}b), the displayed local shuffles keep one internal ring-opening event while changing the outer attachment. More generally, two valid discovery correspondences on the same atom sets need not be connected by the final fragment symmetries. Optimizing only one starting correspondence can therefore miss a lower-event alternative.
+
+MAPPA first improves the saved witness under local symmetry. Additional starting-correspondence search is allowed only when growth and final connectivity differ on at least one side and the witness has not attained an established event lower bound. Preparation and improvement share a fixed per-fragment budget. The output retains the selected starting correspondence and its symmetry response. An unsettled minimum is recorded as best found; selecting this starting orbit restricts decoded coverage. Solver details and bounds are given in \Cref{sec:decoding-details}.
+
+\subsection{Decoding Stage: assemble branch events and select the window}
 \label{sec:window}
 
-A branch combines the prepared internal responses with events at its fragment boundaries. MAPPA aims to share local calculations rather than enumerate whole-reaction assignments. It uses the independent ordinary-boundary approximation: ordinary boundary contributions stay fixed, while the single swept connection retains its dependence on the two endpoint assignments. For a branch $\mathcal B$ and a permitted correspondence $m$, the reported count is
+A branch combines three contributions: internal fragment events, ordinary boundary events and the correction for the swept bond. For a branch $\mathcal B$ and a permitted correspondence $m$, the reported count is
 \begin{equation}
  E_{\mathcal B}(m)=B_{\mathcal B}+\sum_i e_i(m)+s_{\mathcal B}(m),
  \qquad 0\leq s_{\mathcal B}(m)\leq 2.
  \label{eq:composition}
 \end{equation}
-Here $e_i$ counts internal events owned by a disjoint final fragment piece, $B_{\mathcal B}$ is the ordinary-boundary contribution, and $s_{\mathcal B}$ is the swept bond's correction. Bonds touching mapped atoms are counted, including mapped/unmapped boundaries; bonds wholly inside unmatched material are omitted. No correspondence is invented for an unmatched atom. Assembly reuses the local responses and preserves shared choices, one-to-one occupancy and the correlation between the sweep endpoints and internal events.
+Here $e_i$ is the reused internal response of a disjoint final fragment piece, $B_{\mathcal B}$ is the ordinary-boundary contribution, and $s_{\mathcal B}$ accounts for the swept connection. The following rules specify how they are combined.
 
-Greedy growth helps make the boundary approximation useful by absorbing compatible connections before fragments lock. In C--C$\equiv$N $\rightarrow$ C--C--N (\Cref{fig:design-examples}c), tolerance one can leave C--C separate from N. Exchanging the two carbons then changes the outer contribution from one weakening to a cleavage plus a formation. Tolerance two allows that connection inside one fragment, where its dependence is handled by the internal response. Greediness reduces such artificial boundaries but cannot guarantee independence: the ring--chain example still has a variable outer attachment. Equation~\eqref{eq:composition} is consequently a model count, which may differ from the physical whole-reaction count.
+\subsubsection{Ordinary boundaries: a fixed contribution under the model}
 
-The requested event window focuses decoding on low-event alternatives. Local bounds and actual branch witnesses first establish a best attained count $U$. When attained local minima compose, the smallest pre-sweep composition $L$ has an attainable upper bound no greater than $L+2$; only compositions that could improve the current best require further refinement. Unfinished local searches or incompatible local minima instead retain their lower bounds and an actual attained upper bound, without assuming that $L+2$ is attainable. Branches whose lower bounds exceed $U+n$ are excluded. The studies below use a slack of $n=5$.
+MAPPA uses the independent ordinary-boundary approximation: these contributions remain fixed as internal fragment choices change. Bonds touching mapped atoms are counted, including mapped/unmapped boundaries; bonds wholly within unmatched material are omitted. No assignment is invented for an unmatched atom.
 
-The result retains branch identities, shared fragment responses, the event window and minimum/proof status. A later query can request a correspondence at a selected count or with specified atom pairs. It returns a concrete witness, established absence or an unresolved outcome under its allowance. Retaining a count interval does not assert that every count inside it is attainable. A proved model minimum, a best-found model count and a physical event minimum remain distinct.
+Greedy growth helps absorb connections that would otherwise couple fragments. In C--C$\equiv$N $\rightarrow$ C--C--N (\Cref{fig:design-examples}c), tolerance one can leave C--C separate from N. Swapping the carbons changes the outer contribution from one weakening to a cleavage plus a formation. Tolerance two allows C--N inside the fragment, where the internal response handles that dependence. Greediness helps, but does not guarantee independence: the triangle--chain example still has a variable outer attachment. Equation~\eqref{eq:composition} is therefore a model count, which can differ from the physical whole-reaction count.
+
+\subsubsection{The swept bond: reuse the two endpoint responses}
+
+The single masked connection is handled separately. Its correction depends on where its two endpoints are placed, so assembly queries their jointly reachable positions in the already prepared fragment responses. It retains their correlation with internal events and one-to-one occupancy. It does not rebuild a whole-reaction bijection table. The swept contribution ranges from zero to two events.
+
+\subsubsection{The event window: refine the best count, then retain nearby branches}
+
+First establish the best attained branch count $U$. When attained local minima compose, the smallest pre-sweep composition $L$ can incur at most two additional sweep events. Only branch compositions that could improve this $L+2$ result need refinement. If local searches are unfinished or their minima cannot be combined, retain the lower bounds and an actual witness upper bound; do not assume $L+2$ is attainable.
+
+Next retain branches that could contribute within $U+n$: a branch is excluded only when its lower bound exceeds that threshold. The studies here use $n=5$. The result stores the retained branches, shared fragment responses, event window and minimum/proof status. A later query requests a mapping at a selected count or with specified atom pairs, returning a witness, established absence or an unresolved outcome under its allowance. A retained count interval does not assert that every count inside it is attainable.
 
 \subsection{Execution: parallel stages and shared computation}
 \label{sec:reuse-execution}
