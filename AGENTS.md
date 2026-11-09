@@ -14,6 +14,11 @@ such as shared molecular fragments. Do not introduce detailed methodology,
 execution settings or unexplained terms such as seed counts. Retain informative
 coverage and CPU-time results without turning the abstract into a Methods summary.
 
+Open the Introduction by defining AAM as correspondence between the reactant
+and product endpoints, then explain its applications, ambiguity and motivation.
+Use a comparison table paired with prose for method-output categories and their
+evaluation metrics. Establish this background before introducing MAPPA's stages.
+
 Write the main manuscript for researchers who have not read the code. Organize
 the algorithm into clear scientific stages: explain each stage's purpose, input,
 operation and output, and how it connects to the next stage. Introduce the core

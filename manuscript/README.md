@@ -8,9 +8,10 @@ Constraint-discovery philosophy is integrated into growth, sweep and boundary
 interpretation. Detailed matching equations and full pseudocode are in the
 supplement; parallel execution has its own final Methods subsection.
 Reference verification is external evaluation, outside the MAPPA pipeline.
-The introduction distinguishes alternative-generating solvers from single-answer
-predictors and separates pathway endpoints from reaction mechanisms. MAPPA and
-SLAP belong to the first category; optional chemical ranking is downstream work.
+The Introduction defines AAM between reactant and product endpoints, explains
+its applications and ambiguity, then compares alternative-generating solvers
+with single-answer predictors in a table and accompanying prose. MAPPA and SLAP
+belong to the first category; optional chemical ranking is downstream work.
 
 ## Current results
 

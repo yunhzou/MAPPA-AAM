@@ -1,6 +1,8 @@
 \section{Introduction}
 
-Atom-to-atom mapping identifies corresponding atoms across a chemical reaction. It describes the net evolution of atom identities from reactants to products: the endpoint correspondence left by a chemical pathway, rather than the sequence of intermediates or elementary steps along that pathway. These correspondences support reaction-center identification, template extraction and the preparation of structures for reaction-path calculations. Yet endpoint structures do not always determine a unique assignment. Different correspondences may imply different atom origins and bond changes, while molecular symmetry can produce many equivalent assignments. MAPPA explores these alternatives through fragment growth and symmetry-aware decoding (\Cref{fig:algorithm}).
+A chemical reaction connects two endpoints: the reactant structures ($R$) and the product structures ($P$), each of which may contain several molecules. Given these endpoints, atom-to-atom mapping (AAM) assigns corresponding atoms between $R$ and $P$, preserving their elements and using each mapped atom only once. This correspondence identifies which reactant atom becomes which product atom. Comparing the bonds between corresponding atom pairs then reveals the net bond changes: for example, a bond present in $R$ but absent in $P$ is a cleavage under that mapping. AAM therefore describes the endpoint result of chemical evolution; the intervening sequence of elementary steps requires additional information.
+
+These assignments make reactions usable as structured data. They locate reaction centers and enable the extraction of transformation templates for reaction prediction and retrosynthesis~\citep{schwaller2021,chen2024}. They also establish atom identities between endpoint geometries for reaction-path calculations~\citep{de2019}. A mistaken correspondence can change the inferred transformation and propagate into downstream analyses. MAPPA addresses this task by exploring shared molecular fragments and the alternative mappings they support (\Cref{fig:algorithm}).
 
 \begin{figure}[!b]
 \centering\includegraphics[width=.95\linewidth]{figs/fig1_algorithm.pdf}
@@ -8,13 +10,31 @@ Atom-to-atom mapping identifies corresponding atoms across a chemical reaction. 
 \label{fig:algorithm}
 \end{figure}
 
-Two complementary objectives organize AAM methods by their intended output. \emph{Alternative-generating solvers} retain several admissible correspondences, allowing a later decision between them. SLAPMapper, which combines label refinement with sequential linear assignment, belongs to this category~\citep{koda2025}. \emph{Prediction-oriented solvers} select a most plausible correspondence: RXNMapper derives an assignment from reaction-language-model attention~\citep{schwaller2021}, while LocalMapper learns from chemist-labeled reactions~\citep{chen2024}. These are output objectives, not a strict separation between optimization and learning. Reference inclusion anywhere in a candidate set measures coverage; the correctness of one selected answer measures top-1 accuracy.
+The difficulty is that endpoint structures alone may not select a unique correspondence. Repeated groups offer several possible matching sites, and molecular symmetry permits exchanges that leave a structure unchanged. Other assignments can imply different atom origins or different bond changes. For example, when several reactant molecules contain oxygen, deciding which oxygen appears in a product may require chemical knowledge beyond element identity. Favoring a small number of bond changes is a useful structural preference, but does not by itself establish the chemically correct atom history~\citep{chen2024}. A mapper must therefore balance the cost of exploring alternatives with the risk of discarding a useful one.
 
-An alternative-generating solver can support a single-answer workflow through a separate selector. A simple surrogate favors fewer bond events; chemical rules, learned preferences or reaction context could then distinguish the remaining choices. Such a selector cannot recover a correspondence absent from its input set, and its accuracy must be evaluated separately. MAPPA belongs to the alternative-generating category, as does SLAPMapper. Its purpose is to expose and organize structural choices without repeatedly listing permutations of the same choice; we do not introduce or evaluate a chemistry-trained selector here.
+Existing approaches use structural optimization or information learned from reaction data to guide these assignments. Structural methods seek shared substructures or favorable bond-change patterns~\citep{lin2022}; SLAPMapper uses iterative atom-label refinement and assignment optimization~\citep{koda2025}. RXNMapper obtains correspondence information from a reaction language model~\citep{schwaller2021}, while LocalMapper learns from chemist-labeled examples~\citep{chen2024}. For the present work, a further distinction is useful: whether the intended output is a set of alternatives or one selected prediction (\Cref{tab:aam-objectives}). This distinction concerns the answer supplied to the user and can apply to either structural or learned methods.
 
-Weighted molecular graphs introduce another distinction. Two assignments can both satisfy a permissive bond-weight matching tolerance while producing different bond events at a finer threshold. Retaining one representative alone can therefore hide information needed for chemical interpretation. The search for correspondences and their interpretation as bond changes should remain separate.
+\begin{table}[!htbp]
+\centering
+\caption{\textbf{Two output objectives for atom-to-atom mapping.} The distinction separates discovery of alternatives from selection of a preferred answer. The examples illustrate these roles rather than an exhaustive classification of AAM methods.}
+\label{tab:aam-objectives}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{.18\linewidth}>{\raggedright\arraybackslash}p{.38\linewidth}>{\raggedright\arraybackslash}p{.38\linewidth}@{}}
+\toprule
+ & \textbf{Generate alternatives} & \textbf{Predict one mapping}\\
+\midrule
+Goal & Retain different correspondences allowed by the search rules. & Select the correspondence judged most plausible.\\
+Output & A candidate set or a compact family of mappings. & One selected atom assignment.\\
+Downstream use & Examine ambiguity or apply a separate chemical selector. & Use the selected assignment directly.\\
+Evaluation & Coverage: the reference is among the returned alternatives. & Top-1 accuracy: the selected answer matches the reference.\\
+Examples & SLAPMapper~\citep{koda2025}; MAPPA (this work). & RXNMapper~\citep{schwaller2021}; LocalMapper~\citep{chen2024}.\\
+\bottomrule
+\end{tabular}
+\end{table}
 
-MAPPA separates three decisions (\Cref{fig:algorithm}): whether a fragment can continue growing, which compressed placements its completed constraints permit, and what bond changes those placements imply. Growth retains one compatible assignment. At saturation, a separate operation constructs the distinct compressed fragment placements, which become conditional branches for mapping the remaining atoms. A cut sweep varies the growth conditions to expose alternatives excluded by greedy fragment commitment. The completed search is reduced to a catalogue of mapping families, and a separate decoder shares local bond-event calculations across its unique fragments. We describe these stages and evaluate reference recovery and computational cost on Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}.
+The two objectives can be combined in a discovery-and-selection workflow. An alternative-generating solver supplies candidates; a selector then chooses among them using a preference such as fewest bond events, chemical rules or a learned ranking. Coverage measures whether the reference remains available for that later choice, whereas top-1 accuracy measures whether the choice is correct. High coverage is therefore useful but does not establish equally high top-1 accuracy. MAPPA focuses on the discovery step and retains alternatives for subsequent interpretation and selection.
+
+The central challenge for this objective is to preserve useful diversity without repeatedly processing equivalent atom assignments. MAPPA treats mapping as a constraint-search problem: shared molecular fragments restrict which atoms can correspond, while compact symmetry relationships retain allowed rearrangements. Matching discovers these fragments and their combinations; reduction collects repeated fragments and branch compositions; decoding relates the retained alternatives to bond changes. This separation allows fragment calculations to be reused across alternatives and supports parallel exploration. We evaluate reference coverage, computational cost and the choices remaining under a minimum-bond-event preference on Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}.
 
 \section{Methods}
 
@@ -43,10 +63,12 @@ Each retained placement conditions the next fragment search. If fragment A occup
 
 This construction treats mapping as constraint discovery. A locked fragment expresses a structure that can coexist in both endpoints, restricting the choices left for subsequent fragments. Greedy growth extends that constraint as far as the current trajectory permits. The fragment is locally saturated, not necessarily the largest common fragment obtainable from every starting point. This motivates the exploration strategy below; precise matching conditions and hierarchy rules are given in \Cref{sec:algorithm-details}.
 
+\begin{samepage}
 \subsection{Matching Stage: exploring seeds and single-bond cuts}
 \label{sec:cut-sweep}
 
 One greedy trajectory can repeatedly favor a large preserved region and miss another useful decomposition. In \Cref{fig:design-examples}a, growing the large B--A region first tends to leave R--B as the next fragment. If B--A contains 90\% of the eligible seed atoms, a uniformly chosen initial seed falls there with probability 0.9. Additional seeds can discover different constraints, but may also revisit the dominant decomposition.
+\par\end{samepage}
 
 A single-edge \emph{cut sweep} perturbs this commitment systematically. MAPPA searches the uncut graph and then repeats the search with each eligible source edge temporarily masked, including bonds to hydrogen. Each cut condition receives the requested number of seed orderings. Masking a connection inside the dominant region can expose a trajectory that ordinary seeding rarely reaches. The original endpoint weights remain unchanged for decoding: a mask alters discovery and does not assert a broken bond. Its endpoints may reconnect through another route, and one cut can redirect several later fragment choices.
 
@@ -215,9 +237,11 @@ The reference is confirmed at the detected minimum in 1,691 reactions, absent th
 
 Zero-offset certificates can establish the answer immediately, so the completed subset overrepresents zero. The higher-offset distribution remains incomplete and does not yet support full-dataset proportions. Both sides of the subtraction use the same decoder count, including hydrogen and the ordinary-boundary approximation. The offset measures the reported model landscape, not physical event-bin accuracy.
 
+\begin{samepage}
 \subsection{Chemical interpretation of retained alternatives}
 
 A correspondence describes net atom origins and bond changes without specifying intermediates or elementary steps. \Cref{fig:alternatives} illustrates why retaining alternatives can matter. In Golden case 9, the annotated assignment places the alcohol oxygen in the product ring and the ketone oxygen in water. A second assignment exchanges those oxygen origins, while a third also changes two carbon assignments. The second has fewer events than the reference; the first and third have equal event totals but different correspondences. Neither a minimum event count nor a single total identifies the annotated transformation.
+\par\end{samepage}
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig4_alternatives.pdf}
