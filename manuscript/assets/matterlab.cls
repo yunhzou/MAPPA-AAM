@@ -132,7 +132,7 @@
 \renewcommand\author[2][]{\addtolist[#1]{#2}{\authorlist}{\authorformat}{, }}
 
 \newcommand\affiliationlist{}
-\newcommand\affiliationformat[2][]{{\small $^{#1}$#2}}
+\newcommand\affiliationformat[2][]{{\normalsize $^{#1}$#2}}
 \newcommand\affiliation[2][]{\addtolist[#1]{#2}{\affiliationlist}{\affiliationformat}{\\}}
 
 \newcommand\contributionlist{}
@@ -141,7 +141,7 @@
 
 \newcommand\metadatalist{}
 \newcommand\metadataformat[2][]{{\small {\sffamily \bfseries #1:} #2}}
-\newcommand\metadata[2][]{\addtolist[#1]{#2}{\metadatalist}{\metadataformat}{\quad}}
+\newcommand\metadata[2][]{\addtolist[#1]{#2}{\metadatalist}{\metadataformat}{\par}}
 
 \renewcommand{\abstract}[1]{\def\abstractlist{{\color{metafg} #1}}}
 \newcommand{\email}[1]{\href{mailto:#1}{\texttt{#1}}}
@@ -159,39 +159,73 @@
 
 \newcommand{\mymaketitle}{%
   \tcbset{enhanced,frame hidden}
-  \tcbset{left=0.3cm}
-  \tcbset{right=0.3cm}
-  \tcbset{top=0.2cm}
-  \tcbset{bottom=0.2cm}
+  \tcbset{left=0.5cm}
+  \tcbset{right=0.5cm}
+  \tcbset{top=0.5cm}
+  \tcbset{bottom=0.5cm}
   \tcbset{arc=10pt}
   \tcbset{colback=matterbg2}
   \tcbset{before skip=0pt}
   \tcbset{grow to left by=1.5pt}
   \tcbset{grow to right by=1.5pt}
+  \tcbset{overlay={
+      % first logo
+      \node[
+        anchor=south east,
+        at= (frame.south east),
+        xshift=-4.5cm,
+        yshift=1.2cm] {\includegraphics[width=1.5cm]{assets/logo_matterlab.pdf}};
+    % fifth logo
+      \node[
+        anchor=south east,
+        at= (frame.south east),
+        xshift=-2.5cm,
+        yshift=1.0cm] {\includegraphics[width=1.5cm]{assets/nvidia-logo-vert.png}};
+      % second logo
+        \node[
+        anchor=south east,
+        at= (frame.south east),
+        xshift=-0.5cm,
+        yshift=1.1cm] {\includegraphics[width=1.5cm]{assets/logo_ac.pdf}};
+      % third logo
+      \node[
+        anchor=south east,
+        at= (frame.south east),
+        xshift=-3.5cm,
+        yshift=0.5cm] {\includegraphics[width=1.5cm]{assets/logo_uoft.pdf}};
+      % forth logo
+      \node[
+        anchor=south east,
+        at= (frame.south east),
+        xshift=-1.5cm,
+        yshift=0.5cm] {\includegraphics[width=1.5cm]{assets/logo_vector.png}};
+    }}
   % 
   \begin{tcolorbox}
     \setlength{\parindent}{0cm}
-    \setlength{\parskip}{0.2cm}
+    \setlength{\parskip}{0.5cm}
     {
       \setlength{\parskip}{0cm}
       \raggedright
       \nohyphens
       %
       {
-        \setstretch{1.1}
+        \setstretch{1.618}
         \titlelist\par
       }
-      \vskip 0.1cm
+      \vskip 0.2cm
       %
       \authorlist\par
-      \vskip 0.1cm
+      \vskip 0.2cm
       %
-      {\footnotesize Affiliations and principal investigators: see Author information.}\par
+      \affiliationlist\par
+      %
+      \contributionlist\par
     }
     %
-    {\small\abstractlist\par}
+    \abstractlist\par
     %
-    \vskip 0.05cm
+    \vskip 0.5cm
     %
     {
       \setlength{\parskip}{0cm}

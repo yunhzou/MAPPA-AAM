@@ -27,7 +27,9 @@ Open Methods with the complete fragment-growth-to-decoding workflow before
 introducing equations or solver details. Use explicit stage names in subsection
 titles (Matching Stage, Reduction Stage, Decoding Stage). Integrate the design
 philosophy where it explains each operation. Keep figures on the same or adjacent
-page to their first discussion, with the molecular overview on the first page.
+page to their first discussion, with the molecular overview on the first page
+of the main text (Introduction). Keep the title and abstract on their separate
+page; never place a scientific figure beneath the abstract.
 
 Use molecular examples, figures and concise pseudocode to clarify the stages.
 Keep one-witness growth, compressed completion, final family reduction and local

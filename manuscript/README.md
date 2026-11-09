@@ -65,10 +65,11 @@ seed range and omits the cache-control comparison. No new experiments were run.
 
 ## Sources and build
 
-The molecular overview shares the first page with the title and abstract. Full
-affiliations and institutional logos appear under Author information. Figures
-are placed at their first discussion where space permits, or on the adjacent
-page; the final PDF is checked against those citation locations.
+The title, full affiliations, abstract and institutional logos retain their
+separate opening page. Scientific figures do not appear beneath the abstract.
+The molecular overview appears on the first main-text page, in the Introduction.
+Other figures are placed at their first discussion where space permits, or on
+the adjacent page; the final PDF is checked against those citation locations.
 
 - `preprint.tex`: entry point; author list and supplied affiliations are retained.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
