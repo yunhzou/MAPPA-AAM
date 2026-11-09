@@ -17,6 +17,166 @@ from matplotlib.transforms import Affine2D
 
 INK='#223340'; MUTED='#586974'; TEAL='#087F8C'; ORANGE='#CB702A'; PURPLE='#77559B'; RED='#B63F52'; BLUE='#3366A5'; LINE='#D5DEE2'
 PALE_A=(.70,.88,.86); PALE_B=(1.,.82,.59); PALE_O=(.84,.76,.94)
+
+
+def check_design_examples():
+    """Direct pair counting for the schematic heavy-atom examples, not AAM runs."""
+    from itertools import combinations, permutations
+
+    def count(source, target, mapping, internal):
+        events = []
+        for a, b in combinations(sorted(mapping), 2):
+            change = target.get(tuple(sorted((mapping[a], mapping[b]))), 0)-source.get((a, b), 0)
+            if abs(change) > .5:
+                events.append(dict(pair=[a, b], change=change,
+                                   location='inner' if {a, b} <= internal else 'outer'))
+        return events
+
+    ring = {(0, 1): 1, (1, 2): 1, (1, 3): 1, (2, 3): 1}
+    chain = {(0, 2): 1, (1, 2): 1, (2, 3): 1}
+    ring_maps = {'center': {0: 0, 1: 2, 2: 1, 3: 3},
+                 'end': {0: 0, 1: 1, 2: 2, 3: 3}}
+    ring_events = {key: count(ring, chain, mapping, {1, 2, 3})
+                   for key, mapping in ring_maps.items()}
+    assert [len(ring_events[key]) for key in ('center', 'end')] == [1, 3]
+    assert all(sum(e['location'] == 'inner' for e in events) == 1
+               for events in ring_events.values())
+    # This accepted path forces C1 onto a chain end, preventing growth to A.
+    carbon_maps = [{0: 0, **dict(zip((1, 2, 3), perm))} for perm in permutations((1, 2, 3))]
+    def present(mapping, edge):
+        return chain.get(tuple(sorted(mapping[i] for i in edge)), 0) > .2
+    path_matches = [mapping for mapping in carbon_maps
+                    if all(present(mapping, edge) for edge in ((1, 2), (2, 3)))]
+    assert path_matches and not any(present(mapping, (0, 1)) for mapping in path_matches)
+    nitrile = {(1, 2): 1, (2, 3): 3}
+    single = {(1, 2): 1, (2, 3): 1}
+    nitrile_maps = {'retain': {1: 1, 2: 2, 3: 3}, 'exchange': {1: 2, 2: 1, 3: 3}}
+    nitrile_events = {key: count(nitrile, single, mapping, {1, 2})
+                      for key, mapping in nitrile_maps.items()}
+    assert [len(nitrile_events[key]) for key in ('retain', 'exchange')] == [1, 2]
+    assert all(e['location'] == 'outer' for events in nitrile_events.values() for e in events)
+    assert abs(nitrile[(2, 3)]-single[(2, 3)]) > 1
+    assert abs(nitrile[(2, 3)]-single[(2, 3)]) <= 2
+    return dict(scope='Analytical heavy-atom graph illustrations; no H constraints or benchmark reruns.',
+                ring_events=ring_events, nitrile_events=nitrile_events,
+                triple_to_single_weight_difference=2)
+
+
+def build_design_examples(man):
+    """Use the manuscript's palette and bond-event glyphs for design examples."""
+    import numpy as np
+    proof = check_design_examples()
+    (man/'evidence/design_examples.json').write_text(json.dumps(proof, indent=2)+'\n')
+    fig, axes = plt.subplots(3, 1, figsize=(10.4, 8.4))
+    fig.subplots_adjust(left=.035, right=.98, top=.98, bottom=.03, hspace=.22)
+    for ax in axes:
+        ax.set(xlim=(0, 112), ylim=(100, 0))
+        ax.axis('off')
+
+    def text(ax, x, y, label, size=9, color=INK, weight='normal', align='center'):
+        ax.text(x, y, label, ha=align, va='center', fontsize=size, color=color,
+                weight=weight, linespacing=1.25, zorder=10)
+
+    def arrow(ax, a, b, dashed=False, curve=0):
+        ax.add_patch(FancyArrowPatch(a, b, arrowstyle='->', mutation_scale=12,
+                                    color=MUTED, lw=1.2, linestyle='--' if dashed else '-',
+                                    connectionstyle=f'arc3,rad={curve}', zorder=2))
+
+    def region(ax, x, y, width, height, color=PALE_A):
+        ax.add_patch(Ellipse((x, y), width, height, color=color, alpha=.65, lw=0, zorder=0))
+
+    def event(ax, a, b, sign):
+        scale = (ax.bbox.width/112)/(ax.bbox.height/100)
+        bond_event_marker(ax, a, b, sign, size=.95, y_scale=scale)
+
+    def graph(ax, positions, edges, labels, colors=None, changes=None, masked=()):
+        for edge, order in edges.items():
+            a, b = (np.array(positions[i], dtype=float) for i in edge)
+            normal = np.array([-(b-a)[1], (b-a)[0]])
+            normal /= np.linalg.norm(normal)
+            for offset in np.arange(order)-(order-1)/2:
+                start, end = a+normal*offset*1.25, b+normal*offset*1.25
+                ax.plot(*zip(start, end), color=INK, lw=1.5,
+                        linestyle='--' if edge in masked else '-', zorder=2)
+            if edge in (changes or {}):
+                event(ax, a, b, changes[edge])
+        for atom, (x, y) in positions.items():
+            ax.scatter([x], [y], s=390, color=(colors or {}).get(atom, 'white'),
+                       edgecolors='none', zorder=4)
+            text(ax, x, y, labels[atom], 10)
+
+    a = axes[0]
+    text(a, 0, 5, 'a  Greedy constraints and the single-edge sweep', 11, weight='bold', align='left')
+    text(a, 19, 23, 'Reactant', weight='bold')
+    text(a, 59, 23, 'Product', weight='bold')
+    source = {0: (10, 53), 1: (23, 39), 2: (23, 68), 3: (36, 68)}
+    labels = {0: 'R', 1: r'B$_1$', 2: r'B$_2$', 3: 'A'}
+    region(a, 29.5, 68, 27, 25, PALE_B)
+    graph(a, source, {(0, 1): 1, (0, 2): 1, (2, 3): 1}, labels)
+    arrow(a, (40, 53), (46, 53))
+    target = {0: (50, 39), 1: (65, 39), 2: (50, 68), 3: (65, 68)}
+    region(a, 57.5, 68, 27, 25, PALE_B)
+    graph(a, target, {(0, 1): 1, (2, 3): 1}, labels)
+    text(a, 25, 91, 'Large B–A region: many seed sites', 8.5, MUTED)
+    text(a, 59, 91, 'A repeated preserved unit', 8.5, MUTED)
+    text(a, 95, 23, 'One sweep condition', weight='bold')
+    cut = {0: (80, 47), 1: (94, 35), 2: (94, 65), 3: (108, 65)}
+    graph(a, cut, {(0, 1): 1, (0, 2): 1, (2, 3): 1}, labels, masked=((2, 3),))
+    text(a, 101, 65, '/', 18, PURPLE, weight='bold')
+    text(a, 95, 87, 'Mask a preservation edge;\nlet growth choose a new constraint', 8.3, MUTED)
+
+    a = axes[1]
+    text(a, 0, 4, 'b  Different connectivity can couple an outer bond to an inner shuffle', 11, weight='bold', align='left')
+    text(a, 18, 23, 'A–C₃ ring', weight='bold')
+    text(a, 57, 23, 'C₁ at the chain center', weight='bold')
+    text(a, 94, 23, 'C₁ at a chain end', weight='bold')
+    source = {0: (18, 39), 1: (18, 57), 2: (8, 76), 3: (28, 76)}
+    labels = {0: 'A', 1: r'C$_1$', 2: r'C$_2$', 3: r'C$_3$'}
+    region(a, 18, 69, 34, 36)
+    graph(a, source, {(0, 1): 1, (1, 2): 1, (1, 3): 1, (2, 3): 1}, labels, {0: PALE_B})
+    center = {0: (57, 39), 1: (57, 68), 2: (45, 68), 3: (69, 68)}
+    region(a, 57, 68, 36, 24)
+    graph(a, center, {(0, 1): 1, (1, 2): 1, (1, 3): 1}, labels, {0: PALE_B})
+    end = {0: (94, 39), 1: (82, 68), 2: (94, 68), 3: (106, 68)}
+    region(a, 94, 68, 36, 24)
+    graph(a, end, {(0, 2): 1, (1, 2): 1, (2, 3): 1}, labels, {0: PALE_B}, {(0, 2): 1})
+    a.plot([94, 82], [39, 68], ls='--', color=RED, lw=1.2, zorder=1)
+    event(a, (94, 39), (82, 68), -1)
+    arrow(a, (22, 57), (52, 65), dashed=True, curve=-.12)
+    arrow(a, (59, 72), (79, 72), dashed=True, curve=.3)
+    text(a, 18, 96, 'Final carbon fragment highlighted', 8.3, MUTED)
+    text(a, 57, 96, '1 inner + 0 outer = 1 event', 9, TEAL, 'bold')
+    text(a, 94, 96, '1 inner + 2 outer = 3 events', 9, RED, 'bold')
+
+    a = axes[2]
+    text(a, 0, 4, 'c  Permissive growth avoids a tolerance-created boundary', 11, weight='bold', align='left')
+    text(a, 19, 23, 'Reactant', weight='bold')
+    text(a, 59, 23, 'Product: retain carbons', weight='bold')
+    text(a, 96, 23, 'Product: exchange carbons', weight='bold')
+    labels = {1: r'C$_1$', 2: r'C$_2$', 3: 'N'}
+    source = {1: (7, 45), 2: (20, 45), 3: (33, 45)}
+    target = {1: (45, 45), 2: (58, 45), 3: (71, 45)}
+    swapped = {1: (96, 45), 2: (83, 45), 3: (109, 45)}
+    for x in (13.5, 51.5, 89.5):
+        region(a, x, 45, 25, 24)
+    graph(a, source, {(1, 2): 1, (2, 3): 3}, labels, {3: PALE_B})
+    graph(a, target, {(1, 2): 1, (2, 3): 1}, labels, {3: PALE_B}, {(2, 3): -1})
+    graph(a, swapped, {(1, 2): 1, (1, 3): 1}, labels, {3: PALE_B}, {(1, 3): 1})
+    a.plot([83, 96, 109], [43, 32, 43], color=RED, ls='--', lw=1.1, zorder=1)
+    event(a, (93, 32), (99, 32), -1)
+    arrow(a, (37, 45), (41, 45))
+    text(a, 19, 66, 'τ = 1: C–C and N separate', 8.5, MUTED)
+    text(a, 58, 66, '1 outer weakening', 9, TEAL, 'bold')
+    text(a, 96, 66, '2 outer events', 9, RED, 'bold')
+    region(a, 26, 88, 40, 21)
+    graph(a, {1: (13, 88), 2: (26, 88), 3: (39, 88)}, {(1, 2): 1, (2, 3): 3}, labels)
+    arrow(a, (47, 88), (54, 88))
+    text(a, 57, 88, 'τ = 2: absorb C–N; its change is internal to one fragment', 9,
+         TEAL, align='left')
+    for ext in ('pdf', 'png', 'svg'):
+        fig.savefig(man/'figs'/f'fig8_design_examples.{ext}', dpi=240, facecolor='white',
+                    bbox_inches='tight', pad_inches=.06)
+    plt.close(fig)
 ESTER='[CH3:1][C:2](=[O:3])[O:4][CH3:5]'
 HYDROXIDE='[OH-:6]'
 ACETATE='[CH3:1][C:2](=[O:3])[O-:4]'
@@ -121,7 +281,7 @@ def svg_path(d):
 EVENT_RED = '#EF1026'
 EVENT_GREEN = '#00B83F'
 
-def bond_event_marker(ax, a, b, sign, size=None):
+def bond_event_marker(ax, a, b, sign, size=None, y_scale=1):
  """Small, vivid marks centered on a black bond; no filled badge or leader.
 
  Red crossing strokes indicate loss; two green inward arrows indicate gain.
@@ -129,6 +289,7 @@ def bond_event_marker(ax, a, b, sign, size=None):
  """
  import math
  from matplotlib import patheffects
+ a,b=(a[0],a[1]/y_scale),(b[0],b[1]/y_scale)
  length = math.dist(a, b)
  if not length: return
  ux, uy = (b[0]-a[0])/length, (b[1]-a[1])/length
@@ -136,7 +297,7 @@ def bond_event_marker(ax, a, b, sign, size=None):
  size = size if size is not None else min(8.5, max(5.0, length*.15))
  def point(x,y): return (mid[0]+ux*x-uy*y, mid[1]+uy*x+ux*y)
  def stroke(points):
-  q=[point(x,y) for x,y in points]
+  q=[(px,py*y_scale) for px,py in [point(x,y) for x,y in points]]
   ax.plot(*zip(*q),color=EVENT_RED if sign<0 else EVENT_GREEN,lw=1.8,
           solid_capstyle='round',solid_joinstyle='round',zorder=8,
           path_effects=[patheffects.Stroke(linewidth=3.1,foreground='white'),patheffects.Normal()])

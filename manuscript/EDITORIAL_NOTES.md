@@ -1,7 +1,9 @@
 # Editorial scope and remaining author decisions
 
-The introduction and supplied author metadata are retained. The Methods now
-follow the current design in separate scientific subsections: inputs, existence
+The introduction now distinguishes alternative generation from single-answer
+prediction and describes mapping as an endpoint correspondence, not a mechanism.
+Supplied author metadata is retained. The Methods follow the current design in
+separate scientific subsections: constraint discovery, inputs, existence
 growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set
 reduction, local event responses, branch composition/windowing, and reuse/execution.
 The verifier appears only in Evaluation.
@@ -31,11 +33,23 @@ Include the figure and its definition, but do not infer final tail frequencies
 or full-dataset percentages. It compares two counts from the same all-atom model.
 
 Keep matching plus reduction separate from decoding and external verification.
-The Golden matching measurements predate indexed containment; the three-reaction
-cache control measures that implementation separately. EnzymeMap timings combine
-successful original work and recoveries. Do not claim a uniform final-version
-rerun, uninterrupted elapsed time, large cache speedup or hardware-normalized
-superiority that these data do not establish.
+The saved Golden matching measurements predate indexed containment; the manuscript
+reports approximately linear seed scaling and omits the cache-control comparison.
+EnzymeMap timings combine successful original work and recoveries. Do not claim
+a uniform final-version rerun or uninterrupted elapsed time.
+
+The separately paired current SLAP study compares the same inputs and CPU model.
+It supports catalogue coverage of 1,839/1,851 for MAPPA and 1,794/1,851 for expanded
+SLAP, with timing on explicitly common completed cohorts. Default SLAP is faster;
+MAPPA search is cheaper than the expanded sweep. The expanded protocol changes
+both weight mode and search scope, so its gain is not a sweep-only ablation.
+SLAP's published 86.9% is inclusion among alternatives on a 1,758-reaction version;
+our 1,851-reaction reproduction is similar, not an exact dataset replication.
+
+Minimum-choice counts use the saved one-seed decoded results, not the paired
+study. Keep the 22 unfinished counts and two unresolved minimum-set memberships
+explicit. Uniform-choice accuracy is a bounded expectation under that selector,
+not observed top-1 accuracy or evidence of superiority over another top-1 method.
 
 ## Scientific limits to retain
 
@@ -47,6 +61,11 @@ one starting orbit after bounded improvement. Ordinary boundaries use the
 accepted fixed model; only the sweep correction retains joint endpoint dependence.
 Model-window coverage is not physical event-bin accuracy. Keep these distinctions
 in the main paper at a readable level, with mechanics in the supplement.
+The new sweep, A-substituted carbon-ring and C--C triple-N diagrams illustrate
+constraint discovery and boundary dependence. The latter two are analytically
+checked heavy-atom graph examples without hydrogen constraints; they are not
+new benchmark observations. Greediness helps reduce coupling but does not prove
+fragment independence.
 
 ## Molecular figure conventions
 

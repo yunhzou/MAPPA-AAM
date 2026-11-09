@@ -1,5 +1,7 @@
 """Validate the final manuscript's numerical sources and compiled references."""
 from pathlib import Path
+import os
+os.environ.setdefault("MPLCONFIGDIR", str(Path(__file__).resolve().parents[1]/"build/mpl-cache"))
 import hashlib,json,re
 from publication_privacy import check_publication
 from pypdf import PdfReader
@@ -15,9 +17,16 @@ assert [studies[k]['catalogue']['recovered'] for k in ('golden1','golden10','enz
 assert [studies[k]['decoded']['unknown'] for k in ('golden1','golden10','enzyme1')] == [3,2,0]
 assert offsets['partial'] and sum(r['status']=='pending' for r in offsets['results']) == 3891
 assert sum(r['status']=='complete' for r in offsets['results']) == 45737
-assert current['cache_control']['all_equal'] and current['cache_control']['direction_runs']==48
-from build_molecule_figure import check_example
+from build_benchmark_figures import comparison_evidence
+paired, choices, choice_rows = comparison_evidence(MAN)
+assert paired['coverage']['mappa']['recovered'] == 1839
+assert paired['coverage']['slap_sweep']['recovered'] == 1794
+assert paired['coverage']['slap_bidirectional']['recovered'] == 1620
+assert choices['full_scope_median_bounds'] == [1,1]
+assert choices['full_scope_p95_bounds'] == [3,3]
+from build_molecule_figure import check_example, check_design_examples
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
+assert read('design_examples.json') == check_design_examples()
 from build_alternatives_figure import check_example as check_alternatives
 check_alternatives(MAN)
 from build_alternatives_figure import check_case
@@ -90,7 +99,7 @@ bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf'}
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -101,6 +110,10 @@ r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];allt
 assert '??' not in alltext
 for value in ['1,832','1,841','47,796','47,798','99.629','45,737','3,891']:
  assert value in alltext,value
+for value in ['1,839','1,794','1,620','96.921','75.58','1,829','91.36','79.45','10.38','2.58']:
+ assert value in alltext,value
+assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
+assert 'approximately linearly' in paper and 'not a sweep-only ablation' in paper
 for study in current['studies']:
  means=[study['cpu_seconds'][s]/study['reactions'] for s in ('matching','deduplication','decoding')]
  for value in [*means,sum(means[:2]),sum(means)]:
@@ -145,6 +158,9 @@ for fig in figs:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
   for label in ['Preliminary','Pending','Golden','EnzymeMap']:
+   assert label in figure_text,label
+ elif fig.endswith('fig8_design_examples.pdf'):
+  for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events']:
    assert label in figure_text,label
  else:
   assert 'MAPPA' in figure_text,fig

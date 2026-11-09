@@ -56,13 +56,6 @@ replayed witness in the saved response and window. One ten-seed directional
 catalogue timeout remains in its attempt history; the opposite direction
 resolves that reaction's membership.
 
-The three-reaction indexed-cache control uses cases 895, 1261 and 1841, both
-directions, one and ten seeds, and an Apple M4 Pro CPU. It compares three cold
-retention-on repetitions with one zero-retention control. All 48 measured
-direction runs agree on catalogue fingerprints, scope and cap outcomes. The
-control disables immutable sharing as well as existence reuse; it is not a
-lookup-only speedup or a full-dataset scaling result.
-
 ## EnzymeMap evidence
 
 [The completed EnzymeMap report](../reports/enzymemap_native_20261106/README.md)
@@ -138,3 +131,28 @@ set or validated mechanism.
 All publication data omit operational settings, addresses, account names,
 resource inventories and private storage locations. Only recorded CPU model
 names are used when identifying hardware.
+
+## Paired SLAP comparison and minimum-event choices
+
+The [paired comparison](../reports/golden_slap_paired_20261108/README.md)
+uses identical prepared Golden inputs, one CPU model and common chemical
+reference equivalence. MAPPA and standard SLAP have 1,849 common successful
+reactions; requiring the expanded SLAP sweep as well leaves 1,834. Keep both
+timing denominators explicit. The expanded wrapper changes cuts, directions and
+weight modes relative to the standard forward-only call; its gain is not a
+sweep-only ablation. `evidence/paired_slap.json` retains the scientific summary
+and hashes of the full source report and independent verification audit.
+
+The [choice-count analysis](../reports/golden_minimum_choices_20261108/README.md)
+uses the saved one-seed Golden outputs, not the separate paired study's catalogue.
+It counts heavy-mapping chemical-equivalence classes at the saved all-atom
+detected minimum. A full hydrogen-compatible realization must exist, but hydrogen
+permutations do not multiply choices. Exactly 1,829 reaction counts are certified;
+22 remain incomplete. Mean choice count is reported on the certified subset,
+while full-scope quantiles and random-choice accuracy retain uncertainty bounds.
+The per-reaction evidence is `evidence/minimum_choices_reactions.json.gz`.
+Neither a count limit nor an unfinished membership query becomes absence.
+
+The constructed design figures are checked by direct pairwise bond comparison
+in `build_molecule_figure.py`. They are graph illustrations without hydrogen
+constraints, not new benchmark measurements or full chemistry simulations.

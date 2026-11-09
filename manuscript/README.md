@@ -3,9 +3,9 @@
 The main manuscript presents the current scientific design: one-witness growth,
 compressed completion, hierarchical branching and cut sweep, atom-set reduction,
 shared binary-symmetry event responses, branch composition and event windows.
-Portable execution and fragment reuse have their own Methods subsection.
+Parallel execution has its own Methods subsection. The design explains greedy constraint discovery, seed diversity, sweep perturbations and the limits of fragment independence.
 Reference verification is external evaluation, outside the MAPPA pipeline.
-The introduction and molecular illustrations are largely retained.
+The introduction distinguishes alternative-generating solvers from single-answer predictors and separates pathway endpoints from reaction mechanisms. MAPPA and SLAP belong to the first category; optional chemical ranking is downstream work.
 
 ## Current results
 
@@ -33,18 +33,46 @@ memberships. A GT-containing branch's unconditioned minimum is compared with
 the overall detected count using the same saved all-atom model. The completed
 subset overrepresents zero and cannot establish the final distribution.
 
+## Comparator and minimum-choice results
+
+The separate paired study gives MAPPA catalogue coverage of **1,839/1,851**,
+expanded SLAP coverage of **1,794/1,851**, and standard bidirectional binary SLAP
+coverage of **1,620/1,851**. Default forward-only SLAP gives **85.95%** inclusion,
+consistent with the original paper's **86.9%** on a different Golden version.
+The original score counts recovery among alternatives, not top-1 selection.
+These separate runs are not pooled with the seed-study table above.
+
+On 1,834 reactions completed by all paired protocols, mean search CPU is
+**0.111 s** for standard SLAP, **1.202 s** for MAPPA and **12.475 s** for the
+expanded SLAP sweep. The broader standard-SLAP/MAPPA pair has 1,849 reactions
+and means **0.487/1.259 s**. Speed claims retain their protocol and denominator.
+The expanded wrapper changes weight mode and search scope; it is not a
+sweep-only ablation. All comparator verdicts passed an independent audit.
+
+Minimum-choice counting on the saved one-seed Golden outputs certifies **1,829**
+counts, leaving **22 incomplete**. The full-dataset median is one option and the
+95th percentile three; the certified-subset mean is **1.36**. Reference inclusion
+at the minimum is **91.36–91.46%**, and expected uniform-choice accuracy is
+**78.31–79.45%**. These are distinct from catalogue and event-window coverage.
+
+The paper reports approximately linear matching cost over the measured one-to-ten
+seed range and omits the cache-control comparison. No new experiments were run.
+
 ## Sources and build
 
 - `preprint.tex`: entry point; author list and supplied affiliations are retained.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
 - `includes/supplement.tex`: technical details and clearly separated archived studies.
-- `evidence/current_benchmarks.json`: sanitized coverage, timing and cache-control evidence.
+- `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
 - `evidence/branch_offsets.json.gz`: complete reaction accounting for the preliminary figure.
 - `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview, with no verifier in the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: current decoded coverage and separate stage CPU costs.
 - `figs/fig7_reference_offsets.*`: preliminary branch-event distribution.
+- `figs/fig8_design_examples.*`: greedy constraints, A–C3 ring/chain and tolerance-created boundary examples.
+- `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
+- `figs/fig10_minimum_choices.*`: distinct minimum-event mapping choices.
 - `figs/fig4_alternatives.*`: selected archived Golden case 9 witnesses, labeled as illustrations.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 

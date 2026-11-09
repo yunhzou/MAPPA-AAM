@@ -14,6 +14,22 @@ postprocessing passes and successful recoveries; they are not an uninterrupted
 end-to-end run of one final performance revision. Publication, failed attempts
 and external verification are separately accounted for in the source reports.
 
+The separately paired current Golden study records MAPPA catalogue recovery of
+1,839/1,851, expanded-SLAP recovery of 1,794/1,851 and standard binary bidirectional
+SLAP recovery of 1,620/1,851. The shared 1,834-reaction completed cohort has search
+means of 1.202, 12.475 and 0.111 CPU seconds, respectively; MAPPA decoding adds
+1.617 seconds. These support a speed advantage over expanded SLAP, not default
+SLAP. The broader default-SLAP/MAPPA cohort and full-denominator outcomes remain
+separately reported. Do not pool this study with the saved seed comparison.
+
+At the saved one-seed detected minimum, 1,829 reactions have certified distinct
+heavy-mapping counts; 22 counts remain incomplete. The certified-subset mean is
+1.36, while the full-dataset median is one and its 95th percentile is three.
+Minimum-set reference inclusion is 1,691 confirmed, 158 absent and two unresolved.
+The expected accuracy of uniform selection is bounded at 78.31--79.45%; this is
+not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
+the counts, but the ranking score remains the saved all-atom model count.
+
 The accepted event-offset snapshot is preliminary: 45,737 exact offsets and
 3,891 pending checks, plus 194 absent references and three unknown memberships.
 Existing zero-offset certificates resolve first. The plotted subset cannot

@@ -16,8 +16,9 @@ def read(n):return json.loads((E/n).read_text())
 def save(fig,n):
  for ext in ['pdf','svg','png']:fig.savefig(F/f'{n}.{ext}',facecolor='white',bbox_inches='tight',pad_inches=.05)
  plt.close(fig)
-from build_molecule_figure import build as build_molecule_figure
+from build_molecule_figure import build as build_molecule_figure, build_design_examples
 build_molecule_figure(MAN)
+build_design_examples(MAN)
 from build_alternatives_figure import build as build_alternatives_figure
 build_alternatives_figure(MAN)
 

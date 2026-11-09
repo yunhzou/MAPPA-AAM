@@ -246,27 +246,6 @@
       ]
     }
   ],
-  "cache_control": {
-    "cases": [
-      895,
-      1261,
-      1841
-    ],
-    "cpu_model": "Apple M4 Pro",
-    "direction_runs": 48,
-    "all_equal": true,
-    "median_matching_cpu_seconds": {
-      "1": 0.6778150000000005,
-      "10": 7.075007999999998
-    },
-    "zero_retention_matching_cpu_seconds": {
-      "1": 1.0081559999999998,
-      "10": 10.476622000000004
-    },
-    "repetitions": 3,
-    "code_identity": "9c2022c2c5a28288975e567296612907da50ee48691d51a28dec3313153a8de4",
-    "scope": "Three reactions, both directions; zero retention removes existence reuse and immutable sharing. No full-dataset speedup claim."
-  },
   "source_reports": [
     {
       "path": "reports/golden_native_seeds_20261106/seeds1-summary.json",

@@ -112,8 +112,8 @@
     },
     {
       "snapshot": "current_benchmarks.json",
-      "sha256": "058eb3103b5399b103affa73b7d04ae2f7feba0f314bbd17a14256631eb37712",
-      "scope": "Completed Golden seed studies and EnzymeMap; separate catalogue and decoded coverage; scoped current cache controls.",
+      "sha256": "9210429b020ad665c82a9fea5e96b2ce4502a928d11ec60f6fd2121b86d93f19",
+      "scope": "Completed Golden seed studies and EnzymeMap; separate catalogue and decoded coverage. Cache-control experiment omitted from the paper.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
     },
     {
@@ -121,6 +121,24 @@
       "sha256": "2f1d83a6ecb11740b8a98c11d4b7fd7726e97dafbbbc71748660b030ad8c8a8b",
       "scope": "Preliminary branch offsets; pending and unknown outcomes excluded from bins.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
+    },
+    {
+      "snapshot": "paired_slap.json",
+      "source": "reports/golden_slap_paired_20261108/README.md",
+      "scope": "Paired current MAPPA/SLAP comparison and independent comparator audit; identical prepared inputs, coverage policy and CPU model.",
+      "sha256": "6ff9505c03a9b736242fe8286410598730bd54e2f22a91db1ebb0c8a9f44752f"
+    },
+    {
+      "snapshot": "minimum_choices.json",
+      "source": "reports/golden_minimum_choices_20261108/README.md",
+      "scope": "Minimum-event choice summary; 1829 exact counts and 22 incomplete counts.",
+      "sha256": "cd4c594ba7901a0d4601e08ab18f4f57279a32ae35e9d364e106d29ebed89c0b"
+    },
+    {
+      "snapshot": "minimum_choices_reactions.json.gz",
+      "source": "reports/golden_minimum_choices_20261108/reactions.json.gz",
+      "scope": "All 1851 Golden choice-count outcomes; equivalent heavy mappings count once, original all-atom model score.",
+      "sha256": "4f91346b137ac2af6ddc8b17c140a19d63bc9567d5b290a6cc38d5c7c38da460"
     }
   ],
   "limits": "Current Golden decoded coverage retains three one-seed and two ten-seed unknown reactions. Current EnzymeMap reaction accounting is complete. Branch-event offsets remain preliminary. September studies retain their original protocols."
