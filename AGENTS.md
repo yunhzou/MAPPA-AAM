@@ -14,8 +14,11 @@ such as shared molecular fragments. Do not introduce detailed methodology,
 execution settings or unexplained terms such as seed counts. Retain informative
 coverage and CPU-time results without turning the abstract into a Methods summary.
 
-Open the Introduction by defining AAM as correspondence between the reactant
-and product endpoints, then explain its applications, ambiguity and motivation.
+Open the Introduction by defining AAM as correspondence between two molecular
+endpoints. Call their algorithmic roles **base** and **target**, not reactant and
+product: either reaction side can serve as the base, and reversing the search
+exchanges these roles. Use base/target consistently in prose, notation and figure
+labels, then explain AAM applications, ambiguity and motivation.
 Use a comparison table paired with prose for method-output categories and their
 evaluation metrics. Establish this background before introducing MAPPA's stages.
 

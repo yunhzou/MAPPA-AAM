@@ -2,6 +2,9 @@
 
 The introduction now distinguishes alternative generation from single-answer
 prediction and describes mapping as an endpoint correspondence, not a mechanism.
+Base and target identify search roles, not fixed reactant/product identities.
+Either endpoint can be the base; reverse search exchanges the roles. Prose,
+mathematical notation and figure labels use this convention.
 Supplied author metadata is retained. The Methods follow the current design in
 separate scientific subsections: constraint discovery, inputs, existence
 growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set

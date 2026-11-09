@@ -95,6 +95,10 @@ assert paper.index(r'\label{fig:alternatives}') < paper.index(r'\section{Methods
 assert 'Reduction Stage' not in tex and 'Three stages' not in paper
 assert paper.index(r'\label{tab:method-coverage}') > paper.index(r'\section{Results}')
 assert 'singleton' in paper
+assert not re.search(r'\b(?:reactants?|products?)\b',tex,re.I)
+assert r'\emph{base}' in paper and r'\emph{target}' in paper
+assert 'V_B' in supplement and 'V_T' in supplement
+assert not re.search(r'\b[VZW]_[RP]\b',tex)
 assert all(study['catalogue']['unknown'] == 0 for study in current['studies'])
 assert r'\label{sec:historical-evaluation}' in supplement
 assert 'figs/fig2_golden.pdf' not in paper and 'figs/fig3_coordinate.pdf' not in paper
@@ -168,7 +172,7 @@ for fig in figs:
   for label in ['Preliminary','Pending','Golden','EnzymeMap']:
    assert label in figure_text,label
  elif fig.endswith('fig8_design_examples.pdf'):
-  for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events']:
+  for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events','Base','Target']:
    assert label in figure_text,label
  else:
   assert 'MAPPA' in figure_text,fig

@@ -20,6 +20,11 @@ only when its checksum matches the final PDF.
 
 ## Scientific settings
 
+The paper calls the endpoint on which fragments grow the base and the other
+endpoint the target. Each direction assigns these roles independently; reverse
+search exchanges them. Existing saved-data keys and atom-index frames are
+unchanged.
+
 Current full studies use original prepared formal bond orders with explicit H,
 discovery tolerance 2, graph/cut threshold 0.2, branch cap 100, random seed 42,
 both directions and uncut plus every eligible single-edge cut. Golden compares

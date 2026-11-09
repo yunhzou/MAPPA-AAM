@@ -107,8 +107,8 @@ def build_design_examples(man):
 
     a = axes[0]
     text(a, 0, 5, 'a  Greedy constraints and the single-edge sweep', 11, weight='bold', align='left')
-    text(a, 19, 23, 'Reactant', weight='bold')
-    text(a, 59, 23, 'Product', weight='bold')
+    text(a, 19, 23, 'Base', weight='bold')
+    text(a, 59, 23, 'Target', weight='bold')
     source = {0: (10, 53), 1: (23, 39), 2: (23, 68), 3: (36, 68)}
     labels = {0: 'R', 1: r'B$_1$', 2: r'B$_2$', 3: 'A'}
     region(a, 29.5, 68, 27, 25, PALE_B)
@@ -150,9 +150,9 @@ def build_design_examples(man):
 
     a = axes[2]
     text(a, 0, 4, 'c  Permissive growth avoids a tolerance-created boundary', 11, weight='bold', align='left')
-    text(a, 19, 23, 'Reactant', weight='bold')
-    text(a, 59, 23, 'Product: retain carbons', weight='bold')
-    text(a, 96, 23, 'Product: exchange carbons', weight='bold')
+    text(a, 19, 23, 'Base', weight='bold')
+    text(a, 59, 23, 'Target: retain carbons', weight='bold')
+    text(a, 96, 23, 'Target: exchange carbons', weight='bold')
     labels = {1: r'C$_1$', 2: r'C$_2$', 3: 'N'}
     source = {1: (7, 45), 2: (20, 45), 3: (33, 45)}
     target = {1: (45, 45), 2: (58, 45), 3: (71, 45)}
@@ -382,7 +382,7 @@ def build(man):
  box(12,12,1416,545,bg,bg,r=16)
  label(34,46,'a','MAPPA matching: grow, complete and branch')
  t(34,79,'A, B and C are successive local alcohol fragments; R lies outside the matched motif.',10.5,muted)
- t(236,116,'One witness during growth',11,green,'bold',ha='center')
+ t(236,116,'Grow on base; keep one witness',11,green,'bold',ha='center')
  for x,atoms,name in [(24,[11],'Seed'),(170,[11,12],'Extend'),(316,[11,12,13],'Include O-H')]:
   molecule(ax,ALCOHOL_FRAGMENT,x,145,132,116,{i:PALE_A for i in atoms},notes=False,font=28)
   t(x+66,278,name,10,green,ha='center')
@@ -415,7 +415,7 @@ def build(man):
  # not claim each illustrated cut returns the same fragment or search history.
  box(12,576,708,454,bg,bg,r=16)
  label(34,612,'b','Explore cuts; collect the retained families')
- t(34,646,'Methyl acetate: three source conditions are shown.',10.5,muted)
+ t(34,646,'Methyl acetate: three base conditions are shown.',10.5,muted)
  for y,title,cut in [(675,'Uncut',None),(780,'Cut O4-C5',(4,5)),(885,'Cut C2-O4',(2,4))]:
   t(40,y+39,title,10.5,green,'bold')
   coords=molecule(ax,ESTER,157,y-7,280,96,{i:PALE_A for i in [1,2,3,4,5]},notes={2:'2',4:'4',5:'5'},font=24)

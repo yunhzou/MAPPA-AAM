@@ -73,9 +73,13 @@ acceptance; surviving references still require a replayable joint witness.
 
 ## Inputs and matching rules
 
-`AAMProblem` contains reactant and product `MolecularEndpoint` records: elements,
-coordinates and bond-order matrices. Matching uses those inputs and declared
-policies. Preparation must state which chemical attributes are represented;
+`AAMProblem` contains two `MolecularEndpoint` records: elements, coordinates
+and bond-order matrices. In each search direction, the **base** is the endpoint
+on which fragments grow and the **target** is where their placements are sought.
+Either reaction side can be the base; reversing the search exchanges these
+roles. Base/target describe the matching orientation, not a fixed chemical
+direction. Existing API field names retain their recorded indexing conventions.
+Matching uses those inputs and declared policies. Preparation must state which chemical attributes are represented;
 elements and WBOs alone do not establish stereochemistry, charge or isotope
 coverage.
 
@@ -98,7 +102,7 @@ cut backend cannot be split into independently reseeded searches.
 
 A **global symmetry** describes rearrangements of one whole endpoint. A
 **fragment symmetry** describes rearrangements of the fragment's own internal
-graph, with its anchors fixed. A **relaxed isomorph** describes a source-to-target
+graph, with its anchors fixed. A **relaxed isomorph** describes a base-to-target
 mapping. Discovery tolerance controls growth; event thresholds classify original
 bond-weight changes. There is no separate self-tolerance filter.
 
@@ -114,7 +118,7 @@ selected fragment's internal graph. External attachments do not become local
 constraints. The binary graph preserves connectivity at its declared threshold;
 weight comparisons also retain internal subthreshold contacts. Accepted growth
 edges remain separate discovery constraints. Neither the binary graph nor its
-generators alone establish the complete relaxed source-to-target relation.
+generators alone establish the complete relaxed base-to-target relation.
 
 `core/symmetry/` owns binary symmetry construction, ordered shuffle programs,
 joint endpoint-pair projection and original-weight event computation.
@@ -137,7 +141,7 @@ is established. Exhausted search limits remain incomplete, never exact minima.
 
 ### Bounded starting-correspondence improvement
 
-One candidate identifies one source/target atom-set placement. Different starting
+One candidate identifies one base/target atom-set placement. Different starting
 correspondences on that placement need not be connected by binary symmetry.
 Extra starting-correspondence search is restricted to special fragments: recorded
 growth connectivity differs from the completed fragment's internal connectivity
@@ -153,7 +157,7 @@ fragments, search for a useful starting correspondence within a fixed budget;
 do not turn growth routes into additional completed fragments or enumerate all
 starting classes.
 
-Completed fragments are identified by their reactant/product atom-set pair,
+Completed fragments are identified by their endpoint atom-set pair,
 within the fixed endpoint problem and policy. Growth witnesses and accepted
 edges do not create additional atom-set identities. Recorded anchors and locks
 remain attached to their original decisions. Earlier joint actions can move a
@@ -217,7 +221,7 @@ construct the complete compressed placements when growth saturates.
 ### Fragment records and ownership
 
 `FragmentGrowth` owns the changing search state. `Fragment` stores one
-source-to-target placement and its growth evidence. Reduction groups and shares
+base-to-target placement and its growth evidence. Reduction groups and shares
 the existing records by final atom-set pair; it does not reconstruct their
 scientific contents.
 There is no additional candidate or
@@ -235,10 +239,10 @@ may change its target atom set during growth. The parent branch supplies fixed
 assignments and the anchor/lock context. Original molecular bonds remain in the
 reaction data, separate from the accepted growth subgraph.
 
-At saturation, source self-automorph preparation is shared across placements.
+At saturation, base self-automorph preparation is shared across placements.
 Each retained representative target atom set produces one search `Fragment`, with its
 anchor-aware binary target symmetry and complete compressed relaxed
-source-to-target relation. That relation owns its witness, anchor pairs and joint
+base-to-target relation. That relation owns its witness, anchor pairs and joint
 mapping constraints. Accepted edges retain the discovery evidence separately
 from the constraints governing retained relaxed alternatives.
 
@@ -290,7 +294,7 @@ are deferred while the remaining frontier is explored.
 ### Direct compressed completion
 
 At saturation, completion uses the full accepted constraints and the current
-witness to discover representative target atom sets within its fixed source
+witness to discover representative target atom sets within its fixed base
 fragment, parent and anchor context. Distinct sets may share one continuation
 only when a saved global relationship proves their remaining search problems
 equivalent. Every represented placement remains recoverable through that
@@ -298,7 +302,7 @@ relationship. Overlapping sets remain eligible.
 
 Placement compression uses a certified subgroup of the global binary symmetry.
 It preserves the full target WBO matrix, active connectivity and
-all source-to-target node compatibility, and fixes every prior locked target
+all base-to-target node compatibility, and fixes every prior locked target
 pointwise. Thus every later matching constraint is preserved under composition.
 Callers whose continuation depends on additional target labels declare those
 labels fixed for placement compression; this does not occupy them for matching.
@@ -327,12 +331,12 @@ One witness and one structural action are not assumed to cover every permitted
 mapping on a target set. The representation must establish complete coverage
 while preserving correlations and avoiding full-bijection expansion.
 
-The discovery witness satisfies the source-to-target `iso_tol`. Binary symmetry
+The discovery witness satisfies the base-to-target `iso_tol`. Binary symmetry
 alternatives may exceed that discovery tolerance; original-WBO decoding evaluates
 their events. Records distinguish discovery evidence from the retained symmetry.
 
-For one fixed source/target atom-set pair, let D contain every mapping satisfying
-the accepted discovery constraints. Retain both source and target permitted
+For one fixed base/target atom-set pair, let D contain every mapping satisfying
+the accepted discovery constraints. Retain both base and target permitted
 self-rearrangements: each final mapping is beta composed with d composed with
 alpha inverse, where d belongs to D and alpha/beta each preserve their own
 fragment's binary graph, elements and anchors. An accepted discovery bond can become
@@ -403,7 +407,7 @@ scientific meaning; loading cannot reinterpret decoding as rematching.
 
 ## Unique-fragment reuse during growth
 
-Matching accumulates a reaction's known fragments, keyed only by the source and
+Matching accumulates a reaction's known fragments, keyed only by the base and
 target atom-set pair. Keep one original fragment per pair. Its discovery witness
 can prove that a smaller temporary fragment has at least one match. This reuse
 works across branches, seeds and cuts; it does not reuse a completed growth path.
@@ -486,7 +490,7 @@ The retained representation has three distinct levels:
 | Level | Identity and responsibility |
 |---|---|
 | `AAMSearchGraph` | Contexts, states, transitions, roots and stop evidence, including compressed placements and seed/cut histories. |
-| `AAMResult.branches` | Paths grouped by the unordered collection of final reactant/product fragment atom-set pairs. |
+| `AAMResult.branches` | Paths grouped by the unordered collection of final endpoint fragment atom-set pairs. |
 | `FinalBranchCatalogue` | Saved mapping families, their alternative fragment partitions and provenance. |
 
 Native transport returns the typed search graph with immutable shared state
@@ -516,7 +520,7 @@ One catalogue per endpoint problem and direction reduces all supplied seeds and
 cuts under the fixed policy. Reuse each search graph's fragment inventory, then
 unify its keys across graphs. An explicitly selected path subset supplies its
 own records; it cannot borrow a representative from an excluded path.
-Keep exactly one fragment record per reactant/product
+Keep exactly one fragment record per endpoint
 atom-set pair. Retain the first original record intact and reference it from every
 branch using that pair. Different starting witnesses, discovery domains and growth
 routes do not create additional fragment records or local decoding jobs.
@@ -545,7 +549,7 @@ not solve symmetry, search for starting maps or count events. Binary symmetry
 preparation is deferred until a consumer needs it.
 
 Project completed states to shared fragment IDs in one native operation, then
-deduplicate their compositions using those IDs. Reuse source partitions and
+deduplicate their compositions using those IDs. Reuse base partitions and
 prepared fragment actions. Consume shared immutable state blocks directly;
 temporary conversion reuse is scoped to one input graph. Ordered placement
 programs are collected once per shared search state. Keep growth provenance as
@@ -555,7 +559,7 @@ growth path during reduction, decoding or publication. Explicit history replay
 may expand requested paths. Sweep setup reads the saved cut/partition metadata
 directly from those references.
 
-The catalogue preserves source histories, cut provenance and alternative fragment
+The catalogue preserves base growth histories, cut provenance and alternative fragment
 partitions. Raw paths, public atom-set branches and catalogue families are separate
 counts. Completed search graphs may be ingested one at a time; the accumulated
 catalogue and provenance still consume memory.

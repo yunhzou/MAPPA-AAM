@@ -46,12 +46,12 @@ The Golden case 9 witnesses in \Cref{fig:alternatives} were obtained without ref
 \subsection{Exact existence queries during growth}
 \label{sec:existence-details}
 
-An existence query contains the proposed source atoms, their accepted preservation edges and completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. Source nonedges and unselected molecular edges do not add constraints.
+An existence query contains the proposed base atoms, their accepted preservation edges and completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. Base nonedges and unselected molecular edges do not add constraints.
 
-More formally, let $V_R,V_P$ denote endpoint atom sets, $Z_R,Z_P$ their elements and $W_R,W_P$ their original bond-weight matrices. A partial correspondence $m:D\subseteq V_R\rightarrow V_P$ is injective. For every accepted preservation edge $(u,v)\in A$, its assignment satisfies
+More formally, let $V_B,V_T$ denote the base and target atom sets, $Z_B,Z_T$ their elements and $W_B,W_T$ their original bond-weight matrices. A partial correspondence $m:D\subseteq V_B\rightarrow V_T$ is injective. For every accepted preservation edge $(u,v)\in A$, its assignment satisfies
 \begin{equation}
- Z_R(u)=Z_P(m(u)),\quad W_P(m(u),m(v))\geq b,\quad
- |W_R(u,v)-W_P(m(u),m(v))|\leq\tau_{\mathrm{iso}}.
+ Z_B(u)=Z_T(m(u)),\quad W_T(m(u),m(v))\geq b,\quad
+ |W_B(u,v)-W_T(m(u),m(v))|\leq\tau_{\mathrm{iso}}.
  \label{eq:match}
 \end{equation}
 Here $b$ is the graph-presence threshold and $\tau_{\mathrm{iso}}$ is the discovery tolerance. These constraints apply to the selected growth graph, not every bond in the completed atom set.
@@ -67,9 +67,9 @@ The molecular overview in \Cref{fig:algorithm} uses constructed alcohol placemen
 
 Completion searches the finished fragment constraints for distinct target atom-set placements. It excludes already represented sets or certified global placement orbits within the search. It does not enumerate all internal assignments before deduplicating them. Target sites that cease to be globally equivalent remain separate placements, even when their local matched subgraphs share symmetry.
 
-For each local fragment, nauty receives an element-colored binary graph with individually fixed anchors. Its compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these binary generators. An accepted discovery mapping can be followed by a source and a target local action without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
+For each local fragment, nauty receives an element-colored binary graph with individually fixed anchors. Its compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these binary generators. An accepted discovery mapping can be followed by a base and a target local action without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
 
-The global action used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every source-to-target compatibility predicate relevant to subsequent growth. Such an action moves the whole later continuation, preserving occupied targets and its matching problem. A local fragment action cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
+The global action used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every base-to-target compatibility predicate relevant to subsequent growth. Such an action moves the whole later continuation, preserving occupied targets and its matching problem. A local fragment action cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
 
 \subsection{Hierarchical caps and provenance}
 \label{sec:hierarchy-details}
@@ -81,7 +81,7 @@ A shared search state may have several incoming histories. The retained graph ke
 \subsection{Fragment identities and composition reduction}
 \label{sec:reduction-details}
 
-Reduction reuses the fragment inventory in each search graph and unifies it across seeds and cuts. A completed fragment's key is its source/target atom-set pair within a fixed endpoint problem and policy. Keep the first original record intact. Other starting witnesses, growth routes, domains or anchors do not create additional identities and are not unioned into broader permissions. Raw archives retain the original decisions; the reduced catalogue retains the selected record and compact provenance. When reducing an explicitly selected path subset, the representative must come from that subset.
+Reduction reuses the fragment inventory in each search graph and unifies it across seeds and cuts. A completed fragment's key is its base/target atom-set pair within a fixed endpoint problem and policy. Keep the first original record intact. Other starting witnesses, growth routes, domains or anchors do not create additional identities and are not unioned into broader permissions. Raw archives retain the original decisions; the reduced catalogue retains the selected record and compact provenance. When reducing an explicitly selected path subset, the representative must come from that subset.
 
 Native projection converts retained states into shared fragment identifiers. Composition keys use those identifiers together with the ordered placement context. Independent decisions can commute; overlapping local or global choices retain their order. Equal keys share one family record and aggregate cut/partition provenance. Reduction uses structural equality, not symmetry solving or event queries. The atom-set key must not be confused with a permission to map its atoms arbitrarily.
 
@@ -101,7 +101,7 @@ For a requested event interval, the saved response searches its retained choices
 \subsection{Indexed fragment reuse and execution}
 \label{sec:cache-details}
 
-The reaction-local pool stores one original fragment per atom-set pair. A restricted saved witness proves a growth proposal when it covers the requested source atoms, uses available target atoms, respects locks and supports every required edge at the current tolerance. Atom-set containment alone is insufficient when occupancy or edge requirements have changed. An inverted index intersects atom, edge-support and fixed-assignment sets to find a valid proof. A miss invokes the ordinary existence query; no negative cache is used.
+The reaction-local pool stores one original fragment per atom-set pair. A restricted saved witness proves a growth proposal when it covers the requested base atoms, uses available target atoms, respects locks and supports every required edge at the current tolerance. Atom-set containment alone is insufficient when occupancy or edge requirements have changed. An inverted index intersects atom, edge-support and fixed-assignment sets to find a valid proof. A miss invokes the ordinary existence query; no negative cache is used.
 
 Growth continues with its own random proposals. Cut/trial streams are distinct and reproducible, and completion chooses its representatives independently of the temporary existence witness. The pool therefore does not replay a previous trajectory. Its accounted retention limit bounds cached records and index storage, not total stage memory. Returned search graphs expose their unique-fragment inventories directly to reduction.
 
@@ -142,12 +142,12 @@ Released comparators received the same label-free Golden inputs, without predict
 
 \begin{table}[tb]
 \centering\small
-\caption{\textbf{Archived evaluation configurations.} Both use $b=0.2$, $\tau_{\mathrm{iso}}=1$, explicit H, and uncut plus single-edge searches. One seed per cut and the sweep define the default setting. Archived Golden measurements cover sweep search; no-sweep controls retain only the uncut graph. A seed setting counts source-atom orderings per cut.}
+\caption{\textbf{Archived evaluation configurations.} Both use $b=0.2$, $\tau_{\mathrm{iso}}=1$, explicit H, and uncut plus single-edge searches. One seed per cut and the sweep define the default setting. Archived Golden measurements cover sweep search; no-sweep controls retain only the uncut graph. A seed setting counts base-atom orderings per cut. Stored orientation uses the first saved endpoint as the base and the second as the target.}
 \label{tab:protocol}
 \begin{tabular}{lcc}\toprule
 Setting & Golden & Coordinate/WBO\\\midrule
 Reactions & 1,851 & 140\\
-Search directions & Bidirectional & Reactant to product\\
+Search directions & Bidirectional & Stored orientation\\
 Seed orderings & 1 (default), 2, 3, 10 & 1 (default)\\
 Branch cap & 100 (default) & 100 (default), 2,000\\
 Evaluation & Reference-family recovery & Signed event-class coverage\\\bottomrule
@@ -180,7 +180,7 @@ Smaller-first grows fragments from the reaction side with fewer explicit atoms (
 
 \begin{table}[tb]
 \centering\small
-\caption{\textbf{Archived recovery and runtime by search orientation.} All rows use the sweep. Recovery uses all 1,851 Golden records; CPU statistics are seconds per reaction over the same \CommonCases{} completed reactions (Apple M4 Pro CPU). Smaller-first grows from the side with fewer explicit atoms, including H; larger-first reverses the source and target. Equal-size ties use stored order and its reverse. Bidirectional output combines both searches, and its CPU cost is their sum. SLAP combines binary and weighted modes. CPU/SLAP compares means within each orientation. Timing scopes are specified in \Cref{sec:reproducibility}.}
+\caption{\textbf{Archived recovery and runtime by search orientation.} All rows use the sweep. Recovery uses all 1,851 Golden records; CPU statistics are seconds per reaction over the same \CommonCases{} completed reactions (Apple M4 Pro CPU). Smaller-first grows from the side with fewer explicit atoms, including H; larger-first exchanges the base and target. Equal-size ties use stored order and its reverse. Bidirectional output combines both searches, and its CPU cost is their sum. SLAP combines binary and weighted modes. CPU/SLAP compares means within each orientation. Timing scopes are specified in \Cref{sec:reproducibility}.}
 \label{tab:directions}
 \input{includes/generated-direction-table}
 \end{table}
@@ -224,7 +224,7 @@ The stage timings in \Cref{tab:coordinate-time} cover different outputs: MAPPA s
 \FloatBarrier
 \subsection{Archived event-window query scope}
 
-For each coordinate reaction, the archived event-window limit was one event above the larger of the native-SLAP and SLAP-sweep minima. All \FlatFamilies{} retained families were exhausted within these limits, without a class-count cap. Higher-event patterns are outside this completeness claim. An event class records the signed atom-pair changes, modulo source permutations preserving every thresholded bond-change test against the opposite endpoint. Each class has a concrete mapping witness. This explicit whole-reaction query is separate from ordinary decoding into shared local fragment responses.
+For each coordinate reaction, the archived event-window limit was one event above the larger of the native-SLAP and SLAP-sweep minima. All \FlatFamilies{} retained families were exhausted within these limits, without a class-count cap. Higher-event patterns are outside this completeness claim. An event class records the signed atom-pair changes, modulo base permutations preserving every thresholded bond-change test against the opposite endpoint. Each class has a concrete mapping witness. This explicit whole-reaction query is separate from ordinary decoding into shared local fragment responses.
 
 \begin{table}[H]
 \centering\small
