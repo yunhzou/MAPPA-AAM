@@ -1,0 +1,101 @@
+{
+  "schema": "mappa.saved_input_workload_comparison/v1",
+  "scope": "Descriptive inspection of saved inputs and existing stage timings; no matching, reduction or decoding was rerun.",
+  "presence_threshold": 0.2,
+  "definitions": {
+    "mean_endpoint_atoms": "Arithmetic mean of reactant and product atom counts for each reaction; includes explicit hydrogens.",
+    "mean_endpoint_heavy_atoms": "Arithmetic mean of reactant and product non-hydrogen atom counts for each reaction.",
+    "cut_searches_both_directions": "One uncut search plus one search per upper-triangle bond at or above the presence threshold on each endpoint, summed across both directions."
+  },
+  "datasets": [
+    {
+      "dataset": "Golden",
+      "population": 1851,
+      "sample_count": 1851,
+      "sampling": "full prepared input collection",
+      "input_index_sha256": "c8e68b400a3cb7e7a78449a9e46ada5e71c182c0c8c8b79031acf69e602f2328",
+      "statistics": {
+        "mean_endpoint_atoms": {
+          "mean": 46.51134521880065,
+          "median": 43,
+          "p95": 87,
+          "maximum": 153.5
+        },
+        "mean_endpoint_heavy_atoms": {
+          "mean": 24.15018908698001,
+          "median": 22.5,
+          "p95": 44,
+          "maximum": 71
+        },
+        "cut_searches_both_directions": {
+          "mean": 95.92220421393841,
+          "median": 88,
+          "p95": 178,
+          "maximum": 320
+        }
+      }
+    },
+    {
+      "dataset": "EnzymeMap",
+      "population": 47974,
+      "sample_count": 512,
+      "sampling": "Python random.Random(0).sample over sorted reaction IDs",
+      "input_index_sha256": "3ad6b97cce7716fe6df5a008be39792cc8f60ea7497ff7e9ebdf1517ae02c390",
+      "statistics": {
+        "mean_endpoint_atoms": {
+          "mean": 83.841796875,
+          "median": 77,
+          "p95": 185.45,
+          "maximum": 335
+        },
+        "mean_endpoint_heavy_atoms": {
+          "mean": 45.16796875,
+          "median": 45,
+          "p95": 97.89999999999998,
+          "maximum": 164
+        },
+        "cut_searches_both_directions": {
+          "mean": 171.791015625,
+          "median": 158.5,
+          "p95": 378,
+          "maximum": 680
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Golden covers every prepared reaction; EnzymeMap uses a fixed 512-reaction random sample.",
+    "Input size and sweep count describe workload, not a causal timing decomposition.",
+    "The saved stage timings combine completed passes and successful recoveries; they do not isolate dataset effects from performance-revision or hardware effects."
+  ],
+  "saved_stage_cpu_means": {
+    "golden1": {
+      "matching": 0.7714074919005947,
+      "deduplication": 0.5408233727185312,
+      "decoding": 1.8769215743414367
+    },
+    "enzyme1": {
+      "matching": 3.0166896383902313,
+      "deduplication": 1.3947680939606244,
+      "decoding": 8.751206362047961
+    }
+  },
+  "decoding_share_of_mean_cpu_gap": 0.6892541990421382,
+  "timing_source": "manuscript/evidence/current_benchmarks.json",
+  "golden_reaction_decoding_cpu": {
+    "mean": 1.876921574341437,
+    "median": 0.9787895679999963,
+    "p95": 6.6834933110000065,
+    "p99": 13.668605181499991,
+    "maximum": 61.82545463900003
+  },
+  "enzymemap_reaction_decoding_cpu": {
+    "count": 47974,
+    "sum": 419830.37401288893,
+    "mean": 8.751206362047961,
+    "median": 3.460832211999957,
+    "p95": 27.602039350499986,
+    "p99": 94.42862146859993,
+    "max": 786.5944312040001
+  }
+}

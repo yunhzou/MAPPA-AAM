@@ -156,6 +156,35 @@ it is not a fresh full-dataset timing of one final performance revision. See
 direction/reaction distributions and failed-attempt accounting. Original audit
 references and source-ledger checksums remain in private evidence.
 
+### Why the saved EnzymeMap mean exceeds Golden
+
+An inspection of saved inputs and completed stage timings on 8 November 2026
+compares the one-seed studies without rerunning matching or decoding. Golden's
+mean matching/reduction/decoding costs are 0.771/0.541/1.877 CPU seconds per
+reaction, versus 3.017/1.395/8.751 for EnzymeMap. Decoding contributes 68.9% of
+the difference in total mean CPU time.
+
+All 1,851 prepared Golden inputs have a mean of 46.51 atoms per endpoint,
+including hydrogen, and 95.92 uncut/single-edge search conditions across both
+directions per reaction. A fixed random sample of 512 of the 47,974 EnzymeMap
+inputs has corresponding means of 83.84 atoms and 171.79 search conditions.
+Thus this sample has about 1.8 times as many atoms and sweep conditions. Larger
+graphs increase the work presented to fragment matching and event calculations;
+these counts do not measure the number of unique fragments or isolate their cost.
+
+The saved reaction-level decoding CPU distributions also have different tails:
+Golden's median/p95/p99 are 0.979/6.683/13.669 seconds; EnzymeMap's are
+3.461/27.602/94.429 seconds. EnzymeMap's total mean is 13.16 seconds, compared
+with a median of 5.80. These observations support workload size and slow cases
+as contributors, but do not establish a causal decomposition or rule out
+remaining implementation overhead. The campaigns combine different completed
+performance passes and are not a controlled identical-input, identical-revision
+or hardware-normalized comparison.
+
+The fixed sample definition, input hashes, definitions and statistics are in
+[workload-comparison.json](workload-comparison.json). This is a metadata analysis,
+not an additional benchmark run.
+
 ### Decoder storage correction and recovery
 
 The recovery history below precedes the completed totals above.
