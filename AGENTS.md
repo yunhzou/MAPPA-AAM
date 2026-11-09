@@ -8,6 +8,12 @@ Keep explanations and documentation short, plain, and understandable to research
 
 ### 1.1 Paper writing
 
+Keep the abstract focused on the problem, contribution, implications and main
+results. Mention the central approach only briefly, using accessible concepts
+such as shared molecular fragments. Do not introduce detailed methodology,
+execution settings or unexplained terms such as seed counts. Retain informative
+coverage and CPU-time results without turning the abstract into a Methods summary.
+
 Write the main manuscript for researchers who have not read the code. Organize
 the algorithm into clear scientific stages: explain each stage's purpose, input,
 operation and output, and how it connects to the next stage. Introduce the core
