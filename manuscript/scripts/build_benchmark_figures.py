@@ -44,28 +44,30 @@ def build(man):
     fig, (coverage, cost) = plt.subplots(1, 2, figsize=(10.2, 4.1), layout='constrained',
                                         gridspec_kw={'width_ratios': [1.35, 1]})
     for y, study in enumerate(studies):
-        found = study['decoded']['recovered']
+        found = study['catalogue']['recovered']
         percent = 100*found/study['reactions']
         coverage.barh(y, percent, height=.36, color=colors[0])
         coverage.text(2, y, f"{found:,} / {study['reactions']:,}  ({percent:.3f}%)",
                       color='white', weight='bold', va='center', fontsize=9)
-        coverage.text(1, y+.29, f"{study['decoded']['not_recovered']:,} absent; "
-                      f"{study['decoded']['unknown']:,} unresolved", fontsize=8, color='#586974')
+        coverage.text(1, y+.29, f"{study['catalogue']['not_recovered']:,} absent; "
+                      f"{study['catalogue']['unknown']:,} unresolved", fontsize=8, color='#586974')
     coverage.set(yticks=range(3), yticklabels=labels, xlim=(0, 102), ylim=(2.65, -.5),
                  xlabel='Confirmed reactions (%)', xticks=[0, 25, 50, 75, 100])
-    coverage.set_title('a  Decoded reference coverage', loc='left', weight='bold', pad=12)
+    coverage.set_title('a  Full-output reference coverage', loc='left', weight='bold', pad=12)
     left = np.zeros(3)
-    for stage, label, color in zip(('matching', 'deduplication', 'decoding'),
-                                   ('Matching', 'Reduction', 'Decoding'), colors):
-        values = np.array([s['cpu_seconds'][stage]/s['reactions'] for s in studies])
+    stages = [(('matching', 'deduplication'), 'Matching', colors[0]),
+              (('decoding',), 'Decoding', colors[2])]
+    for keys, label, color in stages:
+        values = np.array([sum(s['cpu_seconds'][key] for key in keys)/s['reactions']
+                           for s in studies])
         cost.barh(range(3), values, left=left, height=.48, color=color, label=label)
         left += values
     for y, value in enumerate(left):
         cost.text(value+.25, y, f'{value:.2f}', va='center', fontsize=9)
     cost.set(yticks=range(3), yticklabels=labels, xlim=(0, max(left)*1.18), ylim=(2.65, -.8),
              xlabel='Mean compute CPU seconds / reaction')
-    cost.set_title('b  Separate scientific stages', loc='left', weight='bold', pad=12)
-    cost.legend(loc='upper left', ncol=3, fontsize=7, frameon=False)
+    cost.set_title('b  Matching and decoding', loc='left', weight='bold', pad=12)
+    cost.legend(loc='upper left', ncol=2, fontsize=8, frameon=False)
     for ax in (coverage, cost):
         ax.grid(axis='x', alpha=.15)
         ax.set_axisbelow(True)
@@ -106,15 +108,39 @@ def build(man):
         matching, reduction, decoding = [study['cpu_seconds'][s]/study['reactions']
                                          for s in ('matching', 'deduplication', 'decoding')]
         timing_rows.append(' & '.join([name, *[f'{v:.2f}' for v in
-            (matching, reduction, matching+reduction, decoding, matching+reduction+decoding)]])+r'\\')
-    def table(name, header, rows):
-        text = r'\begin{tabular}{lrrrrr}\toprule'+'\n'+header+r'\\\midrule'+'\n'
+            (matching+reduction, decoding, matching+reduction+decoding)]])+r'\\')
+    def table(name, columns, header, rows):
+        text = r'\begin{tabular}{'+columns+r'}\toprule'+'\n'+header+r'\\\midrule'+'\n'
         text += '\n'.join(rows)+'\n'+r'\bottomrule\end{tabular}'+'\n'
         (man/'includes'/name).write_text(text)
-    table('generated-current-coverage-table.tex',
-          'Study & Reactions & Catalogue & Decoded & Absent & Unknown', coverage_rows)
-    table('generated-current-timing-table.tex',
-          'Study & Matching & Reduction & Mapping & Decoding & Total', timing_rows)
+    table('generated-current-coverage-table.tex', 'lrrrrr',
+          r'Study & Reactions & Catalogue & Decoded & \shortstack{Decoded\\absent} & \shortstack{Decoded\\unresolved}', coverage_rows)
+    table('generated-current-timing-table.tex', 'lrrr',
+          'Study & Matching & Decoding & Total', timing_rows)
+    paired, _, _ = comparison_evidence(man)
+    competitors = json.loads((man/'evidence/competitors.json').read_text())
+    method_rows = []
+    def method_row(name, setting, output, found, unknown):
+        method_rows.append(' & '.join([name, setting, output,
+            f'{found:,} ({100*found/1851:.2f}\\%)', str(unknown)])+r'\\')
+    for study in studies:
+        if study['dataset'] == 'Golden':
+            setting = f"{study['seeds']} seed"+('s' if study['seeds'] > 1 else '')+', sweep'
+            method_row('MAPPA', setting, 'Families', study['catalogue']['recovered'],
+                       study['catalogue']['unknown'])
+    for key, setting in [('slap_sweep', 'Expanded sweep'),
+                         ('slap_bidirectional', 'Binary, both directions')]:
+        result = paired['coverage'][key]
+        method_row('SLAP', setting, 'Candidates', result['recovered'], result['unknown'])
+    names = {'slap_binary': 'SLAP', 'localmapper': 'LocalMapper', 'chython': 'Chython',
+             'rxnmapper': 'RXNMapper', 'rdt': 'RDT', 'indigo': 'Indigo'}
+    for key, name in names.items():
+        result = next(row for row in competitors['methods'] if row['method'] == key)
+        method_row(name, 'Binary, default' if key == 'slap_binary' else 'Default',
+                   'Candidates' if key == 'slap_binary' else 'Single mapping',
+                   result['any_correct'], 0)
+    table('generated-method-coverage-table.tex', '@{}lllrr@{}',
+          'Method & Search setting & Output & Coverage & Unresolved', method_rows)
     build_comparisons(man, save)
 
 

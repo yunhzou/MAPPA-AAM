@@ -11,7 +11,7 @@
 The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The following sections give the constraints and implementation details underlying the main-text description.
 
 \begin{algorithm}[!htbp]
-\caption{Matching, reduction and separate decoding}
+\caption{Matching (including reduction), followed by decoding}
 \label{alg:mappa-overview}
 \small
 \begin{algorithmic}[1]
@@ -29,7 +29,7 @@ The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The foll
   \ENDFOR
   \STATE Share fragments by atom-set pair; reduce repeated branch compositions
 \ENDFOR
-\STATE Complete the matching/reduction stage before batch decoding
+\STATE Complete matching, including reduction, before batch decoding
 \FORALL{reaction/direction catalogues}
   \STATE Inventory unique fragments and prepare their shared symmetry-event responses
   \STATE Compose branch contributions and the sweep-endpoint correction
@@ -37,6 +37,11 @@ The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The foll
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Introductory alternatives example}
+\label{sec:alternatives-provenance}
+
+The Golden case 9 witnesses in \Cref{fig:alternatives} were obtained without reference labels using one-seed sweep search, branch cap 2,000 and discovery tolerance one. Events use threshold 0.5; hydrogen-involving changes are minimized for each fixed heavy-atom correspondence. The selected archived witnesses illustrate different atom origins and the limitations of event-count selection. They are not an exhaustive output of the current decoder or validated reaction pathways. Their settings do not contribute to the current benchmark coverage or timing totals.
 
 \subsection{Exact existence queries during growth}
 \label{sec:existence-details}

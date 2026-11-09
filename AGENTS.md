@@ -36,7 +36,9 @@ guarantees.
 
 Open Methods with the complete fragment-growth-to-decoding workflow before
 introducing equations or solver details. Use explicit stage names in subsection
-titles (Matching Stage, Reduction Stage, Decoding Stage). Integrate the design
+titles (Matching Stage, Decoding Stage). Reduction is the final subphase of
+matching, not a third scientific stage; include its cost in matching time.
+Integrate the design
 philosophy where it explains each operation. Keep figures on the same or adjacent
 page to their first discussion, with the molecular overview on the first page
 of the main text (Introduction). Keep the title and abstract on their separate
@@ -44,7 +46,7 @@ page; never place a scientific figure beneath the abstract.
 
 Use molecular examples, figures and concise pseudocode to clarify the stages.
 Keep one-witness growth, compressed completion, final family reduction and local
-decoding distinct. Show these stages through molecular changes and relationships,
+decoding distinct. Show these operations through molecular changes and relationships,
 not a pipeline of text boxes. Reference verification is external evaluation
 logic: explain it in the evaluation, outside the MAPPA pipeline and its overview
 figure. Avoid repeating the same
@@ -55,6 +57,12 @@ Present results for the implementation and scientific scope actually measured.
 Separate historical studies from current-method evidence. During revision, ask
 whether each technical detail helps the reader understand or assess a central
 claim; move details that interrupt that explanation to supporting material.
+
+Compare methods in the main Results by reference coverage over their returned
+outputs, treating a single prediction as a singleton candidate set. Distinguish
+this comparison from ranking accuracy and bounded decoded-window audits. Use a
+molecular alternatives example early in the Introduction to motivate the output
+objective, rather than leaving it at the end of Results.
 
 ## 2. Coding principles
 

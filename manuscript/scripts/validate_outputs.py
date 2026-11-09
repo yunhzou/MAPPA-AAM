@@ -91,7 +91,11 @@ positions=[paper.index(r'\label{sec:'+stage+'}') for stage in stages]
 assert positions==sorted(positions)
 assert paper.index(r'\label{sec:verification}') > paper.index(r'\section{Evaluation}')
 assert 'fig5_pipeline' not in tex and 'fig:pipeline' not in tex
-assert paper.index(r'\label{fig:alternatives}') > paper.index(r'\section{Evaluation}')
+assert paper.index(r'\label{fig:alternatives}') < paper.index(r'\section{Methods}')
+assert 'Reduction Stage' not in tex and 'Three stages' not in paper
+assert paper.index(r'\label{tab:method-coverage}') > paper.index(r'\section{Results}')
+assert 'singleton' in paper
+assert all(study['catalogue']['unknown'] == 0 for study in current['studies'])
 assert r'\label{sec:historical-evaluation}' in supplement
 assert 'figs/fig2_golden.pdf' not in paper and 'figs/fig3_coordinate.pdf' not in paper
 assert 'Final representation and complete window decoding' not in paper
@@ -116,7 +120,7 @@ assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.low
 assert 'approximately linearly' in paper and 'not a sweep-only ablation' in paper
 for study in current['studies']:
  means=[study['cpu_seconds'][s]/study['reactions'] for s in ('matching','deduplication','decoding')]
- for value in [*means,sum(means[:2]),sum(means)]:
+ for value in [sum(means[:2]),means[2],sum(means)]:
   assert f'{value:.2f}' in alltext
 assert 'ordinary-boundary' in tex and 'starting orbit' in tex
 assert 'preliminary' in paper.lower() and 'overrepresents zero' in paper
@@ -126,6 +130,10 @@ for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{s
  assert value in alltext,value
 assert 'Golden reference recovery and runtime' in alltext
 assert 'First correct' not in alltext and 'two ten-order cases remain unresolved' not in alltext
+main_comparison=(MAN/'includes/generated-method-coverage-table.tex').read_text()
+assert main_comparison.count('Single mapping')==5
+for count in [1834,1843,1794,1620,1591,1547,1605,1561,692,1030]:
+ assert f'{count:,} ({100*count/1851:.2f}' in main_comparison
 comparison=(MAN/'includes/generated-competitor-table.tex').read_text()
 assert comparison.count('MAPPA &')==5
 assert comparison.count('SLAP,')==3
@@ -154,7 +162,7 @@ assert '--' not in comparison
 for fig in figs:
  figure_text=PdfReader(MAN/fig).pages[0].extract_text()
  if fig.endswith('fig6_current_benchmarks.pdf'):
-  for label in ['98.974','99.460','99.629','Matching','Reduction','Decoding']:
+  for label in ['99.082','99.568','99.633','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
   for label in ['Preliminary','Pending','Golden','EnzymeMap']:

@@ -46,7 +46,8 @@ reused; snapshot conversion is separately measured and is not search time.
 These full matching passes predate indexed containment reuse. Their cache-hit
 ratios must not be attributed to the later cache implementation.
 
-Catalogue recovery is 1,834/1,851 with one seed and 1,843/1,851 with ten. Its
+Catalogue recovery is 1,834/1,851 with one seed and 1,843/1,851 with ten, with
+zero unresolved reactions. These are the primary full-output coverage scores. Its
 endpoint chemical-equivalence policy preserves charge, isotope, H count and
 stereochemistry. Exact-index decoded recovery is separately 1,832 with three
 unknowns and 1,841 with two unknowns. One-seed targeted decoded verification uses
@@ -85,8 +86,9 @@ manuscript rewrite.
 ## Timing boundaries
 
 `evidence/current_benchmarks.json` contains successful compute CPU totals for
-matching, reduction and decoding. Means divide the sum over both directions by
-the reaction denominator. Stage input loading and result construction are
+fragment discovery, reduction and decoding. Published matching time sums discovery
+and reduction; reduction is a subphase, not a separate scientific stage. Means
+divide the sum over both directions by the reaction denominator. Stage input loading and result construction are
 included. Publication, external catalogue/decoded audits, diagnostics and
 historical failed attempts are separate. Medians of stages are not additive.
 CPU is accumulated computation, not parallel elapsed latency.
@@ -120,8 +122,11 @@ checks must finish before reporting the full distribution or percentages.
 
 ## Archived analyses
 
-The September comparator, direction, seed/cap and 140-coordinate studies remain
-in the supplement with their original settings, source hashes and timing cohorts.
+Default-comparator coverage appears in the main Results: the returned output is
+a candidate set, with single-answer predictions treated as singleton sets. Saved
+outputs were re-evaluated on all 1,851 inputs, without changing any per-case verdict.
+Historical MAPPA, direction, seed/cap, 140-coordinate and comparator timing studies
+remain in the supplement with their settings, source hashes and timing cohorts.
 `evidence/paper_sources.json` indexes their unchanged snapshots. The coordinate
 collection has no verified atom mappings and incomplete WBO-generation provenance;
 its results compare event counts rather than mapping accuracy. Selected case 9

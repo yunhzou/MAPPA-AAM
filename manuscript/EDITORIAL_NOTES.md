@@ -6,7 +6,10 @@ Supplied author metadata is retained. The Methods follow the current design in
 separate scientific subsections: constraint discovery, inputs, existence
 growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set
 reduction, local event responses, branch composition/windowing, and reuse/execution.
-The verifier appears only in Evaluation.
+Reduction is a subphase of matching; the two scientific stages are Matching and
+Decoding. Their CPU costs use that same grouping. The verifier appears only in
+Evaluation. The case 9 alternatives figure is introduced early to motivate
+retaining different correspondences.
 
 ## Author decisions remaining before submission
 
@@ -23,7 +26,10 @@ The verifier appears only in Evaluation.
 The main evidence now covers Golden one/ten seeds and completed EnzymeMap at
 tolerance 2 and cap 100, with decoded min+5 windows. Catalogue and decoded
 membership have different representation scopes; Golden also uses different
-reference-equivalence policies. Report the unresolved Golden queries explicitly.
+reference-equivalence policies. Catalogue evaluation is complete with zero
+unresolved reactions. Report its coverage as the primary full-output comparison;
+label the three and two Golden unknowns as bounded decoded-window audit queries,
+not unfinished matching or decoding.
 EnzymeMap's conclusive reaction accounting includes separately justified absence
 from the containing catalogue. Never turn a timed-out query into direct absence.
 
@@ -32,7 +38,7 @@ zero-offset certificates resolve first, so the subset is biased toward zero.
 Include the figure and its definition, but do not infer final tail frequencies
 or full-dataset percentages. It compares two counts from the same all-atom model.
 
-Keep matching plus reduction separate from decoding and external verification.
+Include reduction in matching time; keep decoding and external verification separate.
 The saved Golden matching measurements predate indexed containment; the manuscript
 reports approximately linear seed scaling and omits the cache-control comparison.
 EnzymeMap timings combine successful original work and recoveries. Do not claim
@@ -80,7 +86,9 @@ Author affiliations are separate from hardware disclosure. Build validation
 checks the PDF and every bundle member. Detailed source/configuration hashes
 belong in repository evidence, not the main scientific narrative.
 
-Archived September comparisons retain their original scientific and evaluation
-scope. Selected molecular examples remain illustrations, not new execution traces.
+The main Results compare all evaluated methods by coverage, with a single
+prediction treated as a singleton set. Archived default-comparator predictions
+retain their re-evaluation scope; their timings and historical MAPPA comparisons
+remain in the supplement. Selected molecular examples remain illustrations, not new execution traces.
 The coordinate study is not an accuracy benchmark. Cap 100 remains the default
 study setting; cap 2,000 is labeled as a larger-budget historical comparison.

@@ -12,6 +12,14 @@ These assignments make reactions usable as structured data. They locate reaction
 
 The difficulty is that endpoint structures alone may not select a unique correspondence. Repeated groups offer several possible matching sites, and molecular symmetry permits exchanges that leave a structure unchanged. Other assignments can imply different atom origins or different bond changes. For example, when several reactant molecules contain oxygen, deciding which oxygen appears in a product may require chemical knowledge beyond element identity. Favoring a small number of bond changes is a useful structural preference, but does not by itself establish the chemically correct atom history~\citep{chen2024}. A mapper must therefore balance the cost of exploring alternatives with the risk of discarding a useful one.
 
+Golden case 9 makes this ambiguity concrete (\Cref{fig:alternatives}). The annotated correspondence places the alcohol oxygen in the product ring and the ketone oxygen in water. A second assignment exchanges those oxygen origins, while a third also changes two carbon assignments. The second has fewer bond events than the reference; the first and third have the same total but different atom origins. A minimum-event rule alone therefore does not select the annotation. Retaining alternatives leaves that chemical decision available to a subsequent selector.
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figs/fig4_alternatives.pdf}
+\caption{\textbf{A reference correspondence and two alternatives for Golden case 9.} A matches all 15 annotated heavy-atom pairs. B exchanges the oxygen origins; C also exchanges C$_{13}$/C$_{14}$. Colors identify matched fragments. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. H atoms are implicit in the drawing but included in event totals; each witness minimizes H-involving changes for its fixed heavy-atom correspondence. ``Ground truth'' denotes the dataset annotation. These selected, reference-blind search witnesses illustrate ambiguity; they are not validated pathways or an exhaustive current output. Their archived protocol is given in \Cref{sec:alternatives-provenance}.}
+\label{fig:alternatives}
+\end{figure}
+
 Existing approaches use structural optimization or information learned from reaction data to guide these assignments. Structural methods seek shared substructures or favorable bond-change patterns~\citep{lin2022}; SLAPMapper uses iterative atom-label refinement and assignment optimization~\citep{koda2025}. RXNMapper obtains correspondence information from a reaction language model~\citep{schwaller2021}, while LocalMapper learns from chemist-labeled examples~\citep{chen2024}. For the present work, a further distinction is useful: whether the intended output is a set of alternatives or one selected prediction (\Cref{tab:aam-objectives}). This distinction concerns the answer supplied to the user and can apply to either structural or learned methods.
 
 \begin{table}[!htbp]
@@ -26,15 +34,15 @@ Existing approaches use structural optimization or information learned from reac
 Goal & Retain different correspondences allowed by the search rules. & Select the correspondence judged most plausible.\\
 Output & A candidate set or a compact family of mappings. & One selected atom assignment.\\
 Downstream use & Examine ambiguity or apply a separate chemical selector. & Use the selected assignment directly.\\
-Evaluation & Coverage: the reference is among the returned alternatives. & Top-1 accuracy: the selected answer matches the reference.\\
+Coverage & The reference is among the returned alternatives. & The reference matches the single returned mapping; coverage equals top-1 accuracy.\\
 Examples & SLAPMapper~\citep{koda2025}; MAPPA (this work). & RXNMapper~\citep{schwaller2021}; LocalMapper~\citep{chen2024}.\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The two objectives can be combined in a discovery-and-selection workflow. An alternative-generating solver supplies candidates; a selector then chooses among them using a preference such as fewest bond events, chemical rules or a learned ranking. Coverage measures whether the reference remains available for that later choice, whereas top-1 accuracy measures whether the choice is correct. High coverage is therefore useful but does not establish equally high top-1 accuracy. MAPPA focuses on the discovery step and retains alternatives for subsequent interpretation and selection.
+The two objectives can be combined in a discovery-and-selection workflow. An alternative-generating solver supplies candidates; a selector then chooses among them using a preference such as fewest bond events, chemical rules or a learned ranking. Coverage measures whether the reference remains available for that later choice, whereas top-1 accuracy measures whether the choice is correct. All methods can be compared by reference coverage: a single prediction is a candidate set containing one mapping. Coverage of a larger set does not establish equally high top-1 accuracy after selection. MAPPA focuses on the discovery step and retains alternatives for subsequent interpretation and selection.
 
-The central challenge for this objective is to preserve useful diversity without repeatedly processing equivalent atom assignments. MAPPA treats mapping as a constraint-search problem: shared molecular fragments restrict which atoms can correspond, while compact symmetry relationships retain allowed rearrangements. Matching discovers these fragments and their combinations; reduction collects repeated fragments and branch compositions; decoding relates the retained alternatives to bond changes. This separation allows fragment calculations to be reused across alternatives and supports parallel exploration. We evaluate reference coverage, computational cost and the choices remaining under a minimum-bond-event preference on Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}.
+The central challenge for this objective is to preserve useful diversity without repeatedly processing equivalent atom assignments. MAPPA treats mapping as a constraint-search problem: shared molecular fragments restrict which atoms can correspond, while compact symmetry relationships retain allowed rearrangements. The matching stage discovers these fragments and their combinations, then consolidates repeated fragments and branch compositions. The decoding stage relates the retained alternatives to bond changes. This separation allows fragment calculations to be reused across alternatives and supports parallel exploration. We evaluate reference coverage, computational cost and the choices remaining under a minimum-bond-event preference on Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}.
 
 \section{Methods}
 
@@ -44,7 +52,7 @@ The central challenge for this objective is to preserve useful diversity without
 
 MAPPA builds atom mappings by growing structural fragments shared between reactants and products (\Cref{fig:algorithm}). Starting from a seed atom, it extends a fragment while a compatible placement remains possible. When no admissible extension remains, it finds the completed fragment's alternative placements. Each placement defines a search branch: that choice is locked, and fragment growth continues on the remaining atoms under the accumulated assignments. Repeating this process produces alternative compositions of matched fragments. Different seeds, single-bond cuts and search directions expose additional compositions.
 
-Three stages organize this procedure. The \emph{matching stage} discovers fragments and their conditional placements. The \emph{reduction stage} collects repeated fragments and branch compositions into a shared mapping catalogue. The \emph{decoding stage} uses that catalogue to relate permitted atom rearrangements to bond events, preparing each unique fragment once and combining its response with the branch boundaries. Its output retains branches that can be queried within a chosen event-count window, rather than only one selected mapping. Matching and decoding are separate operations; a saved catalogue can be decoded without repeating discovery. Reference verification evaluates these outputs separately (\Cref{sec:verification}).
+Two stages organize this procedure. The \emph{matching stage} discovers fragments and their conditional placements, then reduces repeated fragments and branch compositions into a shared mapping catalogue. Reduction is its final subphase. The \emph{decoding stage} uses that catalogue to relate permitted atom rearrangements to bond events, preparing each unique fragment once and combining its response with the branch boundaries. Its output retains branches that can be queried within a chosen event-count window, rather than only one selected mapping. Matching and decoding are separate operations; a saved catalogue can be decoded without repeating discovery. Reference verification evaluates these outputs separately (\Cref{sec:verification}).
 
 \subsection{Matching Stage: greedy fragment growth and hierarchical branching}
 \label{sec:matching-rules}
@@ -80,10 +88,10 @@ Searches in both reaction directions add further alternatives. Seeds, cuts and r
 \label{fig:design-examples}
 \end{figure}
 
-\subsection{Reduction Stage: collecting unique fragments and branch compositions}
+\subsection{Matching Stage: consolidating unique fragments and branch compositions}
 \label{sec:reduction}
 
-The searches above often rediscover the same fragment. Reduction identifies it by its source and target atom-set pair $(R_i,P_i)$ and gives that pair one shared record. For example, if two seed searches both match source atoms $\{1,2,3\}$ to target atoms $\{a,b,c\}$, they reference the same completed fragment even if their growth order or starting witness differs. Each branch becomes a composition of these shared fragment identities, allowing repeated compositions to be removed before decoding.
+The final subphase of matching consolidates the search results. Because different searches often rediscover the same fragment, reduction identifies it by its source and target atom-set pair $(R_i,P_i)$ and gives that pair one shared record. For example, if two seed searches both match source atoms $\{1,2,3\}$ to target atoms $\{a,b,c\}$, they reference the same completed fragment even if their growth order or starting witness differs. Each branch becomes a composition of these shared fragment identities, allowing repeated compositions to be removed before decoding.
 
 The retained record keeps one original witness, its discovery constraints, anchors and symmetry information intact. Duplicate records are discarded rather than combined into broader mapping permissions. Branches also retain their ordered placement context, because a shared placement transformation must move its continuation consistently. A \emph{mapping family} stores these retained local relations and placements with their alternative partitions and cut provenance. Different fragment partitions remain alternatives, not contributions to be added together.
 
@@ -120,7 +128,7 @@ The result retains branch identities, shared fragment responses, the event windo
 \subsection{Execution: parallel stages and shared computation}
 \label{sec:reuse-execution}
 
-The stage boundaries also define parallel work. Reactions and directions are independent; seed/cut searches within a direction can run concurrently before their results are reduced together. Growth along one branch remains sequential because later fragments depend on earlier occupancy. For the reported batch workflow, matching and reduction finish before catalogue decoding begins. Different reaction/direction catalogues can then be decoded independently, with unique-fragment responses shared within each catalogue.
+The stage boundaries also define parallel work. Reactions and directions are independent; seed/cut searches within a direction can run concurrently before their results are reduced together. Growth along one branch remains sequential because later fragments depend on earlier occupancy. For the reported batch workflow, the matching stage, including reduction, finishes before catalogue decoding begins. Different reaction/direction catalogues can then be decoded independently, with unique-fragment responses shared within each catalogue.
 
 A persistent worker pool schedules these operations through the same interfaces used by direct local calls. Intermediate records can remain in memory or use aggregated storage. Compatible fragment proofs can be reused during growth, but each seed and cut keeps its own random decisions. Matching and decoding use a shared symmetry core, and bulk operations use native kernels. Scheduling and persistence do not determine which mappings are allowed. Detailed solver, cache and storage protocols, together with full pseudocode, appear in \Cref{sec:algorithm-details}.
 
@@ -146,7 +154,7 @@ The decoded audits preserve exact annotated heavy-atom indices and unmatched-hea
 \subsection{Timing and branch-event analysis}
 \label{sec:measurement}
 
-Mapping time is the sum of matching and reduction; decoding is reported separately. CPU seconds sum successful worker computation over both directions and all cuts, including stage input loading and result construction. Publication, external verification, historical failed attempts and parallel elapsed duration have separate accounting. Timings use the saved successful passes and their documented recoveries, rather than a newly measured uninterrupted run of one final performance revision. Exact source and measurement boundaries are recorded in the repository.
+Matching time includes both fragment discovery and reduction into the final catalogue; decoding is reported separately. CPU seconds sum successful worker computation over both directions and all cuts, including stage input loading and result construction. Publication, external verification, historical failed attempts and parallel elapsed duration have separate accounting. Timings use the saved successful passes and their documented recoveries, rather than a newly measured uninterrupted run of one final performance revision. Exact source and measurement boundaries are recorded in the repository.
 
 To locate a recovered reference within the decoded event landscape, let $\mathcal C_{\mathrm{GT}}$ contain the retained branch contexts that admit it inside the saved window. We measure
 \begin{equation}
@@ -161,32 +169,32 @@ We separately count the distinct heavy-atom mapping classes actually attainable 
 
 \subsection{Reference coverage on Golden and EnzymeMap}
 
-All requested matching, reduction and decoding outputs are available: 3,702 directions in each Golden setting and 95,948 in EnzymeMap. \Cref{tab:current-coverage,fig:current-benchmarks} separates catalogue membership from the independently audited decoded window.
+Both matching and decoding are complete for every requested direction: 3,702 in each Golden setting and 95,948 in EnzymeMap. Reference coverage of the complete matching output is 1,834/1,851 (99.082\%) with one Golden seed, 1,843/1,851 (99.568\%) with ten, and 47,798/47,974 (99.633\%) for EnzymeMap. All three catalogue evaluations have zero unresolved reactions. \Cref{tab:current-coverage,fig:current-benchmarks} show this full-output coverage alongside the additional audit of the restricted decoded window.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig6_current_benchmarks.pdf}
-\caption{\textbf{Reference coverage and computational cost.} (a) Confirmed reference inclusion in the saved decoded min+5 window, with missing and unresolved reaction counts retained. This is inclusion among alternatives, not top-ranked accuracy. (b) Mean compute CPU per reaction, separated into matching, reduction and decoding. Both search directions contribute. Golden matching was reused for the corrected postprocessing passes; EnzymeMap combines original successful work with successful recoveries. External verification and publication are excluded.}
+\caption{\textbf{Reference coverage and computational cost.} (a) Reference coverage of the complete matching output, with unrecovered counts retained. All reaction-level catalogue outcomes are resolved. This is inclusion among alternatives, not top-ranked accuracy. (b) Mean compute CPU per reaction for the two stages: matching, including reduction, and decoding. Both search directions contribute. Golden matching was reused for the corrected postprocessing passes; EnzymeMap combines original successful work with successful recoveries. External verification and publication are excluded.}
 \label{fig:current-benchmarks}
 \end{figure}
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Unknown queries are not counted as misses.}
+\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Catalogue verification is resolved for every reaction. The absent and unresolved columns refer only to the additional decoded-window audit; unresolved queries are not counted as misses.}
 \label{tab:current-coverage}
 \input{includes/generated-current-coverage-table}
 \end{table}
 
-One-seed Golden decoding confirms 1,832/1,851 references (98.974\%), with 16 absent and three unresolved. Ten seeds confirm 1,841 (99.460\%), with eight absent and two unresolved. Ten references become newly confirmed; one previously positive reaction remains unresolved in the ten-seed audit, giving a net gain of nine confirmed reactions and no proven loss. Catalogue recovery is 1,834 and 1,843, respectively. One ten-seed directional catalogue query exhausted its allowance, but its opposite direction establishes that reaction's catalogue recovery.
+Within the decoded min+5 window, the separate exact-index audit confirms 1,832 Golden references with one seed (98.974\%) and 1,841 with ten (99.460\%). It leaves three and two reactions unresolved, respectively, because these external membership checks exhausted their allowances. These are verification unknowns, not unfinished matching or decoding. Ten references become newly confirmed in the ten-seed audit; one previously positive reaction remains unresolved, giving a net gain of nine and no proven loss. This audit also uses a stricter reference-equivalence policy than catalogue verification (\Cref{sec:verification}); its counts must not be substituted for the full-output comparison.
 
 EnzymeMap decoding confirms 47,796/47,974 references (99.629\%), compared with 47,798 (99.633\%) in the catalogue. The two additional catalogue references have 22-event witnesses outside their saved 14--19 windows; independent decoded queries confirm their exclusion. All 94,820 positive directional decoded certificates passed replay and count checks, with no invalid certificate. Forty-five reactions unresolved by bounded decoded queries are conclusively absent from the unchanged containing catalogue, establishing their absence from its decoded subset. Their 250 unresolved directional queries remain recorded as such. The combined reaction accounting is therefore 47,796 recovered, 178 absent and zero unresolved.
 
-\subsection{Separate mapping and decoding costs}
+\subsection{Matching and decoding costs}
 
-\Cref{tab:current-times,fig:current-benchmarks} report compute CPU rather than parallel latency. One-seed Golden requires 1.31 CPU seconds per reaction for matching plus reduction and 1.88 for decoding. Ten seeds require 11.64 and 9.28 seconds, respectively. The corresponding EnzymeMap means are 4.41 and 8.75 seconds, with medians of 2.15 and 3.46 seconds. The median combined EnzymeMap cost is 5.80 seconds; medians of separate stages need not add.
+\Cref{tab:current-times,fig:current-benchmarks} report compute CPU rather than parallel latency. One-seed Golden requires 1.31 CPU seconds per reaction for matching, including reduction, and 1.88 for decoding. Ten seeds require 11.64 and 9.28 seconds, respectively. The corresponding EnzymeMap means are 4.41 and 8.75 seconds, with medians of 2.15 and 3.46 seconds. The median combined EnzymeMap cost is 5.80 seconds; medians of separate stages need not add.
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Mean compute CPU seconds per reaction.} Both directions and the full cut sweep are included. Matching plus reduction is the mapping stage. Decoding is separate; publication and external verification are excluded. These are recorded completed-stage costs, not a hardware-normalized comparison with the archived methods.}
+\caption{\textbf{Mean compute CPU seconds per reaction.} Both directions and the full cut sweep are included. Matching includes fragment discovery and reduction. Decoding is the second stage; publication and external verification are excluded. These are recorded completed-stage costs, not a hardware-normalized comparison with the archived methods.}
 \label{tab:current-times}
 \input{includes/generated-current-timing-table}
 \end{table}
@@ -195,7 +203,21 @@ The distributions have substantial tails. Golden's maximum directional decoding 
 
 \subsection{Seed count and computational scaling}
 
-Increasing Golden from one to ten seeds increases matching CPU by 9.42-fold, reduction by 8.09-fold and decoding by 4.95-fold. Matching therefore scales approximately linearly with seed count in the measured one-to-ten-seed comparison. Decoding grows less because the extra searches produce a reduced set of shared fragments and branch compositions rather than ten independent decoding jobs. These measurements describe the cost of additional exploration and its coverage gain; they are not a controlled isolation of individual acceleration mechanisms.
+Increasing Golden from one to ten seeds increases matching CPU, including reduction, by 8.87-fold and decoding by 4.95-fold. Matching therefore scales approximately linearly with seed count in the measured one-to-ten-seed comparison. Decoding grows less because the extra searches produce a reduced set of shared fragments and branch compositions rather than ten independent decoding jobs. These measurements describe the cost of additional exploration and its coverage gain; they are not a controlled isolation of individual acceleration mechanisms.
+
+\subsection{Reference coverage across AAM methods}
+\label{sec:method-coverage}
+
+\Cref{tab:method-coverage} compares reference inclusion across the evaluated output types on all 1,851 Golden reactions. For a method returning one prediction, that prediction is the entire candidate set; for MAPPA and SLAP, recovery requires the reference to occur among the returned alternatives. This common metric measures whether an answer remains available, regardless of how many candidates the method returns. Mapping failures stay in the denominator.
+
+\begin{table}[!htbp]
+\centering\small
+\caption{\textbf{Golden coverage across methods and output types.} Coverage is reference inclusion in the returned output, treating a single prediction as a singleton set. All rows use 1,851 reactions and chemical endpoint-equivalence evaluation. MAPPA rows use the current full seed studies; expanded and bidirectional SLAP rows use the separately paired study. Default-interface comparator scores use saved predictions with unchanged per-case outcomes on re-evaluation. Protocols differ in search scope and output size; this table compares coverage, not ranking accuracy or equal-budget search.}
+\label{tab:method-coverage}
+\input{includes/generated-method-coverage-table}
+\end{table}
+
+MAPPA achieves the highest coverage among the evaluated methods. With one seed it recovers 99.08\% of references, increasing to 99.57\% with ten. Among the evaluated single-answer interfaces, LocalMapper~\citep{chen2024} has the highest coverage at 86.71\%, followed by Chython at 84.33\%, RXNMapper at 83.58\%, RDT at 55.65\% and Indigo at 37.39\%~\citep{chython,schwaller2021,rahman2016,indigo}. Binary SLAP's default returned candidate set covers 85.95\%; broader exploration raises its coverage to 96.92\%. These results support retaining useful alternatives, while leaving their chemical ranking to a later selection step. Comparator versions, failure accounting and archived timing scopes are provided in \Cref{sec:default-comparators}. The paired study below reports coverage and speed under explicitly recorded SLAP search protocols.
 
 \subsection{Paired coverage and speed comparison with SLAP}
 \label{sec:paired-slap}
@@ -208,7 +230,7 @@ The paired study recovers 1,839/1,851 references with MAPPA (99.352\%), 1,794 wi
 \label{fig:paired-slap}
 \end{figure}
 
-Default forward-only SLAP recovers 1,591/1,851 (85.95\%). This is close to its original paper's 86.9\%, which also measures reference inclusion among alternatives but uses a 1,758-reaction Golden version~\citep{koda2025}. It is therefore an independent reproduction of similar behavior, not an exact replication of that dataset. Our archived first-returned default-SLAP score is 1,399/1,851 (75.58\%). The retained alternatives tie at SLAP's lowest found cost; their output order is not a separate confidence ranking. In contrast, default single-answer interfaces such as RXNMapper and LocalMapper are evaluated directly on their selected prediction (\Cref{sec:default-comparators}).
+Default forward-only SLAP recovers 1,591/1,851 (85.95\%). This is close to its original paper's 86.9\%, which also measures reference inclusion among alternatives but uses a 1,758-reaction Golden version~\citep{koda2025}. It is therefore an independent reproduction of similar behavior, not an exact replication of that dataset. Our archived first-returned default-SLAP score is 1,399/1,851 (75.58\%). The retained alternatives tie at SLAP's lowest found cost; their output order is not a separate confidence ranking. For the single-answer interfaces in \Cref{tab:method-coverage}, coverage is the accuracy of their selected prediction.
 
 On the 1,834 reactions completed by all three protocols, mean search costs are 0.111 CPU seconds for standard binary SLAP, 1.202 for MAPPA, and 12.475 for expanded SLAP, summing both directions. MAPPA decoding adds 1.617 seconds. Thus MAPPA search is 10.38 times cheaper than the expanded SLAP sweep, but standard SLAP is 10.80 times cheaper than MAPPA search. The broader standard-SLAP/MAPPA pair contains 1,849 completed reactions and retains a slower standard-SLAP tail: their means are 0.487 and 1.259 seconds, a 2.58-fold difference. These are paired measurements on Intel Xeon Gold 6442Y processors, excluding loading, publication and external verification. Failed attempts remain separately accounted; excluded reactions are not treated as fast completions.
 
@@ -236,20 +258,6 @@ The reference is confirmed at the detected minimum in 1,691 reactions, absent th
 \end{figure}
 
 Zero-offset certificates can establish the answer immediately, so the completed subset overrepresents zero. The higher-offset distribution remains incomplete and does not yet support full-dataset proportions. Both sides of the subtraction use the same decoder count, including hydrogen and the ordinary-boundary approximation. The offset measures the reported model landscape, not physical event-bin accuracy.
-
-\begin{samepage}
-\subsection{Chemical interpretation of retained alternatives}
-
-A correspondence describes net atom origins and bond changes without specifying intermediates or elementary steps. \Cref{fig:alternatives} illustrates why retaining alternatives can matter. In Golden case 9, the annotated assignment places the alcohol oxygen in the product ring and the ketone oxygen in water. A second assignment exchanges those oxygen origins, while a third also changes two carbon assignments. The second has fewer events than the reference; the first and third have equal event totals but different correspondences. Neither a minimum event count nor a single total identifies the annotated transformation.
-\par\end{samepage}
-
-\begin{figure}[!htbp]
-\centering\includegraphics[width=\linewidth]{figs/fig4_alternatives.pdf}
-\caption{\textbf{A reference correspondence and two alternatives for Golden case 9.} A matches all 15 annotated heavy-atom pairs. B exchanges the oxygen origins; C also exchanges C$_{13}$/C$_{14}$. Colors identify matched fragments. Black lines show endpoint bonds, red $\times$ marks show cleavage or weakening, and green inward arrows show formation or strengthening. H atoms are implicit in the drawing but included in event totals; each witness minimizes H-involving changes for its fixed heavy-atom correspondence. ``Ground truth'' denotes the dataset annotation. These archived witnesses were obtained without reference labels using one-seed sweep search, cap 2,000 and $\tau_{\mathrm{iso}}=1$; events use threshold 0.5.}
-\label{fig:alternatives}
-\end{figure}
-
-The figure uses selected archived witnesses as a chemical illustration. It is not an exhaustive output of the current decoder, and the alternatives are not validated reaction pathways. The historical coordinate/WBO study in \Cref{sec:historical-evaluation} similarly examines event alternatives under unverified mappings; it is not a mapping-accuracy benchmark.
 
 \FloatBarrier
 \section{Discussion}

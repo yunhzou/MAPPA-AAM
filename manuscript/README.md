@@ -2,8 +2,8 @@
 
 The Methods section opens with the complete workflow: grow a fragment, discover
 its placements, continue conditional branches, reduce repeated fragments and
-compositions, then decode bond events. Explicit Matching Stage, Reduction Stage
-and Decoding Stage subsections introduce each operation in execution order.
+compositions, then decode bond events. Explicit Matching Stage and Decoding Stage subsections introduce the two
+scientific stages. Reduction is the final subphase of matching.
 Constraint-discovery philosophy is integrated into growth, sweep and boundary
 interpretation. Detailed matching equations and full pseudocode are in the
 supplement; parallel execution has its own final Methods subsection.
@@ -24,9 +24,12 @@ belong to the first category; optional chemical ranking is downstream work.
 All requested mapping and decoding outputs are available. Decoded verification
 uses exact annotated heavy-atom indices and replayed complete witnesses.
 Golden catalogue verification additionally allows endpoint chemical symmetry;
-EnzymeMap uses exact indices for both metrics. Unknowns are not absences.
+EnzymeMap uses exact indices for both metrics. Catalogue evaluation has zero unresolved reactions in all three studies. The
+three and two Golden unknowns belong only to additional bounded, exact-index
+checks of the decoded min+5 window; all decoding outputs are complete. Unknowns
+are not absences.
 
-Mean compute CPU seconds per reaction for mapping (matching plus reduction)
+Mean compute CPU seconds per reaction for matching (including reduction)
 and decoding are respectively **1.31 / 1.88**, **11.64 / 9.28**, and **4.41 / 8.75**
 for these three studies. Both directions and every cut are included. Publication,
 external evaluation and failed-attempt accounting are separate. These are saved
@@ -40,6 +43,11 @@ the overall detected count using the same saved all-atom model. The completed
 subset overrepresents zero and cannot establish the final distribution.
 
 ## Comparator and minimum-choice results
+
+The main Results compare MAPPA, SLAP, LocalMapper, RXNMapper, Chython, RDT and
+Indigo by reference coverage. A single prediction counts as a singleton candidate
+set. Current MAPPA scores, paired SLAP protocols and re-evaluated archived default
+outputs retain their provenance; only the paired study supports speed ratios.
 
 The separate paired study gives MAPPA catalogue coverage of **1,839/1,851**,
 expanded SLAP coverage of **1,794/1,851**, and standard bidirectional binary SLAP
@@ -80,12 +88,12 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview, with no verifier in the AAM pipeline.
-- `figs/fig6_current_benchmarks.*`: current decoded coverage and separate stage CPU costs.
+- `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
 - `figs/fig7_reference_offsets.*`: preliminary branch-event distribution.
 - `figs/fig8_design_examples.*`: greedy constraints, A–C3 ring/chain and tolerance-created boundary examples.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
 - `figs/fig10_minimum_choices.*`: distinct minimum-event mapping choices.
-- `figs/fig4_alternatives.*`: selected archived Golden case 9 witnesses, labeled as illustrations.
+- `figs/fig4_alternatives.*`: selected archived Golden case 9 witnesses, used in the Introduction to explain why alternatives matter.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 
 Install the dependencies in `requirements-build.txt`, Tectonic and Poppler. From
@@ -102,9 +110,10 @@ is recorded separately against the final PDF checksum.
 
 The decoder's ordinary-boundary model is approximate; its selected starting
 orbits and bounded improvement restrict coverage. Model-window membership is
-not physical event-bin accuracy. September comparator, cap, direction and
-coordinate results retain their original protocols in the supplement. They do
-not establish current-version superiority. The coordinate collection lacks
+not physical event-bin accuracy. Default-comparator coverage is included in the main Results with its recorded
+evaluation scope. Historical MAPPA, cap, direction, coordinate and timing results
+retain their original protocols in the supplement; they do not establish
+current-version speed ratios. The coordinate collection lacks
 annotated mappings and complete WBO-generation provenance.
 
 The archived [3D research preview](animations/mappa_research_preview/index.html)

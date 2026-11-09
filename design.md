@@ -2,14 +2,16 @@
 
 This document defines the approved scientific design and module boundaries.
 The goal is fast, accurate mapping with one-witness fragment growth, direct
-compressed completion, and separate matching, reduction and decoding stages.
+compressed completion, and two scientific stages: matching and decoding.
+Reduction consolidates unique fragments and branch compositions as the final
+subphase of matching. Its separate API does not make it a third scientific stage.
 Implementation status, measurements and repair history belong in `reports/`;
 usage details belong in `docs/`.
 
 ## Design principles
 
-- Keep scientific operations separate: growth, completion, reduction and decoding
-  have explicit inputs and outputs. External reference verification evaluates
+- Keep scientific operations separate: growth, completion and reduction within
+  matching, followed by decoding, have explicit inputs and outputs. External reference verification evaluates
   saved results; it does not participate in mapping.
 - Store each scientific relationship once. Share immutable fragments and
   correlated symmetry actions; do not reconstruct competing representations or
@@ -27,12 +29,16 @@ usage details belong in `docs/`.
 
 ```mermaid
 flowchart LR
-    Input[Endpoint graphs and policies] --> Matching[Matching across seeds and cuts]
-    Matching --> Reduce[Group branches and deduplicate families across seeds and cuts]
-    Reduce --> Catalogue[Catalogue for one reaction and direction]
+    Input[Endpoint graphs and policies] --> Search
+    subgraph Matching[Matching stage]
+      Search[Search across seeds and cuts] --> Reduce[Share unique fragments and deduplicate compositions]
+      Reduce --> Catalogue[Catalogue for one reaction and direction]
+    end
     Catalogue --> Inventory[Collect all unique fragments and branch references]
-    Inventory --> Local[Shared conditional fragment responses]
-    Local --> Compose[Compose approximate event counts and window]
+    subgraph Decoding[Decoding stage]
+      Inventory --> Local[Shared conditional fragment responses]
+      Local --> Compose[Compose approximate event counts and window]
+    end
 ```
 
 A cut is a search condition and provenance field, not the unit of decoding.
@@ -672,13 +678,13 @@ one action-position binding per branch use, rather than relabelled copies.
 ## Local and distributed execution
 
 Simple local calls remain `search_aam`, `deduplicate` and `decode_events`.
-`mappa.execution.WorkPool` exposes the same separate stages through typed
+`mappa.execution.WorkPool` exposes these operations through typed
 `MatchingResult`, `CatalogueResult` and `DecodingResult` handoffs. Execution
 strategy must not change scientific settings, task identities or results.
 
 ```mermaid
 flowchart TB
-    User[Direct calls or explicit stage submissions] --> Core[Matching, reduction and decoding]
+    User[Direct calls or explicit operation submissions] --> Core[Matching with reduction; decoding]
     User --> Pool[Persistent WorkPool]
     Pool --> Local[Local processes]
     Pool --> Slurm[One srun inside an existing allocation]
@@ -702,8 +708,8 @@ file count grows with workers and byte volume, never with seed, sweep or cut
 count. Small payloads may remain in bounded memory spools; larger ones use local
 scratch. Durable publication retains integrity checks and shared state.
 
-Massive benchmarks finish and audit matching and cross-seed/cross-cut reduction
-before starting decoding. This barrier is scheduling policy, not a requirement
+Massive benchmarks finish and audit matching, including cross-seed/cross-cut
+reduction, before starting decoding. This barrier is scheduling policy, not a requirement
 to load the entire dataset into RAM. The decoding job is one reaction/direction
 catalogue, with original endpoints, policies, integrity metadata and a manifest
 of completed, capped, failed or missing search work. It loads that catalogue,
