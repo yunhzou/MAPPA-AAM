@@ -19,7 +19,7 @@ in that table are conceptual target-set counts, not work performed during growth
 a rejected extension is distinct from a saturated fragment. Decoding is organized
 around local symmetry, internal events, starting correspondence, ordinary
 boundaries, sweep correction and window selection. The verifier appears only in
-Evaluation. The case 9 alternatives figure is introduced early to motivate
+Evaluation. The EnzymeMap alternatives figure is introduced early to motivate
 retaining different correspondences.
 
 ## Author decisions remaining before submission
@@ -86,7 +86,7 @@ fragment independence.
 
 ## Molecular figure conventions
 
-Reserve molecule colors for fragment membership. Keep original black single/double bond strokes. Mark bond cleavage/weakening with a vivid red × directly on the affected bond, and formation/strengthening with paired bright green inward arrows. Keep the marks compact so fragment colors and black bond lines remain visible. Match fragment colors across mapped endpoints; different candidate partitions may assign colors differently and must say so. The selected discussion example is Golden case 9, with the verified heavy-atom reference labeled. Ground truth refers to the dataset annotation, not a validated mechanism. Count events from the evaluation matrices, including H, while distinguishing heavy-only depictions and unannotated H identities.
+Use the same pastel palette, black bond strokes and compact red cleavage/weakening and green formation/strengthening marks throughout. In algorithm figures, colors identify matched fragments. In the introductory alternatives figure, fixed colors track atom origins across both mappings; state this in its legend. The accepted example is EnzymeMap case 13175: the reference assigns the formaldehyde carbon to the three-carbon molecule, whereas an alternative assigns it to CO₂. Both retain the complete C4H6O5 composition. Show all nine heavy atoms, number only the four carbons, and label the displayed four versus two events as heavy-atom counts. Optimizing the unannotated H assignments separately for these fixed heavy-atom maps yields six total events for both. The saved witnesses have eight and six events, but the saved reference H completion is not optimal. Use the example to illustrate ambiguity; do not claim a strict all-atom advantage or global optimality. The independent H-completion check does not establish decoded membership of the new H assignments. Ground truth refers to the dataset annotation, not a validated mechanism. Keep molecular components separated and inspect atom labels at full resolution before accepting the figure.
 
 ## Publication policy
 

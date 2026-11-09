@@ -104,7 +104,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `figs/fig8_design_examples.*`: greedy constraints, A–C3 ring/chain and tolerance-created boundary examples.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
 - `figs/fig10_minimum_choices.*`: distinct minimum-event mapping choices.
-- `figs/fig4_alternatives.*`: selected archived Golden case 9 witnesses, used in the Introduction to explain why alternatives matter.
+- `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 
 Install the dependencies in `requirements-build.txt`, Tectonic and Poppler. From

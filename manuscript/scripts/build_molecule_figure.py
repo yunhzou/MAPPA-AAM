@@ -311,7 +311,7 @@ def bond_event_marker(ax, a, b, sign, size=None, y_scale=1):
    stroke([(direction*size*1.3,0),(direction*size*.20,0)])
    stroke([(direction*size*.76,-size*.54),(direction*size*.20,0),(direction*size*.76,size*.54)])
 
-def molecule(ax,smiles,x,y,w,h,owners=None,notes=None,font=24,explicit_hydrogens=False,align_acetyl=True,rotation=0,bond_changes=None,preserve_bond_orders=False,coordinates=None):
+def molecule(ax,smiles,x,y,w,h,owners=None,notes=None,font=24,explicit_hydrogens=False,align_acetyl=True,rotation=0,bond_changes=None,preserve_bond_orders=False,coordinates=None,atom_labels=None):
  params=Chem.SmilesParserParams();params.removeHs=not explicit_hydrogens;params.sanitize=not preserve_bond_orders
  m=Chem.MolFromSmiles(smiles,params);assert m is not None
  if preserve_bond_orders:Chem.SanitizeMol(m,sanitizeOps=Chem.SanitizeFlags.SANITIZE_ALL ^ Chem.SanitizeFlags.SANITIZE_SETAROMATICITY)
@@ -335,6 +335,8 @@ def molecule(ax,smiles,x,y,w,h,owners=None,notes=None,font=24,explicit_hydrogens
  bonds={b.GetIdx():colors[b.GetBeginAtomIdx()] for b in m.GetBonds() if b.GetBeginAtomIdx() in colors and colors.get(b.GetBeginAtomIdx())==colors.get(b.GetEndAtomIdx())}
  for atom in m.GetAtoms():
   if atom.GetAtomicNum()==0:o.atomLabels[atom.GetIdx()]='R'
+ for label,value in (atom_labels or {}).items():
+  if label in ids:o.atomLabels[ids[label]]=value
  for pair,sign in (bond_changes or {}).items():
   bond=m.GetBondBetweenAtoms(ids[pair[0]],ids[pair[1]])
   assert bond is not None, ('Changed bond is absent from depiction',pair)
