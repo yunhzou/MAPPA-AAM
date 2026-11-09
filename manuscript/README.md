@@ -1,11 +1,16 @@
 # MAPPA manuscript
 
-The main manuscript presents the current scientific design: one-witness growth,
-compressed completion, hierarchical branching and cut sweep, atom-set reduction,
-shared binary-symmetry event responses, branch composition and event windows.
-Parallel execution has its own Methods subsection. The design explains greedy constraint discovery, seed diversity, sweep perturbations and the limits of fragment independence.
+The Methods section opens with the complete workflow: grow a fragment, discover
+its placements, continue conditional branches, reduce repeated fragments and
+compositions, then decode bond events. Explicit Matching Stage, Reduction Stage
+and Decoding Stage subsections introduce each operation in execution order.
+Constraint-discovery philosophy is integrated into growth, sweep and boundary
+interpretation. Detailed matching equations and full pseudocode are in the
+supplement; parallel execution has its own final Methods subsection.
 Reference verification is external evaluation, outside the MAPPA pipeline.
-The introduction distinguishes alternative-generating solvers from single-answer predictors and separates pathway endpoints from reaction mechanisms. MAPPA and SLAP belong to the first category; optional chemical ranking is downstream work.
+The introduction distinguishes alternative-generating solvers from single-answer
+predictors and separates pathway endpoints from reaction mechanisms. MAPPA and
+SLAP belong to the first category; optional chemical ranking is downstream work.
 
 ## Current results
 
@@ -59,6 +64,11 @@ The paper reports approximately linear matching cost over the measured one-to-te
 seed range and omits the cache-control comparison. No new experiments were run.
 
 ## Sources and build
+
+The molecular overview shares the first page with the title and abstract. Full
+affiliations and institutional logos appear under Author information. Figures
+are placed at their first discussion where space permits, or on the adjacent
+page; the final PDF is checked against those citation locations.
 
 - `preprint.tex`: entry point; author list and supplied affiliations are retained.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.

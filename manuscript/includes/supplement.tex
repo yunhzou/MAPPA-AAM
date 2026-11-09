@@ -8,14 +8,54 @@
 \renewcommand{\thealgorithm}{A\arabic{algorithm}}
 \renewcommand{\theHalgorithm}{A.\arabic{algorithm}}
 
+The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The following sections give the constraints and implementation details underlying the main-text description.
+
+\begin{algorithm}[!htbp]
+\caption{Matching, reduction and separate decoding}
+\label{alg:mappa-overview}
+\small
+\begin{algorithmic}[1]
+\REQUIRE Endpoint graphs, discovery policies, seed/cut plan, branch cap and event window
+\FORALL{requested search directions}
+  \FORALL{cut conditions and seed orderings}
+    \STATE Initialize the conditional search hierarchy
+    \WHILE{a retained continuation has an eligible fragment seed}
+      \STATE Grow using one-witness existence queries
+      \STATE At saturation, construct distinct compressed placements
+      \STATE Continue each placement with earlier assignments locked
+      \STATE Prune and recount the hierarchy from leaves to root
+    \ENDWHILE
+    \STATE Retain terminal compositions and compact provenance
+  \ENDFOR
+  \STATE Share fragments by atom-set pair; reduce repeated branch compositions
+\ENDFOR
+\STATE Complete the matching/reduction stage before batch decoding
+\FORALL{reaction/direction catalogues}
+  \STATE Inventory unique fragments and prepare their shared symmetry-event responses
+  \STATE Compose branch contributions and the sweep-endpoint correction
+  \STATE Retain queryable branches within the requested event window
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Exact existence queries during growth}
 \label{sec:existence-details}
 
 An existence query contains the proposed source atoms, their accepted preservation edges and completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. Source nonedges and unselected molecular edges do not add constraints.
 
+More formally, let $V_R,V_P$ denote endpoint atom sets, $Z_R,Z_P$ their elements and $W_R,W_P$ their original bond-weight matrices. A partial correspondence $m:D\subseteq V_R\rightarrow V_P$ is injective. For every accepted preservation edge $(u,v)\in A$, its assignment satisfies
+\begin{equation}
+ Z_R(u)=Z_P(m(u)),\quad W_P(m(u),m(v))\geq b,\quad
+ |W_R(u,v)-W_P(m(u),m(v))|\leq\tau_{\mathrm{iso}}.
+ \label{eq:match}
+\end{equation}
+Here $b$ is the graph-presence threshold and $\tau_{\mathrm{iso}}$ is the discovery tolerance. These constraints apply to the selected growth graph, not every bond in the completed atom set.
+
 Propagation removes occupied singleton destinations and destinations without support in a neighbor's domain. An empty domain or incompatible singletons establish infeasibility. A bipartite distinct-target check can reject domains that cannot accommodate an injective assignment. These are necessary conditions; surviving ambiguous cases require search. The solver chooses a constrained atom, propagates its tentative destination and stops at the first complete witness. Proving absence can require exploring every remaining feasible choice. Positive and negative answers use the same constraints.
 
 Direct witness extension and indexed fragment reuse precede this query. They establish existence only. Neither supplies a different continuation policy nor converts a timeout into absence. Completed-fragment assignments remain fixed while assignments internal to the current growing fragment may change.
+
+The molecular overview in \Cref{fig:algorithm} uses constructed alcohol placements in panel a and methyl acetate saponification in panels b and c. Hydrogens participate in matching but are implicit in the drawings. Exchanging the acetate oxygen images adds two internal changes to two boundary changes at event threshold 0.5. Black lines show endpoint bonds. These illustrations are not a complete search trace, and their formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.
 
 \subsection{Completion, local symmetry and global placement}
 \label{sec:completion-details}
@@ -115,6 +155,12 @@ Evaluation & Reference-family recovery & Signed event-class coverage\\\bottomrul
 
 In the archived campaign, the one-seed MAPPA configuration recovered \GoldenOnePercent\% of Golden references, compared with \SlapPercent\% for SLAP sweep (\Cref{tab:competitors,fig:golden}). These scores belong to that campaign, separate from \Cref{sec:current-validation}. The paired comparison includes \AamOnly{} references recovered only by MAPPA and \SlapOnly{} only by SLAP. LocalMapper is the strongest evaluated method returning one bijection. Additional MAPPA seeds yielded modest recovery gains at increasing search cost; two seeds did not improve recovery over one.
 
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figs/fig2_golden.pdf}
+\caption{\textbf{Archived Golden reference recovery and search cost.} (a) Reference recovery over all 1,851 reactions. MAPPA and SLAP use our cut sweep; LocalMapper is the prior accuracy-SOTA baseline and returns one bijection. All scores use the archived evaluator. (b) Mean search CPU over the same \CommonCases{} completed reactions, by orientation. Bond-event decoding is excluded. Full comparisons and timing scopes are in \Cref{tab:competitors,tab:directions}.}
+\label{fig:golden}
+\end{figure}
+
 \begin{table}[tb]
 \centering\small
 \setlength{\tabcolsep}{4pt}
@@ -137,12 +183,6 @@ Smaller-first grows fragments from the reaction side with fewer explicit atoms (
 In these archived measurements, one-seed MAPPA had a lower mean and median search cost than SLAP sweep, but a higher 95th percentile. Two seeds approximately doubled the mean cost without improving recovery. These Golden timings cover search, excluding reference verification and separate bond-event decoding. The two timing tables use different experiments and should be compared within their stated CPU and reaction sets; neither establishes a current-implementation speed ranking.
 
 In the archived cap study, increasing the branch cap from 100 to 2,000 yielded no additional swept recoveries among cases resolved at both caps, while increasing cost and unresolved outcomes at higher seed counts (\Cref{tab:golden-caps}). The uncut search gained 19 confirmed recoveries. Thus, in that study a larger branch budget did not substitute for changing the growth conditions.
-
-\begin{figure}[tb]
-\centering\includegraphics[width=\linewidth]{figs/fig2_golden.pdf}
-\caption{\textbf{Archived Golden reference recovery and search cost.} (a) Reference recovery over all 1,851 reactions. MAPPA and SLAP use our cut sweep; LocalMapper is the prior accuracy-SOTA baseline and returns one bijection. All scores use the archived evaluator. (b) Mean search CPU over the same \CommonCases{} completed reactions, by orientation. Bond-event decoding is excluded. Full comparisons and timing scopes are in \Cref{tab:competitors,tab:directions}.}
-\label{fig:golden}
-\end{figure}
 
 \FloatBarrier
 \subsection{Archived bond-event comparison on 140 coordinate reactions}
@@ -169,7 +209,7 @@ To compare alternatives above MAPPA's own minima, the archived study queried thr
 
 The stage timings in \Cref{tab:coordinate-time} cover different outputs: MAPPA search retains families for subsequent decoding, while SLAP refinement operates on returned witnesses. They therefore do not establish an end-to-end speed ranking.
 
-\begin{figure}[tb]
+\begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig3_coordinate.pdf}
 \caption{\textbf{Archived bond-event comparison on 140 coordinate reactions.} MAPPA uses one seed, the sweep, and cap 2,000. (a) Reactions with fewer or equal MAPPA events than each SLAP baseline. (b) Comparator minimum-event patterns recovered by MAPPA at equal minima. (c) Minimum-event count distributions. (d) Mean CPU for search and SLAP refinement, excluding MAPPA decoding (\Cref{tab:coordinate-time}). Atom mappings are unverified; this compares bond events, not mapping accuracy.}
 \label{fig:coordinate}
@@ -217,8 +257,6 @@ The archived study ran the twelve configurations in \Cref{tab:golden-caps} on al
 \end{table}
 
 The ten-seed cap-2,000 run leaves five references recovered at cap 100 unresolved, accounting for its lower confirmed count. The bounded SLAP sweep confirms 1,794 references here, compared with 1,796 in the archived primary evaluation: two previously recovered cases are unresolved under this study's limits. These outcomes are reported separately from verified exclusions. The paired timing cohort excludes 448 reactions because at least one configuration does not finish; the all-attempt cost column exposes the additional computational cost on those difficult reactions. Source pins, individual outcomes, directional costs, and reproduction scripts are provided with the code.
-
-
 
 \FloatBarrier
 \subsection{Archived end-to-end timing on coordinate reactions}

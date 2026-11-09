@@ -81,7 +81,7 @@ sources=json.loads((E/'paper_sources.json').read_text())
 assert sources['historical_campaign']['fresh_campaign_complete']
 for row in sources['snapshots']:
  assert hashlib.sha256((E/row['snapshot']).read_bytes()).hexdigest()==row['sha256'],row['snapshot']
-tex='\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in ['paper.tex','supplement.tex','include-abstract.tex'])
+tex=(MAN/'preprint.tex').read_text()+'\n'+'\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in ['paper.tex','supplement.tex','include-abstract.tex'])
 for obsolete in ['Adaptive no-sweep','Separate experimental versions','Holdout follow-ups','earlier publication engine','N_{\\mathrm{order\\ changed}}']:
  assert obsolete not in tex,obsolete
 paper=(MAN/'includes/paper.tex').read_text()
@@ -98,7 +98,7 @@ assert 'Final representation and complete window decoding' not in paper
 bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
-figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',tex)
+figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{(figs/[^}]+)\}',tex)
 assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf'}
 for fig in figs:
  p=MAN/fig
