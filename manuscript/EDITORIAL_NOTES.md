@@ -1,10 +1,13 @@
 # Editorial scope and remaining author decisions
 
-The introduction now distinguishes alternative generation from single-answer
-prediction and describes mapping as an endpoint correspondence, not a mechanism.
-Base and target identify search roles, not fixed reactant/product identities.
-Either endpoint can be the base; reverse search exchanges the roles. Prose,
-mathematical notation and figure labels use this convention.
+The Introduction follows the agreed narrative: AAM's meaning and applications,
+ambiguity, taxonomy and prior work, computational challenge, and MAPPA's
+contribution and principal findings. The alternatives example precedes the
+taxonomy and motivates retaining different correspondences. The taxonomy
+organizes related work into alternative generation and prediction, connected
+by subsequent selection. Base and target are introduced in Methods as search
+roles; either endpoint can be the base. Algorithm prose, mathematical notation
+and figure labels use this convention.
 Supplied author metadata is retained. The Methods follow the current design in
 separate scientific subsections: constraint discovery, inputs, existence
 growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set

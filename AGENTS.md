@@ -14,13 +14,20 @@ such as shared molecular fragments. Do not introduce detailed methodology,
 execution settings or unexplained terms such as seed counts. Retain informative
 coverage and CPU-time results without turning the abstract into a Methods summary.
 
-Open the Introduction by defining AAM as correspondence between two molecular
-endpoints. Call their algorithmic roles **base** and **target**, not reactant and
-product: either reaction side can serve as the base, and reversing the search
-exchanges these roles. Use base/target consistently in prose, notation and figure
-labels, then explain AAM applications, ambiguity and motivation.
-Use a comparison table paired with prose for method-output categories and their
-evaluation metrics. Establish this background before introducing MAPPA's stages.
+Build the Introduction as a scientific argument: AAM's meaning and applications,
+ambiguity, taxonomy and prior work, the computational challenge, then MAPPA's
+contribution and principal findings. Organize the related-work discussion around
+alternative generation and prediction, with a concise comparison table and an
+explanation of how a selector connects them. Use the molecular alternatives
+figure beside the ambiguity discussion, before the taxonomy.
+Treat author feedback as scientific intent, not sentences to insert. Rewrite
+the argument when its structure fails; avoid accumulating qualifications,
+terminology definitions and responses to prior discussions.
+
+Describe AAM as correspondence between two molecular endpoints. Introduce the
+algorithmic roles **base** and **target** in Methods: either endpoint can be the
+base, and reversing the search exchanges these roles. Use base/target consistently
+in algorithm prose, notation and figure labels, not fixed reactant/product labels.
 
 Write the main manuscript for researchers who have not read the code. Organize
 the algorithm into clear scientific stages: explain each stage's purpose, input,

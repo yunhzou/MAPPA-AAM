@@ -14,13 +14,15 @@ from completed placement construction. Decoding likewise separates local symmetr
 internal events, connectivity-mismatch handling, ordinary boundaries, sweep
 correction and window selection. Each operation is paired with its inputs,
 decision and molecular example.
-The Introduction defines AAM between base and target endpoints, explains
-its applications and ambiguity, then compares alternative-generating solvers
-with single-answer predictors in a table and accompanying prose. MAPPA and SLAP
-belong to the first category; optional chemical ranking is downstream work.
-Base and target are search roles: either reaction side can be the base, and
-reverse search exchanges the roles. The notation and molecular diagrams follow
-this convention.
+The Introduction develops AAM's purpose and applications, ambiguity, taxonomy
+and prior work, the computational challenge of retaining alternatives, and
+MAPPA's contribution and principal findings. Figure 2 supports the ambiguity
+discussion before the output taxonomy. Alternative-generating solvers and
+single-answer predictors are compared in prose and a concise table; a later
+selector connects their objectives. MAPPA and SLAP belong to the first category.
+Methods introduces base and target as search roles: either endpoint can be the
+base, and reverse search exchanges the roles. The notation and molecular diagrams
+follow this convention.
 
 ## Current results
 
