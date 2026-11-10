@@ -6,7 +6,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import LogLocator, NullFormatter
+from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter
 
 
 def evidence(man):
@@ -119,7 +119,7 @@ def update_reference_offsets(man, enzyme_counts):
     return data
 
 
-def build_reference_offsets(man, offsets, save):
+def build_reference_offsets(man, offsets, save, *, percentages=False):
     fig, axes = plt.subplots(1, 2, figsize=(10.2, 3.9), layout='constrained')
     for column, (name, color) in enumerate(zip(('Golden', 'EnzymeMap'), ('#087F8C', '#3366A5'))):
         cohort = [r for r in offsets['results'] if r['dataset'] == name]
@@ -127,24 +127,31 @@ def build_reference_offsets(man, offsets, save):
         assert sum(counts.values()) == len(cohort)
         ax = axes[column]
         xs = sorted(counts)
-        ax.bar(xs, [counts[x] for x in xs], width=.68, color=color)
-        for x in xs:
-            ax.text(x, counts[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+        scale = 100/len(cohort) if percentages else 1
+        values = [counts[x]*scale for x in xs]
+        ax.bar(xs, values, width=.68, color=color)
+        for x, value in zip(xs, values):
+            label = (f'{value:.2f}%' if value >= .1 else f'{value:.3f}%') if percentages else f'{counts[x]:,}'
+            ax.text(x, value*1.2, label, ha='center', va='bottom',
+                    fontsize=7 if percentages else 8)
         first, last = min(0, min(xs)), max(xs)
-        ax.set(xlim=(first-.7, last+.7), ylim=(.7, max(counts.values())*5),
+        ax.set(xlim=(first-.7, last+.7),
+               ylim=(.003, 200) if percentages else (.7, max(counts.values())*5),
                xlabel='Event offset n from detected minimum',
                xticks=[x for x in range(first, last+1) if x >= 0 or x in counts])
         ax.set_title(f"{'ab'[column]}  {name} · {len(cohort):,} reactions",
                      loc='left', weight='bold', pad=12)
     for ax in axes.flat:
         ax.set_yscale('log')
-        ax.set_ylabel('Reactions (log scale)')
+        ax.set_ylabel('Reactions (%) · log scale' if percentages else 'Reactions (log scale)')
         ax.axvline(0, color='#223340', linewidth=.7, alpha=.5, zorder=0)
         ax.yaxis.set_major_locator(LogLocator(base=10))
+        if percentages:
+            ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{value:g}%'))
         ax.yaxis.set_minor_formatter(NullFormatter())
         ax.grid(axis='y', alpha=.2)
         ax.set_axisbelow(True)
-    save(fig, 'fig7_reference_offsets')
+    save(fig, 'fig12_reference_percentages' if percentages else 'fig7_reference_offsets')
 
 
 def build(man):
@@ -190,6 +197,7 @@ def build(man):
     save(fig, 'fig6_current_benchmarks')
 
     build_reference_offsets(man, offsets, save)
+    build_reference_offsets(man, offsets, save, percentages=True)
 
     assert all(s['decoded']['unknown'] == 0 for s in studies)
     coverage_rows, timing_rows = [], []

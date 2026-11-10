@@ -136,6 +136,14 @@ The independent-fragment model and directly counted whole-reaction totals differ
 
 Figure~\ref{fig:reference-offsets} uses the saved verified mapping counts and original detected minima in \texttt{evidence/reference\_offsets.json.gz}. Each of the 49,825 reactions has a concrete offset. For recovered references, select the lowest model event count among the final saved forward/reverse verification witnesses; forward wins ties. The other 196 references use the saved anchored completions in \texttt{evidence/anchored\_offsets.json}, with the same selection rule. No additional symmetry, starting-correspondence or branch-minimum search is performed. All counts include hydrogens under the same model; a selected hydrogen completion need not be optimal. The nine negative EnzymeMap values are anchored completions two events below the original detected minimum. These completions do not change independent coverage. Certificate and input identities retain the connection to the original audits.
 
+\Cref{fig:reference-percentages} presents the same event-offset distribution as percentages, normalizing each dataset to 100\%.
+
+\begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figs/fig12_reference_percentages.pdf}
+\caption{\textbf{Reference event-offset distribution as percentages.} The same verified mapping counts and detected minima as in \Cref{fig:reference-offsets}, expressed as a percentage of all 1,851 Golden or 47,974 EnzymeMap reactions. Saved anchored completions are included. Each dataset sums to 100\% before rounding. Bar labels give percentages; the vertical axis is logarithmic.}
+\label{fig:reference-percentages}
+\end{figure}
+
 The supplementary September studies below retain their original settings, evaluators and comparison cohorts. Their archived paired search timings use an Apple M4 Pro CPU; the cap comparison uses an AMD EPYC 9J14. Search, publication and event-query boundaries differ across those studies and are stated with each table. They are not pooled with the current main-text timings. The WBO-generation method for the archived coordinate inputs is not recorded in the available metadata, so regeneration of those matrices from molecular structures is not established.
 
 \section{Archived September evaluations}

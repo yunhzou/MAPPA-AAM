@@ -143,6 +143,11 @@ separate completion legend. Unoccupied negative ticks are omitted. The nine
 negative values are actual anchored completions below the original detected
 minimum; no lower bounds are plotted.
 
+The appendix percentage view uses the same bins and plotting function, scaling
+each count by `100 / dataset size`. The denominators are 1,851 and 47,974, so
+each dataset sums to 100% before displayed rounding. The logarithmic axis and
+dataset colors are shared with the main figure.
+
 The prior branch-minimum analysis remains in `evidence/branch_offsets.json.gz`
 for provenance and original-baseline checks. It does not supply the plotted
 numerator. Replacing its values and lower-bound substitutions moves 126 Golden

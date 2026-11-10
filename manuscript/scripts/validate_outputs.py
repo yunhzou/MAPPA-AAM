@@ -180,7 +180,9 @@ bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{(figs/[^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf','figs/fig11_saturation.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf','figs/fig11_saturation.pdf','figs/fig12_reference_percentages.pdf'}
+assert 'figs/fig12_reference_percentages.pdf' in supplement
+assert 'figs/fig12_reference_percentages.pdf' not in paper
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -255,6 +257,15 @@ for fig in figs:
                 '1,630','44,086','Event offset n']:
    assert label in figure_text,label
   assert not any(label in figure_text for label in ['Pending','GT absent','Possible upper count','Anchored completion','Retained branches'])
+ elif fig.endswith('fig12_reference_percentages.pdf'):
+  for label in ['Golden','EnzymeMap','1,851','47,974','88.06%','91.90%','Reactions (%)']:
+   assert label in figure_text,label
+  for dataset in ('Golden','EnzymeMap'):
+   cohort=[r for r in offsets['results'] if r['dataset']==dataset]
+   percentages=[100*count/len(cohort) for count in offset_counts(cohort).values()]
+   assert abs(sum(percentages)-100)<1e-10
+   for value in percentages:
+    assert (f'{value:.2f}%' if value>=.1 else f'{value:.3f}%') in figure_text
  elif fig.endswith('fig8_design_examples.pdf'):
   for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events','Base','Target']:
    assert label in figure_text,label
