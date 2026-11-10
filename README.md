@@ -6,9 +6,9 @@ MAPPA is a Python library for atom–atom matching (AAM) between molecular struc
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
-**Current decoder: all 3,702 saved Golden directions completed without failures.**
-This validates decoding of saved catalogues; reference-recovery measurements below
-belong to their recorded historical revisions.
+**Matching and decoding are complete for the current Golden and EnzymeMap studies.**
+Golden contains 1,851 reactions; EnzymeMap contains 47,974. Current results and
+historical comparisons are distinguished below.
 
 [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
@@ -16,18 +16,18 @@ belong to their recorded historical revisions.
 
 **Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
 
-The [November 1 completed full rerun](reports/golden_retest_20261101/README.md) used
-source commit `096a010961f53944ddd4ddc433bd8d56f282a2f2`, one seed, branch cap 100
-and both search directions. All 1,851 reactions completed matching, reduction,
-decoding and verification. Its 1,830 recovered references are the result recorded
-for that revision; later changes require their own full-run validation.
+The [current one- and ten-seed Golden study](reports/golden_native_seeds_20261106/README.md)
+uses discovery tolerance 2, branch cap 100, both directions and the full single-edge
+sweep. Matching-catalogue coverage is **1,834/1,851 (99.082%)** with one seed and
+**1,843/1,851 (99.568%)** with ten. Every reaction has a definitive catalogue
+verdict. Both runs completed matching and decoding for all 3,702 directions.
+The report separately measures exact-index reference membership in the saved
+decoded minimum + 5 window.
 
-The later [tolerance-1, cap-2,000 study](reports/golden_placement_20261103/README.md)
-recorded 1,831/1,851 recovered reactions (98.92%). Its decoding repairs and selected
-higher-budget recovery experiments are separate measurements. The
-[current decoder validation](reports/golden_binary_decode_20261105/README.md)
-completed all 3,702 saved tolerance-2, cap-200 directions in a 305-second allocation
-with 32 workers, without repeating matching or external reference verification.
+Mean compute CPU per reaction is **1.31 s matching and 1.88 s decoding** with one
+seed, and **11.64 s matching and 9.28 s decoding** with ten. Matching includes
+fragment reduction; both directions and all cuts contribute. These are the
+saved completed-stage measurements, excluding publication and external evaluation.
 
 ### Historical September comparison
 
@@ -61,20 +61,19 @@ MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines s
 
 [Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/publish_readme_coverage.py)
 
-## EnzymeMap benchmark status
+## EnzymeMap benchmark
 
-The [completed November campaign](reports/enzymemap_history_pruned_20261102/README.md)
-recovered **47,500 / 47,974 references (99.01%)** under its recorded scientific
-revision. All directions completed decoding after the documented memory repair;
-four directional reference checks remain unknown. These measurements predate
-the current relaxed-fragment implementation, which requires its own full-dataset
-validation.
+The [completed current campaign](reports/enzymemap_native_20261106/README.md)
+processed all **47,974 reactions / 95,948 directions**. Exact-index catalogue
+coverage is **47,798/47,974 (99.633%)**; the saved decoded minimum + 5 window
+contains **47,796/47,974 (99.629%)**. Every reaction has a definitive outcome.
+The two additional catalogue references are outside their retained decoded windows.
+Mean successful compute CPU per reaction is **4.41 s matching**, including
+reduction, and **8.75 s decoding**, across both directions and all cuts. The
+report separately records publication, external evaluation and earlier attempts.
 
-The [historical October report](reports/enzymemap_20261008/README.md) recorded
-**47,974 / 47,974 reactions completed (100%)** and **47,335 strict reference matches
-(98.6680%)** across its recorded configurations and output policies. Those results
-retain their original evaluation protocol and do not establish the current
-algorithm's full-dataset accuracy.
+Historical campaigns remain in [the report index](reports/README.md), with their
+original source revisions and evaluation policies.
 
 ## What you can do with MAPPA
 

@@ -474,7 +474,9 @@ def plot_positions(results, output):
         absent = sum(r['status'] == 'not_recovered' for r in cohort)
         pending = sum(r['status'] == 'pending' for r in cohort)
         unresolved = sum(r['status'] not in ('complete', 'not_recovered', 'pending') for r in cohort)
-        excluded = f'GT not represented: {absent:,}    Unresolved: {unresolved:,}'
+        excluded = f'GT not represented: {absent:,}'
+        if unresolved:
+            excluded += f'    Unresolved: {unresolved:,}'
         if pending:
             excluded += f'    Pending: {pending:,}'
         ax.text(.5, -.22, excluded,

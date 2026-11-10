@@ -1,0 +1,413 @@
+{
+  "schema": "mappa.golden_decoded_closure/v1",
+  "completed_utc": "2026-11-10",
+  "verifier_revision": "dc92f469269f0e1dfcf0db9f76abd7ed19136903",
+  "scientific_identity": "ba841d410beb9356c1bf1d86c9c34467a42e06d9e82a66cfd45c4aa65fa92e6b",
+  "scientific_results_unchanged": true,
+  "policy": "Exact annotated heavy-atom indices, including unmatched atoms, in the saved decoded minimum + 5 window; either direction establishes reaction recovery.",
+  "denominator": {
+    "reactions_per_arm": 1851,
+    "directions_per_arm": 3702
+  },
+  "studies": {
+    "seeds1": {
+      "reaction_counts": {
+        "recovered": 1833,
+        "not_recovered": 18,
+        "unknown": 0
+      },
+      "direction_counts": {
+        "recovered": 3594,
+        "not_recovered": 82,
+        "unknown": 26
+      },
+      "prior_audit_hashes": {
+        "decoded-verification-full": "cb6e667553633e785cc93c5873dcad8e0552595cc2ad7ac08b882515f78e9c13",
+        "decoded-event-filter-reuse": "f284f5da096630705669df08d9aee1722d70004d24f4b4142321691943b68289",
+        "decoded-five-unresolved-retest": "3df99ef30143fa8a109aa52ccce4a500ca15bc9b43e203e720e5654f54f0aa88",
+        "decoded-verification-followup": "fe5ec10667c50de294c036d77dd54898102b0d2aeb712d43bf017f3a14acfea3"
+      }
+    },
+    "seeds10": {
+      "reaction_counts": {
+        "recovered": 1842,
+        "not_recovered": 9,
+        "unknown": 0
+      },
+      "direction_counts": {
+        "recovered": 3653,
+        "not_recovered": 31,
+        "unknown": 18
+      },
+      "prior_audit_hashes": {
+        "decoded-seeds10-current": "f5e594aaf501744c5f4bd67ee36a6005b926108b4881fe1f9364ef8aef580ab0",
+        "decoded-seeds10-followup": "0c4fe367333663adb707d13ce9c6cf54379b3cfbaefd59808f1fa43399bb4250"
+      }
+    }
+  },
+  "new_directions": [
+    {
+      "name": "00590/reverse",
+      "case": 590,
+      "reversed": true,
+      "status": "not_recovered",
+      "state": "complete",
+      "input_sha256": "8e363c9cef3c857bb2b4c5b43a9648c5782d2645d5b001e5ed27f73ca5b62012",
+      "reference_sha256": "456497631f800570e0145e8eb2d3fb51bedb585c8b50aaa9cf704cda78646aac",
+      "decoded_sha256": "f8193e2be3dcd6463c1a6820658a2ff400e58e7b11adce0ae606716ca9eb32aa",
+      "event_filter": {
+        "contexts": 9594,
+        "rejected": 1900,
+        "symmetry_queries": 7694,
+        "seconds": 1.2383218794129789,
+        "node_limited_queries": 0,
+        "time_limited_queries": 0
+      },
+      "loading_seconds": 7.485674190102145,
+      "query_seconds": 38.51495107100345,
+      "metrics": {
+        "cpu_seconds": 46.169558693999996,
+        "compute_seconds": 46.1942863590084,
+        "publish_seconds": 0.007362248841673136,
+        "publish_cpu_seconds": 0.0012591730000011125,
+        "total_cpu_seconds": 46.170972217999996,
+        "process_lifetime_peak_rss_bytes": 667529216,
+        "peak_tree_rss_bytes": 667529216,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 667529216,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 46.1,
+        "memory_samples": 231,
+        "monitoring_seconds": 0.06891180761158466,
+        "elapsed_seconds": 46.20263938419521
+      },
+      "pass_name": "decoded-closure-20261109",
+      "certificate_sha256": "aa8b6490b9b363647556fdeb1f8b44a0af19ecfd5ac17012a25aba550460d300"
+    },
+    {
+      "name": "01606/reverse",
+      "case": 1606,
+      "reversed": true,
+      "status": "not_recovered",
+      "state": "complete",
+      "input_sha256": "09206b1c1f43fd8b78fce09a3623c0889fedbc053eb662e13f136cf3282ba79d",
+      "reference_sha256": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8",
+      "decoded_sha256": "0d3fc6926393a2fdb039d1319d7d35a3f072d4fea4fba3a188a819010864419d",
+      "event_filter": {
+        "contexts": 5602,
+        "rejected": 0,
+        "symmetry_queries": 5602,
+        "seconds": 0.7705330224707723,
+        "node_limited_queries": 0,
+        "time_limited_queries": 0
+      },
+      "loading_seconds": 2.5527458819560707,
+      "query_seconds": 98.30948290904053,
+      "metrics": {
+        "cpu_seconds": 100.849913363,
+        "compute_seconds": 100.92152529791929,
+        "publish_seconds": 0.011682996992021799,
+        "publish_cpu_seconds": 0.0012044559999964122,
+        "total_cpu_seconds": 100.851317461,
+        "process_lifetime_peak_rss_bytes": 235421696,
+        "peak_tree_rss_bytes": 235421696,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 235421696,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 100.81,
+        "memory_samples": 504,
+        "monitoring_seconds": 0.14616808877326548,
+        "elapsed_seconds": 100.93422455783002
+      },
+      "pass_name": "decoded-closure-20261109",
+      "certificate_sha256": "e4babb7940344e0a449fde822ee4f3f4f2167fc1ecab9f06c576cbad990f550b"
+    },
+    {
+      "name": "01568/reverse",
+      "case": 1568,
+      "reversed": true,
+      "status": "not_recovered",
+      "state": "complete",
+      "input_sha256": "ebfa3ad59d3f095ce413ad8c8cac8e1c0f3964bad37cb34ed76b90442e77a2c6",
+      "reference_sha256": "c0c05df5489e4838786d90278be977a2b97e83821c08b7935f71cfbbe4e7002e",
+      "decoded_sha256": "1b120454a4da129ce80b15dc61ebe907cedb791ab00ed6f5e42419ff89168110",
+      "event_filter": {
+        "contexts": 517,
+        "rejected": 397,
+        "symmetry_queries": 120,
+        "seconds": 0.0872195279225707,
+        "solver_limited_queries": 0
+      },
+      "loading_seconds": 0.6960954880341887,
+      "query_seconds": 46.339837667066604,
+      "metrics": {
+        "cpu_seconds": 46.814619651,
+        "compute_seconds": 47.06095096981153,
+        "publish_seconds": 0.009026872925460339,
+        "publish_cpu_seconds": 0.0021743049999969344,
+        "total_cpu_seconds": 46.817072019,
+        "process_lifetime_peak_rss_bytes": 131117056,
+        "peak_tree_rss_bytes": 131100672,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 131100672,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 46.69,
+        "memory_samples": 235,
+        "monitoring_seconds": 0.08031166438013315,
+        "elapsed_seconds": 47.071051195729524
+      },
+      "pass_name": "decoded-closure-constraints-20261109",
+      "certificate_sha256": "0cf80b98f1e7e0ef475a18653a51407785d61839a4ba16f5ab9b4e5ea8c5a9c1"
+    },
+    {
+      "name": "00852/reverse",
+      "case": 852,
+      "reversed": true,
+      "status": "recovered",
+      "state": "complete",
+      "input_sha256": "6a0552b973965c3526a267c3c3b5b0335621f07631b1d99ada4117f0173235f9",
+      "reference_sha256": "1cfd4a65f27918cf1491b193f454183619ad6da5a295542c251af47074c52675",
+      "decoded_sha256": "c7fa6dcb49ec553401f8db459e2bb009a838720954821bb5dac70d725ebef5c9",
+      "family": 578,
+      "partition": 0,
+      "cut": 0,
+      "event_count": 27,
+      "physical_event_count": 27,
+      "event_window": [
+        27,
+        32
+      ],
+      "event_filter": {
+        "contexts": 123,
+        "rejected": 0,
+        "symmetry_queries": 123,
+        "seconds": 0.06978542124852538,
+        "solver_limited_queries": 0
+      },
+      "loading_seconds": 2.730024148710072,
+      "query_seconds": 20.905804238282144,
+      "metrics": {
+        "cpu_seconds": 23.637267978999997,
+        "compute_seconds": 23.67083336878568,
+        "publish_seconds": 0.6767327226698399,
+        "publish_cpu_seconds": 0.0018550829999988139,
+        "total_cpu_seconds": 23.639274167,
+        "process_lifetime_peak_rss_bytes": 242372608,
+        "peak_tree_rss_bytes": 236359680,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 236359680,
+          "publication": 236359680
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 23.64,
+        "memory_samples": 122,
+        "monitoring_seconds": 0.04078011214733124,
+        "elapsed_seconds": 24.348495230078697
+      },
+      "pass_name": "decoded-closure-final-20261109",
+      "certificate_sha256": "96ddfc2491359f5ff4846bfc5c9501756cd6718aca77fef3ca03ff0a98be5d8e"
+    },
+    {
+      "name": "00607/reverse",
+      "case": 607,
+      "reversed": true,
+      "status": "recovered",
+      "state": "complete",
+      "input_sha256": "f445a9ef7495e394ac4bb6a878fdb6ca3d2bf050b55e055e58290e538baf8621",
+      "reference_sha256": "d629f45a18b6162c189874149657c5fe2be977ff2c504d61f52b3d361f4703d6",
+      "decoded_sha256": "bbc7d57423976db9822fc97f171b0e43ae05229b26168dba1f68c72af20d6f9b",
+      "family": 21641,
+      "partition": 0,
+      "cut": 0,
+      "event_count": 16,
+      "physical_event_count": 16,
+      "event_window": [
+        16,
+        21
+      ],
+      "event_filter": {
+        "contexts": 8184,
+        "rejected": 0,
+        "symmetry_queries": 1,
+        "seconds": 1.1553483179304749,
+        "solver_limited_queries": 0,
+        "composition_rejected": 8183
+      },
+      "loading_seconds": 7.276526488829404,
+      "query_seconds": 4.109742083121091,
+      "metrics": {
+        "cpu_seconds": 11.268738806,
+        "compute_seconds": 11.572882534004748,
+        "publish_seconds": 0.00653385603800416,
+        "publish_cpu_seconds": 0.0013054429999996842,
+        "total_cpu_seconds": 11.270233578,
+        "process_lifetime_peak_rss_bytes": 719716352,
+        "peak_tree_rss_bytes": 719126528,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 719126528,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 11.14,
+        "memory_samples": 58,
+        "monitoring_seconds": 0.03044403623789549,
+        "elapsed_seconds": 11.580535319866613
+      },
+      "pass_name": "decoded-closure-grouped-20261109",
+      "certificate_sha256": "9a91f51a344acafec558219f9b9fbb1b96d0c217aabfda87473091c5031e4ba8"
+    },
+    {
+      "name": "00607/forward",
+      "case": 607,
+      "reversed": false,
+      "status": "recovered",
+      "state": "complete",
+      "input_sha256": "f760666c0e607bd69af501701db4ca513132506de9c55146dc4e55c5c9169483",
+      "reference_sha256": "d629f45a18b6162c189874149657c5fe2be977ff2c504d61f52b3d361f4703d6",
+      "decoded_sha256": "6792e5cf67f41a8bb18f331bdbf0bb080e29f5d742dba6efbf126706bceba1ac",
+      "family": 1684,
+      "partition": 0,
+      "cut": 0,
+      "event_count": 18,
+      "physical_event_count": 18,
+      "event_window": [
+        16,
+        21
+      ],
+      "event_filter": {
+        "contexts": 1221,
+        "rejected": 0,
+        "symmetry_queries": 1,
+        "seconds": 2.5723296334035695,
+        "solver_limited_queries": 0,
+        "composition_rejected": 1220
+      },
+      "loading_seconds": 8.974878601031378,
+      "query_seconds": 8.480666202958673,
+      "metrics": {
+        "cpu_seconds": 17.759508441,
+        "compute_seconds": 17.78896440193057,
+        "publish_seconds": 0.005506826099008322,
+        "publish_cpu_seconds": 0.0015484009999973125,
+        "total_cpu_seconds": 17.761318499,
+        "process_lifetime_peak_rss_bytes": 925499392,
+        "peak_tree_rss_bytes": 925495296,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 925495296,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 17.630000000000003,
+        "memory_samples": 89,
+        "monitoring_seconds": 0.03328334726393223,
+        "elapsed_seconds": 17.795356064103544
+      },
+      "pass_name": "decoded-closure-grouped-20261109",
+      "certificate_sha256": "e9559f3a95abaf274a61a6d817c2b78b1d61e066f633bda121b3947c69e5c6c7"
+    }
+  ],
+  "independent_replays": [
+    {
+      "name": "00852/reverse",
+      "arm": "seeds1",
+      "valid": true,
+      "event_count": 27,
+      "physical_event_count": 27,
+      "certificate_sha256": "96ddfc2491359f5ff4846bfc5c9501756cd6718aca77fef3ca03ff0a98be5d8e"
+    },
+    {
+      "name": "00607/reverse",
+      "arm": "seeds10",
+      "valid": true,
+      "event_count": 16,
+      "physical_event_count": 16,
+      "certificate_sha256": "9a91f51a344acafec558219f9b9fbb1b96d0c217aabfda87473091c5031e4ba8"
+    },
+    {
+      "name": "00607/forward",
+      "arm": "seeds10",
+      "valid": true,
+      "event_count": 18,
+      "physical_event_count": 18,
+      "certificate_sha256": "e9559f3a95abaf274a61a6d817c2b78b1d61e066f633bda121b3947c69e5c6c7"
+    }
+  ],
+  "case852_minima": {
+    "00852/reverse": {
+      "minimum": 27,
+      "lower": 27,
+      "window": 32,
+      "decoded_sha256": "c7fa6dcb49ec553401f8db459e2bb009a838720954821bb5dac70d725ebef5c9"
+    },
+    "00852/forward": {
+      "minimum": 27,
+      "lower": 27,
+      "window": 32,
+      "decoded_sha256": "29b12563cfa3115d8f40a8a22ca3978f5c0e1e893652c6d6dfe80543386b02f8"
+    }
+  },
+  "tests": "59 affected tests passed, including exhaustive small-graph correspondence/event oracles and replay checks.",
+  "core_algorithm_changed": false,
+  "matching_or_decoding_rerun": false,
+  "prior_attempts_preserved": true,
+  "source_hashes_unchanged": true,
+  "accounting_cpu_seconds": 2167.222,
+  "accounting_scope": "All four external audit allocations, including failed/stopped attempts and orchestration; excluded from reported matching and decoding times.",
+  "outcomes": [
+    {
+      "seeds": 1,
+      "case": 852,
+      "status": "recovered",
+      "event_count": 27
+    },
+    {
+      "seeds": 1,
+      "case": 1568,
+      "status": "not_recovered"
+    },
+    {
+      "seeds": 1,
+      "case": 1606,
+      "status": "not_recovered"
+    },
+    {
+      "seeds": 10,
+      "case": 590,
+      "status": "not_recovered"
+    },
+    {
+      "seeds": 10,
+      "case": 607,
+      "status": "recovered",
+      "event_counts": [
+        16,
+        18
+      ]
+    }
+  ],
+  "ten_seed_gains": [
+    20,
+    44,
+    867,
+    964,
+    1034,
+    1228,
+    1314,
+    1568,
+    1606
+  ],
+  "ten_seed_losses": [],
+  "direction_snapshot_sha256": "e3d5174544e2e731b8ad7a482499ba11641021400513b360a751c598dc003543"
+}

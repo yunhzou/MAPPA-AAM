@@ -34,15 +34,15 @@ and a lower branch that does not contain GT.
 [Figure](event-offsets.png) · [PDF](event-offsets.pdf) ·
 [Numeric data](event-offsets.partial.json.gz) · [Histogram](histogram.partial.csv)
 
-Snapshot on 8 November 2026 UTC: 45,737 exact offsets, with 3,891 further
+Snapshot updated after the 10 November verification closure: 45,738 exact offsets, with 3,891 further
 branch-minimum checks queued. All 49,825 reactions are accounted for once.
 
 | Dataset | Exact offsets | GT not represented | Membership unknown | Offset pending | Total |
 |---|---:|---:|---:|---:|---:|
-| Golden | 1,620 | 16 | 3 | 212 | 1,851 |
+| Golden | 1,621 | 18 | 0 | 212 | 1,851 |
 | EnzymeMap | 44,117 | 178 | 0 | 3,679 | 47,974 |
 
-The established Golden offsets are 1,620 at zero. Established EnzymeMap offsets
+The established Golden offsets are 1,621 at zero. Established EnzymeMap offsets
 are 44,085 at zero, 22 at one, 6 at two, 1 at three and 3 at four. Existing
 certificates at the detected minimum establish zero immediately, so these
 completed results deliberately overrepresent zero. The pending cases must be
@@ -53,3 +53,10 @@ The continuation retains 114 completed branch lookups and uses the unchanged
 saved responses, with a 30-second query allowance per reaction. Resource-limited
 queries will remain explicit intervals outside exact bins. Molecular data,
 membership certificates and operational launch evidence remain private.
+
+The [final Golden membership closure](../golden_native_seeds_20261106/decoded-verification-closure.json)
+settles all three previously unknown memberships. Case 852 has a replayed
+27-event reference witness; both saved directional minima are 27, proving zero
+branch offset without another minimum search. Cases 1568 and 1606 are absent.
+This updates membership and one zero-offset certificate only; the 3,891 pending
+branch-minimum lookups remain incomplete, outside the plotted bins.

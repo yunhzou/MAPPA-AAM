@@ -20,7 +20,7 @@ PALE_A=(.70,.88,.86); PALE_B=(1.,.82,.59); PALE_O=(.84,.76,.94)
 
 
 def check_design_examples():
-    """Direct pair counting for the schematic heavy-atom examples, not AAM runs."""
+    """Direct pair counting for the molecular heavy-atom examples, not AAM runs."""
     from itertools import combinations, permutations
 
     def count(source, target, mapping, internal):
@@ -57,126 +57,198 @@ def check_design_examples():
     assert all(e['location'] == 'outer' for events in nitrile_events.values() for e in events)
     assert abs(nitrile[(2, 3)]-single[(2, 3)]) > 1
     assert abs(nitrile[(2, 3)]-single[(2, 3)]) <= 2
+    for smiles, expected in ((RING_ALCOHOL, ring), (CHAIN_END, chain),
+                             (NITRILE, nitrile), (AMINE, single)):
+        assert weighted(smiles)[1] == expected
+    assert len(count(ring, weighted(CHAIN_CENTER)[1], {i: i for i in range(4)}, {1, 2, 3})) == 1
+    assert len(count(nitrile, weighted(AMINE_EXCHANGED)[1], {i: i for i in (1, 2, 3)}, {1, 2})) == 2
+    source_weights, target_weights = (weighted(smiles)[1] for smiles in (SWEEP_BASE, SWEEP_TARGET))
+    assert source_weights[(3, 4)] == target_weights[(3, 4)] == 1
+    assert all(source_weights[edge] == target_weights[edge] for edge in source_weights if min(edge) >= 3)
     return dict(scope='Analytical heavy-atom graph illustrations; no H constraints or benchmark reruns.',
                 ring_events=ring_events, nitrile_events=nitrile_events,
-                triple_to_single_weight_difference=2)
+                triple_to_single_weight_difference=2, completion=check_completion_example(),
+                sweep=dict(base_smiles=SWEEP_BASE, target_smiles=SWEEP_TARGET,
+                           masked_edge=[3, 4], highlighted_atoms=list(range(3, 10))))
+
+
+RING_FRAGMENT = '[CH2:1]1[CH2:2][CH2:3][CH2:4][CH2:5][CH2:6]1'
+RING_SITES = ['[CH:1]1([F:7])[CH2:2][CH2:3][CH2:4][CH2:5][CH2:6]1',
+              '[CH:11]1([Cl:17])[CH2:12][CH2:13][CH2:14][CH2:15][CH2:16]1']
+SWEEP_BASE = '[CH3:1][NH:2][CH2:3][c:4]1[cH:5][cH:6][cH:7][cH:8][cH:9]1'
+SWEEP_TARGET = '[CH3:1][NH2:2].[CH3:3][c:4]1[cH:5][cH:6][cH:7][cH:8][cH:9]1'
+RING_ALCOHOL = '[OH:0][CH:1]1[CH2:2][CH2:3]1'
+CHAIN_CENTER = '[OH:0][CH:1]([CH3:2])[CH3:3]'
+CHAIN_END = '[OH:0][CH:2]([CH3:1])[CH3:3]'
+NITRILE = '[CH3:1][C:2]#[N:3]'
+AMINE = '[CH3:1][CH2:2][NH2:3]'
+AMINE_EXCHANGED = '[CH3:2][CH2:1][NH2:3]'
+
+
+def check_completion_example():
+    """Independent small-graph oracle for the two illustrated carbon placements."""
+    from collections import Counter
+    target = Chem.MolFromSmiles('.'.join(RING_SITES))
+    query = Chem.MolFromSmarts('[#6]1-[#6]-[#6]-[#6]-[#6]-[#6]-1')
+    matches = target.GetSubstructMatches(query, uniquify=False, maxMatches=1000)
+    sets = Counter(tuple(sorted(target.GetAtomWithIdx(i).GetAtomMapNum() for i in match))
+                   for match in matches)
+    assert sets == {tuple(range(1, 7)): 12, tuple(range(11, 17)): 12}
+    # Different F/Cl attachments prevent a whole-target operation exchanging rings.
+    carbon_sets = [{atom.GetIdx() for atom in target.GetAtoms() if atom.GetAtomMapNum() in labels}
+                   for labels in (range(1, 7), range(11, 17))]
+    for action in target.GetSubstructMatches(target, uniquify=False, maxMatches=1000):
+        assert all({action[i] for i in group} == group for group in carbon_sets)
+    return dict(scope='Fixed six-carbon fragment; hydrogen constraints omitted.',
+                base_smiles=RING_FRAGMENT, target_smiles='.'.join(RING_SITES),
+                placements=[dict(atoms=list(atoms), internal_maps=count) for atoms, count in sorted(sets.items())],
+                placement_count=2, whole_target_ring_exchange=False)
+
+
+def _chemical_canvas(height):
+    fig = plt.figure(figsize=(11.8, height/120))
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set(xlim=(0, 1416), ylim=(height, 0))
+    ax.axis('off')
+    return fig, ax
+
+
+def _figure_text(ax, x, y, value, size=11, color=INK, weight='normal', align='left'):
+    ax.text(x, y, value, fontsize=size, color=color, weight=weight,
+            ha=align, va='center', linespacing=1.3, zorder=9)
+
+
+def _figure_panel(ax, x, y, width, height, color='#F5F7FB', edge=None):
+    ax.add_patch(FancyBboxPatch((x, y), width, height,
+        boxstyle='round,pad=0,rounding_size=12', facecolor=color,
+        edgecolor=edge or color, lw=.8, zorder=0))
+
+
+def _figure_arrow(ax, start, end, color=INK):
+    ax.add_patch(FancyArrowPatch(start, end, arrowstyle='-|>',
+        mutation_scale=12, color=color, lw=1.6, zorder=6))
+
+
+def _save_chemical_figure(fig, man, stem):
+    for extension in ('pdf', 'png', 'svg'):
+        fig.savefig(man/'figs'/f'{stem}.{extension}', dpi=240, facecolor='white',
+                    bbox_inches='tight', pad_inches=.025)
+    plt.close(fig)
+
+
+def build_completion_example(man):
+    check_completion_example()
+    fig, ax = _chemical_canvas(620)
+    _figure_panel(ax, 12, 12, 1392, 596)
+    _figure_text(ax, 34, 44, 'MAPPA saturation: one ring, two placements', 15, weight='bold')
+    _figure_text(ax, 145, 145, 'Base fragment', 11, weight='bold', align='center')
+    _figure_text(ax, 545, 145, 'Target: two separate rings', 11, weight='bold', align='center')
+    molecule(ax, RING_FRAGMENT, 30, 210, 235, 220,
+             owners={i: PALE_A for i in range(1, 7)}, notes=False, align_acetyl=False)
+    for x, smiles, label in zip((335, 560), RING_SITES, ('Ring A', 'Ring B')):
+        molecule(ax, smiles, x, 215, 200, 220, notes=False, align_acetyl=False, font=26)
+        _figure_text(ax, x+100, 458, label, 10.5, MUTED, align='center')
+    _figure_text(ax, 550, 325, '+', 18, MUTED, align='center')
+    _figure_arrow(ax, (265, 325), (322, 325))
+    ax.plot([775, 850, 850], [325, 325, 208], color=INK, lw=1.6)
+    ax.plot([850, 850], [325, 453], color=INK, lw=1.6)
+    for number, y in enumerate((95, 340)):
+        _figure_panel(ax, 910, y, 478, 225, 'white', LINE)
+        _figure_arrow(ax, (850, y+113), (902, y+113))
+        _figure_text(ax, 930, y+25, f'Branch {number+1}: select ring {"AB"[number]}', 11.5, TEAL, 'bold')
+        for site, (x, smiles) in enumerate(zip((925, 1160), RING_SITES)):
+            atoms = range(1, 7) if site == 0 else range(11, 17)
+            owners = {i: PALE_A for i in atoms} if site == number else None
+            molecule(ax, smiles, x, y+49, 205, 151, owners=owners,
+                     notes=False, align_acetyl=False, font=24)
+        _figure_text(ax, 1145, y+124, '+', 16, MUTED, align='center')
+    _figure_text(ax, 42, 522, 'Same base atoms', 10.5, MUTED)
+    _figure_text(ax, 363, 522, 'Different target atom sets', 10.5, MUTED)
+    _figure_text(ax, 34, 583, 'Rotations and reflections stay inside each placement; they do not create extra branches.', 10.5, TEAL)
+    _save_chemical_figure(fig, man, 'fig11_saturation')
 
 
 def build_design_examples(man):
-    """Use the manuscript's palette and bond-event glyphs for design examples."""
-    import numpy as np
+    """Molecular depictions of the checked heavy-atom design examples."""
     proof = check_design_examples()
     (man/'evidence/design_examples.json').write_text(json.dumps(proof, indent=2)+'\n')
-    fig, axes = plt.subplots(3, 1, figsize=(10.4, 8.4))
-    fig.subplots_adjust(left=.035, right=.98, top=.98, bottom=.03, hspace=.22)
-    for ax in axes:
-        ax.set(xlim=(0, 112), ylim=(100, 0))
-        ax.axis('off')
+    fig, ax = _chemical_canvas(1160)
+    text = lambda x, y, value, **kw: _figure_text(ax, x, y, value, **kw)
+    for y, height in ((12, 278), (302, 450), (764, 384)):
+        _figure_panel(ax, 12, y, 1392, height)
 
-    def text(ax, x, y, label, size=9, color=INK, weight='normal', align='center'):
-        ax.text(x, y, label, ha=align, va='center', fontsize=size, color=color,
-                weight=weight, linespacing=1.25, zorder=10)
+    text(34, 42, 'a   Greedy constraints and the single-edge sweep', size=14, weight='bold')
+    for x, label in ((222, 'Base'), (705, 'Target'), (1185, 'One sweep condition')):
+        text(x, 84, label, size=11, weight='bold', align='center')
+    owners = {i: PALE_B for i in range(3, 10)}
+    molecule(ax, SWEEP_BASE, 40, 99, 370, 144, owners=owners, notes=False,
+             align_acetyl=False, font=24)
+    _figure_arrow(ax, (424, 173), (474, 173))
+    molecule(ax, '[CH3:1][NH2:2]', 492, 118, 123, 105, notes=False,
+             align_acetyl=False, font=24)
+    text(633, 173, '+', size=17, align='center')
+    molecule(ax, SWEEP_TARGET.split('.')[1], 650, 99, 250, 144,
+             owners=owners, notes=False, align_acetyl=False, font=24)
+    positions = molecule(ax, SWEEP_BASE, 977, 99, 370, 144, owners=owners,
+                         notes=False, align_acetyl=False, font=24)
+    a, b = positions[3], positions[4]
+    ax.plot(*zip(a, b), color='white', lw=4, zorder=6)
+    ax.plot(*zip(a, b), color=PURPLE, lw=1.8, ls=(0, (3, 2)), zorder=7)
+    middle = ((a[0]+b[0])/2, (a[1]+b[1])/2)
+    ax.plot([middle[0]-5, middle[0]+5], [middle[1]+10, middle[1]-10], color=PURPLE, lw=2, zorder=8)
+    text(222, 263, 'Large benzyl region highlighted', size=10, color=MUTED, align='center')
+    text(705, 263, 'A large region can be preserved', size=10, color=MUTED, align='center')
+    text(1185, 263, 'Mask one edge during growth', size=10, color=PURPLE, align='center')
 
-    def arrow(ax, a, b, dashed=False, curve=0):
-        ax.add_patch(FancyArrowPatch(a, b, arrowstyle='->', mutation_scale=12,
-                                    color=MUTED, lw=1.2, linestyle='--' if dashed else '-',
-                                    connectionstyle=f'arc3,rad={curve}', zorder=2))
+    text(34, 332, 'b   Ring opening can couple an inner shuffle to an outer bond', size=14, weight='bold')
+    for x, label in ((222, 'Base: cyclopropanol'), (715, 'Target: propan-2-ol'), (1180, 'Heavy-atom events')):
+        text(x, 375, label, size=11, weight='bold', align='center')
+    ring_positions = {0: (0, 2.5), 1: (0, 1), 2: (-.866, -.5), 3: (.866, -.5)}
+    owners = {0: PALE_B, 1: PALE_A, 2: PALE_A, 3: PALE_A}
+    for y, target, choices, summary in ((391, CHAIN_CENTER, 'C₁ stays next to O', '1 inner + 0 outer = 1 event'),
+                                       (558, CHAIN_END, 'C₁ moves to a chain end', '1 inner + 2 outer = 3 events')):
+        center = target == CHAIN_CENTER
+        cuts = {(2, 3): -1} if center else {(1, 3): -1, (0, 1): -1}
+        molecule(ax, RING_ALCOHOL, 50, y, 345, 151, owners=owners,
+                 notes={i: str(i) for i in (1, 2, 3)}, font=24, align_acetyl=False,
+                 coordinates=ring_positions, bond_changes=cuts)
+        _figure_arrow(ax, (425, y+77), (500, y+77))
+        coords = ({0: (0, 1.5), 1: (0, 0), 2: (-1.3, -.75), 3: (1.3, -.75)} if center
+                  else {0: (0, 1.5), 2: (0, 0), 1: (-1.3, -.75), 3: (1.3, -.75)})
+        molecule(ax, target, 525, y, 380, 151, owners=owners,
+                 notes={i: str(i) for i in (1, 2, 3)}, font=24, align_acetyl=False,
+                 coordinates=coords, bond_changes={} if center else {(0, 2): 1})
+        text(1170, y+60, choices, size=11, weight='bold', align='center')
+        text(1170, y+96, summary, size=10.5, color=TEAL if center else RED, align='center')
+    text(34, 733, 'The carbon fragment is the same size; the oxygen attachment can change with its assignment.', size=10, color=MUTED)
 
-    def region(ax, x, y, width, height, color=PALE_A):
-        ax.add_patch(Ellipse((x, y), width, height, color=color, alpha=.65, lw=0, zorder=0))
+    text(34, 794, 'c   A permissive tolerance can keep the changing bond inside a fragment', size=14, weight='bold')
+    for x, label in ((222, 'Base'), (705, 'Target: retain carbons'), (1185, 'Target: exchange carbons')):
+        text(x, 837, label, size=11, weight='bold', align='center')
+    owners = {1: PALE_A, 2: PALE_A, 3: PALE_B}
+    coords = {1: (-1.5, 0), 2: (0, 0), 3: (1.5, 0)}
+    molecule(ax, NITRILE, 45, 850, 350, 121, owners=owners,
+             notes={1: '1', 2: '2'}, font=24, align_acetyl=False, coordinates=coords,
+             bond_changes={(2, 3): -1})
+    _figure_arrow(ax, (422, 910), (480, 910))
+    for x, smiles, exchanged in ((530, AMINE, False), (1005, AMINE_EXCHANGED, True)):
+        coords = {1: (-1.3, -.75), 2: (0, 0), 3: (1.3, -.75)}
+        if exchanged: coords[1], coords[2] = coords[2], coords[1]
+        molecule(ax, smiles, x, 850, 350, 121, owners=owners,
+                 notes={1: '1', 2: '2'}, font=24, align_acetyl=False, coordinates=coords,
+                 bond_changes={(1, 3): 1} if exchanged else {})
+    text(222, 993, 'τ = 1: C–C and N separate', size=10, color=MUTED, align='center')
+    text(705, 993, '1 outer weakening', size=10.5, color=TEAL, align='center')
+    text(1185, 993, '2 outer events', size=10.5, color=RED, align='center')
+    molecule(ax, NITRILE, 45, 1023, 190, 88, owners={i: PALE_A for i in (1, 2, 3)},
+             notes=False, font=20, align_acetyl=False)
+    _figure_arrow(ax, (250, 1065), (301, 1065))
+    molecule(ax, AMINE, 320, 1023, 190, 88, owners={i: PALE_A for i in (1, 2, 3)},
+             notes=False, font=20, align_acetyl=False)
+    text(565, 1063, 'τ = 2: C–N can stay inside one fragment', size=11, color=TEAL, weight='bold')
+    text(34, 1126, 'Heavy-atom illustrations; H constraints omitted. Red: break / weaken. Green: form / strengthen.', size=9.5, color=MUTED)
+    _save_chemical_figure(fig, man, 'fig8_design_examples')
 
-    def event(ax, a, b, sign):
-        scale = (ax.bbox.width/112)/(ax.bbox.height/100)
-        bond_event_marker(ax, a, b, sign, size=.95, y_scale=scale)
-
-    def graph(ax, positions, edges, labels, colors=None, changes=None, masked=()):
-        for edge, order in edges.items():
-            a, b = (np.array(positions[i], dtype=float) for i in edge)
-            normal = np.array([-(b-a)[1], (b-a)[0]])
-            normal /= np.linalg.norm(normal)
-            for offset in np.arange(order)-(order-1)/2:
-                start, end = a+normal*offset*1.25, b+normal*offset*1.25
-                ax.plot(*zip(start, end), color=INK, lw=1.5,
-                        linestyle='--' if edge in masked else '-', zorder=2)
-            if edge in (changes or {}):
-                event(ax, a, b, changes[edge])
-        for atom, (x, y) in positions.items():
-            ax.scatter([x], [y], s=390, color=(colors or {}).get(atom, 'white'),
-                       edgecolors='none', zorder=4)
-            text(ax, x, y, labels[atom], 10)
-
-    a = axes[0]
-    text(a, 0, 5, 'a  Greedy constraints and the single-edge sweep', 11, weight='bold', align='left')
-    text(a, 19, 23, 'Base', weight='bold')
-    text(a, 59, 23, 'Target', weight='bold')
-    source = {0: (10, 53), 1: (23, 39), 2: (23, 68), 3: (36, 68)}
-    labels = {0: 'R', 1: r'B$_1$', 2: r'B$_2$', 3: 'A'}
-    region(a, 29.5, 68, 27, 25, PALE_B)
-    graph(a, source, {(0, 1): 1, (0, 2): 1, (2, 3): 1}, labels)
-    arrow(a, (40, 53), (46, 53))
-    target = {0: (50, 39), 1: (65, 39), 2: (50, 68), 3: (65, 68)}
-    region(a, 57.5, 68, 27, 25, PALE_B)
-    graph(a, target, {(0, 1): 1, (2, 3): 1}, labels)
-    text(a, 25, 91, 'Large B–A region: many seed sites', 8.5, MUTED)
-    text(a, 59, 91, 'A repeated preserved unit', 8.5, MUTED)
-    text(a, 95, 23, 'One sweep condition', weight='bold')
-    cut = {0: (80, 47), 1: (94, 35), 2: (94, 65), 3: (108, 65)}
-    graph(a, cut, {(0, 1): 1, (0, 2): 1, (2, 3): 1}, labels, masked=((2, 3),))
-    text(a, 101, 65, '/', 18, PURPLE, weight='bold')
-    text(a, 95, 87, 'Mask a preservation edge;\nlet growth choose a new constraint', 8.3, MUTED)
-
-    a = axes[1]
-    text(a, 0, 4, 'b  Different connectivity can couple an outer bond to an inner shuffle', 11, weight='bold', align='left')
-    text(a, 18, 23, 'A–C₃ ring', weight='bold')
-    text(a, 57, 23, 'C₁ at the chain center', weight='bold')
-    text(a, 94, 23, 'C₁ at a chain end', weight='bold')
-    source = {0: (18, 39), 1: (18, 57), 2: (8, 76), 3: (28, 76)}
-    labels = {0: 'A', 1: r'C$_1$', 2: r'C$_2$', 3: r'C$_3$'}
-    region(a, 18, 69, 34, 36)
-    graph(a, source, {(0, 1): 1, (1, 2): 1, (1, 3): 1, (2, 3): 1}, labels, {0: PALE_B})
-    center = {0: (57, 39), 1: (57, 68), 2: (45, 68), 3: (69, 68)}
-    region(a, 57, 68, 36, 24)
-    graph(a, center, {(0, 1): 1, (1, 2): 1, (1, 3): 1}, labels, {0: PALE_B})
-    end = {0: (94, 39), 1: (82, 68), 2: (94, 68), 3: (106, 68)}
-    region(a, 94, 68, 36, 24)
-    graph(a, end, {(0, 2): 1, (1, 2): 1, (2, 3): 1}, labels, {0: PALE_B}, {(0, 2): 1})
-    a.plot([94, 82], [39, 68], ls='--', color=RED, lw=1.2, zorder=1)
-    event(a, (94, 39), (82, 68), -1)
-    arrow(a, (22, 57), (52, 65), dashed=True, curve=-.12)
-    arrow(a, (59, 72), (79, 72), dashed=True, curve=.3)
-    text(a, 18, 96, 'Final carbon fragment highlighted', 8.3, MUTED)
-    text(a, 57, 96, '1 inner + 0 outer = 1 event', 9, TEAL, 'bold')
-    text(a, 94, 96, '1 inner + 2 outer = 3 events', 9, RED, 'bold')
-
-    a = axes[2]
-    text(a, 0, 4, 'c  Permissive growth avoids a tolerance-created boundary', 11, weight='bold', align='left')
-    text(a, 19, 23, 'Base', weight='bold')
-    text(a, 59, 23, 'Target: retain carbons', weight='bold')
-    text(a, 96, 23, 'Target: exchange carbons', weight='bold')
-    labels = {1: r'C$_1$', 2: r'C$_2$', 3: 'N'}
-    source = {1: (7, 45), 2: (20, 45), 3: (33, 45)}
-    target = {1: (45, 45), 2: (58, 45), 3: (71, 45)}
-    swapped = {1: (96, 45), 2: (83, 45), 3: (109, 45)}
-    for x in (13.5, 51.5, 89.5):
-        region(a, x, 45, 25, 24)
-    graph(a, source, {(1, 2): 1, (2, 3): 3}, labels, {3: PALE_B})
-    graph(a, target, {(1, 2): 1, (2, 3): 1}, labels, {3: PALE_B}, {(2, 3): -1})
-    graph(a, swapped, {(1, 2): 1, (1, 3): 1}, labels, {3: PALE_B}, {(1, 3): 1})
-    a.plot([83, 96, 109], [43, 32, 43], color=RED, ls='--', lw=1.1, zorder=1)
-    event(a, (93, 32), (99, 32), -1)
-    arrow(a, (37, 45), (41, 45))
-    text(a, 19, 66, 'τ = 1: C–C and N separate', 8.5, MUTED)
-    text(a, 58, 66, '1 outer weakening', 9, TEAL, 'bold')
-    text(a, 96, 66, '2 outer events', 9, RED, 'bold')
-    region(a, 26, 88, 40, 21)
-    graph(a, {1: (13, 88), 2: (26, 88), 3: (39, 88)}, {(1, 2): 1, (2, 3): 3}, labels)
-    arrow(a, (47, 88), (54, 88))
-    text(a, 57, 88, 'τ = 2: absorb C–N; its change is internal to one fragment', 9,
-         TEAL, align='left')
-    for ext in ('pdf', 'png', 'svg'):
-        fig.savefig(man/'figs'/f'fig8_design_examples.{ext}', dpi=240, facecolor='white',
-                    bbox_inches='tight', pad_inches=.06)
-    plt.close(fig)
 ESTER='[CH3:1][C:2](=[O:3])[O:4][CH3:5]'
 HYDROXIDE='[OH-:6]'
 ACETATE='[CH3:1][C:2](=[O:3])[O-:4]'

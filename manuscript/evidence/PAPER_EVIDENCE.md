@@ -1,8 +1,7 @@
 # Evidence and claim boundaries
 
-Current decoded reaction recovery is 1,832/1,851 (one-seed Golden), 1,841/1,851
-(ten-seed Golden) and 47,796/47,974 (one-seed EnzymeMap). Golden retains three and
-two unknowns, respectively. Catalogue recovery is separately 1,834, 1,843 and
+Current decoded reaction recovery is 1,833/1,851 (one-seed Golden), 1,842/1,851
+(ten-seed Golden) and 47,796/47,974 (one-seed EnzymeMap). All three reaction-level evaluations are resolved. Catalogue recovery is separately 1,834, 1,843 and
 47,798. Golden catalogue verification permits endpoint chemical symmetry while
 its decoded audit requires exact indices. EnzymeMap uses exact indices for both.
 All required mapping and decoding outputs are available.
@@ -30,8 +29,8 @@ The expected accuracy of uniform selection is bounded at 78.31--79.45%; this is
 not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
 the counts, but the ranking score remains the saved all-atom model count.
 
-The accepted event-offset snapshot is preliminary: 45,737 exact offsets and
-3,891 pending checks, plus 194 absent references and three unknown memberships.
+The accepted event-offset snapshot is preliminary: 45,738 exact offsets and
+3,891 pending checks, plus 196 absent references and no unknown memberships.
 Existing zero-offset certificates resolve first. The plotted subset cannot
 establish final proportions. Counts use the same all-atom decoder model on both
 sides; GT selects a branch rather than supplying the plotted event count.

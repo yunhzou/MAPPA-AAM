@@ -49,8 +49,7 @@ def build(man):
         coverage.barh(y, percent, height=.36, color=colors[0])
         coverage.text(2, y, f"{found:,} / {study['reactions']:,}  ({percent:.3f}%)",
                       color='white', weight='bold', va='center', fontsize=9)
-        coverage.text(1, y+.29, f"{study['catalogue']['not_recovered']:,} absent; "
-                      f"{study['catalogue']['unknown']:,} unresolved", fontsize=8, color='#586974')
+        coverage.text(1, y+.29, f"{study['catalogue']['not_recovered']:,} not recovered", fontsize=8, color='#586974')
     coverage.set(yticks=range(3), yticklabels=labels, xlim=(0, 102), ylim=(2.65, -.5),
                  xlabel='Confirmed reactions (%)', xticks=[0, 25, 50, 75, 100])
     coverage.set_title('a  Full-output reference coverage', loc='left', weight='bold', pad=12)
@@ -92,11 +91,11 @@ def build(man):
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.grid(axis='y', alpha=.2)
         ax.set_axisbelow(True)
-        ax.text(.5, -.23, f"Pending {states['pending']:,} · GT absent {states['not_recovered']:,} · "
-                f"Unresolved {states['unknown']:,}", transform=ax.transAxes, ha='center', fontsize=8)
+        ax.text(.5, -.23, f"Pending {states['pending']:,} · GT absent {states['not_recovered']:,}", transform=ax.transAxes, ha='center', fontsize=8)
     fig.suptitle('Preliminary branch-event distribution · established offsets only', weight='bold', fontsize=11)
     save(fig, 'fig7_reference_offsets')
 
+    assert all(s['decoded']['unknown'] == 0 for s in studies)
     coverage_rows, timing_rows = [], []
     for study in studies:
         name = f"{study['dataset']}, {study['seeds']} seed"+('s' if study['seeds'] > 1 else '')
@@ -104,7 +103,7 @@ def build(man):
             return f"{count:,} ({100*count/study['reactions']:.3f}\\%)"
         coverage_rows.append(' & '.join([name, f"{study['reactions']:,}",
             rate(study['catalogue']['recovered']), rate(study['decoded']['recovered']),
-            str(study['decoded']['not_recovered']), str(study['decoded']['unknown'])])+r'\\')
+            str(study['decoded']['not_recovered'])])+r'\\')
         matching, reduction, decoding = [study['cpu_seconds'][s]/study['reactions']
                                          for s in ('matching', 'deduplication', 'decoding')]
         timing_rows.append(' & '.join([name, *[f'{v:.2f}' for v in
@@ -113,8 +112,8 @@ def build(man):
         text = r'\begin{tabular}{'+columns+r'}\toprule'+'\n'+header+r'\\\midrule'+'\n'
         text += '\n'.join(rows)+'\n'+r'\bottomrule\end{tabular}'+'\n'
         (man/'includes'/name).write_text(text)
-    table('generated-current-coverage-table.tex', 'lrrrrr',
-          r'Study & Reactions & Catalogue & Decoded & \shortstack{Decoded\\absent} & \shortstack{Decoded\\unresolved}', coverage_rows)
+    table('generated-current-coverage-table.tex', 'lrrrr',
+          r'Study & Reactions & Catalogue & Decoded & \shortstack{Decoded\\absent}', coverage_rows)
     table('generated-current-timing-table.tex', 'lrrr',
           'Study & Matching & Decoding & Total', timing_rows)
     paired, _, _ = comparison_evidence(man)

@@ -14,10 +14,51 @@ is reported separately below.
 See [one-seed evidence](unique-seeds1-summary.json) and
 [completed ten-seed stage evidence](unique-seeds10-summary.json).
 
-Latest one-seed decoded verification confirms **1,832 / 1,851 reactions (98.974%)**:
-16 are absent from the saved exact-index decoded response and three remain
-unresolved: **852, 1568 and 1606**. The targeted retest below recovered 607 and
-1586 with replayed witnesses. This remains a confirmed lower bound on coverage.
+### Final decoded verification: every reaction resolved
+
+The targeted closure checked only immutable saved outputs. Final exact-index
+coverage inside the decoded minimum + 5 window is **1,833 / 1,851 (99.028%)**
+with one seed and **1,842 / 1,851 (99.514%)** with ten. The remaining **18** and
+**9** reactions are conclusively absent from their saved decoded responses.
+**No reaction-level outcome is unresolved.**
+
+| Previously unresolved reaction | Seeds | Final outcome |
+|---|---:|---|
+| 852 | 1 | Recovered; replayed 27-event witness |
+| 1568 | 1 | Absent from the saved decoded window |
+| 1606 | 1 | Absent from the saved decoded window |
+| 590 | 10 | Absent from the saved decoded window |
+| 607 | 10 | Recovered in both directions; 16- and 18-event witnesses |
+
+All three new positive certificates were independently replayed against the saved
+choices and counted directly from the original matrices. Input, reference and
+decoded hashes are unchanged. No matching or decoding was rerun. Ten seeds add
+nine recovered references, with no losses relative to one seed in this cohort.
+See [closure evidence](decoded-verification-closure.json) and
+[all cumulative direction and reaction outcomes](decoded-verification-closure-directions.json.gz).
+
+External-verifier revision `dc92f46` reuses fragment membership exclusions before
+checking a branch's event window. Its exact constraint query preserves separate
+saved symmetry groups and applies their choices in the original order. A catalogue
+hint with different endpoint-equivalent labels is not an exact-reference witness;
+it is skipped while the exact query proceeds. Impossible requested atom images
+are rejected before event projection. These changes affect external evaluation
+only, not the scientific mapping relation or decoder model. **59 affected tests
+passed**, including exhaustive small-graph and certificate-replay checks.
+
+The final checks for 607 took **4.110 s reverse / 8.481 s forward**, after rejecting
+8,183 / 1,220 incompatible branch contexts respectively; each direction needed one
+joint event query. All workers retained the 2 GiB guard. The complete investigation
+used 2,167.222 allocation CPU seconds, including stopped and unsuccessful passes;
+these are external verification costs, excluded from the matching/decoding timings.
+The earlier hint and bond-lookup errors, query limits and consumed resources remain
+in private audit evidence. Their exceptions did not produce accepted certificates.
+
+Cumulative directional audit outcomes are 3,594 recovered / 82 absent / 26 bounded
+unknowns for one seed, and 3,653 / 31 / 18 for ten. Every such remaining directional
+unknown belongs to a reaction with a proven positive opposite direction. They are
+not needed to establish the final either-direction reaction outcomes, and were
+not relabeled as negatives.
 
 ### Completed ten-seed postprocessing and decoded audit
 
@@ -35,28 +76,22 @@ guard. The matching revision is `27b18ab`; reduction and decoding resumed their
 frozen `7b24850` revision, containing the accepted reducer at `7648431`. Later
 verifier additions do not change these mapping operations.
 
-| Evaluation | Confirmed reactions | Absent | Unresolved |
-|---|---:|---:|---:|
-| One seed: saved decoded responses | 1,832 / 1,851 (98.974%) | 16 | 3 |
-| Ten seeds: saved decoded responses | **1,841 / 1,851 (99.460%)** | **8** | **2** |
-| Ten seeds: catalogue membership | 1,843 / 1,851 (99.568%) | 8 | 0 |
+| Evaluation | Recovered reactions | Absent |
+|---|---:|---:|
+| One seed: saved decoded responses | 1,833 / 1,851 (99.028%) | 18 |
+| Ten seeds: saved decoded responses | 1,842 / 1,851 (99.514%) | 9 |
+| Ten seeds: catalogue membership | 1,843 / 1,851 (99.568%) | 8 |
 
 Decoded recovery requires exact annotated heavy-atom indices in the retained
 response and window; catalogue recovery allows endpoint chemical symmetry.
-These are distinct metrics. Ten-seed decoded unknowns are **590 and 607**.
-The eight absent reactions are **7, 19, 986, 1285, 1358, 1377, 1475 and 1553**.
-Unknowns remain inconclusive, not failures of mapping or proven absence.
+These are distinct metrics. The nine ten-seed decoded absences are **7, 19, 590,
+986, 1285, 1358, 1377, 1475 and 1553**. Ten seeds newly recover **20, 44, 867, 964,
+1034, 1228, 1314, 1568 and 1606**, with no reaction-level losses in this cohort.
 
-Ten reactions have newly confirmed decoded coverage: **20, 44, 852, 867, 964,
-1034, 1228, 1314, 1568 and 1606**. There are no proven reaction-level losses;
-**607**, previously confirmed with one seed, remains unknown in this ten-seed
-audit. Thus the confirmed total increases by nine. A bounded membership query
-cannot establish monotonic coverage across different decoded catalogues.
-
-The latest verifier at `1591a8c` checked all 3,702 directions, then gave nine
+Before the final closure above, verifier `1591a8c` checked all 3,702 directions, then gave nine
 unknown directions in five unresolved reactions an explicit 50-second follow-up,
-matching the one-seed targeted allowance. It recovered 575 and 852. Cumulative
-direction outcomes are **3,651 recovered, 30 absent and 21 unknown**. All 3,651
+matching the one-seed targeted allowance. It recovered 575 and 852. That earlier pass recorded
+direction outcomes of **3,651 recovered, 30 absent and 21 unknown**. All 3,651
 positive proofs passed replay, injectivity, reference and independent event-count
 checks. There were no audit worker failures or invalid certificates. In 32
 positive directions the accepted approximate boundary model differs from the

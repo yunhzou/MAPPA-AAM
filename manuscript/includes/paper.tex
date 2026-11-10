@@ -98,9 +98,15 @@ For $1\to\mathrm{many}$, consider one eligible target carbon with two oxygen nei
 
 At saturation, MAPPA finds distinct target atom sets $T_i=m(B_g)$. Each pair $(B_g,T_i)$ defines a completed fragment placement, with its internal mapping relation and fragment-local binary symmetries retained compactly.
 
-A six-carbon ring fragment fitting two target rings with different external attachments gives two atom-set placements. Rotations and reflections within either ring belong to that placement. Search excludes already represented target sets directly, avoiding enumeration of their bijections followed by deduplication.
+A six-carbon ring fragment fitting two target rings with different external attachments gives two atom-set placements (\Cref{fig:saturation}). Rotations and reflections within either ring belong to that placement. Search excludes already represented target sets directly, avoiding enumeration of their bijections followed by deduplication.
 
 Fragment-local symmetry describes rearrangements \emph{within} a placement. Certified global symmetry can share work \emph{between} placements, but only if it preserves the entire remaining matching problem, moving later fragments jointly and respecting earlier locks. Otherwise those placements remain separate (\Cref{sec:completion-details}).
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figs/fig11_saturation.pdf}
+\caption{\textbf{Two ring placements give two branches.} A fixed six-carbon fragment fits either target ring. The different F and Cl attachments prevent a whole-target symmetry from exchanging the rings. Each child selects one target carbon atom set, highlighted in teal; rotations and reflections within that ring remain inside the placement rather than creating additional branches. This is a carbon-fragment illustration with hydrogen constraints omitted, not a complete reaction.}
+\label{fig:saturation}
+\end{figure}
 
 \subsubsection{Hierarchical branching: lock a placement and continue}
 \label{sec:branching}
@@ -113,7 +119,7 @@ Each locked fragment expresses a shared structural constraint, extended as far a
 \subsection{Matching Stage: seeds, cuts and search direction}
 \label{sec:cut-sweep}
 
-\textbf{Vary the starting point.} One greedy trajectory can repeatedly favor a large preserved region and miss another useful decomposition. In \Cref{fig:design-examples}a, growing the large B--A region first tends to leave R--B as the next fragment. If B--A contains 90\% of the eligible seed atoms, a uniformly chosen initial seed falls there with probability 0.9. Additional seeds can discover different constraints, but may also revisit the dominant decomposition.
+\textbf{Vary the starting point.} One greedy trajectory can repeatedly favor a large preserved region and miss another useful decomposition. In \Cref{fig:design-examples}a, the highlighted benzyl region offers more starting atoms than the remaining methylamine region. Additional seeds can discover different constraints, but may also revisit the same large fragment.
 \par\end{samepage}
 
 \textbf{Vary the allowed connections.} A single-edge \emph{cut sweep} perturbs this commitment systematically. MAPPA searches the uncut graph and then repeats the search with each eligible base edge temporarily masked, including bonds to hydrogen. Each cut condition receives the requested number of seed orderings. Masking a connection inside the dominant region can expose a trajectory that ordinary seeding rarely reaches. The original endpoint weights remain unchanged for decoding: a mask alters discovery and does not assert a broken bond. Its endpoints may reconnect through another route, and one cut can redirect several later fragment choices.
@@ -122,7 +128,7 @@ Each locked fragment expresses a shared structural constraint, extended as far a
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig8_design_examples.pdf}
-\caption{\textbf{Structural constraints guide exploration and decoding.} (a) A large preserved B--A region can dominate greedy growth; masking one of its preservation edges perturbs that commitment. R, A and B denote schematic groups, not measured reaction frequencies. (b) An A-substituted carbon triangle maps to an A-substituted carbon chain. Both displayed carbon assignments have one internal cleavage. Placing the A-bearing carbon at the chain center preserves the outer attachment; placing it at an end adds a cleavage and a formation. The physical totals are one and three, respectively. Dashed correspondence lines follow the same indexed atoms. (c) On the displayed heavy-atom graphs, tolerance one can leave C--C and N separate when a triple bond becomes single. A carbon exchange then changes outer events from one to two. Tolerance two allows the connection inside one fragment. Panels b and c are analytically checked graph examples with unit bond orders except the indicated triple bond, event threshold 0.5, and no hydrogen constraints. They explain the independence approximation and do not assert a measured failure frequency. The visual bond-event symbols follow \Cref{fig:algorithm}.}
+\caption{\textbf{Molecular examples of exploration and boundary dependence.} (a) The benzyl region is preserved between N-methylbenzylamine and the displayed methylamine/toluene endpoint. Masking one of its edges changes the growth conditions; the purple mark is a search mask, not a claimed cleavage. (b) In cyclopropanol and propan-2-ol, the teal carbon fragment has one internal ring-opening event under either displayed assignment. Carbon 1 at the chain center preserves its oxygen attachment; at an end, it adds an outer cleavage and formation. The heavy-atom totals are one and three. (c) For acetonitrile and ethylamine, tolerance one can leave C--C and N separate: exchanging the carbons changes one outer weakening into two outer events. Tolerance two can include the changing C--N bond inside one fragment. Numbers track the same carbon atoms; red and green marks indicate losses and gains as in \Cref{fig:algorithm}. These are heavy-atom graph illustrations, with hydrogen constraints omitted and event threshold 0.5; panels b and c are checked by direct pair counting. They illustrate possible boundary dependence, not its measured frequency.}
 \label{fig:design-examples}
 \end{figure}
 
@@ -179,6 +185,8 @@ Here $e_i$ is the reused internal response of a disjoint final fragment piece, $
 MAPPA uses the independent ordinary-boundary approximation: these contributions remain fixed as internal fragment choices change. Bonds touching mapped atoms are counted, including mapped/unmapped boundaries; bonds wholly within unmatched material are omitted. No assignment is invented for an unmatched atom.
 
 Greedy growth helps absorb connections that would otherwise couple fragments. In C--C$\equiv$N $\rightarrow$ C--C--N (\Cref{fig:design-examples}c), tolerance one can leave C--C separate from N. Swapping the carbons changes the outer contribution from one weakening to a cleavage plus a formation. Tolerance two allows C--N inside the fragment, where the internal response handles that dependence. Greediness helps, but does not guarantee independence: the triangle--chain example still has a variable outer attachment. Equation~\eqref{eq:composition} is therefore a model count, which can differ from the physical whole-reaction count.
+
+Random growth, multiple seeds and the cut sweep can mitigate this limitation by discovering alternative fragment decompositions. In \Cref{fig:design-examples}b, growing through the O--C attachment first can place it inside a shared fragment instead of leaving it across a boundary. Another branch can then represent the same correspondence with its correct event count, even if the original branch assigns it differently. This exploration does not repair the original branch's approximation or guarantee a correct representation elsewhere. The benchmarks do not isolate the size of this mitigation.
 
 \subsubsection{The swept bond: reuse the two endpoint responses}
 
@@ -244,14 +252,14 @@ Both matching and decoding are complete for every requested direction: 3,702 in 
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Catalogue verification is resolved for every reaction. The absent and unresolved columns refer only to the additional decoded-window audit; unresolved queries are not counted as misses.}
+\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Both evaluations are resolved for every reaction. The absent column refers to the saved decoded window.}
 \label{tab:current-coverage}
 \input{includes/generated-current-coverage-table}
 \end{table}
 
-Within the decoded min+5 window, the separate exact-index audit confirms 1,832 Golden references with one seed (98.974\%) and 1,841 with ten (99.460\%). It leaves three and two reactions unresolved, respectively, because these external membership checks exhausted their allowances. These are verification unknowns, not unfinished matching or decoding. Ten references become newly confirmed in the ten-seed audit; one previously positive reaction remains unresolved, giving a net gain of nine and no proven loss. This audit also uses a stricter reference-equivalence policy than catalogue verification (\Cref{sec:verification}); its counts must not be substituted for the full-output comparison.
+Within the decoded min+5 window, exact-index verification confirms 1,833/1,851 Golden references with one seed (99.028\%) and 1,842 with ten (99.514\%). All reactions have definitive outcomes. Ten seeds recover nine additional references without losing any recovered by one seed in this cohort. This audit uses a stricter reference-equivalence policy than catalogue verification (\Cref{sec:verification}); its counts are separate from the full-output comparison.
 
-EnzymeMap decoding confirms 47,796/47,974 references (99.629\%), compared with 47,798 (99.633\%) in the catalogue. The two additional catalogue references have 22-event witnesses outside their saved 14--19 windows; independent decoded queries confirm their exclusion. All 94,820 positive directional decoded certificates passed replay and count checks, with no invalid certificate. Forty-five reactions unresolved by bounded decoded queries are conclusively absent from the unchanged containing catalogue, establishing their absence from its decoded subset. Their 250 unresolved directional queries remain recorded as such. The combined reaction accounting is therefore 47,796 recovered, 178 absent and zero unresolved.
+EnzymeMap decoding confirms 47,796/47,974 references (99.629\%), compared with 47,798 (99.633\%) in the catalogue. The two additional catalogue references have 22-event witnesses outside their saved 14--19 windows; independent decoded queries confirm their exclusion. All 94,820 positive directional decoded certificates passed replay and count checks, with no invalid certificate. The final reaction accounting is 47,796 recovered and 178 absent, with every outcome resolved. Direct decoded checks and exclusion through the containing catalogue are distinguished in the audit records.
 
 \subsection{Matching and decoding costs}
 
@@ -314,11 +322,11 @@ The reference is confirmed at the detected minimum in 1,691 reactions, absent th
 
 \subsection{Where reference-containing branches enter the event window}
 
-\Cref{fig:reference-offsets} reports the preliminary distribution defined in \Cref{eq:reference-offset}, with logarithmic reaction counts. Offsets are established for 45,737 reactions: 1,620 Golden and 44,085 EnzymeMap reactions have a GT-containing branch at the overall detected count; another 32 EnzymeMap reactions have offsets one through four. There are 3,891 pending offset checks, in addition to the separately reported absent and unresolved references.
+\Cref{fig:reference-offsets} reports the preliminary distribution defined in \Cref{eq:reference-offset}, with logarithmic reaction counts. Offsets are established for 45,738 reactions: 1,621 Golden and 44,085 EnzymeMap reactions have a GT-containing branch at the overall detected count; another 32 EnzymeMap reactions have offsets one through four. There are 3,891 pending offset checks, and 196 absent references. All reference-membership outcomes are resolved.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig7_reference_offsets.pdf}
-\caption{\textbf{Preliminary location of GT-containing branches.} The horizontal coordinate is the smallest event count of a retained GT-containing branch minus the overall detected count; the vertical axis is logarithmic. Ground truth selects the branch, rather than constraining the minimum witness within it. One-seed results use tolerance 2, cap 100 and saved min+5 responses. Pending checks and unresolved memberships are excluded from bars and labeled explicitly. Empty bins must not be interpreted as final zero frequencies.}
+\caption{\textbf{Preliminary location of GT-containing branches.} The horizontal coordinate is the smallest event count of a retained GT-containing branch minus the overall detected count; the vertical axis is logarithmic. Ground truth selects the branch, rather than constraining the minimum witness within it. One-seed results use tolerance 2, cap 100 and saved min+5 responses. Pending offset checks and absent references are excluded from bars and labeled explicitly. Empty bins must not be interpreted as final zero frequencies.}
 \label{fig:reference-offsets}
 \end{figure}
 

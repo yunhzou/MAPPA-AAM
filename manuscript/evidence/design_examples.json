@@ -68,5 +68,53 @@
       }
     ]
   },
-  "triple_to_single_weight_difference": 2
+  "triple_to_single_weight_difference": 2,
+  "completion": {
+    "scope": "Fixed six-carbon fragment; hydrogen constraints omitted.",
+    "base_smiles": "[CH2:1]1[CH2:2][CH2:3][CH2:4][CH2:5][CH2:6]1",
+    "target_smiles": "[CH:1]1([F:7])[CH2:2][CH2:3][CH2:4][CH2:5][CH2:6]1.[CH:11]1([Cl:17])[CH2:12][CH2:13][CH2:14][CH2:15][CH2:16]1",
+    "placements": [
+      {
+        "atoms": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "internal_maps": 12
+      },
+      {
+        "atoms": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "internal_maps": 12
+      }
+    ],
+    "placement_count": 2,
+    "whole_target_ring_exchange": false
+  },
+  "sweep": {
+    "base_smiles": "[CH3:1][NH:2][CH2:3][c:4]1[cH:5][cH:6][cH:7][cH:8][cH:9]1",
+    "target_smiles": "[CH3:1][NH2:2].[CH3:3][c:4]1[cH:5][cH:6][cH:7][cH:8][cH:9]1",
+    "masked_edge": [
+      3,
+      4
+    ],
+    "highlighted_atoms": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  }
 }

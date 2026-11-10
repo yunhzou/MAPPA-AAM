@@ -39,8 +39,8 @@ tolerance 2 and cap 100, with decoded min+5 windows. Catalogue and decoded
 membership have different representation scopes; Golden also uses different
 reference-equivalence policies. Catalogue evaluation is complete with zero
 unresolved reactions. Report its coverage as the primary full-output comparison;
-label the three and two Golden unknowns as bounded decoded-window audit queries,
-not unfinished matching or decoding.
+use the completed exact-index decoded audit separately,
+with every reaction resolved.
 EnzymeMap's conclusive reaction accounting includes separately justified absence
 from the containing catalogue. Never turn a timed-out query into direct absence.
 
@@ -78,13 +78,22 @@ one starting orbit after bounded improvement. Ordinary boundaries use the
 accepted fixed model; only the sweep correction retains joint endpoint dependence.
 Model-window coverage is not physical event-bin accuracy. Keep these distinctions
 in the main paper at a readable level, with mechanics in the supplement.
-The new sweep, A-substituted carbon-ring and C--C triple-N diagrams illustrate
+The sweep, cyclopropanol/propan-2-ol and acetonitrile/ethylamine diagrams illustrate
 constraint discovery and boundary dependence. The latter two are analytically
 checked heavy-atom graph examples without hydrogen constraints; they are not
 new benchmark observations. Greediness helps reduce coupling but does not prove
 fragment independence.
 
+Explain the intended mitigation alongside this limitation: random growth,
+multiple seeds and cut sweeps explore different fragment decompositions. Another
+decomposition can put a problematic attachment inside a fragment and represent
+the same correspondence at its correct count. This does not repair the original
+branch's fixed boundary model. Do not claim a guaranteed correct bin or a measured
+reduction in boundary error without a dedicated comparison.
+
 ## Molecular figure conventions
+
+Use chemical structure depictions for molecular examples, with the established vector drawing workflow. The saturation figure shows one carbon ring and two target rings distinguished by F/Cl attachments: two atom-set placements, with internal rotations and reflections retained within each placement. It is a fixed-fragment illustration without hydrogen constraints, not a complete reaction. Direct graph checks accompany the drawing. Do not replace molecular geometry with circles and group names when a chemical depiction can explain the same point.
 
 Use the same pastel palette, black bond strokes and compact red cleavage/weakening and green formation/strengthening marks throughout. In algorithm figures, colors identify matched fragments. In the introductory alternatives figure, fixed colors track atom origins across both mappings; state this in its legend. The accepted example is EnzymeMap case 13175: the reference assigns the formaldehyde carbon to the three-carbon molecule, whereas an alternative assigns it to CO₂. Both retain the complete C4H6O5 composition. Show all nine heavy atoms, number only the four carbons, and label the displayed four versus two events as heavy-atom counts. Optimizing the unannotated H assignments separately for these fixed heavy-atom maps yields six total events for both. The saved witnesses have eight and six events, but the saved reference H completion is not optimal. Use the example to illustrate ambiguity; do not claim a strict all-atom advantage or global optimality. The independent H-completion check does not establish decoded membership of the new H assignments. Ground truth refers to the dataset annotation, not a validated mechanism. Keep molecular components separated and inspect atom labels at full resolution before accepting the figure.
 

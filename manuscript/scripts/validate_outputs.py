@@ -2,7 +2,7 @@
 from pathlib import Path
 import os
 os.environ.setdefault("MPLCONFIGDIR", str(Path(__file__).resolve().parents[1]/"build/mpl-cache"))
-import hashlib,json,re
+import gzip,hashlib,json,re
 from publication_privacy import check_publication
 from pypdf import PdfReader
 MAN=Path(__file__).resolve().parents[1];E=MAN/'evidence'
@@ -12,11 +12,27 @@ def read(n):return json.loads((E/n).read_text())
 from build_benchmark_figures import evidence
 current, offsets = evidence(MAN)
 studies = {row['id']: row for row in current['studies']}
-assert [studies[k]['decoded']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1832,1841,47796]
+assert [studies[k]['decoded']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1833,1842,47796]
 assert [studies[k]['catalogue']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1834,1843,47798]
-assert [studies[k]['decoded']['unknown'] for k in ('golden1','golden10','enzyme1')] == [3,2,0]
+assert [studies[k]['decoded']['unknown'] for k in ('golden1','golden10','enzyme1')] == [0,0,0]
+closure=E
+final=json.loads((closure/'decoded_verification_closure.json').read_text())
+directions=json.loads(gzip.decompress((closure/'decoded_verification_closure_directions.json.gz').read_bytes()))
+assert final['source_hashes_unchanged'] and not final['core_algorithm_changed']
+assert all(proof['valid'] for proof in final['independent_replays'])
+assert hashlib.sha256((closure/'decoded_verification_closure_directions.json.gz').read_bytes()).hexdigest()==final['direction_snapshot_sha256']
+for arm,study in [('seeds1','golden1'),('seeds10','golden10')]:
+ rows=directions['studies'][arm]['reactions']
+ assert len(rows)==1851 and len({r['case'] for r in rows})==1851
+ assert final['studies'][arm]['reaction_counts']==studies[study]['decoded']
+ for row in rows:
+  states=row['directions'].values()
+  assert row['status']==('recovered' if 'recovered' in states else 'not_recovered')
+  if row['status']=='not_recovered':assert set(states)=={'not_recovered'}
+ assert sum(r['status']=='recovered' for r in rows)==studies[study]['decoded']['recovered']
 assert offsets['partial'] and sum(r['status']=='pending' for r in offsets['results']) == 3891
-assert sum(r['status']=='complete' for r in offsets['results']) == 45737
+assert sum(r['status']=='complete' for r in offsets['results']) == 45738
+assert not any(r['status']=='unknown' for r in offsets['results'])
 from build_benchmark_figures import comparison_evidence
 paired, choices, choice_rows = comparison_evidence(MAN)
 assert paired['coverage']['mappa']['recovered'] == 1839
@@ -91,6 +107,7 @@ positions=[paper.index(r'\label{sec:'+stage+'}') for stage in stages]
 assert positions==sorted(positions)
 assert r'\subsubsection{Growth matching:' in paper
 assert r'\subsubsection{Saturation matching:' in paper
+assert paper.index(r'\label{sec:completion}') < paper.index(r'\label{fig:saturation}') < paper.index(r'\label{sec:branching}')
 assert r'\subsubsection{Hierarchical branching:' in paper
 assert r'\label{tab:growth-transitions}' in paper
 for transition in [r'0\to0', r'1\to0', r'\mathrm{many}\to0', r'1\to1',
@@ -115,7 +132,7 @@ bib=(MAN/'references.bib').read_text()
 for group in re.findall(r'\\cite\w*\{([^}]+)\}',tex):
  for key in group.split(','):assert re.search(r'@\w+\{'+re.escape(key)+',',bib),key
 figs=re.findall(r'\\includegraphics(?:\[[^]]*\])?\{(figs/[^}]+)\}',tex)
-assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf'}
+assert set(figs)=={'figs/fig1_algorithm.pdf','figs/fig2_golden.pdf','figs/fig3_coordinate.pdf','figs/fig4_alternatives.pdf','figs/fig6_current_benchmarks.pdf','figs/fig7_reference_offsets.pdf','figs/fig8_design_examples.pdf','figs/fig9_paired_slap.pdf','figs/fig10_minimum_choices.pdf','figs/fig11_saturation.pdf'}
 for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
@@ -124,7 +141,7 @@ log=(MAN/'build/preprint.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
-for value in ['1,832','1,841','47,796','47,798','99.629','45,737','3,891']:
+for value in ['1,833','1,842','47,796','47,798','99.629','45,738','3,891']:
  assert value in alltext,value
 for value in ['1,839','1,794','1,620','96.921','75.58','1,829','91.36','79.45','10.38','2.58']:
  assert value in alltext,value

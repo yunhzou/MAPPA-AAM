@@ -26,19 +26,16 @@ follow this convention.
 
 ## Current results
 
-| Study | Catalogue recovery | Saved decoded min+5 recovery | Decoded absent / unknown |
+| Study | Catalogue recovery | Saved decoded min+5 recovery | Decoded absent |
 |---|---:|---:|---:|
-| Golden, one seed | 1,834 / 1,851 | 1,832 / 1,851 | 16 / 3 |
-| Golden, ten seeds | 1,843 / 1,851 | 1,841 / 1,851 | 8 / 2 |
-| EnzymeMap, one seed | 47,798 / 47,974 | 47,796 / 47,974 | 178 / 0 |
+| Golden, one seed | 1,834 / 1,851 | 1,833 / 1,851 | 18 |
+| Golden, ten seeds | 1,843 / 1,851 | 1,842 / 1,851 | 9 |
+| EnzymeMap, one seed | 47,798 / 47,974 | 47,796 / 47,974 | 178 |
 
 All requested mapping and decoding outputs are available. Decoded verification
 uses exact annotated heavy-atom indices and replayed complete witnesses.
 Golden catalogue verification additionally allows endpoint chemical symmetry;
-EnzymeMap uses exact indices for both metrics. Catalogue evaluation has zero unresolved reactions in all three studies. The
-three and two Golden unknowns belong only to additional bounded, exact-index
-checks of the decoded min+5 window; all decoding outputs are complete. Unknowns
-are not absences.
+EnzymeMap uses exact indices for both metrics. Catalogue evaluation has zero unresolved reactions in all three studies. Every reaction also has a definitive decoded-window outcome after the targeted verification closure. All positive checks require a full replayed mapping and an independent event count. Matching, decoding and their measured CPU times were unchanged.
 
 Mean compute CPU seconds per reaction for matching (including reduction)
 and decoding are respectively **1.31 / 1.88**, **11.64 / 9.28**, and **4.41 / 8.75**
@@ -47,8 +44,8 @@ external evaluation and failed-attempt accounting are separate. These are saved
 stage measurements with their recorded versions and recoveries, not a new
 uninterrupted run or a hardware-normalized speed ranking.
 
-The branch-event histogram is explicitly **preliminary**: 45,737 exact offsets,
-3,891 pending offset checks, 194 absent references and three unresolved
+The branch-event histogram is explicitly **preliminary**: 45,738 exact offsets,
+3,891 pending offset checks, 196 absent references and no unresolved
 memberships. A GT-containing branch's unconditioned minimum is compared with
 the overall detected count using the same saved all-atom model. The completed
 subset overrepresents zero and cannot establish the final distribution.
@@ -101,7 +98,8 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `figs/fig1_algorithm.*`: molecular overview, with no verifier in the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
 - `figs/fig7_reference_offsets.*`: preliminary branch-event distribution.
-- `figs/fig8_design_examples.*`: greedy constraints, A–C3 ring/chain and tolerance-created boundary examples.
+- `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
+- `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
 - `figs/fig10_minimum_choices.*`: distinct minimum-event mapping choices.
 - `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.

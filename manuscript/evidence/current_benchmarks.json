@@ -16,13 +16,13 @@
         "unknown": 0
       },
       "decoded": {
-        "recovered": 1832,
-        "unknown": 3,
-        "not_recovered": 16
+        "recovered": 1833,
+        "not_recovered": 18,
+        "unknown": 0
       },
       "matching_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
       "postprocessing_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
-      "verifier_commit": "b6d8c086cf92583d099509c7c7078daaf3cfc0af",
+      "verifier_commit": "dc92f469269f0e1dfcf0db9f76abd7ed19136903",
       "config": {
         "cut_floor": 0.2,
         "graph_floor": 0.2,
@@ -61,7 +61,8 @@
       "timing_scope": "Reused matching and corrected completed postprocessing. Matching predates indexed fragment containment.",
       "catalogue_policy": "Endpoint chemical symmetry permitted",
       "decoded_policy": "Exact annotated indices in saved model window",
-      "input_index_sha256": "f95c7fe8e3b2e65f8b54bdf8ba09dad091d633978d17aca74398ef5f8c1be31f"
+      "input_index_sha256": "f95c7fe8e3b2e65f8b54bdf8ba09dad091d633978d17aca74398ef5f8c1be31f",
+      "verification_scope": "Cumulative immutable-output audits; final targeted exact-reference closure, independently replayed; no matching or decoding rerun."
     },
     {
       "id": "golden10",
@@ -75,13 +76,13 @@
         "unknown": 0
       },
       "decoded": {
-        "recovered": 1841,
-        "not_recovered": 8,
-        "unknown": 2
+        "recovered": 1842,
+        "not_recovered": 9,
+        "unknown": 0
       },
       "matching_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
       "postprocessing_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
-      "verifier_commit": "1591a8c90d810ba42b27273f19de3ea1278dd4e5",
+      "verifier_commit": "dc92f469269f0e1dfcf0db9f76abd7ed19136903",
       "config": {
         "cut_floor": 0.2,
         "graph_floor": 0.2,
@@ -120,7 +121,8 @@
       "timing_scope": "Reused matching and corrected completed postprocessing. Matching predates indexed fragment containment.",
       "catalogue_policy": "Endpoint chemical symmetry permitted",
       "decoded_policy": "Exact annotated indices in saved model window",
-      "input_index_sha256": "1f010f078e89719c8d770cf14721370b86e8dffa790488ae020a3ba2e89cb869"
+      "input_index_sha256": "1f010f078e89719c8d770cf14721370b86e8dffa790488ae020a3ba2e89cb869",
+      "verification_scope": "Cumulative immutable-output audits; final targeted exact-reference closure, independently replayed; no matching or decoding rerun."
     },
     {
       "id": "enzyme1",
@@ -286,6 +288,10 @@
     {
       "path": "reports/golden_native_seeds_20261106/cache-review.json",
       "sha256": "c40c6e197ddef09bd85042d626f01df7c710f68b46bed0ad6b9285bb0d6630aa"
+    },
+    {
+      "path": "reports/golden_native_seeds_20261106/decoded-verification-closure.json",
+      "sha256": "37442c520570a147051368756303b8be55d85f58c23a227fc64e16ee73ec4b3b"
     }
   ]
 }

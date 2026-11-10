@@ -112,14 +112,14 @@
     },
     {
       "snapshot": "current_benchmarks.json",
-      "sha256": "9210429b020ad665c82a9fea5e96b2ce4502a928d11ec60f6fd2121b86d93f19",
+      "sha256": "adc671763abacef8fe2344d0cb9ecfb8388646e69a62ba833a6e29171a43a2c8",
       "scope": "Completed Golden seed studies and EnzymeMap; separate catalogue and decoded coverage. Cache-control experiment omitted from the paper.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
     },
     {
       "snapshot": "branch_offsets.json.gz",
-      "sha256": "2f1d83a6ecb11740b8a98c11d4b7fd7726e97dafbbbc71748660b030ad8c8a8b",
-      "scope": "Preliminary branch offsets; pending and unknown outcomes excluded from bins.",
+      "sha256": "aa26920d0b9eced54c6392b709dd7057c41bb916cefc52e66ccd26c48611541c",
+      "scope": "Preliminary branch offsets; all memberships resolved, pending branch-minimum lookups excluded from bins.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
     },
     {
@@ -139,6 +139,18 @@
       "source": "reports/golden_minimum_choices_20261108/reactions.json.gz",
       "scope": "All 1851 Golden choice-count outcomes; equivalent heavy mappings count once, original all-atom model score.",
       "sha256": "4f91346b137ac2af6ddc8b17c140a19d63bc9567d5b290a6cc38d5c7c38da460"
+    },
+    {
+      "snapshot": "decoded_verification_closure.json",
+      "source": "reports/golden_native_seeds_20261106/decoded-verification-closure.json",
+      "sha256": "37442c520570a147051368756303b8be55d85f58c23a227fc64e16ee73ec4b3b",
+      "scope": "Completed exact-index reaction-level decoded-window audit; original scientific outputs unchanged, bounded opposite-direction attempts retained."
+    },
+    {
+      "snapshot": "decoded_verification_closure_directions.json.gz",
+      "source": "reports/golden_native_seeds_20261106/decoded-verification-closure-directions.json.gz",
+      "sha256": "e3d5174544e2e731b8ad7a482499ba11641021400513b360a751c598dc003543",
+      "scope": "Completed exact-index reaction-level decoded-window audit; original scientific outputs unchanged, bounded opposite-direction attempts retained."
     }
   ],
   "limits": "Current Golden decoded coverage retains three one-seed and two ten-seed unknown reactions. Current EnzymeMap reaction accounting is complete. Branch-event offsets remain preliminary. September studies retain their original protocols."

@@ -54,11 +54,7 @@ ratios must not be attributed to the later cache implementation.
 Catalogue recovery is 1,834/1,851 with one seed and 1,843/1,851 with ten, with
 zero unresolved reactions. These are the primary full-output coverage scores. Its
 endpoint chemical-equivalence policy preserves charge, isotope, H count and
-stereochemistry. Exact-index decoded recovery is separately 1,832 with three
-unknowns and 1,841 with two unknowns. One-seed targeted decoded verification uses
-`b6d8c086cf92583d099509c7c7078daaf3cfc0af`; the ten-seed audit uses
-`1591a8c90d810ba42b27273f19de3ea1278dd4e5`. Each positive has an injective,
-replayed witness in the saved response and window. One ten-seed directional
+stereochemistry. Exact-index decoded recovery is separately 1,833 with one seed and 1,842 with ten; every reaction is resolved. The final targeted closure uses external-verifier revision `dc92f469269f0e1dfcf0db9f76abd7ed19136903`, with unchanged saved mapping and decoding outputs. It reuses shared fragment feasibility and encodes the saved symmetry actions separately while preserving their joint ordered effect. Earlier bounded attempts remain recorded. Each positive has an injective, replayed witness and an independently counted event total inside the saved window. One ten-seed directional
 catalogue timeout remains in its attempt history; the opposite direction
 resolves that reaction's membership.
 
