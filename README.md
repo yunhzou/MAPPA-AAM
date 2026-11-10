@@ -260,6 +260,16 @@ fragment). `minimum_lower_bound` remains available for incomplete searches.
 response and returns a joint witness, absence, or explicit unknown. The selected
 fragment orbit need not include every discovery in the matching catalogue.
 
+`decoded.saved_minimum(family_id, partition=0, cut=0)` reads the attained branch
+count, lower bound and witness retained during decoding, including after saving
+and loading. It performs no minimization; `complete` is true when the count meets
+the bound. `decoded.minimum(...)` reuses an established saved minimum and otherwise
+performs the existing branch calculation. Older files without branch records
+remain readable but have no saved-minimum lookup.
+`len(decoded.saved_branches())` counts recorded fragment compositions at the
+detected minimum, counting internal symmetry arrangements once. Supply
+`event_count=5` to select another recorded count without additional search.
+
 `minimum_events`, `event_window`, `contributions` and `counts` use the approximate
 composition model. `evaluate` reports physical events for one valid realization;
 its count may differ and does not change the model bins. Neither operation
@@ -473,7 +483,8 @@ WBO-change and metal thresholds apply; no missing atoms are invented.
 counts. `result.evaluate(...)` explicitly reports that mapping's physical bond
 events for inspection or pattern comparison. A different physical count does not
 re-bin the model result. `decoded_events_record(result)` saves the original
-catalogue, shared conditional responses and window predicate without enumerating
+catalogue, shared conditional responses, retained branch counts and shared witness
+choices, and the window predicate without enumerating
 all bijections or all event bins.
 
 Experimental hierarchical refinement is explicitly available from

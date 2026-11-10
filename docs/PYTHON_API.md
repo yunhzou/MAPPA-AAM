@@ -408,6 +408,20 @@ Mapped/unmapped boundaries follow this same convention. Physical evaluation
 counts each original bond touching mapped atoms once and omits bonds wholly
 inside unmatched material.
 
+`events.saved_minimum(family_id, partition=0, cut=0)` returns the retained branch's
+`event_count`, `lower_bound`, `complete`, `witness` and `choices` without running
+minimization. The count is attained by the witness; it is an established minimum
+when `complete` is true. A composed sweep witness may still be above its lower
+bound. `events.minimum(...)` preserves the existing explicit minimization behavior
+in that case and reuses already established saved minima.
+
+`events.saved_branches()` groups recorded choices at the detected minimum by
+their fragment atom-set composition. `len(events.saved_branches())` counts those
+branches, counting internal shuffles once. Pass `event_count=5` for another count;
+each result contains its `(family, partition, cut)` references. This is a saved
+result lookup and performs no search for additional ties. Older archives without
+saved branch counts cannot supply this lookup.
+
 `decoded_events_record(events)` uses `mappa.decoded_events/v14` and retains the original catalogue, shared conditional
 responses, model minimum/window and upper-window predicate. It does not export
 an eager list of all count bins or repeat derived per-atom maps for every family.

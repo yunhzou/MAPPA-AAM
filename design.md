@@ -685,7 +685,22 @@ selection. Physical whole-reaction evaluation may differ from the approximate
 boundary model and does not silently reassign model bins.
 
 Saved results retain the unchanged matching catalogue, each selected starting
-correspondence, shared response and window decisions. Loading reconstructs query
+correspondence, shared response and window decisions. Every retained branch,
+partition and sweep context also saves the attained count and lower bound already
+computed during window selection. Store its witness as references to shared
+action choices, rather than a repeated complete atom mapping. A refined sweep
+result replaces the composed witness only when that refinement was already done;
+saving must not add minimization searches. Equality of the bound and attained
+count establishes the branch minimum; otherwise retain both without relabelling
+the attained count as exact. Saved-minimum lookup never searches; the existing
+minimum computation reuses an established saved result and otherwise retains its
+original calculation. A saved-branch lookup groups recorded witnesses at a
+requested count by their fragment atom-set composition. Internal symmetry
+arrangements and repeated histories count once; this lookup does not search
+for additional ties. Older
+archives without the additive branch records remain readable and require their
+existing explicit computation to obtain a branch result.
+Loading reconstructs query
 objects without rerunning starting-map optimization or symmetry preparation.
 Prepared responses share identical immutable fragment weights and uniform event
 thresholds. Pair-weight summaries retain exact multiplicities; sweep endpoints

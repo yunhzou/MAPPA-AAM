@@ -1,15 +1,109 @@
 """The window uses local constraints and only the selected sweep coupling."""
 import pytest
 import z3
+import json
 from dataclasses import replace
 
 from mappa import AAMProblem, decode_events
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-from mappa.mappa_core.utils.io.records import decoded_events_record
+from mappa.mappa_core.utils.io.records import decoded_events_record, decoded_events_from_record
 from growth_cases import saved_fragment
 from test_event_interpretation import endpoint, saved, swap
+
+
+def test_retained_composition_minima_survive_json_without_search(monkeypatch):
+    from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+    from mappa.mappa_core.post_processing.decoder import fragments
+
+    r = endpoint('CCC', [(0, 1, 1.), (1, 2, 2.)])
+    p = endpoint('CCCCCC', [(0, 1, 1.), (1, 2, 2.), (3, 4, 2.), (4, 5, 1.)])
+    source = saved(r, p, {0: 3, 1: 4, 2: 5})
+    other = saved(r, p, {0: 0, 1: 1, 2: 2})
+    source.families.extend(other.families)
+    source.branches.update({key: {1} for key in other.branches})
+    decoded = decode_events(source, event_slack=5)
+    record = json.loads(json.dumps(decoded_events_record(decoded)))
+    assert decoded.minimum_events == 0
+    assert (0, 0, 0) not in decoded.window.results  # Cannot improve the global minimum.
+    assert set(decoded.window.branch_minima) == set(decoded.window.contexts)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('saved branch lookup repeated minimization')
+    monkeypatch.setattr(OrderedSymmetryEvents, 'solve', forbidden)
+    monkeypatch.setattr(fragments, 'optimize_fragment', forbidden)
+    restored = decoded_events_from_record(record)
+    for result in (decoded, restored):
+        assert len(result.saved_branches()) == 1
+        assert len(result.saved_branches(event_count=2)) == 1
+        for family, expected in ((0, 2), (1, 0)):
+            answer = result.saved_minimum(family)
+            assert answer.event_count == answer.lower_bound == expected and answer.complete
+            assert result.minimum(family) == answer
+            assert result.realize(family, answer.choices) == dict(answer.witness)
+    assert restored.window.to_record() == decoded.window.to_record()
+
+
+def test_saved_sweep_results_preserve_refined_and_composed_witnesses(monkeypatch):
+    from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents
+
+    r = endpoint('CCCCCCC', [(0, 1, 1.), (3, 4, 1.), (4, 5, 1.), (5, 6, 1.)])
+    p = endpoint('C' * 11, [(0, 2, 1.), (3, 4, 1.), (4, 5, 1.), (5, 6, 1.),
+                          (7, 8, 1.), (8, 9, 1.), (9, 10, 1.)])
+    problem = AAMProblem(r, p)
+    movable = saved_fragment(problem, source_atoms=(1, 2))
+    source = None
+    for images in ((3, 4, 5, 6), (7, 8, 10, 9)):
+        fixed_pairs = tuple(zip(range(3, 7), images))
+        fixed = saved_fragment(problem, source_atoms=range(3, 7), target_atoms=sorted(images),
+                               witness=fixed_pairs, anchors=fixed_pairs)
+        row = saved(r, p, {0: 0, 1: 1, 2: 2, **dict(fixed_pairs)}, fragments=(movable, fixed),
+                    pairs=(((0,), (0,)), ((1, 2), (1, 2)), ((3, 4, 5, 6), tuple(sorted(images)))))
+        row.families[0] = replace(row.families[0], provenance=[dict(cuts=((0, 1),))])
+        if source is None:
+            source = row
+        else:
+            source.families.extend(row.families)
+            source.branches.update({key: {1} for key in row.branches})
+    decoded = decode_events(source, event_slack=5)
+    record = json.loads(json.dumps(decoded_events_record(decoded)))
+    restored = decoded_events_from_record(record)
+    assert restored.minimum_events == 0 and restored.event_window == 5
+    refined = restored.saved_minimum(0)
+    assert refined.complete and refined.event_count == refined.lower_bound == 0
+    composed = restored.saved_minimum(1)
+    assert (composed.lower_bound, composed.event_count, composed.complete) == (2, 4, False)
+    assert restored.contributions(0, refined.choices)['total'] == 0
+    assert restored.contributions(1, composed.choices)['total'] == 4
+    # Explicit minimization keeps its previous behavior for an unsettled sweep.
+    assert restored.minimum(1).event_count == 2
+    monkeypatch.setattr(OrderedSymmetryEvents, 'solve',
+        lambda *a, **k: pytest.fail('reading saved composition must not refine its sweep'))
+    assert restored.saved_minimum(1).event_count == 4
+
+
+def test_saved_branch_choices_are_shared_and_older_records_remain_readable():
+    ep = endpoint('CCC', [(0, 1, 1.), (1, 2, 1.)])
+    source = saved(ep, ep, dict(enumerate(range(3))))
+    source.families *= 100
+    next(iter(source.branches.values())).update(range(100))
+    record = decoded_events_record(decode_events(source))
+    assert len(record['window']['branch_minima']) == 100
+    assert len(record['window']['minimum_choices']) == 1
+    restored = decoded_events_from_record(record)
+    assert len(restored.saved_branches()) == 1
+    assert len(next(iter(restored.saved_branches().values()))) == 100
+    assert restored.saved_branches(event_count=1) == {}
+    record['window'].pop('branch_minima')
+    record['window'].pop('minimum_choices')
+    restored = decoded_events_from_record(record)
+    assert restored.minimum_events == 0
+    with pytest.raises(ValueError, match='no saved minimum'):
+        restored.saved_minimum(0)
+    with pytest.raises(ValueError, match='lacks saved branch counts'):
+        restored.saved_branches()
+    assert restored.minimum(0).event_count == 0
 
 
 def test_boundary_bound_rejects_composition_before_local_preparation(monkeypatch):

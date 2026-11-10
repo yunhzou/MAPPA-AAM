@@ -164,9 +164,54 @@ class EventInterpretation:
             upper = self.event_window if upper is None else upper
         return self.tables(family_id, partition, cut=cut).program.select(lower, upper)
 
+    def saved_minimum(self, family_id, *, partition=0, cut=0):
+        """Read a retained branch's attained count and witness without search.
+
+        A composed witness may not settle its sweep minimum. The lower bound
+        and complete flag retain that distinction. This lookup requires a saved
+        branch record; it never calculates missing results in older archives.
+        """
+        from mappa.mappa_core.core.symmetry.minimum import SymmetryWork
+        from mappa.mappa_core.core.symmetry.program import ProgramMinimum
+        key = family_id, partition, cut
+        if key not in self.window.branch_minima:
+            raise ValueError('this branch context has no saved minimum result')
+        count, lower, references = self.window.branch_minima[key]
+        choices = tuple(self.window.minimum_choices[i] for i in references)
+        witness = tuple(sorted(self.realize(family_id, choices).items()))
+        return ProgramMinimum(witness, choices, count, lower, count == lower, 0., SymmetryWork())
+
     def minimum(self, family_id, *, partition=0, cut=0):
-        """Return a best actual branch witness and its scoped proof status."""
+        """Compute a branch minimum, reusing an already established saved result."""
+        window = self.__dict__.get('window')
+        saved = None if window is None else window.branch_minima.get((family_id, partition, cut))
+        if saved is not None and saved[0] == saved[1]:
+            return self.saved_minimum(family_id, partition=partition, cut=cut)
         return self.tables(family_id, partition, cut=cut).minimum_result
+
+    def saved_branches(self, event_count=None, *, reverse=False):
+        """Group recorded witnesses at a count by unique fragment composition.
+
+        The default count is the detected minimum. Values are retained
+        (family, partition, cut) references; internal shuffles count once.
+        This lookup never searches for additional witnesses or ties.
+        """
+        window = self.window
+        if set(window.branch_minima) != set(window.contexts):
+            raise ValueError('this archive lacks saved branch counts')
+        event_count = window.minimum if event_count is None else event_count
+        result = {}
+        for context, (count, _, _) in window.branch_minima.items():
+            if count != event_count:
+                continue
+            family, partition, cut = context
+            mapping = dict(self.saved_minimum(family, partition=partition, cut=cut).witness)
+            pairs = [(tuple(sorted(atoms)), tuple(sorted(mapping[a] for a in atoms)))
+                     for atoms in self.fragment_partitions[family][partition]]
+            key = tuple(sorted((target, source) if reverse else (source, target)
+                               for source, target in pairs))
+            result.setdefault(key, []).append(context)
+        return {key: tuple(contexts) for key, contexts in result.items()}
 
     def _table_key(self, family_id, partition, cut=0):
         family = self.catalogue.families[family_id]
