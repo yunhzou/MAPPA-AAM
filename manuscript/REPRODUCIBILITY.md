@@ -109,19 +109,24 @@ separate accounting in its source report.
 ## Branch-event offsets
 
 [The offset report](../reports/reference_event_offsets_20261107/README.md) and
-`evidence/branch_offsets.json.gz` preserve the accepted preliminary snapshot.
+`evidence/branch_offsets.json.gz` contain the completed analysis and its bin-count
+bounds. Every one of the 49,825 reactions was processed: 49,509 offsets are exact,
+120 are intervals, and 196 references are absent. Golden contributes 1,823 exact
+offsets and ten intervals; EnzymeMap contributes 47,686 exact offsets and 110 intervals.
+
 For each reaction, find the smallest unconditioned model minimum among retained
 branch contexts admitting the exact reference inside the saved window, and
-subtract the overall detected count across both directions. The GT witness's
-own event count is only an upper bound on that branch minimum.
+subtract the overall detected count across both directions. Both terms use the
+saved all-atom decoder model. The reference witness's own count is only an upper
+bound on its branch minimum. The final Golden membership certificates settle
+case 852 at zero and exclude cases 1568 and 1606.
 
-Both terms use the same original all-atom decoder model. No heavy-only count or
-new global physical optimization is substituted. Analysis revision `946fc6a`
-uses saved response queries. Fifteen affected tests include a reference witness
-with two events in a zero-minimum branch and a lower branch that excludes GT.
-Unknown answers retain intervals outside exact bins. Zero-offset certificates
-resolve first, so the partial histogram overrepresents zero. Its 3,891 pending
-checks must finish before reporting the full distribution or percentages.
+For bin k, the lower count is the number of exact offsets equal to k. The upper
+count adds every bounded interval containing k. A reaction can contribute to
+several possible upper counts, so those upper counts must not be summed as
+though they formed a single histogram. Three EnzymeMap intervals allow negative
+offsets; no measured exact offset is negative. No pending query is converted to
+an exact count. The snapshot records the source result hash and membership closure.
 
 ## Archived analyses
 

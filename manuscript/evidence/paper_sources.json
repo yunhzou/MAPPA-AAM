@@ -118,8 +118,8 @@
     },
     {
       "snapshot": "branch_offsets.json.gz",
-      "sha256": "aa26920d0b9eced54c6392b709dd7057c41bb916cefc52e66ccd26c48611541c",
-      "scope": "Preliminary branch offsets; all memberships resolved, pending branch-minimum lookups excluded from bins.",
+      "sha256": "3991cd63d98ef4116ef56eb0956ca7c3a7912042179b7b8eb907b6b91d2353b2",
+      "scope": "All 49,825 reactions processed: 49,509 exact offsets, 120 bounded offsets, 196 absent references; final Golden membership closure applied.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
     },
     {
@@ -153,5 +153,5 @@
       "scope": "Completed exact-index reaction-level decoded-window audit; original scientific outputs unchanged, bounded opposite-direction attempts retained."
     }
   ],
-  "limits": "Current Golden decoded coverage retains three one-seed and two ten-seed unknown reactions. Current EnzymeMap reaction accounting is complete. Branch-event offsets remain preliminary. September studies retain their original protocols."
+  "limits": "All current Golden and EnzymeMap decoded reaction memberships are resolved. Branch-event analysis has 49,509 exact offsets and 120 bounded intervals; no pending tasks are presented. September studies retain their original protocols."
 }

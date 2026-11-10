@@ -27,7 +27,21 @@ def evidence(man):
             assert row['difference'] == row['branch_minimum']-row['overall_minimum']
         else:
             assert row.get('difference') is None
+        if row['status'] == 'bounded':
+            assert row['offset_lower'] < row['offset_upper']
+    assert offsets['all_queries_processed']
+    assert {row['status'] for row in rows} <= {'complete', 'bounded', 'not_recovered'}
     return summary, offsets
+
+
+def offset_counts(rows):
+    """Established bin counts and upper counts allowed by measured intervals."""
+    exact = Counter(row['difference'] for row in rows if row['status'] == 'complete')
+    upper = exact.copy()
+    for row in rows:
+        if row['status'] == 'bounded':
+            upper.update(range(row['offset_lower'], row['offset_upper']+1))
+    return exact, upper
 
 
 def build(man):
@@ -75,24 +89,28 @@ def build(man):
     fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.1), layout='constrained')
     for ax, name, color in zip(axes, ('Golden', 'EnzymeMap'), colors[:2]):
         cohort = [r for r in offsets['results'] if r['dataset'] == name]
-        counts = Counter(r['difference'] for r in cohort if r['status'] == 'complete')
-        states = Counter(r['status'] for r in cohort)
-        xs = sorted(counts)
-        ax.bar(xs, [counts[x] for x in xs], width=.8, color=color)
+        counts, upper = offset_counts(cohort)
+        xs = sorted(upper)
+        ax.bar(sorted(counts), [counts[x] for x in sorted(counts)], width=.65,
+               color=color, label='Established count')
         for x in xs:
-            ax.text(x, counts[x]*1.15, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+            if upper[x] > counts[x]:
+                ax.vlines(x, max(.7, counts[x]), upper[x], color='#223340', linewidth=1.4)
+                ax.hlines(upper[x], x-.17, x+.17, color='#223340', linewidth=1.4)
+            ax.text(x, upper[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+        ax.plot([], [], color='#223340', marker='_', label='Possible upper count')
+        recovered = sum(r['status'] != 'not_recovered' for r in cohort)
         ax.set_yscale('log')
-        ax.set(xlim=(min(xs, default=0)-.7, max(5, max(xs, default=0))+.7),
-               ylim=(.7, max(counts.values())*3), xlabel=r'$n_{\mathrm{GT}}$: branch minimum − detected minimum',
+        ax.set(xlim=(-2.7, 5.7),
+               ylim=(.7, max(upper.values())*4), xlabel=r'$n_{\mathrm{GT}}$: branch minimum − detected minimum',
                ylabel='Reactions (log scale)')
-        ax.set_title(f"{name}: {states['complete']:,} / {len(cohort):,} offsets", loc='left', weight='bold')
+        ax.set_title(f"{name} · {recovered:,} recovered references", loc='left', weight='bold')
         ax.yaxis.set_major_locator(LogLocator(base=10))
         ax.yaxis.set_minor_formatter(NullFormatter())
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.grid(axis='y', alpha=.2)
         ax.set_axisbelow(True)
-        ax.text(.5, -.23, f"Pending {states['pending']:,} · GT absent {states['not_recovered']:,}", transform=ax.transAxes, ha='center', fontsize=8)
-    fig.suptitle('Preliminary branch-event distribution · established offsets only', weight='bold', fontsize=11)
+        ax.legend(loc='upper right', fontsize=7.5, frameon=False)
     save(fig, 'fig7_reference_offsets')
 
     assert all(s['decoded']['unknown'] == 0 for s in studies)
@@ -177,8 +195,6 @@ def build_comparisons(man, save):
         coverage.barh(y, rate, height=.4, color=color)
         coverage.text(2, y, f"{result['recovered']:,} / 1,851  ({rate:.2f}%)", va='center',
                       color='white', weight='bold', fontsize=9)
-        coverage.text(1, y+.31, f"{result.get('not_recovered',0)} absent; "
-                      f"{result.get('unknown',0)} unresolved", fontsize=8, color='#586974')
     coverage.set(yticks=range(3), yticklabels=[item[1] for item in policies], xlim=(0, 102),
                  ylim=(2.6, -.55), xlabel='Reference inclusion (%)')
     coverage.set_title('a  All 1,851 reactions · both directions', loc='left', weight='bold')

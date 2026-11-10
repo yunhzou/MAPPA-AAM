@@ -44,11 +44,11 @@ external evaluation and failed-attempt accounting are separate. These are saved
 stage measurements with their recorded versions and recoveries, not a new
 uninterrupted run or a hardware-normalized speed ranking.
 
-The branch-event histogram is explicitly **preliminary**: 45,738 exact offsets,
-3,891 pending offset checks, 196 absent references and no unresolved
-memberships. A GT-containing branch's unconditioned minimum is compared with
-the overall detected count using the same saved all-atom model. The completed
-subset overrepresents zero and cannot establish the final distribution.
+The branch-event figure uses all completed analysis tasks: 49,509 exact offsets,
+120 bounded intervals and 196 absent references. Bars give established counts;
+capped lines give upper counts allowed by the intervals. A reference-containing
+branch's unconditioned minimum is compared with the overall detected count using
+the same saved all-atom model. The figure contains no pending-work labels.
 
 ## Comparator and minimum-choice results
 
@@ -92,12 +92,12 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
 - `includes/supplement.tex`: technical details and clearly separated archived studies.
 - `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
-- `evidence/branch_offsets.json.gz`: complete reaction accounting for the preliminary figure.
+- `evidence/branch_offsets.json.gz`: complete reaction accounting and bounds for the offset figure.
 - `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
-- `figs/fig7_reference_offsets.*`: preliminary branch-event distribution.
+- `figs/fig7_reference_offsets.*`: branch-event distribution with measured count bounds.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.

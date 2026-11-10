@@ -2,7 +2,7 @@
 
 `current_benchmarks.json` records the current Golden and EnzymeMap coverage,
 stage CPU measurements. `branch_offsets.json.gz`
-records the preliminary branch-event distribution with pending checks explicit.
+records the completed branch-event analysis, with exact offsets and bounded intervals.
 `paper_sources.json` pins every bundled evidence snapshot by hash and labels its
 scope. `paired_slap.json` records the current paired comparator study;
 `minimum_choices.json` and its compressed per-reaction file record the minimum

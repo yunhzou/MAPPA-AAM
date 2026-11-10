@@ -30,9 +30,18 @@ for arm,study in [('seeds1','golden1'),('seeds10','golden10')]:
   assert row['status']==('recovered' if 'recovered' in states else 'not_recovered')
   if row['status']=='not_recovered':assert set(states)=={'not_recovered'}
  assert sum(r['status']=='recovered' for r in rows)==studies[study]['decoded']['recovered']
-assert offsets['partial'] and sum(r['status']=='pending' for r in offsets['results']) == 3891
-assert sum(r['status']=='complete' for r in offsets['results']) == 45738
+assert not offsets['partial'] and offsets['all_queries_processed']
+assert sum(r['status']=='complete' for r in offsets['results']) == 49509
+assert sum(r['status']=='bounded' for r in offsets['results']) == 120
 assert not any(r['status']=='unknown' for r in offsets['results'])
+from build_benchmark_figures import offset_counts
+for dataset, study in [('Golden', 'golden1'), ('EnzymeMap', 'enzyme1')]:
+ rows=[r for r in offsets['results'] if r['dataset']==dataset]
+ assert sum(r['status']!='not_recovered' for r in rows)==studies[study]['decoded']['recovered']
+ exact, upper=offset_counts(rows)
+ assert sum(exact.values())==sum(r['status']=='complete' for r in rows)
+ for value in upper:
+  assert upper[value]==exact[value]+sum(r['status']=='bounded' and r['offset_lower']<=value<=r['offset_upper'] for r in rows)
 from build_benchmark_figures import comparison_evidence
 paired, choices, choice_rows = comparison_evidence(MAN)
 assert paired['coverage']['mappa']['recovered'] == 1839
@@ -141,9 +150,9 @@ log=(MAN/'build/preprint.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
-for value in ['1,833','1,842','47,796','47,798','99.629','45,738','3,891']:
+for value in ['1,833','1,842','47,796','47,798','99.629','49,509','120']:
  assert value in alltext,value
-for value in ['1,839','1,794','1,620','96.921','1,829','91.36','79.45','10.38','2.58']:
+for value in ['1,839','1,794','1,620','96.921','1,829','91.36','79.45']:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
 assert 'approximately linearly' in paper
@@ -153,7 +162,11 @@ for study in current['studies']:
  for value in [sum(means[:2]),means[2],sum(means)]:
   assert f'{value:.2f}' in alltext
 assert 'ordinary-boundary' in tex and 'starting orbit' in tex
-assert 'preliminary' in paper.lower() and 'overrepresents zero' in paper
+results=paper.split(r'\section{Results}',1)[1].split(r'\section{Discussion}',1)[0]
+assert results.count(r'\subsection{')==4
+assert not any(word in results.lower() for word in ['pending', 'preliminary', 'first-returned'])
+assert 'generated-method-coverage-table' in results and 'ten seeds' in results.lower()
+assert 'capped lines' in results and 'count bounds' in results
 assert 'whole-growth replay' not in paper
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
 for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{seed['methods']['seeds3']['golden_recovery_percent']:.2f}",'120,052','300','162','168']:
@@ -197,8 +210,9 @@ for fig in figs:
   for label in ['99.082','99.568','99.633','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
-  for label in ['Preliminary','Pending','Golden','EnzymeMap']:
+  for label in ['Established count','Possible upper count','Golden','EnzymeMap','1,833','47,796']:
    assert label in figure_text,label
+  assert 'Pending' not in figure_text and 'GT absent' not in figure_text
  elif fig.endswith('fig8_design_examples.pdf'):
   for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events','Base','Target']:
    assert label in figure_text,label
@@ -299,7 +313,7 @@ assert 'Archived MAPPA search plus event-window queries' in alltext.replace('\n'
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The branch-offset snapshot remains explicitly preliminary. Completeness and limits are recorded in the evidence.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The branch-offset analysis accounts for every reaction with exact offsets or explicit count bounds. Completeness and limits are recorded in the evidence.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

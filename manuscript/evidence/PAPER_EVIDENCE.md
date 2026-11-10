@@ -29,11 +29,11 @@ The expected accuracy of uniform selection is bounded at 78.31--79.45%; this is
 not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
 the counts, but the ranking score remains the saved all-atom model count.
 
-The accepted event-offset snapshot is preliminary: 45,738 exact offsets and
-3,891 pending checks, plus 196 absent references and no unknown memberships.
-Existing zero-offset certificates resolve first. The plotted subset cannot
-establish final proportions. Counts use the same all-atom decoder model on both
-sides; GT selects a branch rather than supplying the plotted event count.
+The event-offset snapshot accounts for every processed reaction: 49,509 exact
+offsets, 120 bounded intervals and 196 absent references. Bars give exact bin
+counts; capped lines include every interval that could occupy each bin. The upper
+counts are not a jointly attainable histogram. Counts use the same all-atom
+decoder model on both sides; GT selects a branch rather than supplying its count.
 
 The model retains a fixed ordinary-boundary approximation and selected starting
 orbits. Positive decoded witnesses are replayed and counted, but model-window

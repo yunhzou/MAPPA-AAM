@@ -229,111 +229,95 @@ The decoded audits preserve exact annotated heavy-atom indices and unmatched-hea
 \subsection{Timing and branch-event analysis}
 \label{sec:measurement}
 
-Matching time includes both fragment discovery and reduction into the final catalogue; decoding is reported separately. CPU seconds sum successful worker computation over both directions and all cuts, including stage input loading and result construction. Publication, external verification, historical failed attempts and parallel elapsed duration have separate accounting. Timings use the saved successful passes and their documented recoveries, rather than a newly measured uninterrupted run of one final performance revision. Exact source and measurement boundaries are recorded in the repository.
+Matching time includes both fragment discovery and reduction into the final catalogue; decoding is reported separately. CPU seconds sum successful worker computation over both directions and all cuts, including stage input loading and result construction. Publication and external verification are excluded. Source identities, hardware and completed-pass accounting are documented in the supplement.
 
 To locate a recovered reference within the decoded event landscape, let $\mathcal C_{\mathrm{GT}}$ contain the retained branch contexts that admit it inside the saved window. We measure
 \begin{equation}
  n_{\mathrm{GT}}=\min_{c\in\mathcal C_{\mathrm{GT}}}\min_{m\in c} E_c(m)-U,
  \label{eq:reference-offset}
 \end{equation}
-where $U$ is the overall detected count, minimized across both directions. Ground truth selects the qualifying contexts; their event minima are queried without fixing the reference assignments. Both terms use the same saved all-atom decoder model. This measures where a GT-containing branch begins, not the physical event count of the reference itself. Missing references and unresolved offsets remain outside numeric bins.
+where $U$ is the overall detected count, minimized across both directions. Ground truth selects the qualifying contexts; their event minima are queried without fixing the reference assignments. Both terms use the same saved all-atom decoder model. This measures where a GT-containing branch begins, not the physical event count of the reference itself. References absent from the decoded output have no offset. Bounded offset queries contribute lower and upper bin counts.
 
 We separately count the distinct heavy-atom mapping classes actually attainable at the detected minimum, taking the union across retained branches and both directions. Chemical endpoint equivalence identifies repeated representations, and hydrogen permutations do not multiply the choice count; each class must admit a full valid completion. The ranking score remains the saved all-atom model count. If a reaction has $K$ choices and its reference class is present, a uniform selector succeeds with probability $1/K$; otherwise it succeeds with probability zero. This defines expected random-choice accuracy without a trained selector. Incomplete counts contribute bounds, not exact values. A GT-containing branch's minimum need not be attained by GT itself, so this measurement is separate from \Cref{eq:reference-offset}.
 
 \section{Results}
 
-\subsection{Reference coverage on Golden and EnzymeMap}
+\subsection{Reference coverage across datasets and methods}
 \label{sec:reference-coverage}
+\label{sec:method-coverage}
 
-Both matching and decoding are complete for every requested direction: 3,702 in each Golden setting and 95,948 in EnzymeMap. Reference coverage of the complete matching output is 1,834/1,851 (99.082\%) with one Golden seed, 1,843/1,851 (99.568\%) with ten, and 47,798/47,974 (99.633\%) for EnzymeMap. All three catalogue evaluations have zero unresolved reactions. \Cref{tab:current-coverage,fig:current-benchmarks} show this full-output coverage alongside the additional audit of the restricted decoded window.
+MAPPA recovers 1,834 of 1,851 Golden references with one seed (99.082\%) and 1,843 with ten seeds (99.568\%). On EnzymeMap, one seed recovers 47,798 of 47,974 references (99.633\%; \Cref{tab:current-coverage,fig:current-benchmarks}). Coverage measures reference inclusion among the returned alternatives. Matching, decoding and reference evaluation are complete for both datasets.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig6_current_benchmarks.pdf}
-\caption{\textbf{Reference coverage and computational cost.} (a) Reference coverage of the complete matching output, with unrecovered counts retained. All reaction-level catalogue outcomes are resolved. This is inclusion among alternatives, not top-ranked accuracy. (b) Mean compute CPU per reaction for the two stages: matching, including reduction, and decoding. Both search directions contribute. Golden matching was reused for the corrected postprocessing passes; EnzymeMap combines original successful work with successful recoveries. External verification and publication are excluded.}
+\caption{\textbf{Reference coverage and computational cost.} (a) Reference inclusion in the complete matching output. (b) Mean CPU seconds per reaction for matching, including reduction, and decoding. Both directions and the full cut sweep contribute; publication and external verification are excluded.}
 \label{fig:current-benchmarks}
 \end{figure}
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Reaction-level reference coverage.} Percentages use every reaction. Decoded columns use exact annotated indices in the saved model min+5 window. Golden catalogue membership also allows endpoint chemical symmetry; EnzymeMap catalogue membership uses exact indices. Both evaluations are resolved for every reaction. The absent column refers to the saved decoded window.}
+\caption{\textbf{Reference coverage on Golden and EnzymeMap.} Catalogue coverage measures the complete matching output; decoded coverage measures the saved minimum-plus-five event window. Golden catalogue evaluation permits chemical endpoint equivalence, whereas decoded evaluation uses exact annotated indices. EnzymeMap uses exact indices for both. Percentages use all reactions.}
 \label{tab:current-coverage}
 \input{includes/generated-current-coverage-table}
 \end{table}
 
-Within the decoded min+5 window, exact-index verification confirms 1,833/1,851 Golden references with one seed (99.028\%) and 1,842 with ten (99.514\%). All reactions have definitive outcomes. Ten seeds recover nine additional references without losing any recovered by one seed in this cohort. This audit uses a stricter reference-equivalence policy than catalogue verification (\Cref{sec:verification}); its counts are separate from the full-output comparison.
+The decoded minimum-plus-five window retains 1,833 Golden references with one seed, 1,842 with ten, and 47,796 EnzymeMap references. Ten seeds recover nine additional Golden references without losing any recovered by one seed. The wider exploration therefore improves coverage even when the same decoding window is retained.
 
-EnzymeMap decoding confirms 47,796/47,974 references (99.629\%), compared with 47,798 (99.633\%) in the catalogue. The two additional catalogue references have 22-event witnesses outside their saved 14--19 windows; independent decoded queries confirm their exclusion. All 94,820 positive directional decoded certificates passed replay and count checks, with no invalid certificate. The final reaction accounting is 47,796 recovered and 178 absent, with every outcome resolved. Direct decoded checks and exclusion through the containing catalogue are distinguished in the audit records.
-
-\subsection{Matching and decoding costs}
-
-\Cref{tab:current-times,fig:current-benchmarks} report compute CPU rather than parallel latency. One-seed Golden requires 1.31 CPU seconds per reaction for matching, including reduction, and 1.88 for decoding. Ten seeds require 11.64 and 9.28 seconds, respectively. The corresponding EnzymeMap means are 4.41 and 8.75 seconds, with medians of 2.15 and 3.46 seconds. The median combined EnzymeMap cost is 5.80 seconds; medians of separate stages need not add.
-
-\begin{table}[H]
-\centering\small
-\caption{\textbf{Mean compute CPU seconds per reaction.} Both directions and the full cut sweep are included. Matching includes fragment discovery and reduction. Decoding is the second stage; publication and external verification are excluded. These are recorded completed-stage costs, not a hardware-normalized comparison with the archived methods.}
-\label{tab:current-times}
-\input{includes/generated-current-timing-table}
-\end{table}
-
-The distributions have substantial tails. Golden's maximum directional decoding cost is 52.69 seconds with one seed and 316.46 seconds with ten; its corresponding medians are 0.476 and 1.964 seconds. EnzymeMap's combined per-reaction computation has a 95th percentile of 41.86 seconds and a 99th percentile of 128.58 seconds. Including publication and measured worker overhead raises EnzymeMap's mean from 13.16 to 14.60 CPU seconds per reaction. Historical failed attempts contribute a further approximately 27.93 sampled CPU hours; external verification and diagnostic work are excluded from these algorithm costs.
-
-\subsection{Seed count and computational scaling}
-
-Increasing Golden from one to ten seeds increases matching CPU, including reduction, by 8.87-fold and decoding by 4.95-fold. Matching therefore scales approximately linearly with seed count in the measured one-to-ten-seed comparison. Decoding grows less because the extra searches produce a reduced set of shared fragments and branch compositions rather than ten independent decoding jobs. These measurements describe the cost of additional exploration and its coverage gain; they are not a controlled isolation of individual acceleration mechanisms.
-
-\subsection{Reference coverage across AAM methods}
-\label{sec:method-coverage}
-
-\Cref{tab:method-coverage} compares reference inclusion across the evaluated output types on all 1,851 Golden reactions. For a method returning one prediction, that prediction is the entire candidate set; for MAPPA and SLAP, recovery requires the reference to occur among the returned alternatives. This common metric measures whether an answer remains available, regardless of how many candidates the method returns. Mapping failures stay in the denominator.
+\Cref{tab:method-coverage} compares Golden coverage across methods. A single prediction is treated as a candidate set of size one. MAPPA achieves the highest coverage among the evaluated methods. LocalMapper has the highest coverage among the evaluated single-answer interfaces at 86.71\%, followed by Chython at 84.33\% and RXNMapper at 83.58\%~\citep{chen2024,chython,schwaller2021}. Default binary SLAP covers 85.95\%; combining binary and weighted modes with both search directions and the cut sweep raises its coverage to 96.92\%. These results show the value of broader correspondence discovery before selecting one answer.
 
 \begin{table}[!htbp]
 \centering\small
-\caption{\textbf{Golden coverage across methods and output types.} Coverage is reference inclusion in the returned output, treating a single prediction as a singleton set. All rows use 1,851 reactions and chemical endpoint-equivalence evaluation. MAPPA rows use the current full seed studies; expanded and bidirectional SLAP rows use the separately paired study. Default-interface comparator scores use saved predictions with unchanged per-case outcomes on re-evaluation. Protocols differ in search scope and output size; this table compares coverage, not ranking accuracy or equal-budget search.}
+\caption{\textbf{Golden reference coverage across AAM methods.} All methods are evaluated over 1,851 reactions using chemical endpoint equivalence. Coverage counts reference inclusion anywhere in the returned output; a single prediction is a singleton set. MAPPA uses the full one- and ten-seed studies. Expanded SLAP includes both weight modes, both directions and the cut sweep.}
 \label{tab:method-coverage}
 \input{includes/generated-method-coverage-table}
 \end{table}
 
-MAPPA achieves the highest coverage among the evaluated methods. With one seed it recovers 99.08\% of references, increasing to 99.57\% with ten. Among the evaluated single-answer interfaces, LocalMapper~\citep{chen2024} has the highest coverage at 86.71\%, followed by Chython at 84.33\%, RXNMapper at 83.58\%, RDT at 55.65\% and Indigo at 37.39\%~\citep{chython,schwaller2021,rahman2016,indigo}. Binary SLAP's default returned candidate set covers 85.95\%; broader exploration raises its coverage to 96.92\%. These results support retaining useful alternatives, while leaving their chemical ranking to a later selection step. Comparator versions, failure accounting and archived timing scopes are provided in \Cref{sec:default-comparators}. The paired study below reports coverage and speed under explicitly recorded SLAP search protocols.
-
-\subsection{Paired coverage and speed comparison with SLAP}
+\subsection{Computational cost and seed scaling}
 \label{sec:paired-slap}
 
-The paired study recovers 1,839/1,851 references with MAPPA (99.352\%), 1,794 with expanded SLAP (96.921\%), and 1,620 with standard binary SLAP across both directions (87.520\%; \Cref{fig:paired-slap}). Expanded SLAP has 52 confirmed misses and five unresolved reactions; standard bidirectional SLAP has 230 misses and one unresolved. MAPPA has 12 misses and no unresolved catalogue queries. The independent comparator audit reconstructs its actual returned heavy mappings and repeats chemical-equivalence verification with a separate graph-matching implementation: all 3,683 completed expanded-SLAP direction verdicts agree.
+One-seed MAPPA requires an average of 3.19 CPU seconds per Golden reaction: 1.31 for matching and 1.88 for decoding. EnzymeMap requires 13.16 CPU seconds, divided into 4.41 for matching and 8.75 for decoding (\Cref{tab:current-times}). The EnzymeMap median is 5.80 seconds and its 95th percentile is 41.86 seconds, indicating that a minority of difficult reactions account for much of the total computation.
+
+\begin{table}[H]
+\centering\small
+\caption{\textbf{Mean CPU seconds per reaction.} Matching includes fragment discovery and reduction. Both directions and the full cut sweep are included. Decoding is measured separately; publication and external verification are excluded.}
+\label{tab:current-times}
+\input{includes/generated-current-timing-table}
+\end{table}
+
+Increasing Golden from one to ten seeds raises matching cost by 8.87-fold and decoding cost by 4.95-fold. Matching scales approximately linearly with seed count over this range. Decoding grows less because repeated fragments and branch compositions share their event responses. The additional exploration recovers nine more references at an average total cost of 20.92 CPU seconds per reaction.
+
+The paired SLAP comparison illustrates the coverage--cost trade-off (\Cref{fig:paired-slap}). Standard binary SLAP is fastest. MAPPA achieves higher coverage than expanded SLAP while requiring less computation, including its separate decoding stage. Detailed measurement scopes are given in \Cref{sec:reproducibility}.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig9_paired_slap.pdf}
-\caption{\textbf{Coverage and cost depend on exploration scope.} (a) Reference inclusion under identical chemical-equivalence evaluation over all 1,851 Golden reactions. Unknowns remain outside the recovered count. Standard SLAP is binary and uncut; expanded SLAP combines both weight modes and the cut sweep. All bars include both directions. (b) Mean compute CPU on the same 1,834 reactions completed by all protocols, with MAPPA decoding separate from search. The 17 excluded reactions remain in the coverage denominator. Timing is logarithmic and measures accumulated CPU, not parallel latency. The expanded wrapper raises SLAP coverage to approximately 97\%, while increasing its computational cost.}
+\caption{\textbf{Coverage and cost under paired evaluation.} (a) Reference coverage over all 1,851 Golden reactions in the paired study. Standard SLAP is binary and uncut; expanded SLAP combines binary and weighted modes with the cut sweep. All protocols use both directions. (b) Mean CPU time on the 1,834 reactions completed by all protocols, measured on the same CPU model. MAPPA search and decoding are separate; the time axis is logarithmic.}
 \label{fig:paired-slap}
 \end{figure}
 
-Default forward-only SLAP recovers 1,591/1,851 references (85.95\%). The original study reported 86.9\% on 1,758 Golden reactions, also measuring reference inclusion among the returned alternatives~\citep{koda2025}.
+\subsection{Where reference-containing branches enter the event window}
 
-On the 1,834 reactions completed by all three protocols, mean search costs are 0.111 CPU seconds for standard binary SLAP, 1.202 for MAPPA, and 12.475 for expanded SLAP, summing both directions. MAPPA decoding adds 1.617 seconds. Thus MAPPA search is 10.38 times cheaper than the expanded SLAP sweep, but standard SLAP is 10.80 times cheaper than MAPPA search. The broader standard-SLAP/MAPPA pair contains 1,849 completed reactions and retains a slower standard-SLAP tail: their means are 0.487 and 1.259 seconds, a 2.58-fold difference. These are paired measurements on Intel Xeon Gold 6442Y processors, excluding loading, publication and external verification. Failed attempts remain separately accounted; excluded reactions are not treated as fast completions.
+Most recovered references belong to a branch that begins at the overall detected minimum (\Cref{fig:reference-offsets}). This is established for at least 93.9\% of recovered Golden references and 96.0\% of recovered EnzymeMap references. The remaining exact offsets extend to five events above the detected minimum in Golden and four in EnzymeMap. The distribution supports a narrow event window while retaining alternatives above its lowest count.
+
+\begin{figure}[!htbp]
+\centering\includegraphics[width=\linewidth]{figs/fig7_reference_offsets.pdf}
+\caption{\textbf{Location of reference-containing branches.} The horizontal coordinate is the lowest event count of a retained reference-containing branch minus the overall detected minimum. Both counts use the saved all-atom decoder model. Bars and labels give established reaction counts; capped lines give the largest counts permitted by bounded offsets for 10 Golden and 110 EnzymeMap reactions. These are count bounds, not confidence intervals. Only recovered references have an offset; coverage over all reactions is reported in \Cref{tab:current-coverage}. The vertical axis is logarithmic.}
+\label{fig:reference-offsets}
+\end{figure}
+
+The reference identifies the qualifying branch; it need not itself attain that branch's minimum. This distribution measures how decoded alternatives are organized around the detected minimum, rather than the physical event count of the reference mapping.
 
 \subsection{How many choices remain at the minimum?}
 \label{sec:minimum-choices}
 
-The minimum-event rule produces a compact shortlist in the saved one-seed Golden study (\Cref{fig:minimum-choices}). Exact counts are established for 1,829 reactions; 22 remain incomplete under the counting allowance. Among the certified cases, 1,370 have one choice, 352 have two, 96 have three to five, and 11 have six or more. The certified-subset mean is 1.36 choices. Even allowing arbitrary larger counts for unfinished cases, the full-dataset median is one and its 95th percentile is three. We do not estimate the full-dataset mean from the completed subset.
+Minimum-event selection produces a compact shortlist (\Cref{fig:minimum-choices}). Among 1,829 Golden reactions with exact choice counts, 1,370 have one choice, 352 have two, 96 have three to five, and 11 have six or more. Their mean is 1.36 choices. Across all 1,851 reactions, the median is one and the 95th percentile is three, including the bounds on the remaining counts.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=.88\linewidth]{figs/fig10_minimum_choices.pdf}
-\caption{\textbf{Distinct choices under minimum-event selection.} Counts cover 1,829 of 1,851 one-seed Golden reactions with certified totals; 22 incomplete counts are excluded from the bars. Equivalent heavy-atom relabellings and hydrogen permutations count once. Colors indicate whether the reference is among the choices at the saved all-atom detected model minimum. The vertical axis is logarithmic. This is a count of attainable mapping classes, not branches or raw symmetry permutations.}
+\caption{\textbf{Distinct choices under minimum-event selection.} Bars cover the 1,829 one-seed Golden reactions with exact counts; the remaining 22 counts contribute bounds to the full-dataset statistics. Equivalent heavy-atom relabellings and hydrogen permutations count once. Colors indicate whether the reference belongs to the minimum-event choices. The vertical axis is logarithmic.}
 \label{fig:minimum-choices}
 \end{figure}
 
-The reference is confirmed at the detected minimum in 1,691 reactions, absent there in 158, and unresolved in two: minimum-set coverage is therefore 91.36--91.46\%. These two queries concern membership at the minimum alone; every reaction's membership in the wider min+5 window is resolved (\Cref{sec:reference-coverage}). Expected uniform-choice accuracy is 78.31--79.45\%, with unfinished counts contributing explicit bounds. For example, Golden case 1694 has eight distinct minimum-event choices, including the reference, giving a random selector probability $1/8$. These results quantify the decision left to a downstream selector. They do not establish top-1 superiority over another mapper, and a reference outside the minimum set would require selection from a wider event window.
-
-\subsection{Where reference-containing branches enter the event window}
-
-\Cref{fig:reference-offsets} reports the preliminary distribution defined in \Cref{eq:reference-offset}, with logarithmic reaction counts. Offsets are established for 45,738 reactions: 1,621 Golden and 44,085 EnzymeMap reactions have a GT-containing branch at the overall detected count; another 32 EnzymeMap reactions have offsets one through four. There are 3,891 pending offset checks, and 196 absent references. All reference-membership outcomes are resolved.
-
-\begin{figure}[!htbp]
-\centering\includegraphics[width=\linewidth]{figs/fig7_reference_offsets.pdf}
-\caption{\textbf{Preliminary location of GT-containing branches.} The horizontal coordinate is the smallest event count of a retained GT-containing branch minus the overall detected count; the vertical axis is logarithmic. Ground truth selects the branch, rather than constraining the minimum witness within it. One-seed results use tolerance 2, cap 100 and saved min+5 responses. Pending offset checks and absent references are excluded from bars and labeled explicitly. Empty bins must not be interpreted as final zero frequencies.}
-\label{fig:reference-offsets}
-\end{figure}
-
-Zero-offset certificates can establish the answer immediately, so the completed subset overrepresents zero. The higher-offset distribution remains incomplete and does not yet support full-dataset proportions. Both sides of the subtraction use the same decoder count, including hydrogen and the ordinary-boundary approximation. The offset measures the reported model landscape, not physical event-bin accuracy.
+The reference belongs to the minimum-event set in 91.36--91.46\% of Golden reactions. Selecting uniformly among the available minimum-event choices gives an expected accuracy of 78.31--79.45\%. For example, Golden case 1694 has eight minimum-event choices, including the reference, so a random selector succeeds with probability $1/8$. MAPPA exposes these alternatives for subsequent chemical selection; a reference outside the minimum set requires considering a wider event window.
 
 \FloatBarrier
 \section{Discussion}
@@ -346,4 +330,4 @@ Several limits remain scientifically important. Greedy trajectories, sampled see
 
 The fixed ordinary-boundary model is also an approximation. In the EnzymeMap audit, 2,801 positive directional witnesses have different model and physical whole-reaction event counts; the ten-seed Golden audit records 32 such witnesses. Both counts are retained. Model-window membership is therefore not physical event-bin accuracy, and a low model count alone does not identify the annotated or most plausible chemistry. The branch-offset figure assesses organization within that model, not a replacement accuracy measure.
 
-Retained alternatives can support reaction-path preparation: atom-index assignment affects endpoint interpolation~\citep{de2019}, and different permitted correspondences could supply starting structures for nudged elastic band calculations~\citep{henkelman2000}. A separate chemical selector could turn the same catalogue into a single-answer prediction, using minimum event count as a surrogate and reaction-specific preferences to resolve ties or retain a higher-event candidate. These are downstream opportunities, not demonstrated improvements in ranking or transition-state prediction. The current Golden and EnzymeMap studies also do not validate continuously valued WBO inputs or every stereochemical attribute. The archived comparator, seed/cap, direction and coordinate analyses remain in the supplement with their original protocols; only the separately paired current comparison supports its stated speed ratios.
+Retained alternatives can support reaction-path preparation: atom-index assignment affects endpoint interpolation~\citep{de2019}, and different permitted correspondences could supply starting structures for nudged elastic band calculations~\citep{henkelman2000}. A separate chemical selector could turn the same catalogue into a single-answer prediction, using minimum event count as a surrogate and reaction-specific preferences to resolve ties or retain a higher-event candidate. These are downstream opportunities, not demonstrated improvements in ranking or transition-state prediction. The current Golden and EnzymeMap studies also do not validate continuously valued WBO inputs or every stereochemical attribute.

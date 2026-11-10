@@ -29,34 +29,38 @@ Analysis revision: `946fc6a`, `bench/analytics.py --positions`. Fifteen affected
 tests passed, including a GT witness with two events in a zero-minimum branch,
 and a lower branch that does not contain GT.
 
-## Preliminary figure
+## Published distribution
 
 [Figure](event-offsets.png) · [PDF](event-offsets.pdf) ·
-[Numeric data](event-offsets.partial.json.gz) · [Histogram](histogram.partial.csv)
+[Numeric data](event-offsets.json.gz) · [Histogram bounds](histogram.csv)
 
-Snapshot updated after the 10 November verification closure: 45,738 exact offsets, with 3,891 further
-branch-minimum checks queued. All 49,825 reactions are accounted for once.
+The later saved analysis processed all 49,825 reactions. The manuscript now uses
+that result, combined with the final Golden membership closure, rather than the
+earlier in-progress snapshot.
 
-| Dataset | Exact offsets | GT not represented | Membership unknown | Offset pending | Total |
-|---|---:|---:|---:|---:|---:|
-| Golden | 1,621 | 18 | 0 | 212 | 1,851 |
-| EnzymeMap | 44,117 | 178 | 0 | 3,679 | 47,974 |
+| Dataset | Exact offsets | Bounded offsets | Reference absent | Total |
+|---|---:|---:|---:|---:|
+| Golden | 1,823 | 10 | 18 | 1,851 |
+| EnzymeMap | 47,686 | 110 | 178 | 47,974 |
 
-The established Golden offsets are 1,621 at zero. Established EnzymeMap offsets
-are 44,085 at zero, 22 at one, 6 at two, 1 at three and 3 at four. Existing
-certificates at the detected minimum establish zero immediately, so these
-completed results deliberately overrepresent zero. The pending cases must be
-resolved before interpreting the shape of the full distribution or reporting
-its percentages. Blank bins are not evidence that no pending case belongs there.
+All reference memberships are resolved. The 120 bounded offsets are completed
+queries whose 30-second allowances did not establish a single event count.
+They are not pending work and are not relabeled as exact offsets.
 
-The continuation retains 114 completed branch lookups and uses the unchanged
-saved responses, with a 30-second query allowance per reaction. Resource-limited
-queries will remain explicit intervals outside exact bins. Molecular data,
-membership certificates and operational launch evidence remain private.
+Golden exact counts at offsets 0 through 5 are 1,722, 60, 28, 10, 1 and 2.
+EnzymeMap exact counts at offsets 0 through 4 are 45,888, 960, 785, 10 and 43.
+For each bin, the lower count is its established count; the upper count adds
+each interval containing that bin. Upper counts across bins are not jointly
+attainable and must not be summed as a histogram. Three EnzymeMap intervals
+extend below zero, but no exact measured offset is negative. The plotted caps
+retain this uncertainty without inventing bin assignments.
 
-The [final Golden membership closure](../golden_native_seeds_20261106/decoded-verification-closure.json)
-settles all three previously unknown memberships. Case 852 has a replayed
-27-event reference witness; both saved directional minima are 27, proving zero
-branch offset without another minimum search. Cases 1568 and 1606 are absent.
-This updates membership and one zero-offset certificate only; the 3,891 pending
-branch-minimum lookups remain incomplete, outside the plotted bins.
+The earlier partial snapshot and histogram remain as historical evidence. They
+must not be used for the current manuscript figure.
+
+Final analysis source SHA-256:
+`1f5133f0f44b0bb503207c2e1a969a8bf85a9233d955cad3c5d74b237c618953`.
+The numerical snapshot records the producing code identity and runner hash.
+The [Golden membership closure](../golden_native_seeds_20261106/decoded-verification-closure.json)
+settles case 852 at zero and excludes cases 1568 and 1606. No matching or decoding
+was rerun for this publication update.

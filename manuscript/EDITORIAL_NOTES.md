@@ -44,10 +44,16 @@ with every reaction resolved.
 EnzymeMap's conclusive reaction accounting includes separately justified absence
 from the containing catalogue. Never turn a timed-out query into direct absence.
 
-The branch-offset histogram is preliminary, with 3,891 checks pending. Existing
-zero-offset certificates resolve first, so the subset is biased toward zero.
-Include the figure and its definition, but do not infer final tail frequencies
-or full-dataset percentages. It compares two counts from the same all-atom model.
+The Results follow four topics: dataset/method coverage, computational cost and
+seed scaling, reference-branch event offsets, and choices at the minimum. Keep
+the method comparison and both Golden seed settings. Secondary timing cohorts,
+run history and detailed audit accounting belong outside the main Results.
+
+The offset figure uses the later completed analysis: 49,509 exact offsets,
+120 bounded intervals and 196 absent references. Every reaction was processed;
+there are no pending checks in this snapshot. Bars give established bin counts
+and capped lines give possible upper counts. Do not hide the intervals or present
+upper counts as an exact histogram.
 
 Include reduction in matching time; keep decoding and external verification separate.
 The saved Golden matching measurements predate indexed containment; the manuscript
