@@ -55,12 +55,12 @@ Two stages organize this procedure. The \emph{matching stage} discovers fragment
 \subsection{Matching Stage: grow, saturate and branch}
 \label{sec:matching-rules}
 
-Matching alternates between \emph{growth matching}, which tests whether an enlarged fragment has any placement, and \emph{saturation matching}, which finds the finished fragment's distinct placements. Postponing branching lets a small, common motif grow into a larger, more restrictive constraint (\Cref{fig:algorithm}a).
+Matching alternates between \emph{growth matching}, which tests for a relaxed subgraph isomorphism, and \emph{saturation matching}, which finds the completed fragment's distinct target atom-set placements. Postponing branching lets a small, common motif grow into a larger, more restrictive constraint (\Cref{fig:algorithm}a).
 
 \subsubsection{Growth matching: keep extending while a match exists}
 \label{sec:growth}
 
-The growing fragment $g=(B_g,A_g)$ contains base atoms $B_g$ and accepted edges $A_g$; $\mathcal L$ records earlier locked assignments. A \emph{witness} $m$ maps these atoms injectively into the target, preserving elements and locks, with each accepted edge placed on a target bond within tolerance $\tau_{\mathrm{iso}}$. Explicit hydrogens participate. Other internal bonds and base nonedges impose no additional matching requirement.
+The growing fragment $g=(B_g,A_g)$ contains base atoms $B_g$ and accepted edges $A_g$; $\mathcal L$ records earlier locked assignments. A \emph{relaxed subgraph isomorphism} maps these atoms injectively into the target, preserving elements and locks, with each accepted edge placed on a target bond within tolerance $\tau_{\mathrm{iso}}$. A \emph{witness} $m$ is one such map. Explicit hydrogens participate. Matching is non-induced: extra target edges are allowed, and unselected base bonds impose no additional constraint.
 
 Growth starts from a seed with an available target atom. The presence threshold $b$ defines eligible connections. It selects a boundary atom uniformly, then one of its frontier edges uniformly, and tentatively forms $g^+$. The decision is an existence test:
 \begin{equation}
@@ -68,7 +68,7 @@ Growth starts from a seed with an available target atom. The presence threshold 
  =\mathbf{1}\!\left[\mathcal M(g^+\mid\mathcal L)\ne\varnothing\right],
  \label{eq:growth-exists}
 \end{equation}
-where $\mathcal M$ is the set of compatible injective maps. If a witness is found, accept the extension. If no placement exists, defer that edge, keep $g$, and try the remaining frontier. \emph{Saturation occurs only when no eligible extension remains.} One failed edge does not end growth.
+where $\mathcal M$ is the set of relaxed subgraph isomorphisms satisfying the locks. If a witness is found, accept the extension. If no placement exists, defer that edge, keep $g$, and try the remaining frontier. \emph{Saturation occurs only when no eligible extension remains.} One failed edge does not end growth.
 
 Let $\nu(g)$ count distinct target atom sets admitting a placement (\Cref{tab:growth-transitions}). Growth does not compute this count: every positive outcome means continue growing, regardless of multiplicity.
 
@@ -96,15 +96,15 @@ For $1\to\mathrm{many}$, consider one eligible target carbon with two oxygen nei
 \subsubsection{Saturation matching: recover distinct atom-set placements}
 \label{sec:completion}
 
-At saturation, MAPPA finds distinct target atom sets $T_i=m(B_g)$. Each pair $(B_g,T_i)$ defines a completed fragment placement, with its internal mapping relation and fragment-local binary symmetries retained compactly.
+At saturation, MAPPA finds distinct target atom sets $T_i=m(B_g)$ reached by relaxed subgraph isomorphisms. Each pair $(B_g,T_i)$ defines a completed fragment placement, with its internal mapping relation and the binary-graph automorphisms of its two sides retained compactly.
 
-A six-carbon ring fragment fitting two target rings with different external attachments gives two atom-set placements (\Cref{fig:saturation}). Rotations and reflections within either ring belong to that placement. Search excludes already represented target sets directly, avoiding enumeration of their bijections followed by deduplication.
+A six-carbon ring fragment fitting two target rings with different external attachments gives two atom-set placements (\Cref{fig:saturation}). Ring rotations and reflections are fragment automorphisms: they change the correspondence within a placement without changing its atom sets. Search excludes already represented target sets directly, avoiding enumeration of their bijections followed by deduplication.
 
-Fragment-local symmetry describes rearrangements \emph{within} a placement. Certified global symmetry can share work \emph{between} placements, but only if it preserves the entire remaining matching problem, moving later fragments jointly and respecting earlier locks. Otherwise those placements remain separate (\Cref{sec:completion-details}).
+\emph{Fragment automorphisms} act within each endpoint's fragment graph. \emph{Global automorphisms} act on the whole target graph. A certified subgroup of the latter can share work between placements only if it preserves the entire remaining matching problem, moving later fragments jointly and respecting earlier locks. Otherwise those placements remain separate (\Cref{sec:completion-details}).
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig11_saturation.pdf}
-\caption{\textbf{Two ring placements give two branches.} A fixed six-carbon fragment fits either target ring. The different F and Cl attachments prevent a whole-target symmetry from exchanging the rings. Each child selects one target carbon atom set, highlighted in teal; rotations and reflections within that ring remain inside the placement rather than creating additional branches. This is a carbon-fragment illustration with hydrogen constraints omitted, not a complete reaction.}
+\caption{\textbf{Two ring placements give two branches.} A fixed six-carbon fragment fits either target ring. The different F and Cl attachments prevent a global automorphism from exchanging the rings. Each child selects one target carbon atom set, highlighted in teal; rotations and reflections within that ring remain inside the placement rather than creating additional branches. This is a carbon-fragment illustration with hydrogen constraints omitted, not a complete reaction.}
 \label{fig:saturation}
 \end{figure}
 
@@ -146,11 +146,11 @@ This subphase reuses the fragment inventories already accumulated during matchin
 
 Decoding turns the retained mapping alternatives into queryable bond-event information. It first prepares each unique fragment once, then reuses that response wherever the fragment occurs. The local calculation connects \emph{which atoms can move together} to \emph{which bond changes those moves produce}.
 
-\subsubsection{Local symmetry: retain independent and correlated moves}
+\subsubsection{Fragment automorphisms: independent and correlated moves}
 
-For each endpoint of a fragment, compute symmetry on its own binary internal graph. Elements are preserved, anchors remain fixed, and bonds satisfying the presence criterion share one structural label. Original bond weights are retained for event counting. External attachments do not determine this local symmetry.
+A \emph{fragment automorphism} permutes atoms within one endpoint's fragment while preserving its binary connectivity and element labels, with anchors fixed. We compute these automorphisms separately for the base and target sides. Bonds satisfying the presence criterion share one structural label; original bond weights are retained for event counting. External attachments do not constrain the fragment automorphisms.
 
-Nauty supplies compact generators~\citep{mckay2014}: unit operations that describe the allowed rearrangements. Exchanging two identical arms moves each arm with its attached atoms; exchanging two hydrogens can act within an arm. The two arms must still occupy different positions. These joint operations retain that correlation without storing every full permutation. Both endpoint actions are represented; for an aligned equal-connectivity pair, one side suffices to describe their relative rearrangements.
+Nauty supplies compact generators of these automorphism groups~\citep{mckay2014}: unit operations that describe the allowed rearrangements. Exchanging two identical arms moves each arm with its attached atoms; exchanging two hydrogens can act within an arm. The two arms must still occupy different positions. These joint operations retain that correlation without storing every full permutation. Both endpoint actions are represented; for an aligned equal-connectivity pair, one side suffices to describe their relative rearrangements.
 
 \subsubsection{Internal events: attach bond changes to the allowed moves}
 
@@ -165,9 +165,9 @@ In the acetate example (\Cref{fig:algorithm}c), O3 and O4 are interchangeable un
 
 \subsubsection{Different connectivity: improve the starting correspondence}
 
-The accepted growth graph can omit bonds present in the final fragment. In the substituted triangle--chain example (\Cref{fig:design-examples}b), the displayed local shuffles keep one internal ring-opening event while changing the outer attachment. More generally, two valid discovery correspondences on the same atom sets need not be connected by the final fragment symmetries. Optimizing only one starting correspondence can therefore miss a lower-event alternative.
+The accepted growth graph can omit bonds present in the final fragment. In the substituted triangle--chain example (\Cref{fig:design-examples}b), the displayed local shuffles keep one internal ring-opening event while changing the outer attachment. More generally, two valid relaxed subgraph isomorphisms on the same atom sets need not be connected by the final fragment automorphisms. Optimizing only one starting correspondence can therefore miss a lower-event alternative.
 
-MAPPA first improves the saved witness under local symmetry. Additional starting-correspondence search is allowed only when growth and final connectivity differ on at least one side and the witness has not attained an established event lower bound. Preparation and improvement share a fixed per-fragment budget. The output retains the selected starting correspondence and its symmetry response. An unsettled minimum is recorded as best found; selecting this starting orbit restricts decoded coverage. Solver details and bounds are given in \Cref{sec:decoding-details}.
+MAPPA first improves the saved witness under fragment automorphisms. Additional starting-correspondence search is allowed only when growth and final connectivity differ on at least one side and the witness has not attained an established event lower bound. Preparation and improvement share a fixed per-fragment budget. The output retains the selected starting correspondence and its symmetry response. An unsettled minimum is recorded as best found; selecting this starting orbit restricts decoded coverage. Solver details and bounds are given in \Cref{sec:decoding-details}.
 
 \subsection{Decoding Stage: assemble branch events and select the window}
 \label{sec:window}

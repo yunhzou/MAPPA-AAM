@@ -48,7 +48,7 @@ Because EnzymeMap does not annotate hydrogen identities, we separately checked a
 \subsection{Exact existence queries during growth}
 \label{sec:existence-details}
 
-An existence query contains the proposed base atoms, their accepted preservation edges and completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. Base nonedges and unselected molecular edges do not add constraints.
+An existence query seeks a relaxed subgraph isomorphism for the proposed base atoms and accepted preservation edges, subject to completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. This matching is non-induced: extra target edges are allowed; base nonedges and unselected molecular edges do not add constraints.
 
 More formally, let $V_B,V_T$ denote the base and target atom sets, $Z_B,Z_T$ their elements and $W_B,W_T$ their original bond-weight matrices. A partial correspondence $m:D\subseteq V_B\rightarrow V_T$ is injective. For every accepted preservation edge $(u,v)\in A$, its assignment satisfies
 \begin{equation}
@@ -64,16 +64,16 @@ Direct witness extension and indexed fragment reuse precede this query. They est
 
 The molecular overview in \Cref{fig:algorithm} uses constructed alcohol placements in panel a and methyl acetate saponification in panels b and c. Hydrogens participate in matching but are implicit in the drawings. Exchanging the acetate oxygen images adds two internal changes to two boundary changes at event threshold 0.5. Black lines show endpoint bonds. These illustrations are not a complete search trace, and their formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.
 
-\subsection{Completion, local symmetry and global placement}
+\subsection{Completion, fragment automorphisms and global placement}
 \label{sec:completion-details}
 
 Completion searches the finished fragment constraints for distinct target atom-set placements. It excludes already represented sets or certified global placement orbits within the search. It does not enumerate all internal assignments before deduplicating them. Target sites that cease to be globally equivalent remain separate placements, even when their local matched subgraphs share symmetry.
 
 For the fixed carbon-ring illustration in \Cref{fig:saturation}, an independent substructure check finds exactly two target atom sets, each admitting twelve ring rotations and reflections. The F and Cl attachments prevent whole-target exchange of those sets. Hydrogen constraints are omitted from this illustration. The check establishes the depicted placements; it is not a full reaction benchmark or the production search procedure.
 
-For each local fragment, nauty receives an element-colored binary graph with individually fixed anchors. Its compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these binary generators. An accepted discovery mapping can be followed by a base and a target local action without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
+For each side of a fragment, nauty receives an element-colored binary graph with individually fixed anchors and returns generators of its automorphism group. These compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these automorphism generators. An accepted relaxed subgraph isomorphism can be followed by base and target fragment automorphisms without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
 
-The global action used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every base-to-target compatibility predicate relevant to subsequent growth. Such an action moves the whole later continuation, preserving occupied targets and its matching problem. A local fragment action cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
+The subgroup of global target automorphisms used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every base-to-target compatibility predicate relevant to subsequent growth. Such an automorphism moves the whole later continuation, preserving occupied targets and its matching problem. A fragment automorphism cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
 
 \subsection{Hierarchical caps and provenance}
 \label{sec:hierarchy-details}
