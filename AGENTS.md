@@ -29,6 +29,12 @@ repeated defensive disclaimers. Explain material limitations where they affect
 interpretation; keep software-version and run-provenance bookkeeping in the
 supplement or reproducibility documentation.
 
+Use the Discussion to interpret findings, practical trade-offs and downstream
+possibilities. Keep its tone measured. Avoid repeating implementation details,
+audit accounting or lists of untested capabilities; state only limitations
+needed to interpret the claims being discussed. Describe the actual input
+representation in Evaluation without adding unrelated validation disclaimers.
+
 Describe AAM as correspondence between two molecular endpoints. Introduce the
 algorithmic roles **base** and **target** in Methods: either endpoint can be the
 base, and reversing the search exchanges these roles. Use base/target consistently

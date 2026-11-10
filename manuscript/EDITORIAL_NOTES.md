@@ -49,11 +49,20 @@ seed scaling, reference-branch event offsets, and choices at the minimum. Keep
 the method comparison and both Golden seed settings. Secondary timing cohorts,
 run history and detailed audit accounting belong outside the main Results.
 
+The Discussion interprets the value of retained alternatives, the exploration/cost
+trade-off, event-based selection and possible pathway applications. Keep it at
+that level, with a measured tone and a concise explanation of the event model's
+approximation. Detailed implementation restrictions and audit counts belong in
+Methods, supporting material and evidence. State the benchmark input
+representation in Evaluation without a separate continuous-WBO disclaimer.
+
 The offset figure uses the later completed analysis: 49,509 exact offsets,
 120 bounded intervals and 196 absent references. Every reaction was processed;
-there are no pending checks in this snapshot. Bars give established bin counts
-and capped lines give possible upper counts. Do not hide the intervals or present
-upper counts as an exact histogram.
+there are no pending checks in this snapshot. Figure 7 counts each reaction once,
+using the lower endpoint for bounded offsets and adding anchored completions of
+all 196 absent references. Keep the full intervals in the evidence and state the
+lower-endpoint convention in the caption. Use one color per dataset, no separate
+completion legend, and no negative ticks for datasets with no negative offsets.
 
 Include reduction in matching time; keep decoding and external verification separate.
 The saved Golden matching measurements predate indexed containment; the manuscript
