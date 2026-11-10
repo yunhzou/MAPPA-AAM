@@ -112,3 +112,56 @@ These are single local measurements, excluding imports and startup. The sweep
 was unnecessary for this case; one case does not establish that every anchored
 completion reaches its minimum without it. The existing evidence file retains
 the no-sweep configuration, mappings, direct event checks and separate timings.
+
+## Anchored completion of all missing references
+
+The user selected the 196 reactions whose reference was absent from the saved
+decoded results: 18 Golden and 178 EnzymeMap. The 120 bounded branch-offset cases
+were excluded. All selected reactions were run with supplied reference pairs as
+anchors, one seed per direction, no sweep, tolerance 2, cap 100 and a
+minimum-plus-five decoding window. The scientific MAPPA implementation was
+unchanged. The portable runner is `bench/anchored_completion.py`, revision
+`8a773c6`.
+
+| Dataset | Reactions completed | Directions audited | Mean matching CPU s/reaction | Mean decoding CPU s/reaction |
+|---|---:|---:|---:|---:|
+| Golden | 18/18 | 36/36 | 0.0325 | 0.0724 |
+| EnzymeMap | 178/178 | 356/356 | 0.0305 | 0.0632 |
+
+Every supplied anchor was preserved. Every direction returned an injective,
+element-preserving correspondence with maximum element-compatible atom usage.
+All 178 EnzymeMap reactions map both endpoints completely. Eleven Golden
+reactions have unequal endpoint element inventories and retain unmatched atoms;
+none leaves an additional element-compatible assignment unfilled. Completion
+adds previously unspecified heavy-atom pairs in Golden cases 7, 1358, 1377 and
+1475; these additions are recorded explicitly.
+
+Eleven EnzymeMap references use atom numbering different from the prepared
+input: 6271, 6294, 43409, 43410, 43411, 43412, 43454, 43460, 43470, 43477 and
+46384. Their saved index-agreement flag was false. Before anchoring, endpoint
+graph isomorphisms translate those reference indices, preserving elements,
+charges, isotopes, hydrogen counts and exact bond orders. Stereo labels are
+outside MAPPA's represented graph. Both mappings and the complete index
+translations are retained. These cases require a separately corrected audit
+before interpreting their previous exact-index misses as algorithmic failures.
+
+All 392 selected witnesses pass joint-choice replay and independent scalar event
+counting from the original matrices. Their physical counts agree with the
+decoder model counts. The decoder establishes its retained model minimum in
+every direction; this is not an exhaustive optimum over all possible searches.
+No task failed or exhausted its allowance.
+
+The 16-worker pool ran for 6.088 seconds, including pool startup and shutdown;
+the allocation elapsed time was 33 seconds. Summed stage CPU times were 6.014
+seconds for matching, including reduction, 12.560 seconds for full decoding,
+including minimum/window preparation, and 7.846 seconds for witness retrieval
+and audit. The longest direction's decoding took 0.638 CPU seconds. Input
+loading, reference-index translation and result publication are outside those
+stage timings. Each direction had a 180-second allowance and a 4 GiB memory
+guard; actual completion was well below the time allowance.
+
+[Audited completion results](anchored-completion-results.json.gz) retain all
+392 mappings, event lists, translations, input checksums, settings, source
+identity and timings. This completes supplied references. It does not increase
+independent benchmark recovery or replace the original branch-offset metric;
+the manuscript coverage and distribution remain unchanged.
