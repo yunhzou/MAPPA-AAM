@@ -65,6 +65,32 @@ def test_decoded_reference_keeps_explicit_unmatched_policy_separate():
     assert verify_decoded(decoded, reference, unmatched_heavy=False)['status'] == 'not_recovered'
 
 
+@pytest.mark.parametrize('reverse', [False, True])
+def test_equivalent_catalogue_hint_does_not_block_exact_decoded_query(reverse):
+    from mappa import decode_events
+    from decoded_reference import replay_catalogue_witness, verify_decoded
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    edges = [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)]
+    value = problem('CCC', edges, edges)
+    fragment = saved_fragment(value)
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decode_events(catalogue, event_slack=0)
+    certificate = query_catalogue(catalogue, dict(enumerate(range(3))))
+    reference = dict(mapping=[(0, 1), (1, 2), (2, 0)], features=[dict(heavy=[0, 1, 2])]*2)
+    assert replay_catalogue_witness(decoded, reference, certificate, reverse=reverse) is None
+    answer = verify_decoded(decoded, reference, reverse=reverse)
+    assert answer['status'] == 'recovered'
+    expected = {b: a for a, b in reference['mapping']} if reverse else dict(reference['mapping'])
+    assert dict(answer['evidence']['mapping']) == expected
+    reference['mapping'] = [(0, 0)]
+    assert replay_catalogue_witness(decoded, reference, certificate, reverse=reverse) is None
+    assert verify_decoded(decoded, reference, reverse=reverse)['status'] == 'not_recovered'
+
+
 def test_catalogue_candidate_can_rebase_on_source_symmetry_for_unequal_connectivity():
     from mappa import decode_events
     from decoded_reference import replay_catalogue_witness

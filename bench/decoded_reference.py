@@ -165,6 +165,19 @@ def replay_catalogue_witness(decoded, reference, certificate, *, reverse=False, 
     from types import SimpleNamespace
     from mappa.mappa_core.core.symmetry.actions import decision_blocks
 
+    expected = dict(reference['mapping'])
+    if reverse:
+        expected = {p: r for r, p in expected.items()}
+    candidate = dict(certificate['evidence']['mapping'])
+    # Catalogue recovery allows endpoint-equivalent labels; this audit requires
+    # the exact annotated pairs. An unsuitable hint cannot stop that query.
+    if any(candidate.get(a) != b for a, b in expected.items()):
+        return None
+    if unmatched_heavy:
+        features = reference['features'][::-1] if reverse else reference['features']
+        if (set(candidate).intersection(features[0]['heavy']) != set(expected)
+                or set(candidate.values()).intersection(features[1]['heavy']) != set(expected.values())):
+            return None
     family_id = certificate['family']
     contexts = [key for key in decoded.window.contexts if key[0] == family_id]
     if not contexts:
