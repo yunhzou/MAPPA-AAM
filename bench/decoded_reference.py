@@ -17,14 +17,23 @@ def _publish(path, report):
     pending.replace(path)
 
 
+def verifier_identity():
+    digest = hashlib.sha256()
+    for name in ('decoded_reference.py', 'decoded_constraints.py'):
+        digest.update(name.encode())
+        digest.update(Path(__file__).with_name(name).read_bytes())
+    return digest.hexdigest()
+
+
 def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_family=None,
-                   unmatched_heavy=True, max_nodes=10000):
+                   unmatched_heavy=True, max_conflicts=10000):
     """Test exact annotated indices in the retained event window, separately from catalogue membership.
 
     This diagnostic does not relax reference indices by endpoint symmetry.
-    The shared query enforces local symmetry, occupancy and the event window.
+    The symbolic query enforces saved ordered symmetry, occupancy and the event window.
     """
     from mappa.mappa_core.post_processing.decoder.events import AssignedEventBound, prepare_boundary_events
+    from decoded_constraints import ProjectedChoices
 
     mapping = dict(reference['mapping'])
     if reverse:
@@ -35,7 +44,7 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     started = time.perf_counter()
     bound = AssignedEventBound(decoded.index, mapping)
     filtering = dict(contexts=0, rejected=0, symmetry_queries=0, seconds=time.perf_counter()-started,
-                     node_limited_queries=0, time_limited_queries=0)
+                     solver_limited_queries=0)
     unknown = False
     for family, partition, cut in contexts:
         mapped = dict(decoded.catalogue.families[family].mapping)
@@ -63,18 +72,21 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
             unknown = True
             break
         filtering['symmetry_queries'] += 1
-        answer = table.program.select(decoded.minimum_lower_bound, decoded.event_window).find(
-            assignments=mapping, seconds=remaining, max_nodes=max_nodes)
-        filtering['node_limited_queries'] += int(answer.work.cap_reached)
-        filtering['time_limited_queries'] += int(answer.work.time_limit_reached and not answer.work.cap_reached)
-        if answer.status == 'found':
+        try:
+            query = ProjectedChoices(table, (decoded.minimum_lower_bound, decoded.event_window),
+                                     started + seconds, assignments=mapping)
+            answer = query.find(max_conflicts=max_conflicts)
+        except TimeoutError:
+            filtering['solver_limited_queries'] += 1
+            unknown = True
+            continue
+        if answer is not None:
             evidence = audit_decoded_witness(decoded, reference, (family, partition, cut),
                                              answer, reverse=reverse, unmatched_heavy=unmatched_heavy)
             return dict(status='recovered', event_count=answer.event_count, evidence=evidence,
                         event_filter=filtering,
                         policy='exact annotated indices in selected decoded window')
         del table
-        unknown |= answer.status == 'unknown'
     return dict(status='unknown' if unknown else 'not_recovered',
                 event_filter=filtering,
                 policy='exact annotated indices in selected decoded window')
@@ -235,7 +247,7 @@ def replay_catalogue_witness(decoded, reference, certificate, *, reverse=False, 
                                           reverse=reverse, unmatched_heavy=unmatched_heavy)
             return dict(status='recovered', event_count=count, evidence=proof,
                 event_filter=dict(contexts=examined, rejected=0, symmetry_queries=0, proof_replays=1,
-                    seconds=time.perf_counter()-started, node_limited_queries=0, time_limited_queries=0),
+                    seconds=time.perf_counter()-started, solver_limited_queries=0),
                 policy='exact annotated indices in selected decoded window')
     return None
 
@@ -244,7 +256,7 @@ def audit_saved_decoding(payload, workspace):
     """External verification of immutable output; never rerun mapping or decoding."""
     from mappa.mappa_core.utils.io.records import decoded_events_from_record
     from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
-    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != payload['verifier_sha256']:
+    if verifier_identity() != payload['verifier_sha256']:
         raise ValueError('Verifier changed beneath the audit pool')
     row = payload['row']
     started = time.perf_counter()
@@ -265,7 +277,7 @@ def audit_saved_decoding(payload, workspace):
     if result is None:
         result = verify_decoded(decoded, reference, reverse=row['reversed'], seconds=payload['seconds'],
             preferred_family=certificate.get('family') if certificate is not None else None,
-            unmatched_heavy=payload['unmatched_heavy'], max_nodes=payload['max_nodes'])
+            unmatched_heavy=payload['unmatched_heavy'], max_conflicts=payload['max_conflicts'])
     result.update(decoded_sha256=row['decoded']['sha256'], reference_sha256=row['reference']['sha256'],
                   input_sha256=row['input']['sha256'], loading_seconds=loaded-started,
                   query_seconds=time.perf_counter()-loaded)
@@ -309,13 +321,13 @@ def audit_inputs(campaign):
 
 
 def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task_seconds=60.,
-                   memory_bytes=2**31, unknown_from=None, slurm=False, max_nodes=10000):
+                   memory_bytes=2**31, unknown_from=None, slurm=False, max_conflicts=10000):
     """Audit immutable saved outputs in one guarded pool and aggregated evidence bundle."""
     from mappa.execution import BundleStore, WorkPool
     from mappa.execution.identity import code_identity
     from mappa.mappa_core.core.scheduler import Task
 
-    if workers < 1 or memory_bytes < 1 or max_nodes < 1 or not 0 <= seconds < task_seconds:
+    if workers < 1 or memory_bytes < 1 or max_conflicts < 1 or not 0 <= seconds < task_seconds:
         raise ValueError('Require positive workers/memory and 0 <= query seconds < task seconds')
     campaign, output = Path(campaign).resolve(), Path(output).resolve()
     if output == campaign or campaign in output.parents:
@@ -341,14 +353,14 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
         raise ValueError('Requested cases are missing')
     output.mkdir(parents=True, exist_ok=False)
     report = dict(schema='mappa.decoded_reference_audit/v1', code_identity=code_identity(),
-        verifier_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        verifier_sha256=verifier_identity(),
         original_hashes=original, expected=len(rows), complete=False,
         policy='exact annotated indices in the saved decoded window; no endpoint-symmetry relaxation',
         unmatched_heavy=unmatched_heavy,
         hydrogen_policy='unannotated; must admit one complete injective witness',
         event_count_policy='saved independent-fragment model; physical count reported separately',
         resources=dict(workers=workers, query_seconds=seconds, task_seconds=task_seconds,
-                       memory_bytes=memory_bytes, query_max_nodes=max_nodes), results=[])
+                       memory_bytes=memory_bytes, query_max_conflicts=max_conflicts), results=[])
     if previous is not None:
         report['previous_audit_sha256'] = hashlib.sha256(Path(unknown_from).read_bytes()).hexdigest()
     store = BundleStore(output/'bundles')
@@ -360,7 +372,7 @@ def audit_decoding(campaign, output, *, cases=None, workers=1, seconds=10., task
                       startup_seconds=pool.startup_elapsed_seconds)
         pending = {row['name']: row for row in rows}
         pool.queue.add([Task(name, 'decoded_reference:audit_saved_decoding',
-            dict(row=row, seconds=seconds, max_nodes=max_nodes, unmatched_heavy=unmatched_heavy,
+            dict(row=row, seconds=seconds, max_conflicts=max_conflicts, unmatched_heavy=unmatched_heavy,
                  verifier_sha256=report['verifier_sha256']),
             case=name, case_seconds=task_seconds, memory_bytes=memory_bytes) for name, row in pending.items()])
         next_publish = 0.
@@ -422,15 +434,15 @@ def main():
     parser.add_argument('--seconds', type=float, default=10.,
                         help='Search allowance after candidate checking; zero checks existing candidates only')
     parser.add_argument('--task-seconds', type=float, default=60.)
-    parser.add_argument('--max-nodes', type=int, default=10000,
-                        help='Explicit search-node allowance per decoded query; reaching it remains unknown')
+    parser.add_argument('--max-conflicts', type=int, default=10000,
+                        help='Explicit solver-conflict allowance per decoded query; reaching it remains unknown')
     parser.add_argument('--memory-gib', type=float, default=2.)
     parser.add_argument('--unknown-from', type=Path)
     parser.add_argument('--slurm', action='store_true')
     args = parser.parse_args()
     report = audit_decoding(args.inputs, args.output, cases=args.cases, workers=args.workers,
         seconds=args.seconds, task_seconds=args.task_seconds, memory_bytes=int(args.memory_gib*2**30),
-        unknown_from=args.unknown_from, slurm=args.slurm, max_nodes=args.max_nodes)
+        unknown_from=args.unknown_from, slurm=args.slurm, max_conflicts=args.max_conflicts)
     return int(report['certificate_failures'] > 0)
 
 
