@@ -19,8 +19,7 @@ class ProjectedChoices:
         self.solver = z3.Solver()
         self.encoder = SymbolicActions(self.solver, fresh=True)
         program = table.program
-        self.prefix = self.encoder.act([self.encoder.constant(i) for i in range(program.size)],
-                                      program.group.generators, 'saved_decoded_choices')
+        self.prefix = self.operations(program)
         self.values = self.mapping(program, self.prefix)
         self.assignments = dict(assignments or {})
         for atom, image in self.assignments.items():
@@ -87,6 +86,24 @@ class ProjectedChoices:
 
     def remap(self, value, transform):
         return self.encoder.lookup(value, {i: self.encoder.constant(transform(i)) for i in value[1]})
+
+    def operations(self, response):
+        if not hasattr(response, 'actions'):
+            return self.encoder.act([self.encoder.constant(i) for i in range(response.size)],
+                                    response.group.generators, 'fragment_choices')
+        # Action frames are an independent product. Keep their groups separate;
+        # their dependence enters when the saved operations are applied in order.
+        prefix = []
+        for ((kind, data), prepared), (start, atoms, degree) in zip(response.actions, response.frames):
+            if prepared is not None:
+                local = self.operations(prepared)
+            else:
+                positions = {atom: i for i, atom in enumerate(atoms)}
+                generators = tuple(tuple(positions[g[a]] for a in atoms) for g in data)
+                local = self.encoder.act([self.encoder.constant(i) for i in range(degree)],
+                                         generators, 'placement_choices')
+            prefix.extend(self.remap(value, lambda p: p+start) for value in local)
+        return prefix
 
     def mapping(self, response, prefix):
         self.check()

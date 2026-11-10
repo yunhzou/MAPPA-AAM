@@ -33,6 +33,7 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     The symbolic query enforces saved ordered symmetry, occupancy and the event window.
     """
     from mappa.mappa_core.post_processing.decoder.events import AssignedEventBound, prepare_boundary_events
+    from mappa.mappa_core.core.search.queries.reference import ReferenceQuery
     from decoded_constraints import ProjectedChoices
 
     mapping = dict(reference['mapping'])
@@ -43,8 +44,10 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
     contexts = sorted(decoded.window.contexts, key=lambda c: c[0] != preferred_family)
     started = time.perf_counter()
     bound = AssignedEventBound(decoded.index, mapping)
+    membership = ReferenceQuery(decoded.catalogue.problem, mapping)
+    family_status = {}
     filtering = dict(contexts=0, rejected=0, symmetry_queries=0, seconds=time.perf_counter()-started,
-                     solver_limited_queries=0)
+                     solver_limited_queries=0, composition_rejected=0)
     unknown = False
     for family, partition, cut in contexts:
         mapped = dict(decoded.catalogue.families[family].mapping)
@@ -56,6 +59,14 @@ def verify_decoded(decoded, reference, *, reverse=False, seconds=10., preferred_
             break
         filtering['contexts'] += 1
         filter_started = time.perf_counter()
+        if family not in family_status:
+            saved = decoded.catalogue.families[family]
+            membership.timeout_ms = max(1, min(1000, int(remaining * 1000)))
+            family_status[family] = membership.query(saved.mapping, saved.actions)[0]
+        if family_status[family] == 'not_recovered':
+            filtering['composition_rejected'] += 1
+            filtering['seconds'] += time.perf_counter() - filter_started
+            continue
         boundary = prepare_boundary_events(decoded.index, mapped,
             decoded.inventory.uses[family][partition], decoded.cut_contexts[family][partition][cut])
         outside = bound.count(boundary) > decoded.event_window

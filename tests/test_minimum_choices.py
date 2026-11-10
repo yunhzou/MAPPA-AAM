@@ -140,7 +140,7 @@ def test_multiple_real_options_and_partial_mapping_equivalence():
 
 
 @pytest.mark.parametrize('placement', [False, True])
-def test_sweep_and_placement_counts_preserve_joint_actions(placement):
+def test_sweep_and_placement_counts_preserve_joint_actions(placement, monkeypatch):
     if placement:
         from test_final_branches import placed_fragment_path
         from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
@@ -164,10 +164,14 @@ def test_sweep_and_placement_counts_preserve_joint_actions(placement):
         all_images = {tuple(sorted(table.program.mapping(np.asarray(operation)).items()))
                       for operation in all_operations(table.program.group)}
         assert heavy_images(table.program,set(dict(table.program.base)),deadline=time.perf_counter()+5) == all_images
-        projected = ProjectedChoices(table,decoded.minimum_events,time.perf_counter()+10)
-        observed = set()
-        while (pairs := projected.next(set(dict(table.program.base)))) is not None:
-            observed.add(pairs)
+        def forbidden(_):
+            pytest.fail('External queries must preserve the separate saved action groups')
+        with monkeypatch.context() as patch:
+            patch.setattr(type(table.program), 'group', property(forbidden))
+            projected = ProjectedChoices(table,decoded.minimum_events,time.perf_counter()+10)
+            observed = set()
+            while (pairs := projected.next(set(dict(table.program.base)))) is not None:
+                observed.add(pairs)
         assert observed == expected
 
 
