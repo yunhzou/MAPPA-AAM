@@ -46,8 +46,9 @@ uninterrupted run or a hardware-normalized speed ranking.
 
 The event-offset figure counts every reaction once: 49,509 exact retained-branch
 offsets, the lower endpoints of 120 bounded offsets, and 196 anchored completions
-for previously absent references. Anchored contributions are colored orange
-within the same bars. All counts subtract the original detected all-atom minimum.
+for previously absent references. Each dataset uses one color, and negative
+axis ticks are omitted when it has no negative offsets. All counts subtract
+the original detected all-atom minimum.
 The lower-endpoint convention is stated in the caption; full intervals remain in
 the evidence. Independent coverage is unchanged.
 
@@ -98,7 +99,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
-- `figs/fig7_reference_offsets.*`: one merged event-offset distribution per dataset, using lower endpoints for bounded offsets and a distinct color for anchored completions.
+- `figs/fig7_reference_offsets.*`: one merged event-offset distribution and one color per dataset, using lower endpoints for bounded offsets.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.

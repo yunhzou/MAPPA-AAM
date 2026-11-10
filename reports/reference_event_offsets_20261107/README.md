@@ -173,9 +173,11 @@ independent benchmark recovery or replace the original branch-offset metric.
 retained-branch offsets and the 196 anchored completions in one distribution per
 dataset. Each reaction contributes once. Following the author's request, bounded
 offsets are placed at their saved lower endpoint; those values remain lower
-bounds in the source evidence. Orange bar portions identify anchored completions,
-which use the lowest attained count across both directions minus the original
-detected all-atom minimum. Independent coverage is unchanged.
+bounds in the source evidence. Anchored completions use the lowest attained
+count across both directions minus the original detected all-atom minimum.
+Each dataset uses one bar color, with no separate completion legend. Golden's
+axis starts at zero; EnzymeMap retains -2 and -1 because both bins contain cases.
+Independent coverage is unchanged.
 
 | Dataset | Anchored offset: reaction count |
 |---|---|

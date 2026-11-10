@@ -100,8 +100,9 @@ the one- and ten-seed results. Report findings rather than experiment history;
 keep secondary timing cohorts and detailed audit accounting in supporting material.
 Do not publish queued work as a result figure. Use the latest measured analysis
 and retain uncertainty in the evidence. Figure 7 combines retained-branch offsets
-and anchored completions in one distribution per dataset, distinguishing their
-contributions by color. Use the lower endpoint for bounded offsets as requested;
+and anchored completions in one distribution per dataset, with one color per
+dataset and no separate completion legend. Omit negative axis ticks when the
+dataset has no negative offsets. Use the lower endpoint for bounded offsets;
 state that convention in the caption without presenting it as an attained minimum.
 
 Report ranking accuracy only for a defined selection rule. An unranked candidate

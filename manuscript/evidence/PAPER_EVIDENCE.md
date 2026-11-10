@@ -36,7 +36,7 @@ summary. These values remain lower bounds in the source evidence. Retained-branc
 offsets use the same all-atom decoder model on both sides; GT selects a branch
 rather than supplying its count.
 
-Orange portions of the same bars add anchored completion of all 196 absent
+The same bars include anchored completion of all 196 absent
 references: 18 Golden and 178 EnzymeMap. Their offset is the attained
 reference-conditioned count minus the original detected all-atom minimum, not
 the minimum of an original retained branch. All 392 directions preserve supplied
@@ -46,7 +46,8 @@ require endpoint-index translation; partial Golden completions and index
 translations are recorded in the report. These results do not increase the
 independent recovery figures above or resolve the 120 bounded branch offsets.
 The two merged distributions count all 1,851 Golden and 47,974 EnzymeMap reactions
-exactly once, with no upper-count markers or separate completion panels.
+exactly once, with one color per dataset and no separate completion legend.
+Negative ticks are omitted when the dataset has no negative offsets.
 
 The model retains a fixed ordinary-boundary approximation and selected starting
 orbits. Positive decoded witnesses are replayed and counted, but model-window

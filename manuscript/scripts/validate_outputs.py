@@ -228,10 +228,10 @@ for fig in figs:
   for label in ['99.082','99.568','99.633','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
-  for label in ['Retained branches','Anchored completion','Golden','EnzymeMap','1,851','47,974',
+  for label in ['Golden','EnzymeMap','1,851','47,974',
                 '1,741','46,078','Event offset n']:
    assert label in figure_text,label
-  assert not any(label in figure_text for label in ['Pending','GT absent','Possible upper count','anchored completions'])
+  assert not any(label in figure_text for label in ['Pending','GT absent','Possible upper count','Anchored completion','Retained branches'])
  elif fig.endswith('fig8_design_examples.pdf'):
   for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events','Base','Target']:
    assert label in figure_text,label

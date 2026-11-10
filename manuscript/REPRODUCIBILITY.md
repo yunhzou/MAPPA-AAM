@@ -128,16 +128,18 @@ contributes to exactly one bin; upper-count markers are not drawn. Three
 EnzymeMap lower endpoints are negative: two at -2 and one at -1. The snapshot
 records the source result hash and membership closure.
 
-The same bars add the reference-conditioned analysis of the 196 absent
-references in orange. `evidence/anchored_offsets.json` contains the original
+The same bars include the reference-conditioned analysis of the 196 absent
+references. `evidence/anchored_offsets.json` contains the original
 detected minimum and both audited completion counts for each reaction, derived
 from the [anchored completion report](../reports/reference_event_offsets_20261107/README.md).
 The run fixes annotated pairs, uses one seed per direction without a sweep,
 tolerance 2, cap 100 and minimum-plus-five decoding. Take the lower attained count
 across directions and subtract the original detected all-atom minimum. These are
 completion offsets, not minima of the original retained GT-containing branches.
-Color preserves this distinction within the merged distribution. Independent
-coverage and the source branch-offset measurements are unchanged.
+This distinction is documented in Methods and the caption; the merged bars use
+one color per dataset. Independent coverage and the source branch-offset
+measurements are unchanged. Golden's axis starts at zero; EnzymeMap retains
+its populated negative bins.
 
 The original-minimum extraction agrees with all 49,629 detected minima recorded
 in the branch-offset analysis and all 1,851 saved Golden choice-analysis minima. Only its saved all-atom

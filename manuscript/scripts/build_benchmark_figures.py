@@ -71,17 +71,14 @@ def build_reference_offsets(man, offsets, save):
         assert sum(counts.values()) == len(cohort)
         ax = axes[column]
         xs = sorted(counts)
-        ax.bar(xs, [retained[x] for x in xs], width=.68, color=color,
-               label='Retained branches')
-        ax.bar(xs, [added[x] for x in xs], bottom=[retained[x] for x in xs],
-               width=.68, color='#CB702A', label='Anchored completion')
+        ax.bar(xs, [counts[x] for x in xs], width=.68, color=color)
         for x in xs:
             ax.text(x, counts[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
-        ax.set(xlim=(-2.7, 12.7), ylim=(.7, max(counts.values())*5),
-               xlabel='Event offset n from detected minimum', xticks=range(-2, 13))
+        first, last = min(0, min(xs)), max(xs)
+        ax.set(xlim=(first-.7, last+.7), ylim=(.7, max(counts.values())*5),
+               xlabel='Event offset n from detected minimum', xticks=range(first, last+1))
         ax.set_title(f"{'ab'[column]}  {name} · {len(cohort):,} reactions",
                      loc='left', weight='bold', pad=12)
-        ax.legend(loc='upper right', fontsize=8, frameon=False)
     for ax in axes.flat:
         ax.set_yscale('log')
         ax.set_ylabel('Reactions (log scale)')
