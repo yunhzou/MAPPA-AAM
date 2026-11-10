@@ -309,14 +309,14 @@ def build_comparisons(man, save):
         groups[int(not row['reference_at_minimum']), column] += 1
     fig, ax = plt.subplots(figsize=(8.8, 4.2), layout='constrained')
     x = np.arange(len(labels))
-    ax.bar(x, groups[0], color='#087F8C', label='Reference among choices')
-    ax.bar(x, groups[1], bottom=groups[0], color='#CB702A', label='Reference absent')
+    ax.bar(x, groups[0], color='#087F8C', label='GT among returned choices')
+    ax.bar(x, groups[1], bottom=groups[0], color='#CB702A', label='GT absent from returned choices')
     for i, total in enumerate(groups.sum(axis=0)):
         ax.text(i, total*1.15, f'{total:,}', ha='center', fontsize=9)
     ax.set_yscale('log')
     ax.set(xticks=x, xticklabels=labels, ylim=(.7, 5000),
-           xlabel='Distinct minimum-event choices', ylabel='Reactions (log scale)')
-    ax.set_title('MAPPA Golden · one seed · 1,829 certified counts', loc='left', weight='bold')
+           xlabel='Distinct choices returned at the detected minimum', ylabel='Reactions (log scale)')
+    ax.set_title('MAPPA Golden · one seed · no reference anchors', loc='left', weight='bold')
     ax.legend(frameon=False, loc='upper right', fontsize=9)
     ax.grid(axis='y', alpha=.15)
     ax.set_axisbelow(True)

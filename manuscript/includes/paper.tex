@@ -313,15 +313,15 @@ Anchored completion succeeds for all 196 previously absent references, included 
 \subsection{How many choices remain at the minimum?}
 \label{sec:minimum-choices}
 
-Minimum-event selection produces a compact shortlist (\Cref{fig:minimum-choices}). Among 1,829 Golden reactions with exact choice counts, 1,370 have one choice, 352 have two, 96 have three to five, and 11 have six or more. Their mean is 1.36 choices. Across all 1,851 reactions, the median is one and the 95th percentile is three, including the bounds on the remaining counts.
+Minimum-event selection produces a compact shortlist from the original unanchored output (\Cref{fig:minimum-choices}). Among 1,829 Golden reactions with exact choice counts, 1,370 have one choice, 352 have two, 96 have three to five, and 11 have six or more. Their mean is 1.36 choices. Across all 1,851 reactions, the median is one and the 95th percentile is three, including the bounds on the remaining counts.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=.88\linewidth]{figs/fig10_minimum_choices.pdf}
-\caption{\textbf{Distinct choices under minimum-event selection.} Bars cover the 1,829 one-seed Golden reactions with exact counts; the remaining 22 counts contribute bounds to the full-dataset statistics. Equivalent heavy-atom relabellings and hydrogen permutations count once. Colors indicate whether the reference belongs to the minimum-event choices. The vertical axis is logarithmic.}
+\caption{\textbf{Distinct choices returned at the detected minimum.} Bars cover 1,829 one-seed Golden reactions with exact counts; the remaining 22 contribute bounds to full-dataset statistics. Equivalent heavy-atom relabellings and hydrogen permutations count once. Colors indicate whether these returned choices include the ground truth (GT); absence here does not imply absence at higher event counts. Choices come from the unanchored run; reference-anchored completions appear only in the event-offset analysis. The vertical axis is logarithmic.}
 \label{fig:minimum-choices}
 \end{figure}
 
-The reference belongs to the minimum-event set in 91.36--91.46\% of Golden reactions. Selecting uniformly among the available minimum-event choices gives an expected accuracy of 78.31--79.45\%. For example, Golden case 1694 has eight minimum-event choices, including the reference, so a random selector succeeds with probability $1/8$. MAPPA exposes these alternatives for subsequent chemical selection; a reference outside the minimum set requires considering a wider event window.
+The reference belongs to the minimum-event set in 91.36--91.46\% of Golden reactions. Selecting uniformly among the available minimum-event choices gives an expected accuracy of 78.31--79.45\%. For example, Golden case 1694 has eight minimum-event choices, including the reference, so a random selector succeeds with probability $1/8$. MAPPA exposes these alternatives for subsequent chemical selection. Recovering a reference missing from this shortlist may require higher-event alternatives or broader search.
 
 \FloatBarrier
 \section{Discussion}

@@ -192,6 +192,11 @@ permutations do not multiply choices. Exactly 1,829 reaction counts are certifie
 while full-scope quantiles and random-choice accuracy retain uncertainty bounds.
 The per-reaction evidence is `evidence/minimum_choices_reactions.json.gz`.
 Neither a count limit nor an unfinished membership query becomes absence.
+The anchored-completion audit does not modify these returned-choice sets.
+Nine of the 18 Golden anchored completions attain the original detected minimum,
+but none of the 18 reference classes was present in the original minimum-event
+choices. They contribute to the event-offset figures, not the independent
+choice counts or uniform-selection accuracy.
 
 The constructed design figures are checked by direct pairwise bond comparison
 in `build_molecule_figure.py`. They are graph illustrations without hydrogen

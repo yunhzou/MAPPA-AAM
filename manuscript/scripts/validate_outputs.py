@@ -82,6 +82,9 @@ example=next(r for r in offsets['results'] if r['dataset']=='Golden' and r['case
 assert (example['reference_count'],example['overall_minimum'],example['difference'])==(16,12,4)
 golden_minima = {r['case']:r['detected_minimum'] for r in choice_rows}
 assert all(r['overall_minimum']==golden_minima[r['case']] for r in anchored['results'] if r['dataset']=='Golden')
+# Reference-supplied completions cannot become choices returned without anchors.
+choice_membership = {r['case']:r['reference_at_minimum'] for r in choice_rows}
+assert all(choice_membership[r['case']] is False for r in anchored['results'] if r['dataset']=='Golden')
 assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
 assert paired['coverage']['mappa']['recovered'] == 1839
 assert paired['coverage']['slap_sweep']['recovered'] == 1794
