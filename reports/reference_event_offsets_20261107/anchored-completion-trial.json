@@ -1,0 +1,491 @@
+{
+  "dataset": "EnzymeMap",
+  "case": 13175,
+  "source_sha256": "e483e4d92001db4cbbbc5ed70a17f4bdfe18749d805c263284883c81d6976dc0",
+  "revision": "ba2563ba8b591220fa855cff807e0e52f6421149",
+  "atom_count": 15,
+  "heavy_anchors": [
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      5,
+      1
+    ],
+    [
+      6,
+      0
+    ],
+    [
+      7,
+      4
+    ],
+    [
+      8,
+      5
+    ]
+  ],
+  "coordinates": "Zero placeholders; matching and event counts use the saved indexed elements and bond matrices.",
+  "config": {
+    "seed_count": 1,
+    "branch_limit": 100,
+    "iso_tolerance": 2,
+    "random_seed": 42,
+    "sweep_cuts": true,
+    "event_slack": 5
+  },
+  "directions": [
+    {
+      "direction": "forward",
+      "timing": {
+        "search": {
+          "cpu_seconds": 0.017317000000000027,
+          "wall_seconds": 0.021473958157002926
+        },
+        "reduction": {
+          "cpu_seconds": 0.0019019999999999593,
+          "wall_seconds": 0.001903042197227478
+        },
+        "decoding": {
+          "cpu_seconds": 0.0006470000000000087,
+          "wall_seconds": 0.0006477921269834042
+        }
+      },
+      "families": 29,
+      "model_minimum": 6,
+      "model_minimum_proven": true,
+      "model_minimum_lower_bound": 6,
+      "physical_events": 6,
+      "heavy_events": 4,
+      "hydrogen_events": 2,
+      "all_anchors_preserved": true,
+      "complete_injective_mapping": true,
+      "context": [
+        0,
+        0,
+        0
+      ],
+      "mapping": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          8,
+          5
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "hydrogen_mapping": [
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "events": [
+        {
+          "source": [
+            0,
+            1
+          ],
+          "target": [
+            2,
+            3
+          ],
+          "before": 2.0,
+          "after": 1.0,
+          "kind": "weakened",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            0,
+            5
+          ],
+          "target": [
+            2,
+            1
+          ],
+          "before": 0.0,
+          "after": 1.0,
+          "kind": "formed",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            1,
+            11
+          ],
+          "target": [
+            3,
+            11
+          ],
+          "before": 0.0,
+          "after": 1.0,
+          "kind": "formed",
+          "hydrogen": true
+        },
+        {
+          "source": [
+            3,
+            4
+          ],
+          "target": [
+            7,
+            8
+          ],
+          "before": 1.0,
+          "after": 2.0,
+          "kind": "strengthened",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            3,
+            5
+          ],
+          "target": [
+            7,
+            1
+          ],
+          "before": 1.0,
+          "after": 0.0,
+          "kind": "broken",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            4,
+            11
+          ],
+          "target": [
+            8,
+            11
+          ],
+          "before": 1.0,
+          "after": 0.0,
+          "kind": "broken",
+          "hydrogen": true
+        }
+      ],
+      "minimum_query_seconds": 0.00066791707649827
+    },
+    {
+      "direction": "reverse",
+      "timing": {
+        "search": {
+          "cpu_seconds": 0.012618999999999991,
+          "wall_seconds": 0.012633624952286482
+        },
+        "reduction": {
+          "cpu_seconds": 0.0015999999999999903,
+          "wall_seconds": 0.0016032089479267597
+        },
+        "decoding": {
+          "cpu_seconds": 0.00044600000000000195,
+          "wall_seconds": 0.00044641713611781597
+        }
+      },
+      "families": 25,
+      "model_minimum": 6,
+      "model_minimum_proven": true,
+      "model_minimum_lower_bound": 6,
+      "physical_events": 6,
+      "heavy_events": 4,
+      "hydrogen_events": 2,
+      "all_anchors_preserved": true,
+      "complete_injective_mapping": true,
+      "context": [
+        0,
+        0,
+        0
+      ],
+      "mapping": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          8,
+          5
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "hydrogen_mapping": [
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "events": [
+        {
+          "source": [
+            0,
+            1
+          ],
+          "target": [
+            2,
+            3
+          ],
+          "before": 2.0,
+          "after": 1.0,
+          "kind": "weakened",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            0,
+            5
+          ],
+          "target": [
+            2,
+            1
+          ],
+          "before": 0.0,
+          "after": 1.0,
+          "kind": "formed",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            1,
+            11
+          ],
+          "target": [
+            3,
+            11
+          ],
+          "before": 0.0,
+          "after": 1.0,
+          "kind": "formed",
+          "hydrogen": true
+        },
+        {
+          "source": [
+            3,
+            4
+          ],
+          "target": [
+            7,
+            8
+          ],
+          "before": 1.0,
+          "after": 2.0,
+          "kind": "strengthened",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            3,
+            5
+          ],
+          "target": [
+            7,
+            1
+          ],
+          "before": 1.0,
+          "after": 0.0,
+          "kind": "broken",
+          "hydrogen": false
+        },
+        {
+          "source": [
+            4,
+            11
+          ],
+          "target": [
+            8,
+            11
+          ],
+          "before": 1.0,
+          "after": 0.0,
+          "kind": "broken",
+          "hydrogen": true
+        }
+      ],
+      "minimum_query_seconds": 0.0006359999533742666
+    }
+  ],
+  "independent_hydrogen_oracle": {
+    "assignments": 720,
+    "minimum_events": 6,
+    "event_histogram": {
+      "6": 4,
+      "8": 20,
+      "10": 96,
+      "12": 224,
+      "14": 244,
+      "16": 132
+    },
+    "cpu_seconds": 0.018339999999999967
+  },
+  "matches_exact_conditional_minimum": true,
+  "total_matching_cpu_seconds": 0.03343799999999997,
+  "total_decoding_cpu_seconds": 0.0010930000000000106,
+  "scientific_identity": "49126d589aa860de6ec842ef87044a4f40ad5b5959d903717655b71467191b5c",
+  "scope": "Single local anchored-completion trial, both directions. All nine reference heavy pairs fixed; six hydrogens unspecified. Not an independent reference-recovery benchmark.",
+  "timing_scope": "Single process, one compute worker. Per-stage process CPU and elapsed time exclude interpreter startup and imports. Both directions summed. Oracle counted separately.",
+  "core_algorithm_changed": false,
+  "best_total_events": 6,
+  "reference_heavy_events": 4,
+  "hydrogen_events": 2
+}

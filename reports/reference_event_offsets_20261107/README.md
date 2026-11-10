@@ -64,3 +64,30 @@ The numerical snapshot records the producing code identity and runner hash.
 The [Golden membership closure](../golden_native_seeds_20261106/decoded-verification-closure.json)
 settles case 852 at zero and excludes cases 1568 and 1606. No matching or decoding
 was rerun for this publication update.
+
+## Anchored hydrogen-completion trial
+
+EnzymeMap case 13175 was rerun locally with all nine reference heavy-atom pairs
+fixed as search anchors. Six hydrogen assignments were left unspecified. The
+existing native API ran matching, reduction and decoding in both directions:
+one seed, branch cap 100, discovery tolerance two, full single-edge sweep, and
+minimum-plus-five decoding. Matching used the saved indexed elements and bond
+matrices; coordinates were zero placeholders and do not enter these operations.
+
+Both directions returned complete injective 15-atom mappings preserving every
+anchor. Each has six directly counted bond events: four between heavy atoms and
+two involving hydrogen. The hydrogen contribution is one O–H bond broken and
+one O–H bond formed. Model and direct physical counts agree for these witnesses.
+An independent check of all 720 hydrogen permutations, with the heavy mapping
+fixed, confirms the six-event minimum; four assignments attain it.
+
+Matching including reduction consumed 0.033438 CPU seconds across both directions;
+decoding consumed 0.001093 CPU seconds. Interpreter startup and imports are
+excluded. The independent 720-assignment check took 0.018340 CPU seconds and is
+not part of MAPPA runtime. This is one small-case feasibility trial, not a timing
+estimate for the full datasets.
+
+[Trial evidence](anchored-completion-trial.json) records both mappings, event
+lists, source identity, settings and stage timings. This completes a supplied
+reference; it does not measure independent reference recovery. The manuscript
+and benchmark coverage are unchanged.
