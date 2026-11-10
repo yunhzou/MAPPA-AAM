@@ -9,7 +9,7 @@ MAN=Path(__file__).resolve().parents[1];E=MAN/'evidence'
 check_publication('manuscript.pdf',(MAN/'manuscript.pdf').read_bytes())
 def read(n):return json.loads((E/n).read_text())
 # Separate current catalogue and decoded coverage; never turn unknowns into misses.
-from build_benchmark_figures import evidence
+from build_benchmark_figures import anchored_evidence, evidence
 current, offsets = evidence(MAN)
 studies = {row['id']: row for row in current['studies']}
 assert [studies[k]['decoded']['recovered'] for k in ('golden1','golden10','enzyme1')] == [1833,1842,47796]
@@ -44,6 +44,18 @@ for dataset, study in [('Golden', 'golden1'), ('EnzymeMap', 'enzyme1')]:
   assert upper[value]==exact[value]+sum(r['status']=='bounded' and r['offset_lower']<=value<=r['offset_upper'] for r in rows)
 from build_benchmark_figures import comparison_evidence
 paired, choices, choice_rows = comparison_evidence(MAN)
+anchored = anchored_evidence(MAN, offsets)
+assert hashlib.sha256((E/'branch_offsets.json.gz').read_bytes()).hexdigest() == anchored['original_branch_offsets_sha256']
+from collections import Counter
+expected_anchored_counts = {
+ 'Golden': {0:9, 2:2, 3:1, 4:2, 5:2, 7:1, 12:1},
+ 'EnzymeMap': {-2:9, 0:83, 2:32, 4:51, 6:3},
+}
+for dataset, expected in expected_anchored_counts.items():
+ assert Counter(r['difference'] for r in anchored['results'] if r['dataset']==dataset) == expected
+golden_minima = {r['case']:r['detected_minimum'] for r in choice_rows}
+assert all(r['overall_minimum']==golden_minima[r['case']] for r in anchored['results'] if r['dataset']=='Golden')
+assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
 assert paired['coverage']['mappa']['recovered'] == 1839
 assert paired['coverage']['slap_sweep']['recovered'] == 1794
 assert paired['coverage']['slap_bidirectional']['recovered'] == 1620
@@ -210,7 +222,8 @@ for fig in figs:
   for label in ['99.082','99.568','99.633','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
-  for label in ['Established count','Possible upper count','Golden','EnzymeMap','1,833','47,796']:
+  for label in ['Established count','Possible upper count','Golden','EnzymeMap','1,833','47,796',
+                '18 anchored completions','178 anchored completions','Anchored-completion count']:
    assert label in figure_text,label
   assert 'Pending' not in figure_text and 'GT absent' not in figure_text
  elif fig.endswith('fig8_design_examples.pdf'):

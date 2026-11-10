@@ -128,6 +128,32 @@ though they formed a single histogram. Three EnzymeMap intervals allow negative
 offsets; no measured exact offset is negative. No pending query is converted to
 an exact count. The snapshot records the source result hash and membership closure.
 
+The lower row of the figure adds a separate reference-conditioned analysis of the
+196 absent references. `evidence/anchored_offsets.json` contains the original
+detected minimum and both audited completion counts for each reaction, derived
+from the [anchored completion report](../reports/reference_event_offsets_20261107/README.md).
+The run fixes annotated pairs, uses one seed per direction without a sweep,
+tolerance 2, cap 100 and minimum-plus-five decoding. Take the lower attained count
+across directions and subtract the original detected all-atom minimum. These are
+completion offsets, not minima of the original retained GT-containing branches.
+Independent coverage and the upper-row counts are unchanged.
+
+The original-minimum extraction agrees with all 49,629 detected minima recorded
+in the branch-offset analysis and all 1,851 saved Golden choice-analysis minima. Only its saved all-atom
+minimum field is used; no heavy-label event counts enter this comparison.
+All 392 direction witnesses preserve their anchors, achieve maximum
+element-compatible atom usage and pass independent original-matrix counting.
+Eleven EnzymeMap references require an explicit endpoint-index translation before
+anchoring. Four partial Golden references gain unspecified heavy pairs; eleven
+Golden inputs have unequal endpoint element inventories. The detailed report
+records these cases and every translation. The completion minimum is scoped to
+the retained anchored search, not an exhaustive optimum over all mappings.
+
+Golden completion offsets have counts `{0: 9, 2: 2, 3: 1, 4: 2, 5: 2, 7: 1,
+12: 1}`. EnzymeMap counts are `{-2: 9, 0: 83, 2: 32, 4: 51, 6: 3}`. The nine
+negative values are attained counts, distinct from the upper row's possible
+negative intervals. Both rows use all-atom counts, including hydrogen events.
+
 ## Archived analyses
 
 Default-comparator coverage appears in the main Results: the returned output is

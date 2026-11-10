@@ -236,7 +236,9 @@ To locate a recovered reference within the decoded event landscape, let $\mathca
  n_{\mathrm{GT}}=\min_{c\in\mathcal C_{\mathrm{GT}}}\min_{m\in c} E_c(m)-U,
  \label{eq:reference-offset}
 \end{equation}
-where $U$ is the overall detected count, minimized across both directions. Ground truth selects the qualifying contexts; their event minima are queried without fixing the reference assignments. Both terms use the same saved all-atom decoder model. This measures where a GT-containing branch begins, not the physical event count of the reference itself. References absent from the decoded output have no offset. Bounded offset queries contribute lower and upper bin counts.
+where $U$ is the overall detected count, minimized across both directions. Ground truth selects the qualifying contexts; their event minima are queried without fixing the reference assignments. Both terms use the same saved all-atom decoder model. This measures where a GT-containing branch begins, not the physical event count of the reference itself. References absent from the decoded output have no retained-branch offset. Bounded offset queries contribute lower and upper bin counts.
+
+For references absent from the saved output, we separately fix their annotated pairs as anchors and complete the unspecified assignments with one seed per direction and no cut sweep. We compare the lowest attained completion count across both directions with the original $U$. The supplied pairs remain fixed, and the completed mapping is checked against the original bond matrices. This reference-conditioned comparison is shown separately from retained-branch offsets and does not contribute to independent mapping coverage.
 
 We separately count the distinct heavy-atom mapping classes actually attainable at the detected minimum, taking the union across retained branches and both directions. Chemical endpoint equivalence identifies repeated representations, and hydrogen permutations do not multiply the choice count; each class must admit a full valid completion. The ranking score remains the saved all-atom model count. If a reaction has $K$ choices and its reference class is present, a uniform selector succeeds with probability $1/K$; otherwise it succeeds with probability zero. This defines expected random-choice accuracy without a trained selector. Incomplete counts contribute bounds, not exact values. A GT-containing branch's minimum need not be attained by GT itself, so this measurement is separate from \Cref{eq:reference-offset}.
 
@@ -294,17 +296,19 @@ The paired SLAP comparison illustrates the coverage--cost trade-off (\Cref{fig:p
 \label{fig:paired-slap}
 \end{figure}
 
-\subsection{Where reference-containing branches enter the event window}
+\subsection{Reference event counts relative to the detected minimum}
 
 Most recovered references belong to a branch that begins at the overall detected minimum (\Cref{fig:reference-offsets}). This is established for at least 93.9\% of recovered Golden references and 96.0\% of recovered EnzymeMap references. The remaining exact offsets extend to five events above the detected minimum in Golden and four in EnzymeMap. The distribution supports a narrow event window while retaining alternatives above its lowest count.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig7_reference_offsets.pdf}
-\caption{\textbf{Location of reference-containing branches.} The horizontal coordinate is the lowest event count of a retained reference-containing branch minus the overall detected minimum. Both counts use the saved all-atom decoder model. Bars and labels give established reaction counts; capped lines give the largest counts permitted by bounded offsets for 10 Golden and 110 EnzymeMap reactions. These are count bounds, not confidence intervals. Only recovered references have an offset; coverage over all reactions is reported in \Cref{tab:current-coverage}. The vertical axis is logarithmic.}
+\caption{\textbf{Reference event counts relative to the detected minimum.} (a,b) Retained reference-containing branch minima. Bars and labels give established counts; capped lines give possible upper count bounds for 10 Golden and 110 EnzymeMap reactions. (c,d) Separate anchored completions of all 18 Golden and 178 EnzymeMap references absent from the original decoded output. Their annotated pairs are fixed while unspecified assignments are completed. All panels subtract the original detected all-atom minimum and use logarithmic count axes. Negative values in (d) denote attained counts below that original minimum. Anchored completions do not change independent coverage.}
 \label{fig:reference-offsets}
 \end{figure}
 
 The reference identifies the qualifying branch; it need not itself attain that branch's minimum. This distribution measures how decoded alternatives are organized around the detected minimum, rather than the physical event count of the reference mapping.
+
+Anchored completion succeeds for all 196 previously absent references. The completed count equals the original detected minimum for nine Golden and 83 EnzymeMap cases; nine EnzymeMap completions lie two events below it. The remaining completions lie above the detected minimum, reaching offsets of 12 in Golden and six in EnzymeMap. Every supplied pair is preserved, and each selected completion's model count agrees with direct counting from the original bond matrices. These additional panels locate reference-conditioned solutions without treating them as outputs of the unanchored benchmark.
 
 \subsection{How many choices remain at the minimum?}
 \label{sec:minimum-choices}

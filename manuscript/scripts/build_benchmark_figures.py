@@ -5,7 +5,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import LogLocator, MaxNLocator, NullFormatter
+from matplotlib.ticker import LogLocator, NullFormatter
 
 
 def evidence(man):
@@ -42,6 +42,71 @@ def offset_counts(rows):
         if row['status'] == 'bounded':
             upper.update(range(row['offset_lower'], row['offset_upper']+1))
     return exact, upper
+
+
+def anchored_evidence(man, offsets):
+    """Keep reference-conditioned completions separate from saved-branch minima."""
+    data = json.loads((man/'evidence/anchored_offsets.json').read_text())
+    rows = data['results']
+    absent = {(r['dataset'], r['case']) for r in offsets['results']
+              if r['status'] == 'not_recovered'}
+    assert len(rows) == len(absent) == 196
+    assert {(r['dataset'], r['case']) for r in rows} == absent
+    assert Counter(r['dataset'] for r in rows) == {'Golden': 18, 'EnzymeMap': 178}
+    for row in rows:
+        pair = row['directions']
+        assert len(pair) == 2 and {r['reversed'] for r in pair} == {False, True}
+        assert all(r['all_anchors_preserved'] and r['maximum_atom_usage'] for r in pair)
+        assert all(r['model_event_count'] == r['physical_event_count'] for r in pair)
+        assert row['anchored_count'] == min(r['model_event_count'] for r in pair)
+        assert row['difference'] == row['anchored_count']-row['overall_minimum']
+    return data
+
+
+def build_reference_offsets(man, offsets, save):
+    anchored = anchored_evidence(man, offsets)
+    fig, axes = plt.subplots(2, 2, figsize=(10.2, 6.8), layout='constrained')
+    for column, (name, color) in enumerate(zip(('Golden', 'EnzymeMap'), ('#087F8C', '#3366A5'))):
+        cohort = [r for r in offsets['results'] if r['dataset'] == name]
+        counts, upper = offset_counts(cohort)
+        ax = axes[0, column]
+        ax.bar(sorted(counts), [counts[x] for x in sorted(counts)], width=.65,
+               color=color, label='Established count')
+        for x in sorted(upper):
+            if upper[x] > counts[x]:
+                ax.vlines(x, max(.7, counts[x]), upper[x], color='#223340', linewidth=1.4)
+                ax.hlines(upper[x], x-.17, x+.17, color='#223340', linewidth=1.4)
+            ax.text(x, upper[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+        ax.plot([], [], color='#223340', marker='_', label='Possible upper count')
+        recovered = sum(r['status'] != 'not_recovered' for r in cohort)
+        ax.set(xlim=(-2.7, 5.7), ylim=(.7, max(upper.values())*5),
+               xlabel='Retained-branch minimum − detected minimum', xticks=range(-2, 6))
+        ax.set_title(f"{'ab'[column]}  {name} · {recovered:,} recovered references",
+                     loc='left', weight='bold', pad=12)
+        ax.legend(loc='upper right', fontsize=8, frameon=False)
+
+        completed = [r for r in anchored['results'] if r['dataset'] == name]
+        counts = Counter(r['difference'] for r in completed)
+        ax = axes[1, column]
+        xs = sorted(counts)
+        ax.bar(xs, [counts[x] for x in xs], width=.65, color='#CB702A')
+        for x in xs:
+            ax.text(x, counts[x]*1.18, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+        ax.set(xlim=(-2.7, 12.7), ylim=(.7, max(counts.values())*3),
+               xlabel='Anchored-completion count − detected minimum', xticks=range(-2, 13, 2))
+        ax.set_title(f"{'cd'[column]}  {name} · {len(completed)} anchored completions",
+                     loc='left', weight='bold', pad=12)
+        ax.text(.98, .94, 'Previously absent references', transform=ax.transAxes,
+                ha='right', va='top', fontsize=8, color='#586974')
+    for ax in axes.flat:
+        ax.set_yscale('log')
+        ax.set_ylabel('Reactions (log scale)')
+        ax.axvline(0, color='#223340', linewidth=.7, alpha=.5, zorder=0)
+        ax.yaxis.set_major_locator(LogLocator(base=10))
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.grid(axis='y', alpha=.2)
+        ax.set_axisbelow(True)
+    save(fig, 'fig7_reference_offsets')
 
 
 def build(man):
@@ -86,32 +151,7 @@ def build(man):
         ax.set_axisbelow(True)
     save(fig, 'fig6_current_benchmarks')
 
-    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.1), layout='constrained')
-    for ax, name, color in zip(axes, ('Golden', 'EnzymeMap'), colors[:2]):
-        cohort = [r for r in offsets['results'] if r['dataset'] == name]
-        counts, upper = offset_counts(cohort)
-        xs = sorted(upper)
-        ax.bar(sorted(counts), [counts[x] for x in sorted(counts)], width=.65,
-               color=color, label='Established count')
-        for x in xs:
-            if upper[x] > counts[x]:
-                ax.vlines(x, max(.7, counts[x]), upper[x], color='#223340', linewidth=1.4)
-                ax.hlines(upper[x], x-.17, x+.17, color='#223340', linewidth=1.4)
-            ax.text(x, upper[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
-        ax.plot([], [], color='#223340', marker='_', label='Possible upper count')
-        recovered = sum(r['status'] != 'not_recovered' for r in cohort)
-        ax.set_yscale('log')
-        ax.set(xlim=(-2.7, 5.7),
-               ylim=(.7, max(upper.values())*4), xlabel=r'$n_{\mathrm{GT}}$: branch minimum − detected minimum',
-               ylabel='Reactions (log scale)')
-        ax.set_title(f"{name} · {recovered:,} recovered references", loc='left', weight='bold')
-        ax.yaxis.set_major_locator(LogLocator(base=10))
-        ax.yaxis.set_minor_formatter(NullFormatter())
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.grid(axis='y', alpha=.2)
-        ax.set_axisbelow(True)
-        ax.legend(loc='upper right', fontsize=7.5, frameon=False)
-    save(fig, 'fig7_reference_offsets')
+    build_reference_offsets(man, offsets, save)
 
     assert all(s['decoded']['unknown'] == 0 for s in studies)
     coverage_rows, timing_rows = [], []

@@ -35,6 +35,16 @@ counts; capped lines include every interval that could occupy each bin. The uppe
 counts are not a jointly attainable histogram. Counts use the same all-atom
 decoder model on both sides; GT selects a branch rather than supplying its count.
 
+The lower row of the event-offset figure separately shows anchored completion of
+all 196 absent references: 18 Golden and 178 EnzymeMap. Its offset is the attained
+reference-conditioned count minus the original detected all-atom minimum, not
+the minimum of an original retained branch. All 392 directions preserve supplied
+pairs and pass direct physical event counting. Nine EnzymeMap completions lie
+two events below the original detected minimum. Eleven EnzymeMap references
+require endpoint-index translation; partial Golden completions and index
+translations are recorded in the report. These results do not increase the
+independent recovery figures above or resolve the 120 bounded branch offsets.
+
 The model retains a fixed ordinary-boundary approximation and selected starting
 orbits. Positive decoded witnesses are replayed and counted, but model-window
 coverage is not physical event-bin accuracy. EnzymeMap records 2,801 positive

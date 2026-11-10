@@ -10,6 +10,7 @@ names += ['figs/'+stem+'.'+ext for stem in ['fig1_algorithm','fig2_golden','fig3
 names += ['evidence/'+n for n in ['current_benchmarks.json','branch_offsets.json.gz','author-affiliations.md','paper_sources.json','seed_comparison.json','slap_sweep.json','final_dedup.json','PAPER_EVIDENCE.md','molecule_example.json','competitors.json','unswept.json','checkpoint_verdict_audit.json','golden_miss_analysis.json','direction_recovery.json','timing_comparison.json','coordinate_minima.json','golden_cap_ablation.json','multicandidate_example.json','output_multiplicity.json','enzymemap_case13175.json','end_to_end_timing.json']]
 names += ['scripts/'+n for n in ['build.sh','build_figures.py','validate_outputs.py','package_bundle.py','build_molecule_figure.py','build_benchmark_figures.py','build_alternatives_figure.py','publication_privacy.py']]
 names += ['evidence/'+n for n in ['decoded_verification_closure.json','decoded_verification_closure_directions.json.gz','paired_slap.json','minimum_choices.json','minimum_choices_reactions.json.gz','design_examples.json']]
+names += ['evidence/anchored_offsets.json']
 for n in names:check_publication(n,(MAN/n).read_bytes())
 checks={n:hashlib.sha256((MAN/n).read_bytes()).hexdigest() for n in sorted(names)}
 with zipfile.ZipFile(MAN/'manuscript_bundle.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:

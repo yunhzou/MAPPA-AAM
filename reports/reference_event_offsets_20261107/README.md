@@ -163,5 +163,28 @@ guard; actual completion was well below the time allowance.
 [Audited completion results](anchored-completion-results.json.gz) retain all
 392 mappings, event lists, translations, input checksums, settings, source
 identity and timings. This completes supplied references. It does not increase
-independent benchmark recovery or replace the original branch-offset metric;
-the manuscript coverage and distribution remain unchanged.
+independent benchmark recovery or replace the original branch-offset metric.
+
+### Figure update
+
+[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) retains
+the original branch-offset distributions in its upper panels and adds the
+196 anchored completions in separate lower panels. Each completion uses the
+lowest attained count across both directions and subtracts the original saved
+all-atom minimum. The original branch-offset counts and independent coverage
+are unchanged. The 120 bounded branch offsets remain in the upper panels.
+
+| Dataset | Anchored offset: reaction count |
+|---|---|
+| Golden | 0: 9; 2: 2; 3: 1; 4: 2; 5: 2; 7: 1; 12: 1 |
+| EnzymeMap | −2: 9; 0: 83; 2: 32; 4: 51; 6: 3 |
+
+The nine negative EnzymeMap offsets are attained completions with two fewer
+events than the original detected minimum. They are distinct from the possible
+negative offsets represented by count bounds in the upper panels.
+[Plot evidence](../../manuscript/evidence/anchored_offsets.json) records each
+reaction's baseline, both audited direction counts and reference translations.
+The baseline source agrees with all 49,629 original detected minima recorded in
+the branch-offset analysis and
+all 1,851 Golden minima in the saved ambiguity analysis. No reference-label
+heavy-atom count is used in this comparison.

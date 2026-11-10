@@ -97,7 +97,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
-- `figs/fig7_reference_offsets.*`: branch-event distribution with measured count bounds.
+- `figs/fig7_reference_offsets.*`: retained-branch event offsets with measured count bounds, plus separate anchored completions of the previously absent references.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
