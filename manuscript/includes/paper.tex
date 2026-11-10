@@ -241,6 +241,7 @@ We separately count the distinct heavy-atom mapping classes actually attainable 
 \section{Results}
 
 \subsection{Reference coverage on Golden and EnzymeMap}
+\label{sec:reference-coverage}
 
 Both matching and decoding are complete for every requested direction: 3,702 in each Golden setting and 95,948 in EnzymeMap. Reference coverage of the complete matching output is 1,834/1,851 (99.082\%) with one Golden seed, 1,843/1,851 (99.568\%) with ten, and 47,798/47,974 (99.633\%) for EnzymeMap. All three catalogue evaluations have zero unresolved reactions. \Cref{tab:current-coverage,fig:current-benchmarks} show this full-output coverage alongside the additional audit of the restricted decoded window.
 
@@ -318,7 +319,7 @@ The minimum-event rule produces a compact shortlist in the saved one-seed Golden
 \label{fig:minimum-choices}
 \end{figure}
 
-The reference is confirmed at the detected minimum in 1,691 reactions, absent there in 158, and unresolved in two: minimum-set coverage is therefore 91.36--91.46\%. Expected uniform-choice accuracy is 78.31--79.45\%, with unfinished counts contributing explicit bounds. For example, Golden case 1694 has eight distinct minimum-event choices, including the reference, giving a random selector probability $1/8$. These results quantify the decision left to a downstream selector. They do not establish top-1 superiority over another mapper, and a reference outside the minimum set would require selection from a wider event window.
+The reference is confirmed at the detected minimum in 1,691 reactions, absent there in 158, and unresolved in two: minimum-set coverage is therefore 91.36--91.46\%. These two queries concern membership at the minimum alone; every reaction's membership in the wider min+5 window is resolved (\Cref{sec:reference-coverage}). Expected uniform-choice accuracy is 78.31--79.45\%, with unfinished counts contributing explicit bounds. For example, Golden case 1694 has eight distinct minimum-event choices, including the reference, giving a random selector probability $1/8$. These results quantify the decision left to a downstream selector. They do not establish top-1 superiority over another mapper, and a reference outside the minimum set would require selection from a wider event window.
 
 \subsection{Where reference-containing branches enter the event window}
 
