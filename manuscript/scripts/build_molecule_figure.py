@@ -512,7 +512,7 @@ def build(man):
  # unhighlighted methyl neighbor as context; that neighbor is not part of F.
  box(738,576,690,454,bg,bg,r=16)
  label(760,612,'c','Decoding: compare both sides of F')
- t(760,646,'Same fragment pair; two allowed oxygen assignments.',10.5,muted)
+ t(760,646,'Binary-connectivity automorphism permits the O3 / O4 swap.',10.5,muted)
  t(878,685,'Base side of F',10.5,green,'bold',ha='center')
  t(1145,685,'Target side of F',10.5,green,'bold',ha='center')
  t(1340,685,'Branch total',10.5,navy,'bold',ha='center')

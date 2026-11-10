@@ -4,7 +4,7 @@ Atom-to-atom mapping (AAM) assigns a correspondence between atoms at the two mol
 
 \begin{figure}[!b]
 \centering\includegraphics[width=.95\linewidth]{figs/fig1_algorithm.pdf}
-\caption{\textbf{Fragment-based exploration of atom mappings with MAPPA.} (a) Greedy growth and conditional placements. (b) A branch comprises paired fragments F, G and H; colors identify their base and target atom sets. (c) Exchanging the oxygen assignments within F adds two internal events to the two boundary events shown in b. Each assignment displays both sides of F; unhighlighted C5 is outside it. Numbers follow base atom identities. Red marks indicate cleavage or weakening, green marks formation or strengthening. These constructed examples are detailed in \Cref{sec:algorithm-details}.}
+\caption{\textbf{Fragment-based exploration of atom mappings with MAPPA.} (a) Greedy growth and conditional placements. (b) Colors pair the base and target atom sets of fragments F, G and H. (c) An automorphism of F's binary connectivity permits O3 and O4 to exchange. Original bond orders then give two internal events, added to the two boundary events in b. Both endpoints are shown; unhighlighted C5 is outside F. Numbers follow base atom identities. Red marks indicate cleavage or weakening, green marks formation or strengthening. Constructed examples are detailed in \Cref{sec:algorithm-details}.}
 \label{fig:algorithm}
 \end{figure}
 
@@ -161,7 +161,7 @@ Let $W_B$ and $W_T$ denote the original base and target bond-weight matrices. Fo
 \end{equation}
 The pair contributes one event when $|\Delta W_{uv}|$ exceeds its event threshold. The sign distinguishes formation or strengthening from cleavage or weakening. These thresholds differ from the growth tolerance: a binary symmetry can preserve connectivity while changing bond weights.
 
-In the acetate example (\Cref{fig:algorithm}c), exchanging the two oxygen images adds two internal events. The saved response associates the rearrangement with those changes, so every branch using that fragment can reuse the calculation. Independent symmetry components are processed separately when no event term or requested endpoint couples them. Event-invariant choices share computation; correlated choices remain joint. The response supports later event queries without expanding every complete mapping.
+In the acetate example (\Cref{fig:algorithm}c), O3 and O4 are interchangeable under an automorphism of the fragment's binary connectivity: each oxygen is adjacent to the same carbon. Their original C--O bond orders differ, so exchanging their assignments adds one weakening and one strengthening, giving two internal events. The saved response associates the rearrangement with those changes, so every branch using that fragment can reuse the calculation. Independent symmetry components are processed separately when no event term or requested endpoint couples them. Event-invariant choices share computation; correlated choices remain joint. The response supports later event queries without expanding every complete mapping.
 
 \subsubsection{Different connectivity: improve the starting correspondence}
 
