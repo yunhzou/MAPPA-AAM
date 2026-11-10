@@ -93,6 +93,10 @@ this comparison from ranking accuracy and bounded decoded-window audits. Use a
 molecular alternatives example early in the Introduction to motivate the output
 objective, rather than leaving it at the end of Results.
 
+Report ranking accuracy only for a defined selection rule. An unranked candidate
+list's first output is not a top-1 prediction; exclude accuracy statistics based
+solely on that output order from the manuscript results.
+
 ## 2. Coding principles
 
 ### 2.1 Coding style

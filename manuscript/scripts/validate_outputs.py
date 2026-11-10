@@ -143,7 +143,7 @@ r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];allt
 assert '??' not in alltext
 for value in ['1,833','1,842','47,796','47,798','99.629','45,738','3,891']:
  assert value in alltext,value
-for value in ['1,839','1,794','1,620','96.921','75.58','1,829','91.36','79.45','10.38','2.58']:
+for value in ['1,839','1,794','1,620','96.921','1,829','91.36','79.45','10.38','2.58']:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
 assert 'approximately linearly' in paper
@@ -160,6 +160,7 @@ for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{s
  assert value in alltext,value
 assert 'Golden reference recovery and runtime' in alltext
 assert 'First correct' not in alltext and 'two ten-order cases remain unresolved' not in alltext
+assert 'first-returned' not in alltext.lower()
 main_comparison=(MAN/'includes/generated-method-coverage-table.tex').read_text()
 assert 'Unresolved' not in main_comparison
 assert main_comparison.count('Single mapping')==5

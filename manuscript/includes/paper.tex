@@ -306,7 +306,7 @@ The paired study recovers 1,839/1,851 references with MAPPA (99.352\%), 1,794 wi
 \label{fig:paired-slap}
 \end{figure}
 
-Default forward-only SLAP recovers 1,591/1,851 (85.95\%). This is close to its original paper's 86.9\%, which also measures reference inclusion among alternatives but uses a 1,758-reaction Golden version~\citep{koda2025}. It is therefore an independent reproduction of similar behavior, not an exact replication of that dataset. Our archived first-returned default-SLAP score is 1,399/1,851 (75.58\%). The retained alternatives tie at SLAP's lowest found cost; their output order is not a separate confidence ranking. For the single-answer interfaces in \Cref{tab:method-coverage}, coverage is the accuracy of their selected prediction.
+Default forward-only SLAP recovers 1,591/1,851 references (85.95\%). The original study reported 86.9\% on 1,758 Golden reactions, also measuring reference inclusion among the returned alternatives~\citep{koda2025}.
 
 On the 1,834 reactions completed by all three protocols, mean search costs are 0.111 CPU seconds for standard binary SLAP, 1.202 for MAPPA, and 12.475 for expanded SLAP, summing both directions. MAPPA decoding adds 1.617 seconds. Thus MAPPA search is 10.38 times cheaper than the expanded SLAP sweep, but standard SLAP is 10.80 times cheaper than MAPPA search. The broader standard-SLAP/MAPPA pair contains 1,849 completed reactions and retains a slower standard-SLAP tail: their means are 0.487 and 1.259 seconds, a 2.58-fold difference. These are paired measurements on Intel Xeon Gold 6442Y processors, excluding loading, publication and external verification. Failed attempts remain separately accounted; excluded reactions are not treated as fast completions.
 
