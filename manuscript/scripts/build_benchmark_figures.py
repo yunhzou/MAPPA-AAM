@@ -1,5 +1,6 @@
 """Current benchmark figures and tables from publication-safe saved evidence."""
 import gzip
+import hashlib
 import json
 from collections import Counter
 
@@ -10,7 +11,7 @@ from matplotlib.ticker import LogLocator, NullFormatter
 
 def evidence(man):
     summary = json.loads((man/'evidence/current_benchmarks.json').read_text())
-    offsets = json.loads(gzip.decompress((man/'evidence/branch_offsets.json.gz').read_bytes()))
+    offsets = json.loads(gzip.decompress((man/'evidence/reference_offsets.json.gz').read_bytes()))
     for study in summary['studies']:
         assert study['directions'] == 2*study['reactions']
         for field in ('catalogue', 'decoded'):
@@ -23,27 +24,24 @@ def evidence(man):
     assert len(rows) == len({(r['dataset'], r['case']) for r in rows}) == 49825
     assert Counter(r['dataset'] for r in rows) == {'Golden': 1851, 'EnzymeMap': 47974}
     for row in rows:
-        if row['status'] == 'complete':
-            assert row['difference'] == row['branch_minimum']-row['overall_minimum']
-        else:
-            assert row.get('difference') is None
-        if row['status'] == 'bounded':
-            assert row['offset_lower'] < row['offset_upper']
-    assert offsets['all_queries_processed']
-    assert {row['status'] for row in rows} <= {'complete', 'bounded', 'not_recovered'}
+        assert row['difference'] == row['reference_count']-row['overall_minimum']
+        assert row['source'] in {'verified', 'anchored'}
+        assert row['certificate_sha256'] or row['source'] == 'anchored'
+        assert not {'branch_minimum', 'offset_lower', 'offset_upper'} & row.keys()
+    assert offsets['additional_searches'] == 0
     return summary, offsets
 
 
 def offset_counts(rows):
-    """One bin per retained reference, using the lower endpoint of bounded offsets."""
-    return Counter(row['difference'] if row['status'] == 'complete' else row['offset_lower']
-                   for row in rows if row['status'] != 'not_recovered')
+    """One bin per verified reference completion; no branch-minimum estimation."""
+    return Counter(row['difference'] for row in rows)
 
 
-def anchored_evidence(man, offsets):
-    """Keep reference-conditioned completions separate from saved-branch minima."""
+def anchored_evidence(man):
+    """Validate the saved completions of references absent from the original output."""
     data = json.loads((man/'evidence/anchored_offsets.json').read_text())
     rows = data['results']
+    offsets = json.loads(gzip.decompress((man/'evidence/branch_offsets.json.gz').read_bytes()))
     absent = {(r['dataset'], r['case']) for r in offsets['results']
               if r['status'] == 'not_recovered'}
     assert len(rows) == len(absent) == 196
@@ -59,15 +57,73 @@ def anchored_evidence(man, offsets):
     return data
 
 
+def update_reference_offsets(man, enzyme_counts):
+    """Extract plotted counts from existing certificates, without querying MAPPA."""
+    paths = dict(
+        baseline=man/'evidence/branch_offsets.json.gz',
+        golden=man/'evidence/decoded_verification_closure_directions.json.gz',
+        anchored=man/'evidence/anchored_offsets.json',
+        enzyme=enzyme_counts,
+    )
+    original = json.loads(gzip.decompress(paths['baseline'].read_bytes()))
+    golden = json.loads(gzip.decompress(paths['golden'].read_bytes()))['studies']['seeds1']
+    enzyme = json.loads(gzip.decompress(enzyme_counts.read_bytes()))
+    anchored = anchored_evidence(man)
+    summary = json.loads((man.parent/'reports/enzymemap_native_20261106/decoded-reference-validation.json').read_text())
+    assert enzyme['records_sha256'] == summary['records_sha256']
+    assert enzyme['positive_directions'] == summary['positive_certificates_checked']
+
+    selected = {}
+    for dataset, records in [('Golden', golden['directions']), ('EnzymeMap', enzyme['results'])]:
+        for row in records:
+            if dataset == 'Golden' and row['status'] != 'recovered':
+                continue
+            key = dataset, row['case']
+            if key not in selected or (row['event_count'], row['reversed']) < (
+                    selected[key]['event_count'], selected[key]['reversed']):
+                selected[key] = row
+    assert Counter(dataset for dataset, _ in selected) == {'Golden': 1833, 'EnzymeMap': 47796}
+    completions = {(r['dataset'], r['case']): r for r in anchored['results']}
+    results = []
+    for old in original['results']:
+        key = old['dataset'], old['case']
+        if old['status'] == 'not_recovered':
+            assert key not in selected
+            completion = completions[key]
+            row = min(completion['directions'], key=lambda r: (r['model_event_count'], r['reversed']))
+            baseline = completion['overall_minimum']
+            count = row['model_event_count']
+            source, certificate, decoded, reference = 'anchored', None, None, None
+        else:
+            row = selected[key]
+            baseline, count = old['overall_minimum'], row['event_count']
+            source = 'verified'
+            certificate, decoded, reference = (row[field] for field in
+                ('certificate_sha256', 'decoded_sha256', 'reference_sha256'))
+            assert isinstance(count, int) and len(certificate) == 64
+        results.append(dict(dataset=key[0], case=key[1], source=source,
+            overall_minimum=baseline, reference_count=count, difference=count-baseline,
+            reversed=row['reversed'], certificate_sha256=certificate,
+            decoded_sha256=decoded, reference_sha256=reference))
+
+    data = dict(schema='mappa.reference_event_offsets/v1',
+        metric='Verified GT-consistent mapping event count minus saved detected minimum',
+        counting='Same saved all-atom independent-fragment event model on both sides',
+        selection='Lowest count among saved verified forward/reverse witnesses; forward on ties; no new optimization',
+        completion='Use saved anchored completions for the 196 absent references; independent coverage unchanged',
+        additional_searches=0,
+        source_sha256={name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in paths.items()},
+        enzyme_records_sha256=enzyme['records_sha256'], results=results)
+    output = man/'evidence/reference_offsets.json.gz'
+    output.write_bytes(gzip.compress(json.dumps(data, separators=(',', ':')).encode(), mtime=0))
+    return data
+
+
 def build_reference_offsets(man, offsets, save):
-    anchored = anchored_evidence(man, offsets)
     fig, axes = plt.subplots(1, 2, figsize=(10.2, 3.9), layout='constrained')
     for column, (name, color) in enumerate(zip(('Golden', 'EnzymeMap'), ('#087F8C', '#3366A5'))):
         cohort = [r for r in offsets['results'] if r['dataset'] == name]
-        completed = [r for r in anchored['results'] if r['dataset'] == name]
-        retained = offset_counts(cohort)
-        added = Counter(r['difference'] for r in completed)
-        counts = retained + added
+        counts = offset_counts(cohort)
         assert sum(counts.values()) == len(cohort)
         ax = axes[column]
         xs = sorted(counts)
@@ -76,7 +132,8 @@ def build_reference_offsets(man, offsets, save):
             ax.text(x, counts[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
         first, last = min(0, min(xs)), max(xs)
         ax.set(xlim=(first-.7, last+.7), ylim=(.7, max(counts.values())*5),
-               xlabel='Event offset n from detected minimum', xticks=range(first, last+1))
+               xlabel='Event offset n from detected minimum',
+               xticks=[x for x in range(first, last+1) if x >= 0 or x in counts])
         ax.set_title(f"{'ab'[column]}  {name} · {len(cohort):,} reactions",
                      loc='left', weight='bold', pad=12)
     for ax in axes.flat:

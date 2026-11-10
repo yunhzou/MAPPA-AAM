@@ -769,6 +769,16 @@ source writers and gives destination workers disjoint ownership.
 
 ## Verification and performance
 
+Reference event-offset analysis is a direct comparison of saved counts. Subtract
+the original detected model minimum across directions from the event count of
+a verified GT-consistent full mapping, choosing the lowest already recorded
+verified count across directions. Both counts use the same all-atom event model.
+Unannotated atoms use that witness's feasible completion; the analysis performs
+no new optimization. Do not replace its count by a GT-containing branch's
+minimum, which may belong to a different mapping, or by a lower bound. Separately
+obtained reference-anchored completions may supply missing mappings for this
+analysis without changing independent recovery. Preserve their provenance.
+
 Reference verification queries the retained mapping relation under an explicit
 atom subset and endpoint-equivalence policy. One witness, element sets or event
 counts cannot establish coverage of every compressed choice. Completed catalogue

@@ -100,16 +100,18 @@ molecular alternatives example early in the Introduction to motivate the output
 objective, rather than leaving it at the end of Results.
 
 Organize the main Results around coverage across datasets and methods,
-computational cost and one-versus-multiple-seed scaling, reference-branch event
+computational cost and one-versus-multiple-seed scaling, reference-mapping event
 offsets, and ambiguity at the minimum. Keep comparisons with other methods and
 the one- and ten-seed results. Report findings rather than experiment history;
 keep secondary timing cohorts and detailed audit accounting in supporting material.
 Do not publish queued work as a result figure. Use the latest measured analysis
-and retain uncertainty in the evidence. Figure 7 combines retained-branch offsets
-and anchored completions in one distribution per dataset, with one color per
-dataset and no separate completion legend. Omit negative axis ticks when the
-dataset has no negative offsets. Use the lower endpoint for bounded offsets;
-state that convention in the caption without presenting it as an attained minimum.
+and retain uncertainty in the evidence. Figure 7 subtracts the saved detected
+minimum from a verified GT-consistent mapping's event count, using the lowest
+count among already saved witnesses across both directions. Do not optimize a
+GT-containing branch or substitute a lower bound. Use the same all-atom event
+model on both sides. Include saved anchored completions of missing references
+in the same distribution, with one color per dataset and no separate completion
+legend; these do not change independent coverage. Omit unoccupied negative ticks.
 
 Report ranking accuracy only for a defined selection rule. An unranked candidate
 list's first output is not a top-1 prediction; exclude accuracy statistics based

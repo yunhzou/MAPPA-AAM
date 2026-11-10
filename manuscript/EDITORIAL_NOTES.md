@@ -45,7 +45,7 @@ EnzymeMap's conclusive reaction accounting includes separately justified absence
 from the containing catalogue. Never turn a timed-out query into direct absence.
 
 The Results follow four topics: dataset/method coverage, computational cost and
-seed scaling, reference-branch event offsets, and choices at the minimum. Keep
+seed scaling, reference-mapping event offsets, and choices at the minimum. Keep
 the method comparison and both Golden seed settings. Secondary timing cohorts,
 run history and detailed audit accounting belong outside the main Results.
 
@@ -56,13 +56,14 @@ approximation. Detailed implementation restrictions and audit counts belong in
 Methods, supporting material and evidence. State the benchmark input
 representation in Evaluation without a separate continuous-WBO disclaimer.
 
-The offset figure uses the later completed analysis: 49,509 exact offsets,
-120 bounded intervals and 196 absent references. Every reaction was processed;
-there are no pending checks in this snapshot. Figure 7 counts each reaction once,
-using the lower endpoint for bounded offsets and adding anchored completions of
-all 196 absent references. Keep the full intervals in the evidence and state the
-lower-endpoint convention in the caption. Use one color per dataset, no separate
-completion legend, and no negative ticks for datasets with no negative offsets.
+Figure 7 compares the event count of a verified GT-consistent full mapping with
+the saved detected minimum. Use the lowest recorded verified count across both
+directions; do not minimize a GT-containing branch or insert a lower bound.
+All 49,825 reactions have concrete counts, including saved anchored completions
+of the 196 absent references. Both sides use the same all-atom event model.
+Keep one color per dataset, no separate completion legend and no unoccupied
+negative ticks. A saved hydrogen completion need not minimize the reference's
+events, so this distribution is distinct from minimum-choice membership.
 
 Include reduction in matching time; keep decoding and external verification separate.
 The saved Golden matching measurements predate indexed containment; the manuscript

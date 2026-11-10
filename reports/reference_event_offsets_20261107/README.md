@@ -1,43 +1,33 @@
-# Ground-truth-containing branch event offsets
+# Verified reference-mapping event offsets
 
-The requested metric uses the saved decoder model on both sides:
+The current plot compares concrete saved counts:
 
-`n = minimum of GT-containing retained branches - overall detected minimum`.
-
-Ground truth identifies branch membership; its bond events are not counted from
-labels. A membership witness's event count is an upper bound on its branch's
-minimum, not the plotted branch minimum. Both directions contribute, with the
-smallest qualifying count retained once per reaction.
-
-Scope: one seed, discovery tolerance 2, branch cap 100, and the saved decoded
-minimum + 5 responses for 1,851 Golden and 47,974 EnzymeMap reactions. Membership
-uses the exact annotated heavy-atom indices and unmatched-atom policy of the
-independent decoded audit. The event counts themselves use the same original
-all-atom decoder model, including its documented boundary approximation.
-
-Existing replayed certificates at the overall minimum immediately establish
-zero offset. For other recovered cases, existing context bounds discard branches
-that cannot improve the result. Membership identifies a GT-containing context,
-then an unconditioned event query locates its minimum. Queries consume only saved
-responses; matching and decoding outputs remain unchanged. Bounded queries retain
-their intervals in the evidence. The current merged figure and its lower-endpoint
-plotting convention are documented under Figure update below.
-
-The previous mixed-scope figure was withdrawn. It subtracted heavy-only GT counts
-from all-atom minima and did not measure missed minima. It must not be cited.
-
-Analysis revision: `946fc6a`, `bench/analytics.py --positions`. Fifteen affected
-tests passed, including a GT witness with two events in a zero-minimum branch,
-and a lower branch that does not contain GT.
-
-## Original branch-offset analysis
+`n = verified GT-consistent mapping event count - original detected minimum`.
 
 [Figure](event-offsets.png) · [PDF](event-offsets.pdf) ·
-[Numeric data](event-offsets.json.gz) · [Histogram bounds](histogram.csv)
+[Per-reaction evidence](../../manuscript/evidence/reference_offsets.json.gz) ·
+[Histogram](histogram.csv)
 
-The later saved analysis processed all 49,825 reactions. The manuscript now uses
-that result, combined with the final Golden membership closure, rather than the
-earlier in-progress snapshot.
+Use the lowest recorded verified count across both directions, with forward
+winning ties. Both terms use the same all-atom decoder model. The 196 references
+absent from the saved output use their previously audited anchored completions.
+Every one of the 49,825 reactions contributes a concrete difference. This update
+runs no matching, decoding or additional optimization. Independent coverage and
+the original detected minima are unchanged.
+
+The previous figure instead minimized GT-containing branches and inserted lower
+bounds for unfinished minimum queries. That is a different quantity: a branch
+can attain its minimum with a mapping that does not agree with GT. The corrected
+figure moves 126 Golden and 2,196 EnzymeMap reactions to higher offsets. Golden
+case 268 now lies at +4, from its verified count of 16 and detected minimum of 12.
+The archived branch-minimum measurements below are not the plotted metric.
+
+## Superseded branch-minimum analysis
+
+[Archived branch-minimum data](event-offsets.json.gz) retain the original analysis.
+
+The superseded analysis processed all 49,825 reactions, including the final
+Golden membership closure.
 
 | Dataset | Exact offsets | Bounded offsets | Reference absent | Total |
 |---|---:|---:|---:|---:|
@@ -54,8 +44,8 @@ For each bin, the lower count is its established count; the upper count adds
 each interval containing that bin. Upper counts across bins are not jointly
 attainable and must not be summed as a histogram. Three EnzymeMap intervals
 extend below zero, but no exact measured offset is negative. This original
-bin-count analysis remains in the evidence; Figure 7 now uses the lower-endpoint
-summary documented below.
+bin-count analysis remains in the evidence; Figure 7 now uses verified mapping
+counts as documented below.
 
 The earlier partial snapshot and histogram remain as historical evidence. They
 must not be used for the current manuscript figure.
@@ -164,35 +154,28 @@ guard; actual completion was well below the time allowance.
 
 [Audited completion results](anchored-completion-results.json.gz) retain all
 392 mappings, event lists, translations, input checksums, settings, source
-identity and timings. This completes supplied references. It does not increase
-independent benchmark recovery or replace the original branch-offset metric.
+identity and timings. This completes supplied references without increasing independent benchmark
+recovery. These concrete counts also enter the corrected offset figure.
 
-### Figure update
+### Corrected figure: saved GT-consistent mapping counts
 
-[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) combines
-retained-branch offsets and the 196 anchored completions in one distribution per
-dataset. Each reaction contributes once. Following the author's request, bounded
-offsets are placed at their saved lower endpoint; those values remain lower
-bounds in the source evidence. Anchored completions use the lowest attained
-count across both directions minus the original detected all-atom minimum.
-Each dataset uses one bar color, with no separate completion legend. Golden's
-axis starts at zero; EnzymeMap retains -2 and -1 because both bins contain cases.
-Independent coverage is unchanged.
+[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) includes
+all 1,851 Golden and 47,974 EnzymeMap reactions, with one color per dataset and
+no separate completion legend. Counts at zero are 1,630 (88.06%) and 44,086
+(91.90%), respectively. The histograms are:
 
-| Dataset | Anchored offset: reaction count |
-|---|---|
-| Golden | 0: 9; 2: 2; 3: 1; 4: 2; 5: 2; 7: 1; 12: 1 |
-| EnzymeMap | −2: 9; 0: 83; 2: 32; 4: 51; 6: 3 |
+- Golden: `{0:1630, 1:90, 2:88, 3:24, 4:11, 5:6, 7:1, 12:1}`.
+- EnzymeMap: `{-2:9, 0:44086, 1:1384, 2:2190, 3:122, 4:171, 5:9, 6:3}`.
 
-The nine negative EnzymeMap completion offsets are attained mappings with two
-fewer events than the original detected minimum. The retained-branch contribution
-also places two lower bounds at -2 and one at -1. No upper-count markers are drawn.
-Merged Golden counts are `{0:1741, 1:60, 2:30, 3:11, 4:3, 5:4, 7:1, 12:1}`;
-EnzymeMap counts are `{-2:11, -1:1, 0:46078, 1:960, 2:817, 3:10, 4:94, 6:3}`.
-The totals are 1,851 and 47,974.
-[Plot evidence](../../manuscript/evidence/anchored_offsets.json) records each
-reaction's baseline, both audited direction counts and reference translations.
-The baseline source agrees with all 49,629 original detected minima recorded in
-the branch-offset analysis and
-all 1,851 Golden minima in the saved ambiguity analysis. No reference-label
-heavy-atom count is used in this comparison.
+The nine negative EnzymeMap offsets are attained anchored completions with two
+fewer events than the original detected minimum. The old two lower bounds at -2
+and one at -1 no longer enter the figure. Golden has no negative ticks; the empty
+-1 tick is also omitted from EnzymeMap.
+
+[Plot evidence](../../manuscript/evidence/reference_offsets.json.gz) records each
+reaction's selected count, unchanged baseline, direction and certificate identity.
+[Anchored evidence](../../manuscript/evidence/anchored_offsets.json) retains both
+completion directions and index-translation details. The selected hydrogen
+assignment is a saved feasible completion, not a new optimized assignment.
+The build validates full scope, disjoint original/anchored membership, saved
+baseline consistency and Golden certificate counts before rendering the figure.

@@ -44,13 +44,13 @@ external evaluation and failed-attempt accounting are separate. These are saved
 stage measurements with their recorded versions and recoveries, not a new
 uninterrupted run or a hardware-normalized speed ranking.
 
-The event-offset figure counts every reaction once: 49,509 exact retained-branch
-offsets, the lower endpoints of 120 bounded offsets, and 196 anchored completions
-for previously absent references. Each dataset uses one color, and negative
-axis ticks are omitted when it has no negative offsets. All counts subtract
-the original detected all-atom minimum.
-The lower-endpoint convention is stated in the caption; full intervals remain in
-the evidence. Independent coverage is unchanged.
+The event-offset figure subtracts the saved detected minimum from the event count
+of a verified GT-consistent full mapping. It uses the lowest already recorded
+verified count across directions, with no new optimization. Saved anchored
+completions supply the 196 references absent from the original output. Every
+reaction contributes once, using the same all-atom event model on both sides.
+Each dataset uses one color; unoccupied negative ticks are omitted. Independent
+coverage is unchanged.
 
 ## Comparator and minimum-choice results
 
@@ -94,12 +94,13 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
 - `includes/supplement.tex`: technical details and clearly separated archived studies.
 - `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
-- `evidence/branch_offsets.json.gz`: complete reaction accounting and bounds for the offset figure.
+- `evidence/reference_offsets.json.gz`: verified mapping counts, original detected minima, offsets and certificate hashes for every reaction.
+- `evidence/branch_offsets.json.gz`: superseded branch-minimum analysis, retained as historical evidence and the original-baseline source.
 - `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
 - `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
-- `figs/fig7_reference_offsets.*`: one merged event-offset distribution and one color per dataset, using lower endpoints for bounded offsets.
+- `figs/fig7_reference_offsets.*`: verified GT-consistent mapping counts relative to the saved detected minimum, with one color per dataset.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.

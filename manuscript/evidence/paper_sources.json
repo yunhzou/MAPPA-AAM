@@ -3,7 +3,7 @@
     "snapshot": "current_benchmarks.json",
     "golden_mapping_decoding_complete": true,
     "enzymemap_mapping_decoding_complete": true,
-    "branch_offsets_complete": false
+    "reference_offsets_complete": true
   },
   "historical_campaign": {
     "algorithm_commit": "3a9ef9a8aec3e129ea5f4ee67df47ce2c25ade3c",
@@ -119,7 +119,7 @@
     {
       "snapshot": "branch_offsets.json.gz",
       "sha256": "3991cd63d98ef4116ef56eb0956ca7c3a7912042179b7b8eb907b6b91d2353b2",
-      "scope": "All 49,825 reactions processed: 49,509 exact offsets, 120 bounded offsets, 196 absent references; final Golden membership closure applied.",
+      "scope": "Superseded GT-containing branch-minimum analysis; retained only for provenance and original detected baselines. Not the current figure metric.",
       "source": "See source_reports in current_benchmarks.json or reports/reference_event_offsets_20261107/README.md"
     },
     {
@@ -151,6 +151,12 @@
       "source": "reports/golden_native_seeds_20261106/decoded-verification-closure-directions.json.gz",
       "sha256": "e3d5174544e2e731b8ad7a482499ba11641021400513b360a751c598dc003543",
       "scope": "Completed exact-index reaction-level decoded-window audit; original scientific outputs unchanged, bounded opposite-direction attempts retained."
+    },
+    {
+      "snapshot": "reference_offsets.json.gz",
+      "sha256": "6d340ea09ea360cb335ff1d3e440a325ce2f088063b8e4de1b5fc1452bc9f09b",
+      "source": "Final Golden and EnzymeMap decoded-reference certificates and saved anchored completions; reports/reference_event_offsets_20261107/README.md",
+      "scope": "All 49,825 concrete GT-consistent mapping event counts minus saved detected minima; no additional optimization or lower-bound substitution."
     }
   ],
   "limits": "All current Golden and EnzymeMap decoded reaction memberships are resolved. Branch-event analysis has 49,509 exact offsets and 120 bounded intervals; no pending tasks are presented. September studies retain their original protocols."

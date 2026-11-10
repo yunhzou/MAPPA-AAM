@@ -30,19 +30,20 @@ for arm,study in [('seeds1','golden1'),('seeds10','golden10')]:
   assert row['status']==('recovered' if 'recovered' in states else 'not_recovered')
   if row['status']=='not_recovered':assert set(states)=={'not_recovered'}
  assert sum(r['status']=='recovered' for r in rows)==studies[study]['decoded']['recovered']
-assert not offsets['partial'] and offsets['all_queries_processed']
-assert sum(r['status']=='complete' for r in offsets['results']) == 49509
-assert sum(r['status']=='bounded' for r in offsets['results']) == 120
-assert not any(r['status']=='unknown' for r in offsets['results'])
+assert offsets['additional_searches'] == 0
 from build_benchmark_figures import offset_counts
 for dataset, study in [('Golden', 'golden1'), ('EnzymeMap', 'enzyme1')]:
  rows=[r for r in offsets['results'] if r['dataset']==dataset]
- assert sum(r['status']!='not_recovered' for r in rows)==studies[study]['decoded']['recovered']
- assert sum(offset_counts(rows).values())==studies[study]['decoded']['recovered']
+ assert sum(r['source']=='verified' for r in rows)==studies[study]['decoded']['recovered']
+ assert sum(offset_counts(rows).values())==studies[study]['reactions']
 from build_benchmark_figures import comparison_evidence
 paired, choices, choice_rows = comparison_evidence(MAN)
-anchored = anchored_evidence(MAN, offsets)
+anchored = anchored_evidence(MAN)
 assert hashlib.sha256((E/'branch_offsets.json.gz').read_bytes()).hexdigest() == anchored['original_branch_offsets_sha256']
+for key, filename in [('baseline','branch_offsets.json.gz'),
+                      ('golden','decoded_verification_closure_directions.json.gz'),
+                      ('anchored','anchored_offsets.json')]:
+ assert hashlib.sha256((E/filename).read_bytes()).hexdigest()==offsets['source_sha256'][key]
 from collections import Counter
 expected_anchored_counts = {
  'Golden': {0:9, 2:2, 3:1, 4:2, 5:2, 7:1, 12:1},
@@ -51,13 +52,34 @@ expected_anchored_counts = {
 for dataset, expected in expected_anchored_counts.items():
  assert Counter(r['difference'] for r in anchored['results'] if r['dataset']==dataset) == expected
 expected_merged_counts = {
- 'Golden': {0:1741, 1:60, 2:30, 3:11, 4:3, 5:4, 7:1, 12:1},
- 'EnzymeMap': {-2:11, -1:1, 0:46078, 1:960, 2:817, 3:10, 4:94, 6:3},
+ 'Golden': {0:1630, 1:90, 2:88, 3:24, 4:11, 5:6, 7:1, 12:1},
+ 'EnzymeMap': {-2:9, 0:44086, 1:1384, 2:2190, 3:122, 4:171, 5:9, 6:3},
 }
 for dataset, expected in expected_merged_counts.items():
  rows=[r for r in offsets['results'] if r['dataset']==dataset]
- merged=offset_counts(rows)+Counter(expected_anchored_counts[dataset])
+ merged=offset_counts(rows)
  assert merged==expected and sum(merged.values())==len(rows)
+original={(r['dataset'],r['case']):r for r in json.loads(gzip.decompress((E/'branch_offsets.json.gz').read_bytes()))['results']}
+completed={(r['dataset'],r['case']):r for r in anchored['results']}
+certificates={}
+for row in directions['studies']['seeds1']['directions']:
+ if row['status']=='recovered':certificates.setdefault(row['case'],[]).append(row)
+for row in offsets['results']:
+ key=row['dataset'],row['case']
+ if row['source']=='anchored':
+  source=completed[key]
+  assert original[key]['status']=='not_recovered'
+  assert row['reference_count']==source['anchored_count']
+ else:
+  source=original[key]
+  assert source['status']!='not_recovered'
+  if row['dataset']=='Golden':
+   certificate=min(certificates[row['case']],key=lambda r:(r['event_count'],r['reversed']))
+   assert row['reference_count']==certificate['event_count']
+   assert row['certificate_sha256']==certificate['certificate_sha256']
+ assert row['overall_minimum']==source['overall_minimum']
+example=next(r for r in offsets['results'] if r['dataset']=='Golden' and r['case']==268)
+assert (example['reference_count'],example['overall_minimum'],example['difference'])==(16,12,4)
 golden_minima = {r['case']:r['detected_minimum'] for r in choice_rows}
 assert all(r['overall_minimum']==golden_minima[r['case']] for r in anchored['results'] if r['dataset']=='Golden')
 assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
@@ -167,7 +189,7 @@ log=(MAN/'build/preprint.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
-for value in ['1,833','1,842','47,796','47,798','99.629','49,509','120']:
+for value in ['1,833','1,842','47,796','47,798','99.629','49,825','1,630','44,086','88.06','91.90']:
  assert value in alltext,value
 for value in ['1,839','1,794','1,620','96.921','1,829','91.36','79.45']:
  assert value in alltext,value
@@ -183,7 +205,8 @@ results=paper.split(r'\section{Results}',1)[1].split(r'\section{Discussion}',1)[
 assert results.count(r'\subsection{')==4
 assert not any(word in results.lower() for word in ['pending', 'preliminary', 'first-returned'])
 assert 'generated-method-coverage-table' in results and 'ten seeds' in results.lower()
-assert 'lower endpoint' in results and 'Anchored completion' in results
+assert 'lower endpoint' not in results and 'no additional optimization' in results
+assert 'Saved anchored completions' in results
 assert 'capped lines' not in results and 'upper count bounds' not in results
 assert 'whole-growth replay' not in paper
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
@@ -229,7 +252,7 @@ for fig in figs:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
   for label in ['Golden','EnzymeMap','1,851','47,974',
-                '1,741','46,078','Event offset n']:
+                '1,630','44,086','Event offset n']:
    assert label in figure_text,label
   assert not any(label in figure_text for label in ['Pending','GT absent','Possible upper count','Anchored completion','Retained branches'])
  elif fig.endswith('fig8_design_examples.pdf'):
@@ -332,7 +355,7 @@ assert 'Archived MAPPA search plus event-window queries' in alltext.replace('\n'
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The merged offset figure counts every reaction once, using retained-branch offsets, lower endpoints for bounded offsets, and anchored completions for missing references. Original bounds and evidence remain unchanged.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The offset figure subtracts the saved detected minimum from a verified GT-consistent mapping count, including saved anchored completions. Every reaction contributes once, without additional optimization or lower-bound substitution.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

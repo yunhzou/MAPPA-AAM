@@ -29,25 +29,27 @@ The expected accuracy of uniform selection is bounded at 78.31--79.45%; this is
 not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
 the counts, but the ranking score remains the saved all-atom model count.
 
-The event-offset snapshot accounts for every processed reaction: 49,509 exact
-offsets, 120 bounded intervals and 196 absent references. Figure 7 places each
-bounded case at its saved lower endpoint, following the author's requested
-summary. These values remain lower bounds in the source evidence. Retained-branch
-offsets use the same all-atom decoder model on both sides; GT selects a branch
-rather than supplying its count.
+Figure 7 uses `reference_offsets.json.gz`: a verified GT-consistent mapping's
+event count minus the saved detected minimum, under the same all-atom decoder
+model. Select the lowest recorded verified count across both directions without
+new search. All 49,825 offsets are differences of concrete saved counts. The
+superseded `branch_offsets.json.gz` estimated minima of reference-containing
+branches and is not the plotted metric.
 
-The same bars include anchored completion of all 196 absent
-references: 18 Golden and 178 EnzymeMap. Their offset is the attained
-reference-conditioned count minus the original detected all-atom minimum, not
-the minimum of an original retained branch. All 392 directions preserve supplied
+Saved anchored completions supply the 18 Golden and 178 EnzymeMap references
+absent from the original decoded output. All 392 directions preserve supplied
 pairs and pass direct physical event counting. Nine EnzymeMap completions lie
 two events below the original detected minimum. Eleven EnzymeMap references
-require endpoint-index translation; partial Golden completions and index
-translations are recorded in the report. These results do not increase the
-independent recovery figures above or resolve the 120 bounded branch offsets.
-The two merged distributions count all 1,851 Golden and 47,974 EnzymeMap reactions
-exactly once, with one color per dataset and no separate completion legend.
-Negative ticks are omitted when the dataset has no negative offsets.
+require endpoint-index translation; partial Golden completions and translations
+remain documented in the report. These results do not increase independent
+recovery. The two distributions count every reaction once, with one color per
+dataset, no separate completion legend and no unoccupied negative ticks.
+
+The corrected figure moves 126 Golden and 2,196 EnzymeMap reactions to higher
+offsets than the previous branch-minimum figure. Counts at zero are 1,630/1,851
+(88.06%) and 44,086/47,974 (91.90%). A saved hydrogen completion is not necessarily
+optimal, so this measurement is distinct from reference membership among all
+minimum-event choices.
 
 The model retains a fixed ordinary-boundary approximation and selected starting
 orbits. Positive decoded witnesses are replayed and counted, but model-window
