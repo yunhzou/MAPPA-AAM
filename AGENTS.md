@@ -98,9 +98,11 @@ computational cost and one-versus-multiple-seed scaling, reference-branch event
 offsets, and ambiguity at the minimum. Keep comparisons with other methods and
 the one- and ten-seed results. Report findings rather than experiment history;
 keep secondary timing cohorts and detailed audit accounting in supporting material.
-Do not publish queued work as a result figure. Use the latest measured analysis;
-when offsets are bounded, show honest bin-count bounds instead of assigning
-values or hiding incomplete measurements.
+Do not publish queued work as a result figure. Use the latest measured analysis
+and retain uncertainty in the evidence. Figure 7 combines retained-branch offsets
+and anchored completions in one distribution per dataset, distinguishing their
+contributions by color. Use the lower endpoint for bounded offsets as requested;
+state that convention in the caption without presenting it as an attained minimum.
 
 Report ranking accuracy only for a defined selection rule. An unranked candidate
 list's first output is not a top-1 prediction; exclude accuracy statistics based

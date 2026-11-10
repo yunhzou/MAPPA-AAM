@@ -35,13 +35,9 @@ def evidence(man):
 
 
 def offset_counts(rows):
-    """Established bin counts and upper counts allowed by measured intervals."""
-    exact = Counter(row['difference'] for row in rows if row['status'] == 'complete')
-    upper = exact.copy()
-    for row in rows:
-        if row['status'] == 'bounded':
-            upper.update(range(row['offset_lower'], row['offset_upper']+1))
-    return exact, upper
+    """One bin per retained reference, using the lower endpoint of bounded offsets."""
+    return Counter(row['difference'] if row['status'] == 'complete' else row['offset_lower']
+                   for row in rows if row['status'] != 'not_recovered')
 
 
 def anchored_evidence(man, offsets):
@@ -65,39 +61,27 @@ def anchored_evidence(man, offsets):
 
 def build_reference_offsets(man, offsets, save):
     anchored = anchored_evidence(man, offsets)
-    fig, axes = plt.subplots(2, 2, figsize=(10.2, 6.8), layout='constrained')
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 3.9), layout='constrained')
     for column, (name, color) in enumerate(zip(('Golden', 'EnzymeMap'), ('#087F8C', '#3366A5'))):
         cohort = [r for r in offsets['results'] if r['dataset'] == name]
-        counts, upper = offset_counts(cohort)
-        ax = axes[0, column]
-        ax.bar(sorted(counts), [counts[x] for x in sorted(counts)], width=.65,
-               color=color, label='Established count')
-        for x in sorted(upper):
-            if upper[x] > counts[x]:
-                ax.vlines(x, max(.7, counts[x]), upper[x], color='#223340', linewidth=1.4)
-                ax.hlines(upper[x], x-.17, x+.17, color='#223340', linewidth=1.4)
-            ax.text(x, upper[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
-        ax.plot([], [], color='#223340', marker='_', label='Possible upper count')
-        recovered = sum(r['status'] != 'not_recovered' for r in cohort)
-        ax.set(xlim=(-2.7, 5.7), ylim=(.7, max(upper.values())*5),
-               xlabel='Retained-branch minimum − detected minimum', xticks=range(-2, 6))
-        ax.set_title(f"{'ab'[column]}  {name} · {recovered:,} recovered references",
+        completed = [r for r in anchored['results'] if r['dataset'] == name]
+        retained = offset_counts(cohort)
+        added = Counter(r['difference'] for r in completed)
+        counts = retained + added
+        assert sum(counts.values()) == len(cohort)
+        ax = axes[column]
+        xs = sorted(counts)
+        ax.bar(xs, [retained[x] for x in xs], width=.68, color=color,
+               label='Retained branches')
+        ax.bar(xs, [added[x] for x in xs], bottom=[retained[x] for x in xs],
+               width=.68, color='#CB702A', label='Anchored completion')
+        for x in xs:
+            ax.text(x, counts[x]*1.2, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
+        ax.set(xlim=(-2.7, 12.7), ylim=(.7, max(counts.values())*5),
+               xlabel='Event offset n from detected minimum', xticks=range(-2, 13))
+        ax.set_title(f"{'ab'[column]}  {name} · {len(cohort):,} reactions",
                      loc='left', weight='bold', pad=12)
         ax.legend(loc='upper right', fontsize=8, frameon=False)
-
-        completed = [r for r in anchored['results'] if r['dataset'] == name]
-        counts = Counter(r['difference'] for r in completed)
-        ax = axes[1, column]
-        xs = sorted(counts)
-        ax.bar(xs, [counts[x] for x in xs], width=.65, color='#CB702A')
-        for x in xs:
-            ax.text(x, counts[x]*1.18, f'{counts[x]:,}', ha='center', va='bottom', fontsize=8)
-        ax.set(xlim=(-2.7, 12.7), ylim=(.7, max(counts.values())*3),
-               xlabel='Anchored-completion count − detected minimum', xticks=range(-2, 13, 2))
-        ax.set_title(f"{'cd'[column]}  {name} · {len(completed)} anchored completions",
-                     loc='left', weight='bold', pad=12)
-        ax.text(.98, .94, 'Previously absent references', transform=ax.transAxes,
-                ha='right', va='top', fontsize=8, color='#586974')
     for ax in axes.flat:
         ax.set_yscale('log')
         ax.set_ylabel('Reactions (log scale)')

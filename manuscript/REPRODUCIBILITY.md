@@ -121,22 +121,23 @@ saved all-atom decoder model. The reference witness's own count is only an upper
 bound on its branch minimum. The final Golden membership certificates settle
 case 852 at zero and exclude cases 1568 and 1606.
 
-For bin k, the lower count is the number of exact offsets equal to k. The upper
-count adds every bounded interval containing k. A reaction can contribute to
-several possible upper counts, so those upper counts must not be summed as
-though they formed a single histogram. Three EnzymeMap intervals allow negative
-offsets; no measured exact offset is negative. No pending query is converted to
-an exact count. The snapshot records the source result hash and membership closure.
+Figure 7 assigns each bounded offset to the lower endpoint of its saved interval,
+as requested by the author. This is a plotting convention, not a new minimum
+proof. Full bounds and source statuses remain in the evidence. Every reaction
+contributes to exactly one bin; upper-count markers are not drawn. Three
+EnzymeMap lower endpoints are negative: two at -2 and one at -1. The snapshot
+records the source result hash and membership closure.
 
-The lower row of the figure adds a separate reference-conditioned analysis of the
-196 absent references. `evidence/anchored_offsets.json` contains the original
+The same bars add the reference-conditioned analysis of the 196 absent
+references in orange. `evidence/anchored_offsets.json` contains the original
 detected minimum and both audited completion counts for each reaction, derived
 from the [anchored completion report](../reports/reference_event_offsets_20261107/README.md).
 The run fixes annotated pairs, uses one seed per direction without a sweep,
 tolerance 2, cap 100 and minimum-plus-five decoding. Take the lower attained count
 across directions and subtract the original detected all-atom minimum. These are
 completion offsets, not minima of the original retained GT-containing branches.
-Independent coverage and the upper-row counts are unchanged.
+Color preserves this distinction within the merged distribution. Independent
+coverage and the source branch-offset measurements are unchanged.
 
 The original-minimum extraction agrees with all 49,629 detected minima recorded
 in the branch-offset analysis and all 1,851 saved Golden choice-analysis minima. Only its saved all-atom
@@ -151,8 +152,13 @@ the retained anchored search, not an exhaustive optimum over all mappings.
 
 Golden completion offsets have counts `{0: 9, 2: 2, 3: 1, 4: 2, 5: 2, 7: 1,
 12: 1}`. EnzymeMap counts are `{-2: 9, 0: 83, 2: 32, 4: 51, 6: 3}`. The nine
-negative values are attained counts, distinct from the upper row's possible
-negative intervals. Both rows use all-atom counts, including hydrogen events.
+negative values are attained counts, distinct from the three negative lower
+endpoints in the retained-branch contribution. Both contributions use all-atom
+counts, including hydrogen events.
+
+The final merged counts are Golden `{0: 1741, 1: 60, 2: 30, 3: 11, 4: 3,
+5: 4, 7: 1, 12: 1}` and EnzymeMap `{-2: 11, -1: 1, 0: 46078, 1: 960,
+2: 817, 3: 10, 4: 94, 6: 3}`. They sum to 1,851 and 47,974 respectively.
 
 ## Archived analyses
 

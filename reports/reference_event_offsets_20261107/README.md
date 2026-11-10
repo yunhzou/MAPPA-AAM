@@ -19,8 +19,9 @@ Existing replayed certificates at the overall minimum immediately establish
 zero offset. For other recovered cases, existing context bounds discard branches
 that cannot improve the result. Membership identifies a GT-containing context,
 then an unconditioned event query locates its minimum. Queries consume only saved
-responses; matching and decoding outputs remain unchanged. Unknown queries retain
-intervals and stay outside exact bins. Missing GT remains a separate category.
+responses; matching and decoding outputs remain unchanged. Bounded queries retain
+their intervals in the evidence. The current merged figure and its lower-endpoint
+plotting convention are documented under Figure update below.
 
 The previous mixed-scope figure was withdrawn. It subtracted heavy-only GT counts
 from all-atom minima and did not measure missed minima. It must not be cited.
@@ -29,7 +30,7 @@ Analysis revision: `946fc6a`, `bench/analytics.py --positions`. Fifteen affected
 tests passed, including a GT witness with two events in a zero-minimum branch,
 and a lower branch that does not contain GT.
 
-## Published distribution
+## Original branch-offset analysis
 
 [Figure](event-offsets.png) · [PDF](event-offsets.pdf) ·
 [Numeric data](event-offsets.json.gz) · [Histogram bounds](histogram.csv)
@@ -52,8 +53,9 @@ EnzymeMap exact counts at offsets 0 through 4 are 45,888, 960, 785, 10 and 43.
 For each bin, the lower count is its established count; the upper count adds
 each interval containing that bin. Upper counts across bins are not jointly
 attainable and must not be summed as a histogram. Three EnzymeMap intervals
-extend below zero, but no exact measured offset is negative. The plotted caps
-retain this uncertainty without inventing bin assignments.
+extend below zero, but no exact measured offset is negative. This original
+bin-count analysis remains in the evidence; Figure 7 now uses the lower-endpoint
+summary documented below.
 
 The earlier partial snapshot and histogram remain as historical evidence. They
 must not be used for the current manuscript figure.
@@ -167,21 +169,25 @@ independent benchmark recovery or replace the original branch-offset metric.
 
 ### Figure update
 
-[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) retains
-the original branch-offset distributions in its upper panels and adds the
-196 anchored completions in separate lower panels. Each completion uses the
-lowest attained count across both directions and subtracts the original saved
-all-atom minimum. The original branch-offset counts and independent coverage
-are unchanged. The 120 bounded branch offsets remain in the upper panels.
+[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) combines
+retained-branch offsets and the 196 anchored completions in one distribution per
+dataset. Each reaction contributes once. Following the author's request, bounded
+offsets are placed at their saved lower endpoint; those values remain lower
+bounds in the source evidence. Orange bar portions identify anchored completions,
+which use the lowest attained count across both directions minus the original
+detected all-atom minimum. Independent coverage is unchanged.
 
 | Dataset | Anchored offset: reaction count |
 |---|---|
 | Golden | 0: 9; 2: 2; 3: 1; 4: 2; 5: 2; 7: 1; 12: 1 |
 | EnzymeMap | −2: 9; 0: 83; 2: 32; 4: 51; 6: 3 |
 
-The nine negative EnzymeMap offsets are attained completions with two fewer
-events than the original detected minimum. They are distinct from the possible
-negative offsets represented by count bounds in the upper panels.
+The nine negative EnzymeMap completion offsets are attained mappings with two
+fewer events than the original detected minimum. The retained-branch contribution
+also places two lower bounds at -2 and one at -1. No upper-count markers are drawn.
+Merged Golden counts are `{0:1741, 1:60, 2:30, 3:11, 4:3, 5:4, 7:1, 12:1}`;
+EnzymeMap counts are `{-2:11, -1:1, 0:46078, 1:960, 2:817, 3:10, 4:94, 6:3}`.
+The totals are 1,851 and 47,974.
 [Plot evidence](../../manuscript/evidence/anchored_offsets.json) records each
 reaction's baseline, both audited direction counts and reference translations.
 The baseline source agrees with all 49,629 original detected minima recorded in

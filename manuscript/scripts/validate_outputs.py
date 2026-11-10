@@ -38,10 +38,7 @@ from build_benchmark_figures import offset_counts
 for dataset, study in [('Golden', 'golden1'), ('EnzymeMap', 'enzyme1')]:
  rows=[r for r in offsets['results'] if r['dataset']==dataset]
  assert sum(r['status']!='not_recovered' for r in rows)==studies[study]['decoded']['recovered']
- exact, upper=offset_counts(rows)
- assert sum(exact.values())==sum(r['status']=='complete' for r in rows)
- for value in upper:
-  assert upper[value]==exact[value]+sum(r['status']=='bounded' and r['offset_lower']<=value<=r['offset_upper'] for r in rows)
+ assert sum(offset_counts(rows).values())==studies[study]['decoded']['recovered']
 from build_benchmark_figures import comparison_evidence
 paired, choices, choice_rows = comparison_evidence(MAN)
 anchored = anchored_evidence(MAN, offsets)
@@ -53,6 +50,14 @@ expected_anchored_counts = {
 }
 for dataset, expected in expected_anchored_counts.items():
  assert Counter(r['difference'] for r in anchored['results'] if r['dataset']==dataset) == expected
+expected_merged_counts = {
+ 'Golden': {0:1741, 1:60, 2:30, 3:11, 4:3, 5:4, 7:1, 12:1},
+ 'EnzymeMap': {-2:11, -1:1, 0:46078, 1:960, 2:817, 3:10, 4:94, 6:3},
+}
+for dataset, expected in expected_merged_counts.items():
+ rows=[r for r in offsets['results'] if r['dataset']==dataset]
+ merged=offset_counts(rows)+Counter(expected_anchored_counts[dataset])
+ assert merged==expected and sum(merged.values())==len(rows)
 golden_minima = {r['case']:r['detected_minimum'] for r in choice_rows}
 assert all(r['overall_minimum']==golden_minima[r['case']] for r in anchored['results'] if r['dataset']=='Golden')
 assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
@@ -178,7 +183,8 @@ results=paper.split(r'\section{Results}',1)[1].split(r'\section{Discussion}',1)[
 assert results.count(r'\subsection{')==4
 assert not any(word in results.lower() for word in ['pending', 'preliminary', 'first-returned'])
 assert 'generated-method-coverage-table' in results and 'ten seeds' in results.lower()
-assert 'capped lines' in results and 'count bounds' in results
+assert 'lower endpoint' in results and 'Anchored completion' in results
+assert 'capped lines' not in results and 'upper count bounds' not in results
 assert 'whole-growth replay' not in paper
 assert not re.search(r'\bMac\b|same-host|worker count|ran concurrently',alltext), 'Keep execution details in the reproducibility records'
 for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{seed['methods']['seeds3']['golden_recovery_percent']:.2f}",'120,052','300','162','168']:
@@ -222,10 +228,10 @@ for fig in figs:
   for label in ['99.082','99.568','99.633','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
-  for label in ['Established count','Possible upper count','Golden','EnzymeMap','1,833','47,796',
-                '18 anchored completions','178 anchored completions','Anchored-completion count']:
+  for label in ['Retained branches','Anchored completion','Golden','EnzymeMap','1,851','47,974',
+                '1,741','46,078','Event offset n']:
    assert label in figure_text,label
-  assert 'Pending' not in figure_text and 'GT absent' not in figure_text
+  assert not any(label in figure_text for label in ['Pending','GT absent','Possible upper count','anchored completions'])
  elif fig.endswith('fig8_design_examples.pdf'):
   for label in ['Greedy constraints','1 inner + 0 outer','1 inner + 2 outer','2 outer events','Base','Target']:
    assert label in figure_text,label
@@ -326,7 +332,7 @@ assert 'Archived MAPPA search plus event-window queries' in alltext.replace('\n'
 assert f"{e2e['complete_cohort']['end_to_end']['cpu_seconds']['mean']:.2f}" in alltext
 assert ('completed-subset averages' if e2e['incomplete_cases'] else 'All 140 reactions finish') in alltext.replace('\n',' ')
 result=dict(status='passed',pages=len(pages),figures=figs,source_checks=True,references_resolved=True,no_overfull_boxes=True,
- manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The branch-offset analysis accounts for every reaction with exact offsets or explicit count bounds. Completeness and limits are recorded in the evidence.',
+ manual_visual_review_required=True,scope='Numerical and build validation; visual review is recorded separately. Current Golden and EnzymeMap coverage and timings are validated separately from archived comparisons. The merged offset figure counts every reaction once, using retained-branch offsets, lower endpoints for bounded offsets, and anchored completions for missing references. Original bounds and evidence remain unchanged.',
  manuscript_sha256=hashlib.sha256((MAN/'manuscript.pdf').read_bytes()).hexdigest())
 (MAN/'build/artifact-validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

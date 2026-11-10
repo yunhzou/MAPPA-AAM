@@ -30,13 +30,14 @@ not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
 the counts, but the ranking score remains the saved all-atom model count.
 
 The event-offset snapshot accounts for every processed reaction: 49,509 exact
-offsets, 120 bounded intervals and 196 absent references. Bars give exact bin
-counts; capped lines include every interval that could occupy each bin. The upper
-counts are not a jointly attainable histogram. Counts use the same all-atom
-decoder model on both sides; GT selects a branch rather than supplying its count.
+offsets, 120 bounded intervals and 196 absent references. Figure 7 places each
+bounded case at its saved lower endpoint, following the author's requested
+summary. These values remain lower bounds in the source evidence. Retained-branch
+offsets use the same all-atom decoder model on both sides; GT selects a branch
+rather than supplying its count.
 
-The lower row of the event-offset figure separately shows anchored completion of
-all 196 absent references: 18 Golden and 178 EnzymeMap. Its offset is the attained
+Orange portions of the same bars add anchored completion of all 196 absent
+references: 18 Golden and 178 EnzymeMap. Their offset is the attained
 reference-conditioned count minus the original detected all-atom minimum, not
 the minimum of an original retained branch. All 392 directions preserve supplied
 pairs and pass direct physical event counting. Nine EnzymeMap completions lie
@@ -44,6 +45,8 @@ two events below the original detected minimum. Eleven EnzymeMap references
 require endpoint-index translation; partial Golden completions and index
 translations are recorded in the report. These results do not increase the
 independent recovery figures above or resolve the 120 bounded branch offsets.
+The two merged distributions count all 1,851 Golden and 47,974 EnzymeMap reactions
+exactly once, with no upper-count markers or separate completion panels.
 
 The model retains a fixed ordinary-boundary approximation and selected starting
 orbits. Positive decoded witnesses are replayed and counted, but model-window
