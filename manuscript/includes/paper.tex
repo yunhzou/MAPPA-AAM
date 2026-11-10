@@ -188,13 +188,15 @@ Greedy growth helps absorb connections that would otherwise couple fragments. In
 
 Random growth, multiple seeds and the cut sweep can mitigate this limitation by discovering alternative fragment decompositions. In \Cref{fig:design-examples}b, growing through the O--C attachment first can place it inside a shared fragment instead of leaving it across a boundary. Another branch can then represent the same correspondence with its correct event count, even if the original branch assigns it differently. This exploration does not repair the original branch's approximation or guarantee a correct representation elsewhere. The benchmarks do not isolate the size of this mitigation.
 
-\subsubsection{The swept bond: reuse the two endpoint responses}
+\subsubsection{The swept bond: couple neighboring fragment responses}
 
-The single masked connection is handled separately. Its correction depends on where its two endpoints are placed, so assembly queries their jointly reachable positions in the already prepared fragment responses. It retains their correlation with internal events and one-to-one occupancy. It does not rebuild a whole-reaction bijection table. The swept contribution ranges from zero to two events.
+A sweep masks one base bond. When its endpoints lie in different final fragments, those fragments are neighbors across the masked connection. Their internal event responses can be prepared separately, but this boundary contribution depends jointly on their choices: preserving the connection requires the two atoms to occupy compatible target positions. The swept bond therefore introduces a coupling between neighboring fragments that the decoder handles explicitly.
+
+During branch assembly, MAPPA reuses the prepared responses to evaluate the two endpoint positions together, retaining their dependence on internal events and one-to-one occupancy. If both endpoints remain in one fragment, the same query uses that fragment's response. The associated contribution $s_{\mathcal B}$ ranges from zero to two events: a correspondence can preserve the connection, produce one bond change, or break one connection and form another. The sweep still masks only one bond; the event count describes the resulting correspondence across the two molecular endpoints.
 
 \subsubsection{The event window: refine the best count, then retain nearby branches}
 
-First establish the best attained branch count $U$. When attained local minima compose, the smallest pre-sweep composition $L$ can incur at most two additional sweep events. Only branch compositions that could improve this $L+2$ result need refinement. If local searches are unfinished or their minima cannot be combined, retain the lower bounds and an actual witness upper bound; do not assume $L+2$ is attainable.
+First establish the best attained branch count $U$. When attained local minima compose, the smallest pre-sweep composition $L$ can incur at most two additional events from the swept-bond boundary correction. Only branch compositions that could improve this $L+2$ result need refinement. If local searches are unfinished or their minima cannot be combined, retain the lower bounds and an actual witness upper bound; do not assume $L+2$ is attainable.
 
 Next retain branches that could contribute within $U+n$: a branch is excluded only when its lower bound exceeds that threshold. The studies here use $n=5$. The result stores the retained branches, shared fragment responses, event window and minimum/proof status. A later query requests a mapping at a selected count or with specified atom pairs, returning a witness, established absence or an unresolved outcome under its allowance. A retained count interval does not assert that every count inside it is attainable.
 
