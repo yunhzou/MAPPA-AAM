@@ -1,5 +1,29 @@
 # Benchmark campaigns
 
+## Reference-anchored completion
+
+`anchored_completion.py` fixes the supplied reference pairs and completes the
+remaining assignments through the existing MAPPA API. It uses one seed in each
+direction, no cut sweep, tolerance 2, cap 100 and a minimum-plus-five event window.
+This is reference-conditioned analysis, separate from benchmark recovery and
+minimum queries over previously retained branches.
+
+```bash
+export PYTHONPATH=src:bench OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+python bench/anchored_completion.py /path/to/manifest.json /path/to/new-output \
+  --slurm --workers 8 --memory-gib 4 --task-seconds 180
+```
+
+The manifest's `directions` contain `dataset`, `case`, `reversed`, `prior_status`,
+and checksummed `input` and `reference` bundle references. Input endpoints are
+already oriented for that direction; reference pairs retain the original frame.
+Include both directions exactly once per reaction. Omit `--slurm` locally.
+The existing pool guards each direction and aggregates outputs. Results retain
+the completed mapping, anchor checks, replay evidence, model and physical event
+counts, minimum proof status, any added heavy-atom pairs, and separate matching,
+full decoding and witness-audit timings. Empty or resource-limited results remain
+explicit; they are not interpreted as impossible reference completions.
+
 ## Current Golden comparison with SLAP
 
 `compare_slap.py` pairs current MAPPA (one seed, cap 100, tolerance 2) with pinned
