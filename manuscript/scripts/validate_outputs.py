@@ -161,6 +161,7 @@ for value in [f"{seed['methods']['seeds1']['golden_recovery_percent']:.2f}",f"{s
 assert 'Golden reference recovery and runtime' in alltext
 assert 'First correct' not in alltext and 'two ten-order cases remain unresolved' not in alltext
 main_comparison=(MAN/'includes/generated-method-coverage-table.tex').read_text()
+assert 'Unresolved' not in main_comparison
 assert main_comparison.count('Single mapping')==5
 for count in [1834,1843,1794,1620,1591,1547,1605,1561,692,1030]:
  assert f'{count:,} ({100*count/1851:.2f}' in main_comparison

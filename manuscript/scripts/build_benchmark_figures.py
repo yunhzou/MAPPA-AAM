@@ -119,27 +119,26 @@ def build(man):
     paired, _, _ = comparison_evidence(man)
     competitors = json.loads((man/'evidence/competitors.json').read_text())
     method_rows = []
-    def method_row(name, setting, output, found, unknown):
+    def method_row(name, setting, output, found):
         method_rows.append(' & '.join([name, setting, output,
-            f'{found:,} ({100*found/1851:.2f}\\%)', str(unknown)])+r'\\')
+            f'{found:,} ({100*found/1851:.2f}\\%)'])+r'\\')
     for study in studies:
         if study['dataset'] == 'Golden':
             setting = f"{study['seeds']} seed"+('s' if study['seeds'] > 1 else '')+', sweep'
-            method_row('MAPPA', setting, 'Families', study['catalogue']['recovered'],
-                       study['catalogue']['unknown'])
+            method_row('MAPPA', setting, 'Families', study['catalogue']['recovered'])
     for key, setting in [('slap_sweep', 'Expanded sweep'),
                          ('slap_bidirectional', 'Binary, both directions')]:
         result = paired['coverage'][key]
-        method_row('SLAP', setting, 'Candidates', result['recovered'], result['unknown'])
+        method_row('SLAP', setting, 'Candidates', result['recovered'])
     names = {'slap_binary': 'SLAP', 'localmapper': 'LocalMapper', 'chython': 'Chython',
              'rxnmapper': 'RXNMapper', 'rdt': 'RDT', 'indigo': 'Indigo'}
     for key, name in names.items():
         result = next(row for row in competitors['methods'] if row['method'] == key)
         method_row(name, 'Binary, default' if key == 'slap_binary' else 'Default',
                    'Candidates' if key == 'slap_binary' else 'Single mapping',
-                   result['any_correct'], 0)
-    table('generated-method-coverage-table.tex', '@{}lllrr@{}',
-          'Method & Search setting & Output & Coverage & Unresolved', method_rows)
+                   result['any_correct'])
+    table('generated-method-coverage-table.tex', '@{}lllr@{}',
+          'Method & Search setting & Output & Coverage', method_rows)
     build_comparisons(man, save)
 
 
