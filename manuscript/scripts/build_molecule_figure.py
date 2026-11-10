@@ -442,8 +442,8 @@ def build(man):
   return ax.text(x,y,s,fontsize=size,color=color,weight=weight,ha=ha,va='center',linespacing=1.3,zorder=6)
  def box(x,y,w,h,fc='white',ec=LINE,lw=.8,r=12):
   ax.add_patch(FancyBboxPatch((x,y),w,h,boxstyle=f'round,pad=0,rounding_size={r}',facecolor=fc,edgecolor=ec,lw=lw,zorder=1))
- def ar(a,b,color=navy,lw=1.9,dashed=False):
-  ax.add_patch(FancyArrowPatch(a,b,arrowstyle='-|>',mutation_scale=11,lw=lw,color=color,linestyle=(0,(3,3)) if dashed else '-',zorder=2))
+ def ar(a,b,color=navy,lw=1.9):
+  ax.add_patch(FancyArrowPatch(a,b,arrowstyle='-|>',mutation_scale=11,lw=lw,color=color,zorder=2))
  def tree(points,color=navy,lw=1.7):
   xs,ys=zip(*points[:-1]);ax.plot(xs,ys,color=color,lw=lw,solid_joinstyle='round',solid_capstyle='round',zorder=2)
   ar(points[-2],points[-1],color,lw)
@@ -485,51 +485,54 @@ def build(man):
   dot(796,y)
  t(977,532,'Three placements → two unused sites → one remaining site',10,muted,ha='center')
 
- # Cut conditions converge into one catalogue. The union is schematic: it does
- # not claim each illustrated cut returns the same fragment or search history.
+ # A retained branch is a composition of paired endpoint atom sets. Show the
+ # full endpoints so the inter-fragment changes have visible before/after bonds.
  box(12,576,708,454,bg,bg,r=16)
- label(34,612,'b','Explore cuts; collect the retained families')
- t(34,646,'Methyl acetate: three base conditions are shown.',10.5,muted)
- for y,title,cut in [(675,'Uncut',None),(780,'Cut O4-C5',(4,5)),(885,'Cut C2-O4',(2,4))]:
-  t(40,y+39,title,10.5,green,'bold')
-  coords=molecule(ax,ESTER,157,y-7,280,96,{i:PALE_A for i in [1,2,3,4,5]},notes={2:'2',4:'4',5:'5'},font=24)
-  if cut:
-   start,end=coords[cut[0]],coords[cut[1]]
-   left=tuple(start[k]+.23*(end[k]-start[k]) for k in range(2))
-   right=tuple(start[k]+.77*(end[k]-start[k]) for k in range(2))
-   ax.plot([left[0],right[0]],[left[1],right[1]],color='white',lw=4.5,zorder=7)
-   ax.plot([left[0],right[0]],[left[1],right[1]],color=violet,lw=1.5,ls=(0,(2,3)),zorder=8)
-  tree([(446,y+39),(491,y+39),(491,819),(564,819)],navy,1.5)
- t(616,800,r'$\bigcup$',28,navy,ha='center')
- t(616,870,'Family\ncatalogue',11,navy,'bold',ha='center')
- t(616,940,'Across seeds\nand cuts',10,muted,ha='center')
- t(34,1006,'Merge repeated families; retain their constraints.',10,muted)
+ label(34,612,'b','Matching output: paired fragments')
+ t(34,646,'The same color pairs atoms across the two endpoints.',10.5,muted)
+ owners={**{i:PALE_A for i in [1,2,3,4]},5:PALE_B,6:PALE_O}
+ for y,title in [(688,'Base'),(830,'Target')]:
+  t(40,y+53,title,11,navy,'bold')
+  first=ESTER if title=='Base' else ACETATE
+  second=HYDROXIDE if title=='Base' else ALCOHOL
+  molecule(ax,first,143,y,290,111,owners,notes={2:'2',3:'3',4:'4',5:'5'},font=28,
+           bond_changes={(4,5):-1} if title=='Base' else None)
+  t(455,y+53,'+',13,muted,ha='center')
+  molecule(ax,second,485,y+15,175,87,owners,notes={5:'5',6:'6'},font=28,
+           bond_changes={(5,6):1} if title=='Target' else None)
+ ar((361,802),(361,826),navy,1.6)
+ t(40,966,'One branch:',10.5,navy,'bold')
+ for x,name,color in [(200,'F',PALE_A),(320,'G',PALE_B),(440,'H',PALE_O)]:
+  dot(x,966,color,8);t(x+17,966,name,11,navy,'bold')
+  if name!='H':t(x+73,966,'+',11,muted)
+ t(40,993,'2 boundary events: break 4-5; form 5-6.',10,navy)
+ t(40,1015,'Share repeated fragment pairs across seeds and cuts.',9.5,muted)
 
- # Local decoding reads shared fragments and their saved context. The two
- # pictured realizations share two boundary changes and differ internally.
+ # Every local response shows both halves of F. The base ester retains its
+ # unhighlighted methyl neighbor as context; that neighbor is not part of F.
  box(738,576,690,454,bg,bg,r=16)
- label(760,612,'c','Decode shared fragments and boundaries')
- t(760,646,'Use original bond weights and the saved joint choices.',10.5,muted)
- t(867,699,'Unique fragment',11,violet,'bold',ha='center')
- molecule(ax,ACETATE,761,728,210,159,{3:PALE_O,4:PALE_O},notes={3:'3',4:'4'},font=33)
- ar((655,819),(758,819),navy,1.7)
- t(866,907,r'Allowed O exchange: $3\leftrightarrow4$',10,violet,ha='center')
- t(866,958,'One compressed family\nshared local responses',10,violet,ha='center')
- for y,mapping,count,color in [(690,{3:3,4:4,5:5,6:6},2,green),(861,{3:4,4:3,5:5,6:6},4,RED)]:
-  box(1056,y,347,135,'white','#D6E1E9',.9,10)
-  molecule(ax,ACETATE,1060,y+2,146,104,{1:PALE_A,2:PALE_A,3:PALE_O,4:PALE_O},notes={i:mapping[i] for i in [3,4]},font=29,bond_changes={} if count==2 else {(2,3):1,(2,4):-1})
-  t(1209,y+51,'+',11)
-  molecule(ax,ALCOHOL,1220,y+27,95,72,{5:PALE_B},notes={6:'6'},font=28,bond_changes={(5,6):1})
-  t(1359,y+43,str(count),20,color,'bold',ha='center')
-  t(1359,y+74,'events',10,color,ha='center')
-  t(1230,y+119,f'2 boundary + {count-2} internal',10,muted,ha='center')
- ar((974,799),(1053,751),violet,1.8,True)
- ar((974,825),(1053,922),violet,1.8,True)
- t(1230,844,'Exchange O3 / O4',9.5,violet,ha='center')
+ label(760,612,'c','Decoding: compare both sides of F')
+ t(760,646,'Same fragment pair; two allowed oxygen assignments.',10.5,muted)
+ t(878,685,'Base side of F',10.5,green,'bold',ha='center')
+ t(1145,685,'Target side of F',10.5,green,'bold',ha='center')
+ t(1340,685,'Branch total',10.5,navy,'bold',ha='center')
+ for y,exchange,count,color in [(724,False,2,green),(870,True,4,RED)]:
+  t(1008,y,'Exchange O identities' if exchange else 'Keep O identities',10,violet,ha='center')
+  molecule(ax,ESTER,754,y+15,247,112,{i:PALE_A for i in [1,2,3,4]},
+           notes={2:'2',3:'3',4:'4',5:'5'},font=28,
+           bond_changes={(2,3):-1} if exchange else None)
+  ar((1003,y+71),(1040,y+71),navy,1.5)
+  molecule(ax,ACETATE,1044,y+15,200,112,{i:PALE_A for i in [1,2,3,4]},
+           notes={2:'2',3:'4' if exchange else '3',4:'3' if exchange else '4'},font=28,
+           bond_changes={(2,3):1} if exchange else None)
+  t(1340,y+48,str(count),21,color,'bold',ha='center')
+  t(1340,y+78,'events',10,color,ha='center')
+  t(1340,y+111,f'2 boundary\n+ {count-2} internal',9.5,muted,ha='center')
+ t(760,1015,'Only highlighted atoms belong to F; C5 is outside F.',9.5,muted)
 
  # Preserve the original chemical/event legend; search cuts are not events.
- ar((35,1064),(84,1064),navy,1.7);t(95,1064,'Search / aggregation',10,muted)
- ar((414,1064),(463,1064),violet,1.7,True);t(474,1064,'Event projection',10,muted)
+ ar((35,1064),(84,1064),navy,1.7);t(95,1064,'Matching / correspondence',10,muted)
+ t(490,1064,'Numbers follow base atom identities',10,muted)
  for x,sign,text in [(886,-1,'Break / weaken'),(1155,1,'Form / strengthen')]:
   ax.plot([x,x+50],[1064,1064],color='black',lw=1.1)
   bond_event_marker(ax,(x,1064),(x+50,1064),sign,size=8)
@@ -540,6 +543,6 @@ def build(man):
   assert extent.x0>=-1 and extent.x1<=fig.bbox.width+1 and extent.y0>=-1 and extent.y1<=fig.bbox.height+1,text.get_text()
  for ext in ['pdf','svg','png']:fig.savefig(man/'figs'/f'fig1_algorithm.{ext}',facecolor='white',dpi=260)
  plt.close(fig)
- print('Molecular overview: witness growth, conditional placements, cut aggregation and local events.')
+ print('Molecular overview: witness growth, conditional placements, paired fragments and local events.')
 
 if __name__=='__main__':build(Path(__file__).resolve().parents[1])

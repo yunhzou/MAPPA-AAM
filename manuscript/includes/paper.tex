@@ -4,7 +4,7 @@ Atom-to-atom mapping (AAM) assigns a correspondence between atoms at the two mol
 
 \begin{figure}[!b]
 \centering\includegraphics[width=.95\linewidth]{figs/fig1_algorithm.pdf}
-\caption{\textbf{Fragment-based exploration of atom mappings with MAPPA.} (a) Shared fragments grow between the two endpoints. Each completed placement constrains where subsequent fragments can fit. (b) Different starting points and temporarily masked bonds reveal alternative fragment combinations. (c) Rearrangements within the fragments can change the implied bond events; MAPPA retains these relationships for later queries. Red crosses mark cleavage or weakening; green arrows mark formation or strengthening. Colors identify matched fragments. The base and target labels indicate the chosen search direction. Details of the molecular illustrations are given in \Cref{sec:algorithm-details}.}
+\caption{\textbf{Fragment-based exploration of atom mappings with MAPPA.} (a) Greedy growth and conditional placements. (b) A branch comprises paired fragments F, G and H; colors identify their base and target atom sets. (c) Exchanging the oxygen assignments within F adds two internal events to the two boundary events shown in b. Each assignment displays both sides of F; unhighlighted C5 is outside it. Numbers follow base atom identities. Red marks indicate cleavage or weakening, green marks formation or strengthening. These constructed examples are detailed in \Cref{sec:algorithm-details}.}
 \label{fig:algorithm}
 \end{figure}
 

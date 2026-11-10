@@ -93,6 +93,12 @@ reduction in boundary error without a dedicated comparison.
 
 ## Molecular figure conventions
 
+Every matched fragment must be shown as a base/target pair, with corresponding
+atom sets identified by the same color. Keep outside molecular context visibly
+distinct. For a symmetry-event example, show both endpoint assignments and the
+bonds that change; one isolated molecular drawing cannot explain a fragment
+relationship. Figure 1 now follows this rule in its branch and decoding panels.
+
 Use chemical structure depictions for molecular examples, with the established vector drawing workflow. The saturation figure shows one carbon ring and two target rings distinguished by F/Cl attachments: two atom-set placements, with internal rotations and reflections retained within each placement. It is a fixed-fragment illustration without hydrogen constraints, not a complete reaction. Direct graph checks accompany the drawing. Do not replace molecular geometry with circles and group names when a chemical depiction can explain the same point.
 
 Use the same pastel palette, black bond strokes and compact red cleavage/weakening and green formation/strengthening marks throughout. In algorithm figures, colors identify matched fragments. In the introductory alternatives figure, fixed colors track atom origins across both mappings; state this in its legend. The accepted example is EnzymeMap case 13175: the reference assigns the formaldehyde carbon to the three-carbon molecule, whereas an alternative assigns it to CO₂. Both retain the complete C4H6O5 composition. Show all nine heavy atoms, number only the four carbons, and label the displayed four versus two events as heavy-atom counts. Optimizing the unannotated H assignments separately for these fixed heavy-atom maps yields six total events for both. The saved witnesses have eight and six events, but the saved reference H completion is not optimal. Use the example to illustrate ambiguity; do not claim a strict all-atom advantage or global optimality. The independent H-completion check does not establish decoded membership of the new H assignments. Ground truth refers to the dataset annotation, not a validated mechanism. Keep molecular components separated and inspect atom labels at full resolution before accepting the figure.

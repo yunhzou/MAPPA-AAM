@@ -65,6 +65,10 @@ sweep correction and the event window. Use notation to expose the decisions,
 not long paragraphs listing implementation details.
 
 Use molecular examples, figures and concise pseudocode to clarify the stages.
+Depict a matched fragment as a relationship between its base and target atom
+sets: show both endpoint views, identify corresponding atoms consistently, and
+distinguish the fragment from its surrounding molecular context. A one-sided
+molecular drawing cannot stand in for a completed fragment relationship.
 Keep one-witness growth, compressed completion, final family reduction and local
 decoding distinct. Show these operations through molecular changes and relationships,
 not a pipeline of text boxes. Reference verification is external evaluation
