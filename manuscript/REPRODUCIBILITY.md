@@ -29,7 +29,9 @@ Current full studies use original prepared formal bond orders with explicit H,
 discovery tolerance 2, graph/cut threshold 0.2, branch cap 100, random seed 42,
 both directions and uncut plus every eligible single-edge cut. Golden compares
 one and ten seed orderings per cut; EnzymeMap uses one. Bond events use original
-weights and strict thresholds 0.5, or 0.3 for metal-involving pairs. The decoding
+bond orders and empirical change thresholds: 0.5 for organic bonds (the default
+for non-metal pairs), and 0.3 for bonds involving at least one metal atom. An event
+requires a change strictly greater than the applicable threshold. The decoding
 window extends through the best attained model count plus five, with a five-second
 improvement allowance per unique fragment. A bounded result is not automatically
 a proved minimum.
