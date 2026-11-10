@@ -146,7 +146,8 @@ for value in ['1,833','1,842','47,796','47,798','99.629','45,738','3,891']:
 for value in ['1,839','1,794','1,620','96.921','75.58','1,829','91.36','79.45','10.38','2.58']:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
-assert 'approximately linearly' in paper and 'not a sweep-only ablation' in paper
+assert 'approximately linearly' in paper
+assert 'binary and weighted' in paper and 'single-edge cut sweep' in paper
 for study in current['studies']:
  means=[study['cpu_seconds'][s]/study['reactions'] for s in ('matching','deduplication','decoding')]
  for value in [sum(means[:2]),means[2],sum(means)]:

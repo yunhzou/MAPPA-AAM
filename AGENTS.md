@@ -24,6 +24,11 @@ Treat author feedback as scientific intent, not sentences to insert. Rewrite
 the argument when its structure fails; avoid accumulating qualifications,
 terminology definitions and responses to prior discussions.
 
+Use direct scientific prose: state the method, comparison and finding. Avoid
+repeated defensive disclaimers. Explain material limitations where they affect
+interpretation; keep software-version and run-provenance bookkeeping in the
+supplement or reproducibility documentation.
+
 Describe AAM as correspondence between two molecular endpoints. Introduce the
 algorithmic roles **base** and **target** in Methods: either endpoint can be the
 base, and reversing the search exchanges these roles. Use base/target consistently

@@ -124,7 +124,7 @@ Each locked fragment expresses a shared structural constraint, extended as far a
 
 \textbf{Vary the allowed connections.} A single-edge \emph{cut sweep} perturbs this commitment systematically. MAPPA searches the uncut graph and then repeats the search with each eligible base edge temporarily masked, including bonds to hydrogen. Each cut condition receives the requested number of seed orderings. Masking a connection inside the dominant region can expose a trajectory that ordinary seeding rarely reaches. The original endpoint weights remain unchanged for decoding: a mask alters discovery and does not assert a broken bond. Its endpoints may reconnect through another route, and one cut can redirect several later fragment choices.
 
-\textbf{Exchange the endpoints.} Exchanging the base and target adds further alternatives. Seeds, cuts and reverse searches broaden discovery without making it exhaustive. The same exploration principle can be applied to another mapper; our expanded SLAP protocol reaches approximately 97\% coverage, although its changes in both search scope and weight mode prevent a sweep-only attribution (\Cref{sec:paired-slap}).
+\textbf{Exchange the endpoints.} Exchanging the base and target adds further alternatives. Seeds, cuts and reverse searches broaden discovery without making it exhaustive. The same exploration principle also broadens SLAP's returned alternatives: the expanded protocol described in \Cref{sec:paired-slap} reaches approximately 97\% coverage.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig8_design_examples.pdf}
@@ -217,7 +217,7 @@ We evaluate all 1,851 Golden reactions~\citep{lin2022} and the prepared collecti
 
 The common settings are discovery tolerance $\tau_{\mathrm{iso}}=2$, presence/cut threshold $b=0.2$, hierarchical branch cap 100, random seed 42, both directions and the full single-edge sweep. Golden uses one and ten seed orderings per cut; EnzymeMap uses one. Decoding uses the original bond orders and empirical event thresholds of 0.5 for organic bonds and 0.3 for bonds involving a metal, with a five-second allowance per unique fragment and the best attained model count plus five. No reference mapping guides growth, pruning or starting-correspondence selection.
 
-A separate paired Golden study evaluates current one-seed MAPPA and pinned SLAPMapper on identical prepared inputs and one CPU model. We distinguish standard binary SLAP, called on the uncut graph, from an expanded protocol combining binary and weighted modes, both directions and every single-edge cut. The latter is our exploration wrapper, not default SLAP or its published benchmark. Its comparison with default SLAP changes both search scope and weight mode; it is not a sweep-only ablation. Both methods retain their original algorithms, and external evaluation applies the same chemical endpoint-equivalence rule. The saved seed study and paired study have separately recorded runs and source identities; their recovery counts are not pooled.
+We compare one-seed MAPPA with two SLAPMapper configurations on identical Golden inputs and the same CPU model. Standard SLAP uses the uncut binary graph; expanded SLAP combines binary and weighted modes with the full single-edge cut sweep. All three configurations run in both directions and use the same chemical endpoint-equivalence rule for reference verification.
 
 \subsection{Catalogue and decoded-reference verification}
 \label{sec:verification}
