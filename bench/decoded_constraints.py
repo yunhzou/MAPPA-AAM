@@ -37,7 +37,8 @@ class ProjectedChoices:
         self.event_count = z3.FreshInt('event_count') if isinstance(event_count, tuple) else event_count
         if isinstance(event_count, tuple):
             self.solver.add(self.event_count >= event_count[0], self.event_count <= event_count[1])
-        self.covered = self.domain_covered()
+        self.covered = (any(atom not in self.values or image not in self.values[atom][1]
+                            for atom, image in self.assignments.items()) or self.domain_covered())
         if self.covered:
             return
         constant = sum(int(np.asarray(row).sum()) for row in table.fixed_boundary.values())
@@ -51,7 +52,7 @@ class ProjectedChoices:
                     continue
                 a, b = (self.event_value(i) for i in term.atoms)
                 condition = self.pair_condition(a, b,
-                    lambda x, y: bool(response.lookup(table.index.p[x, y])))
+                    lambda x, y: abs(float(table.index.p[x, y]) - response.source_weight) > response.threshold)
                 terms.append(z3.If(condition, 1, 0))
         if table.sweep_cut is not None:
             constant -= int(table.boundary_events.source_cut_counted)

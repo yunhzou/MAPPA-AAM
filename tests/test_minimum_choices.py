@@ -79,6 +79,18 @@ def test_count_is_mapping_equivalence_not_branches_directions_or_hydrogens():
         ((0,0),(1,1)),((0,1),(1,0))}
 
 
+def test_exact_reference_outside_fragment_image_domain_is_absent():
+    r = endpoint('CCCC', [(0,1,1.),(1,2,1.),(2,0,1.),(2,3,3.)])
+    f = saved_fragment(AAMProblem(r,r), source_atoms=(0,1,2), target_atoms=(0,1,2))
+    decoded = decode_events(saved(r,r,{0:0,1:1,2:2},fragments=(f,)))
+    table = decoded.tables(0)
+    # Target 3 introduces a weight outside this fragment's prepared bond lookup.
+    # It is an impossible assignment, not an error in the saved result.
+    query = ProjectedChoices(table, (0,100), time.perf_counter()+5,
+                             assignments={0:3,1:1,2:2})
+    assert query.find() is None
+
+
 def test_reference_in_branch_is_not_reference_at_minimum():
     r = endpoint('CCC',[(0,1,1.),(1,2,2.)])
     p = endpoint('CCC',[(0,1,2.),(1,2,1.)])

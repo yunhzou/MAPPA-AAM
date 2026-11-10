@@ -649,10 +649,16 @@ previous report hash. Report both passes and their combined resource use.
 Use `--seconds 0` in the shared CLI to check existing candidate certificates
 without further membership search. Candidates that cannot be validated remain
 unknown; they are never counted as absent.
-The shared CLI exposes `--max-nodes` separately from `--seconds`; these are
-query resources, not mapping or decoding settings. Reports count node-limited
-and time-limited queries separately. Increasing only elapsed time cannot remove
-a search-node limit. Preserve the original pass when granting either allowance.
+The audit shares `decoded_constraints.py` with minimum-choice analysis. It encodes
+the saved ordered choices directly, constrains the annotated pairs, and tests
+the retained event interval. Fixed reference pairs simplify their bond-event
+terms before solving. This changes no saved start, symmetry, event count or
+window. A returned mapping is replayed and counted independently.
+The shared CLI exposes `--max-conflicts` separately from `--seconds`; these bound
+the external constraint query, not matching or decoding. An exhausted solver
+allowance remains unknown. Preserve earlier attempts when granting more time.
+Catalogue hints with different endpoint-equivalent labels are skipped before
+replay; the exact-reference query still runs.
 
 ## Replay fragment event responses
 
