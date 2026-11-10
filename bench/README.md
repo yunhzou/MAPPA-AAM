@@ -18,6 +18,11 @@ The manifest's `directions` contain `dataset`, `case`, `reversed`, `prior_status
 and checksummed `input` and `reference` bundle references. Input endpoints are
 already oriented for that direction; reference pairs retain the original frame.
 Include both directions exactly once per reaction. Omit `--slurm` locally.
+When the saved input/reference index-agreement flag is false, translate the
+reference through endpoint graph isomorphisms before anchoring. This preserves
+elements, charges, isotopes, hydrogen counts and exact bond orders; stereo labels
+are outside MAPPA's represented graph. Record both index frames and the complete
+translation, and reject nonmatching endpoint graphs.
 The existing pool guards each direction and aggregates outputs. Results retain
 the completed mapping, anchor checks, replay evidence, model and physical event
 counts, minimum proof status, any added heavy-atom pairs, and separate matching,

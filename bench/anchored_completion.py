@@ -24,6 +24,31 @@ SETTINGS = dict(seed_count=1, branch_limit=100, iso_tolerance=2,
                 random_seed=42, sweep_cuts=False)
 
 
+def reference_in_input_frame(reference):
+    """Translate separately indexed annotations before using them as anchors.
+
+    Preserve element, charge, isotope, hydrogen count and exact bond order.
+    Stereochemical labels do not enter MAPPA's endpoint graph representation.
+    """
+    if reference.get('input_reference_index_agrees', True):
+        return reference, None
+    from slap_audit import paired_graph, equivalent
+
+    def structural(features):
+        return [dict(heavy=f['heavy'], colors=[tuple(c[:4]) for c in f['colors']],
+                     bonds=[(a, b, (color[0],)) for a, b, color in f['bonds']])
+                for f in features]
+
+    transport = equivalent(paired_graph(structural(reference['features']), []),
+                           paired_graph(structural(reference['input_features']), []))
+    if transport is None:
+        raise ValueError('Reference endpoint graph differs from the prepared input')
+    mapping = [(transport[0, a][1], transport[1, b][1]) for a, b in reference['mapping']]
+    normalized = dict(reference, mapping=mapping, features=reference['input_features'])
+    return normalized, dict(original_mapping=reference['mapping'], input_mapping=mapping,
+                            endpoint_transports=sorted(transport.items()))
+
+
 def complete_reference(problem, reference, *, reverse=False, query_seconds=10.):
     """Preserve annotated pairs and audit an actual minimum-window witness."""
     anchors = tuple((b, a) if reverse else (a, b) for a, b in reference['mapping'])
@@ -106,8 +131,11 @@ def complete(payload, workspace):
     row = payload['row']
     problem = problem_from_record(read_blob(Blob(**row['input']), workspace.scratch))
     reference = read_blob(Blob(**row['reference']), workspace.scratch)
-    return complete_reference(problem, reference, reverse=row['reversed'],
-                              query_seconds=payload['query_seconds'])
+    reference, transport = reference_in_input_frame(reference)
+    result = complete_reference(problem, reference, reverse=row['reversed'],
+                                query_seconds=payload['query_seconds'])
+    result['reference_index_translation'] = transport
+    return result
 
 
 def run(manifest, output, *, workers=8, slurm=False, task_seconds=180., memory_gib=4.):
