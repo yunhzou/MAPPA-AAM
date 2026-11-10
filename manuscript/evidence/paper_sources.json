@@ -131,13 +131,13 @@
     {
       "snapshot": "minimum_choices.json",
       "source": "reports/golden_minimum_choices_20261108/README.md",
-      "scope": "Minimum-event choice summary; 1829 exact counts and 22 incomplete counts.",
+      "scope": "Historical heavy-mapping-class count; superseded in Figure 8 by recorded branch-composition counts.",
       "sha256": "cd4c594ba7901a0d4601e08ab18f4f57279a32ae35e9d364e106d29ebed89c0b"
     },
     {
       "snapshot": "minimum_choices_reactions.json.gz",
       "source": "reports/golden_minimum_choices_20261108/reactions.json.gz",
-      "scope": "All 1851 Golden choice-count outcomes; equivalent heavy mappings count once, original all-atom model score.",
+      "scope": "Historical heavy-mapping-class count; superseded in Figure 8 by recorded branch-composition counts.",
       "sha256": "4f91346b137ac2af6ddc8b17c140a19d63bc9567d5b290a6cc38d5c7c38da460"
     },
     {
@@ -157,6 +157,18 @@
       "sha256": "6d340ea09ea360cb335ff1d3e440a325ce2f088063b8e4de1b5fc1452bc9f09b",
       "source": "Final Golden and EnzymeMap decoded-reference certificates and saved anchored completions; reports/reference_event_offsets_20261107/README.md",
       "scope": "All 49,825 concrete GT-consistent mapping event counts minus saved detected minima; no additional optimization or lower-bound substitution."
+    },
+    {
+      "snapshot": "minimum_branches.json",
+      "source": "reports/golden_minimum_branches_20261110/summary.json",
+      "scope": "All 1851 Golden reactions; unique fragment atom-set compositions with recorded witnesses at the saved minimum; no additional search.",
+      "sha256": "113ef9288e5e6f109abaa02bf6de3b46651ca301430694c1c56a206e7b4aa526"
+    },
+    {
+      "snapshot": "minimum_branches_reactions.json.gz",
+      "source": "reports/golden_minimum_branches_20261110/reactions.json.gz",
+      "scope": "All 1851 Golden reactions; unique fragment atom-set compositions with recorded witnesses at the saved minimum; no additional search.",
+      "sha256": "6f6e1808e329990e6c7a159610396df62bf282826d57fa3b8063b4ac2ddc7fba"
     }
   ],
   "limits": "All current Golden and EnzymeMap decoded reaction memberships are resolved. Branch-event analysis has 49,509 exact offsets and 120 bounded intervals; no pending tasks are presented. September studies retain their original protocols."

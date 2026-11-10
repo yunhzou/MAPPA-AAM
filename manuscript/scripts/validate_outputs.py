@@ -83,14 +83,15 @@ assert (example['reference_count'],example['overall_minimum'],example['differenc
 golden_minima = {r['case']:r['detected_minimum'] for r in choice_rows}
 assert all(r['overall_minimum']==golden_minima[r['case']] for r in anchored['results'] if r['dataset']=='Golden')
 # Reference-supplied completions cannot become choices returned without anchors.
-choice_membership = {r['case']:r['reference_at_minimum'] for r in choice_rows}
+historical_choices = json.loads(gzip.decompress((E/'minimum_choices_reactions.json.gz').read_bytes()))
+choice_membership = {r['case']:r['reference_at_minimum'] for r in historical_choices}
 assert all(choice_membership[r['case']] is False for r in anchored['results'] if r['dataset']=='Golden')
 assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
 assert paired['coverage']['mappa']['recovered'] == 1839
 assert paired['coverage']['slap_sweep']['recovered'] == 1794
 assert paired['coverage']['slap_bidirectional']['recovered'] == 1620
-assert choices['full_scope_median_bounds'] == [1,1]
-assert choices['full_scope_p95_bounds'] == [3,3]
+assert choices['median'] == 31 and choices['p95'] == 120
+assert choices['maximum'] == 2250 and choices['additional_searches'] == 0
 from build_molecule_figure import check_example, check_design_examples
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
 assert read('design_examples.json') == check_design_examples()
@@ -196,7 +197,7 @@ r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];allt
 assert '??' not in alltext
 for value in ['1,833','1,842','47,796','47,798','99.629','49,825','1,630','44,086','88.06','91.90']:
  assert value in alltext,value
-for value in ['1,839','1,794','1,620','96.921','1,829','91.36','79.45']:
+for value in ['1,839','1,794','1,620','96.921','51.06','2,250']:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
 assert 'approximately linearly' in paper

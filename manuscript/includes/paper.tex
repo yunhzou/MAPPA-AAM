@@ -310,18 +310,18 @@ Each offset describes a concrete reference-consistent mapping, including its sav
 
 Anchored completion succeeds for all 196 previously absent references, included in \Cref{fig:reference-offsets}. The completed count equals the original detected minimum for nine Golden and 83 EnzymeMap cases; nine EnzymeMap completions lie two events below it. The remaining completions lie above the detected minimum, reaching offsets of 12 in Golden and six in EnzymeMap. Every supplied pair is preserved, and each selected completion's model count agrees with direct counting from the original bond matrices.
 
-\subsection{How many choices remain at the minimum?}
+\subsection{How many branches remain at the minimum?}
 \label{sec:minimum-choices}
 
-Minimum-event selection produces a compact shortlist from the original unanchored output (\Cref{fig:minimum-choices}). Among 1,829 Golden reactions with exact choice counts, 1,370 have one choice, 352 have two, 96 have three to five, and 11 have six or more. Their mean is 1.36 choices. Across all 1,851 reactions, the median is one and the 95th percentile is three, including the bounds on the remaining counts.
+Minimum-event selection retains multiple fragment compositions (\Cref{fig:minimum-choices}). Across all 1,851 Golden reactions, the recorded choices at the detected minimum contain a median of 31 distinct branches, a mean of 51.06 and a 95th percentile of 120. Eight reactions have one branch, while the largest count is 2,250. Each branch is identified by its collection of paired fragment atom sets; internal symmetry arrangements and repeated search histories count once.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=.88\linewidth]{figs/fig10_minimum_choices.pdf}
-\caption{\textbf{Distinct choices returned at the detected minimum.} Bars cover 1,829 one-seed Golden reactions with exact counts; the remaining 22 contribute bounds to full-dataset statistics. Equivalent heavy-atom relabellings and hydrogen permutations count once. Colors indicate whether these returned choices include the ground truth (GT); absence here does not imply absence at higher event counts. Choices come from the unanchored run; reference-anchored completions appear only in the event-offset analysis. The vertical axis is logarithmic.}
+\caption{\textbf{Branch compositions at the detected minimum.} Counts cover all 1,851 one-seed Golden reactions, combining both search directions. Each counted composition has a recorded witness attaining the saved detected minimum. Internal shuffles count once, and different fragment compositions remain distinct. The tally uses saved choices without further symmetry search. The vertical axis is logarithmic.}
 \label{fig:minimum-choices}
 \end{figure}
 
-The reference belongs to the minimum-event set in 91.36--91.46\% of Golden reactions. Selecting uniformly among the available minimum-event choices gives an expected accuracy of 78.31--79.45\%. For example, Golden case 1694 has eight minimum-event choices, including the reference, so a random selector succeeds with probability $1/8$. MAPPA exposes these alternatives for subsequent chemical selection. Recovering a reference missing from this shortlist may require higher-event alternatives or broader search.
+These branches expose alternative fragment constraints for subsequent selection or querying. Several compositions can support the same complete atom correspondence, so the branch count describes the retained representation rather than the number of chemically distinct mappings.
 
 \FloatBarrier
 \section{Discussion}

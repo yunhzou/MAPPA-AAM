@@ -21,13 +21,13 @@ means of 1.202, 12.475 and 0.111 CPU seconds, respectively; MAPPA decoding adds
 SLAP. The broader default-SLAP/MAPPA cohort and full-denominator outcomes remain
 separately reported. Do not pool this study with the saved seed comparison.
 
-At the saved one-seed detected minimum, 1,829 reactions have certified distinct
-heavy-mapping counts; 22 counts remain incomplete. The certified-subset mean is
-1.36, while the full-dataset median is one and its 95th percentile is three.
-Minimum-set reference inclusion is 1,691 confirmed, 158 absent and two unresolved.
-The expected accuracy of uniform selection is bounded at 78.31--79.45%; this is
-not a measured chemistry-aware top-1 predictor. Hydrogen choices do not multiply
-the counts, but the ranking score remains the saved all-atom model count.
+At the saved one-seed detected minimum, all 1,851 Golden reactions have recorded
+qualifying branch compositions. Median 31, mean 51.06, 95th percentile 120,
+maximum 2,250. Internal shuffles and repeated histories count once. This is a
+count of fragment atom-set compositions, not chemically distinct full mappings.
+The analysis makes no new symmetry queries or optimization calls. Figure 8 uses
+`minimum_branches.json` and `minimum_branches_reactions.json.gz`; older
+`minimum_choices` files remain historical evidence and no longer supply it.
 
 Figure 7 uses `reference_offsets.json.gz`: a verified GT-consistent mapping's
 event count minus the saved detected minimum, under the same all-atom decoder

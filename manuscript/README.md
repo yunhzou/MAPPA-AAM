@@ -73,11 +73,12 @@ and means **0.487/1.259 s**. Speed claims retain their protocol and denominator.
 The expanded wrapper changes weight mode and search scope; it is not a
 sweep-only ablation. All comparator verdicts passed an independent audit.
 
-Minimum-choice counting on the saved one-seed Golden outputs certifies **1,829**
-counts, leaving **22 incomplete**. The full-dataset median is one option and the
-95th percentile three; the certified-subset mean is **1.36**. Reference inclusion
-at the minimum is **91.36–91.46%**, and expected uniform-choice accuracy is
-**78.31–79.45%**. These are distinct from catalogue and event-window coverage.
+Minimum-event branch counting covers all **1,851 Golden reactions**. Distinct
+fragment compositions have a median of **31**, mean **51.06**, 95th percentile
+**120** and maximum **2,250**. Internal shuffles count once. The calculation uses
+saved choices without further search and takes **36.7 seconds** with eight
+processes. Branch compositions can overlap in their represented mappings, so
+these counts are not a random-selection accuracy measure.
 
 The paper reports approximately linear matching cost over the measured one-to-ten
 seed range and omits the cache-control comparison. No new experiments were run.
@@ -105,7 +106,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
-- `figs/fig10_minimum_choices.*`: distinct minimum-event mapping choices.
+- `figs/fig10_minimum_choices.*`: recorded branch compositions at the detected minimum.
 - `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 

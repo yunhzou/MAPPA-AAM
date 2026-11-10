@@ -183,20 +183,16 @@ weight modes relative to the standard forward-only call; its gain is not a
 sweep-only ablation. `evidence/paired_slap.json` retains the scientific summary
 and hashes of the full source report and independent verification audit.
 
-The [choice-count analysis](../reports/golden_minimum_choices_20261108/README.md)
-uses the saved one-seed Golden outputs, not the separate paired study's catalogue.
-It counts heavy-mapping chemical-equivalence classes at the saved all-atom
-detected minimum. A full hydrogen-compatible realization must exist, but hydrogen
-permutations do not multiply choices. Exactly 1,829 reaction counts are certified;
-22 remain incomplete. Mean choice count is reported on the certified subset,
-while full-scope quantiles and random-choice accuracy retain uncertainty bounds.
-The per-reaction evidence is `evidence/minimum_choices_reactions.json.gz`.
-Neither a count limit nor an unfinished membership query becomes absence.
-The anchored-completion audit does not modify these returned-choice sets.
-Nine of the 18 Golden anchored completions attain the original detected minimum,
-but none of the 18 reference classes was present in the original minimum-event
-choices. They contribute to the event-offset figures, not the independent
-choice counts or uniform-selection accuracy.
+The [branch-composition analysis](../reports/golden_minimum_branches_20261110/README.md)
+uses the original one-seed Golden outputs. It counts distinct collections of
+paired fragment atom sets with a recorded witness at the saved detected minimum.
+Internal atom permutations and repeated histories count once; distinct partitions
+remain distinct even if they support the same full mapping. All 1,851 reactions
+are represented. The count pass replays saved local choices and directly counts
+events, without symmetry queries or optimization. Evidence is in
+`evidence/minimum_branches.json` and `evidence/minimum_branches_reactions.json.gz`.
+The older heavy-mapping-class analysis is retained only as historical evidence.
+These branch counts do not imply uniform-selector accuracy.
 
 The constructed design figures are checked by direct pairwise bond comparison
 in `build_molecule_figure.py`. They are graph illustrations without hydrogen
