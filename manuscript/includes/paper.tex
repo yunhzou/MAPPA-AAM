@@ -194,11 +194,11 @@ A sweep masks one base bond. When its endpoints lie in different final fragments
 
 During branch assembly, MAPPA reuses the prepared responses to evaluate the two endpoint positions together, retaining their dependence on internal events and one-to-one occupancy. If both endpoints remain in one fragment, the same query uses that fragment's response. The associated contribution $s_{\mathcal B}$ ranges from zero to two events: a correspondence can preserve the connection, produce one bond change, or break one connection and form another. The sweep still masks only one bond; the event count describes the resulting correspondence across the two molecular endpoints.
 
-\subsubsection{The event window: refine the best count, then retain nearby branches}
+\subsubsection{The event window: retain mappings near the minimum}
 
-First establish the best attained branch count $U$. When attained local minima compose, the smallest pre-sweep composition $L$ can incur at most two additional events from the swept-bond boundary correction. Only branch compositions that could improve this $L+2$ result need refinement. If local searches are unfinished or their minima cannot be combined, retain the lower bounds and an actual witness upper bound; do not assume $L+2$ is attainable.
+The event window focuses decoding on mappings with few bond changes. MAPPA first adds the local fragment minima and fixed boundary contribution for each branch. Let $L$ be the smallest of these totals before resolving the swept bond. When the fragment minima can be combined, the sweep adds at most two events, giving an initial branch count no greater than $L+2$. Only branches whose lower bounds are at most $L+2$ need to be examined for a lower count. Their swept-bond contributions are evaluated using the prepared fragment responses.
 
-Next retain branches that could contribute within $U+n$: a branch is excluded only when its lower bound exceeds that threshold. The studies here use $n=5$. The result stores the retained branches, shared fragment responses, event window and minimum/proof status. A later query requests a mapping at a selected count or with specified atom pairs, returning a witness, established absence or an unresolved outcome under its allowance. A retained count interval does not assert that every count inside it is attainable.
+The lowest count found, $U$, sets the requested window $[U,U+n]$. MAPPA retains branches that could contribute mappings within this window and excludes any branch whose lower bound exceeds $U+n$. The studies here use $n=5$. Retained branches reference the shared fragment responses, allowing subsequent queries for mappings at a chosen event count or with specified atom correspondences.
 
 \subsection{Execution: parallel stages and shared computation}
 \label{sec:reuse-execution}
