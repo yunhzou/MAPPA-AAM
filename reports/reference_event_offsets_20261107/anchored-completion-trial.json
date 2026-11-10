@@ -487,5 +487,388 @@
   "core_algorithm_changed": false,
   "best_total_events": 6,
   "reference_heavy_events": 4,
-  "hydrogen_events": 2
+  "hydrogen_events": 2,
+  "timing_correction": "The original sweep trial timing named decoding measured decode_events construction only. Lazy minimum/window preparation was outside that timer, so total_decoding_cpu_seconds is not full decoding cost. The no-sweep repeat below includes window materialization.",
+  "without_sweep": {
+    "config": {
+      "seed_count": 1,
+      "branch_limit": 100,
+      "iso_tolerance": 2,
+      "random_seed": 42,
+      "sweep_cuts": false,
+      "event_slack": 5
+    },
+    "directions": [
+      {
+        "direction": "forward",
+        "timing": {
+          "search": {
+            "cpu_seconds": 0.003672999999999982,
+            "wall_seconds": 0.006980374921113253
+          },
+          "reduction": {
+            "cpu_seconds": 0.00033800000000000496,
+            "wall_seconds": 0.00033849989995360374
+          },
+          "decoding": {
+            "cpu_seconds": 0.00607000000000002,
+            "wall_seconds": 0.013078249990940094
+          }
+        },
+        "cut_count": 1,
+        "families": 1,
+        "model_minimum": 6,
+        "model_minimum_proven": true,
+        "model_minimum_lower_bound": 6,
+        "physical_events": 6,
+        "heavy_events": 4,
+        "hydrogen_events": 2,
+        "all_anchors_preserved": true,
+        "complete_injective_mapping": true,
+        "context": [
+          0,
+          0,
+          0
+        ],
+        "mapping": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            8,
+            5
+          ],
+          [
+            9,
+            9
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            11,
+            11
+          ],
+          [
+            12,
+            12
+          ],
+          [
+            13,
+            13
+          ],
+          [
+            14,
+            14
+          ]
+        ],
+        "events": [
+          {
+            "source": [
+              0,
+              1
+            ],
+            "target": [
+              2,
+              3
+            ],
+            "before": 2.0,
+            "after": 1.0,
+            "kind": "weakened",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              0,
+              5
+            ],
+            "target": [
+              2,
+              1
+            ],
+            "before": 0.0,
+            "after": 1.0,
+            "kind": "formed",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              1,
+              11
+            ],
+            "target": [
+              3,
+              11
+            ],
+            "before": 0.0,
+            "after": 1.0,
+            "kind": "formed",
+            "hydrogen": true
+          },
+          {
+            "source": [
+              3,
+              4
+            ],
+            "target": [
+              7,
+              8
+            ],
+            "before": 1.0,
+            "after": 2.0,
+            "kind": "strengthened",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              3,
+              5
+            ],
+            "target": [
+              7,
+              1
+            ],
+            "before": 1.0,
+            "after": 0.0,
+            "kind": "broken",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              4,
+              11
+            ],
+            "target": [
+              8,
+              11
+            ],
+            "before": 1.0,
+            "after": 0.0,
+            "kind": "broken",
+            "hydrogen": true
+          }
+        ],
+        "minimum_query_seconds": 0.000899250153452158
+      },
+      {
+        "direction": "reverse",
+        "timing": {
+          "search": {
+            "cpu_seconds": 0.0015160000000000173,
+            "wall_seconds": 0.0015322500839829445
+          },
+          "reduction": {
+            "cpu_seconds": 0.00019299999999999873,
+            "wall_seconds": 0.0001929581630975008
+          },
+          "decoding": {
+            "cpu_seconds": 0.0023980000000000112,
+            "wall_seconds": 0.002398666925728321
+          }
+        },
+        "cut_count": 1,
+        "families": 1,
+        "model_minimum": 6,
+        "model_minimum_proven": true,
+        "model_minimum_lower_bound": 6,
+        "physical_events": 6,
+        "heavy_events": 4,
+        "hydrogen_events": 2,
+        "all_anchors_preserved": true,
+        "complete_injective_mapping": true,
+        "context": [
+          0,
+          0,
+          0
+        ],
+        "mapping": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            8,
+            5
+          ],
+          [
+            9,
+            9
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            11,
+            11
+          ],
+          [
+            12,
+            12
+          ],
+          [
+            13,
+            13
+          ],
+          [
+            14,
+            14
+          ]
+        ],
+        "events": [
+          {
+            "source": [
+              0,
+              1
+            ],
+            "target": [
+              2,
+              3
+            ],
+            "before": 2.0,
+            "after": 1.0,
+            "kind": "weakened",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              0,
+              5
+            ],
+            "target": [
+              2,
+              1
+            ],
+            "before": 0.0,
+            "after": 1.0,
+            "kind": "formed",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              1,
+              11
+            ],
+            "target": [
+              3,
+              11
+            ],
+            "before": 0.0,
+            "after": 1.0,
+            "kind": "formed",
+            "hydrogen": true
+          },
+          {
+            "source": [
+              3,
+              4
+            ],
+            "target": [
+              7,
+              8
+            ],
+            "before": 1.0,
+            "after": 2.0,
+            "kind": "strengthened",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              3,
+              5
+            ],
+            "target": [
+              7,
+              1
+            ],
+            "before": 1.0,
+            "after": 0.0,
+            "kind": "broken",
+            "hydrogen": false
+          },
+          {
+            "source": [
+              4,
+              11
+            ],
+            "target": [
+              8,
+              11
+            ],
+            "before": 1.0,
+            "after": 0.0,
+            "kind": "broken",
+            "hydrogen": true
+          }
+        ],
+        "minimum_query_seconds": 0.0006318751256912947
+      }
+    ],
+    "revision": "8730b03725ba6995d53c2495f010f9e48d562e80",
+    "scientific_identity": "49126d589aa860de6ec842ef87044a4f40ad5b5959d903717655b71467191b5c",
+    "total_matching_cpu_seconds": 0.005720000000000003,
+    "total_decoding_cpu_seconds": 0.008468000000000031,
+    "matches_exact_conditional_minimum": true,
+    "matches_sweep_trial": true,
+    "timing_scope": "One local compute worker, both directions summed. Matching includes reduction. Decoding includes construction and materialization of the minimum-plus-five window. Witness query is recorded separately. Imports and startup excluded.",
+    "oracle": "The independent 720-permutation oracle retained above uses the identical input checksum and heavy anchors."
+  }
 }

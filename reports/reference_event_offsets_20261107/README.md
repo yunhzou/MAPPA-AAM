@@ -81,9 +81,11 @@ one O–H bond formed. Model and direct physical counts agree for these witnesse
 An independent check of all 720 hydrogen permutations, with the heavy mapping
 fixed, confirms the six-event minimum; four assignments attain it.
 
-Matching including reduction consumed 0.033438 CPU seconds across both directions;
-decoding consumed 0.001093 CPU seconds. Interpreter startup and imports are
-excluded. The independent 720-assignment check took 0.018340 CPU seconds and is
+Matching including reduction consumed 0.033438 CPU seconds across both directions.
+The originally reported 0.001093 CPU seconds measured decoder construction only;
+lazy minimum/window preparation was outside that timer, so it is not a full
+decoding measurement. Interpreter startup and imports are excluded.
+The independent 720-assignment check took 0.018340 CPU seconds and is
 not part of MAPPA runtime. This is one small-case feasibility trial, not a timing
 estimate for the full datasets.
 
@@ -91,3 +93,22 @@ estimate for the full datasets.
 lists, source identity, settings and stage timings. This completes a supplied
 reference; it does not measure independent reference recovery. The manuscript
 and benchmark coverage are unchanged.
+
+### One seed per direction without a cut sweep
+
+Repeating case 13175 with the same anchors and settings but `sweep_cuts=False`
+produced one retained family per direction. Each direction ran only the uncut
+condition and returned a complete 15-atom mapping preserving all nine heavy-atom
+anchors. Both still attained six events: four heavy-atom events and two hydrogen
+events, matching the independent exhaustive minimum and the earlier sweep trial.
+
+| CPU time, both directions summed | Seconds |
+|---|---:|
+| Matching, including reduction | 0.005720 |
+| Decoding, including minimum/window preparation | 0.008468 |
+
+Witness retrieval took a further 0.001531 seconds of elapsed time in total.
+These are single local measurements, excluding imports and startup. The sweep
+was unnecessary for this case; one case does not establish that every anchored
+completion reaches its minimum without it. The existing evidence file retains
+the no-sweep configuration, mappings, direct event checks and separate timings.
