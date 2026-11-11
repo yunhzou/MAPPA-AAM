@@ -313,7 +313,9 @@ Anchored completion succeeds for all 196 previously absent references, included 
 \subsection{How many reaction cores remain at the minimum?}
 \label{sec:minimum-choices}
 
-Different fragment compositions can describe the same bond changes. Grouping the saved minimum-event mappings by their reaction cores gives one observed pattern for 1,252 of the 1,851 Golden reactions (67.64\%; \Cref{fig:minimum-choices}). The median is one core, the mean is 2.97, and the 95th percentile is four. Most reactions therefore have few observed alternatives under this criterion, although a small tail reaches 522 cores.
+An event count describes how many bonds change, but does not identify those bonds. We define a \emph{reaction core} as the pattern of bonds that break, form, strengthen or weaken under a mapping, including changes involving hydrogen. For example, two mappings may each break one bond and form one bond, yet act on different atom pairs. They then describe different net transformations despite having the same event count. Mappings with the same bond-change pattern count as one core, after accounting for equivalent atom labels, even if they arise from different fragment compositions.
+
+We count these distinct patterns among the saved mappings at each reaction's detected minimum event count. In the one-seed Golden results, 1,252 of 1,851 reactions have one observed core (67.64\%; \Cref{fig:minimum-choices}). The median is one core, the mean is 2.97, and the 95th percentile is four; the largest count is 522. Thus, most reactions retain few observed bond-change alternatives at the minimum, while a small minority remain highly ambiguous.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=.88\linewidth]{figs/fig10_minimum_choices.pdf}
@@ -321,7 +323,7 @@ Different fragment compositions can describe the same bond changes. Grouping the
 \label{fig:minimum-choices}
 \end{figure}
 
-The remaining alternatives differ in their bond-change patterns, rather than merely in how the search partitioned the molecule. Equal event totals can thus retain distinct reaction cores for subsequent chemical selection. These are endpoint changes; they do not specify the sequence of elementary steps.
+Minimum-event selection can therefore leave several net transformations for subsequent chemical selection. A reaction core specifies endpoint bond changes; it leaves the sequence of elementary steps unspecified. The counts describe observed alternatives in the saved mappings, without further enumeration of internal symmetry choices.
 
 \FloatBarrier
 \section{Discussion}
