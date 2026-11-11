@@ -745,6 +745,29 @@ flowchart LR
 ## Local and distributed execution
 
 Simple local calls remain `search_aam`, `deduplicate` and `decode_events`.
+The public post-processing calls also accept the results of
+`search_aam_directions` as one input. `DirectionalResults` carries the forward
+and reverse values through reduction, decoding and optional reaction-core
+extraction, so callers do not orchestrate per-direction loops. The workflow
+API delegates to the existing single-direction scientific operations. It adds
+no scheduler, combined-direction decoder or alternative scientific algorithm.
+Each direction retains its own event window, atom frame and core identities;
+`event_count="minimum"` selects its own detected minimum. Only concrete
+mappings are inverted when requested in input order.
+
+Single-direction inputs retain their existing return types. Directional decoded
+results serialize to one versioned envelope containing their ordinary saved
+records, and restore without repeating matching or decoding. The workflow owns
+that envelope; core owns each scientific record.
+
+```mermaid
+flowchart LR
+    Directions[Directed matching results] --> ReduceAPI[deduplicate]
+    ReduceAPI --> DecodeAPI[decode_events]
+    DecodeAPI --> Decoded[Directional decoded results]
+    Decoded -->|Optional explicit call| CoreAPI[extract_reaction_cores]
+```
+
 `mappa.execution.WorkPool` exposes these operations through typed
 `MatchingResult`, `CatalogueResult` and `DecodingResult` handoffs. Execution
 strategy must not change scientific settings, task identities or results.
@@ -906,7 +929,7 @@ flowchart LR
 | Unique-fragment inventory and event decoding | `mappa_core/post_processing/decoder/` |
 | Persistent local/Slurm pool API | `execution/` |
 | Scheduling, task handoffs, recovery and storage | `mappa_core/core/scheduler/` |
-| Mapping analytics and external event/reference evaluation | `mappa_workflow/mapping_analytics/` |
+| Directional stage API, mapping analytics and external event/reference evaluation | `mappa_workflow/mapping_analytics/` |
 | Native scientific implementation and transport | `mappa_core/native/` |
 | Versioned persistence | `mappa_core/utils/io/` |
 | Explicit reaction-to-TS analysis | `mappa_workflow/ts_analytics/` |

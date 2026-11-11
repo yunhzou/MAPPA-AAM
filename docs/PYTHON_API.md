@@ -7,20 +7,41 @@ Install `python -m pip install -e ".[notebook]"` for the notebook, or `.` for th
 ## Default pipeline
 
 ```python
-from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam, deduplicate, decode_events
-from mappa.mappa_core.utils.io.records import decoded_events_record
+from mappa import (
+    AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam_directions,
+    deduplicate, decode_events, extract_reaction_cores,
+    decoded_events_record, decoded_events_from_record,
+)
 
-problem = AAMProblem(MolecularEndpoint(elements_R, xyz_R, wbo_R),
-                     MolecularEndpoint(elements_P, xyz_P, wbo_P))
-aam = search_aam(problem, AAMSearchConfig(iso_tolerance=1.0))
-catalogue = deduplicate(aam)
-decoded = decode_events(catalogue, threshold=0.5, metal_threshold=0.3, event_slack=6)
-print(decoded.minimum_events, decoded.event_window)
-witness = decoded.realize(0)
-model_counts = decoded.contributions(0)['counts']
-physical_events = decoded.evaluate(0)
+problem = AAMProblem(MolecularEndpoint(elements_a, xyz_a, wbo_a),
+                     MolecularEndpoint(elements_b, xyz_b, wbo_b))
+config = AAMSearchConfig(iso_tolerance=2.0, seed_count=1, branch_limit=100)
+
+matched = search_aam_directions(problem, config, direction="both", workers=1)
+catalogues = deduplicate(matched)  # Final matching subphase, across seeds/cuts.
+decoded = decode_events(catalogues, threshold=0.5, metal_threshold=0.3, event_slack=5)
+
+# Optional post-processing, explicitly separate from decoding.
+cores = extract_reaction_cores(decoded)
+minimum_cores = extract_reaction_cores(decoded, event_count="minimum")
+
+print(decoded.forward.minimum_events, decoded.reverse.minimum_events)
+print(cores.forward, cores.reverse)
+
+# Both directions in one record; JSON can write this directly to one file.
 record = decoded_events_record(decoded)
+restored = decoded_events_from_record(record)
 ```
+
+`deduplicate`, `decode_events` and `extract_reaction_cores` handle the supplied
+directions internally and return `DirectionalResults`. Access `.forward` or
+`.reverse`, or use `result["forward"]`. An unrequested direction has a `None`
+attribute and is absent from the mapping. Single-direction `AAMResult`, catalogue
+and `EventInterpretation` inputs keep their existing scalar return types.
+`decode_events(matched, ...)` also accepts the raw directional search results.
+Use the explicit reduction call above when the stages are scheduled separately.
+The example selects tolerance 2 and minimum + 5; library defaults remain
+tolerance 1 and minimum + 6.
 
 Reduction groups final reactant/product atom-set pairs within the fixed reaction
 and policy. It retains one original fragment per atom-set pair, with its witness,
@@ -118,13 +139,12 @@ This is verified local replay, not another sweep search or full decoding. It rep
 from mappa import search_aam_directions
 config = AAMSearchConfig(anchors=((r0, p0),), seed_count=1)
 runs = search_aam_directions(problem, config, direction="both", workers=1)
-for run in runs:
-    directed_decoding = decode_events(run.aam)
-    for fid in range(len(directed_decoding.catalogue.families)):
-        input_mapping = run.to_input_mapping(directed_decoding.realize(fid))
+decoded = decode_events(deduplicate(runs), event_slack=5)
+cores = extract_reaction_cores(decoded, event_count="minimum")
+input_mapping = cores.to_input_mapping(cores.reverse[0].mapping, direction="reverse")
 ```
 
-`direction` accepts `forward`, `reverse`, `both`, `smaller_first`, and `larger_first`. Size counts explicit atoms, including H. On ties smaller-first uses input R→P; larger-first uses the reverse. The example converts each direction separately; partial mappings use the same bond-difference rule. Both directions run sequentially under the same worker ceiling. Each direction has its own checkpoint directory when `intermediate_dir` is supplied. Anchors are always supplied in input R→P indexing and reversed automatically. Anchors constrain search, not just the displayed witness. The `reference` and `reused_native` backends accept anchors; the optional `shared_policies` backend currently rejects anchored searches.
+`direction` accepts `forward`, `reverse`, `both`, `smaller_first`, and `larger_first`. Size counts explicit atoms, including H. On ties smaller-first uses the input endpoint order; larger-first uses the reverse. The example converts one saved reverse witness to input order. Both directions run sequentially under the same worker ceiling. Each direction has its own checkpoint directory when `intermediate_dir` is supplied. Anchors are always supplied in input indexing and reversed automatically. Anchors constrain search, not just the displayed witness. The `reference` and `reused_native` backends accept anchors; the optional `shared_policies` backend currently rejects anchored searches.
 
 Keep compressed results in their search direction. Invert only concrete witnesses. Event IDs are direction-local: merging already reduced forward/reverse event classes is **not** an exact common-frame bidirectional decoder. That joint event quotient is not implemented; use the two directed results for audit. `plan_aam_search` remains the lightweight smaller-first planning API.
 
@@ -458,7 +478,7 @@ endpoints and additionally identify the original `event_problem`,
 from mappa import extract_reaction_cores
 
 cores = extract_reaction_cores(events)  # saved witnesses within the decoded window
-minimum_cores = extract_reaction_cores(events, event_count=events.minimum_events)
+minimum_cores = extract_reaction_cores(events, event_count="minimum")
 five_event_cores = extract_reaction_cores(events, event_count=5)
 
 for core in cores:
@@ -484,6 +504,19 @@ This function replays saved witnesses and groups their net changes. It does not
 search for additional internal symmetry choices, fill missing counts or infer
 elementary reaction pathways. Archives without saved branch counts are rejected.
 Call it explicitly after decoding; normal matching and decoding do not run it.
+
+For `DirectionalResults`, the same call returns `.forward` and `.reverse` core
+tuples. `event_count="minimum"` selects each direction's own detected minimum;
+an integer requests that count in each direction. Directional windows and event
+identities remain separate. With directional matching on transformed weights,
+pass the original input-order problem as `decode_events(..., event_problem=...)`;
+MAPPA exchanges its endpoints for reverse decoding automatically.
+
+The public `decoded_events_record` and `decoded_events_from_record` functions
+also handle `DirectionalResults`. They save both ordinary scientific records
+inside one `mappa.directional_decoded_events/v1` envelope. Single-direction
+records keep their existing schema. Load through these public functions to
+recover the same direction access and saved windows without further searches.
 
 `convert_fragments` and `refine_mapping` retain their existing hierarchical
 rematching behavior. They are separate from this model and are never invoked by

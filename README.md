@@ -97,13 +97,13 @@ Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molec
 The core workflow keeps matching, deduplication and decoding explicit:
 
 ```python
-from mappa import search_aam, deduplicate, decode_events
+from mappa import search_aam_directions, deduplicate, decode_events
 
-aam = search_aam(problem)       # Retained seed/cut search histories
-catalogue = deduplicate(aam)    # Families across all retained seeds and cuts
-decoded = decode_events(catalogue, event_slack=6)
+matched = search_aam_directions(problem, direction="both")
+catalogues = deduplicate(matched)  # Final matching subphase across seeds/cuts.
+decoded = decode_events(catalogues, event_slack=5)
 
-print(decoded.minimum_events, decoded.minimum_proven, decoded.event_window)
+print(decoded.forward.minimum_events, decoded.reverse.minimum_events)
 ```
 
 `problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
@@ -113,7 +113,7 @@ ordinary boundary contributions fixed, and resolves the single sweep correction.
 It finds the model minimum from local minima and considers compositions in
 lower-bound order. The default window runs from that minimum through minimum + 6;
 it does not enumerate all mappings or all attainable event counts. This is an
-approximate event model, not a global physical minimum. Use `decoded.evaluate`
+approximate event model, not a global physical minimum. Use `decoded.forward.evaluate`
 to check the physical events of a requested valid mapping.
 
 Optionally extract distinct reaction cores from the saved decoded witnesses:
@@ -122,12 +122,15 @@ Optionally extract distinct reaction cores from the saved decoded witnesses:
 from mappa import extract_reaction_cores
 
 cores = extract_reaction_cores(decoded)
-minimum_cores = extract_reaction_cores(decoded, event_count=decoded.minimum_events)
+minimum_cores = extract_reaction_cores(decoded, event_count="minimum")
 ```
 
 Each core contains its bond changes, representative mapping and supporting branch
 references. Symmetry-equivalent changes count once. This explicit post-processing
 call groups observed net changes; it does not search additional symmetry choices.
+`cores.forward` and `cores.reverse` expose each direction's results without a
+caller-written processing loop. Minimum-only selection uses each direction's
+detected minimum. Single-direction stage calls retain their existing return types.
 
 For many reactions, the [persistent work pool](docs/shared-execution.md) offers
 the same separate stages on local CPUs or inside one Slurm allocation, using RAM

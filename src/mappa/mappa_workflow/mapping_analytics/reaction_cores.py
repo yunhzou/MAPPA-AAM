@@ -2,6 +2,7 @@
 from dataclasses import dataclass, replace
 
 from mappa.mappa_core.post_processing.decoder.records import EventInterpretation
+from .api import DirectionalResults
 
 
 @dataclass(frozen=True)
@@ -39,11 +40,13 @@ class ReactionCore:
                                for a in pair if a in mapping}))
 
 
-def extract_reaction_cores(decoded: EventInterpretation, *, event_count=None):
+def extract_reaction_cores(decoded: EventInterpretation | DirectionalResults, *, event_count=None):
     """Group saved witnesses inside the decoded window by signed bond changes.
 
-    Pass event_count to restrict the lookup to one model count. Otherwise use
-    all recorded witnesses inside the window. Symmetry-equivalent event
+    Pass event_count to restrict the lookup to one model count, or 'minimum'
+    for each direction's detected minimum. Otherwise use all recorded witnesses
+    inside the window. Directional inputs return DirectionalResults, preserving
+    each direction's indexing and event identity. Symmetry-equivalent event
     patterns share a core even when fragment compositions differ. Each core
     retains its (family, partition, cut) references and a representative from
     the lowest recorded model count in that group.
@@ -52,9 +55,13 @@ def extract_reaction_cores(decoded: EventInterpretation, *, event_count=None):
     search or enumeration of internal shuffles. It reports observed cores, not
     every core attainable by the compressed responses or an elementary pathway.
     """
+    if isinstance(decoded, DirectionalResults):
+        return decoded._map(lambda value, _: extract_reaction_cores(value, event_count=event_count))
+    if event_count == 'minimum':
+        event_count = decoded.minimum_events
     if event_count is not None and (isinstance(event_count, bool)
                                    or not isinstance(event_count, int) or event_count < 0):
-        raise ValueError('event_count must be a nonnegative integer')
+        raise ValueError("event_count must be a nonnegative integer or 'minimum'")
     window = decoded.window
     if set(window.branch_minima) != set(window.contexts):
         raise ValueError('this archive lacks saved branch counts')
