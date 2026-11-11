@@ -1,5 +1,9 @@
 # MAPPA manuscript
 
+This directory is the single Overleaf-compatible source project. Edit `main.tex`
+and its `includes/` files here. `mappa_overleaf.zip` is a generated upload copy;
+no separate editable export is maintained.
+
 The Methods section opens with the complete workflow: grow a fragment, discover
 its placements, continue conditional branches, reduce repeated fragments and
 compositions, then decode bond events. Explicit Matching Stage and Decoding Stage subsections introduce the two
@@ -26,16 +30,18 @@ follow this convention.
 
 ## Current results
 
-| Study | Catalogue recovery | Saved decoded min+5 recovery | Decoded absent |
-|---|---:|---:|---:|
-| Golden, one seed | 1,834 / 1,851 | 1,833 / 1,851 | 18 |
-| Golden, ten seeds | 1,843 / 1,851 | 1,842 / 1,851 | 9 |
-| EnzymeMap, one seed | 47,798 / 47,974 | 47,796 / 47,974 | 178 |
+| Study | Reference recovery | Not recovered |
+|---|---:|---:|
+| Golden, one seed | 1,833 / 1,851 (99.028%) | 18 |
+| Golden, ten seeds | 1,842 / 1,851 (99.514%) | 9 |
+| EnzymeMap, one seed | 47,796 / 47,974 (99.629%) | 178 |
 
-All requested mapping and decoding outputs are available. Decoded verification
-uses exact annotated heavy-atom indices and replayed complete witnesses.
-Golden catalogue verification additionally allows endpoint chemical symmetry;
-EnzymeMap uses exact indices for both metrics. Catalogue evaluation has zero unresolved reactions in all three studies. Every reaction also has a definitive decoded-window outcome after the targeted verification closure. All positive checks require a full replayed mapping and an independent event count. Matching, decoding and their measured CPU times were unchanged.
+Coverage refers to verified mappings within the decoded minimum + 5 window.
+The check preserves annotated heavy-atom identities and requires a complete,
+replayed witness and an independent event count. Every reaction has a definitive
+outcome. The paper reports this single coverage measure; the underlying benchmark
+reports retain the full audit evidence. Matching, decoding and their measured
+CPU times are unchanged.
 
 Mean compute CPU seconds per reaction for matching (including reduction)
 and decoding are respectively **1.31 / 1.88**, **11.64 / 9.28**, and **4.41 / 8.75**
@@ -59,12 +65,12 @@ Indigo by reference coverage. A single prediction counts as a singleton candidat
 set. Current MAPPA scores, paired SLAP protocols and re-evaluated archived default
 outputs retain their provenance; only the paired study supports speed ratios.
 
-The separate paired study gives MAPPA catalogue coverage of **1,839/1,851**,
-expanded SLAP coverage of **1,794/1,851**, and standard bidirectional binary SLAP
-coverage of **1,620/1,851**. Default forward-only SLAP gives **85.95%** inclusion,
+Expanded SLAP covers **1,794/1,851** reactions and standard bidirectional binary
+SLAP covers **1,620/1,851**. Default forward-only SLAP gives **85.95%** inclusion,
 consistent with the original paper's **86.9%** on a different Golden version.
 The original score counts recovery among alternatives, not top-1 selection.
-These separate runs are not pooled with the seed-study table above.
+The paired study supplies the computational-cost comparison; Figure 9 reports
+timing only. MAPPA coverage comes from the completed decoded-output audits above.
 
 On 1,834 reactions completed by all paired protocols, mean search CPU is
 **0.111 s** for standard SLAP, **1.202 s** for MAPPA and **12.475 s** for the
@@ -99,7 +105,7 @@ The molecular overview appears on the first main-text page, in the Introduction.
 Other figures are placed at their first discussion where space permits, or on
 the adjacent page; the final PDF is checked against those citation locations.
 
-- `preprint.tex`: entry point; author list and supplied affiliations are retained.
+- `main.tex`: sole entry point; author list and supplied affiliations are retained.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
 - `includes/supplement.tex`: technical details and clearly separated archived studies.
 - `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
@@ -108,12 +114,12 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
 - [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
 - `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
-- `figs/fig6_current_benchmarks.*`: full-output catalogue coverage and matching/decoding CPU costs.
+- `figs/fig6_current_benchmarks.*`: decoded-output reference coverage and matching/decoding CPU costs.
 - `figs/fig7_reference_offsets.*`: verified GT-consistent mapping counts relative to the saved detected minimum, with one color per dataset.
 - `figs/fig12_reference_percentages.*`: appendix companion with each dataset normalized to 100%, using the same bins and logarithmic axis.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
-- `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
+- `figs/fig9_paired_slap.*`: paired comparator CPU costs.
 - `figs/fig10_minimum_choices.*`: observed reaction cores among saved minimum-event mappings.
 - `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
@@ -127,7 +133,7 @@ MANUSCRIPT_PYTHON=/path/to/python bash manuscript/scripts/build.sh
 
 The build regenerates figures and tables, compiles `manuscript.pdf`, validates
 numeric evidence and references, checks publication privacy, and writes
-`manuscript_bundle.zip`. It performs no matching or decoding. Visual inspection
+`mappa_overleaf.zip` directly from the same source project. It performs no matching or decoding. Visual inspection
 is recorded separately against the final PDF checksum.
 
 The decoder's ordinary-boundary model is approximate; its selected starting

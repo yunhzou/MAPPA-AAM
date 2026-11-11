@@ -11,6 +11,3 @@ build/
 __pycache__/
 # Unused example illustration from the original supplied template.
 /figs/phd072814s.pdf
-
-# Keep the compiled bibliography in the preprint source.
-!preprint.bbl

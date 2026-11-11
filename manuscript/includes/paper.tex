@@ -40,7 +40,7 @@ The two objectives can be combined by placing a selector after an alternative-ge
 For alternative generation, the computational challenge is to retain diverse correspondences without repeatedly searching and analyzing their shared structure. Choices among repeated groups can combine into many complete assignments, even when large parts of those assignments are identical. Enumerating each mapping separately repeats work and obscures which decisions distinguish the alternatives. An efficient representation must preserve those decisions while making their consequences for bond changes accessible. This motivates organizing the search around shared molecular fragments and their allowed rearrangements.
 \par\end{samepage}
 
-Here we introduce MAPPA, an alternative-generating mapper that treats atom correspondence as a constraint-search problem. Greedy growth discovers fragments compatible with both endpoints; placing one fragment restricts the choices available to the remaining atoms. Molecular symmetry represents rearrangements within these constraints compactly. A matching stage discovers fragment combinations, and a decoding stage relates their alternatives to bond events, reusing calculations across shared fragments. On Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}, the standard benchmark runs achieve reference coverage of 99.08\% and 99.63\%, with matching and decoding together averaging 3.19 and 13.16 CPU seconds per reaction, respectively. Broader search raises Golden coverage to 99.57\%. We also examine how many alternatives remain under a minimum-event preference, connecting coverage and computational cost to the subsequent task of choosing a mapping.
+Here we introduce MAPPA, an alternative-generating mapper that treats atom correspondence as a constraint-search problem. Greedy growth discovers fragments compatible with both endpoints; placing one fragment restricts the choices available to the remaining atoms. Molecular symmetry represents rearrangements within these constraints compactly. A matching stage discovers fragment combinations, and a decoding stage relates their alternatives to bond events, reusing calculations across shared fragments. On Golden~\citep{lin2022} and EnzymeMap~\citep{heid2023enzymemap}, the standard benchmark runs achieve reference coverage of 99.03\% and 99.63\%, with matching and decoding together averaging 3.19 and 13.16 CPU seconds per reaction, respectively. Broader search raises Golden coverage to 99.51\%. We also examine how many alternatives remain under a minimum-event preference, connecting coverage and computational cost to the subsequent task of choosing a mapping.
 
 \section{Methods}
 
@@ -217,14 +217,14 @@ We evaluate all 1,851 Golden reactions~\citep{lin2022} and the prepared collecti
 
 The common settings are discovery tolerance $\tau_{\mathrm{iso}}=2$, presence/cut threshold $b=0.2$, hierarchical branch cap 100, random seed 42, both directions and the full single-edge sweep. Golden uses one and ten seed orderings per cut; EnzymeMap uses one. Decoding uses the original bond orders and empirical event thresholds of 0.5 for organic bonds and 0.3 for bonds involving a metal, with a five-second allowance per unique fragment and the best attained model count plus five. No reference mapping guides growth, pruning or starting-correspondence selection.
 
-We compare one-seed MAPPA with two SLAPMapper configurations on identical Golden inputs and the same CPU model. Standard SLAP uses the uncut binary graph; expanded SLAP combines binary and weighted modes with the full single-edge cut sweep. All three configurations run in both directions and use the same chemical endpoint-equivalence rule for reference verification.
+We compare one-seed MAPPA with two SLAPMapper configurations on identical Golden inputs and the same CPU model. Standard SLAP uses the uncut binary graph; expanded SLAP combines binary and weighted modes with the full single-edge cut sweep. All three configurations run in both directions; the paired study supplies the computational-cost comparison.
 
-\subsection{Catalogue and decoded-reference verification}
+\subsection{Reference verification}
 \label{sec:verification}
 
-We report two external coverage measurements. \emph{Catalogue recovery} asks whether the reference belongs to the retained matching relation. \emph{Decoded recovery} requires an actual injective mapping from a saved starting correspondence and its joint symmetry choices, in a retained branch and event window. A positive certificate is replayed and its event count independently checked. A catalogue certificate may suggest a candidate, but cannot alone establish decoded membership.
+Coverage measures whether the annotated correspondence is present in MAPPA's decoded output within the minimum-plus-five event window. A recovered reference requires a concrete one-to-one mapping from a retained branch and its allowed symmetry choices. We replay that mapping and independently check its event count.
 
-The decoded audits preserve exact annotated heavy-atom indices and unmatched-heavy-atom requirements. Unannotated hydrogens must admit a feasible completion. Golden catalogue verification additionally permits endpoint chemical symmetries preserving charge, isotope, hydrogen count and stereochemistry; the Golden catalogue and decoded scores therefore differ in both representation and reference-equivalence policy. EnzymeMap uses exact indices for both. Recovery means inclusion in either search direction, not top-ranked prediction accuracy. Every reaction remains in the denominator, and unresolved queries remain separate from absence.
+For both datasets, the check preserves annotated heavy-atom identities and unmatched-heavy-atom requirements; unannotated hydrogens must admit a feasible completion. Recovery in either search direction counts once. This measures reference inclusion among alternatives, not top-ranked prediction accuracy. Every reaction remains in the denominator. Comparator evaluations additionally allow chemically equivalent endpoint labels, preserving charge, isotope, hydrogen count and stereochemistry.
 
 \subsection{Timing and reference-event analysis}
 \label{sec:measurement}
@@ -248,28 +248,28 @@ We separately count the distinct reaction cores observed among saved mappings at
 \label{sec:reference-coverage}
 \label{sec:method-coverage}
 
-MAPPA recovers 1,834 of 1,851 Golden references with one seed (99.082\%) and 1,843 with ten seeds (99.568\%). On EnzymeMap, one seed recovers 47,798 of 47,974 references (99.633\%; \Cref{tab:current-coverage,fig:current-benchmarks}). Coverage measures reference inclusion among the returned alternatives. Matching, decoding and reference evaluation are complete for both datasets.
+MAPPA recovers 1,833 of 1,851 Golden references with one seed (99.028\%) and 1,842 with ten seeds (99.514\%). On EnzymeMap, one seed recovers 47,796 of 47,974 references (99.629\%; \Cref{tab:current-coverage,fig:current-benchmarks}). These references occur within the decoded minimum-plus-five event window. Matching, decoding and reference evaluation are complete for both datasets.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig6_current_benchmarks.pdf}
-\caption{\textbf{Reference coverage and computational cost.} (a) Reference inclusion in the complete matching output. (b) Mean CPU seconds per reaction for matching, including reduction, and decoding. Both directions and the full cut sweep contribute; publication and external verification are excluded.}
+\caption{\textbf{Reference coverage and computational cost.} (a) Reference inclusion in the decoded minimum-plus-five event window. (b) Mean CPU seconds per reaction for matching, including reduction, and decoding. Both directions and the full cut sweep contribute; publication and external verification are excluded.}
 \label{fig:current-benchmarks}
 \end{figure}
 
 \begin{table}[H]
 \centering\small
-\caption{\textbf{Reference coverage on Golden and EnzymeMap.} Catalogue coverage measures the complete matching output; decoded coverage measures the saved minimum-plus-five event window. Golden catalogue evaluation permits chemical endpoint equivalence, whereas decoded evaluation uses exact annotated indices. EnzymeMap uses exact indices for both. Percentages use all reactions.}
+\caption{\textbf{Reference coverage on Golden and EnzymeMap.} A reference is recovered when a verified mapping occurs within the decoded minimum-plus-five event window in either direction. Percentages use all reactions.}
 \label{tab:current-coverage}
 \input{includes/generated-current-coverage-table}
 \end{table}
 
-The decoded minimum-plus-five window retains 1,833 Golden references with one seed, 1,842 with ten, and 47,796 EnzymeMap references. Ten seeds recover nine additional Golden references without losing any recovered by one seed. The wider exploration therefore improves coverage even when the same decoding window is retained.
+Ten seeds recover nine additional Golden references without losing any recovered by one seed. Wider exploration therefore improves coverage while retaining the same decoding window.
 
 \Cref{tab:method-coverage} compares Golden coverage across methods. A single prediction is treated as a candidate set of size one. MAPPA achieves the highest coverage among the evaluated methods. LocalMapper has the highest coverage among the evaluated single-answer interfaces at 86.71\%, followed by Chython at 84.33\% and RXNMapper at 83.58\%~\citep{chen2024,chython,schwaller2021}. Default binary SLAP covers 85.95\%; combining binary and weighted modes with both search directions and the cut sweep raises its coverage to 96.92\%. These results show the value of broader correspondence discovery before selecting one answer.
 
 \begin{table}[!htbp]
 \centering\small
-\caption{\textbf{Golden reference coverage across AAM methods.} All methods are evaluated over 1,851 reactions using chemical endpoint equivalence. Coverage counts reference inclusion anywhere in the returned output; a single prediction is a singleton set. MAPPA uses the full one- and ten-seed studies. Expanded SLAP includes both weight modes, both directions and the cut sweep.}
+\caption{\textbf{Golden reference coverage across AAM methods.} All methods are evaluated over 1,851 reactions. Coverage counts reference inclusion among returned alternatives; a single prediction is a singleton set. MAPPA uses the decoded minimum-plus-five output of the full one- and ten-seed studies. Reference checks follow \Cref{sec:verification}. Expanded SLAP includes both weight modes, both directions and the cut sweep.}
 \label{tab:method-coverage}
 \input{includes/generated-method-coverage-table}
 \end{table}
@@ -288,11 +288,11 @@ One-seed MAPPA requires an average of 3.19 CPU seconds per Golden reaction: 1.31
 
 Increasing Golden from one to ten seeds raises matching cost by 8.87-fold and decoding cost by 4.95-fold. Matching scales approximately linearly with seed count over this range. Decoding grows less because repeated fragments and branch compositions share their event responses. The additional exploration recovers nine more references at an average total cost of 20.92 CPU seconds per reaction.
 
-The paired SLAP comparison illustrates the coverage--cost trade-off (\Cref{fig:paired-slap}). Standard binary SLAP is fastest. MAPPA achieves higher coverage than expanded SLAP while requiring less computation, including its separate decoding stage. Detailed measurement scopes are given in \Cref{sec:reproducibility}.
+The paired timing study compares computational cost on the same inputs and CPU model (\Cref{fig:paired-slap}). Standard binary SLAP is fastest. MAPPA requires less computation than expanded SLAP, including its separate decoding stage. Detailed measurement scopes are given in \Cref{sec:reproducibility}.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=\linewidth]{figs/fig9_paired_slap.pdf}
-\caption{\textbf{Coverage and cost under paired evaluation.} (a) Reference coverage over all 1,851 Golden reactions in the paired study. Standard SLAP is binary and uncut; expanded SLAP combines binary and weighted modes with the cut sweep. All protocols use both directions. (b) Mean CPU time on the 1,834 reactions completed by all protocols, measured on the same CPU model. MAPPA search and decoding are separate; the time axis is logarithmic.}
+\caption{\textbf{Computational cost under paired evaluation.} Mean CPU time on the 1,834 Golden reactions completed by all protocols, measured on the same CPU model. Standard SLAP is binary and uncut; expanded SLAP combines binary and weighted modes with the cut sweep. All protocols use both directions. MAPPA matching and decoding are shown separately; the time axis is logarithmic.}
 \label{fig:paired-slap}
 \end{figure}
 

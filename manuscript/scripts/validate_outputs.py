@@ -156,9 +156,16 @@ sources=json.loads((E/'paper_sources.json').read_text())
 assert sources['historical_campaign']['fresh_campaign_complete']
 for row in sources['snapshots']:
  assert hashlib.sha256((E/row['snapshot']).read_bytes()).hexdigest()==row['sha256'],row['snapshot']
-tex=(MAN/'preprint.tex').read_text()+'\n'+'\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in ['paper.tex','supplement.tex','include-abstract.tex'])
+tex=(MAN/'main.tex').read_text()+'\n'+'\n'.join(p.read_text() for p in (MAN/'includes').glob('*.tex') if p.name in ['paper.tex','supplement.tex','include-abstract.tex'])
 for obsolete in ['Adaptive no-sweep','Separate experimental versions','Holdout follow-ups','earlier publication engine','N_{\\mathrm{order\\ changed}}']:
  assert obsolete not in tex,obsolete
+assert not (MAN/'preprint.tex').exists()
+assert not (MAN/'manuscript_bundle.zip').exists()
+assert 'catalogue coverage' not in tex.lower()
+coverage_table=(MAN/'includes/generated-current-coverage-table.tex').read_text()
+assert 'Catalogue' not in coverage_table
+for study in current['studies']:
+ assert f"{study['decoded']['recovered']:,}" in coverage_table
 paper=(MAN/'includes/paper.tex').read_text()
 supplement=(MAN/'includes/supplement.tex').read_text()
 stages=['matching-rules','growth','completion','branching','cut-sweep','reduction','decoding','verification']
@@ -198,13 +205,13 @@ for fig in figs:
  p=MAN/fig
  assert len(PdfReader(p).pages)==1
  for ext in ['svg','png']:assert p.with_suffix('.'+ext).is_file()
-log=(MAN/'build/preprint.log').read_text()
+log=(MAN/'build/main.log').read_text()
 assert not re.search(r'(?:Citation|Reference).*undefined|There were undefined|Overfull \\[hv]box|Missing character:',log), 'Inspect TeX log'
 r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];alltext='\n'.join(pages)
 assert '??' not in alltext
-for value in ['1,833','1,842','47,796','47,798','99.629','49,825','1,630','44,086','88.06','91.90']:
+for value in ['1,833','1,842','47,796','99.629','49,825','1,630','44,086','88.06','91.90']:
  assert value in alltext,value
-for value in ['1,839','1,794','1,620','96.921',f"{choices['mean']:.2f}",f"{choices['single_choice']:,}"]:
+for value in ['1,794','1,620','96.921',f"{choices['mean']:.2f}",f"{choices['single_choice']:,}"]:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
 assert 'approximately linearly' in paper
@@ -231,7 +238,7 @@ assert 'first-returned' not in alltext.lower()
 main_comparison=(MAN/'includes/generated-method-coverage-table.tex').read_text()
 assert 'Unresolved' not in main_comparison
 assert main_comparison.count('Single mapping')==5
-for count in [1834,1843,1794,1620,1591,1547,1605,1561,692,1030]:
+for count in [1833,1842,1794,1620,1591,1547,1605,1561,692,1030]:
  assert f'{count:,} ({100*count/1851:.2f}' in main_comparison
 comparison=(MAN/'includes/generated-competitor-table.tex').read_text()
 assert comparison.count('MAPPA &')==5
@@ -261,7 +268,7 @@ assert '--' not in comparison
 for fig in figs:
  figure_text=PdfReader(MAN/fig).pages[0].extract_text()
  if fig.endswith('fig6_current_benchmarks.pdf'):
-  for label in ['99.082','99.568','99.633','Matching','Decoding']:
+  for label in ['99.028','99.514','99.629','Matching','Decoding']:
    assert label in figure_text,label
  elif fig.endswith('fig7_reference_offsets.pdf'):
   for label in ['Golden','EnzymeMap','1,851','47,974',

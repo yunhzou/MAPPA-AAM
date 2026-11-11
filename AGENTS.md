@@ -8,6 +8,11 @@ Keep explanations and documentation short, plain, and understandable to research
 
 ### 1.1 Paper writing
 
+Keep one manuscript source: the Overleaf-compatible project at
+`manuscript/main.tex`, with its shared `includes/`, `assets/` and `figs/`.
+Edit that project directly. `mappa_overleaf.zip` is its generated export, not
+another editable copy. Do not restore parallel manuscript trees or entry points.
+
 Keep the abstract focused on the problem, contribution, implications and main
 results. Mention the central approach only briefly, using accessible concepts
 such as shared molecular fragments. Do not introduce detailed methodology,
@@ -95,7 +100,9 @@ claim; move details that interrupt that explanation to supporting material.
 
 Compare methods in the main Results by reference coverage over their returned
 outputs, treating a single prediction as a singleton candidate set. Distinguish
-this comparison from ranking accuracy and bounded decoded-window audits. Use a
+coverage from ranking accuracy and state the evaluated output scope. The current
+paper uses verified decoded minimum-plus-five coverage as its single MAPPA
+coverage metric; separate catalogue audits remain in the benchmark evidence. Use a
 molecular alternatives example early in the Introduction to motivate the output
 objective, rather than leaving it at the end of Results.
 

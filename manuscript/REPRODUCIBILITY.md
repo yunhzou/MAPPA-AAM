@@ -14,9 +14,9 @@ pdftoppm -scale-to 1400 -png manuscript/manuscript.pdf manuscript/build/page
 
 Python dependencies are in `requirements-build.txt`; Tectonic and Poppler are
 also required. The build checks evidence hashes, numeric totals, citations,
-figure inclusion and publication privacy. The compact bundle includes the
-source, checked evidence and figure builders. A visual-review record is included
-only when its checksum matches the final PDF.
+figure inclusion and publication privacy. The Overleaf export contains the same `main.tex`, shared source files and
+figure PDFs used for the local build. Evidence and figure builders remain in
+this repository. The visual-review record identifies the final PDF checksum.
 
 ## Scientific settings
 
@@ -53,12 +53,14 @@ reused; snapshot conversion is separately measured and is not search time.
 These full matching passes predate indexed containment reuse. Their cache-hit
 ratios must not be attributed to the later cache implementation.
 
-Catalogue recovery is 1,834/1,851 with one seed and 1,843/1,851 with ten, with
-zero unresolved reactions. These are the primary full-output coverage scores. Its
-endpoint chemical-equivalence policy preserves charge, isotope, H count and
-stereochemistry. Exact-index decoded recovery is separately 1,833 with one seed and 1,842 with ten; every reaction is resolved. The final targeted closure uses external-verifier revision `dc92f469269f0e1dfcf0db9f76abd7ed19136903`, with unchanged saved mapping and decoding outputs. It reuses shared fragment feasibility and encodes the saved symmetry actions separately while preserving their joint ordered effect. Earlier bounded attempts remain recorded. Each positive has an injective, replayed witness and an independently counted event total inside the saved window. One ten-seed directional
-catalogue timeout remains in its attempt history; the opposite direction
-resolves that reaction's membership.
+Reference recovery within the decoded minimum + 5 window is **1,833/1,851**
+with one seed and **1,842/1,851** with ten. Every reaction has a definitive
+outcome. Verification preserves exact annotated heavy-atom indices and permits
+completion of unannotated hydrogens. The final targeted closure uses
+external-verifier revision `dc92f469269f0e1dfcf0db9f76abd7ed19136903`, with
+unchanged saved mapping and decoding outputs. Each positive has an injective,
+replayed witness and an independently counted event total inside the saved window.
+The benchmark report preserves the complete external-audit history.
 
 ## EnzymeMap evidence
 
@@ -71,12 +73,13 @@ source/engine identity is
 `ba841d410beb9356c1bf1d86c9c34467a42e06d9e82a66cfd45c4aa65fa92e6b`.
 The final external decoded audit uses `91eea28`.
 
-Exact-index catalogue recovery is 47,798 reactions. Saved decoded min+5 recovery
-is 47,796, with 178 absent and no unresolved reaction-level outcomes after
-combining direct queries with conclusive catalogue absence. The 250 bounded
-unknown direction queries remain recorded as unknown. All 94,820 positive
+Reference recovery within the saved minimum + 5 window is **47,796/47,974**,
+with 178 absent and no unresolved reaction-level outcomes. All 94,820 positive
 direction certificates passed replay, injectivity and independent counting.
-The two additional catalogue references are excluded by the saved event window.
+Negative outcomes require conclusive exclusion: 133 were established by direct
+decoded queries and 45 by exclusion from the containing matching relation.
+Bounded unknown direction queries remain recorded separately and are never
+relabeled as direct negative answers. The source report retains this evidence.
 
 The accepted independent-fragment model differs from the physical whole-reaction
 count for 2,801 positive directional witnesses. Decoded coverage refers to the
@@ -92,7 +95,7 @@ manuscript rewrite.
 fragment discovery, reduction and decoding. Published matching time sums discovery
 and reduction; reduction is a subphase, not a separate scientific stage. Means
 divide the sum over both directions by the reaction denominator. Stage input loading and result construction are
-included. Publication, external catalogue/decoded audits, diagnostics and
+included. Publication, external verification, diagnostics and
 historical failed attempts are separate. Medians of stages are not additive.
 CPU is accumulated computation, not parallel elapsed latency.
 

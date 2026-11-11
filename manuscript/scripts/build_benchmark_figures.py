@@ -168,15 +168,15 @@ def build(man):
     fig, (coverage, cost) = plt.subplots(1, 2, figsize=(10.2, 4.1), layout='constrained',
                                         gridspec_kw={'width_ratios': [1.35, 1]})
     for y, study in enumerate(studies):
-        found = study['catalogue']['recovered']
+        found = study['decoded']['recovered']
         percent = 100*found/study['reactions']
         coverage.barh(y, percent, height=.36, color=colors[0])
         coverage.text(2, y, f"{found:,} / {study['reactions']:,}  ({percent:.3f}%)",
                       color='white', weight='bold', va='center', fontsize=9)
-        coverage.text(1, y+.29, f"{study['catalogue']['not_recovered']:,} not recovered", fontsize=8, color='#586974')
+        coverage.text(1, y+.29, f"{study['decoded']['not_recovered']:,} not recovered", fontsize=8, color='#586974')
     coverage.set(yticks=range(3), yticklabels=labels, xlim=(0, 102), ylim=(2.65, -.5),
                  xlabel='Confirmed reactions (%)', xticks=[0, 25, 50, 75, 100])
-    coverage.set_title('a  Full-output reference coverage', loc='left', weight='bold', pad=12)
+    coverage.set_title('a  Reference coverage · minimum + 5', loc='left', weight='bold', pad=12)
     left = np.zeros(3)
     stages = [(('matching', 'deduplication'), 'Matching', colors[0]),
               (('decoding',), 'Decoding', colors[2])]
@@ -206,8 +206,7 @@ def build(man):
         def rate(count):
             return f"{count:,} ({100*count/study['reactions']:.3f}\\%)"
         coverage_rows.append(' & '.join([name, f"{study['reactions']:,}",
-            rate(study['catalogue']['recovered']), rate(study['decoded']['recovered']),
-            str(study['decoded']['not_recovered'])])+r'\\')
+            rate(study['decoded']['recovered']), str(study['decoded']['not_recovered'])])+r'\\')
         matching, reduction, decoding = [study['cpu_seconds'][s]/study['reactions']
                                          for s in ('matching', 'deduplication', 'decoding')]
         timing_rows.append(' & '.join([name, *[f'{v:.2f}' for v in
@@ -216,20 +215,22 @@ def build(man):
         text = r'\begin{tabular}{'+columns+r'}\toprule'+'\n'+header+r'\\\midrule'+'\n'
         text += '\n'.join(rows)+'\n'+r'\bottomrule\end{tabular}'+'\n'
         (man/'includes'/name).write_text(text)
-    table('generated-current-coverage-table.tex', 'lrrrr',
-          r'Study & Reactions & Catalogue & Decoded & \shortstack{Decoded\\absent}', coverage_rows)
+    table('generated-current-coverage-table.tex', 'lrrr',
+          'Study & Reactions & Recovered & Not recovered', coverage_rows)
     table('generated-current-timing-table.tex', 'lrrr',
           'Study & Matching & Decoding & Total', timing_rows)
     paired, _, _ = comparison_evidence(man)
     competitors = json.loads((man/'evidence/competitors.json').read_text())
     method_rows = []
     def method_row(name, setting, output, found):
-        method_rows.append(' & '.join([name, setting, output,
-            f'{found:,} ({100*found/1851:.2f}\\%)'])+r'\\')
+        fields = [name, setting, output, f'{found:,} ({100*found/1851:.2f}\\%)']
+        if name == 'MAPPA':
+            fields = [r'\textbf{'+value+'}' for value in fields]
+        method_rows.append(' & '.join(fields)+r'\\')
     for study in studies:
         if study['dataset'] == 'Golden':
             setting = f"{study['seeds']} seed"+('s' if study['seeds'] > 1 else '')+', sweep'
-            method_row('MAPPA', setting, 'Families', study['catalogue']['recovered'])
+            method_row('MAPPA', setting, 'Families', study['decoded']['recovered'])
     for key, setting in [('slap_sweep', 'Expanded sweep'),
                          ('slap_bidirectional', 'Binary, both directions')]:
         result = paired['coverage'][key]
@@ -265,21 +266,7 @@ def comparison_evidence(man):
 
 def build_comparisons(man, save):
     paired, choices, rows = comparison_evidence(man)
-    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.3), layout='constrained',
-                             gridspec_kw={'width_ratios': [1.25, 1]})
-    coverage, timing = axes
-    policies = [('mappa', 'MAPPA sweep', '#087F8C'),
-                ('slap_sweep', 'SLAP expanded sweep', '#CB702A'),
-                ('slap_bidirectional', 'SLAP binary, uncut', '#586974')]
-    for y, (key, label, color) in enumerate(policies):
-        result = paired['coverage'][key]
-        rate = 100*result['recovered']/paired['reactions']
-        coverage.barh(y, rate, height=.4, color=color)
-        coverage.text(2, y, f"{result['recovered']:,} / 1,851  ({rate:.2f}%)", va='center',
-                      color='white', weight='bold', fontsize=9)
-    coverage.set(yticks=range(3), yticklabels=[item[1] for item in policies], xlim=(0, 102),
-                 ylim=(2.6, -.55), xlabel='Reference inclusion (%)')
-    coverage.set_title('a  All 1,851 reactions · both directions', loc='left', weight='bold')
+    fig, timing = plt.subplots(figsize=(8.2, 3.3), layout='constrained')
     stages = [('slap_standard', 'SLAP binary, uncut', '#586974'),
               ('mappa_search', 'MAPPA search', '#087F8C'),
               ('mappa_decode', 'MAPPA decoding', '#77559B'),
@@ -291,10 +278,9 @@ def build_comparisons(man, save):
     timing.set_xscale('log')
     timing.set(yticks=range(4), yticklabels=[item[1] for item in stages],
                xlim=(.03, 40), ylim=(3.6, -.55), xlabel='Mean CPU s / reaction (log scale)')
-    timing.set_title('b  Same 1,834 completed reactions', loc='left', weight='bold')
-    for ax in axes:
-        ax.grid(axis='x', alpha=.15)
-        ax.set_axisbelow(True)
+    timing.set_title('Same 1,834 completed reactions · both directions', loc='left', weight='bold')
+    timing.grid(axis='x', alpha=.15)
+    timing.set_axisbelow(True)
     save(fig, 'fig9_paired_slap')
 
     bounds = [1, 2, 3, 4, 5, 10, float('inf')]
