@@ -25,24 +25,17 @@ retaining different correspondences.
 ## Author decisions remaining before submission
 
 1. Corresponding authors, contributions and competing interests.
-2. Selection/provenance, electronic-structure method and redistribution permission
-   for the 140 archived coordinate/WBO pairs.
-3. Permanent data/archive identifiers if required.
-4. Applicability of the expanded acknowledgements and funding statements supplied
+2. Permanent data/archive identifiers if required.
+3. Applicability of the expanded acknowledgements and funding statements supplied
    in `f095f30a00d5e01e5ad79da2f47201123b2463b8`. Preserve that supplied text pending
    author confirmation; do not invent missing roles or declarations.
 
 ## Results and interpretation
 
-The main evidence now covers Golden one/ten seeds and completed EnzymeMap at
-tolerance 2 and cap 100, with decoded min+5 windows. Catalogue and decoded
-membership have different representation scopes; Golden also uses different
-reference-equivalence policies. Catalogue evaluation is complete with zero
-unresolved reactions. Report its coverage as the primary full-output comparison;
-use the completed exact-index decoded audit separately,
-with every reaction resolved.
-EnzymeMap's conclusive reaction accounting includes separately justified absence
-from the containing catalogue. Never turn a timed-out query into direct absence.
+The current paper uses decoded minimum-plus-five coverage only: 1,833/1,851
+Golden reactions with one seed, 1,842/1,851 with ten, and 47,796/47,974 EnzymeMap
+reactions. Every reaction has a conclusive outcome. The full certificate and
+exclusion records remain in the benchmark reports.
 
 The Results follow four topics: dataset/method coverage, computational cost and
 seed scaling, reference-mapping event offsets, and choices at the minimum. Keep
@@ -71,18 +64,16 @@ reports approximately linear seed scaling and omits the cache-control comparison
 EnzymeMap timings combine successful original work and recoveries. Do not claim
 a uniform final-version rerun or uninterrupted elapsed time.
 
-The separately paired current SLAP study compares the same inputs and CPU model.
-It supports catalogue coverage of 1,839/1,851 for MAPPA and 1,794/1,851 for expanded
-SLAP, with timing on explicitly common completed cohorts. Default SLAP is faster;
-MAPPA search is cheaper than the expanded sweep. The expanded protocol changes
-both weight mode and search scope, so its gain is not a sweep-only ablation.
-SLAP's published 86.9% is inclusion among alternatives on a 1,758-reaction version;
-our 1,851-reaction reproduction is similar, not an exact dataset replication.
+The paired SLAP study supplies controlled timing on the same inputs and CPU
+model; its separate MAPPA catalogue score is not a second coverage metric in the
+paper. Minimum-choice analysis counts observed reaction cores in saved witnesses
+for all 1,851 Golden reactions, without additional symmetry enumeration.
 
-Minimum-choice counts use the saved one-seed decoded results, not the paired
-study. Keep the 22 unfinished counts and two unresolved minimum-set memberships
-explicit. Uniform-choice accuracy is a bounded expectation under that selector,
-not observed top-1 accuracy or evidence of superiority over another top-1 method.
+The appendix contains current algorithm details and pseudocode, the molecular
+example checks, benchmark settings, timing and event-analysis definitions, and
+the percentage event-offset figure. Superseded benchmarks, old failure analyses,
+extra timing cohorts and operational protocols are excluded. Preserve their
+source records in Git without packaging them as paper content.
 
 ## Scientific limits to retain
 
@@ -129,8 +120,6 @@ checks the PDF and every bundle member. Detailed source/configuration hashes
 belong in repository evidence, not the main scientific narrative.
 
 The main Results compare all evaluated methods by coverage, with a single
-prediction treated as a singleton set. Archived default-comparator predictions
-retain their re-evaluation scope; their timings and historical MAPPA comparisons
-remain in the supplement. Selected molecular examples remain illustrations, not new execution traces.
-The coordinate study is not an accuracy benchmark. Cap 100 remains the default
-study setting; cap 2,000 is labeled as a larger-budget historical comparison.
+prediction treated as a singleton set. Comparator predictions retain their
+recorded re-evaluation scope. The current studies use cap 100; historical
+cap-2,000 and coordinate studies are not evidence for this paper's results.

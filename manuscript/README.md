@@ -107,7 +107,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 
 - `main.tex`: sole entry point; author list and supplied affiliations are retained.
 - `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
-- `includes/supplement.tex`: technical details and clearly separated archived studies.
+- `includes/supplement.tex`: current algorithm details, benchmark settings, measurement definitions and the percentage event-offset figure.
 - `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
 - `evidence/reference_offsets.json.gz`: verified mapping counts, original detected minima, offsets and certificate hashes for every reaction.
 - `evidence/branch_offsets.json.gz`: superseded branch-minimum analysis, retained as historical evidence and the original-baseline source.
@@ -122,7 +122,6 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `figs/fig9_paired_slap.*`: paired comparator CPU costs.
 - `figs/fig10_minimum_choices.*`: observed reaction cores among saved minimum-event mappings.
 - `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
-- `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 
 Install the dependencies in `requirements-build.txt`, Tectonic and Poppler. From
 the repository root:
@@ -139,10 +138,9 @@ is recorded separately against the final PDF checksum.
 The decoder's ordinary-boundary model is approximate; its selected starting
 orbits and bounded improvement restrict coverage. Model-window membership is
 not physical event-bin accuracy. Default-comparator coverage is included in the main Results with its recorded
-evaluation scope. Historical MAPPA, cap, direction, coordinate and timing results
-retain their original protocols in the supplement; they do not establish
-current-version speed ratios. The coordinate collection lacks
-annotated mappings and complete WBO-generation provenance.
+evaluation scope. Historical MAPPA, cap, direction, coordinate and timing studies are excluded
+from the appendix and Overleaf export. Their evidence remains in repository
+records and Git. The appendix retains only support for the current paper.
 
 The archived [3D research preview](animations/mappa_research_preview/index.html)
 illustrates its saved historical catalogue, not an execution trace of the current

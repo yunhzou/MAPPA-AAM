@@ -21,13 +21,14 @@ means of 1.202, 12.475 and 0.111 CPU seconds, respectively; MAPPA decoding adds
 SLAP. The broader default-SLAP/MAPPA cohort and full-denominator outcomes remain
 separately reported. Do not pool this study with the saved seed comparison.
 
-At the saved one-seed detected minimum, all 1,851 Golden reactions have recorded
-qualifying branch compositions. Median 31, mean 51.06, 95th percentile 120,
-maximum 2,250. Internal shuffles and repeated histories count once. This is a
-count of fragment atom-set compositions, not chemically distinct full mappings.
-The analysis makes no new symmetry queries or optimization calls. Figure 8 uses
-`minimum_branches.json` and `minimum_branches_reactions.json.gz`; older
-`minimum_choices` files remain historical evidence and no longer supply it.
+Figure 8 counts observed reaction cores at the saved one-seed detected minimum
+for all 1,851 Golden reactions. Of these, 1,252 have one observed core (67.64%);
+the median is one, the mean 2.97, the 95th percentile four and the maximum 522.
+Signed physical bond changes, including hydrogen events, define a core;
+equivalent labels and different fragment partitions with the same pattern count
+once. The figure uses `minimum_reaction_centers.json` and
+`minimum_reaction_centers_reactions.json.gz`. Earlier branch-composition and
+mapping-class counts remain historical evidence and do not supply this figure.
 
 Figure 7 uses `reference_offsets.json.gz`: a verified GT-consistent mapping's
 event count minus the saved detected minimum, under the same all-atom decoder
@@ -56,7 +57,7 @@ orbits. Positive decoded witnesses are replayed and counted, but model-window
 coverage is not physical event-bin accuracy. EnzymeMap records 2,801 positive
 direction witnesses whose model and physical counts differ.
 
-Archived September comparator and coordinate evidence remains unchanged and is
-labeled in the supplement. The 140-coordinate collection is not an accuracy
+Archived September comparator and coordinate evidence remains unchanged in
+repository records; the old MAPPA and coordinate studies are excluded from the appendix and Overleaf export. The 140-coordinate collection is not an accuracy
 benchmark. Its 120,052 families and 300 event classes belong to that archived
 study and must not be substituted for current decoded results.

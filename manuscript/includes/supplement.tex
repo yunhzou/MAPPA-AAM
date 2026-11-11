@@ -8,7 +8,7 @@
 \renewcommand{\thealgorithm}{A\arabic{algorithm}}
 \renewcommand{\theHalgorithm}{A.\arabic{algorithm}}
 
-The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The following sections give the constraints and implementation details underlying the main-text description.
+The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The following sections specify the constraints, symmetry operations and event model used by this workflow.
 
 \begin{algorithm}[!htbp]
 \caption{Matching (including reduction), followed by decoding}
@@ -38,105 +38,95 @@ The complete stage sequence is summarized in \Cref{alg:mappa-overview}. The foll
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Introductory alternatives example}
-\label{sec:alternatives-provenance}
-
-The EnzymeMap case 13175 witnesses in \Cref{fig:alternatives} come from the saved one-seed benchmark with branch cap 100, discovery tolerance two, the full single-edge sweep and a decoded minimum-plus-five window. Matching and decoding were not rerun for the figure. A is the complete witness retained by the exact-index decoded-reference audit; all nine annotated heavy-atom pairs agree. B was queried from the saved response at its detected minimum of six all-atom events and replayed through its saved symmetry choices. Both saved witnesses map all 15 atoms injectively. Direct counts from the original endpoint matrices give eight and six all-atom events, respectively, agreeing with their model counts. Their four and two heavy-atom events are shown in the figure. Events require an absolute bond-weight change greater than 0.5.
-
-Because EnzymeMap does not annotate hydrogen identities, we separately checked all $6!=720$ hydrogen assignments for each fixed heavy-atom mapping. Both permit a minimum of six total events. For A, transferring the carboxyl OH hydrogen to the formaldehyde oxygen contributes two events; the other hydrogen bonds can remain intact. For B, transferring both formaldehyde hydrogens from carbon 1 to carbon 4 contributes four events. The saved A witness contains an additional hydrogen exchange and is not the best hydrogen completion. This independent check does not assert that the newly completed hydrogen assignments belong to the saved decoded response, nor that six is a global minimum over other heavy-atom correspondences. The original saved witnesses remain unchanged. The example therefore illustrates distinct atom origins with tied total counts after hydrogen completion. Portable evidence preserves the endpoint matrices, saved mappings, fragment partitions, replay choices, source checksums and hydrogen-completion check in \texttt{enzymemap\_case13175.json}.
-
-\subsection{Exact existence queries during growth}
+\subsection{Growth and completion constraints}
 \label{sec:existence-details}
 
-An existence query seeks a relaxed subgraph isomorphism for the proposed base atoms and accepted preservation edges, subject to completed-fragment locks. Element-compatible destination domains exclude targets already occupied by other fragments. Each accepted edge supplies a binary support relation satisfying target bond presence and the discovery tolerance. This matching is non-induced: extra target edges are allowed; base nonedges and unselected molecular edges do not add constraints.
-
-More formally, let $V_B,V_T$ denote the base and target atom sets, $Z_B,Z_T$ their elements and $W_B,W_T$ their original bond-weight matrices. A partial correspondence $m:D\subseteq V_B\rightarrow V_T$ is injective. For every accepted preservation edge $(u,v)\in A$, its assignment satisfies
+Let $V_B,V_T$ be the base and target atom sets, $Z_B,Z_T$ their elements, and $W_B,W_T$ their original bond-order matrices. Growth seeks an injective partial correspondence $m:D\subseteq V_B\rightarrow V_T$ that respects locked assignments. Every mapped atom preserves its element, and every accepted growth edge $(u,v)\in A$ satisfies
 \begin{equation}
- Z_B(u)=Z_T(m(u)),\quad W_T(m(u),m(v))\geq b,\quad
+ Z_B(u)=Z_T(m(u)),\qquad W_T(m(u),m(v))\geq b,\qquad
  |W_B(u,v)-W_T(m(u),m(v))|\leq\tau_{\mathrm{iso}}.
  \label{eq:match}
 \end{equation}
-Here $b$ is the graph-presence threshold and $\tau_{\mathrm{iso}}$ is the discovery tolerance. These constraints apply to the selected growth graph, not every bond in the completed atom set.
+Only accepted growth edges belong to $A$. Nonedges and other bonds between the included atoms do not add matching constraints: this is non-induced relaxed subgraph isomorphism.
 
-Propagation removes occupied singleton destinations and destinations without support in a neighbor's domain. An empty domain or incompatible singletons establish infeasibility. A bipartite distinct-target check can reject domains that cannot accommodate an injective assignment. These are necessary conditions; surviving ambiguous cases require search. The solver chooses a constrained atom, propagates its tentative destination and stops at the first complete witness. Proving absence can require exploring every remaining feasible choice. Positive and negative answers use the same constraints.
+An existence query excludes occupied targets, removes destinations without compatible neighbors, and checks whether the remaining domains admit distinct targets. If these constraints do not decide the query, it searches the remaining assignments and stops at one witness. The same constraints establish absence when all choices are excluded. A witness may rearrange the growing fragment while earlier fragments remain locked. Compatible saved fragment witnesses can answer a query directly, provided they satisfy the current occupancy, anchors and accepted edges; reuse does not replace the new trajectory's random growth decisions.
 
-Direct witness extension and indexed fragment reuse precede this query. They establish existence only. Neither supplies a different continuation policy nor converts a timeout into absence. Completed-fragment assignments remain fixed while assignments internal to the current growing fragment may change.
-
-The molecular overview in \Cref{fig:algorithm} uses constructed alcohol placements in panel a and methyl acetate saponification in panels b and c. Hydrogens participate in matching but are implicit in the drawings. Exchanging the acetate oxygen images adds two internal changes to two boundary changes at event threshold 0.5. Black lines show endpoint bonds. These illustrations are not a complete search trace, and their formal-bond-order signatures are not distinct mechanisms or resonance-normalized transformations.
-
-\subsection{Completion, fragment automorphisms and global placement}
 \label{sec:completion-details}
+At saturation, completion seeks distinct target atom sets, excluding each represented set from subsequent search. Internal assignments on one atom set remain compressed. A certified global target symmetry may additionally group placements when it preserves the entire remaining matching problem: the original weights, active connectivity, locks and discovery predicates. Otherwise the placements remain separate. Local fragment symmetry alone cannot establish that two global placements are interchangeable.
 
-Completion searches the finished fragment constraints for distinct target atom-set placements. It excludes already represented sets or certified global placement orbits within the search. It does not enumerate all internal assignments before deduplicating them. Target sites that cease to be globally equivalent remain separate placements, even when their local matched subgraphs share symmetry.
+For each fragment side, nauty computes automorphism generators of its element-colored binary graph, with anchors fixed individually. Whole-ring or whole-arm moves remain correlated operations; terminal exchanges may be independent. Binary symmetry does not enforce bond-order tolerance. Discovery tolerance applies to the starting correspondence; subsequent local automorphisms on both sides are evaluated for their bond events using the original weights. Ordered global placement operations remain in their saved order.
 
-For the fixed carbon-ring illustration in \Cref{fig:saturation}, an independent substructure check finds exactly two target atom sets, each admitting twelve ring rotations and reflections. The F and Cl attachments prevent whole-target exchange of those sets. Hydrogen constraints are omitted from this illustration. The check establishes the depicted placements; it is not a full reaction benchmark or the production search procedure.
-
-For each side of a fragment, nauty receives an element-colored binary graph with individually fixed anchors and returns generators of its automorphism group. These compact generators retain correlated moves of rings, arms and their attached atoms. Continuous weights do not label this graph; they remain in discovery and event predicates. Permitted local rearrangements are compositions of these automorphism generators. An accepted relaxed subgraph isomorphism can be followed by base and target fragment automorphisms without reimposing discovery tolerance on the rearranged result. The event response evaluates the resulting original-weight changes.
-
-The subgroup of global target automorphisms used to compress later continuations is more restrictive. It must preserve the full target weight matrix, active connectivity, current locks and every base-to-target compatibility predicate relevant to subsequent growth. Such an automorphism moves the whole later continuation, preserving occupied targets and its matching problem. A fragment automorphism cannot be substituted for this global equivalence proof. Saved placement operations retain their order; unrestricted closure of an ordered sequence would permit combinations not represented by the search.
-
-\subsection{Hierarchical caps and provenance}
+\subsection{Hierarchical branching and fragment identities}
 \label{sec:hierarchy-details}
 
-Each retained placement creates a child continuation. After a completed step, count surviving continuations bottom-up. At an over-limit node, discard its largest child subtree, recount and repeat; ties retain the earlier decision. An ancestor then sees the reduced count. The completed-fragment limit separately rejects a placement expansion exceeding its allowance. Neither operation counts internal symmetry assignments as separate branches, and both retain explicit cap evidence.
+Each completed placement creates a child continuation. After a completed step, count surviving continuations from leaves to root. At an over-limit node, discard its largest child subtree, recount, and repeat until the retained count satisfies the cap; ties favor the earlier decision. The parent is then assessed using the reduced count. A separate completed-fragment limit rejects placement expansions exceeding its allowance. Internal symmetry permutations do not count as additional branches. Both limits restrict search coverage.
 
-A shared search state may have several incoming histories. The retained graph keeps parent links and terminal references rather than unfolding every path. States and payloads with no surviving descendant are released. Returned histories and cut provenance remain available for inspection, but are not independent fragment-decoding jobs. A branch cap bounds retained choices, not every temporary allocation or total memory.
-
-\subsection{Fragment identities and composition reduction}
 \label{sec:reduction-details}
+The final matching subphase unifies fragments by their base/target atom-set pairs and assigns shared identifiers. One original fragment record is retained intact for each pair. Branches are deduplicated by their fragment composition and ordered placement context, while alternative cut and partition contexts are retained for decoding. This is structural deduplication, without symmetry optimization or event queries. Equal atom sets define a shared identity; they do not authorize arbitrary atom correspondences.
 
-Reduction reuses the fragment inventory in each search graph and unifies it across seeds and cuts. A completed fragment's key is its base/target atom-set pair within a fixed endpoint problem and policy. Keep the first original record intact. Other starting witnesses, growth routes, domains or anchors do not create additional identities and are not unioned into broader permissions. Raw archives retain the original decisions; the reduced catalogue retains the selected record and compact provenance. When reducing an explicitly selected path subset, the representative must come from that subset.
-
-Native projection converts retained states into shared fragment identifiers. Composition keys use those identifiers together with the ordered placement context. Independent decisions can commute; overlapping local or global choices retain their order. Equal keys share one family record and aggregate cut/partition provenance. Reduction uses structural equality, not symmetry solving or event queries. The atom-set key must not be confused with a permission to map its atoms arbitrarily.
-
-\subsection{Shared event core and bounded starting-map improvement}
+\subsection{Local event responses and branch composition}
 \label{sec:decoding-details}
 
-Each unique fragment is prepared once. For a selected starting correspondence, the shared core stores binary symmetry generators, fixed event contributions and sparse variable original-weight terms. It separates operation components only when no variable event or requested endpoint joins them. A generator moving two arms couples those moves even if each arm also has its own independent internal exchanges. Event-preserving operations can share computation only when they also preserve all endpoints relevant to the query. No complete group or Cartesian table of mappings is stored.
+Each unique fragment is prepared once. Its response retains a selected starting correspondence, compact binary automorphism generators and the original-weight contributions to bond events. Operations are separated only when no variable event or required boundary endpoint couples them. An arm exchange therefore preserves the joint motion of that arm's atoms. Event-invariant operations share computation, while variable contributions retain their dependence on the relevant choices; the response does not store a Cartesian table of complete mappings.
 
-Starting-map improvement first compares the saved witness with lower bounds. One bound matches pair-weight multisets within element-pair types while relaxing atom consistency. Another matches incident bond assignments and then atoms injectively; each event touches two atoms, so half the incident cost, rounded up, is a lower bound. The stronger bound is retained. These relaxations can rule out improvement but need not be attainable.
+Two relaxations provide lower bounds for local optimization. One compares bond-weight multisets within element-pair types without imposing atom consistency. The other matches incident bond assignments and then atoms injectively; because each internal event touches two atoms, half the incident cost, rounded up, is a lower bound. The stronger bound is used. These bounds need not be attainable.
 
-Optimize the selected fragment's binary symmetries. Search additional discovery correspondences only when its recorded growth connectivity differs from final internal connectivity on either endpoint and the current witness remains unsettled. New starting correspondences must satisfy the saved discovery domains, anchors and accepted edges; subsequent binary symmetry choices are not rejected by those discovery constraints. Preparation, correspondence improvement and symmetry optimization share a five-second per-fragment deadline. Attaining a valid bound stops work immediately. Otherwise retain an actual best witness and incomplete status. An orbit minimum does not certify a minimum over discarded starting orbits.
+First improve the saved correspondence under its fragment automorphisms. Search for another starting correspondence only when growth and final internal connectivity differ on either side and the current event count remains above an established bound. New starting correspondences must satisfy the saved discovery constraints. Subsequent binary symmetry choices are evaluated for events without reimposing discovery tolerance. Preparation and improvement share the per-fragment budget; attaining the bound ends optimization. Otherwise the response retains the best found witness and its bound. A minimum within the selected symmetry orbit is not a guarantee over every possible starting correspondence.
 
-Branch assembly binds local response operations to their shared branch choices. Final partition pieces own disjoint internal contributions. Weight-preserving global placements move endpoints while retaining those local costs. Ordinary boundaries remain fixed under the declared model. The sweep correction follows jointly reachable endpoint pairs through the saved action order, preserving dependence on variable internal events. When internal costs are constant, this is an endpoint-pair calculation, not a complete symmetry-assignment enumeration.
+Branch assembly adds the disjoint fragment contributions and the fixed ordinary-boundary contribution. The single-edge sweep requires a joint correction for its endpoint choices, which can lie in neighboring fragments. That correction reuses the prepared local responses, preserves their dependence on internal events and contributes zero to two events. When internal costs are constant, only jointly reachable endpoint pairs need examination.
 
-Window selection tracks a lower bound for each branch and an attained count $U$ from a valid joint choice. If the smallest pre-sweep total $L$ is attained by compatible fragment minima, its sweep residual gives $U\leq L+2$. Branches are examined only while their lower bounds can improve $U$; afterward, those with lower bounds above $U+n$ are excluded. If local searches are unfinished or their minimizing choices conflict, the decoder retains their lower bounds and uses an actual witness count as $U$. The saved result records the retained branches, shared responses, window and whether the model minimum was proved.
+The decoder tracks each branch's lower bound and an attained count $U$. If compatible local minima attain the smallest pre-sweep composition $L$, the sweep correction gives $U\leq L+2$. Only compositions capable of improving $U$ need refinement; afterward, branches with lower bounds above $U+n$ are excluded. Unfinished local optimization retains its lower bound and an actual witness count rather than assuming the bound is attainable. Saved responses support subsequent queries within the window; a count interval does not imply that every integer inside it is attainable.
 
-For a requested event interval, the saved response searches its retained choices and returns a concrete mapping with its ordered choices, absence after complete exclusion, or unknown under a limit. Event counts and mappings can be replayed independently. Preparing a queryable response does not assert that every count in its numerical interval is attainable. Physical whole-reaction event counts can differ from the independent-boundary model and are recorded separately during external audits.
+Ordinary boundaries use the independent-fragment approximation described in the main text. Consequently, the model event count can differ from a direct whole-reaction count. Reference-window membership uses the model count; physical bond changes are evaluated separately when constructing reaction cores.
 
-\subsection{Indexed fragment reuse and execution}
-\label{sec:cache-details}
+\subsection{Molecular examples}
+\label{sec:alternatives-provenance}
 
-The reaction-local pool stores one original fragment per atom-set pair. A restricted saved witness proves a growth proposal when it covers the requested base atoms, uses available target atoms, respects locks and supports every required edge at the current tolerance. Atom-set containment alone is insufficient when occupancy or edge requirements have changed. An inverted index intersects atom, edge-support and fixed-assignment sets to find a valid proof. A miss invokes the ordinary existence query; no negative cache is used.
+The introductory EnzymeMap example (case 13175, \Cref{fig:alternatives}) fixes two different heavy-atom correspondences: four heavy-atom events for the reference and two for the alternative. The endpoints contain nine heavy atoms and six hydrogens. Checking all $6!=720$ hydrogen assignments for each fixed heavy-atom correspondence gives six total events in both cases. For the reference, transfer of a carboxyl OH hydrogen contributes two additional events; for the alternative, transfer of both formaldehyde hydrogens contributes four. The example therefore shows distinct atom origins that remain tied after hydrogen completion, not a lower all-atom count for the alternative.
 
-Growth continues with its own random proposals. Cut/trial streams are distinct and reproducible, and completion chooses its representatives independently of the temporary existence witness. The pool therefore does not replay a previous trajectory. Its accounted retention limit bounds cached records and index storage, not total stage memory. Returned search graphs expose their unique-fragment inventories directly to reduction.
+The constructed matching diagrams illustrate graph relationships. In \Cref{fig:saturation}, the two target rings have different attachments and therefore define two distinct placements; each admits twelve internal rotations and reflections. Hydrogen constraints are omitted from this illustration. In \Cref{fig:algorithm}, exchanging the acetate oxygen images adds two internal events to two boundary events at the 0.5 threshold. These examples use formal bond orders. Their endpoint graphs and direct bond-change checks are supplied with the figure sources.
 
-Persistent execution shares compatible reaction snapshots at task boundaries. A permanent first snapshot and replaceable latest snapshot support concurrent readers; a validated first snapshot can be used when the latest stored version cannot be loaded. This is recovery of reusable data, not an alternative scientific algorithm. A single publication owner atomically replaces complete versions, and stale publishers cannot overwrite newer ones. Stored snapshot count is bounded per reaction rather than per cut or seed.
-
-Separate stage APIs return typed matching, catalogue and decoding records. In-memory and aggregated file-backed transport preserve shared immutable arrays and fragment relations. Worker pools schedule those operations without changing their scope. For the reported batch protocol, a global matching/reduction barrier precedes decoding. Recovery retains completed outputs and consumed budgets; resource errors remain distinguishable from mapping absence. The main manuscript reports successful compute costs separately from failed attempts and external evaluation.
-
-\section{Reproducibility and measurement scope}
+\section{Evaluation details}
 \label{sec:reproducibility}
 
-The repository's \texttt{manuscript/REPRODUCIBILITY.md} links source pins, immutable input identities, benchmark records and the evidence used to generate tables and figures. The public Python API documents direct matching, reduction, decoding and conditional queries. Figure building runs no searches. Publication records omit execution-site identifiers.
+\subsection{Benchmark settings and reference checks}
 
-The paired Golden comparison uses SLAPMapper revision \texttt{ea248fd} and an Intel Xeon Gold 6442Y CPU. Exact source identities and verification-audit hashes are recorded in \texttt{evidence/paired\_slap.json}. Paired CPU timings and the full seed-study coverage retain their respective measurement cohorts.
+The settings below apply to the current Golden and EnzymeMap studies. Golden uses one or ten seed orderings per cut; EnzymeMap uses one. Every search includes both directions, the uncut condition and all eligible single-edge cuts.
 
-Expanded SLAP recovers 1,794 references (96.921\%) and standard bidirectional SLAP recovers 1,620 (87.520\%). Expanded SLAP has 52 confirmed misses and five inconclusive evaluations; standard bidirectional SLAP has 230 misses and one inconclusive evaluation. Inconclusive results do not count as recoveries. Independent graph-matching evaluation agrees with all 3,683 completed expanded-SLAP direction verdicts. Default forward-only SLAP recovers 1,591 references (85.95\%); the original paper reports 86.9\% on its 1,758-reaction Golden version~\citep{koda2025}.
+\begin{table}[H]
+\centering\small
+\caption{\textbf{Shared benchmark settings.} Events use the original bond orders; binary fragment graphs determine the allowed symmetry operations.}
+\label{tab:benchmark-settings}
+\begin{tabular}{ll}\toprule
+Parameter & Value\\\midrule
+Bond representation & Prepared formal bond orders, explicit hydrogens\\
+Discovery tolerance $\tau_{\mathrm{iso}}$ & 2\\
+Graph/cut presence threshold $b$ & 0.2\\
+Hierarchical branch cap & 100\\
+Random seed & 42\\
+Bond-event threshold & 0.5 organic; 0.3 metal-related\\
+Local preparation/improvement budget & 5 seconds per unique fragment\\
+Decoded event window & $[U,U+5]$, with $U$ the best attained model count\\
+\bottomrule\end{tabular}
+\end{table}
 
-Paired CPU costs sum both directions and exclude loading, publication and external verification. The three-protocol comparison uses their 1,834 common completed reactions. A broader standard-SLAP/MAPPA comparison contains 1,849 completed reactions, with mean search costs of 0.487 and 1.259 CPU seconds, respectively. It retains a slower standard-SLAP tail excluded from the three-protocol cohort. These timing subsets do not change the 1,851-reaction coverage denominator.
+An event requires a change strictly greater than its threshold. The empirical 0.3 threshold applies when at least one atom is a metal; 0.5 is the non-metal default. Reference checking preserves annotated heavy-atom pairs and unmatched-atom requirements. Unannotated hydrogen assignments must admit a complete injective witness, replayed through the saved response and independently counted inside the model window. The annotated reference does not guide the benchmark search.
 
-The reaction-core analysis covers all 1,851 one-seed Golden reactions. It replays saved local optimized witnesses in their original action order, retains unchanged global placement choices, and directly counts internal events, fixed ordinary boundaries and the sweep correction. The detected minimum remains the original saved count. Witnesses attaining that count are normalized to the same endpoint indexing across directions. Their physical bond changes are then evaluated from the original matrices and grouped by MAPPA's signed-event identity: bond-order decreases and increases are distinguished, including hydrogen events, and symmetry-equivalent atom labels count once. Different fragment partitions with the same event pattern are merged. This counts observed patterns in saved witnesses without searching additional internal symmetry alternatives. Reaction cores describe endpoint bond changes, not complete reaction mechanisms; their physical event counts can differ from the approximate model count used to select the witnesses.
+Comparator outputs are evaluated over the same 1,851 Golden reactions, including invalid or failed outputs in the denominator. Single-answer methods contribute one candidate; SLAP contributes its returned candidates. Comparator checks permit chemically equivalent endpoint labels while preserving charge, isotope, hydrogen count and stereochemistry. Expanded SLAP combines binary and weighted modes, both directions and the single-edge sweep. Software versions, adapters, per-case outcomes and input identities are recorded in the repository's reproducibility guide.
 
-The main-text Golden measurements combine the saved one- and ten-seed matching passes with corrected completed reduction and decoding passes. They are not new uninterrupted end-to-end measurements. The matching passes predate indexed containment; the paper treats their seed scaling as an empirical workload comparison, not a cache ablation. EnzymeMap combines original successful tasks and successful recoveries with unchanged scientific settings. Performance corrections preserved the mapping relation and event model. CPU totals include computation, stage loading and record construction; publication, external audits and sampled earlier failures are separate. CPU models were not retained in the exported full-campaign summaries, so no hardware-normalized ranking follows.
+\subsection{Timing scope}
 
-Every accepted reference witness is checked for replay, injectivity, annotated assignments and an independently counted model total inside the saved window. Its physical total is stored separately. MAPPA verification preserves exact annotated indices on both datasets. A negative verdict requires conclusive exclusion; resource-limited queries are not treated as negative evidence. The source reports retain the certificates and exclusion records supporting every reaction-level outcome.
+Full-study CPU totals sum successful stage computation over both directions and every cut. Matching includes reduction; decoding is separate. These totals include stage loading and result construction, but exclude publication and external verification. Golden combines measured matching and postprocessing passes; EnzymeMap combines completed original tasks and completed recoveries. The totals measure accumulated computation, not uninterrupted elapsed time. Seed scaling compares the measured workloads rather than isolating a cache effect.
 
-The independent-fragment model and directly counted whole-reaction totals differ for 2,801 positive EnzymeMap directional witnesses and 32 ten-seed Golden witnesses. Both totals are retained in the audit records; decoded membership uses the saved model window.
+The paired timing comparison uses an Intel Xeon Gold 6442Y CPU and SLAPMapper revision \texttt{ea248fd}. All three protocols use identical prepared inputs, and their reported means use the same 1,834 completed reactions. These paired timings exclude loading, publication and external verification. Coverage retains all 1,851 reactions as its denominator. Hardware-controlled speed comparisons use this paired study, not ratios between the full Golden and EnzymeMap campaign means.
 
-Figure~\ref{fig:reference-offsets} uses the saved verified mapping counts and original detected minima in \texttt{evidence/reference\_offsets.json.gz}. Each of the 49,825 reactions has a concrete offset. For recovered references, select the lowest model event count among the final saved forward/reverse verification witnesses; forward wins ties. The other 196 references use the saved anchored completions in \texttt{evidence/anchored\_offsets.json}, with the same selection rule. No additional symmetry, starting-correspondence or branch-minimum search is performed. All counts include hydrogens under the same model; a selected hydrogen completion need not be optimal. The nine negative EnzymeMap values are anchored completions two events below the original detected minimum. These completions do not change independent coverage. Certificate and input identities retain the connection to the original audits.
+\subsection{Event offsets and reaction-core counting}
 
-\Cref{fig:reference-percentages} presents the same event-offset distribution as percentages, normalizing each dataset to 100\%.
+Each of the 49,825 reactions contributes one offset: the lowest saved verified reference-consistent model count across directions minus the original detected minimum. Unannotated hydrogen assignments are those of the selected witness. The 196 missing references use separately obtained anchored completions; those do not increase independent coverage. No branch-minimum or additional symmetry search is performed for the plot. The selected completion need not minimize over every possible hydrogen assignment.
+
+Reaction-core counting uses saved witnesses at the detected minimum for all 1,851 one-seed Golden reactions. Both directions are converted to the same atom indexing. Direct comparison of the original matrices identifies signed bond changes, including hydrogen events; equivalent atom labels and different fragment partitions with the same pattern count once. This counts observed reaction cores in saved witnesses, without enumerating additional symmetry alternatives. A core describes net bond changes, not a complete sequence of elementary steps.
+
+\Cref{fig:reference-percentages} gives the percentage form of the event-offset distribution in \Cref{fig:reference-offsets}.
 
 \begin{figure}[H]
 \centering\includegraphics[width=\linewidth]{figs/fig12_reference_percentages.pdf}
@@ -144,159 +134,4 @@ Figure~\ref{fig:reference-offsets} uses the saved verified mapping counts and or
 \label{fig:reference-percentages}
 \end{figure}
 
-The supplementary September studies below retain their original settings, evaluators and comparison cohorts. Their archived paired search timings use an Apple M4 Pro CPU; the cap comparison uses an AMD EPYC 9J14. Search, publication and event-query boundaries differ across those studies and are stated with each table. They are not pooled with the current main-text timings. The WBO-generation method for the archived coordinate inputs is not recorded in the available metadata, so regeneration of those matrices from molecular structures is not established.
-
-\section{Archived September evaluations}
-\label{sec:historical-evaluation}
-
-The following studies used their recorded September implementations. They retain the original numerical results and comparison scopes; they are not reruns of the current algorithm or direct performance comparisons with \Cref{sec:current-validation}.
-
-\subsection{Archived datasets and comparator protocol}
-\label{sec:default-comparators}
-
-Golden inputs use formal bond orders and explicit H, with reference labels removed before search. Recovery requires the annotated heavy-atom correspondence, including unmatched atoms, modulo endpoint chemical symmetries preserving charge, isotope, H count, and stereochemistry. These chemical colors define reference equivalence; they do not imply that element/WBO matching itself enforces every chemical attribute. Failures and unresolved cases remain in the denominator. This measures reference inclusion among returned alternatives, not their ranking.
-
-LocalMapper provides the prior accuracy-SOTA baseline~\citep{chen2024}. Its published Golden accuracy was 89.8\% on 1,758 retained reactions with manual calibration. SLAP reported 86.9\% on that dataset version, counting reference inclusion among its candidates~\citep{koda2025}. These literature scores are separate from our strict re-evaluation. We additionally apply the cut sweep introduced here to SLAP; ``SLAP sweep'' denotes this extension, not a published SLAP score. It is our strongest evaluated prior-method baseline for alternative recovery. Released RXNMapper, Chython, Indigo, and RDT provide further comparisons~\citep{schwaller2021,chython,indigo,rahman2016}.
-
-The coordinate collection contains 18--137 explicit atoms per endpoint, including organometallic and multicomponent structures. It was inspected during development and has no verified atom mappings: it is not a mapping-accuracy benchmark. The archived study compared the lowest event count found and the patterns achieving that count. MAPPA used supplied WBO matrices; SLAP used XYZ-derived binary graphs. Returned SLAP heavy-atom assignments received hydrogen refinement and were scored on the same WBO matrices as MAPPA. The comparison covers those saved witnesses, not all possible SLAP hydrogen assignments or a fresh current-implementation evaluation.
-
-Released comparators received the same label-free Golden inputs, without prediction repair or reference-guided ranking. Invalid endpoint chemistry, duplicate atom labels and other failures remained in the denominator. Binary SLAP was retained as the stronger default configuration; bidirectional comparisons used both binary and weighted modes. SLAP returns multiple candidates, whereas the other comparators return at most one explicit bijection. These results describe the evaluated interfaces and scoring rule, including its difference from RDT's chemical-change criterion. The repository records released models, versions, adapter settings and failure frequencies.
-
-\subsection{Archived evaluation configurations}
-
-\begin{table}[tb]
-\centering\small
-\caption{\textbf{Archived evaluation configurations.} Both use $b=0.2$, $\tau_{\mathrm{iso}}=1$, explicit H, and uncut plus single-edge searches. One seed per cut and the sweep define the default setting. Archived Golden measurements cover sweep search; no-sweep controls retain only the uncut graph. A seed setting counts base-atom orderings per cut. Stored orientation uses the first saved endpoint as the base and the second as the target.}
-\label{tab:protocol}
-\begin{tabular}{lcc}\toprule
-Setting & Golden & Coordinate/WBO\\\midrule
-Reactions & 1,851 & 140\\
-Search directions & Bidirectional & Stored orientation\\
-Seed orderings & 1 (default), 2, 3, 10 & 1 (default)\\
-Branch cap & 100 (default) & 100 (default), 2,000\\
-Evaluation & Reference-family recovery & Signed event-class coverage\\\bottomrule
-\end{tabular}
-\end{table}
-
-\Cref{tab:protocol} lists the archived settings. Search did not use reference or comparator correspondences. Full configurations, implementation versions, and reproduction scripts are provided in the repository (\Cref{sec:reproducibility}).
-
-\subsection{Archived Golden reference recovery and search cost}
-
-In the archived campaign, the one-seed MAPPA configuration recovered \GoldenOnePercent\% of Golden references, compared with \SlapPercent\% for SLAP sweep (\Cref{tab:competitors,fig:golden}). These scores belong to that campaign, separate from \Cref{sec:current-validation}. The paired comparison includes \AamOnly{} references recovered only by MAPPA and \SlapOnly{} only by SLAP. LocalMapper is the strongest evaluated method returning one bijection. Additional MAPPA seeds yielded modest recovery gains at increasing search cost; two seeds did not improve recovery over one.
-
-\begin{figure}[!htbp]
-\centering\includegraphics[width=\linewidth]{figs/fig2_golden.pdf}
-\caption{\textbf{Archived Golden reference recovery and search cost.} (a) Reference recovery over all 1,851 reactions. MAPPA and SLAP use our cut sweep; LocalMapper is the prior accuracy-SOTA baseline and returns one bijection. All scores use the archived evaluator. (b) Mean search CPU over the same \CommonCases{} completed reactions, by orientation. Bond-event decoding is excluded. Full comparisons and timing scopes are in \Cref{tab:competitors,tab:directions}.}
-\label{fig:golden}
-\end{figure}
-
-\begin{table}[tb]
-\centering\small
-\setlength{\tabcolsep}{4pt}
-\caption{\textbf{Golden reference recovery and runtime in the archived evaluation.} Recovery uses all 1,851 primary-evaluation records. MAPPA retains compressed families; SLAP returns explicit candidates; other methods return one bijection over their matched atoms. MAPPA uses cap 100 and bidirectional search. Bidirectional SLAP combines both directions and both binary/weighted modes; the default SLAP row uses binary only. Times are mean CPU seconds per reaction, excluding separate bond-event decoding. Unmarked times use the same 1,403 completed reactions on an AMD EPYC 9J14. $a$: archived completed calls (1,718--1,851 per method), CPU model unrecorded; these times are not directly comparable with unmarked times. $\dagger$: LocalMapper, prior accuracy SOTA (2024). $\ddagger$: SLAP with our sweep, strongest evaluated prior-method recovery baseline.}
-\label{tab:competitors}
-\input{includes/generated-competitor-table}
-\end{table}
-
-The paired archived controls attribute 345 additional reference recoveries to the MAPPA sweep and 135 to the SLAP sweep. Without the sweep, one-seed MAPPA had lower coverage than bidirectional SLAP. This supports varying the growth constraints to expose alternatives excluded by greedy fragment extension (\Cref{sec:cut-sweep}); symmetry expansion alone cannot restore discarded placements. These differences are not measurements of a current no-sweep control.
-
-Smaller-first grows fragments from the reaction side with fewer explicit atoms (including H) and matches into the other side; larger-first reverses these roles. In the archived comparison, combining both directions added 31 recoveries over smaller-first alone, demonstrating complementary alternatives (\Cref{tab:directions}).
-
-\begin{table}[tb]
-\centering\small
-\caption{\textbf{Archived recovery and runtime by search orientation.} All rows use the sweep. Recovery uses all 1,851 Golden records; CPU statistics are seconds per reaction over the same \CommonCases{} completed reactions (Apple M4 Pro CPU). Smaller-first grows from the side with fewer explicit atoms, including H; larger-first exchanges the base and target. Equal-size ties use stored order and its reverse. Bidirectional output combines both searches, and its CPU cost is their sum. SLAP combines binary and weighted modes. CPU/SLAP compares means within each orientation. Timing scopes are specified in \Cref{sec:reproducibility}.}
-\label{tab:directions}
-\input{includes/generated-direction-table}
-\end{table}
-
-In these archived measurements, one-seed MAPPA had a lower mean and median search cost than SLAP sweep, but a higher 95th percentile. Two seeds approximately doubled the mean cost without improving recovery. These Golden timings cover search, excluding reference verification and separate bond-event decoding. The two timing tables use different experiments and should be compared within their stated CPU and reaction sets; neither establishes a current-implementation speed ranking.
-
-In the archived cap study, increasing the branch cap from 100 to 2,000 yielded no additional swept recoveries among cases resolved at both caps, while increasing cost and unresolved outcomes at higher seed counts (\Cref{tab:golden-caps}). The uncut search gained 19 confirmed recoveries. Thus, in that study a larger branch budget did not substitute for changing the growth conditions.
-
-\FloatBarrier
-\subsection{Archived bond-event comparison on 140 coordinate reactions}
-
-The archived coordinate study used one-seed MAPPA sweep search with a branch cap of 2,000 and returned complete mappings for all 140 reactions. At cap 100, cases 123 and 125 returned no complete mapping. The 2,000-branch configuration therefore supplies this comparison, while 100 remains the library default. These completion counts and the event-window results below have not been remeasured with the current implementation.
-
-The archived MAPPA output matched or lowered the minimum event count found by both native SLAP and SLAP sweep in every reaction (\Cref{tab:coordinate-minima,fig:coordinate}). This does not imply recovery of every alternative: at equal minima, six SLAP-sweep patterns remained absent across four reactions. An equal count can describe different changed bonds, and a lower count alone does not establish a more plausible transformation.
-
-\begin{table}[H]
-\centering\small
-\caption{\textbf{Archived minimum bond-event comparison on 140 reactions.} MAPPA uses one-seed sweep search at cap 2,000. The first three columns count reactions by MAPPA's minimum event count relative to the comparator. The final column gives comparator minimum-event patterns recovered by MAPPA among reactions with equal minima. Counts refer to returned candidates, not proven global optima.}
-\label{tab:coordinate-minima}
-\input{includes/generated-coordinate-minima-table}
-\end{table}
-
-To compare alternatives above MAPPA's own minima, the archived study queried through one event above the higher of the two SLAP minima for each reaction. MAPPA retained 162 of 168 SLAP-sweep minimum-event patterns and 151 of 160 native-SLAP patterns within these windows. The output contains 300 distinct patterns, including 166 at MAPPA's own minima. Every saved family was exhausted or certified within its window; this establishes completeness for those retained families, not exhaustive structural search.
-
-\begin{table}[H]
-\centering\small
-\caption{\textbf{Archived stage CPU time per reaction on the 140 coordinate reactions.} Measurements use an Apple M4 Pro CPU. MAPPA uses one-seed sweep search at cap 2,000. These stage costs exclude MAPPA decoding and do not establish an end-to-end speed ranking. SLAP refinement covers its returned witnesses. Timing boundaries are specified in \Cref{sec:reproducibility}.}
-\label{tab:coordinate-time}
-\input{includes/generated-coordinate-time-table}
-\end{table}
-
-The stage timings in \Cref{tab:coordinate-time} cover different outputs: MAPPA search retains families for subsequent decoding, while SLAP refinement operates on returned witnesses. They therefore do not establish an end-to-end speed ranking.
-
-\begin{figure}[!htbp]
-\centering\includegraphics[width=\linewidth]{figs/fig3_coordinate.pdf}
-\caption{\textbf{Archived bond-event comparison on 140 coordinate reactions.} MAPPA uses one seed, the sweep, and cap 2,000. (a) Reactions with fewer or equal MAPPA events than each SLAP baseline. (b) Comparator minimum-event patterns recovered by MAPPA at equal minima. (c) Minimum-event count distributions. (d) Mean CPU for search and SLAP refinement, excluding MAPPA decoding (\Cref{tab:coordinate-time}). Atom mappings are unverified; this compares bond events, not mapping accuracy.}
-\label{fig:coordinate}
-\end{figure}
-
-
-\FloatBarrier
-\subsection{Archived event-window query scope}
-
-For each coordinate reaction, the archived event-window limit was one event above the larger of the native-SLAP and SLAP-sweep minima. All \FlatFamilies{} retained families were exhausted within these limits, without a class-count cap. Higher-event patterns are outside this completeness claim. An event class records the signed atom-pair changes, modulo base permutations preserving every thresholded bond-change test against the opposite endpoint. Each class has a concrete mapping witness. This explicit whole-reaction query is separate from ordinary decoding into shared local fragment responses.
-
-\begin{table}[H]
-\centering\small
-\caption{\textbf{Archived complete event-window queries on all 140 reactions.} Every retained family is certified within the listed per-case event limit.}
-\input{includes/generated-decoder-table}
-\end{table}
-
-The query used event invariance to certify constant families and encoded remaining choices in Z3~\citep{demoura2008}. A family was certified by exhaustion, a valid lower bound excluding the window, or unsatisfiability after excluding all discovered classes. An exhausted resource budget remained incomplete. The explicit query adapter can simplify adjacent nested action groups by exact generator-membership checks: if $H\leq G$, then $HG=GH=G$. This adapter simplification is separate from ordinary catalogue reduction in \Cref{sec:reduction-details}. Completeness within an event window concerns the saved families, not exhaustive structural search.
-
-\subsection{Archived Golden nonrecoveries}
-
-\begin{table}[ht]
-\centering\small
-\caption{\textbf{The eleven archived ten-seed Golden nonrecoveries.} Case indices are zero-based. Retained pair counts cover every terminal in both directions and every saved cut at ten seed orderings and cap 100. The four cardinality mismatches concern exact reference relations, including unmatched atoms. This is not the nonrecovery set of the current one-seed validation.}
-\label{tab:golden-misses}
-\input{includes/generated-miss-table}
-\end{table}
-
-Independent reconstruction agrees with the supplied references in all eleven cases. Four require a different number of matched pairs; seven require correspondences absent from the retained families. All have at least one capped direction, but this does not identify the cap as the cause. The archived uncapped traces below demonstrate greedy-growth exclusions in two cases. Reference-directed feasibility checks are diagnostic and do not contribute to benchmark recovery. Per-case certificates and traces are linked in the repository.
-
-Two archived traces show how greedy extension excluded a representable reference. One reference exchanges adjacent labels in an otherwise unchanged pyridine ring; another exchanges the carbonyl-oxygen attachments of oxalic acid across its retained carbons. Growth preserved bonds that these correspondences require separating. Uncapped trajectories still missed both references, while reference-constrained fragment choices established their representability. In the oxalic-acid example, a reference-selected three-edge relaxation also exposed the reference to matching; the single-edge sweep did not contain that cut set. These are feasibility diagnostics, not additional benchmark recoveries or traces of the current matcher. For the other five correspondence misses, the audit did not isolate cap truncation from unsampled growth choices. They motivate selective alternatives to successful growth extensions and explicit choices about leaving atoms unmatched, rather than treating larger caps or more symmetry expansion as sufficient remedies.
-
-Only one of the eleven misses is recovered by any tested comparator configuration, including the SLAP sweep. The shared failures warrant inspection of the supplied correspondences as well as search improvements; they do not establish annotation errors. All eleven remain in the reported denominator. Independent evaluation on annotated coordinate reactions is needed to assess generalization beyond the development collection.
-
-\subsection{Archived branch-cap and CPU-time ablation on Golden}
-\label{sec:cap-ablation}
-
-The archived study ran the twelve configurations in \Cref{tab:golden-caps} on all 1,851 Golden reactions using an AMD EPYC 9J14 CPU. Both search directions are unioned. SLAP unions its binary and weighted modes. Search and reference verification have separate fixed resource budgets. The recorded cap-100 recovery counts reproduce the archived primary evaluation. At cap 2,000, unresolved counts increase with seed count. Among reactions resolved at both caps, no swept configuration gains or loses a reference recovery.
-
-\begin{table}[htbp]
-\centering\footnotesize
-\caption{\textbf{Archived Golden branch-cap ablation with paired SLAP baselines.} Recovery counts confirmed reference inclusion over all 1,851 records; unknown cases remain in the denominator. CPU values are seconds per reaction. Paired CPU uses the same 1,403 reactions whose searches finish under every configuration. Spent CPU averages recorded search cost over all 1,851 selected attempts, including interrupted calls; it is not completed-search latency. Both timings exclude reference verification and initial imports. Superseded attempts are excluded. Cap 100 with a one-seed sweep is the default setting.}
-\label{tab:golden-caps}
-\input{includes/generated-cap-ablation-table}
-\end{table}
-
-The ten-seed cap-2,000 run leaves five references recovered at cap 100 unresolved, accounting for its lower confirmed count. The bounded SLAP sweep confirms 1,794 references here, compared with 1,796 in the archived primary evaluation: two previously recovered cases are unresolved under this study's limits. These outcomes are reported separately from verified exclusions. The paired timing cohort excludes 448 reactions because at least one configuration does not finish; the all-attempt cost column exposes the additional computational cost on those difficult reactions. Source pins, individual outcomes, directional costs, and reproduction scripts are provided with the code.
-
-\FloatBarrier
-\subsection{Archived end-to-end timing on coordinate reactions}
-
-\input{includes/generated-end-to-end-text}
-
-\input{includes/generated-end-to-end-scope}
-
-\begin{table}[htbp]
-\centering
-\caption{\textbf{Archived MAPPA search plus event-window queries.} CPU seconds per completed reaction in the 140-reaction pass. The final row measures the whole pipeline; medians and percentiles of individual stages are not additive. Completion coverage and timing scope are stated above.}
-\label{tab:end-to-end}
-\input{includes/generated-end-to-end-table}
-\end{table}
+The repository's \texttt{manuscript/REPRODUCIBILITY.md} links the source versions, benchmark evidence, mapping certificates and figure-generation inputs supporting these analyses.

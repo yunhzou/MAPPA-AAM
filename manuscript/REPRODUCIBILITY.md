@@ -158,13 +158,14 @@ and 2,196 EnzymeMap reactions to higher offsets. Coverage, saved decoding minima
 and the separate minimum-choice analysis are unchanged. Case 268 in Golden now
 has offset four: verified count 16 minus detected minimum 12.
 
-## Archived analyses
+## Evidence retained outside the paper
 
 Default-comparator coverage appears in the main Results: the returned output is
 a candidate set, with single-answer predictions treated as singleton sets. Saved
 outputs were re-evaluated on all 1,851 inputs, without changing any per-case verdict.
 Historical MAPPA, direction, seed/cap, 140-coordinate and comparator timing studies
-remain in the supplement with their settings, source hashes and timing cohorts.
+are excluded from the appendix and Overleaf export. Their original records remain
+in the repository and Git with their settings, source hashes and timing cohorts.
 `evidence/paper_sources.json` indexes their unchanged snapshots. The coordinate
 collection has no verified atom mappings and incomplete WBO-generation provenance;
 its results compare event counts rather than mapping accuracy. Selected case 9

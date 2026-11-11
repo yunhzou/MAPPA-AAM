@@ -13,6 +13,12 @@ Keep one manuscript source: the Overleaf-compatible project at
 Edit that project directly. `mappa_overleaf.zip` is its generated export, not
 another editable copy. Do not restore parallel manuscript trees or entry points.
 
+Keep the appendix limited to methods and evidence needed for the current paper.
+Do not include superseded benchmarks, old failure analyses, development history,
+or operational storage/retry protocols. Keep those in repository records and Git.
+Remove their unused tables, figures and build paths from the Overleaf export.
+Retain assumptions and measurement scope needed to interpret the current results.
+
 Keep the abstract focused on the problem, contribution, implications and main
 results. Mention the central approach only briefly, using accessible concepts
 such as shared molecular fragments. Do not introduce detailed methodology,
