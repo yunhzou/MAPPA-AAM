@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'bench'))
-from minimum_branches import composition, saved_branches
+from minimum_branches import composition, observed_centers, saved_branches
 from mappa import AAMProblem, decode_events, decoded_events_record
 from growth_cases import saved_fragment
 from test_event_interpretation import endpoint, saved
@@ -34,10 +34,14 @@ def test_internal_shuffles_and_repeated_branches_count_once_without_search(monke
     monkeypatch.setattr(_Search, 'run', forbidden)
     monkeypatch.setattr(EventSelection, 'find', forbidden)
     monkeypatch.setattr(OrderedSymmetryEvents, 'solve', forbidden)
-    counts, candidates, evaluated = saved_branches(record, target_count=0)
+    witnesses = set()
+    counts, candidates, evaluated = saved_branches(record, target_count=0, witnesses=witnesses)
     assert list(counts.values()) == [{0}]  # 24 minimum mappings, one composition.
     assert len(candidates) == 1 and evaluated == 2
     assert saved_branches(record, reverse=True, target_count=0)[0] == counts
+    assert len(witnesses) == 1
+    centers = observed_centers(AAMProblem(ep, ep), witnesses, record['event_policy'])
+    assert len(centers) == 1 and centers[0]['physical_event_count'] == 0
 
 
 def test_recount_preserves_sweep_and_does_not_claim_an_unstored_tie():
@@ -61,3 +65,21 @@ def test_fragment_atom_sets_define_identity_and_reverse_normalization():
     assert composition(pieces[::-1], {0: 5, 1: 4, 2: 7, 3: 6}) == original
     assert composition(((4, 5), (6, 7)), {4: 0, 5: 1, 6: 2, 7: 3}, True) == original
     assert composition(pieces, {0: 4, 1: 6, 2: 5, 3: 7}) != original
+
+
+def test_equal_event_totals_do_not_merge_different_reaction_centers():
+    ep = endpoint('CCCCON', [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.), (0, 4, 1.), (3, 5, 1.)])
+    mappings = [tuple(enumerate((1, 0, 2, 3, 4, 5))), tuple(enumerate((0, 1, 3, 2, 4, 5)))]
+    centers = observed_centers(AAMProblem(ep, ep), mappings, dict(threshold=.5, metal_threshold=.3))
+    assert len(centers) == 2
+    assert [value['physical_event_count'] for value in centers] == [4, 4]
+    assert centers[0]['events'] != centers[1]['events']
+
+
+def test_symmetry_equivalent_hydrogen_changes_share_a_reaction_center():
+    base = endpoint('COHH', [(0, 1, 1.), (0, 2, 1.), (0, 3, 1.)])
+    target = endpoint('COHH', [(0, 1, 1.), (0, 2, 1.), (1, 3, 1.)])
+    mappings = [tuple(enumerate((0, 1, 2, 3))), tuple(enumerate((0, 1, 3, 2)))]
+    centers = observed_centers(AAMProblem(base, target), mappings, dict(threshold=.5, metal_threshold=.3))
+    assert len(centers) == 1
+    assert centers[0]['physical_event_count'] == 2

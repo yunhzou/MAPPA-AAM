@@ -7,6 +7,7 @@ The result measures observed branches, not every attainable mapping or tie.
 import argparse
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 import gzip
 import hashlib
 import json
@@ -25,7 +26,7 @@ def composition(pieces, mapping, reverse=False):
                         for source, target in pairs))
 
 
-def saved_branches(record, *, reverse=False, target_count=None):
+def saved_branches(record, *, reverse=False, target_count=None, witnesses=None):
     """Recount existing choices; never prepare a decoder or call a solver."""
     if record['schema'] != 'mappa.decoded_events/v14':
         raise ValueError('Require a saved binary-fragment decoded record')
@@ -100,29 +101,57 @@ def saved_branches(record, *, reverse=False, target_count=None):
                     count -= int(tuple(sorted((a, b))) in source_boundary)
                     count -= int(pair in target_boundary)
             counts.setdefault(key, set()).add(count)
+            if witnesses is not None and count == target_count:
+                witnesses.add(tuple(sorted((b, a) if reverse else (a, b) for a, b in mapping.items())))
             evaluated += 1
     return counts, candidates, evaluated
 
 
-def analyze(rows):
+def observed_centers(problem, mappings, policy):
+    """Reuse MAPPA's physical event identity for existing concrete witnesses."""
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+    index = SignedEventIndex(problem, threshold=policy['threshold'],
+                             metal_threshold=policy['metal_threshold'])
+    centers = {}
+    for mapping in sorted(mappings):
+        value = index.describe(index.vector(dict(mapping)))
+        if value['id'] not in centers:
+            centers[value['id']] = dict(id=value['id'], events=value['events'],
+                                       physical_event_count=value['total'])
+    return tuple(centers[key] for key in sorted(centers))
+
+
+def analyze(rows, *, reaction_cores=False):
     from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
     records = [(row, read_blob(Blob(**row['decoded']), None).record) for row in rows]
     minimum = min(record['minimum_events'] for _, record in records)
-    counts, candidates, contexts = {}, set(), 0
+    counts, candidates, contexts, witnesses = {}, set(), 0, set()
     for row, record in records:
-        found, eligible, evaluated = saved_branches(record, reverse=row['reversed'], target_count=minimum)
+        found, eligible, evaluated = saved_branches(record, reverse=row['reversed'], target_count=minimum,
+                                                    witnesses=witnesses if reaction_cores else None)
         candidates.update(eligible)
         contexts += evaluated
         for key, values in found.items():
             counts.setdefault(key, set()).update(values)
-    return dict(case=rows[0]['case'], detected_minimum=minimum,
+    result = dict(case=rows[0]['case'], detected_minimum=minimum,
         branches=sum(minimum in values for values in counts.values()),
         eligible_compositions=len(candidates), evaluated_contexts=contexts,
         observed_below_detected=sum(min(values) < minimum for values in counts.values()),
         decoded_hashes=[row['decoded']['sha256'] for row in rows])
+    if reaction_cores:
+        from mappa.mappa_core.utils.io.records import problem_from_record
+        record = next(record for row, record in records if not row['reversed'])
+        started = time.perf_counter()
+        centers = observed_centers(problem_from_record(record.get('event_problem', record['problem'])),
+                                   witnesses, record['event_policy'])
+        result.update(reaction_cores=len(centers), saved_mappings=len(witnesses),
+                      center_seconds=time.perf_counter()-started,
+                      physical_event_counts=dict(sorted(Counter(c['physical_event_count'] for c in centers).items())),
+                      centers=centers)
+    return result
 
 
-def run(campaign, output, workers=1, cases=None):
+def run(campaign, output, workers=1, cases=None, reaction_cores=False):
     from decoded_reference import audit_inputs
     rows, hashes, _ = audit_inputs(campaign)
     grouped = defaultdict(list)
@@ -136,9 +165,12 @@ def run(campaign, output, workers=1, cases=None):
         original_hashes=hashes, runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         policy='Unique atom-set-pair compositions with a replayed saved local-witness composition at the saved detected minimum',
         additional_searches=0, results=[])
+    if reaction_cores:
+        report['reaction_core_policy'] = ('Observed signed physical bond-event patterns in the existing minimum-model-event '
+            'witnesses, including hydrogens; MAPPA signed_events/v3 equivalence; not an exhaustive symmetry search')
     output.parent.mkdir(parents=True, exist_ok=True)
     with ProcessPoolExecutor(max_workers=workers) as pool:
-        for row in pool.map(analyze, grouped.values()):
+        for row in pool.map(partial(analyze, reaction_cores=reaction_cores), grouped.values()):
             report['results'].append(row)
             if len(report['results']) % 100 == 0:
                 print(json.dumps(dict(completed=len(report['results']), expected=len(grouped))), flush=True)
@@ -149,7 +181,7 @@ def run(campaign, output, workers=1, cases=None):
                          elapsed_seconds=report['elapsed_seconds'])), flush=True)
 
 
-def publish(path, output):
+def publish(path, output, *, reaction_cores=False):
     """Publish aggregate evidence and a figure, with no infrastructure fields."""
     import matplotlib
     matplotlib.use('Agg')
@@ -158,11 +190,13 @@ def publish(path, output):
     rows = report['results']
     if len(rows) != report['expected'] or len({row['case'] for row in rows}) != len(rows):
         raise ValueError('Require the complete requested reaction scope')
-    values = np.array([row['branches'] for row in rows], dtype=int)
-    summary = dict(reactions=len(rows), policy=report['policy'], additional_searches=report['additional_searches'],
+    field = 'reaction_cores' if reaction_cores else 'branches'
+    values = np.array([row[field] for row in rows], dtype=int)
+    summary = dict(reactions=len(rows), policy=report['reaction_core_policy'] if reaction_cores else report['policy'],
+        additional_searches=report['additional_searches'], elapsed_seconds=report['elapsed_seconds'],
         distribution=dict(sorted(Counter(map(int, values)).items())),
         mean=float(values.mean()), median=float(np.median(values)), p95=float(np.percentile(values,95)),
-        maximum=int(values.max()), single_branch=int(np.count_nonzero(values==1)),
+        maximum=int(values.max()), single_choice=int(np.count_nonzero(values==1)),
         no_saved_witness_at_minimum=int(np.count_nonzero(values==0)),
         source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(), runner_sha256=report['runner_sha256'])
     output.mkdir(parents=True, exist_ok=True)
@@ -183,13 +217,16 @@ def publish(path, output):
             ax.annotate(f'{total:,}',(x,total),xytext=(0,5),textcoords='offset points',ha='center')
     ax.set(xticks=range(len(used)),xticklabels=[labels[i] for i in used],yscale='log',
         ylim=(.7,max(heights)*2.2),ylabel='Golden reactions (log scale)',
-        xlabel='Distinct branches with a recorded witness at the detected minimum')
+        xlabel=('Observed reaction centers among saved minimum-event witnesses' if reaction_cores else
+                'Distinct branches with a recorded witness at the detected minimum'))
     ax.set_title(f'Golden · {len(rows):,} reactions · one seed',loc='left',weight='bold',pad=14)
-    ax.text(1,1.02,'Internal symmetry arrangements count once',transform=ax.transAxes,
+    ax.text(1,1.02,('Symmetry-equivalent bond changes count once' if reaction_cores else
+                   'Internal symmetry arrangements count once'),transform=ax.transAxes,
             ha='right',va='bottom',color='#586974',fontsize=9)
     ax.grid(axis='y',alpha=.15); ax.set_axisbelow(True)
     for suffix in ('png','pdf','svg'):
-        fig.savefig(output/f'minimum-branches.{suffix}',dpi=220,facecolor='white')
+        name = 'minimum-reaction-centers' if reaction_cores else 'minimum-branches'
+        fig.savefig(output/f'{name}.{suffix}',dpi=220,facecolor='white')
     plt.close(fig)
     print(json.dumps(summary))
 
@@ -201,11 +238,13 @@ def main():
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--cases', type=int, nargs='+')
     parser.add_argument('--plot', action='store_true')
+    parser.add_argument('--reaction-cores', action='store_true',
+                        help='Group existing qualifying witnesses by physical bond-change pattern')
     args = parser.parse_args()
     if args.plot:
-        publish(args.campaign,args.output)
+        publish(args.campaign,args.output,reaction_cores=args.reaction_cores)
     else:
-        run(args.campaign, args.output, args.workers, args.cases)
+        run(args.campaign, args.output, args.workers, args.cases, args.reaction_cores)
 
 
 if __name__ == '__main__':
