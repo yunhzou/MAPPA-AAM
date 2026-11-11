@@ -34,17 +34,17 @@ latex_names=[n for n in names if Path(n).suffix in {'.tex','.bib','.cls','.sty',
 instructions='''# MAPPA on Overleaf
 
 1. Choose New Project > Upload Project and upload this ZIP.
-2. Set the main document to `preprint.tex`.
+2. Set the main document to `main.tex`.
 3. Select the XeLaTeX compiler, then Recompile.
 
 The manuscript, supplement, bibliography, figures, class and custom font are
 included. No Python processing or benchmark data is required to compile it.
 '''
 with zipfile.ZipFile(MAN/'mappa_overleaf.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
- for n in latex_names:z.write(MAN/n,n)
+ for n in latex_names:z.write(MAN/n,'main.tex' if n=='preprint.tex' else n)
  z.writestr('OVERLEAF.md',instructions)
 with zipfile.ZipFile(MAN/'mappa_overleaf.zip') as z:
  assert z.testzip() is None
- assert 'preprint.tex' in z.namelist()
+ assert 'main.tex' in z.namelist()
  for n in z.namelist():check_publication(n,z.read(n))
 print(f'Overleaf: {len(latex_names)+1} files, {(MAN/"mappa_overleaf.zip").stat().st_size/1e6:.2f} MB')

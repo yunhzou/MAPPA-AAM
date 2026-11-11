@@ -89,7 +89,7 @@ seed range and omits the cache-control comparison. No new experiments were run.
 ## Sources and build
 
 For Overleaf, upload `mappa_overleaf.zip` as a new project, select
-`preprint.tex` as the main document and use **XeLaTeX**. The ZIP includes the
+`main.tex` as the main document and use **XeLaTeX**. The ZIP includes the
 source, supplement, bibliography, figures, class and custom font; no Python
 processing is needed. The maintained bundle command also creates this archive.
 
