@@ -4,7 +4,7 @@ import z3
 import json
 from dataclasses import replace
 
-from mappa import AAMProblem, decode_events
+from mappa import AAMProblem, decode_events, extract_reaction_cores
 from mappa.mappa_core.post_processing.decoder.fragments import FragmentDecoder
 from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
@@ -81,6 +81,10 @@ def test_saved_sweep_results_preserve_refined_and_composed_witnesses(monkeypatch
     monkeypatch.setattr(OrderedSymmetryEvents, 'solve',
         lambda *a, **k: pytest.fail('reading saved composition must not refine its sweep'))
     assert restored.saved_minimum(1).event_count == 4
+    cores = extract_reaction_cores(restored)
+    assert {count for core in cores for count in core.model_event_counts} == {0, 4}
+    assert {context for core in cores for context in core.contexts} == {(0, 0, 0), (1, 0, 0)}
+    assert extract_reaction_cores(restored, event_count=2) == ()  # No new sweep search.
 
 
 def test_saved_branch_choices_are_shared_and_older_records_remain_readable():

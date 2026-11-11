@@ -18,6 +18,7 @@ from mappa.mappa_core.core.search.queries.partial import search_core_assignments
 from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint, ReactionContext, ResolvedMechanism, VibrationalModes
 from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
 from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
+from mappa.mappa_workflow.mapping_analytics.reaction_cores import ReactionCore, extract_reaction_cores
 from mappa.mappa_core.utils.io.records import aam_record, aam_from_record, reaction_from_record, reaction_record
 from mappa.mappa_core.utils.io.records import decoded_events_record, decoded_events_from_record
 from mappa.presentation.viewers import write_aam_bundle
@@ -55,6 +56,7 @@ __all__ = [
     "search_aam_checkpoints", "AAMCheckpointResult",
     "search_aam", "search_core_assignments",
     "analyze_transition_state",
+    "ReactionCore", "extract_reaction_cores",
     "ts_record", "write_ts_record",
     "reaction_record", "reaction_from_record",
     "WeightedGraph", "WeightedNode", "build_graph", "build_weighted_graph",

@@ -116,6 +116,19 @@ it does not enumerate all mappings or all attainable event counts. This is an
 approximate event model, not a global physical minimum. Use `decoded.evaluate`
 to check the physical events of a requested valid mapping.
 
+Optionally extract distinct reaction cores from the saved decoded witnesses:
+
+```python
+from mappa import extract_reaction_cores
+
+cores = extract_reaction_cores(decoded)
+minimum_cores = extract_reaction_cores(decoded, event_count=decoded.minimum_events)
+```
+
+Each core contains its bond changes, representative mapping and supporting branch
+references. Symmetry-equivalent changes count once. This explicit post-processing
+call groups observed net changes; it does not search additional symmetry choices.
+
 For many reactions, the [persistent work pool](docs/shared-execution.md) offers
 the same separate stages on local CPUs or inside one Slurm allocation, using RAM
 or aggregated result bundles. Scheduling stays outside the core algorithms.
@@ -360,8 +373,8 @@ EventInterpretation                       # separate event decoding
 |- approximate model minimum and event window
 `- original family/partition references and mapping constraints
 
-MechanismResult / AnalyticalAAMResult       # explicit family analysis
-`- analytical mapping families per mechanism
+ReactionCore                              # optional extract_reaction_cores call
+`- signed bond changes, representative mapping and decoded branch references
 
 ReactionContext                           # explicit TS input
 `- supplied mappings and corresponding bond events

@@ -205,7 +205,15 @@ for combined hierarchy pruning, each occurrence removes one child subtree.
 Use `graph.stop_context(stop)` for either a summary or a stop attached
 to a retained state. Historical checkpoints keep their original attached stops.
 
-Raw search does not classify or repair events. `decode_events` interprets original mappings; `refine_mapping` is separate experimental hierarchical matching. `AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to competition ordering; they do not configure decoding. TS analysis requires a `ReactionContext` supplied by the caller. The old mechanism-grouping API, its compiler and symmetry-repair options are removed. Full-result checkpoints containing those retired options must be read with their producing revision; current readers reject them rather than discard settings. Earlier fragment schemas require their producing revision; current readers reject them instead of reinterpreting their allowed mappings.
+Raw search does not classify or repair events. `decode_events` interprets original
+mappings; `refine_mapping` is separate experimental hierarchical matching.
+`AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to
+competition ordering; they do not configure decoding. `extract_reaction_cores`
+optionally groups saved decoded witnesses by their bond changes. TS analysis
+requires a `ReactionContext` supplied by the caller. Checkpoints containing
+retired symmetry-repair options or earlier fragment schemas require their
+producing revision; current readers reject them rather than discard settings
+or reinterpret their allowed mappings.
 
 ## Experimental fragment competition (optional; default off)
 
@@ -443,6 +451,39 @@ event responses use `events.event_problem`. `EventDecodeSession` accepts the sam
 keyword. When weights differ, saved records retain `problem` as the matching
 endpoints and additionally identify the original `event_problem`,
 `matching_problem_sha256` and `event_problem_sha256`.
+
+### Optional reaction-core extraction
+
+```python
+from mappa import extract_reaction_cores
+
+cores = extract_reaction_cores(events)  # saved witnesses within the decoded window
+minimum_cores = extract_reaction_cores(events, event_count=events.minimum_events)
+five_event_cores = extract_reaction_cores(events, event_count=5)
+
+for core in cores:
+    mapping = dict(core.mapping)        # base -> target
+    print(core.decreased_bonds)         # base atom indices; includes weakening
+    print(core.increased_bonds)         # target atom indices; includes strengthening
+    print(core.base_atoms, core.target_atoms)
+    print(core.contexts)                # (family, partition, cut) references
+```
+
+Branches breaking A–B and forming A–C share one core even if their fragment
+partitions differ. A branch breaking A–D remains separate unless the existing
+event symmetry identifies the two patterns. Equivalent hydrogen exchanges count
+once. `core.id` uses MAPPA's existing signed-event identity.
+
+`model_event_counts` lists the supporting saved counts used for window selection;
+`physical_event_count` counts the representative's actual bond changes. The two
+can differ under the decoder's ordinary-boundary approximation. The representative
+comes from the lowest saved model count in its group. `base_atoms` and
+`target_atoms` include unmatched boundary atoms on their respective endpoints.
+
+This function replays saved witnesses and groups their net changes. It does not
+search for additional internal symmetry choices, fill missing counts or infer
+elementary reaction pathways. Archives without saved branch counts are rejected.
+Call it explicitly after decoding; normal matching and decoding do not run it.
 
 `convert_fragments` and `refine_mapping` retain their existing hierarchical
 rematching behavior. They are separate from this model and are never invoked by

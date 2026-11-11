@@ -718,6 +718,30 @@ when requested; ordered contexts without a whole-fragment projection prepare
 the terms needed by their joint cost. Such terms share one local sequence and
 one action-position binding per branch use, rather than relabelled copies.
 
+## Optional reaction-core extraction
+
+`extract_reaction_cores(decoded)` is a separately called post-processing
+operation after decoding establishes its event window. It groups the saved
+witnesses inside that window by their signed physical bond-event pattern,
+using the existing event identity and thresholds. A requested event count can
+restrict the lookup. Different fragment compositions may describe the same
+reaction core; equal event totals alone do not make cores equivalent.
+
+Each core retains a representative base-to-target mapping, decreasing bonds
+in base indices, increasing bonds in target indices, and its supporting
+family/partition/cut references. Weakening and strengthening are included.
+Saved model counts remain separate from the representative's physical count.
+The operation reuses recorded choices without further matching, minimum search
+or enumeration of symmetry alternatives. Its output describes observed net
+reaction alternatives, not exhaustive cores or elementary-step pathways.
+It belongs to mapping analytics and is not invoked by the scientific pipeline.
+
+```mermaid
+flowchart LR
+    Saved[Decoded window and saved witnesses] -->|Explicit call| Cores[Group signed reaction cores]
+    Cores --> Output[Bond changes, representative mappings and branch references]
+```
+
 ## Local and distributed execution
 
 Simple local calls remain `search_aam`, `deduplicate` and `decode_events`.
