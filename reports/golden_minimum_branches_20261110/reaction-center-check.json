@@ -1,0 +1,19 @@
+{
+  "example": "C(CH2)4 controlled weighted graph",
+  "mappings": 384,
+  "reaction_centers": 5,
+  "event_counts": [
+    0,
+    2,
+    4,
+    6,
+    8
+  ],
+  "seconds": 0.04021662473678589,
+  "analysis_revision": "c035d9a",
+  "definition": "Signed physical bond-change patterns under MAPPA signed_events/v3 equivalence; hydrogen events included",
+  "algorithm": "Existing SignedEventIndex.describe; no additional mapping search",
+  "focused_tests": 5,
+  "smoke_tests": 26,
+  "golden_reaction_center_tally": "Not measured: remote Python environment stalled in shared-storage startup before worker creation"
+}

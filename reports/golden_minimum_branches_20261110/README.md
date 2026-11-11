@@ -58,3 +58,34 @@ per lookup on the local Mac. The four-reaction data check took 1.50 seconds.
 Reproduce from saved data with `bench/minimum_branches.py`; its `--plot` command
 uses the aggregate JSON. Operational configuration is private. The raw source
 archive remains on its original host; no benchmark is rerun.
+
+## Reaction-center follow-up
+
+Branch compositions do not establish distinct chemical alternatives. A follow-up
+in revision `c035d9a` groups the same saved minimum-model-event witnesses with
+MAPPA's existing `SignedEventIndex.describe` operation. It compares which bonds
+decrease or increase in order, modulo the existing source event-equivalence
+rule, including hydrogen events. Fragment partitions no longer enter identity.
+Physical whole-reaction events are counted directly; the saved decoder minimum
+still selects the witnesses and is not replaced with a new physical minimum.
+These endpoint change patterns are reaction centers, not complete mechanisms.
+
+The controlled C(CH2)4 weighted-graph check grouped 384 concrete mappings into
+five signed event patterns in **0.0402 seconds** on the local Mac. Their event
+counts are 0, 2, 4, 6 and 8; all zero-event mappings share one pattern. Five
+focused tests and 26 smoke tests passed, including different bond patterns with
+the same event total and equivalent hydrogen exchanges.
+
+The attempted eight-case Golden pilot did not reach scientific computation:
+Python startup stalled on shared storage, and its five-minute allocation ended
+with no recorded compute CPU time. A separate diagnostic also found an unreadable
+module in the remote environment. Thus no Golden reaction-center distribution
+or dataset timing is claimed here. The existing figure remains explicitly a
+branch-composition count. No additional symmetry alternatives are searched by
+the new analysis; an observed-pattern count is not an exhaustive count of every
+pattern permitted by a compressed fragment.
+
+Use `--reaction-cores` with the existing `bench/minimum_branches.py` runner and
+its `--plot` command. This extends the same read-only analysis rather than
+changing matching or decoding. Private evidence records the infrastructure
+failure. The local validation result is in `reaction-center-check.json`.
