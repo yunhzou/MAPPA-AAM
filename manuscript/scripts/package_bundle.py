@@ -11,6 +11,9 @@ names += ['evidence/'+n for n in ['current_benchmarks.json','branch_offsets.json
 names += ['scripts/'+n for n in ['build.sh','build_figures.py','validate_outputs.py','package_bundle.py','build_molecule_figure.py','build_benchmark_figures.py','build_alternatives_figure.py','publication_privacy.py']]
 names += ['evidence/'+n for n in ['decoded_verification_closure.json','decoded_verification_closure_directions.json.gz','paired_slap.json','minimum_choices.json','minimum_choices_reactions.json.gz','design_examples.json']]
 names += ['evidence/anchored_offsets.json', 'evidence/reference_offsets.json.gz']
+sources=json.loads((MAN/'evidence/paper_sources.json').read_text())
+names += ['evidence/'+row['snapshot'] for row in sources['snapshots']]
+names=sorted(set(names))
 for n in names:check_publication(n,(MAN/n).read_bytes())
 checks={n:hashlib.sha256((MAN/n).read_bytes()).hexdigest() for n in sorted(names)}
 with zipfile.ZipFile(MAN/'manuscript_bundle.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
@@ -24,3 +27,24 @@ with zipfile.ZipFile(MAN/'manuscript_bundle.zip') as z:
  assert z.testzip() is None
  for name in z.namelist():check_publication(name,z.read(name))
 print(f'Bundle: {len(names)} files, {(MAN/"manuscript_bundle.zip").stat().st_size/1e6:.2f} MB')
+
+# Overleaf only needs the editable source and its typesetting dependencies.
+latex_names=[n for n in names if Path(n).suffix in {'.tex','.bib','.cls','.sty','.bst','.ttf'}
+             or n.startswith('assets/') or (n.startswith('figs/') and n.endswith('.pdf'))]
+instructions='''# MAPPA on Overleaf
+
+1. Choose New Project > Upload Project and upload this ZIP.
+2. Set the main document to `preprint.tex`.
+3. Select the XeLaTeX compiler, then Recompile.
+
+The manuscript, supplement, bibliography, figures, class and custom font are
+included. No Python processing or benchmark data is required to compile it.
+'''
+with zipfile.ZipFile(MAN/'mappa_overleaf.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+ for n in latex_names:z.write(MAN/n,n)
+ z.writestr('OVERLEAF.md',instructions)
+with zipfile.ZipFile(MAN/'mappa_overleaf.zip') as z:
+ assert z.testzip() is None
+ assert 'preprint.tex' in z.namelist()
+ for n in z.namelist():check_publication(n,z.read(n))
+print(f'Overleaf: {len(latex_names)+1} files, {(MAN/"mappa_overleaf.zip").stat().st_size/1e6:.2f} MB')
