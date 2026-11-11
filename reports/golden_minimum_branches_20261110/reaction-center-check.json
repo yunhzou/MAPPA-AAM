@@ -15,5 +15,6 @@
   "algorithm": "Existing SignedEventIndex.describe; no additional mapping search",
   "focused_tests": 5,
   "smoke_tests": 26,
-  "golden_reaction_center_tally": "Not measured: remote Python environment stalled in shared-storage startup before worker creation"
+  "golden_reaction_center_tally": "Completed locally on all 1851 reactions; see reaction-centers/summary.json",
+  "golden_wall_seconds": 15.659639957826585
 }

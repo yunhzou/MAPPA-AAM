@@ -240,7 +240,7 @@ where $U$ is the detected minimum already saved by decoding, taking the lower co
 
 For references absent from the saved output, we fix their annotated pairs as anchors and complete the unspecified assignments with one seed per direction and no cut sweep. We compare the lowest attained completion count across both directions with the original $U$. The supplied pairs remain fixed, and the completed mapping is checked against the original bond matrices. These completion offsets are added to the same distribution, so that every reaction contributes once. Anchored completions do not contribute to independent mapping coverage.
 
-We separately count the distinct heavy-atom mapping classes actually attainable at the detected minimum, taking the union across retained branches and both directions. Chemical endpoint equivalence identifies repeated representations, and hydrogen permutations do not multiply the choice count; each class must admit a full valid completion. The ranking score remains the saved all-atom model count. If a reaction has $K$ choices and its reference class is present, a uniform selector succeeds with probability $1/K$; otherwise it succeeds with probability zero. This defines expected random-choice accuracy without a trained selector. Incomplete counts contribute bounds, not exact values. This analysis tests for any feasible hydrogen completion at the minimum; \Cref{eq:reference-offset} instead uses the recorded reference witness.
+We separately count the distinct reaction cores observed among saved mappings at the detected minimum. A core records which bonds decrease or increase in order, including bonds to hydrogen. Symmetry-equivalent atom labels count once, and different fragment partitions with the same bond-change pattern share one core. We combine both search directions in a common atom-index frame and evaluate changes directly from the original endpoint matrices. This measures the chemical differences between recorded alternatives without searching for additional symmetry arrangements.
 
 \section{Results}
 
@@ -310,18 +310,18 @@ Each offset describes a concrete reference-consistent mapping, including its sav
 
 Anchored completion succeeds for all 196 previously absent references, included in \Cref{fig:reference-offsets}. The completed count equals the original detected minimum for nine Golden and 83 EnzymeMap cases; nine EnzymeMap completions lie two events below it. The remaining completions lie above the detected minimum, reaching offsets of 12 in Golden and six in EnzymeMap. Every supplied pair is preserved, and each selected completion's model count agrees with direct counting from the original bond matrices.
 
-\subsection{How many branches remain at the minimum?}
+\subsection{How many reaction cores remain at the minimum?}
 \label{sec:minimum-choices}
 
-Minimum-event selection retains multiple fragment compositions (\Cref{fig:minimum-choices}). Across all 1,851 Golden reactions, the recorded choices at the detected minimum contain a median of 31 distinct branches, a mean of 51.06 and a 95th percentile of 120. Eight reactions have one branch, while the largest count is 2,250. Each branch is identified by its collection of paired fragment atom sets; internal symmetry arrangements and repeated search histories count once.
+Different fragment compositions can describe the same bond changes. Grouping the saved minimum-event mappings by their reaction cores gives one observed pattern for 1,252 of the 1,851 Golden reactions (67.64\%; \Cref{fig:minimum-choices}). The median is one core, the mean is 2.97, and the 95th percentile is four. Most reactions therefore have few observed alternatives under this criterion, although a small tail reaches 522 cores.
 
 \begin{figure}[!htbp]
 \centering\includegraphics[width=.88\linewidth]{figs/fig10_minimum_choices.pdf}
-\caption{\textbf{Branch compositions at the detected minimum.} Counts cover all 1,851 one-seed Golden reactions, combining both search directions. Each counted composition has a recorded witness attaining the saved detected minimum. Internal shuffles count once, and different fragment compositions remain distinct. The tally uses saved choices without further symmetry search. The vertical axis is logarithmic.}
+\caption{\textbf{Distinct reaction cores among saved minimum-event mappings.} Counts cover all 1,851 one-seed Golden reactions and combine both search directions. Each core identifies bonds whose orders decrease or increase, including hydrogen events. Symmetry-equivalent atom labels count once, and different fragment partitions with the same bond-change pattern are merged. The vertical axis is logarithmic.}
 \label{fig:minimum-choices}
 \end{figure}
 
-These branches expose alternative fragment constraints for subsequent selection or querying. Several compositions can support the same complete atom correspondence, so the branch count describes the retained representation rather than the number of chemically distinct mappings.
+The remaining alternatives differ in their bond-change patterns, rather than merely in how the search partitioned the molecule. Equal event totals can thus retain distinct reaction cores for subsequent chemical selection. These are endpoint changes; they do not specify the sequence of elementary steps.
 
 \FloatBarrier
 \section{Discussion}

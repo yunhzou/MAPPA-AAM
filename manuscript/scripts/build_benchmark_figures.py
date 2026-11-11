@@ -248,18 +248,18 @@ def build(man):
 
 def comparison_evidence(man):
     paired = json.loads((man/'evidence/paired_slap.json').read_text())
-    choices = json.loads((man/'evidence/minimum_branches.json').read_text())
-    rows = json.loads(gzip.decompress((man/'evidence/minimum_branches_reactions.json.gz').read_bytes()))
+    choices = json.loads((man/'evidence/minimum_reaction_centers.json').read_text())
+    rows = json.loads(gzip.decompress((man/'evidence/minimum_reaction_centers_reactions.json.gz').read_bytes()))
     assert paired['reactions'] == choices['reactions'] == len(rows) == 1851
     assert len({row['case'] for row in rows}) == 1851
     for result in paired['coverage'].values():
         assert sum(result.values()) == 1851
     assert paired['verification_audit']['disagreements'] == 0
     assert choices['additional_searches'] == choices['no_saved_witness_at_minimum'] == 0
-    assert all(row['branches'] > 0 and row['observed_below_detected'] == 0 for row in rows)
-    assert Counter(row['branches'] for row in rows) == {
+    assert all(row['reaction_cores'] > 0 and row['observed_below_detected'] == 0 for row in rows)
+    assert Counter(row['reaction_cores'] for row in rows) == {
         int(key): value for key, value in choices['distribution'].items()}
-    assert abs(np.mean([row['branches'] for row in rows])-choices['mean']) < 1e-12
+    assert abs(np.mean([row['reaction_cores'] for row in rows])-choices['mean']) < 1e-12
     return paired, choices, rows
 
 
@@ -297,20 +297,24 @@ def build_comparisons(man, save):
         ax.set_axisbelow(True)
     save(fig, 'fig9_paired_slap')
 
-    bounds = [1, 2, 5, 10, 20, 50, 100, 500, float('inf')]
-    labels = ['1', '2', '3–5', '6–10', '11–20', '21–50', '51–100', '101–500', '>500']
-    groups = Counter(next(i for i, bound in enumerate(bounds) if row['branches'] <= bound)
+    bounds = [1, 2, 3, 4, 5, 10, float('inf')]
+    labels = ['1', '2', '3', '4', '5', '6–10', '>10']
+    groups = Counter(next(i for i, bound in enumerate(bounds) if row['reaction_cores'] <= bound)
                      for row in rows)
-    fig, ax = plt.subplots(figsize=(8.8, 4.2), layout='constrained')
+    labels = labels[:max(groups)+1]
+    fig, ax = plt.subplots(figsize=(8.2, 4.2), layout='constrained')
     x = np.arange(len(labels))
     ax.bar(x, [groups[i] for i in x], color='#087F8C', width=.72)
     for i in x:
-        ax.annotate(f'{groups[i]:,}', (i, groups[i]), xytext=(0, 5),
-                    textcoords='offset points', ha='center', fontsize=9)
+        if groups[i]:
+            ax.annotate(f'{groups[i]:,}', (i, groups[i]), xytext=(0, 5),
+                        textcoords='offset points', ha='center', fontsize=10)
     ax.set_yscale('log')
-    ax.set(xticks=x, xticklabels=labels, ylim=(.7, 2000),
-           xlabel='Distinct branch compositions at the detected minimum', ylabel='Reactions (log scale)')
-    ax.set_title('MAPPA · Golden · all 1,851 reactions · internal shuffles count once', loc='left', weight='bold')
+    ax.set(xticks=x, xticklabels=labels, ylim=(.7, 3000),
+           xlabel='Distinct reaction cores among saved minimum-event mappings', ylabel='Reactions (log scale)')
+    ax.set_title('MAPPA · Golden · 1,851 reactions · one seed', loc='left', weight='bold', pad=12)
+    ax.text(1, 1.02, 'Equivalent bond-change patterns count once', transform=ax.transAxes,
+            ha='right', va='bottom', color='#586974', fontsize=8.5)
     ax.grid(axis='y', alpha=.15)
     ax.set_axisbelow(True)
     save(fig, 'fig10_minimum_choices')

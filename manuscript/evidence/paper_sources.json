@@ -131,13 +131,13 @@
     {
       "snapshot": "minimum_choices.json",
       "source": "reports/golden_minimum_choices_20261108/README.md",
-      "scope": "Historical heavy-mapping-class count; superseded in Figure 8 by recorded branch-composition counts.",
+      "scope": "Historical heavy-mapping-class count; Figure 8 now reports observed signed reaction cores in saved minimum-event mappings.",
       "sha256": "cd4c594ba7901a0d4601e08ab18f4f57279a32ae35e9d364e106d29ebed89c0b"
     },
     {
       "snapshot": "minimum_choices_reactions.json.gz",
       "source": "reports/golden_minimum_choices_20261108/reactions.json.gz",
-      "scope": "Historical heavy-mapping-class count; superseded in Figure 8 by recorded branch-composition counts.",
+      "scope": "Historical heavy-mapping-class count; Figure 8 now reports observed signed reaction cores in saved minimum-event mappings.",
       "sha256": "4f91346b137ac2af6ddc8b17c140a19d63bc9567d5b290a6cc38d5c7c38da460"
     },
     {
@@ -161,15 +161,27 @@
     {
       "snapshot": "minimum_branches.json",
       "source": "reports/golden_minimum_branches_20261110/summary.json",
-      "scope": "All 1851 Golden reactions; unique fragment atom-set compositions with recorded witnesses at the saved minimum; no additional search.",
+      "scope": "Historical branch-composition count; retained for comparison, not used as reaction-core identity.",
       "sha256": "113ef9288e5e6f109abaa02bf6de3b46651ca301430694c1c56a206e7b4aa526"
     },
     {
       "snapshot": "minimum_branches_reactions.json.gz",
       "source": "reports/golden_minimum_branches_20261110/reactions.json.gz",
-      "scope": "All 1851 Golden reactions; unique fragment atom-set compositions with recorded witnesses at the saved minimum; no additional search.",
+      "scope": "Historical branch-composition count; retained for comparison, not used as reaction-core identity.",
       "sha256": "6f6e1808e329990e6c7a159610396df62bf282826d57fa3b8063b4ac2ddc7fba"
+    },
+    {
+      "snapshot": "minimum_reaction_centers.json",
+      "source": "reports/golden_minimum_branches_20261110/reaction-centers/summary.json",
+      "scope": "All 1851 Golden reactions; observed signed physical bond-change patterns among saved minimum-event witnesses, including hydrogens; equivalent labels merged; no further mapping search.",
+      "sha256": "6f9d3f8bc85c46931ec1a1bdb9ca32c8c51d543b7cf007f2cc59e799be949fa3"
+    },
+    {
+      "snapshot": "minimum_reaction_centers_reactions.json.gz",
+      "source": "reports/golden_minimum_branches_20261110/reaction-centers/reactions.json.gz",
+      "scope": "All 1851 Golden reactions; observed signed physical bond-change patterns among saved minimum-event witnesses, including hydrogens; equivalent labels merged; no further mapping search.",
+      "sha256": "780fa760eae93fa7ee948ee9e8c7b6f2858c646d56fb5fc75800ba2f1f3a9cac"
     }
   ],
-  "limits": "All current Golden and EnzymeMap decoded reaction memberships are resolved. Branch-event analysis has 49,509 exact offsets and 120 bounded intervals; no pending tasks are presented. September studies retain their original protocols."
+  "limits": "Current full-dataset reference and event-offset analyses are complete. Reaction-core counts describe observed saved minimum-event witnesses, without enumerating further symmetry alternatives. Historical studies retain their original protocols."
 }

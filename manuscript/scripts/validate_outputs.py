@@ -90,8 +90,15 @@ assert sum(r['reference_reindexed'] for r in anchored['results']) == 11
 assert paired['coverage']['mappa']['recovered'] == 1839
 assert paired['coverage']['slap_sweep']['recovered'] == 1794
 assert paired['coverage']['slap_bidirectional']['recovered'] == 1620
-assert choices['median'] == 31 and choices['p95'] == 120
-assert choices['maximum'] == 2250 and choices['additional_searches'] == 0
+assert choices['additional_searches'] == 0
+original_branches = {r['case']: r for r in json.loads(gzip.decompress((E/'minimum_branches_reactions.json.gz').read_bytes()))}
+for row in choice_rows:
+ original = original_branches[row['case']]
+ assert all(row[key] == original[key] for key in ('detected_minimum', 'branches'))
+ assert sorted(row['decoded_hashes']) == sorted(original['decoded_hashes'])
+ assert 1 <= row['reaction_cores'] <= row['saved_mappings']
+ assert row['reaction_cores'] == len({center['id'] for center in row['centers']})
+ assert row['reaction_cores'] == sum(row['physical_event_counts'].values())
 from build_molecule_figure import check_example, check_design_examples
 assert read('molecule_example.json') == json.loads(json.dumps(check_example()))
 assert read('design_examples.json') == check_design_examples()
@@ -197,7 +204,7 @@ r=PdfReader(MAN/'manuscript.pdf');pages=[p.extract_text() for p in r.pages];allt
 assert '??' not in alltext
 for value in ['1,833','1,842','47,796','47,798','99.629','49,825','1,630','44,086','88.06','91.90']:
  assert value in alltext,value
-for value in ['1,839','1,794','1,620','96.921','51.06','2,250']:
+for value in ['1,839','1,794','1,620','96.921',f"{choices['mean']:.2f}",f"{choices['single_choice']:,}"]:
  assert value in alltext,value
 assert 'cache control' not in paper.lower() and 'cache speedup' not in paper.lower()
 assert 'approximately linearly' in paper

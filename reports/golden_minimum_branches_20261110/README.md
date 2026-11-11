@@ -1,4 +1,7 @@
-# Saved minimum-event branch compositions in Golden
+# Minimum-event choices in Golden
+
+The current manuscript uses **reaction cores**, reported below. The earlier
+branch-composition tally is retained here as a representation-level comparison.
 
 All **1,851 reactions** have at least one recorded fragment composition at the
 saved detected minimum. Both directions are included and normalized to the same
@@ -59,33 +62,53 @@ Reproduce from saved data with `bench/minimum_branches.py`; its `--plot` command
 uses the aggregate JSON. Operational configuration is private. The raw source
 archive remains on its original host; no benchmark is rerun.
 
-## Reaction-center follow-up
+## Reaction-core result (current Figure 8)
 
-Branch compositions do not establish distinct chemical alternatives. A follow-up
-in revision `c035d9a` groups the same saved minimum-model-event witnesses with
-MAPPA's existing `SignedEventIndex.describe` operation. It compares which bonds
-decrease or increase in order, modulo the existing source event-equivalence
-rule, including hydrogen events. Fragment partitions no longer enter identity.
-Physical whole-reaction events are counted directly; the saved decoder minimum
-still selects the witnesses and is not replaced with a new physical minimum.
-These endpoint change patterns are reaction centers, not complete mechanisms.
+Across all **1,851 Golden reactions**, **1,252 (67.64%)** have one observed
+reaction core among their saved minimum-event mappings. The complete local pass
+took **15.66 seconds** with eight processes, including data loading and saved
+witness replay. Data transfer is excluded. There were no missing reactions.
 
-The controlled C(CH2)4 weighted-graph check grouped 384 concrete mappings into
-five signed event patterns in **0.0402 seconds** on the local Mac. Their event
-counts are 0, 2, 4, 6 and 8; all zero-event mappings share one pattern. Five
-focused tests and 26 smoke tests passed, including different bond patterns with
-the same event total and equivalent hydrogen exchanges.
+| Statistic | Observed reaction cores |
+|---|---:|
+| Median | 1 |
+| Mean | 2.97 |
+| 95th percentile | 4 |
+| Maximum | 522 |
+| Reactions with one core | 1,252 |
+| Reactions with at most four cores | 1,787 (96.54%) |
 
-The attempted eight-case Golden pilot did not reach scientific computation:
-Python startup stalled on shared storage, and its five-minute allocation ended
-with no recorded compute CPU time. A separate diagnostic also found an unreadable
-module in the remote environment. Thus no Golden reaction-center distribution
-or dataset timing is claimed here. The existing figure remains explicitly a
-branch-composition count. No additional symmetry alternatives are searched by
-the new analysis; an observed-pattern count is not an exhaustive count of every
-pattern permitted by a compressed fragment.
+![Observed reaction cores at the detected minimum](reaction-centers/minimum-reaction-centers.png)
 
-Use `--reaction-cores` with the existing `bench/minimum_branches.py` runner and
-its `--plot` command. This extends the same read-only analysis rather than
-changing matching or decoding. Private evidence records the infrastructure
-failure. The local validation result is in `reaction-center-check.json`.
+The analysis in revision `c035d9a` groups the same saved minimum-event witnesses
+using MAPPA's existing `SignedEventIndex.describe` operation. A core identifies
+which bonds decrease or increase in order, modulo its existing source
+event-equivalence rule. Hydrogen events are included. Different fragment
+partitions with the same pattern count once. These endpoint change patterns are
+reaction cores, not complete mechanisms. The tally does not search unrecorded
+symmetry alternatives or measure top-1 accuracy.
+
+Both search directions are normalized to the original endpoint indexing.
+Minimum-event selection uses the original saved decoder count. For every pattern
+observed in this study, direct physical whole-reaction counting also equals that
+saved minimum. All 3,702 decoded-output checksums, the original input/index/ledger
+hashes, and all previously measured branch counts and minima were verified.
+Matching and decoding were not rerun. The earlier heavy-atom mapping-class
+analysis and this all-atom bond-pattern count measure different choices: hydrogen
+assignments can change a reaction core without changing the heavy-atom mapping.
+
+The initial remote pilot stalled before computation because its shared runtime
+was unreadable. The user requested local execution; the saved outputs were
+copied into the ignored private area and checksum-verified. The final analysis
+completed locally. Operational details remain private.
+
+Five focused tests and 26 smoke tests passed for the analysis implementation,
+including equal event totals with different patterns and equivalent hydrogen
+exchanges. The controlled 384-mapping check grouped five event patterns in
+0.0402 seconds. Full-dataset evidence and validation are in
+`reaction-centers/summary.json`, `reaction-centers/reactions.json.gz` and
+`reaction-centers/validation.json`. The manuscript uses the same evidence.
+
+Reproduce from a saved campaign or transferred manifest with
+`bench/minimum_branches.py --reaction-cores`; its `--plot --reaction-cores`
+command publishes the distribution. No additional mapping search is performed.

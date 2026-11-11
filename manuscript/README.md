@@ -73,12 +73,15 @@ and means **0.487/1.259 s**. Speed claims retain their protocol and denominator.
 The expanded wrapper changes weight mode and search scope; it is not a
 sweep-only ablation. All comparator verdicts passed an independent audit.
 
-Minimum-event branch counting covers all **1,851 Golden reactions**. Distinct
-fragment compositions have a median of **31**, mean **51.06**, 95th percentile
-**120** and maximum **2,250**. Internal shuffles count once. The calculation uses
-saved choices without further search and takes **36.7 seconds** with eight
-processes. Branch compositions can overlap in their represented mappings, so
-these counts are not a random-selection accuracy measure.
+Reaction-core counting covers all **1,851 Golden reactions**. The saved
+minimum-event mappings give **1,252 reactions with one observed core (67.64%)**,
+a median of **one**, mean **2.97**, 95th percentile **four** and maximum **522**.
+Cores identify signed bond changes, including hydrogen events; equivalent atom
+labels and different fragment partitions with the same pattern count once.
+The complete analysis took **15.66 seconds** on the local Mac with eight processes,
+including loading and replaying the saved choices. No matching, decoding or
+additional symmetry search was performed. The earlier branch-composition count
+is retained only as historical evidence.
 
 The paper reports approximately linear matching cost over the measured one-to-ten
 seed range and omits the cache-control comparison. No new experiments were run.
@@ -106,7 +109,7 @@ the adjacent page; the final PDF is checked against those citation locations.
 - `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
 - `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
 - `figs/fig9_paired_slap.*`: paired comparator coverage and CPU costs.
-- `figs/fig10_minimum_choices.*`: recorded branch compositions at the detected minimum.
+- `figs/fig10_minimum_choices.*`: observed reaction cores among saved minimum-event mappings.
 - `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
 - `figs/fig2_golden.*` and `figs/fig3_coordinate.*`: archived supplementary studies.
 

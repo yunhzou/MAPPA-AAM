@@ -183,16 +183,18 @@ weight modes relative to the standard forward-only call; its gain is not a
 sweep-only ablation. `evidence/paired_slap.json` retains the scientific summary
 and hashes of the full source report and independent verification audit.
 
-The [branch-composition analysis](../reports/golden_minimum_branches_20261110/README.md)
-uses the original one-seed Golden outputs. It counts distinct collections of
-paired fragment atom sets with a recorded witness at the saved detected minimum.
-Internal atom permutations and repeated histories count once; distinct partitions
-remain distinct even if they support the same full mapping. All 1,851 reactions
-are represented. The count pass replays saved local choices and directly counts
-events, without symmetry queries or optimization. Evidence is in
-`evidence/minimum_branches.json` and `evidence/minimum_branches_reactions.json.gz`.
-The older heavy-mapping-class analysis is retained only as historical evidence.
-These branch counts do not imply uniform-selector accuracy.
+The [reaction-core analysis](../reports/golden_minimum_branches_20261110/README.md)
+uses the original one-seed Golden decoded outputs and their unchanged detected
+minima. It combines saved qualifying witnesses across both directions, then
+groups their signed physical bond-change patterns with MAPPA's existing
+`signed_events/v3` identity. Hydrogen events are included, equivalent atom labels
+count once, and fragment partitioning does not define a new core. All 1,851
+reactions are represented. No matching, decoding or additional symmetry search
+is performed. Evidence is in `evidence/minimum_reaction_centers.json` and
+`evidence/minimum_reaction_centers_reactions.json.gz`. The older mapping-class
+and branch-composition tallies remain historical evidence; neither supplies the
+current figure. These observed patterns do not count all alternatives hidden
+inside unqueried symmetry responses.
 
 The constructed design figures are checked by direct pairwise bond comparison
 in `build_molecule_figure.py`. They are graph illustrations without hydrogen
